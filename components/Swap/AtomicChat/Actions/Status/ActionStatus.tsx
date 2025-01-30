@@ -18,7 +18,9 @@ const ActionStatus: FC<Props> = ({ title, status }) => {
             {resolveIcon(status)}
         </div>
         <div
-            className={'text-md text-left self-center text-primary-text'}
+              className={clsx('text-md text-left self-center text-primary-text', {
+                '!text-black': status === 'success',
+            })}
         >
             {title}
         </div>
@@ -34,7 +36,7 @@ const resolveIcon = (status: "pending" | "success" | "error") => {
                 <div className='relative top-0 left-0 w-6 h-6 md:w-7 md:h-7 scale-50 bg-accent rounded-full '></div>
             </>
         case "success":
-            return <CheckedIcon className="h-8 w-8 !text-accent" aria-hidden="true" />
+            return <CheckedIcon className="h-8 w-8 text-black" aria-hidden="true" />
         case "error":
             return <CircleX className="h-7 w-7 text-red-500" aria-hidden="true" />
     }

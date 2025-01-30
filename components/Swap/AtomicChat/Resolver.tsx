@@ -163,7 +163,7 @@ const ResolveAction: FC = () => {
             title={
                 <div className="flex flex-col space-y-0">
                     <p className="text-base leading-5 font-medium">Transaction Completed</p>
-                    <div className="inline-flex gap-1 items-center text-sm text-primary-text/70">
+                    <div className="inline-flex gap-1 items-center text-sm">
                         <p>ID:</p> {(lpRedeemTransaction && destination_network) ? <Link className="underline hover:no-underline" target="_blank" href={destination_network?.transaction_explorer_template.replace('{0}', lpRedeemTransaction.hash)}>{shortenAddress(lpRedeemTransaction?.hash)}</Link> : <div className="h-3 w-14 bg-gray-400 animate-pulse rounded" />}
                     </div>
                 </div>
@@ -177,7 +177,7 @@ const ResolveAction: FC = () => {
                 title={
                     <div className="flex flex-col space-y-0">
                         <p className="text-base leading-5 font-medium">Refund Completed</p>
-                        <div className="inline-flex gap-1 items-center text-sm text-primary-text/70">
+                        <div className="inline-flex gap-1 items-center text-sm">
                             <p>ID:</p> {(refundTxId && source_network) ? <Link className="underline hover:no-underline" target="_blank" href={source_network?.transaction_explorer_template.replace('{0}', refundTxId)}>{shortenAddress(refundTxId)}</Link> : <div className="h-3 w-14 bg-gray-400 animate-pulse rounded" />}
                         </div>
                     </div>
