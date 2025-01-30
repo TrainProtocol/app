@@ -1,10 +1,10 @@
 
 <br />
 <div align="left">
-  <h1 align="left">UI for Layerswap web application</h1>
+  <h1 align="left">UI for Train web application</h1>
 </div>
  
-This repository contains implementation of Layerswap UI
+This repository contains implementation of Train UI
 
  
 
@@ -20,8 +20,10 @@ This repository contains implementation of Layerswap UI
 ### Required environment variables
 
   ```yaml
-  NEXT_PUBLIC_LS_API = https://api-dev.layerswap.cloud/
+  NEXT_PUBLIC_TRAIN_API = https://atomic-dev.layerswap.cloud/
   NEXT_PUBLIC_API_KEY = mainnet #sandbox for testnets
-  NEXT_PUBLIC_IDENTITY_API = https://identity-api-dev.layerswap.cloud/
+
+  NEXT_PUBLIC_ALCHEMY_KEY = <YOUR_ALCHEMY_KEY> #required for light client calls
+  NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID = <YOUR_WALLETCONNECT_PROJECT_ID>
   ```
 
