@@ -19,7 +19,7 @@ const GLobalFooter = () => {
         social: [
             {
                 name: 'Twitter',
-                href: 'https://twitter.com/layerswap/',
+                href: 'https://x.com/trainprotocol',
                 icon: () => (
                     <TwitterLogo className="h-6 w-6" aria-hidden="true" />
                 ),
@@ -33,7 +33,7 @@ const GLobalFooter = () => {
             },
             {
                 name: 'GitHub',
-                href: 'https://github.com/layerswap/layerswapapp/',
+                href: 'https://github.com/TrainProtocol/app',
                 icon: () => (
                     <GitHubLogo className="h-6 w-6" aria-hidden="true" />
                 ),
@@ -47,7 +47,7 @@ const GLobalFooter = () => {
             },
             {
                 name: 'Docs',
-                href: 'https://v8-docs.layerswap.io/protocol/introduction',
+                href: 'https://docs.train.tech/protocol/introduction',
                 icon: () => (
                     <BookOpen className="h-6 w-6" aria-hidden="true" />
                 ),

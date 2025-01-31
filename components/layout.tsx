@@ -97,10 +97,12 @@ export default function Layout({ children, settings, themeData }: Props) {
   return (<>
     <Head>
       <title>Train | Permissionless and trustless asset bridging protocol</title>
-      <link rel="apple-touch-icon" sizes="180x180" href={`https://app.train.tech/favicon/apple-touch-icon.png`} />
-      <link rel="icon" type="image/png" sizes="32x32" href={`https://app.train.tech/favicon/favicon-32x32.png`} />
-      <link rel="icon" type="image/png" sizes="16x16" href={`https://app.train.tech/favicon/favicon-16x16.png`} />
-      <link rel="manifest" href={`https://app.train.tech/favicon/site.webmanifest`} />
+      <link rel="icon" type="image/png" href="favicon/favicon-96x96.png" sizes="96x96" />
+      <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+      <link rel="shortcut icon" href="/favicon/favicon.ico" />
+      <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+      <meta name="apple-mobile-web-app-title" content="Train Protocol" />
+      <link rel="manifest" href={`/favicon/site.webmanifest`} />
       <link rel="canonical" href="https://app.train.tech/" />
       <meta name="msapplication-TileColor" content="#ffffff" />
       <meta name="theme-color" content={`rgb(${themeData.secondary?.[900]})`} />

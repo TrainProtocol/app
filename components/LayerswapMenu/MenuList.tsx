@@ -123,13 +123,13 @@ const navigation = {
     social: [
         {
             name: 'Twitter',
-            href: 'https://twitter.com/layerswap/',
+            href: 'https://x.com/trainprotocol',
             icon: (props) => TwitterLogo(props),
             className: 'plausible-event-name=Twitter'
         },
         {
             name: 'GitHub',
-            href: 'https://github.com/layerswap/layerswapapp/',
+            href: 'https://github.com/TrainProtocol/app',
             icon: (props) => GitHubLogo(props),
             className: 'plausible-event-name=GitHub'
         },
