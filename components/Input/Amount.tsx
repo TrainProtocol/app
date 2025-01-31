@@ -69,7 +69,7 @@ const AmountField = forwardRef(function AmountField(_, ref: any) {
             <div className="relative w-full">
                 <NumericInput
                     placeholder={placeholder}
-                    min={minAllowedAmount}
+                    min={minAllowedAmount || 0}
                     max={maxAllowedAmount || 0}
                     step={isNaN(step) ? 0.01 : step}
                     name={name}
