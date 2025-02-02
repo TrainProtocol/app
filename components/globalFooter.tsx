@@ -1,8 +1,6 @@
 import Link from "next/link";
 import TwitterLogo from "./Icons/TwitterLogo";
-import DiscordLogo from "./Icons/DiscordLogo";
 import GitHubLogo from "./Icons/GitHubLogo";
-import YoutubeLogo from "./Icons/YoutubeLogo";
 import { BookOpen } from "lucide-react";
 
 const GLobalFooter = () => {
@@ -25,24 +23,10 @@ const GLobalFooter = () => {
                 ),
             },
             {
-                name: 'Discord',
-                href: 'https://discord.gg/layerswap',
-                icon: () => (
-                    <DiscordLogo className="h-6 w-6" aria-hidden="true" />
-                ),
-            },
-            {
                 name: 'GitHub',
                 href: 'https://github.com/TrainProtocol/app',
                 icon: () => (
                     <GitHubLogo className="h-6 w-6" aria-hidden="true" />
-                ),
-            },
-            {
-                name: 'YouTube',
-                href: 'https://www.youtube.com/@layerswaphq/',
-                icon: () => (
-                    <YoutubeLogo className="h-6 w-6" aria-hidden="true" />
                 ),
             },
             {

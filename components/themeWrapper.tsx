@@ -14,8 +14,8 @@ export default function ThemeWrapper({ children }: Props) {
                 <Toaster position="top-center" toastOptions={{
                     duration: 5000,
                     style: {
-                        background: '#131E36',
-                        color: '#a4afc8'
+                        background: '#1b1b1b',
+                        color: '#D9D9D9'
                     },
                     position: 'top-center',
 

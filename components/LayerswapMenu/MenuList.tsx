@@ -4,14 +4,12 @@ import { FC, useEffect, useState } from "react";
 import { useIntercom } from "react-use-intercom";
 import ChatIcon from "../Icons/ChatIcon";
 import inIframe from "../utils/inIframe";
-import DiscordLogo from "../Icons/DiscordLogo";
 import GitHubLogo from "../Icons/GitHubLogo";
 import SubstackLogo from "../Icons/SubstackLogo";
 import TwitterLogo from "../Icons/TwitterLogo";
 import Link from "next/link";
 import Popover from "../Modal/popover";
 import SendFeedback from "../sendFeedback";
-import YoutubeLogo from "../Icons/YoutubeLogo";
 import Menu from "./Menu";
 import dynamic from "next/dynamic";
 import { MenuStep } from "../../Models/Wizard";
@@ -132,18 +130,6 @@ const navigation = {
             href: 'https://github.com/TrainProtocol/app',
             icon: (props) => GitHubLogo(props),
             className: 'plausible-event-name=GitHub'
-        },
-        {
-            name: 'Discord',
-            href: 'https://discord.com/invite/KhwYN35sHy/',
-            icon: (props) => DiscordLogo(props),
-            className: 'plausible-event-name=Discord'
-        },
-        {
-            name: 'YouTube',
-            href: 'https://www.youtube.com/@layerswaphq/',
-            icon: (props) => YoutubeLogo(props),
-            className: 'plausible-event-name=Youtube'
         },
         {
             name: 'Substack',

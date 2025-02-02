@@ -17,7 +17,7 @@ import FeeDetailsComponent from "../../FeeDetails";
 import { useFee } from "../../../context/feeContext";
 import AmountField from "../../Input/Amount"
 import dynamic from "next/dynamic";
-import { Balance, Gas } from "../../../Models/Balance";
+import { Balance } from "../../../Models/Balance";
 import ResizablePanel from "../../ResizablePanel";
 import { RouteNetwork } from "../../../Models/Network";
 import { resolveRoutesURLForSelectedToken } from "../../../helpers/routes";
@@ -185,33 +185,16 @@ const SwapForm: FC<Props> = ({ partner }) => {
                                 <NetworkFormField direction="to" label="To" className="rounded-b-componentRoundness" />
                             </div>}
                         </div>
-                        {
-                            !(source || destination) ?
-                                <div className="pt-2">
-                                    <h1 className="mt-2 text-xl font-bold tracking-tight text-primary-text flex gap-1 items-center">New Atomic Bridging Protocol</h1>
-                                    <p className="mt-3 mb-5 text-md leading-1 text-secondary-text ">
-                                        Experience fully permissionless and trustless bridging without relying on any third party.
-                                    </p>
-                                    <a className="mt-6 text-sm  cursor-pointer leading-1 text-primary hover:underline flex items-center gap-1 w-fit"
-                                        href="https://v8-docs.layerswap.io/protocol/introduction" target="_blank" rel="noreferrer"
-                                    >
-                                        <span>Learn more about the protocol</span> <ExternalLink className="w-4 h-4" />
-                                    </a>
-                                </div>
-                                :
-                                <>
-                                    <div className="mb-6 leading-4">
-                                        <AmountField />
-                                    </div>
-                                    <div className="w-full">
-                                        <FeeDetailsComponent values={values} />
-                                        {
-                                            values.amount &&
-                                            <ReserveGasNote onSubmit={(walletBalance, networkGas) => handleReserveGas(walletBalance, networkGas)} />
-                                        }
-                                    </div>
-                                </>
-                        }
+                        <div className="mb-6 leading-4">
+                            <AmountField />
+                        </div>
+                        <div className="w-full">
+                            <FeeDetailsComponent values={values} />
+                            {
+                                values.amount &&
+                                <ReserveGasNote onSubmit={(walletBalance, networkGas) => handleReserveGas(walletBalance, networkGas)} />
+                            }
+                        </div>
                     </Widget.Content>
                 </ResizablePanel>
                 <Widget.Footer>

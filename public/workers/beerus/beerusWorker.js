@@ -38,15 +38,16 @@ async function getCommit(commitConfigs) {
         async function getCommitDetails() {
             try {
                 const call = {
-                    execute: {
-                        calldata: [
-                            "0x1",
+                    "execute": {
+                        "calldata": [
+                            "0x266ca",
                             "0x0"
                         ],
-                        contract_address: '0x047e9bb930cd69fbf37d57dc168562c15224b5c82d2e7d55d185d7259553d43d',
-                        entry_point_selector: "0x12c1391cfaa9ef9e9ca09ecc94bd018890bd054699849cb213e73508977b704"
+                        "contract_address": "0x47e9bb930cd69fbf37d57dc168562c15224b5c82d2e7d55d185d7259553d43d",
+                        "entry_point_selector": "0x12c1391cfaa9ef9e9ca09ecc94bd018890bd054699849cb213e73508977b704"
                     }
-                };
+                }
+
                 const res = await starknetCall(call);
                 debugger
                 return res;
@@ -90,29 +91,29 @@ async function starknetCall(commitConfigs) {
     if (request.hasOwnProperty('state')) {
         try {
             let state = await self.client.get_state();
-            return `{"id":${request.id},"result":${state}}`;
+            return state
         }
         catch (e) {
             console.error(e);
             let error = sanitize(e.toString());
-            return `{"id":${request.id},"error":"${error}"}`;
+            return error
         }
     }
     else if (request.hasOwnProperty('execute')) {
         let req = JSON.stringify(request['execute']);
         try {
             let result = await self.client.execute(req);
-            return `{"id":${request.id},"result":${result}}`;
+            return result
         }
         catch (e) {
             console.error(e);
             let error = sanitize(e.toString());
-            return `{"id":${request.id},"error":"${error}"}`;
+            return error
         }
     }
     else {
         console.error('worker: unknown request: ', commitConfigs.data);
-        return `{"id":${request.id},"error": "unknown request"}`;
+        return "unknown request"
     }
 }
 ;
