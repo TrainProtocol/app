@@ -1,14 +1,14 @@
 import { FC, useEffect, useState } from "react"
 import useWallet from "../../../../hooks/useWallet";
-import { CommitStatus, useAtomicState } from "../../../../context/atomicContext";
+import { useAtomicState } from "../../../../context/atomicContext";
 import ActionStatus from "./Status/ActionStatus";
 import { WalletActionButton } from "../../buttons";
 import { TriangleAlert } from "lucide-react";
 
 export const RedeemAction: FC = () => {
-    const { destination_network, source_network, sourceDetails, destinationDetails, setDestinationDetails, setSourceDetails, destination_asset, source_asset, commitId, commitStatus, setError } = useAtomicState()
+    const { destination_network, source_network, sourceDetails, destinationDetails, setDestinationDetails, setSourceDetails, destination_asset, source_asset, commitId, commitFromApi, setError } = useAtomicState()
     const [requestedManualClaim, setRequestedManualClaim] = useState(false)
-
+    const [sourceClaimTime, setSourceClaimTime] = useState<number | undefined>(undefined)
     const { getProvider } = useWallet()
 
     const source_provider = source_network && getProvider(source_network, 'withdrawal')
@@ -16,6 +16,11 @@ export const RedeemAction: FC = () => {
     const destination_wallet = destination_provider?.activeWallet
     const destination_contract = destination_asset?.contract ? destination_network?.metadata.htlc_token_contract : destination_network?.metadata.htlc_native_contract
     const source_contract = source_asset?.contract ? source_network?.metadata.htlc_token_contract : source_network?.metadata.htlc_native_contract
+
+    const userLockTransaction = commitFromApi?.transactions.find(t => t.type === 'addlocksig')
+    const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
+
+    const isManualClaimable = !!(assetsLocked && sourceDetails?.claimed == 3 && destinationDetails?.claimed != 3 && (sourceClaimTime && (Date.now() - sourceClaimTime > 30000)))
 
     useEffect(() => {
         let commitHandler: any = undefined;
@@ -51,7 +56,7 @@ export const RedeemAction: FC = () => {
                     if (!source_network?.chain_id)
                         throw Error("No chain id")
                     if (!source_provider)
-                        throw new Error("No destination provider")
+                        throw new Error("No source provider")
 
                     const data = await source_provider.getDetails({
                         type: source_asset?.contract ? 'erc20' : 'native',
@@ -62,12 +67,13 @@ export const RedeemAction: FC = () => {
                     if (data) setSourceDetails(data)
                     if (data?.claimed == 3) {
                         clearInterval(commitHandler)
+                        if (!sourceClaimTime) setSourceClaimTime(Date.now())
                     }
                 }, 5000)
             })()
         }
         return () => clearInterval(commitHandler)
-    }, [source_network, sourceDetails])
+    }, [source_network, destinationDetails])
 
     const handleClaimAssets = async () => {
         try {
@@ -95,34 +101,36 @@ export const RedeemAction: FC = () => {
     }
 
     return (
-        commitStatus == CommitStatus.ManualClaim ?
-            requestedManualClaim ?
-                <ActionStatus
-                    status="pending"
-                    title='Assets are currently being released'
-                />
-                :
-                <div className="space-y-2">
-                    <div className="inline-flex text-secondary-text">
-                        <TriangleAlert className="w-6 h-6" />
-                        <p className="p- text-center">
-                            The solver was unable to release your funds. Please claim them manually.
-                        </p>
-                    </div>
-                    <WalletActionButton
-                        activeChain={destination_wallet?.chainId}
-                        isConnected={!!destination_wallet}
-                        network={destination_network!}
-                        networkChainId={Number(destination_network?.chain_id)}
-                        onClick={handleClaimAssets}
-                    >
-                        Claim Manually
-                    </WalletActionButton>
-                </div>
-            :
-            <ActionStatus
-                status="pending"
-                title='Assets are currently being released'
-            />
+        <>
+            {
+                isManualClaimable
+                    ? (requestedManualClaim
+                        ? <ActionStatus
+                            status="pending"
+                            title='Assets are currently being released'
+                        />
+                        : <div className="space-y-2">
+                            <div className="inline-flex text-secondary-text">
+                                <TriangleAlert className="w-6 h-6" />
+                                <p className="p- text-center">
+                                    The solver was unable to release your funds. Please claim them manually.
+                                </p>
+                            </div>
+                            <WalletActionButton
+                                activeChain={destination_wallet?.chainId}
+                                isConnected={!!destination_wallet}
+                                network={destination_network!}
+                                networkChainId={Number(destination_network?.chain_id)}
+                                onClick={handleClaimAssets}
+                            >
+                                Claim Manually
+                            </WalletActionButton>
+                        </div>)
+                    : <ActionStatus
+                        status="pending"
+                        title='Assets are currently being released'
+                    />
+            }
+        </>
     )
 }
