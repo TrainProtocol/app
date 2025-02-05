@@ -14,13 +14,11 @@ export type InternalConnector = {
 export type Wallet = {
     id: string;
     displayName?: string;
-    // TODO: might be unused and unnecessary check
     isActive: boolean;
     address: string | `0x${string}`;
     addresses: string[];
     providerName: string
     icon: (props: any) => React.JSX.Element;
-    //TODO: this is name of the connector, should be changed to connectorId
     metadata?: {
         starknetAccount?: AccountInterface,
         wallet?: StarknetWindowObject
@@ -30,7 +28,6 @@ export type Wallet = {
     disconnect: () => Promise<void> | undefined | void;
     connect?: () => Promise<Wallet | undefined>;
     isNotAvailable?: boolean;
-    //TODO: refactor
     withdrawalSupportedNetworks?: string[],
     asSourceSupportedNetworks?: string[],
     autofillSupportedNetworks?: string[],

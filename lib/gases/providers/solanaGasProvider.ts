@@ -17,7 +17,7 @@ export class SolanaGasProvider implements Provider {
         const walletPublicKey = new PublicKey(address)
 
         const connection = new Connection(
-            `${network.node_url}`,
+            `${network.nodes[0].url}`,
             "confirmed"
         );
 
@@ -28,12 +28,14 @@ export class SolanaGasProvider implements Provider {
 
             const transaction = await transactionBuilder(network, token, walletPublicKey)
 
-            if (!transaction || !network.token) return
+            const nativeToken = network.native_token
+
+            if (!transaction || !nativeToken) return
 
             const message = transaction.compileMessage();
             const result = await connection.getFeeForMessage(message)
 
-            const formatedGas = formatAmount(result.value, network.token?.decimals)
+            const formatedGas = formatAmount(result.value, nativeToken.decimals)
 
             return formatedGas
         }

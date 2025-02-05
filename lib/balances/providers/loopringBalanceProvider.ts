@@ -1,5 +1,5 @@
 import axios from "axios";
-import { NetworkWithTokens } from "../../../Models/Network";
+import { Network } from "../../../Models/Network";
 import formatAmount from "../../formatAmount";
 import KnownInternalNames from "../../knownIds";
 import { LOOPRING_URLs } from "../../loopring/defs";
@@ -7,11 +7,11 @@ import { LoopringAPI } from "../../loopring/LoopringAPI";
 import { Balance } from "../../../Models/Balance";
 
 export class LoopringBalanceProvider {
-    supportsNetwork(network: NetworkWithTokens): boolean {
+    supportsNetwork(network: Network): boolean {
         return (KnownInternalNames.Networks.LoopringMainnet.includes(network.name) || KnownInternalNames.Networks.LoopringGoerli.includes(network.name))
     }
 
-    fetchBalance = async (address: string, network: NetworkWithTokens) => {
+    fetchBalance = async (address: string, network: Network) => {
 
         let balances: Balance[] = [];
 

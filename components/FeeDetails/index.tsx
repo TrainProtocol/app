@@ -26,7 +26,6 @@ export default function FeeDetailsComponent({ values }: { values: SwapFormValues
                         <ReceiveAmounts
                             source_token={fromCurrency}
                             destination_token={toCurrency}
-                            refuel={!!refuel}
                             fee={fee}
                             isFeeLoading={isFeeLoading}
                         />

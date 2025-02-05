@@ -15,7 +15,7 @@ export class ZkSyncGasProvider implements Provider {
         const client = new ZkSyncLiteRPCClient();
 
         try {
-            const result = await client.getTransferFee(network.node_url, recipientAddress as `0x${string}`, token.symbol);
+            const result = await client.getTransferFee(network.nodes[0].url, recipientAddress as `0x${string}`, token.symbol);
             const currencyDec = token.decimals;
             const formatedGas = formatAmount(Number(result.totalFee) * 1.5, Number(currencyDec))
 

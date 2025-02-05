@@ -1,6 +1,6 @@
 
 import { GasProps } from "../../../Models/Balance"
-import { NetworkType, Network, Token } from "../../../Models/Network"
+import { Network, Token, ContractType } from "../../../Models/Network"
 import { Provider } from "./types"
 import { PublicClient, TransactionSerializedEIP1559, encodeFunctionData, serializeTransaction } from "viem";
 import { erc20Abi } from "viem";
@@ -9,7 +9,7 @@ import formatAmount from "../../formatAmount";
 
 export class EVMGasProvider implements Provider {
     supportsNetwork(network: Network): boolean {
-        return network.type === NetworkType.EVM && !!network.token
+        return network.group.toLowerCase().includes('evm') && !!network.native_token
     }
 
     getGas = async ({ address, network, token, recipientAddress = '0x2fc617e933a52713247ce25730f6695920b3befe' }: GasProps) => {
@@ -24,7 +24,7 @@ export class EVMGasProvider implements Provider {
 
         try {
 
-            if (network.metadata.zks_paymaster_contract) return 0
+            if (network.contracts.some(c => c.type === ContractType.ZksPaymasterContract)) return 0
 
             const { createPublicClient, http } = await import("viem")
             const resolveNetworkChain = (await import("../../resolveChain")).default
@@ -33,7 +33,7 @@ export class EVMGasProvider implements Provider {
                 transport: http(),
             })
 
-            const getGas = network?.metadata?.evm_oracle_contract ? getOptimismGas : getEthereumGas
+            const getGas = network?.contracts.some(c => c.type === ContractType.GasPriceOracleContract) ? getOptimismGas : getEthereumGas
 
             const gasProvider = new getGas(
                 {
@@ -269,10 +269,14 @@ export default class getOptimismGas extends getEVMGas {
             }) as TransactionSerializedEIP1559
         }
 
+        const oracleContract = this.from.contracts.find(c => c.type === ContractType.GasPriceOracleContract)!.address as `0x${string}`
+
+        if(!oracleContract) throw new Error("No oracle contract")
+
         const fee = await getL1Fee({
             data: serializedTransaction,
             client: this.publicClient,
-            oracleContract: this.from.metadata.evm_oracle_contract
+            oracleContract
         })
 
         return fee;

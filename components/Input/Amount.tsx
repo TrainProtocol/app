@@ -26,7 +26,7 @@ const AmountField = forwardRef(function AmountField(_, ref: any) {
     const { balance, isBalanceLoading } = useSWRBalance(sourceAddress, from)
     const { gas, isGasLoading } = useSWRGas(sourceAddress, from, fromCurrency)
     const gasAmount = gas || 0;
-    const native_currency = from?.token
+    const native_currency = from?.native_token
     const query = useQueryState()
 
     const name = "amount"

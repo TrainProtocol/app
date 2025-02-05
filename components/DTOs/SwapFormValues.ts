@@ -1,4 +1,4 @@
-import { RouteNetwork, Token } from "../../Models/Network";
+import { Network, Token } from "../../Models/Network";
 
 export type SwapFormValues = {
   amount?: string;
@@ -6,8 +6,8 @@ export type SwapFormValues = {
   fromCurrency?: Token;
   toCurrency?: Token;
   refuel?: boolean;
-  from?: RouteNetwork;
-  to?: RouteNetwork;
+  from?: Network;
+  to?: Network;
   depositMethod?: 'wallet' | 'deposit_address',
 }
 

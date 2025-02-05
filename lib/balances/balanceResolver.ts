@@ -1,4 +1,4 @@
-import { NetworkWithTokens } from "../../Models/Network";
+import { Network } from "../../Models/Network";
 import { EVMBalanceProvider } from "./providers/evmBalanceProvider";
 import { FuelBalanceProvider } from "./providers/fuelBalanceProvider";
 import { ImmutableXBalanceProvider } from "./providers/immutableXBalanceProvider";
@@ -22,7 +22,7 @@ export class BalanceResolver {
         new ZkSyncBalanceProvider()
     ];
 
-    getBalance(address: string, network: NetworkWithTokens) {
+    getBalance(address: string, network: Network) {
         const provider = this.providers.find(p => p.supportsNetwork(network));
         //TODO: create interface for balance providers in case of empty state they shoudl throw error 
         //never return undefined as SWR does not set loading state if undefined is returned

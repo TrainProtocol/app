@@ -16,9 +16,9 @@ export const resolveRoutesURLForSelectedToken = ({ direction, network, token, in
     const include_unavailable = includes.unavailable ? 'true' : 'false'
 
     const params = new URLSearchParams({
-        include_unmatched,
-        include_swaps,
-        include_unavailable,
+        // include_unmatched,
+        // include_swaps,
+        // include_unavailable,
         ...(network ?
             {
                 [direction === 'to' ? 'source_network' : 'destination_network']: network,

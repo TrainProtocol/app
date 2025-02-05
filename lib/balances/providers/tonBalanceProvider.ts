@@ -1,17 +1,17 @@
 import { datadogRum } from "@datadog/browser-rum";
 import { Balance } from "../../../Models/Balance";
-import { Network, NetworkWithTokens, Token } from "../../../Models/Network";
+import { Network, Token } from "../../../Models/Network";
 import formatAmount from "../../formatAmount";
 import KnownInternalNames from "../../knownIds";
 import tonClient from "../../wallets/ton/client";
 import { retryWithExponentialBackoff } from "../../retry";
 
 export class TonBalanceProvider {
-    supportsNetwork(network: NetworkWithTokens): boolean {
+    supportsNetwork(network: Network): boolean {
         return KnownInternalNames.Networks.TONMainnet.includes(network.name)
     }
 
-    fetchBalance = async (address: string, network: NetworkWithTokens) => {
+    fetchBalance = async (address: string, network: Network) => {
         let balances: Balance[] = []
 
         for (let i = 0; i < network.tokens.length; i++) {

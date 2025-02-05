@@ -1,7 +1,7 @@
 
 import { PublicClient } from "viem"
 import { Balance } from "../../../Models/Balance"
-import { Network, NetworkType, NetworkWithTokens, Token } from "../../../Models/Network"
+import { Network, Token, ContractType } from "../../../Models/Network"
 import formatAmount from "../../formatAmount"
 import { http, createConfig } from '@wagmi/core'
 import { erc20Abi } from 'viem'
@@ -11,11 +11,11 @@ import resolveChain from "../../resolveChain"
 import { datadogRum } from "@datadog/browser-rum"
 
 export class EVMBalanceProvider {
-    supportsNetwork(network: NetworkWithTokens): boolean {
-        return network.type === NetworkType.EVM && !!network.token
+    supportsNetwork(network: Network): boolean {
+        return network.group.toLowerCase().includes('evm') && !!network.native_token
     }
 
-    fetchBalance = async (address: string, network: NetworkWithTokens) => {
+    fetchBalance = async (address: string, network: Network) => {
 
         if (!network) return
     
@@ -35,7 +35,7 @@ export class EVMBalanceProvider {
                 assets: network.tokens,
                 network,
                 publicClient,
-                hasMulticall: !!network.metadata?.evm_multicall_contract
+                hasMulticall: !!network.contracts.find(c => c.type === ContractType.EvmMultiCallContract)
             });
     
             const erc20Balances = (erc20BalancesContractRes && await resolveERC20Balances(
@@ -78,7 +78,7 @@ export type ERC20ContractRes = ({
 
 export const resolveERC20Balances = async (
     multicallRes: ERC20ContractRes[],
-    from: NetworkWithTokens,
+    from: Network,
 ) => {
     const assets = from?.tokens?.filter(a => a.contract)
     if (!assets)

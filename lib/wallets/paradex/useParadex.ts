@@ -77,7 +77,6 @@ export default function useParadex({ network }: Props): WalletProvider {
             }
 
         } catch (e) {
-            //TODO: handle error like in transfer
             const error = e as ConnectorAlreadyConnectedError
             if (error.name == 'ConnectorAlreadyConnectedError') {
                 toast.error('Wallet is already connected.')

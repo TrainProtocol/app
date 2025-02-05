@@ -1,5 +1,5 @@
 import { FC, useEffect, useRef } from "react";
-import { Network, Token } from "../../../../Models/Network";
+import { ContractType, Network, Token } from "../../../../Models/Network";
 import { useAtomicState } from "../../../../context/atomicContext";
 import useWallet from "../../../../hooks/useWallet";
 import { WalletProvider } from "../../../../Models/WalletProvider";
@@ -10,10 +10,12 @@ export const LpLockingAssets: FC = () => {
     const { provider } = useWallet(destination_network, 'autofil')
     const isLoading = useRef(false)
 
-    const atomicContract = (destination_asset?.contract ? destination_network?.metadata.htlc_token_contract : destination_network?.metadata.htlc_native_contract) as `0x${string}`
+    const atomicContract = destination_network?.contracts.find(c => destination_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
 
     const getDetails = async ({ provider, network, commitId, asset }: { provider: WalletProvider, network: Network, commitId: string, asset: Token }) => {
-        if (lightClient && !sourceDetails?.hashlock) {
+        if(!atomicContract) throw Error("No atomic contract")
+
+        if (lightClient && !sourceDetails?.hashlock ) {
             try {
                 const destinationDetails = await lightClient.getHashlock({
                     network: network,
@@ -42,7 +44,7 @@ export const LpLockingAssets: FC = () => {
                         type: asset?.contract ? 'erc20' : 'native',
                         chainId: network.chain_id,
                         id: commitId,
-                        contractAddress: atomicContract,
+                        contractAddress: atomicContract as `0x${string}`,
                     })
 
                     if (destiantionDetails?.hashlock) {
@@ -62,7 +64,7 @@ export const LpLockingAssets: FC = () => {
                 type: asset?.contract ? 'erc20' : 'native',
                 chainId: network.chain_id,
                 id: commitId,
-                contractAddress: atomicContract
+                contractAddress: atomicContract as `0x${string}`,
             })
 
             if (destiantionDetails?.hashlock) {

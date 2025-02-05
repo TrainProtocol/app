@@ -1,6 +1,6 @@
 import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon"
-import { Network } from "../../../Models/Network"
+import { ContractType, ManagedAccountType, Network } from "../../../Models/Network"
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider"
 import { useMemo } from "react"
 import { useConnectModal } from "../../../components/WalletModal"
@@ -10,7 +10,6 @@ import { AnchorHtlc } from "./anchorHTLC"
 import { AnchorProvider, Program, setProvider } from '@coral-xyz/anchor'
 import { PublicKey } from "@solana/web3.js"
 import { useSettingsState } from "../../../context/settings"
-import { NetworkType, Token } from "../../../Models/Network"
 import { useCallback } from "react"
 import { lockTransactionBuilder, phtlcTransactionBuilder } from "./transactionBuilder"
 
@@ -37,12 +36,12 @@ export default function useSolana({ network }: { network: Network | undefined })
 
     const { connection } = useConnection();
     const anchorWallet = useAnchorWallet();
-    const solana = networks.find(n => n.type === NetworkType.Solana)
 
     const anchorProvider = anchorWallet && new AnchorProvider(connection, anchorWallet);
     if (anchorProvider) setProvider(anchorProvider);
 
-    const program = (anchorProvider && solana?.metadata?.htlc_token_contract) ? new Program(AnchorHtlc(solana?.metadata?.htlc_token_contract), anchorProvider) : null;
+    const htlc_token_account = network?.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress)?.address
+    const program = (anchorProvider && htlc_token_account) ? new Program(AnchorHtlc(htlc_token_account), anchorProvider) : null;
 
     const connectedWallets = useMemo(() => {
 
@@ -147,9 +146,9 @@ export default function useSolana({ network }: { network: Network | undefined })
     }, [wallets]);
 
     const createPreHTLC = useCallback(async (params: CreatePreHTLCParams): Promise<{ hash: string; commitId: string; } | null | undefined> => {
-        if (!program || !publicKey || !solana) return null
+        if (!program || !publicKey || !network) return null
 
-        const transaction = await phtlcTransactionBuilder({ connection, program, walletPublicKey: publicKey, network: solana, ...params })
+        const transaction = await phtlcTransactionBuilder({ connection, program, walletPublicKey: publicKey, network, ...params })
 
         const signed = transaction?.initAndCommit && signTransaction && await signTransaction(transaction.initAndCommit);
         const signature = signed && await connection.sendRawTransaction(signed.serialize());
@@ -170,21 +169,23 @@ export default function useSolana({ network }: { network: Network | undefined })
             return { hash: signature, commitId: `0x${toHexString(transaction.commitId)}` }
         }
 
-    }, [program, connection, signTransaction, publicKey, solana])
+    }, [program, connection, signTransaction, publicKey, network])
 
     const getDetails = async (params: CommitmentParams) => {
 
-        if (!solana?.metadata.lp_address) throw new Error("No LP address")
+        const lpAddress = network?.managed_accounts.find(c => c.type === ManagedAccountType.LP)?.address
+
+        if (!lpAddress) throw new Error("No LP address")
 
         const { id } = params
         const idBuffer = Buffer.from(id.replace('0x', ''), 'hex');
 
-        const lpAnchorWallet = { publicKey: new PublicKey(solana?.metadata?.lp_address) }
+        const lpAnchorWallet = { publicKey: new PublicKey(lpAddress) }
         const provider = new AnchorProvider(connection, lpAnchorWallet as AnchorWallet);
-        const lpProgram = (provider && solana?.metadata?.htlc_token_contract) ? new Program(AnchorHtlc(solana?.metadata?.htlc_token_contract), provider) : null;
+        const lpProgram = (provider && htlc_token_account) ? new Program(AnchorHtlc(htlc_token_account), provider) : null;
 
         if (!lpProgram) {
-            throw new Error("Could not initiatea program")
+            throw new Error("Could not initiate a program")
         }
 
         let [htlc] = idBuffer && PublicKey.findProgramAddressSync(

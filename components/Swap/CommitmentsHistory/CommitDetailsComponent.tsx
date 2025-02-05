@@ -8,14 +8,14 @@ import { useRouter } from 'next/router';
 import { Eye } from 'lucide-react';
 import StatusIcon from './StatusIcons';
 import { HistoryCommit } from '.';
-import { NetworkWithTokens, Token } from '../../../Models/Network';
+import { Network, Token } from '../../../Models/Network';
 import { truncateDecimals } from '../../utils/RoundDecimals';
 
 type Props = {
     commit: HistoryCommit,
-    source_network: NetworkWithTokens
+    source_network: Network
     source_asset: Token,
-    destination_network: NetworkWithTokens,
+    destination_network: Network,
 }
 
 const CommitDetails: FC<Props> = ({ commit, source_network, destination_network, source_asset }) => {

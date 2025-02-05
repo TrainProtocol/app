@@ -8,7 +8,7 @@ import { addressFormat } from "../../../../lib/address/formatter";
 import ManualAddressInput from "./ManualAddressInput";
 import Modal from "../../../Modal/modal";
 import ConnectWalletButton from "./ConnectedWallets/ConnectWalletButton";
-import { Network, NetworkType, RouteNetwork } from "../../../../Models/Network";
+import { Network, NetworkType } from "../../../../Models/Network";
 import AddressBook from "./AddressBook";
 import AddressButton from "./AddressButton";
 import { useQueryState } from "../../../../context/query";
@@ -146,11 +146,7 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
     return (<>
         <AddressButton
             disabled={disabled}
-            addressItem={destinationAddressItem}
             openAddressModal={() => setShowAddressModal(true)}
-            connectedWallet={connectedWallet}
-            partner={partner}
-            destination={destination}
         >{children({ destination, disabled, addressItem: destinationAddressItem, connectedWallet: connectedWallet, partner })}</AddressButton>
         <Modal
             header='Send To'
@@ -227,7 +223,7 @@ const resolveAddressGroups = ({
     newAddress,
     addressFromQuery,
 }: {
-    destination: RouteNetwork | undefined,
+    destination: Network | undefined,
     wallets: Wallet[] | undefined,
     newAddress: { address: string, networkType: NetworkType | string } | undefined,
     addressFromQuery: string | undefined,
@@ -235,7 +231,8 @@ const resolveAddressGroups = ({
 
     if (!destination) return
 
-    const networkType = destination?.type
+    //TODO fix network group implementation
+    const networkType = destination?.group
 
     let addresses: AddressItem[] = []
     wallets?.forEach(wallet => {

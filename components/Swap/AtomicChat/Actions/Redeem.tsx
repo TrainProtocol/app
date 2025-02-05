@@ -4,6 +4,7 @@ import { useAtomicState } from "../../../../context/atomicContext";
 import ActionStatus from "./Status/ActionStatus";
 import { WalletActionButton } from "../../buttons";
 import { TriangleAlert } from "lucide-react";
+import { ContractType } from "../../../../Models/Network";
 
 export const RedeemAction: FC = () => {
     const { destination_network, source_network, sourceDetails, destinationDetails, setDestinationDetails, setSourceDetails, destination_asset, source_asset, commitId, commitFromApi, setError } = useAtomicState()
@@ -14,8 +15,9 @@ export const RedeemAction: FC = () => {
     const source_provider = source_network && getProvider(source_network, 'withdrawal')
     const destination_provider = destination_network && getProvider(destination_network, 'autofil')
     const destination_wallet = destination_provider?.activeWallet
-    const destination_contract = destination_asset?.contract ? destination_network?.metadata.htlc_token_contract : destination_network?.metadata.htlc_native_contract
-    const source_contract = source_asset?.contract ? source_network?.metadata.htlc_token_contract : source_network?.metadata.htlc_native_contract
+
+    const destination_contract = destination_network?.contracts.find(c => destination_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
+    const source_contract = source_network?.contracts.find(c => source_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
 
     const userLockTransaction = commitFromApi?.transactions.find(t => t.type === 'addlocksig')
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;

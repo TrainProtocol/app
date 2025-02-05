@@ -1,13 +1,13 @@
 import { Connection, PublicKey, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { createAssociatedTokenAccountInstruction, createTransferInstruction, getAccount, getAssociatedTokenAddress } from '@solana/spl-token';
-import { Network, NetworkWithTokens, Token } from "../../../Models/Network";
+import { Network, Token } from "../../../Models/Network";
 import { CommitmentParams, CreatePreHTLCParams, LockParams } from "../phtlc";
 import { BN, Idl, Program } from "@coral-xyz/anchor";
 
 export const transactionBuilder = async (network: Network, token: Token, walletPublicKey: PublicKey, recipientAddress?: string | undefined) => {
 
     const connection = new Connection(
-        `${network.node_url}`,
+        `${network.nodes[0].url}`,
         "confirmed"
     );
     const recipientPublicKey = new PublicKey(recipientAddress || new Array(32).fill(0));
@@ -73,13 +73,13 @@ export const transactionBuilder = async (network: Network, token: Token, walletP
     }
 }
 
-export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { program: Program<Idl>, connection: Connection, walletPublicKey: PublicKey, network: NetworkWithTokens }) => {
+export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { program: Program<Idl>, connection: Connection, walletPublicKey: PublicKey, network: Network }) => {
 
     const { destinationChain, destinationAsset, sourceAsset, lpAddress, address: destination_address, amount, atomicContract, chainId, program, walletPublicKey, connection, network } = params
 
-    if (!sourceAsset.contract || !network.token) return null
+    if (!sourceAsset.contract || !network.native_token) return null
 
-    const LOCK_TIME = 1000 * 60 * 15 // 15 minutes
+    const LOCK_TIME = 1000 * 60 * 16 // 16 minutes
     const timeLockMS = Date.now() + LOCK_TIME
     const timeLock = Math.floor(timeLockMS / 1000)
     const bnTimelock = new BN(timeLock);

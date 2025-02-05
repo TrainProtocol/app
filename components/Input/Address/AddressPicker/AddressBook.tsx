@@ -2,7 +2,7 @@ import { CommandGroup, CommandList, CommandWrapper } from "../../../shadcn/comma
 import { addressFormat } from "../../../../lib/address/formatter";
 import FilledCheck from "../../../Icons/FilledCheck";
 import { AddressGroup, AddressItem } from ".";
-import { RouteNetwork } from "../../../../Models/Network";
+import { Network } from "../../../../Models/Network";
 import { FC } from "react";
 import AddressWithIcon from "./AddressWithIcon";
 import { Partner } from "../../../../Models/Partner";
@@ -12,7 +12,7 @@ import { BookOpen } from "lucide-react";
 type AddressBookProps = {
     addressBook: AddressItem[];
     onSelectAddress: (address: string, wallet: Wallet | undefined) => void;
-    destination: RouteNetwork;
+    destination: Network;
     destination_address: string | undefined;
     partner?: Partner;
 }

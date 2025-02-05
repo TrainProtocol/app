@@ -1,19 +1,19 @@
 import { Balance } from "../../../Models/Balance";
-import { NetworkWithTokens } from "../../../Models/Network";
+import { Network } from "../../../Models/Network";
 import formatAmount from "../../formatAmount";
 import KnownInternalNames from "../../knownIds";
 
 export class ZkSyncBalanceProvider {
-    supportsNetwork(network: NetworkWithTokens): boolean {
+    supportsNetwork(network: Network): boolean {
         return KnownInternalNames.Networks.ZksyncMainnet.includes(network.name)
     }
 
-    fetchBalance = async (address: string, network: NetworkWithTokens) => {
+    fetchBalance = async (address: string, network: Network) => {
         const client = new ZkSyncLiteRPCClient();
 
         if (!network?.tokens) return
 
-        const result = await client.getAccountInfo(network.node_url, address);
+        const result = await client.getAccountInfo(network.nodes[0].url, address);
         const zkSyncBalances = network.tokens.map((a) => {
             const currency = network?.tokens?.find(c => c?.symbol == a.symbol);
             const amount = currency && result.committed.balances[currency.symbol];

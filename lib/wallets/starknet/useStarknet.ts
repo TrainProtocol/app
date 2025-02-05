@@ -41,7 +41,7 @@ export default function useStarknet(): WalletProvider {
 
     const isMainnet = networks?.some(network => network.name === KnownInternalNames.Networks.StarkNetMainnet)
     const network = networks?.find(network => starknetNames.some(name => name === network.name))
-    const nodeUrl = network?.node_url
+    const nodeUrl = network?.nodes[0].url
 
     const starknetWallet = useMemo(() => {
         const wallet = wallets.find(wallet => wallet.providerName === name)
@@ -93,7 +93,7 @@ export default function useStarknet(): WalletProvider {
                 const starkent = networks.find(n => n.name === KnownInternalNames.Networks.StarkNetMainnet || n.name === KnownInternalNames.Networks.StarkNetSepolia)
                 const WalletAccount = (await import('starknet')).WalletAccount
 
-                const starknetWalletAccount = new WalletAccount({ nodeUrl: starkent?.node_url }, (starknetConnector as any).wallet);
+                const starknetWalletAccount = new WalletAccount({ nodeUrl }, (starknetConnector as any).wallet);
 
                 const wallet: Wallet = {
                     id: connector.name,

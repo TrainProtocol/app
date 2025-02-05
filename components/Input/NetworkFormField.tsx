@@ -12,7 +12,7 @@ import CurrencyFormField from "./CurrencyFormField";
 import useSWR from 'swr'
 import { ApiResponse } from "../../Models/ApiResponse";
 import LayerSwapApiClient from "../../lib/layerSwapApiClient";
-import { RouteNetwork } from "../../Models/Network";
+import { Network } from "../../Models/Network";
 import { QueryParams } from "../../Models/QueryParams";
 import { resolveNetworkRoutesURL } from "../../helpers/routes";
 import RouteIcon from "./RouteIcon";
@@ -34,7 +34,7 @@ const Address = dynamic(() => import("../Input/Address"), {
 
 const GROUP_ORDERS = { "Popular": 1, "Networks": 2, "Other": 10, "Unavailable": 20 };
 export const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
-const getGroupName = (value: RouteNetwork, type: 'network', canShowInPopular?: boolean) => {
+const getGroupName = (value: Network, type: 'network', canShowInPopular?: boolean) => {
     if (NetworkSettings.KnownSettings[value.name]?.isFeatured && canShowInPopular) {
         return "Popular";
     }
@@ -60,7 +60,7 @@ const NetworkFormField = forwardRef(function NetworkFormField({ direction, label
     const { destinationRoutes, sourceRoutes } = useSettingsState();
     let placeholder = "";
     let searchHint = "";
-    let menuItems: (SelectMenuItem<RouteNetwork>)[];
+    let menuItems: (SelectMenuItem<Network>)[];
 
     const networkRoutesURL = resolveNetworkRoutesURL(direction, values)
     const apiClient = new LayerSwapApiClient()
@@ -69,9 +69,9 @@ const NetworkFormField = forwardRef(function NetworkFormField({ direction, label
         data: routes,
         isLoading,
         error
-    } = useSWR<ApiResponse<RouteNetwork[]>>(networkRoutesURL, apiClient.fetcher, { keepPreviousData: true, dedupingInterval: 10000 })
+    } = useSWR<ApiResponse<Network[]>>(networkRoutesURL, apiClient.fetcher, { keepPreviousData: true, dedupingInterval: 10000 })
 
-    const [routesData, setRoutesData] = useState<RouteNetwork[] | undefined>(direction === 'from' ? sourceRoutes : destinationRoutes)
+    const [routesData, setRoutesData] = useState<Network[] | undefined>(direction === 'from' ? sourceRoutes : destinationRoutes)
 
     useEffect(() => {
         if (!isLoading && routes?.data) setRoutesData(routes.data)
@@ -90,12 +90,12 @@ const NetworkFormField = forwardRef(function NetworkFormField({ direction, label
 
     const value = menuItems.find(x => x.id == (direction === "from" ? from : to)?.name);
 
-    const handleSelect = useCallback((item: SelectMenuItem<RouteNetwork>) => {
+    const handleSelect = useCallback((item: SelectMenuItem<Network>) => {
         if (item.baseObject.name === value?.baseObject.name)
             return
         setFieldValue(name, item.baseObject, true)
         const currency = name == "from" ? fromCurrency : toCurrency
-        const assetSubstitute = (item.baseObject as RouteNetwork)?.tokens?.find(a => a.symbol === currency?.symbol)
+        const assetSubstitute = (item.baseObject as Network)?.tokens?.find(a => a.symbol === currency?.symbol)
         if (assetSubstitute) {
             setFieldValue(`${name}Currency`, assetSubstitute, true)
         }
@@ -170,7 +170,7 @@ function groupByType(values: ISelectMenuItem[]) {
     return groups;
 }
 
-function GenerateMenuItems(routes: RouteNetwork[] | undefined, direction: SwapDirection, lock: boolean, query: QueryParams): (SelectMenuItem<RouteNetwork>)[] {
+function GenerateMenuItems(routes: Network[] | undefined, direction: SwapDirection, lock: boolean, query: QueryParams): (SelectMenuItem<Network>)[] {
     const mappedLayers = routes?.map(r => {
         const isNewlyListed = r?.tokens?.every(t => new Date(t?.listing_date)?.getTime() >= new Date().getTime() - ONE_WEEK);
         const badge = isNewlyListed ? (
@@ -179,14 +179,16 @@ function GenerateMenuItems(routes: RouteNetwork[] | undefined, direction: SwapDi
 
         const isAvailable = !lock &&
             (
-                r.tokens?.some(r => r.status === 'active' || r.status === 'not_found') ||
-                !query.lockAsset && !query.lockFromAsset && !query.lockToAsset && !query.lockFrom && !query.lockTo && !query.lockNetwork && !query.lockExchange && r.tokens?.some(r => r.status !== 'inactive')
+                // r.tokens?.some(r => r.status === 'active' || r.status === 'not_found') ||
+                !query.lockAsset && !query.lockFromAsset && !query.lockToAsset && !query.lockFrom && !query.lockTo && !query.lockNetwork && !query.lockExchange 
+                // && r.tokens?.some(r => r.status !== 'inactive')
             );
 
         const order = ResolveNetworkOrder(r, direction, isNewlyListed)
-        const routeNotFound = isAvailable && !r.tokens?.some(r => r.status === 'active');
+        const routeNotFound = isAvailable 
+        // && !r.tokens?.some(r => r.status === 'active');
 
-        const res: SelectMenuItem<RouteNetwork> & { isExchange: boolean } = {
+        const res: SelectMenuItem<Network> & { isExchange: boolean } = {
             baseObject: r,
             id: r.name,
             name: r.display_name,
@@ -196,7 +198,7 @@ function GenerateMenuItems(routes: RouteNetwork[] | undefined, direction: SwapDi
             group: getGroupName(r, 'network', isAvailable && !routeNotFound),
             isExchange: false,
             badge,
-            leftIcon: <RouteIcon direction={direction} isAvailable={isAvailable} routeNotFound={routeNotFound} type="network" />,
+            leftIcon: <RouteIcon direction={direction} isAvailable={true} routeNotFound={false} type="network" />,
         }
         return res;
     }).sort(SortAscending) || [];

@@ -1,15 +1,15 @@
 import { Balance } from "../../../Models/Balance";
-import { NetworkWithTokens } from "../../../Models/Network";
+import { Network } from "../../../Models/Network";
 import formatAmount from "../../formatAmount";
 import KnownInternalNames from "../../knownIds";
 import { retryWithExponentialBackoff } from "../../retry";
 
 export class FuelBalanceProvider {
-    supportsNetwork(network: NetworkWithTokens): boolean {
+    supportsNetwork(network: Network): boolean {
         return KnownInternalNames.Networks.FuelMainnet.includes(network.name) || KnownInternalNames.Networks.FuelTestnet.includes(network.name)
     }
 
-    fetchBalance = async (address: string, network: NetworkWithTokens) => {
+    fetchBalance = async (address: string, network: Network) => {
         let balances: Balance[] = []
 
         if (!network?.tokens) return
@@ -30,7 +30,7 @@ export class FuelBalanceProvider {
         };
 
         try {
-            const response = await retryWithExponentialBackoff(async () => await fetch(network.node_url, {
+            const response = await retryWithExponentialBackoff(async () => await fetch(network.nodes[0].url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ export class FuelBalanceProvider {
                     network: network.name,
                     amount: formatAmount(Number(balance?.amount || 0), token.decimals),
                     decimals: token.decimals,
-                    isNativeCurrency: network.token?.symbol === token.symbol,
+                    isNativeCurrency: network.native_token?.symbol === token.symbol,
                     token: token.symbol,
                     request_time: new Date().toJSON()
                 }

@@ -1,11 +1,8 @@
-
-
 import { useSettingsState } from "../../context/settings";
-import { NetworkType } from "../../Models/Network";
 import resolveChain from "../../lib/resolveChain";
 import React from "react";
 import NetworkSettings from "../../lib/NetworkSettings";
-import { WagmiProvider, injected } from 'wagmi'
+import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createConfig } from 'wagmi';
 import { Chain, http } from 'viem';
@@ -31,9 +28,9 @@ function WagmiComponent({ children }: Props) {
     const isChain = (c: Chain | undefined): c is Chain => c != undefined
     const settingsChains = settings?.networks
         .sort((a, b) => (NetworkSettings.KnownSettings[a.name]?.ChainOrder || Number(a.chain_id)) - (NetworkSettings.KnownSettings[b.name]?.ChainOrder || Number(b.chain_id)))
-        .filter(net => net.type === NetworkType.EVM
-            && net.node_url
-            && net.token)
+        .filter(net => net.group.toLowerCase().includes('evm')
+            && net.nodes.length > 0
+            && net.native_token)
         .map(resolveChain).filter(isChain) as Chain[]
 
     const transports = {}

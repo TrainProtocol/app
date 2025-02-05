@@ -1,13 +1,13 @@
 import { Balance } from "../../../Models/Balance";
-import { NetworkWithTokens } from "../../../Models/Network";
+import { Network } from "../../../Models/Network";
 import KnownInternalNames from "../../knownIds";
 
 export class SolanaBalanceProvider {
-    supportsNetwork(network: NetworkWithTokens): boolean {
+    supportsNetwork(network: Network): boolean {
         return KnownInternalNames.Networks.SolanaMainnet.includes(network.name)
     }
 
-    fetchBalance = async (address: string, network: NetworkWithTokens) => {
+    fetchBalance = async (address: string, network: Network) => {
         if (!address) return
 
         const SolanaWeb3 = await import("@solana/web3.js");
@@ -20,7 +20,7 @@ export class SolanaBalanceProvider {
         if (!network?.tokens || !walletPublicKey) return
 
         const connection = new SolanaConnection(
-            `${network.node_url}`,
+            `${network.nodes[0].url}`,
             "confirmed"
         );
 

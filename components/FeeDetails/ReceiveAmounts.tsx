@@ -1,19 +1,14 @@
 import { FC } from "react";
 import { Token } from "../../Models/Network";
-import { ArrowRight, Fuel } from "lucide-react";
 import { Quote } from "../../lib/layerSwapApiClient";
-import { roundDecimals } from "../utils/RoundDecimals";
 
 type WillReceiveProps = {
     destination_token: Token | undefined;
     source_token: Token | undefined;
-    refuel: boolean;
     fee: Quote | undefined;
-    onButtonClick?: () => void;
     isFeeLoading: boolean;
 }
-//TODO: remove destination_token prop
-export const ReceiveAmounts: FC<WillReceiveProps> = ({ source_token, destination_token, refuel, fee, onButtonClick, isFeeLoading }) => {
+export const ReceiveAmounts: FC<WillReceiveProps> = ({ source_token, destination_token, fee, isFeeLoading }) => {
     const receive_amount = fee?.quote?.receive_amount
     const parsedReceiveAmount = parseFloat(receive_amount?.toFixed(destination_token?.precision) || "")
 

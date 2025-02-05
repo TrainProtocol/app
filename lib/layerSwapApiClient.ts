@@ -2,7 +2,7 @@ import AppSettings from "./AppSettings";
 import { InitializeUnauthInstance } from "./axiosInterceptor"
 import { AxiosInstance, Method } from "axios";
 import { ApiResponse, EmptyApiResponse } from "../Models/ApiResponse";
-import { NetworkWithTokens, Network, Token } from "../Models/Network";
+import { Network, Token } from "../Models/Network";
 
 export default class LayerSwapApiClient {
     static apiBaseEndpoint?: string = AppSettings.LayerswapApiUri;
@@ -15,8 +15,8 @@ export default class LayerSwapApiClient {
 
     fetcher = (url: string) => this.UnauthenticatedRequest<ApiResponse<any>>("GET", url)
 
-    async GetLSNetworksAsync(): Promise<ApiResponse<NetworkWithTokens[]>> {
-        return await this.UnauthenticatedRequest<ApiResponse<NetworkWithTokens[]>>("GET", `/networks`);
+    async GetLSNetworksAsync(): Promise<ApiResponse<Network[]>> {
+        return await this.UnauthenticatedRequest<ApiResponse<Network[]>>("GET", `/networks`);
     }
 
     async AddLockSig(params: AddLockSig, commit_id: string): Promise<ApiResponse<{}>> {

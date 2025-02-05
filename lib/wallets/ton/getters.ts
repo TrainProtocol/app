@@ -3,11 +3,11 @@ import { Address } from "@ton/ton"
 import tonClient from "./client";
 import { hexToBigInt, toHex } from "viem";
 import { TupleBuilder } from "@ton/core"
-import { NetworkWithTokens } from "../../../Models/Network";
+import { Network } from "../../../Models/Network";
 import { Commit } from "../../../Models/PHTLC";
 
 
-export const getTONDetails = async (params: CommitmentParams & { network: NetworkWithTokens | undefined }) => {
+export const getTONDetails = async (params: CommitmentParams & { network: Network | undefined }) => {
 
     const {
         id,

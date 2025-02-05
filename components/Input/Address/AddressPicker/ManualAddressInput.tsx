@@ -42,7 +42,8 @@ const ManualAddressInput: FC<AddressInput> = ({ manualAddress, setManualAddress,
     const handleSaveNewAddress = () => {
         if (isValidAddress(manualAddress, destination)) {
             if (destination) {
-                setNewAddress({ address: manualAddress, networkType: destination.type })
+                //TODO fix network group implementation
+                setNewAddress({ address: manualAddress, networkType: destination.group })
             }
             setFieldValue(name, manualAddress)
             setManualAddress("")

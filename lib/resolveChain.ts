@@ -1,19 +1,18 @@
 import { Chain, defineChain, parseGwei } from "viem";
-import { Network } from "../Models/Network";
+import { ContractType, Network } from "../Models/Network";
 import NetworkSettings from "./NetworkSettings";
 import { SendErrorMessage } from "./telegram";
 import { chainConfig } from 'viem/op-stack'
 
 export default function resolveChain(network: Network) {
 
-    const nativeCurrency = network.token;
+    const nativeCurrency = network.native_token;
     const blockExplorersBaseURL =
         network.transaction_explorer_template ?
             new URL(network.transaction_explorer_template).origin
             : null
 
-    const metadata = network.metadata
-    const { evm_multicall_contract } = metadata || {}
+    const evm_multicall_contract  = network.contracts.find(c => c.type === ContractType.EvmMultiCallContract) || {}
 
     if (!nativeCurrency) {
         SendErrorMessage("UI Settings error", `env: ${process.env.NEXT_PUBLIC_VERCEL_ENV} %0A url: ${process.env.NEXT_PUBLIC_VERCEL_URL} %0A message: could not find native currency for ${network.name} ${JSON.stringify(network)} %0A`)
@@ -32,10 +31,10 @@ export default function resolveChain(network: Network) {
         },
         rpcUrls: {
             default: {
-                http: [network.node_url],
+                http: [network.nodes[0].url],
             },
             public: {
-                http: [network.node_url],
+                http: [network.nodes[0].url],
             },
         },
         ...(blockExplorersBaseURL ? {

@@ -1,15 +1,15 @@
 import { Balance } from "../../../Models/Balance";
-import { NetworkWithTokens } from "../../../Models/Network";
+import { Network } from "../../../Models/Network";
 import formatAmount from "../../formatAmount";
 import Erc20Abi from '../../abis/ERC20.json'
 import KnownInternalNames from "../../knownIds";
 
 export class StarknetBalanceProvider {
-    supportsNetwork(network: NetworkWithTokens): boolean {
+    supportsNetwork(network: Network): boolean {
         return (KnownInternalNames.Networks.StarkNetMainnet.includes(network.name) || KnownInternalNames.Networks.StarkNetGoerli.includes(network.name) || KnownInternalNames.Networks.StarkNetSepolia.includes(network.name))
     }
 
-    fetchBalance = async (address: string, network: NetworkWithTokens) => {
+    fetchBalance = async (address: string, network: Network) => {
         const {
             Contract,
             RpcProvider,
@@ -22,7 +22,7 @@ export class StarknetBalanceProvider {
         if (!network?.tokens) return
 
         const provider = new RpcProvider({
-            nodeUrl: network.node_url,
+            nodeUrl: network.nodes[0].url,
         });
 
         for (let i = 0; i < network.tokens.length; i++) {

@@ -30,7 +30,6 @@ const Component: FC = () => {
     const availableWallets = provider?.connectedWallets?.filter(w => !w.isNotAvailable) || []
 
     const selectedWallet = selectedSourceAccount?.wallet
-    //TODO: sort by active wallet
     const defaultWallet = walletNetwork && availableWallets?.find(w => !w.isNotAvailable)
     const source_addsress = selectedSourceAccount?.address
 

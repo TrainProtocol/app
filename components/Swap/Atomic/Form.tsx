@@ -19,7 +19,7 @@ import AmountField from "../../Input/Amount"
 import dynamic from "next/dynamic";
 import { Balance } from "../../../Models/Balance";
 import ResizablePanel from "../../ResizablePanel";
-import { RouteNetwork } from "../../../Models/Network";
+import { Network } from "../../../Models/Network";
 import { resolveRoutesURLForSelectedToken } from "../../../helpers/routes";
 import { useSwapDataState, useSwapDataUpdate } from "../../../context/swap";
 import useWallet from "../../../hooks/useWallet";
@@ -76,12 +76,16 @@ const SwapForm: FC<Props> = ({ partner }) => {
     const sourceRoutesEndpoint = (source || destination) ? resolveRoutesURLForSelectedToken({ direction: 'from', network: source?.name, token: fromCurrency?.symbol, includes: { unavailable: true, unmatched: true } }) : null
     const destinationRoutesEndpoint = (source || destination) ? resolveRoutesURLForSelectedToken({ direction: 'to', network: destination?.name, token: toCurrency?.symbol, includes: { unavailable: true, unmatched: true } }) : null
 
-    const { data: sourceRoutesRes, isLoading: sourceLoading } = useSWR<ApiResponse<RouteNetwork[]>>(sourceRoutesEndpoint, layerswapApiClient.fetcher, { keepPreviousData: true })
-    const { data: destinationRoutesRes, isLoading: destinationLoading } = useSWR<ApiResponse<RouteNetwork[]>>(destinationRoutesEndpoint, layerswapApiClient.fetcher, { keepPreviousData: true })
+    const { data: sourceRoutesRes, isLoading: sourceLoading } = useSWR<ApiResponse<Network[]>>(sourceRoutesEndpoint, layerswapApiClient.fetcher, { keepPreviousData: true })
+    const { data: destinationRoutesRes, isLoading: destinationLoading } = useSWR<ApiResponse<Network[]>>(destinationRoutesEndpoint, layerswapApiClient.fetcher, { keepPreviousData: true })
     const sourceRoutes = sourceRoutesRes?.data
     const destinationRoutes = destinationRoutesRes?.data
-    const sourceCanBeSwapped = !source ? true : (destinationRoutes?.some(l => l.name === source?.name && l.tokens.some(t => t.symbol === fromCurrency?.symbol && t.status === 'active')) ?? false)
-    const destinationCanBeSwapped = !destination ? true : (sourceRoutes?.some(l => l.name === destination?.name && l.tokens.some(t => t.symbol === toCurrency?.symbol && t.status === 'active')) ?? false)
+    const sourceCanBeSwapped = !source ? true : (destinationRoutes?.some(l => l.name === source?.name && l.tokens.some(t => t.symbol === fromCurrency?.symbol 
+        // && t.status === 'active'
+    )) ?? false)
+    const destinationCanBeSwapped = !destination ? true : (sourceRoutes?.some(l => l.name === destination?.name && l.tokens.some(t => t.symbol === toCurrency?.symbol 
+        // && t.status === 'active'
+    )) ?? false)
 
     if (query.lockTo || query.lockFrom || query.hideTo || query.hideFrom) {
         valuesSwapperDisabled = true;

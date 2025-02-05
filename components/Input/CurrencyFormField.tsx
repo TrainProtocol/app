@@ -6,7 +6,7 @@ import PopoverSelectWrapper from "../Select/Popover/PopoverSelectWrapper";
 import { ResolveCurrencyOrder, SortAscending } from "../../lib/sorting";
 import { truncateDecimals } from "../utils/RoundDecimals";
 import { useQueryState } from "../../context/query";
-import { RouteNetwork, Token } from "../../Models/Network";
+import { Network, Token } from "../../Models/Network";
 import LayerSwapApiClient from "../../lib/layerSwapApiClient";
 import useSWR from "swr";
 import { ApiResponse } from "../../Models/ApiResponse";
@@ -41,7 +41,7 @@ const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
         data: routes,
         isLoading,
         error
-    } = useSWR<ApiResponse<RouteNetwork[]>>(networkRoutesURL, apiClient.fetcher, { keepPreviousData: true, dedupingInterval: 10000 })
+    } = useSWR<ApiResponse<Network[]>>(networkRoutesURL, apiClient.fetcher, { keepPreviousData: true, dedupingInterval: 10000 })
 
     const currencies = direction === 'from' ? routes?.data?.find(r => r.name === from?.name)?.tokens : routes?.data?.find(r => r.name === to?.name)?.tokens;
     const currencyMenuItems = GenerateCurrencyMenuItems(
@@ -71,7 +71,9 @@ const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
 
         const selected_currency = currencyMenuItems?.find(c =>
             c.baseObject?.symbol?.toUpperCase() === fromCurrency?.symbol?.toUpperCase())
-        if (selected_currency && routes?.data?.find(r => r.name === to?.name)?.tokens?.some(r => r.symbol === selected_currency.name && r.status === 'active')) {
+        if (selected_currency && routes?.data?.find(r => r.name === to?.name)?.tokens?.some(r => r.symbol === selected_currency.name 
+            // && r.status === 'active'
+        )) {
             setFieldValue(name, selected_currency.baseObject, true)
         }
         else if (default_currency) {
@@ -100,7 +102,9 @@ const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
         if (selected_currency
             && routes?.data
                 ?.find(r => r.name === from?.name)?.tokens
-                ?.some(r => r.symbol === selected_currency.name && r.status === 'active')) {
+                ?.some(r => r.symbol === selected_currency.name 
+                    // && r.status === 'active'
+                )) {
             setFieldValue(name, selected_currency.baseObject, true)
         }
         else if (default_currency) {
@@ -163,10 +167,16 @@ function GenerateCurrencyMenuItems(
         const formatted_balance_amount = balance ? Number(truncateDecimals(balance?.amount, c.precision)) : ''
         const isNewlyListed = new Date(c?.listing_date)?.getTime() >= new Date().getTime() - ONE_WEEK;
 
-        const currencyIsAvailable = (currency?.status === "active" && error?.code !== LSAPIKnownErrorCode.ROUTE_NOT_FOUND_ERROR) ||
-            !((direction === 'from' ? query?.lockFromAsset : query?.lockToAsset) || query?.lockAsset || currency.status === 'inactive')
+        const currencyIsAvailable = (
+            // currency?.status === "active" && 
+            error?.code !== LSAPIKnownErrorCode.ROUTE_NOT_FOUND_ERROR) ||
+            !((direction === 'from' ? query?.lockFromAsset : query?.lockToAsset) || query?.lockAsset 
+            // || currency.status === 'inactive'
+        )
 
-        const routeNotFound = (currency?.status !== "active" || error?.code === LSAPIKnownErrorCode.ROUTE_NOT_FOUND_ERROR);
+        const routeNotFound = (
+            // currency?.status !== "active" || 
+            error?.code === LSAPIKnownErrorCode.ROUTE_NOT_FOUND_ERROR);
 
         const badge = isNewlyListed ? (
             <span className="bg-secondary-50 px-1 rounded text-xs flex items-center">New</span>

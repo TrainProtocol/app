@@ -1,5 +1,5 @@
 import { useAccount, useConfig, useConnect, useConnectors, useDisconnect, useSwitchAccount, Connector } from "wagmi"
-import { Network, NetworkType, NetworkWithTokens } from "../../../Models/Network"
+import { Network } from "../../../Models/Network"
 import { useSettingsState } from "../../../context/settings"
 import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon, resolveWalletConnectorIndex } from "../utils/resolveWalletIcon"
@@ -41,7 +41,7 @@ export default function useEVM({ network }: Props): WalletProvider {
     const { selectedSourceAccount } = useSwapDataState()
     const account = selectedSourceAccount
     const asSourceSupportedNetworks = [
-        ...networks.filter(network => network.type === NetworkType.EVM).map(l => l.name),
+        ...networks.filter(network => network.group.toLowerCase().includes('evm')).map(l => l.name),
         KnownInternalNames.Networks.ZksyncMainnet,
         KnownInternalNames.Networks.LoopringGoerli,
         KnownInternalNames.Networks.LoopringMainnet,
@@ -153,7 +153,6 @@ export default function useEVM({ network }: Props): WalletProvider {
             return wallet
 
         } catch (e) {
-            //TODO: handle error like in transfer
             const error = e as ConnectorAlreadyConnectedError
             if (error.name == 'ConnectorAlreadyConnectedError') {
                 toast.error('Wallet is already connected.')
@@ -328,7 +327,7 @@ export default function useEVM({ network }: Props): WalletProvider {
         const abi = type === 'erc20' ? ERC20PHTLCAbi : PHTLCAbi
 
         const network = networks.find(n => n.chain_id === chainId)
-        const nodeUrls: string[] | undefined = network?.node_urls || (network?.node_url ? [network?.node_url] : undefined)
+        const nodeUrls = network?.nodes
         if (!network?.chain_id) throw new Error("No network found")
         if (!nodeUrls) throw new Error("No node urls found")
 
@@ -345,8 +344,8 @@ export default function useEVM({ network }: Props): WalletProvider {
         }
 
         // Create an array of PublicClients for each RPC endpoint
-        const clients = nodeUrls.map((url) =>
-            createPublicClient({ transport: http(url), chain })
+        const clients = nodeUrls.map((node) =>
+            createPublicClient({ transport: http(node.url), chain })
         )
 
         // Fetch all results in parallel
@@ -493,7 +492,6 @@ export default function useEVM({ network }: Props): WalletProvider {
     const activeBrowserWallet = explicitInjectedproviderDetected() && allConnectors.filter(c => c.id !== "com.immutable.passport" && c.type === "injected").length === 1
     const filterConnectors = wallet => !isNotAvailable(wallet, network) && ((wallet.id === "injected" ? activeBrowserWallet : true))
 
-    {/* //TODO: refactor ordering */ }
     const availableWalletsForConnect = allConnectors.filter(filterConnectors)
         .map(w => ({
             ...w,
@@ -557,7 +555,7 @@ type ResolveWalletProps = {
         chainId: number;
         connector: Connector;
     } | undefined,
-    networks: NetworkWithTokens[],
+    networks: Network[],
     network: Network | undefined,
     activeConnection: {
         id: string,

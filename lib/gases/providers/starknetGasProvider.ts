@@ -15,7 +15,7 @@ export class StarknetGasProvider implements Provider {
 
     getGas = async ({ address, network, token }: GasProps) => {
 
-        const nodeUrl = network.node_url
+        const nodeUrl = network.nodes[0].url
         const contract_address = token?.contract
         const testnetWatchdog = '0x0423074c4bf903478daaa719bb3b1539d23af07db07101d263c78d75e5e6e0a3'
         const mainnetWatchdog = '0x022993789c33e54e0d296fc266a9c9a2e9dcabe2e48941f5fa1bd5692ac4a8c4'
@@ -26,8 +26,8 @@ export class StarknetGasProvider implements Provider {
 
         const recipient = version === 'prod' ? mainnetRecipient : testnetRecipient
         const watchdogContract = version === 'prod' ? mainnetWatchdog : testnetWatchdog
-
-        if (!token || !network.token) return
+        const nativeToken = network.native_token
+        if (!token || !nativeToken) return
 
         const client = new InternalApiClient()
         const basePath = router.basePath ?? '/'
@@ -38,7 +38,7 @@ export class StarknetGasProvider implements Provider {
         };
 
         const feeInWei = feeEstimateResponse.data.suggestedMaxFee.toString();
-        const gas = formatAmount(feeInWei, network.token.decimals)
+        const gas = formatAmount(feeInWei, nativeToken.decimals)
 
         return gas
     }

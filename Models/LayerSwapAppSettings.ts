@@ -1,4 +1,4 @@
-import { NetworkWithTokens, RouteNetwork } from "./Network";
+import { Network } from "./Network";
 import { LayerSwapSettings } from "./LayerSwapSettings";
 
 export class LayerSwapAppSettings {
@@ -9,8 +9,8 @@ export class LayerSwapAppSettings {
         this.destinationRoutes = settings.destinationRoutes || []
     }
 
-    networks: NetworkWithTokens[]
-    sourceRoutes: RouteNetwork[]
-    destinationRoutes: RouteNetwork[]
+    networks: Network[]
+    sourceRoutes: Network[]
+    destinationRoutes: Network[]
 
 }

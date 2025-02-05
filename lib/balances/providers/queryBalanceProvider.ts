@@ -1,4 +1,4 @@
-import { NetworkWithTokens } from "../../../Models/Network";
+import { Network } from "../../../Models/Network";
 import formatAmount from "../../formatAmount";
 
 export class QueryBalanceProvider {
@@ -33,12 +33,12 @@ export class QueryBalanceProvider {
         };
     }
 
-    supportsNetwork(network: NetworkWithTokens): boolean {
+    supportsNetwork(network: Network): boolean {
         if (!this.query.balances) return false
         return network?.name?.toLocaleLowerCase() === this.query.from?.toLowerCase() || network?.name?.toLocaleLowerCase() === this.query.to?.toLowerCase()
     }
 
-    fetchBalance = async (address: string, network: NetworkWithTokens) => {
+    fetchBalance = async (address: string, network: Network) => {
         if (!network) return null;
 
         const asset = network.tokens?.find(a => a.symbol === this.query.fromAsset);
@@ -50,7 +50,7 @@ export class QueryBalanceProvider {
             network: network.name,
             amount: formatAmount(balancesFromQueries[asset.symbol], asset.decimals),
             decimals: asset.decimals,
-            isNativeCurrency: network.token?.symbol === asset.symbol,
+            isNativeCurrency: network.native_token?.symbol === asset.symbol,
             token: asset.symbol,
             request_time: new Date().toJSON(),
         }];

@@ -7,14 +7,15 @@ import posthog from "posthog-js";
 import ButtonStatus from "./Status/ButtonStatus";
 import { NextRouter, useRouter } from "next/router";
 import { resolvePersistantQueryParams } from "../../../../helpers/querryHelper";
+import { ContractType, ManagedAccountType } from "../../../../Models/Network";
 
 export const UserCommitAction: FC = () => {
     const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, setSourceDetails, setError } = useAtomicState();
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
 
-    const atomicContract = (source_asset?.contract ? source_network?.metadata.htlc_token_contract : source_network?.metadata.htlc_native_contract) as `0x${string}`
-
+    const atomicContract = source_network?.contracts.find(c => source_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
+    const lpAddress = source_network?.managed_accounts.find(a => a.type === ManagedAccountType.LP)?.address
     const handleCommit = async () => {
         try {
             if (!amount) {
@@ -38,6 +39,12 @@ export const UserCommitAction: FC = () => {
             if (!provider) {
                 throw new Error("No source_provider")
             }
+            if(!atomicContract) {
+                throw new Error("No atomic contract")
+            }
+            if(!lpAddress) {
+                throw new Error("No lp address")
+            }
 
             const { commitId, hash } = await provider.createPreHTLC({
                 address,
@@ -46,7 +53,7 @@ export const UserCommitAction: FC = () => {
                 sourceChain: source_network.name,
                 destinationAsset: destination_asset.symbol,
                 sourceAsset: source_asset,
-                lpAddress: source_network.metadata.lp_address,
+                lpAddress,
                 tokenContractAddress: source_asset.contract as `0x${string}`,
                 decimals: source_asset.decimals,
                 atomicContract: atomicContract,
@@ -85,7 +92,7 @@ export const UserCommitAction: FC = () => {
                         type: source_asset?.contract ? 'erc20' : 'native',
                         chainId: source_network.chain_id,
                         id: commitId,
-                        contractAddress: atomicContract
+                        contractAddress: atomicContract as `0x${string}`,
                     })
                     if (data && data.sender != '0x0000000000000000000000000000000000000000') {
                         setSourceDetails(data)
@@ -132,7 +139,7 @@ export const UserLockAction: FC = () => {
 
     const wallet = provider?.activeWallet
 
-    const atomicContract = (source_asset?.contract ? source_network?.metadata.htlc_token_contract : source_network?.metadata.htlc_native_contract) as `0x${string}`
+    const atomicContract = source_network?.contracts.find(c => source_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
 
     const handleLockAssets = async () => {
         try {
@@ -142,13 +149,15 @@ export const UserLockAction: FC = () => {
                 throw new Error("No source provider")
             if (!destinationDetails?.hashlock)
                 throw new Error("No destination hashlock")
+            if(!atomicContract) 
+                throw new Error("No atomic contract")
 
             await provider.addLock({
                 type: source_asset?.contract ? 'erc20' : 'native',
                 chainId: source_network.chain_id,
                 id: commitId as string,
                 hashlock: destinationDetails?.hashlock,
-                contractAddress: atomicContract,
+                contractAddress: atomicContract as `0x${string}`,
                 lockData: destinationDetails,
                 sourceAsset: source_asset,
             })
@@ -172,7 +181,7 @@ export const UserLockAction: FC = () => {
 
     useEffect(() => {
         let commitHandler: any = undefined
-        if (!sourceDetails?.hashlock) {
+        if (!sourceDetails?.hashlock && atomicContract) {
             (async () => {
                 commitHandler = setInterval(async () => {
                     if (!source_network?.chain_id)
@@ -184,7 +193,7 @@ export const UserLockAction: FC = () => {
                         type: source_asset?.contract ? 'erc20' : 'native',
                         chainId: source_network.chain_id,
                         id: commitId as string,
-                        contractAddress: atomicContract
+                        contractAddress: atomicContract as `0x${string}`,
                     })
                     if (data?.hashlock) {
                         setSourceDetails(data)
@@ -229,8 +238,8 @@ export const UserRefundAction: FC = () => {
 
     const wallet = source_provider?.activeWallet
 
-    const sourceAtomicContract = (source_asset?.contract ? source_network?.metadata.htlc_token_contract : source_network?.metadata.htlc_native_contract) as `0x${string}`
-    const destinationAtomicContract = (destination_asset?.contract ? destination_network?.metadata.htlc_token_contract : destination_network?.metadata.htlc_native_contract) as `0x${string}`
+    const destinationAtomicContract = destination_network?.contracts.find(c => destination_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
+    const sourceAtomicContract = source_network?.contracts.find(c => source_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
 
     const handleRefundAssets = async () => {
         try {
@@ -239,13 +248,14 @@ export const UserRefundAction: FC = () => {
             if (!sourceDetails) throw new Error("No commitment")
             if (!source_network.chain_id) throw new Error("No chain id")
             if (!source_asset) throw new Error("No source asset")
+                if(!sourceAtomicContract) throw new Error("No atomic contract")
 
             const res = await source_provider?.refund({
                 type: source_asset?.contract ? 'erc20' : 'native',
                 id: commitId,
                 hashlock: sourceDetails?.hashlock,
                 chainId: source_network.chain_id,
-                contractAddress: sourceAtomicContract,
+                contractAddress: sourceAtomicContract as `0x${string}`,
                 sourceAsset: source_asset,
             })
 
@@ -275,12 +285,14 @@ export const UserRefundAction: FC = () => {
                     throw Error("No chain id")
                 if (!source_provider)
                     throw new Error("No source provider")
+                if(!sourceAtomicContract)
+                    throw new Error("No atomic contract")
 
                 const data = await source_provider.getDetails({
                     type: source_asset?.contract ? 'erc20' : 'native',
                     chainId: source_network.chain_id,
                     id: commitId as string,
-                    contractAddress: sourceAtomicContract
+                    contractAddress: sourceAtomicContract as `0x${string}`,
                 })
                 if (data?.claimed == 2) {
                     setSourceDetails(data)
@@ -299,12 +311,14 @@ export const UserRefundAction: FC = () => {
                     throw Error("No chain id")
                 if (!commitId)
                     throw Error("No commitId")
+                if (!destinationAtomicContract)
+                    throw Error("No atomic contract")
 
                 const data = await destination_provider.getDetails({
                     type: destination_asset?.contract ? 'erc20' : 'native',
                     chainId: destination_network.chain_id,
                     id: commitId,
-                    contractAddress: destinationAtomicContract,
+                    contractAddress: destinationAtomicContract as `0x${string}`,
                 })
 
                 if (data) setDestinationDetails(data)
