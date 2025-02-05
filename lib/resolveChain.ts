@@ -12,7 +12,7 @@ export default function resolveChain(network: Network) {
             new URL(network.transaction_explorer_template).origin
             : null
 
-    const evm_multicall_contract  = network.contracts.find(c => c.type === ContractType.EvmMultiCallContract) || {}
+    const evm_multicall_contract  = network.contracts.find(c => c.type === ContractType.EvmMultiCallContract)?.address || {}
 
     if (!nativeCurrency) {
         SendErrorMessage("UI Settings error", `env: ${process.env.NEXT_PUBLIC_VERCEL_ENV} %0A url: ${process.env.NEXT_PUBLIC_VERCEL_URL} %0A message: could not find native currency for ${network.name} ${JSON.stringify(network)} %0A`)
