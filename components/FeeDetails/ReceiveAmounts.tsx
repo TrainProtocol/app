@@ -10,7 +10,7 @@ type WillReceiveProps = {
 }
 export const ReceiveAmounts: FC<WillReceiveProps> = ({ source_token, destination_token, fee, isFeeLoading }) => {
     const receive_amount = fee?.quote?.receive_amount
-    const parsedReceiveAmount = parseFloat(receive_amount?.toFixed(destination_token?.precision) || "")
+    const parsedReceiveAmount = parseFloat(receive_amount?.toFixed(destination_token?.decimals) || "")
 
     const receiveAmountInUsd = receive_amount && destination_token && fee.quote?.destination_token?.price_in_usd ? (receive_amount * fee.quote.destination_token.price_in_usd).toFixed(2) : undefined
 
