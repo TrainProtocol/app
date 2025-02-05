@@ -51,7 +51,7 @@ const Component: FC = () => {
     const { balance, isBalanceLoading } = useSWRBalance(selectedWallet?.address, sourceNetworkWithTokens)
 
     const walletBalance = source_network && balance?.find(b => b?.network === source_network?.name && b?.token === source_asset?.symbol)
-    const walletBalanceAmount = walletBalance?.amount && truncateDecimals(walletBalance?.amount, source_asset?.precision)
+    const walletBalanceAmount = (source_asset && walletBalance?.amount) && truncateDecimals(walletBalance?.amount, Math.min(source_asset?.decimals, 8))
 
     return (
         !commitId &&

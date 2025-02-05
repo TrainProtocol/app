@@ -91,7 +91,7 @@ export const WalletItem: FC<HTMLAttributes<HTMLDivElement> & WalletItemProps> = 
     const walletBalance = balance?.find(b => b?.token === token?.symbol)
 
     const isSelected = selectable && (wallet.addresses.length == 1 && wallet.address == selectedAddress)
-    const walletBalanceAmount = walletBalance?.amount && truncateDecimals(walletBalance?.amount, token?.precision)
+    const walletBalanceAmount = (walletBalance?.amount && token) && truncateDecimals(walletBalance?.amount, Math.min(token?.decimals, 8))
 
     return (
         <div {...props} className="rounded-md outline-none text-primary-tex">
@@ -228,7 +228,7 @@ const NestedWalletAddress: FC<HTMLAttributes<HTMLDivElement> & NestedWalletAddre
 
     const isNestedSelected = selectable && address == selectedAddress
     const nestedWalletBalance = balance?.find(b => b?.token === token?.symbol)
-    const nestedWalletBalanceAmount = nestedWalletBalance?.amount && truncateDecimals(nestedWalletBalance?.amount, token?.precision)
+    const nestedWalletBalanceAmount = (nestedWalletBalance?.amount && token) && truncateDecimals(nestedWalletBalance?.amount, Math.min(token?.decimals, 8))
 
     return (
         <div

@@ -55,7 +55,7 @@ const AmountField = forwardRef(function AmountField(_, ref: any) {
     }
 
     const placeholder = (fromCurrency && toCurrency && from && to && minAllowedAmount && !isBalanceLoading && !isGasLoading) ? `${minAllowedAmount} - ${maxAmountFromApi}` : '0.0'
-    const step = 1 / Math.pow(10, fromCurrency?.precision || 1)
+    const step = 1 / Math.pow(10, (fromCurrency && Math.min(fromCurrency?.decimals, 8)) || 1)
     const amountRef = useRef(ref)
 
 
@@ -74,7 +74,7 @@ const AmountField = forwardRef(function AmountField(_, ref: any) {
                     step={isNaN(step) ? 0.01 : step}
                     name={name}
                     ref={amountRef}
-                    precision={fromCurrency?.precision}
+                    precision={Math.min(fromCurrency?.decimals || 8, 8)}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
                     className="text-primary-text pr-0 w-full"

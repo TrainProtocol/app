@@ -25,7 +25,7 @@ const ReserveGasNote = ({ onSubmit }: { onSubmit: (walletBalance: Balance, netwo
         && minAllowedAmount
         && walletBalance.amount > minAllowedAmount
     )
-    const gasToReserveFormatted = mightBeAutOfGas ? truncateDecimals(networkGas, values?.fromCurrency?.precision) : 0
+    const gasToReserveFormatted = (mightBeAutOfGas && values?.fromCurrency?.decimals) ? truncateDecimals(networkGas, Math.min(values?.fromCurrency?.decimals, 8)) : 0
 
     return (
         mightBeAutOfGas && gasToReserveFormatted > 0 &&
@@ -35,7 +35,7 @@ const ReserveGasNote = ({ onSubmit }: { onSubmit: (walletBalance: Balance, netwo
                     You might not be able to complete the transaction.
                 </div>
                 <div onClick={() => onSubmit(walletBalance, networkGas)} className="cursor-pointer border-b border-dotted border-primary-text w-fit hover:text-primary hover:border-primary text-primary-text">
-                    <span>Reserve</span> <span>{gasToReserveFormatted.toFixed(values.fromCurrency?.precision)}</span> <span>{values?.fromCurrency?.symbol}</span> <span>for gas.</span>
+                    <span>Reserve</span> <span>{gasToReserveFormatted.toFixed(Math.min(values.fromCurrency?.decimals || 8, 8))}</span> <span>{values?.fromCurrency?.symbol}</span> <span>for gas.</span>
                 </div>
             </div>
         </WarningMessage>

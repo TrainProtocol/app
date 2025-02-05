@@ -74,7 +74,7 @@ const Wrapper: FC<SwapInfoProps> = ({ sourceAccountAddress, sourceCurrency, dest
                     <div className="flex flex-col items-end">
                         {
                             requestedAmount &&
-                            <p className="text-primary-text text-sm">{truncateDecimals(requestedAmount, sourceCurrency.precision)} {sourceCurrency.symbol}</p>
+                            <p className="text-primary-text text-sm">{truncateDecimals(requestedAmount, Math.min(sourceCurrency.decimals, 8))} {sourceCurrency.symbol}</p>
                         }
                         <p className="text-secondary-text text-sm flex justify-end">${requestedAmountInUsd}</p>
                     </div>
