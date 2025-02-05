@@ -55,10 +55,16 @@ export type CommitFromApi = {
     receive_amount: number,
     fee_amount: number,
     transactions: {
-        type: 'lock' | 'redeem' | 'addlocksig',
+        type: CommitTransaction,
         hash: string,
         network: string
     }[]
+}
+
+export enum CommitTransaction {
+    HTLCLock = 'HTLCLock',
+    HTLCRedeem = 'HTLCRedeem',
+    HTLCAddLockSig = 'HTLCAddLockSig'
 }
 
 export type Quote = {

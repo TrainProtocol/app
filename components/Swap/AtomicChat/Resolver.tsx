@@ -12,11 +12,12 @@ import LockFilledCircleIcon from "../../Icons/LockFilledCircleIcon";
 import CheckedIcon from "../../Icons/CheckedIcon";
 import LockIcon from "../../Icons/LockIcon";
 import Link from "next/link";
+import { CommitTransaction } from "../../../lib/layerSwapApiClient";
 
 const RequestStep: FC = () => {
     const { sourceDetails, commitId, commitTxId, source_network, commitFromApi } = useAtomicState()
 
-    const lpLockTx = commitFromApi?.transactions.find(t => t.type === 'lock')
+    const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
 
     const commtting = (commitId && !sourceDetails) ? true : false;
     const commited = (sourceDetails || lpLockTx) ? true : false;
@@ -37,9 +38,9 @@ const RequestStep: FC = () => {
 const SignAndConfirmStep: FC = () => {
     const { sourceDetails, destinationDetails, source_network, destination_network, commitFromApi, commitStatus } = useAtomicState()
 
-    const lpLockTx = commitFromApi?.transactions.find(t => t.type === 'lock')
-    const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === 'redeem' && t.network === destination_network?.name)
-    const addLockSigTx = commitFromApi?.transactions.find(t => t.type === 'addlocksig')
+    const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
+    const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
+    const addLockSigTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
     const commited = (sourceDetails || lpLockTx) ? true : false;
 
     const assetsLocked = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted;
@@ -74,7 +75,7 @@ const SignAndConfirmStep: FC = () => {
 const SolverStatus: FC = () => {
     const { commitId, sourceDetails, destinationDetails, commitFromApi, destination_network, commitStatus } = useAtomicState()
 
-    const lpLockTx = commitFromApi?.transactions.find(t => t.type === 'lock')
+    const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
 
     const commited = commitId ? true : false;
     const lpLockDetected = destinationDetails?.hashlock ? true : false;
@@ -141,7 +142,7 @@ export const ResolveMessages: FC<{ timelock: number | undefined, showTimer: bool
 }
 const ResolveAction: FC = () => {
     const { sourceDetails, destination_network, error, setError, commitStatus, commitFromApi, refundTxId, source_network } = useAtomicState()
-    const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === 'redeem' && t.network === destination_network?.name)
+    const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
 
     //TODO: remove lp actions just disable the button
     if (error) {
@@ -203,7 +204,7 @@ const ResolveAction: FC = () => {
 export const Actions: FC = () => {
     const { destinationDetails, sourceDetails, commitFromApi, destination_network, commitStatus } = useAtomicState()
 
-    const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === 'redeem' && t.network === destination_network?.name)
+    const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
 
     const allDone = ((sourceDetails?.hashlock && destinationDetails?.claimed == 3) || lpRedeemTransaction?.hash || sourceDetails?.claimed == 2) ? true : false
     const showTimer = !allDone && commitStatus !== CommitStatus.TimelockExpired

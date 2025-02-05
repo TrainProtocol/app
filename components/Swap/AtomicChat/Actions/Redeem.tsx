@@ -5,6 +5,7 @@ import ActionStatus from "./Status/ActionStatus";
 import { WalletActionButton } from "../../buttons";
 import { TriangleAlert } from "lucide-react";
 import { ContractType } from "../../../../Models/Network";
+import { CommitTransaction } from "../../../../lib/layerSwapApiClient";
 
 export const RedeemAction: FC = () => {
     const { destination_network, source_network, sourceDetails, destinationDetails, setDestinationDetails, setSourceDetails, destination_asset, source_asset, commitId, commitFromApi, setError } = useAtomicState()
@@ -19,7 +20,7 @@ export const RedeemAction: FC = () => {
     const destination_contract = destination_network?.contracts.find(c => destination_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
     const source_contract = source_network?.contracts.find(c => source_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
 
-    const userLockTransaction = commitFromApi?.transactions.find(t => t.type === 'addlocksig')
+    const userLockTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
 
     const isManualClaimable = !!(assetsLocked && sourceDetails?.claimed == 3 && destinationDetails?.claimed != 3 && (sourceClaimTime && (Date.now() - sourceClaimTime > 30000)))
