@@ -231,8 +231,7 @@ const resolveAddressGroups = ({
 
     if (!destination) return
 
-    //TODO fix network group implementation
-    const networkType = destination?.group
+    const networkType = destination?.type
 
     let addresses: AddressItem[] = []
     wallets?.forEach(wallet => {
