@@ -40,7 +40,6 @@ export type AddLockSig = {
     r: string
     s: string
     v: string
-    signer_address: string,
     signature: string
     timelock: number
 }

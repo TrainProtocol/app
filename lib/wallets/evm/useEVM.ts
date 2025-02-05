@@ -411,7 +411,6 @@ export default function useEVM({ network }: Props): WalletProvider {
         try {
             account?.address && await apiClient.AddLockSig({
                 signature,
-                signer_address: account.address,
                 v: sig.v.toString(),
                 r: sig.r,
                 s: sig.s,
