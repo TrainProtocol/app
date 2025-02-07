@@ -90,7 +90,6 @@ export default function useStarknet(): WalletProvider {
             }
 
             if (result?.account && starknetConnector) {
-                const starkent = networks.find(n => n.name === KnownInternalNames.Networks.StarkNetMainnet || n.name === KnownInternalNames.Networks.StarkNetSepolia)
                 const WalletAccount = (await import('starknet')).WalletAccount
 
                 const starknetWalletAccount = new WalletAccount({ nodeUrl }, (starknetConnector as any).wallet);

@@ -18,7 +18,6 @@ export enum CommitStatus {
     RedeemCompleted = 'redeemCompleted',
     TimelockExpired = 'timelockExpired',
     Refunded = 'refunded',
-    ManualClaim = 'manualClaim'
 }
 
 const AtomicStateContext = createContext<DataContextType | null>(null);
@@ -83,7 +82,7 @@ export function AtomicProvider({ children }) {
     const fetcher = (args) => fetch(args).then(res => res.json())
     const url = process.env.NEXT_PUBLIC_TRAIN_API
     const parsedCommitId = commitId ? toHex(BigInt(commitId)) : undefined
-    const { data } = useSWR<ApiResponse<CommitFromApi>>((parsedCommitId && commitFromApi?.transactions.length !== 4 && destinationDetails?.claimed !== 3) ? `${url}/api/swap/${parsedCommitId}` : null, fetcher, { refreshInterval: 5000 })
+    const { data } = useSWR<ApiResponse<CommitFromApi>>((parsedCommitId && commitFromApi?.transactions.length !== 3) ? `${url}/api/swap/${parsedCommitId}` : null, fetcher, { refreshInterval: 5000 })
 
     const commitStatus = useMemo(() => statusResolver({ commitFromApi, sourceDetails, destinationDetails, destination_network, timelockExpired: isTimelockExpired, userLocked }), [commitFromApi, sourceDetails, destinationDetails, destination_network, isTimelockExpired, userLocked, refundTxId])
 
@@ -183,7 +182,6 @@ const statusResolver = ({ commitFromApi, sourceDetails, destinationDetails, dest
 
     if (timelockExpired) return CommitStatus.TimelockExpired
     else if (redeemCompleted) return CommitStatus.RedeemCompleted
-    else if (assetsLocked && sourceDetails?.claimed == 3 && destinationDetails?.claimed != 3) return CommitStatus.ManualClaim
     else if (assetsLocked) return CommitStatus.AssetsLocked
     else if (userLocked) return CommitStatus.UserLocked
     else if (lpLockDetected) return CommitStatus.LpLockDetected

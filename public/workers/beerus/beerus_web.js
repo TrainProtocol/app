@@ -170,7 +170,7 @@ function makeMutClosure(arg0, arg1, dtor, f) {
     return real;
 }
 function __wbg_adapter_28(arg0, arg1, arg2) {
-    wasm.closure1213_externref_shim(arg0, arg1, arg2);
+    wasm.closure1197_externref_shim(arg0, arg1, arg2);
 }
 export function set_panic_hook() {
     wasm.set_panic_hook();
@@ -191,7 +191,7 @@ function handleError(f, args) {
     }
 }
 function __wbg_adapter_121(arg0, arg1, arg2, arg3) {
-    wasm.closure3258_externref_shim(arg0, arg1, arg2, arg3);
+    wasm.closure3242_externref_shim(arg0, arg1, arg2, arg3);
 }
 const __wbindgen_enum_RequestCredentials = ["omit", "same-origin", "include"];
 const __wbindgen_enum_RequestMode = ["same-origin", "no-cors", "cors", "navigate"];
@@ -630,8 +630,8 @@ function __wbg_get_imports() {
         const ret = wasm.memory;
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper2151 = function (arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 1214, __wbg_adapter_28);
+    imports.wbg.__wbindgen_closure_wrapper2137 = function (arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 1198, __wbg_adapter_28);
         return ret;
     };
     imports.wbg.__wbindgen_init_externref_table = function () {

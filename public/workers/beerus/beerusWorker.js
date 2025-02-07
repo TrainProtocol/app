@@ -1,5 +1,4 @@
 import init, { set_panic_hook, Beerus } from './beerus_web.js';
-import * as Starknet from 'https://cdn.jsdelivr.net/npm/starknet@6.8.0';
 self.onmessage = (e) => {
     switch (e.data.type) {
         case 'init':
@@ -46,14 +45,13 @@ async function getCommit(commitConfigs) {
                         "contract_address": "0x47e9bb930cd69fbf37d57dc168562c15224b5c82d2e7d55d185d7259553d43d",
                         "entry_point_selector": "0x12c1391cfaa9ef9e9ca09ecc94bd018890bd054699849cb213e73508977b704"
                     }
-                }
-
+                };
                 const res = await starknetCall(call);
-                debugger
+                debugger;
                 return res;
             }
             catch (e) {
-                debugger
+                debugger;
                 console.log(e);
             }
         }
@@ -91,29 +89,29 @@ async function starknetCall(commitConfigs) {
     if (request.hasOwnProperty('state')) {
         try {
             let state = await self.client.get_state();
-            return state
+            return state;
         }
         catch (e) {
             console.error(e);
             let error = sanitize(e.toString());
-            return error
+            return error;
         }
     }
     else if (request.hasOwnProperty('execute')) {
         let req = JSON.stringify(request['execute']);
         try {
             let result = await self.client.execute(req);
-            return result
+            return result;
         }
         catch (e) {
             console.error(e);
             let error = sanitize(e.toString());
-            return error
+            return error;
         }
     }
     else {
         console.error('worker: unknown request: ', commitConfigs.data);
-        return "unknown request"
+        return "unknown request";
     }
 }
 ;

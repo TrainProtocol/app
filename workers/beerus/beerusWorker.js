@@ -1,5 +1,4 @@
 import init, { set_panic_hook, Beerus } from './beerus_web.js';
-import * as Starknet from 'https://cdn.jsdelivr.net/npm/starknet@6.8.0'
 self.onmessage = (e) => {
     switch (e.data.type) {
         case 'init':
@@ -13,47 +12,47 @@ self.onmessage = (e) => {
             console.error('Unhandled message type:', e.data.type);
     }
 };
-
 async function initWorker(initConfigs) {
     try {
         await init();
         set_panic_hook();
         const config = JSON.stringify({
-            ethereum_url: `https://eth-mainnet.g.alchemy.com/v2/${initConfigs.alchemyKey}`,
-            starknet_url: `https://starknet-mainnet.g.alchemy.com/starknet/version/rpc/v0_7/${initConfigs.alchemyKey}`
+            ethereum_url: `https://eth-sepolia.g.alchemy.com/v2/${initConfigs.alchemyKey}`,
+            gateway_url: 'https://alpha-sepolia.starknet.io',
+            starknet_url: `https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/${initConfigs.alchemyKey}`
         });
         let beerus = await new Beerus(config, post);
-        debugger
-
         console.log('Beerus instance created');
         self.client = beerus;
         self.postMessage({ type: 'init', data: { initialized: true } });
     }
     catch (e) {
-        debugger
         self.postMessage({ type: 'init', data: { initialized: false } });
         console.log(e);
     }
 }
-
 async function getCommit(commitConfigs) {
     try {
         const { commitId, contractAddress } = commitConfigs;
         async function getCommitDetails() {
             try {
-                debugger
                 const call = {
-                    execute: {
-                        calldata: Starknet.CallData.compile(['0xB2029bbd8C1cBCC43c3A7b7fE3d118b0C57D7C31']),
-                        contract_address: '0x047e9bb930cd69fbf37d57dc168562c15224b5c82d2e7d55d185d7259553d43d',
-                        entry_point_selector: "0x12c1391cfaa9ef9e9ca09ecc94bd018890bd054699849cb213e73508977b704"
+                    "execute": {
+                        "calldata": [
+                            "0x266ca",
+                            "0x0"
+                        ],
+                        "contract_address": "0x47e9bb930cd69fbf37d57dc168562c15224b5c82d2e7d55d185d7259553d43d",
+                        "entry_point_selector": "0x12c1391cfaa9ef9e9ca09ecc94bd018890bd054699849cb213e73508977b704"
                     }
                 }
 
-                const res = await starknetCall(call)
+                const res = await starknetCall(call);
+                debugger
                 return res;
             }
             catch (e) {
+                debugger
                 console.log(e);
             }
         }
@@ -85,39 +84,38 @@ async function getCommit(commitConfigs) {
         console.log(e);
     }
 }
-
 async function starknetCall(commitConfigs) {
-    console.log('worker: ', commitConfigs.data);
-    let request = JSON.parse(commitConfigs.data);
+    console.log('worker: ', commitConfigs);
+    let request = commitConfigs;
     if (request.hasOwnProperty('state')) {
         try {
             let state = await self.client.get_state();
-            self.postMessage(`{"id":${request.id},"result":${state}}`);
+            return state
         }
         catch (e) {
             console.error(e);
             let error = sanitize(e.toString());
-            self.postMessage(`{"id":${request.id},"error":"${error}"}`);
+            return error
         }
     }
     else if (request.hasOwnProperty('execute')) {
         let req = JSON.stringify(request['execute']);
         try {
             let result = await self.client.execute(req);
-            self.postMessage(`{"id":${request.id},"result":${result}}`);
+            return result
         }
         catch (e) {
             console.error(e);
             let error = sanitize(e.toString());
-            self.postMessage(`{"id":${request.id},"error":"${error}"}`);
+            return error
         }
     }
     else {
         console.error('worker: unknown request: ', commitConfigs.data);
-        self.postMessage(`{"id":${request.id},"error": "unknown request"}`);
+        return "unknown request"
     }
-};
-
+}
+;
 function post(url, body) {
     let call = method(body);
     let now = performance.now();

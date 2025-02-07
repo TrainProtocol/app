@@ -1,32 +1,16 @@
 import { Formik, FormikProps } from "formik";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSettingsState } from "../../../context/settings";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
-import { useSwapDataState, useSwapDataUpdate } from "../../../context/swap";
 import React from "react";
 import MainStepValidation from "../../../lib/mainStepValidator";
-import { generateSwapInitialValues, generateSwapInitialValuesFromSwap } from "../../../lib/generateSwapInitialValues";
-import LayerSwapApiClient from "../../../lib/layerSwapApiClient";
-import Modal from "../../Modal/modal";
 import SwapForm from "./Form";
 import { NextRouter, useRouter } from "next/router";
-import useSWR from "swr";
-import { ApiResponse } from "../../../Models/ApiResponse";
-import { Partner } from "../../../Models/Partner";
 import { resolvePersistantQueryParams } from "../../../helpers/querryHelper";
 import { useQueryState } from "../../../context/query";
-import Image from 'next/image';
-import { ChevronRight } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
 import { useFee } from "../../../context/feeContext";
-import ResizablePanel from "../../ResizablePanel";
 import useWallet from "../../../hooks/useWallet";
 import { dynamicWithRetries } from "../../../lib/dynamicWithRetries";
-import { addressFormat } from "../../../lib/address/formatter";
 import { useAddressesStore } from "../../../stores/addressesStore";
-import { AddressGroup } from "../../Input/Address/AddressPicker";
-import AddressNote from "../../Input/Address/AddressNote";
-import { useAsyncModal } from "../../../context/asyncModal";
 
 const SwapDetails = dynamicWithRetries(() => import("../Atomic"),
     <div className="w-full h-[450px]">
@@ -42,45 +26,18 @@ const SwapDetails = dynamicWithRetries(() => import("../Atomic"),
 
 export default function Form() {
     const formikRef = useRef<FormikProps<SwapFormValues>>(null);
-    const [showConnectNetworkModal, setShowConnectNetworkModal] = useState(false);
     const [showSwapModal, setShowSwapModal] = useState(false);
     const [isAddressFromQueryConfirmed, setIsAddressFromQueryConfirmed] = useState(false);
     const router = useRouter();
     const addresses = useAddressesStore(state => state.addresses)
 
-    const settings = useSettingsState();
     const query = useQueryState()
 
-    const layerswapApiClient = new LayerSwapApiClient()
-    const { data: partnerData } = useSWR<ApiResponse<Partner>>(query?.appName && `/internal/apps?name=${query?.appName}`, layerswapApiClient.fetcher)
-    const partner = query?.appName && partnerData?.data?.client_id?.toLowerCase() === (query?.appName as string)?.toLowerCase() ? partnerData?.data : undefined
 
     const { minAllowedAmount, maxAllowedAmount, updatePolling: pollFee, mutateLimits } = useFee()
     const { getProvider } = useWallet()
-    const { getConfirmation } = useAsyncModal();
 
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
-
-        const { destination_address, to } = values
-        if (to &&
-            destination_address &&
-            (query.destAddress) &&
-            (addressFormat(query.destAddress?.toString(), to) === addressFormat(destination_address, to)) &&
-            !(addresses.find(a => addressFormat(a.address, to) === addressFormat(destination_address, to) && a.group !== AddressGroup.FromQuery)) && !isAddressFromQueryConfirmed) {
-
-            const confirmed = await getConfirmation({
-                content: <AddressNote partner={partner} values={values} />,
-                submitText: 'Confirm address',
-                dismissText: 'Cancel address'
-            })
-
-            if (confirmed) {
-                setIsAddressFromQueryConfirmed(true)
-            }
-            else if (!confirmed) {
-                return
-            }
-        }
         try {
             if (!values.amount) {
                 throw new Error("No amount specified")
@@ -142,7 +99,7 @@ export default function Form() {
         catch (error) {
             console.log(error)
         }
-    }, [query, partner, router, getProvider])
+    }, [query, router, getProvider])
 
     // const initialValues: SwapFormValues = swapResponse ? generateSwapInitialValuesFromSwap(swapResponse, settings)
     //     : generateSwapInitialValues(settings, query)
@@ -187,7 +144,7 @@ export default function Form() {
             onSubmit={handleSubmit}
         >
             <>
-                <SwapForm partner={partner} />
+                <SwapForm />
             </>
         </Formik>
     </>

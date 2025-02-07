@@ -5,7 +5,6 @@ import React from "react";
 import NetworkFormField from "../../Input/NetworkFormField";
 import LayerSwapApiClient from "../../../lib/layerSwapApiClient";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
-import { Partner } from "../../../Models/Partner";
 import useSWR from "swr";
 import { ApiResponse } from "../../../Models/ApiResponse";
 import { motion, useCycle } from "framer-motion";
@@ -25,16 +24,11 @@ import { useSwapDataState, useSwapDataUpdate } from "../../../context/swap";
 import useWallet from "../../../hooks/useWallet";
 import { FormSourceWalletButton } from "../../Input/SourceWalletPicker";
 
-type Props = {
-    partner?: Partner,
-}
-
 const ReserveGasNote = dynamic(() => import("../../ReserveGasNote"), {
     loading: () => <></>,
 });
 
-
-const SwapForm: FC<Props> = ({ partner }) => {
+const SwapForm: FC = () => {
     const {
         values,
         setValues,
