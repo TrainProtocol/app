@@ -1,24 +1,18 @@
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import useWallet from "../../../hooks/useWallet";
-import { truncateDecimals } from "../../utils/RoundDecimals";
-import AddressWithIcon from "../../Input/Address/AddressPicker/AddressWithIcon";
-import { AddressGroup } from "../../Input/Address/AddressPicker";
-import { ChevronRight, RefreshCw } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Wallet } from "../../../Models/WalletProvider";
-import useSWRBalance from "../../../lib/balances/useSWRBalance";
 import VaulDrawer from "../../Modal/vaulModal";
 import WalletsList from "../../Wallet/WalletsList";
 import { useAtomicState } from "../../../context/atomicContext";
-import { useSettingsState } from "../../../context/settings";
 import { useSwapDataState, useSwapDataUpdate } from "../../../context/swap";
+import shortenAddress from "../../utils/ShortenAddress";
 
-const Component: FC = () => {
+const ConnectedWallet: FC<{ disabled: boolean }> = ({ disabled }) => {
     const { source_asset, source_network, commitId } = useAtomicState()
     const { selectedSourceAccount } = useSwapDataState()
     const { setSelectedSourceAccount } = useSwapDataUpdate()
     const { provider } = useWallet(source_network, 'withdrawal')
-    const { networks } = useSettingsState()
-    const sourceNetworkWithTokens = networks.find(n => n.name === source_network?.name)
     const [openModal, setOpenModal] = useState(false)
 
     const changeWallet = async (wallet: Wallet, address: string) => {
@@ -47,28 +41,24 @@ const Component: FC = () => {
         }
     }, [activeWallet?.address, setSelectedSourceAccount, provider, selectedSourceAccount?.address])
 
-
-    const { balance, isBalanceLoading } = useSWRBalance(selectedWallet?.address, sourceNetworkWithTokens)
-
-    const walletBalance = source_network && balance?.find(b => b?.network === source_network?.name && b?.token === source_asset?.symbol)
-    const walletBalanceAmount = (source_asset && walletBalance?.amount) && truncateDecimals(walletBalance?.amount, Math.min(source_asset?.decimals, 8))
-
     return (
-        !commitId &&
         <>
-            <div className="grid content-end">
+            <div className="grid">
                 {
                     selectedWallet &&
                     source_network &&
-                    <div onClick={() => setOpenModal(true)} className="cursor-pointer group/addressItem flex rounded-lg justify-between space-x-3 items-center mt-1.5 text-primary-text bg-secondary-700 disabled:cursor-not-allowed h-12 leading-4 font-medium w-full px-3 py-7">
-                        <AddressWithIcon
-                            addressItem={{ address: selectedSourceAccount?.address || '', group: AddressGroup.ConnectedWallet }}
-                            connectedWallet={selectedWallet}
-                            network={source_network}
-                            balance={(walletBalanceAmount !== undefined && source_asset) ? { amount: walletBalanceAmount, symbol: source_asset?.symbol, isLoading: isBalanceLoading } : undefined}
-                        />
-                        <ChevronRight className="h-4 w-4" />
-                    </div>
+                    <button type="button" disabled={disabled} onClick={() => setOpenModal(true)} className="cursor-pointer flex rounded-lg justify-between space-x-3 items-center text-primary-text bg-secondary-600 disabled:cursor-not-allowed w-full p-1">
+                        <div className="flex items-center space-x-1">
+                            <selectedWallet.icon className="h-4 w-4" />
+                            <p>
+                                {shortenAddress(selectedSourceAccount.address)}
+                            </p>
+                        </div>
+                        {
+                            !disabled &&
+                            <ChevronDown className="h-4 w-4" />
+                        }
+                    </button>
                 }
             </div>
             {
@@ -94,6 +84,7 @@ const Component: FC = () => {
                     </VaulDrawer.Snap>
                 </VaulDrawer>
             }
-        </>)
+        </>
+    )
 }
-export default Component;
+export default ConnectedWallet;

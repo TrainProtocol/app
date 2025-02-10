@@ -1,11 +1,11 @@
 import { FC, useEffect, useState } from "react"
 import useWallet from "../../../../hooks/useWallet";
 import { useAtomicState } from "../../../../context/atomicContext";
-import ActionStatus from "./Status/ActionStatus";
 import { WalletActionButton } from "../../buttons";
 import { TriangleAlert } from "lucide-react";
 import { ContractType } from "../../../../Models/Network";
 import { CommitTransaction } from "../../../../lib/layerSwapApiClient";
+import PendingButton from "./Status/PendingButton";
 
 export const RedeemAction: FC = () => {
     const { destination_network, source_network, sourceDetails, destinationDetails, setDestinationDetails, setSourceDetails, destination_asset, source_asset, commitId, commitFromApi, setError } = useAtomicState()
@@ -108,10 +108,7 @@ export const RedeemAction: FC = () => {
             {
                 isManualClaimable
                     ? (requestedManualClaim
-                        ? <ActionStatus
-                            status="pending"
-                            title='Assets are currently being released'
-                        />
+                        ? <PendingButton/>
                         : <div className="space-y-2">
                             <div className="inline-flex text-secondary-text">
                                 <TriangleAlert className="w-6 h-6" />
@@ -129,10 +126,7 @@ export const RedeemAction: FC = () => {
                                 Claim Manually
                             </WalletActionButton>
                         </div>)
-                    : <ActionStatus
-                        status="pending"
-                        title='Assets are currently being released'
-                    />
+                    : <PendingButton/>
             }
         </>
     )

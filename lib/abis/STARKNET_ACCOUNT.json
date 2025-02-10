@@ -1,0 +1,1089 @@
+[
+    {
+        "name": "ExternalMethods",
+        "type": "impl",
+        "interface_name": "braavos_account::account::interface::IBraavosAccount"
+    },
+    {
+        "name": "core::array::Span::<core::felt252>",
+        "type": "struct",
+        "members": [
+            {
+                "name": "snapshot",
+                "type": "@core::array::Array::<core::felt252>"
+            }
+        ]
+    },
+    {
+        "name": "core::starknet::account::Call",
+        "type": "struct",
+        "members": [
+            {
+                "name": "to",
+                "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+                "name": "selector",
+                "type": "core::felt252"
+            },
+            {
+                "name": "calldata",
+                "type": "core::array::Span::<core::felt252>"
+            }
+        ]
+    },
+    {
+        "name": "core::array::Span::<core::starknet::account::Call>",
+        "type": "struct",
+        "members": [
+            {
+                "name": "snapshot",
+                "type": "@core::array::Array::<core::starknet::account::Call>"
+            }
+        ]
+    },
+    {
+        "name": "braavos_account::signers::signers::StarkPubKey",
+        "type": "struct",
+        "members": [
+            {
+                "name": "pub_key",
+                "type": "core::felt252"
+            }
+        ]
+    },
+    {
+        "name": "braavos_account::account::interface::RequiredSigner",
+        "type": "enum",
+        "variants": [
+            {
+                "name": "NA",
+                "type": "()"
+            },
+            {
+                "name": "Stark",
+                "type": "()"
+            },
+            {
+                "name": "Strong",
+                "type": "()"
+            },
+            {
+                "name": "Multisig",
+                "type": "()"
+            }
+        ]
+    },
+    {
+        "name": "braavos_account::account::interface::IBraavosAccount",
+        "type": "interface",
+        "items": [
+            {
+                "name": "__validate__",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "calls",
+                        "type": "core::array::Span::<core::starknet::account::Call>"
+                    }
+                ],
+                "outputs": [
+                    {
+                        "type": "core::felt252"
+                    }
+                ],
+                "state_mutability": "external"
+            },
+            {
+                "name": "__execute__",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "calls",
+                        "type": "core::array::Span::<core::starknet::account::Call>"
+                    }
+                ],
+                "outputs": [
+                    {
+                        "type": "core::array::Array::<core::array::Span::<core::felt252>>"
+                    }
+                ],
+                "state_mutability": "external"
+            },
+            {
+                "name": "is_valid_signature",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "hash",
+                        "type": "core::felt252"
+                    },
+                    {
+                        "name": "signature",
+                        "type": "core::array::Span::<core::felt252>"
+                    }
+                ],
+                "outputs": [
+                    {
+                        "type": "core::felt252"
+                    }
+                ],
+                "state_mutability": "view"
+            },
+            {
+                "name": "__validate_deploy__",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "class_hash",
+                        "type": "core::felt252"
+                    },
+                    {
+                        "name": "salt",
+                        "type": "core::felt252"
+                    },
+                    {
+                        "name": "stark_pub_key",
+                        "type": "braavos_account::signers::signers::StarkPubKey"
+                    }
+                ],
+                "outputs": [
+                    {
+                        "type": "core::felt252"
+                    }
+                ],
+                "state_mutability": "view"
+            },
+            {
+                "name": "__validate_declare__",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "class_hash",
+                        "type": "core::felt252"
+                    }
+                ],
+                "outputs": [
+                    {
+                        "type": "core::felt252"
+                    }
+                ],
+                "state_mutability": "view"
+            },
+            {
+                "name": "initializer",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "stark_pub_key",
+                        "type": "braavos_account::signers::signers::StarkPubKey"
+                    }
+                ],
+                "outputs": [],
+                "state_mutability": "external"
+            },
+            {
+                "name": "get_version",
+                "type": "function",
+                "inputs": [],
+                "outputs": [
+                    {
+                        "type": "core::felt252"
+                    }
+                ],
+                "state_mutability": "view"
+            },
+            {
+                "name": "get_required_signer",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "calls",
+                        "type": "core::array::Span::<core::starknet::account::Call>"
+                    },
+                    {
+                        "name": "fee_amount",
+                        "type": "core::integer::u128"
+                    },
+                    {
+                        "name": "tx_version",
+                        "type": "core::felt252"
+                    }
+                ],
+                "outputs": [
+                    {
+                        "type": "braavos_account::account::interface::RequiredSigner"
+                    }
+                ],
+                "state_mutability": "external"
+            }
+        ]
+    },
+    {
+        "name": "DwlExternalImpl",
+        "type": "impl",
+        "interface_name": "braavos_account::dwl::interface::IDwlExternal"
+    },
+    {
+        "name": "braavos_account::dwl::interface::IDwlExternal",
+        "type": "interface",
+        "items": [
+            {
+                "name": "set_withdrawal_limit_low",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "withdrawal_limit_low",
+                        "type": "core::integer::u128"
+                    }
+                ],
+                "outputs": [],
+                "state_mutability": "external"
+            },
+            {
+                "name": "set_withdrawal_limit_high",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "withdrawal_limit_high",
+                        "type": "core::integer::u128"
+                    }
+                ],
+                "outputs": [],
+                "state_mutability": "external"
+            },
+            {
+                "name": "get_withdrawal_limit_low",
+                "type": "function",
+                "inputs": [],
+                "outputs": [
+                    {
+                        "type": "core::integer::u128"
+                    }
+                ],
+                "state_mutability": "view"
+            },
+            {
+                "name": "get_withdrawal_limit_high",
+                "type": "function",
+                "inputs": [],
+                "outputs": [
+                    {
+                        "type": "core::integer::u128"
+                    }
+                ],
+                "state_mutability": "view"
+            },
+            {
+                "name": "get_daily_spend",
+                "type": "function",
+                "inputs": [],
+                "outputs": [
+                    {
+                        "type": "core::integer::u128"
+                    }
+                ],
+                "state_mutability": "view"
+            },
+            {
+                "name": "get_fee_token_rate",
+                "type": "function",
+                "inputs": [],
+                "outputs": [
+                    {
+                        "type": "core::integer::u128"
+                    }
+                ],
+                "state_mutability": "view"
+            },
+            {
+                "name": "get_stark_fee_token_rate",
+                "type": "function",
+                "inputs": [],
+                "outputs": [
+                    {
+                        "type": "core::integer::u128"
+                    }
+                ],
+                "state_mutability": "view"
+            }
+        ]
+    },
+    {
+        "name": "RateConfigImpl",
+        "type": "impl",
+        "interface_name": "braavos_account::dwl::interface::IRateServiceExternal"
+    },
+    {
+        "name": "core::bool",
+        "type": "enum",
+        "variants": [
+            {
+                "name": "False",
+                "type": "()"
+            },
+            {
+                "name": "True",
+                "type": "()"
+            }
+        ]
+    },
+    {
+        "name": "braavos_account::dwl::interface::TokenConfig",
+        "type": "struct",
+        "members": [
+            {
+                "name": "is_threshold_currency",
+                "type": "core::bool"
+            },
+            {
+                "name": "token_address",
+                "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+                "name": "pool_key",
+                "type": "core::felt252"
+            },
+            {
+                "name": "is_threshold_currency_token0",
+                "type": "core::bool"
+            }
+        ]
+    },
+    {
+        "name": "core::array::Span::<braavos_account::dwl::interface::TokenConfig>",
+        "type": "struct",
+        "members": [
+            {
+                "name": "snapshot",
+                "type": "@core::array::Array::<braavos_account::dwl::interface::TokenConfig>"
+            }
+        ]
+    },
+    {
+        "name": "braavos_account::dwl::interface::WhitelistCallConfig",
+        "type": "struct",
+        "members": [
+            {
+                "name": "to",
+                "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+                "name": "selector",
+                "type": "core::felt252"
+            },
+            {
+                "name": "whitelist_call_type",
+                "type": "core::integer::u8"
+            }
+        ]
+    },
+    {
+        "name": "core::array::Span::<braavos_account::dwl::interface::WhitelistCallConfig>",
+        "type": "struct",
+        "members": [
+            {
+                "name": "snapshot",
+                "type": "@core::array::Array::<braavos_account::dwl::interface::WhitelistCallConfig>"
+            }
+        ]
+    },
+    {
+        "name": "braavos_account::dwl::interface::IRateServiceExternal",
+        "type": "interface",
+        "items": [
+            {
+                "name": "update_rate_config",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "white_listed_tokens",
+                        "type": "core::array::Span::<braavos_account::dwl::interface::TokenConfig>"
+                    },
+                    {
+                        "name": "white_listed_calls_list",
+                        "type": "core::array::Span::<braavos_account::dwl::interface::WhitelistCallConfig>"
+                    }
+                ],
+                "outputs": [],
+                "state_mutability": "external"
+            }
+        ]
+    },
+    {
+        "name": "SignerManagementImpl",
+        "type": "impl",
+        "interface_name": "braavos_account::signers::interface::ISignerManagement"
+    },
+    {
+        "name": "braavos_account::signers::interface::GetSignersResponse",
+        "type": "struct",
+        "members": [
+            {
+                "name": "stark",
+                "type": "core::array::Array::<core::felt252>"
+            },
+            {
+                "name": "secp256r1",
+                "type": "core::array::Array::<core::felt252>"
+            },
+            {
+                "name": "webauthn",
+                "type": "core::array::Array::<core::felt252>"
+            }
+        ]
+    },
+    {
+        "name": "core::integer::u256",
+        "type": "struct",
+        "members": [
+            {
+                "name": "low",
+                "type": "core::integer::u128"
+            },
+            {
+                "name": "high",
+                "type": "core::integer::u128"
+            }
+        ]
+    },
+    {
+        "name": "braavos_account::signers::signers::Secp256r1PubKey",
+        "type": "struct",
+        "members": [
+            {
+                "name": "pub_x",
+                "type": "core::integer::u256"
+            },
+            {
+                "name": "pub_y",
+                "type": "core::integer::u256"
+            }
+        ]
+    },
+    {
+        "name": "braavos_account::signers::signer_type::SignerType",
+        "type": "enum",
+        "variants": [
+            {
+                "name": "Empty",
+                "type": "()"
+            },
+            {
+                "name": "Stark",
+                "type": "()"
+            },
+            {
+                "name": "Secp256r1",
+                "type": "()"
+            },
+            {
+                "name": "Webauthn",
+                "type": "()"
+            }
+        ]
+    },
+    {
+        "name": "braavos_account::signers::signer_management::SignerManagementComponent::DeferredRemoveSignerRequest",
+        "type": "struct",
+        "members": [
+            {
+                "name": "expire_at",
+                "type": "core::integer::u64"
+            }
+        ]
+    },
+    {
+        "name": "braavos_account::signers::interface::ISignerManagement",
+        "type": "interface",
+        "items": [
+            {
+                "name": "get_public_key",
+                "type": "function",
+                "inputs": [],
+                "outputs": [
+                    {
+                        "type": "core::felt252"
+                    }
+                ],
+                "state_mutability": "view"
+            },
+            {
+                "name": "get_signers",
+                "type": "function",
+                "inputs": [],
+                "outputs": [
+                    {
+                        "type": "braavos_account::signers::interface::GetSignersResponse"
+                    }
+                ],
+                "state_mutability": "view"
+            },
+            {
+                "name": "add_secp256r1_signer",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "secp256r1_signer",
+                        "type": "braavos_account::signers::signers::Secp256r1PubKey"
+                    },
+                    {
+                        "name": "signer_type",
+                        "type": "braavos_account::signers::signer_type::SignerType"
+                    },
+                    {
+                        "name": "multisig_threshold",
+                        "type": "core::integer::u32"
+                    }
+                ],
+                "outputs": [],
+                "state_mutability": "external"
+            },
+            {
+                "name": "remove_secp256r1_signer",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "guid",
+                        "type": "core::felt252"
+                    },
+                    {
+                        "name": "signer_type",
+                        "type": "braavos_account::signers::signer_type::SignerType"
+                    },
+                    {
+                        "name": "multisig_threshold",
+                        "type": "core::integer::u32"
+                    }
+                ],
+                "outputs": [],
+                "state_mutability": "external"
+            },
+            {
+                "name": "change_secp256r1_signer",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "secp256r1_signer",
+                        "type": "braavos_account::signers::signers::Secp256r1PubKey"
+                    },
+                    {
+                        "name": "existing_guid",
+                        "type": "core::felt252"
+                    },
+                    {
+                        "name": "signer_type",
+                        "type": "braavos_account::signers::signer_type::SignerType"
+                    }
+                ],
+                "outputs": [],
+                "state_mutability": "external"
+            },
+            {
+                "name": "deferred_remove_signers",
+                "type": "function",
+                "inputs": [],
+                "outputs": [],
+                "state_mutability": "external"
+            },
+            {
+                "name": "cancel_deferred_remove_signers",
+                "type": "function",
+                "inputs": [],
+                "outputs": [],
+                "state_mutability": "external"
+            },
+            {
+                "name": "get_deferred_remove_signers",
+                "type": "function",
+                "inputs": [],
+                "outputs": [
+                    {
+                        "type": "braavos_account::signers::signer_management::SignerManagementComponent::DeferredRemoveSignerRequest"
+                    }
+                ],
+                "state_mutability": "view"
+            },
+            {
+                "name": "set_execution_time_delay",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "time_delay",
+                        "type": "core::integer::u64"
+                    }
+                ],
+                "outputs": [],
+                "state_mutability": "external"
+            },
+            {
+                "name": "get_execution_time_delay",
+                "type": "function",
+                "inputs": [],
+                "outputs": [
+                    {
+                        "type": "core::integer::u64"
+                    }
+                ],
+                "state_mutability": "view"
+            }
+        ]
+    },
+    {
+        "name": "MultisigImpl",
+        "type": "impl",
+        "interface_name": "braavos_account::signers::interface::IMultisig"
+    },
+    {
+        "name": "braavos_account::signers::interface::IMultisig",
+        "type": "interface",
+        "items": [
+            {
+                "name": "set_multisig_threshold",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "multisig_threshold",
+                        "type": "core::integer::u32"
+                    }
+                ],
+                "outputs": [],
+                "state_mutability": "external"
+            },
+            {
+                "name": "get_multisig_threshold",
+                "type": "function",
+                "inputs": [],
+                "outputs": [
+                    {
+                        "type": "core::integer::u32"
+                    }
+                ],
+                "state_mutability": "view"
+            }
+        ]
+    },
+    {
+        "name": "UpgradableImpl",
+        "type": "impl",
+        "interface_name": "braavos_account::upgradable::interface::IUpgradable"
+    },
+    {
+        "name": "braavos_account::upgradable::interface::IUpgradable",
+        "type": "interface",
+        "items": [
+            {
+                "name": "upgrade",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "upgrade_to",
+                        "type": "core::starknet::class_hash::ClassHash"
+                    }
+                ],
+                "outputs": [],
+                "state_mutability": "external"
+            }
+        ]
+    },
+    {
+        "name": "StorageMigrationImpl",
+        "type": "impl",
+        "interface_name": "braavos_account::upgradable::interface::IStorageMigration"
+    },
+    {
+        "name": "braavos_account::upgradable::interface::IStorageMigration",
+        "type": "interface",
+        "items": [
+            {
+                "name": "migrate_storage",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "from_version",
+                        "type": "core::felt252"
+                    }
+                ],
+                "outputs": [],
+                "state_mutability": "external"
+            }
+        ]
+    },
+    {
+        "name": "SRC5Impl",
+        "type": "impl",
+        "interface_name": "braavos_account::introspection::interface::ISRC5WithCamelCase"
+    },
+    {
+        "name": "braavos_account::introspection::interface::ISRC5WithCamelCase",
+        "type": "interface",
+        "items": [
+            {
+                "name": "supports_interface",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "interface_id",
+                        "type": "core::felt252"
+                    }
+                ],
+                "outputs": [
+                    {
+                        "type": "core::bool"
+                    }
+                ],
+                "state_mutability": "view"
+            },
+            {
+                "name": "supportsInterface",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "interfaceId",
+                        "type": "core::felt252"
+                    }
+                ],
+                "outputs": [
+                    {
+                        "type": "core::bool"
+                    }
+                ],
+                "state_mutability": "view"
+            }
+        ]
+    },
+    {
+        "name": "OutsideExecImpl",
+        "type": "impl",
+        "interface_name": "braavos_account::outside_execution::interface::IOutsideExecution_V2"
+    },
+    {
+        "name": "braavos_account::outside_execution::interface::OutsideExecution",
+        "type": "struct",
+        "members": [
+            {
+                "name": "caller",
+                "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+                "name": "nonce",
+                "type": "core::felt252"
+            },
+            {
+                "name": "execute_after",
+                "type": "core::integer::u64"
+            },
+            {
+                "name": "execute_before",
+                "type": "core::integer::u64"
+            },
+            {
+                "name": "calls",
+                "type": "core::array::Span::<core::starknet::account::Call>"
+            }
+        ]
+    },
+    {
+        "name": "braavos_account::outside_execution::interface::IOutsideExecution_V2",
+        "type": "interface",
+        "items": [
+            {
+                "name": "execute_from_outside_v2",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "outside_execution",
+                        "type": "braavos_account::outside_execution::interface::OutsideExecution"
+                    },
+                    {
+                        "name": "signature",
+                        "type": "core::array::Span::<core::felt252>"
+                    }
+                ],
+                "outputs": [
+                    {
+                        "type": "core::array::Array::<core::array::Span::<core::felt252>>"
+                    }
+                ],
+                "state_mutability": "external"
+            },
+            {
+                "name": "is_valid_outside_execution_nonce",
+                "type": "function",
+                "inputs": [
+                    {
+                        "name": "nonce",
+                        "type": "core::felt252"
+                    }
+                ],
+                "outputs": [
+                    {
+                        "type": "core::bool"
+                    }
+                ],
+                "state_mutability": "view"
+            }
+        ]
+    },
+    {
+        "name": "constructor",
+        "type": "constructor",
+        "inputs": []
+    },
+    {
+        "kind": "struct",
+        "name": "braavos_account::signers::signer_management::SignerManagementComponent::OwnerAdded",
+        "type": "event",
+        "members": [
+            {
+                "kind": "key",
+                "name": "new_owner_guid",
+                "type": "core::felt252"
+            },
+            {
+                "kind": "data",
+                "name": "signer_type",
+                "type": "braavos_account::signers::signer_type::SignerType"
+            },
+            {
+                "kind": "data",
+                "name": "signer_data",
+                "type": "core::array::Span::<core::felt252>"
+            }
+        ]
+    },
+    {
+        "kind": "struct",
+        "name": "braavos_account::signers::signer_management::SignerManagementComponent::OwnerRemoved",
+        "type": "event",
+        "members": [
+            {
+                "kind": "key",
+                "name": "removed_owner_guid",
+                "type": "core::felt252"
+            },
+            {
+                "kind": "data",
+                "name": "removed_signer_type",
+                "type": "braavos_account::signers::signer_type::SignerType"
+            }
+        ]
+    },
+    {
+        "kind": "struct",
+        "name": "braavos_account::signers::signer_management::SignerManagementComponent::DeferredRemoveSignerRequest",
+        "type": "event",
+        "members": [
+            {
+                "kind": "data",
+                "name": "expire_at",
+                "type": "core::integer::u64"
+            }
+        ]
+    },
+    {
+        "kind": "struct",
+        "name": "braavos_account::signers::signer_management::SignerManagementComponent::DeferredRemoveSignerRequestCancelled",
+        "type": "event",
+        "members": [
+            {
+                "kind": "data",
+                "name": "cancelled_deferred_request",
+                "type": "braavos_account::signers::signer_management::SignerManagementComponent::DeferredRemoveSignerRequest"
+            }
+        ]
+    },
+    {
+        "kind": "struct",
+        "name": "braavos_account::signers::signer_management::SignerManagementComponent::DeferredRemoveSignerRequestExpired",
+        "type": "event",
+        "members": [
+            {
+                "kind": "data",
+                "name": "expired_deferred_request",
+                "type": "braavos_account::signers::signer_management::SignerManagementComponent::DeferredRemoveSignerRequest"
+            }
+        ]
+    },
+    {
+        "kind": "enum",
+        "name": "braavos_account::signers::signer_management::SignerManagementComponent::Event",
+        "type": "event",
+        "variants": [
+            {
+                "kind": "nested",
+                "name": "OwnerAdded",
+                "type": "braavos_account::signers::signer_management::SignerManagementComponent::OwnerAdded"
+            },
+            {
+                "kind": "nested",
+                "name": "OwnerRemoved",
+                "type": "braavos_account::signers::signer_management::SignerManagementComponent::OwnerRemoved"
+            },
+            {
+                "kind": "nested",
+                "name": "DeferredRemoveSignerRequest",
+                "type": "braavos_account::signers::signer_management::SignerManagementComponent::DeferredRemoveSignerRequest"
+            },
+            {
+                "kind": "nested",
+                "name": "DeferredRemoveSignerRequestCancelled",
+                "type": "braavos_account::signers::signer_management::SignerManagementComponent::DeferredRemoveSignerRequestCancelled"
+            },
+            {
+                "kind": "nested",
+                "name": "DeferredRemoveSignerRequestExpired",
+                "type": "braavos_account::signers::signer_management::SignerManagementComponent::DeferredRemoveSignerRequestExpired"
+            }
+        ]
+    },
+    {
+        "kind": "struct",
+        "name": "braavos_account::signers::multisig::MultisigComponent::MultisigSet",
+        "type": "event",
+        "members": [
+            {
+                "kind": "data",
+                "name": "multisig_threshold",
+                "type": "core::integer::u32"
+            }
+        ]
+    },
+    {
+        "kind": "enum",
+        "name": "braavos_account::signers::multisig::MultisigComponent::Event",
+        "type": "event",
+        "variants": [
+            {
+                "kind": "nested",
+                "name": "MultisigSet",
+                "type": "braavos_account::signers::multisig::MultisigComponent::MultisigSet"
+            }
+        ]
+    },
+    {
+        "kind": "struct",
+        "name": "braavos_account::upgradable::upgradable::UpgradableComponent::Upgraded",
+        "type": "event",
+        "members": [
+            {
+                "kind": "key",
+                "name": "class_hash",
+                "type": "core::starknet::class_hash::ClassHash"
+            }
+        ]
+    },
+    {
+        "kind": "enum",
+        "name": "braavos_account::upgradable::upgradable::UpgradableComponent::Event",
+        "type": "event",
+        "variants": [
+            {
+                "kind": "nested",
+                "name": "Upgraded",
+                "type": "braavos_account::upgradable::upgradable::UpgradableComponent::Upgraded"
+            }
+        ]
+    },
+    {
+        "kind": "enum",
+        "name": "braavos_account::introspection::src5::SRC5Component::Event",
+        "type": "event",
+        "variants": []
+    },
+    {
+        "kind": "struct",
+        "name": "braavos_account::dwl::dwl::DwlComponent::WithdrawalLimitLowSet",
+        "type": "event",
+        "members": [
+            {
+                "kind": "data",
+                "name": "withdrawal_limit_low",
+                "type": "core::integer::u128"
+            }
+        ]
+    },
+    {
+        "kind": "struct",
+        "name": "braavos_account::dwl::dwl::DwlComponent::WithdrawalLimitHighSet",
+        "type": "event",
+        "members": [
+            {
+                "kind": "data",
+                "name": "withdrawal_limit_high",
+                "type": "core::integer::u128"
+            }
+        ]
+    },
+    {
+        "kind": "enum",
+        "name": "braavos_account::dwl::dwl::DwlComponent::Event",
+        "type": "event",
+        "variants": [
+            {
+                "kind": "nested",
+                "name": "WithdrawalLimitLowSet",
+                "type": "braavos_account::dwl::dwl::DwlComponent::WithdrawalLimitLowSet"
+            },
+            {
+                "kind": "nested",
+                "name": "WithdrawalLimitHighSet",
+                "type": "braavos_account::dwl::dwl::DwlComponent::WithdrawalLimitHighSet"
+            }
+        ]
+    },
+    {
+        "kind": "enum",
+        "name": "braavos_account::dwl::rate_service::RateComponent::Event",
+        "type": "event",
+        "variants": []
+    },
+    {
+        "kind": "enum",
+        "name": "braavos_account::outside_execution::outside_execution::OutsideExecComponent::Event",
+        "type": "event",
+        "variants": []
+    },
+    {
+        "kind": "enum",
+        "name": "braavos_account::presets::braavos_account::BraavosAccount::Event",
+        "type": "event",
+        "variants": [
+            {
+                "kind": "flat",
+                "name": "SignerMgtEvt",
+                "type": "braavos_account::signers::signer_management::SignerManagementComponent::Event"
+            },
+            {
+                "kind": "flat",
+                "name": "MultisigEvt",
+                "type": "braavos_account::signers::multisig::MultisigComponent::Event"
+            },
+            {
+                "kind": "flat",
+                "name": "UpgradableEvt",
+                "type": "braavos_account::upgradable::upgradable::UpgradableComponent::Event"
+            },
+            {
+                "kind": "flat",
+                "name": "Src5Evt",
+                "type": "braavos_account::introspection::src5::SRC5Component::Event"
+            },
+            {
+                "kind": "flat",
+                "name": "DwlEvent",
+                "type": "braavos_account::dwl::dwl::DwlComponent::Event"
+            },
+            {
+                "kind": "flat",
+                "name": "RateEvent",
+                "type": "braavos_account::dwl::rate_service::RateComponent::Event"
+            },
+            {
+                "kind": "flat",
+                "name": "OutsideExecEvt",
+                "type": "braavos_account::outside_execution::outside_execution::OutsideExecComponent::Event"
+            }
+        ]
+    }
+]

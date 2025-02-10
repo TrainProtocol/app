@@ -4,10 +4,10 @@ import { useSettingsState } from "../../../context/settings";
 import useWallet from "../../../hooks/useWallet";
 import Summary from "./Summary";
 import { useFee } from "../../../context/feeContext";
-import ConnectedWallet from "./ConnectedWallet";
 import { Actions } from "./Resolver";
 import { useAtomicState } from "../../../context/atomicContext";
 import ResizablePanel from "../../ResizablePanel";
+import AtomicSteps from "./Steps";
 
 type ContainerProps = {
     type: "widget" | "contained",
@@ -51,24 +51,20 @@ const Commitment: FC<ContainerProps> = (props) => {
         <>
             <Widget.Content>
                 <ResizablePanel>
-                    <div className="w-full flex flex-col justify-between  text-secondary-text">
-                        <div className='grid grid-cols-1 gap-4'>
-                            {
-                                destination_network && source_network && destination_token && source_token &&
-                                <Summary
-                                    destination={destination_network}
-                                    source={source_network}
-                                    destinationAddress={address}
-                                    destinationCurrency={destination_token}
-                                    requestedAmount={amount}
-                                    sourceCurrency={source_token}
-                                    sourceAccountAddress={sourceDetails?.sender || wallet?.address}
-                                    receiveAmount={receiveAmount}
-                                />
-                            }
-                            <ConnectedWallet />
-                        </div>
-                    </div>
+                    {
+                        destination_network && source_network && destination_token && source_token &&
+                        <Summary
+                            destination={destination_network}
+                            source={source_network}
+                            destinationAddress={address}
+                            destinationCurrency={destination_token}
+                            requestedAmount={amount}
+                            sourceCurrency={source_token}
+                            sourceAccountAddress={sourceDetails?.sender || wallet?.address}
+                            receiveAmount={receiveAmount}
+                        />
+                    }
+                    <AtomicSteps />
                 </ResizablePanel>
             </Widget.Content>
             <Widget.Footer sticky={true}>

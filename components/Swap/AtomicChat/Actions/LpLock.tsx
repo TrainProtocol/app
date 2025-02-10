@@ -3,7 +3,7 @@ import { ContractType, Network, Token } from "../../../../Models/Network";
 import { useAtomicState } from "../../../../context/atomicContext";
 import useWallet from "../../../../hooks/useWallet";
 import { WalletProvider } from "../../../../Models/WalletProvider";
-import ActionStatus from "./Status/ActionStatus";
+import PendingButton from "./Status/PendingButton";
 
 export const LpLockingAssets: FC = () => {
     const { destination_network, commitId, setDestinationDetails, destination_asset, lightClient, sourceDetails } = useAtomicState()
@@ -89,8 +89,5 @@ export const LpLockingAssets: FC = () => {
         })()
     }, [provider, destination_network, commitId, isLoading])
 
-    return <ActionStatus
-        status="pending"
-        title='Solver is locking assets'
-    />
+    return <PendingButton />
 }

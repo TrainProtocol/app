@@ -32,7 +32,7 @@ type DataContextType = {
     commitId?: string,
     commitTxId?: string,
     destinationDetails?: Commit & { fetchedByLightClient?: boolean },
-    userLocked?: boolean,
+    userLocked: boolean,
     sourceDetails?: Commit,
     error: string | undefined,
     commitFromApi?: CommitFromApi,

@@ -13,133 +13,8 @@ import CheckedIcon from "../../Icons/CheckedIcon";
 import LockIcon from "../../Icons/LockIcon";
 import Link from "next/link";
 import { CommitTransaction } from "../../../lib/layerSwapApiClient";
+import PendingButton from "./Actions/Status/PendingButton";
 
-const RequestStep: FC = () => {
-    const { sourceDetails, commitId, commitTxId, source_network, commitFromApi } = useAtomicState()
-
-    const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
-
-    const commtting = (commitId && !sourceDetails) ? true : false;
-    const commited = (sourceDetails || lpLockTx) ? true : false;
-
-    const title = commited ? "Requested" : "Request"
-    const description = (commitTxId && source_network) ? <p><span>Transaction ID:</span> <Link target="_blank" className="underline hover:no-underline" href={source_network?.transaction_explorer_template.replace('{0}', commitTxId)}>{shortenAddress(commitTxId)}</Link></p> : <>Initiates a swap process with the solver</>
-    return <Step
-        step={1}
-        title={title}
-        description={description}
-        active={true}
-        completed={commited}
-        loading={commtting && !commited}
-    />
-
-}
-
-const SignAndConfirmStep: FC = () => {
-    const { sourceDetails, destinationDetails, source_network, destination_network, commitFromApi, commitStatus } = useAtomicState()
-
-    const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
-    const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
-    const addLockSigTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
-    const commited = (sourceDetails || lpLockTx) ? true : false;
-
-    const assetsLocked = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted;
-    const loading = commitStatus === CommitStatus.UserLocked
-
-    const title = assetsLocked ? "Signed & Confirmed" : "Sign & Confirm"
-    const description = (assetsLocked)
-        ? <div className="inline-flex gap-3">
-            <div className="inline-flex gap-1 items-center">
-                <p>Solver:</p> {(lpLockTx && destination_network) ? <Link className="underline hover:no-underline" target="_blank" href={destination_network?.transaction_explorer_template.replace('{0}', lpLockTx?.hash)}>{shortenAddress(lpLockTx.hash)}</Link> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />}
-            </div>
-            <div className="inline-flex gap-1 items-center">
-                <p>You:</p> {(addLockSigTx && source_network) ? <Link className="underline hover:no-underline" target="_blank" href={source_network?.transaction_explorer_template.replace('{0}', addLockSigTx?.hash)}>{shortenAddress(addLockSigTx.hash)}</Link> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />}
-            </div>
-        </div>
-        : <>Initiates a swap process with the solver</>
-
-    const completed = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || !!lpRedeemTransaction?.hash || commitStatus === CommitStatus.RedeemCompleted || commitStatus === CommitStatus.AssetsLocked
-
-    return <Step
-        step={2}
-        title={title}
-        description={description}
-        active={commited}
-        completed={completed}
-        loading={loading}
-    >
-        <SolverStatus />
-    </Step>
-}
-
-const SolverStatus: FC = () => {
-    const { commitId, sourceDetails, destinationDetails, commitFromApi, destination_network, commitStatus } = useAtomicState()
-
-    const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
-
-    const commited = commitId ? true : false;
-    const lpLockDetected = destinationDetails?.hashlock ? true : false;
-
-    if (sourceDetails?.hashlock && destinationDetails?.hashlock || !commited || !(commitStatus == CommitStatus.LpLockDetected || commitStatus == CommitStatus.Commited))
-        return null
-
-    if (lpLockDetected) {
-        if (destinationDetails?.fetchedByLightClient) {
-            return <div className="px-1 pt-3 w-full">
-                <div className="text-xs text-primary-text-placeholder">
-                    <div className="flex w-full justify-between items-center">
-                        <p className="text-primary-text text-base">Solver locked assets</p>
-                        <div className="text-xs font-medium text-accent flex items-center gap-1">
-                            <p>Light Client</p>
-                            <LockIcon className="h-4 w-4 text-accent" />
-                        </div>
-                    </div>
-                    <div className="inline-flex gap-1 items-center">
-                        <p>ID:</p> {(lpLockTx && destination_network) ? <Link target="_blank" href={destination_network.transaction_explorer_template.replace('{0}', lpLockTx.hash)} className="underline hover:no-underline">{shortenAddress(lpLockTx.hash)}</Link> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />}
-                    </div>
-                </div>
-            </div>
-        }
-
-        return <div className="pl-1 inline-flex items-center gap-4 pt-3 w-full">
-            <LockFilledCircleIcon className="h-7 w-7" />
-
-            <div className="text-xs text-primary-text-placeholder space-x-2">
-                <span className="text-primary-text text-base">Solver locked assets</span>
-                <span className="text-primary-text text-base">-</span>
-                <div className="inline-flex gap-1 items-center">
-                    <p>Transaction ID:</p> {(lpLockTx && destination_network) ? <Link target="_blank" href={destination_network.transaction_explorer_template.replace('{0}', lpLockTx.hash)} className="underline hover:no-underline">{shortenAddress(lpLockTx.hash)}</Link> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />}
-                </div>
-            </div>
-        </div>
-    }
-
-    return null
-}
-
-
-export const ResolveMessages: FC<{ timelock: number | undefined, showTimer: boolean, allComplete: boolean }> = ({ timelock, showTimer, allComplete }) => {
-    return <div className="space-y-2">
-        <div className="flex items-center w-full justify-between text-primary-text-placeholder text-sm">
-            {
-                !allComplete &&
-                <>
-                    <p>
-                        Follow the steps to complete swap
-                    </p>
-                    {
-                        timelock && showTimer &&
-                        <TimelockTimer timelock={timelock} />
-                    }
-                </>
-            }
-        </div>
-        <div className="space-y-4">
-            <RequestStep />
-            <SignAndConfirmStep />
-        </div>
-    </div>
-}
 const ResolveAction: FC = () => {
     const { sourceDetails, destination_network, error, setError, commitStatus, commitFromApi, refundTxId, source_network } = useAtomicState()
     const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
@@ -159,30 +34,30 @@ const ResolveAction: FC = () => {
         </div>
     }
     if (commitStatus === CommitStatus.RedeemCompleted) {
-        return <ActionStatus
-            status="success"
-            title={
-                <div className="flex flex-col space-y-0">
-                    <p className="text-base leading-5 font-medium">Transaction Completed</p>
-                    <div className="inline-flex gap-1 items-center text-sm">
-                        <p>ID:</p> {(lpRedeemTransaction && destination_network) ? <Link className="underline hover:no-underline" target="_blank" href={destination_network?.transaction_explorer_template.replace('{0}', lpRedeemTransaction.hash)}>{shortenAddress(lpRedeemTransaction?.hash)}</Link> : <div className="h-3 w-14 bg-gray-400 animate-pulse rounded" />}
-                    </div>
-                </div>
-            }
+        return <PendingButton
+        // status="success"
+        // title={
+        //     <div className="flex flex-col space-y-0">
+        //         <p className="text-base leading-5 font-medium">Transaction Completed</p>
+        //         <div className="inline-flex gap-1 items-center text-sm">
+        //             <p>ID:</p> {(lpRedeemTransaction && destination_network) ? <Link className="underline hover:no-underline" target="_blank" href={destination_network?.transaction_explorer_template.replace('{0}', lpRedeemTransaction.hash)}>{shortenAddress(lpRedeemTransaction?.hash)}</Link> : <div className="h-3 w-14 bg-gray-400 animate-pulse rounded" />}
+        //         </div>
+        //     </div>
+        // }
         />
     }
     if (commitStatus === CommitStatus.TimelockExpired) {
         if (sourceDetails?.claimed == 2) {
-            return <ActionStatus
-                status="success"
-                title={
-                    <div className="flex flex-col space-y-0">
-                        <p className="text-base leading-5 font-medium">Refund Completed</p>
-                        <div className="inline-flex gap-1 items-center text-sm">
-                            <p>ID:</p> {(refundTxId && source_network) ? <Link className="underline hover:no-underline" target="_blank" href={source_network?.transaction_explorer_template.replace('{0}', refundTxId)}>{shortenAddress(refundTxId)}</Link> : <div className="h-3 w-14 bg-gray-400 animate-pulse rounded" />}
-                        </div>
-                    </div>
-                }
+            return <PendingButton
+            // status="success"
+            // title={
+            //     <div className="flex flex-col space-y-0">
+            //         <p className="text-base leading-5 font-medium">Refund Completed</p>
+            //         <div className="inline-flex gap-1 items-center text-sm">
+            //             <p>ID:</p> {(refundTxId && source_network) ? <Link className="underline hover:no-underline" target="_blank" href={source_network?.transaction_explorer_template.replace('{0}', refundTxId)}>{shortenAddress(refundTxId)}</Link> : <div className="h-3 w-14 bg-gray-400 animate-pulse rounded" />}
+            //         </div>
+            //     </div>
+            // }
             />
         }
         else {
@@ -211,39 +86,167 @@ export const Actions: FC = () => {
     const timelock = sourceDetails?.timelock || sourceDetails?.timelock
 
     return <div className="space-y-4">
-        <ResolveMessages timelock={timelock} showTimer={showTimer} allComplete={allDone} />
+        {/* <ResolveMessages timelock={timelock} showTimer={showTimer} allComplete={allDone} /> */}
+        {/* <AtomicSteps /> */}
         <ResolveAction />
     </div>
 }
 
-type StepProps = {
-    step: number;
-    title: string;
-    description: JSX.Element | string;
-    children?: JSX.Element | JSX.Element[];
-    active: boolean;
-    completed?: boolean
-    loading?: boolean
-}
-const Step: FC<StepProps> = ({ step, title, description, active, children, completed, loading }) => {
-    return <div className={`flex flex-col w-full bg-secondary-600 rounded-componentRoundness p-2 ${!active ? 'opacity-40' : ''}`}>
-        <div className="flex items-center gap-3">
-            <div className="w-10 h-9 text-center content-center bg-secondary-400 rounded-md grow">{step}</div>
-            <div className="inline-flex items-center justify-between w-full">
-                <div>
-                    <div className="text-primary-text text-base leading-5">{title}</div>
-                    <div className="text-xs text-primary-text-placeholder">{description}</div>
-                </div>
-                {
-                    completed &&
-                    <CheckedIcon className="h-6 w-6 mr-3 text-accent" />
-                }
-                {
-                    loading &&
-                    <LoaderIcon className="animate-reverse-spin h-6 w-6 mr-3" />
-                }
-            </div>
-        </div>
-        {children}
-    </div>
-}
+// const SolverStatus: FC = () => {
+//     const { commitId, sourceDetails, destinationDetails, commitFromApi, destination_network, commitStatus } = useAtomicState()
+
+//     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
+
+//     const commited = commitId ? true : false;
+//     const lpLockDetected = destinationDetails?.hashlock ? true : false;
+
+//     if (sourceDetails?.hashlock && destinationDetails?.hashlock || !commited || !(commitStatus == CommitStatus.LpLockDetected || commitStatus == CommitStatus.Commited))
+//         return null
+
+//     if (lpLockDetected) {
+//         if (destinationDetails?.fetchedByLightClient) {
+//             return <div className="px-1 pt-3 w-full">
+//                 <div className="text-xs text-primary-text-placeholder">
+//                     <div className="flex w-full justify-between items-center">
+//                         <p className="text-primary-text text-base">Solver locked assets</p>
+//                         <div className="text-xs font-medium text-accent flex items-center gap-1">
+//                             <p>Light Client</p>
+//                             <LockIcon className="h-4 w-4 text-accent" />
+//                         </div>
+//                     </div>
+//                     <div className="inline-flex gap-1 items-center">
+//                         <p>ID:</p> {(lpLockTx && destination_network) ? <Link target="_blank" href={destination_network.transaction_explorer_template.replace('{0}', lpLockTx.hash)} className="underline hover:no-underline">{shortenAddress(lpLockTx.hash)}</Link> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />}
+//                     </div>
+//                 </div>
+//             </div>
+//         }
+
+//         return <div className="pl-1 inline-flex items-center gap-4 pt-3 w-full">
+//             <LockFilledCircleIcon className="h-7 w-7" />
+
+//             <div className="text-xs text-primary-text-placeholder space-x-2">
+//                 <span className="text-primary-text text-base">Solver locked assets</span>
+//                 <span className="text-primary-text text-base">-</span>
+//                 <div className="inline-flex gap-1 items-center">
+//                     <p>Transaction ID:</p> {(lpLockTx && destination_network) ? <Link target="_blank" href={destination_network.transaction_explorer_template.replace('{0}', lpLockTx.hash)} className="underline hover:no-underline">{shortenAddress(lpLockTx.hash)}</Link> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />}
+//                 </div>
+//             </div>
+//         </div>
+//     }
+
+//     return null
+// }
+
+// export const ResolveMessages: FC<{ timelock: number | undefined, showTimer: boolean, allComplete: boolean }> = ({ timelock, showTimer, allComplete }) => {
+//     return <div className="space-y-2">
+//         <div className="flex items-center w-full justify-between text-primary-text-placeholder text-sm">
+//             {
+//                 !allComplete &&
+//                 <>
+//                     <p>
+//                         Follow the steps to complete swap
+//                     </p>
+//                     {
+//                         timelock && showTimer &&
+//                         <TimelockTimer timelock={timelock} />
+//                     }
+//                 </>
+//             }
+//         </div>
+//         <div className="space-y-4">
+//             <RequestStep />
+//             <SignAndConfirmStep />
+//         </div>
+//     </div>
+// }
+
+// const RequestStep: FC = () => {
+//     const { sourceDetails, commitId, commitTxId, source_network, commitFromApi } = useAtomicState()
+
+//     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
+
+//     const commtting = (commitId && !sourceDetails) ? true : false;
+//     const commited = (sourceDetails || lpLockTx) ? true : false;
+
+//     const title = commited ? "Requested" : "Request"
+//     const description = (commitTxId && source_network) ? <p><span>Transaction ID:</span> <Link target="_blank" className="underline hover:no-underline" href={source_network?.transaction_explorer_template.replace('{0}', commitTxId)}>{shortenAddress(commitTxId)}</Link></p> : <>Initiates a swap process with the solver</>
+//     return <Step
+//         step={1}
+//         title={title}
+//         description={description}
+//         active={true}
+//         completed={commited}
+//         loading={commtting && !commited}
+//     />
+
+// }
+
+// const SignAndConfirmStep: FC = () => {
+//     const { sourceDetails, destinationDetails, source_network, destination_network, commitFromApi, commitStatus } = useAtomicState()
+
+//     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
+//     const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
+//     const addLockSigTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
+//     const commited = (sourceDetails || lpLockTx) ? true : false;
+
+//     const assetsLocked = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted;
+//     const loading = commitStatus === CommitStatus.UserLocked
+
+//     const title = assetsLocked ? "Signed & Confirmed" : "Sign & Confirm"
+//     const description = (assetsLocked)
+//         ? <div className="inline-flex gap-3">
+//             <div className="inline-flex gap-1 items-center">
+//                 <p>Solver:</p> {(lpLockTx && destination_network) ? <Link className="underline hover:no-underline" target="_blank" href={destination_network?.transaction_explorer_template.replace('{0}', lpLockTx?.hash)}>{shortenAddress(lpLockTx.hash)}</Link> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />}
+//             </div>
+//             <div className="inline-flex gap-1 items-center">
+//                 <p>You:</p> {(addLockSigTx && source_network) ? <Link className="underline hover:no-underline" target="_blank" href={source_network?.transaction_explorer_template.replace('{0}', addLockSigTx?.hash)}>{shortenAddress(addLockSigTx.hash)}</Link> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />}
+//             </div>
+//         </div>
+//         : <>Initiates a swap process with the solver</>
+
+//     const completed = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || !!lpRedeemTransaction?.hash || commitStatus === CommitStatus.RedeemCompleted || commitStatus === CommitStatus.AssetsLocked
+
+//     return <Step
+//         step={2}
+//         title={title}
+//         description={description}
+//         active={commited}
+//         completed={completed}
+//         loading={loading}
+//     >
+//         <SolverStatus />
+//     </Step>
+// }
+
+
+// type StepProps = {
+//     step: number;
+//     title: string;
+//     description: JSX.Element | string;
+//     children?: JSX.Element | JSX.Element[];
+//     active: boolean;
+//     completed?: boolean
+//     loading?: boolean
+// }
+// const Step: FC<StepProps> = ({ step, title, description, active, children, completed, loading }) => {
+//     return <div className={`flex flex-col w-full bg-secondary-600 rounded-componentRoundness p-2 ${!active ? 'opacity-40' : ''}`}>
+//         <div className="flex items-center gap-3">
+//             <div className="w-10 h-9 text-center content-center bg-secondary-400 rounded-md grow">{step}</div>
+//             <div className="inline-flex items-center justify-between w-full">
+//                 <div>
+//                     <div className="text-primary-text text-base leading-5">{title}</div>
+//                     <div className="text-xs text-primary-text-placeholder">{description}</div>
+//                 </div>
+//                 {
+//                     completed &&
+//                     <CheckedIcon className="h-6 w-6 mr-3 text-accent" />
+//                 }
+//                 {
+//                     loading &&
+//                     <LoaderIcon className="animate-reverse-spin h-6 w-6 mr-3" />
+//                 }
+//             </div>
+//         </div>
+//         {children}
+//     </div>
+// }
