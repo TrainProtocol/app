@@ -25,6 +25,7 @@ export class Network {
         return NETWORK_GROUP_TYPES[this.group];
     }
     listing_date: string;
+    is_testnet: boolean
     nodes: [
         {
             type: string
@@ -93,7 +94,7 @@ const NETWORK_GROUP_TYPES = {
 
     ZKSPACE: NetworkType.ZkSyncLite,
     ZKSYNC_ERA_PAYMASTER: NetworkType.ZkSyncLite,
-    
+
     OSMOSIS: NetworkType.Cosmos,
 }
 

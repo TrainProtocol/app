@@ -14,20 +14,17 @@ export async function getServerSideProps(context) {
     const apiClient = new LayerSwapApiClient()
 
     const { data: networkData } = await apiClient.GetLSNetworksAsync()
-    const { data: sourceExchangesData } = { data: [] } //await apiClient.GetSourceExchangesAsync()
-    const { data: destinationExchangesData } = { data: [] } //await apiClient.GetDestinationExchangesAsync()
-
     const { data: sourceRoutes } = await apiClient.GetLSNetworksAsync()
     const { data: destinationRoutes } = await apiClient.GetLSNetworksAsync()
 
     if (!networkData) return
 
+    const version = process.env.NEXT_PUBLIC_API_VERSION
+
     const settings = {
-        networks: networkData,
-        sourceExchanges: sourceExchangesData || [],
-        destinationExchanges: destinationExchangesData || [],
-        sourceRoutes: sourceRoutes || [],
-        destinationRoutes: destinationRoutes || []
+        networks: networkData.filter(n => version == 'sandbox' ? n.is_testnet : !n.is_testnet),
+        sourceRoutes: sourceRoutes?.filter(n => version == 'sandbox' ? n.is_testnet : !n.is_testnet) || [],
+        destinationRoutes: destinationRoutes?.filter(n => version == 'sandbox' ? n.is_testnet : !n.is_testnet) || []
     }
 
     const themeData = await getThemeData(context.query)
