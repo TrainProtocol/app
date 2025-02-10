@@ -20,7 +20,7 @@ const AtomicCard: FC<AtomicCardProps> = ({ description, icon: CardIcon, title, t
                             <div className="text-sm text-secondary-text">{titleDetails}</div>
                         }
                     </div>
-                    <div className="text-xs font-normal text-secondary-text">{description}</div>
+                    <div className="text-sm font-normal text-secondary-text">{description}</div>
                 </div>
             </div>
         </div>

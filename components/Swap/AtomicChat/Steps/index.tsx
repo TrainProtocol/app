@@ -46,7 +46,7 @@ const AtomicSteps: FC = () => {
 
     return (
         <div onClick={onClick} className="relative flex items-center justify-center z-50">
-            <ul onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="w-full h-[110px] mt-12 relative" >
+            <ul onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="w-full h-[100px] mt-7 relative" >
                 {cards.sort((a, b) => b.id - a.id).map((card, index) => {
 
                     const t = cards.length / 2
@@ -56,7 +56,7 @@ const AtomicSteps: FC = () => {
                     return (
                         <motion.li
                             key={card.id}
-                            className={`absolute w-full h-fit rounded-componentRoundness origin-top list-none ${cards.length > 1 && 'drop-shadow-[0px_0px_5px_rgba(0,0,0,0.5)] px-2'}`}
+                            className={`absolute w-full h-fit rounded-componentRoundness origin-top list-none ${cards.length > 1 && 'drop-shadow-[0px_-3px_3px_rgba(0,0,0,0.3)] px-2'}`}
                             initial={{
                                 y: '8vh'
                             }}

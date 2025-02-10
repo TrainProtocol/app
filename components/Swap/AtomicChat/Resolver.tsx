@@ -14,6 +14,7 @@ import LockIcon from "../../Icons/LockIcon";
 import Link from "next/link";
 import { CommitTransaction } from "../../../lib/layerSwapApiClient";
 import PendingButton from "./Actions/Status/PendingButton";
+import AtomicSteps from "./Steps";
 
 const ResolveAction: FC = () => {
     const { sourceDetails, destination_network, error, setError, commitStatus, commitFromApi, refundTxId, source_network } = useAtomicState()
@@ -87,7 +88,7 @@ export const Actions: FC = () => {
 
     return <div className="space-y-4">
         {/* <ResolveMessages timelock={timelock} showTimer={showTimer} allComplete={allDone} /> */}
-        {/* <AtomicSteps /> */}
+        <AtomicSteps />
         <ResolveAction />
     </div>
 }
