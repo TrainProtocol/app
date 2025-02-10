@@ -23,7 +23,8 @@ const Commitment: FC<ContainerProps> = (props) => {
     const { networks } = useSettingsState()
     const { fee, valuesChanger } = useFee()
 
-    const { commitId, sourceDetails } = useAtomicState()
+    const { sourceDetails, commitFromApi, commitId } = useAtomicState()
+    const receive_amount = commitFromApi?.receive_amount
 
     const source_network = networks.find(n => n.name.toUpperCase() === source?.toUpperCase())
     const destination_network = networks.find(n => n.name.toUpperCase() === destination?.toUpperCase())
@@ -33,7 +34,7 @@ const Commitment: FC<ContainerProps> = (props) => {
     const { provider } = useWallet(source_network, 'withdrawal')
 
     useEffect(() => {
-        if (amount && source_network && destination_network && source_asset && destination_asset)
+        if (amount && source_network && destination_network && source_asset && destination_asset && !commitId)
             valuesChanger({
                 amount: amount.toString(),
                 from: source_network,
@@ -44,7 +45,7 @@ const Commitment: FC<ContainerProps> = (props) => {
     }, [amount, source_network, destination, source_token, destination_token])
 
     const wallet = provider?.activeWallet
-    const receiveAmount = fee?.quote?.receive_amount
+    const receiveAmount = receive_amount || fee?.quote?.receive_amount
 
     return (
         <>
