@@ -9,7 +9,7 @@ import { Network } from "../../../../Models/Network";
 
 const variations = {
     "closed": {
-        CARD_OFFSET: 10,
+        CARD_OFFSET: 9,
         SCALE_FACTOR: 0.06,
     },
     "opened": {
@@ -17,7 +17,7 @@ const variations = {
         SCALE_FACTOR: 0,
     },
     "hover": {
-        CARD_OFFSET: 20,
+        CARD_OFFSET: 15,
         SCALE_FACTOR: 0.06,
     }
 }
@@ -48,15 +48,10 @@ const AtomicSteps: FC = () => {
         <div onClick={onClick} className="relative flex items-center justify-center z-50">
             <ul onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="w-full h-[100px] mt-7 relative" >
                 {cards.sort((a, b) => b.id - a.id).map((card, index) => {
-
-                    const t = cards.length / 2
-
-                    const direction = openState === 'hover' ? (index + 1) > t ? 1 : -1 : 1
-
                     return (
                         <motion.li
                             key={card.id}
-                            className={`absolute w-full h-fit rounded-componentRoundness origin-top list-none ${cards.length > 1 && 'drop-shadow-[0px_-3px_3px_rgba(0,0,0,0.3)] px-2'}`}
+                            className={`absolute w-full h- rounded-componentRoundness origin-top list-none ${cards.length > 1 && (openState === 'opened' || (index + 1 < cards.length)) && 'drop-shadow-[0px_-3px_3px_rgba(0,0,0,0.3)]'}`}
                             initial={{
                                 y: '8vh'
                             }}

@@ -8,6 +8,7 @@ import ButtonStatus from "./Status/ButtonStatus";
 import { NextRouter, useRouter } from "next/router";
 import { resolvePersistantQueryParams } from "../../../../helpers/querryHelper";
 import { ContractType, ManagedAccountType } from "../../../../Models/Network";
+import PendingButton from "./Status/PendingButton";
 
 export const UserCommitAction: FC = () => {
     const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, setSourceDetails, setError } = useAtomicState();
@@ -39,10 +40,10 @@ export const UserCommitAction: FC = () => {
             if (!provider) {
                 throw new Error("No source_provider")
             }
-            if(!atomicContract) {
+            if (!atomicContract) {
                 throw new Error("No atomic contract")
             }
-            if(!lpAddress) {
+            if (!lpAddress) {
                 throw new Error("No lp address")
             }
 
@@ -149,7 +150,7 @@ export const UserLockAction: FC = () => {
                 throw new Error("No source provider")
             if (!destinationDetails?.hashlock)
                 throw new Error("No destination hashlock")
-            if(!atomicContract) 
+            if (!atomicContract)
                 throw new Error("No atomic contract")
 
             await provider.addLock({
@@ -208,11 +209,7 @@ export const UserLockAction: FC = () => {
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
         {
             userLocked ?
-                <ButtonStatus
-                    isDisabled={true}
-                >
-                    Sign & Confirm
-                </ButtonStatus>
+                <PendingButton />
                 :
                 source_network && <WalletActionButton
                     activeChain={wallet?.chainId}
@@ -248,7 +245,7 @@ export const UserRefundAction: FC = () => {
             if (!sourceDetails) throw new Error("No commitment")
             if (!source_network.chain_id) throw new Error("No chain id")
             if (!source_asset) throw new Error("No source asset")
-                if(!sourceAtomicContract) throw new Error("No atomic contract")
+            if (!sourceAtomicContract) throw new Error("No atomic contract")
 
             const res = await source_provider?.refund({
                 type: source_asset?.contract ? 'erc20' : 'native',
@@ -285,7 +282,7 @@ export const UserRefundAction: FC = () => {
                     throw Error("No chain id")
                 if (!source_provider)
                     throw new Error("No source provider")
-                if(!sourceAtomicContract)
+                if (!sourceAtomicContract)
                     throw new Error("No atomic contract")
 
                 const data = await source_provider.getDetails({
