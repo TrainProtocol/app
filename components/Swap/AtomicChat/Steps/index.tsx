@@ -11,11 +11,14 @@ const variations = {
     "closed": {
         CARD_OFFSET: 10,
         SCALE_FACTOR: 0.06,
-    }
-    ,
+    },
     "opened": {
         CARD_OFFSET: 110,
         SCALE_FACTOR: 0,
+    },
+    "hover": {
+        CARD_OFFSET: 20,
+        SCALE_FACTOR: 0.06,
     }
 }
 
@@ -24,8 +27,15 @@ const AtomicSteps: FC = () => {
     const [openState, setOpenState] = React.useState("closed");
 
     const onClick = () => {
-        // setOpenState(openState === "closed" ? "opened" : "closed");
-        // setCards([{ id: cards.length, component: RequestStep }, ...cards])
+        setOpenState((openState === "hover" || openState === 'closed') ? "opened" : "closed");
+    }
+
+    const handleMouseEnter = () => {
+        if (openState === "closed") setOpenState("hover");
+    }
+
+    const handleMouseLeave = () => {
+        if (openState === "hover") setOpenState("closed");
     }
 
     const { commitFromApi, sourceDetails, destinationDetails, destination_network, userLocked } = useAtomicState()
@@ -36,8 +46,13 @@ const AtomicSteps: FC = () => {
 
     return (
         <div onClick={onClick} className="relative flex items-center justify-center z-50">
-            <ul className="w-full h-[100px] mt-12 relative" >
+            <ul onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="w-full h-[110px] mt-12 relative" >
                 {cards.sort((a, b) => b.id - a.id).map((card, index) => {
+
+                    const t = cards.length / 2
+
+                    const direction = openState === 'hover' ? (index + 1) > t ? 1 : -1 : 1
+
                     return (
                         <motion.li
                             key={card.id}

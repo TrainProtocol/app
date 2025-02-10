@@ -178,7 +178,7 @@ const statusResolver = ({ commitFromApi, sourceDetails, destinationDetails, dest
     const commited = sourceDetails ? true : false;
     const lpLockDetected = destinationDetails?.hashlock ? true : false;
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
-    const redeemCompleted = (destinationDetails?.claimed == 3 ? true : false) || lpRedeemTransaction?.hash;
+    const redeemCompleted = (destinationDetails?.claimed == 3 ? true : false);
 
     if (timelockExpired) return CommitStatus.TimelockExpired
     else if (redeemCompleted) return CommitStatus.RedeemCompleted
