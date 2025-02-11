@@ -16,7 +16,7 @@ import { CommitTransaction } from "../../../lib/layerSwapApiClient";
 import PendingButton from "./Actions/Status/PendingButton";
 import AtomicSteps from "./Steps";
 
-const ResolveAction: FC = () => {
+export const ResolveAction: FC = () => {
     const { sourceDetails, destination_network, error, setError, commitStatus, commitFromApi, refundTxId, source_network } = useAtomicState()
     const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
 
@@ -75,22 +75,6 @@ const ResolveAction: FC = () => {
         return <LpLockingAssets />
     }
     return <UserCommitAction />
-}
-
-export const Actions: FC = () => {
-    const { destinationDetails, sourceDetails, commitFromApi, destination_network, commitStatus } = useAtomicState()
-
-    const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
-
-    const allDone = ((sourceDetails?.hashlock && destinationDetails?.claimed == 3) || lpRedeemTransaction?.hash || sourceDetails?.claimed == 2) ? true : false
-    const showTimer = !allDone && commitStatus !== CommitStatus.TimelockExpired
-    const timelock = sourceDetails?.timelock || sourceDetails?.timelock
-
-    return <div className="space-y-4">
-        {/* <ResolveMessages timelock={timelock} showTimer={showTimer} allComplete={allDone} /> */}
-        <AtomicSteps />
-        <ResolveAction />
-    </div>
 }
 
 // const SolverStatus: FC = () => {

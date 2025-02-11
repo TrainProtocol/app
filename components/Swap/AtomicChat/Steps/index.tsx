@@ -1,11 +1,13 @@
 import { FC, useMemo } from "react"
 import { useAtomicState } from "../../../../context/atomicContext"
 import React from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ClaimStep, LpLockStep, RequestStep, SignAndConfirmStep } from "./Steps";
 import { CommitFromApi, CommitTransaction } from "../../../../lib/layerSwapApiClient";
 import { Commit } from "../../../../Models/PHTLC";
 import { Network } from "../../../../Models/Network";
+import ReactPortal from "../../../Common/ReactPortal";
+import { ResolveAction } from "../Resolver";
 
 const variations = {
     "closed": {
@@ -29,7 +31,6 @@ const AtomicSteps: FC = () => {
     const onClick = () => {
         setOpenState((openState === "hover" || openState === 'closed') ? "opened" : "closed");
     }
-
     const handleMouseEnter = () => {
         if (openState === "closed") setOpenState("hover");
     }
@@ -45,29 +46,48 @@ const AtomicSteps: FC = () => {
     }, [commitFromApi, sourceDetails, destinationDetails, destination_network, userLocked])
 
     return (
-        <div onClick={onClick} className="relative flex items-center justify-center z-50">
-            <ul onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="w-full h-[100px] mt-7 relative" >
-                {cards.sort((a, b) => b.id - a.id).map((card, index) => {
-                    return (
-                        <motion.li
-                            key={card.id}
-                            className={`absolute w-full h- rounded-componentRoundness origin-top list-none ${cards.length > 1 && (openState === 'opened' || (index + 1 < cards.length)) && 'drop-shadow-[0px_-3px_3px_rgba(0,0,0,0.3)]'}`}
-                            initial={{
-                                y: '8vh'
-                            }}
-                            animate={{
-                                y: 0,
-                                top: index * -variations[openState].CARD_OFFSET,
-                                scale: 1 - index * variations[openState].SCALE_FACTOR,
-                                zIndex: cards.length - index,
-                            }}
-                        >
-                            <card.component />
-                        </motion.li>
-                    );
-                })}
-            </ul>
-        </div>
+        <div className='relative space-y-4 z-20'>
+            <div onClick={onClick} className='relative flex items-center justify-center'>
+                <ul onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="w-full h-[100px] mt-7 relative" >
+                    {cards.sort((a, b) => b.id - a.id).map((card, index) => {
+                        return (
+                            <motion.li
+                                key={card.id}
+                                className={`absolute w-full rounded-componentRoundness origin-top list-none ${cards.length > 1 && (openState === 'opened' || (index + 1 < cards.length)) && 'drop-shadow-[0px_-3px_3px_rgba(0,0,0,0.3)]'}`}
+                                initial={{
+                                    y: '8vh'
+                                }}
+                                animate={{
+                                    y: 0,
+                                    top: index * -variations[openState].CARD_OFFSET,
+                                    scale: 1 - index * variations[openState].SCALE_FACTOR,
+                                    zIndex: cards.length - index,
+                                }}
+                            >
+                                <card.component />
+                            </motion.li>
+                        );
+                    })}
+                </ul>
+                <AnimatePresence>
+                    {
+                        openState === 'opened' &&
+                        <ReactPortal wrapperId="widget_root">
+                            <motion.div
+                                key="backdrop"
+                                className={`absolute inset-0 z-10 bg-black/20 backdrop-blur-sm block`}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={onClick}
+                            />
+                        </ReactPortal>
+                    }
+                </AnimatePresence>
+            </div>
+            <ResolveAction />
+        </div >
+
     );
 };
 

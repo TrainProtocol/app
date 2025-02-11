@@ -112,11 +112,7 @@ export const UserCommitAction: FC = () => {
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
         {
             commitId ?
-                <ButtonStatus
-                    isDisabled={true}
-                >
-                    Confirm in wallet
-                </ButtonStatus>
+                <PendingButton />
                 :
                 source_network.chain_id &&
                 <WalletActionButton
