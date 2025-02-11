@@ -14,7 +14,6 @@ export const LpLockingAssets: FC = () => {
 
     const getDetails = async ({ provider, network, commitId, asset }: { provider: WalletProvider, network: Network, commitId: string, asset: Token }) => {
         if(!atomicContract) throw Error("No atomic contract")
-
         if (lightClient && !sourceDetails?.hashlock ) {
             try {
                 const destinationDetails = await lightClient.getHashlock({

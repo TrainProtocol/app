@@ -5,6 +5,7 @@ self.onmessage = (e) => {
             initWorker(e.data.payload.data.initConfigs);
             break;
         case 'getDetails':
+            console.log("getting details")
             getCommit(e.data.payload.data.commitConfigs);
             break;
         default:
@@ -27,31 +28,42 @@ async function initWorker(initConfigs) {
         self.postMessage({ type: 'init', data: { initialized: true } });
     }
     catch (e) {
+        debugger
+        console.log("brrrusserrror", e.message)
         self.postMessage({ type: 'init', data: { initialized: false } });
         console.log(e);
     }
 }
+const functionSignature = "getHTLCDetails(uint256)";
+const functionSelector = getFunctionSelector(functionSignature);
+function getFunctionSelector(functionSignature) {
+    return keccak256(functionSignature).slice(0, 8); // First 4 bytes of the hash
+}
+
+function encodeArguments(Id) {
+    // Assuming Id is passed as an integer
+    return [BigInt(Id)];
+}
 async function getCommit(commitConfigs) {
     try {
         const { commitId, contractAddress } = commitConfigs;
+        const encodedArguments = encodeArguments(commitId);
+        const callData = encodedArguments.map(arg => arg.toString(16).padStart(64, '0')).join('');
+        debugger
         async function getCommitDetails() {
             try {
                 const call = {
                     "execute": {
-                        "calldata": [
-                            "0x266ca",
-                            "0x0"
-                        ],
-                        "contract_address": "0x47e9bb930cd69fbf37d57dc168562c15224b5c82d2e7d55d185d7259553d43d",
-                        "entry_point_selector": "0x12c1391cfaa9ef9e9ca09ecc94bd018890bd054699849cb213e73508977b704"
+                        callData,
+                        "contract_address": contractAddress,
+                        "entry_point_selector": functionSelector
                     }
                 };
                 const res = await starknetCall(call);
-                debugger;
+                console.log("strknet res", res)
                 return res;
             }
             catch (e) {
-                debugger;
                 console.log(e);
             }
         }
@@ -84,7 +96,6 @@ async function getCommit(commitConfigs) {
     }
 }
 async function starknetCall(commitConfigs) {
-    console.log('worker: ', commitConfigs);
     let request = commitConfigs;
     if (request.hasOwnProperty('state')) {
         try {

@@ -20,7 +20,7 @@ export async function getServerSideProps(context) {
     if (!networkData) return
 
     const version = process.env.NEXT_PUBLIC_API_VERSION
-
+    
     const settings = {
         networks: networkData.filter(n => version == 'sandbox' ? n.is_testnet : !n.is_testnet),
         sourceRoutes: sourceRoutes?.filter(n => version == 'sandbox' ? n.is_testnet : !n.is_testnet) || [],

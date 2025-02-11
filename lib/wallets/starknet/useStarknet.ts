@@ -161,7 +161,7 @@ export default function useStarknet(): WalletProvider {
         }
 
         try {
-            const parsedAmount = ethers.utils.parseUnits(amount.toString(), decimals).toNumber().toString()
+            const parsedAmount = ethers.utils.parseUnits(amount.toString(), decimals).toString()
 
             const erc20Contract = new Contract(
                 ETHABbi,
@@ -175,16 +175,15 @@ export default function useStarknet(): WalletProvider {
                 crypto.getRandomValues(bytes);
                 return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
             }
-
             const id = BigInt(`0x${generateBytes32Hex()}`)
 
             const args = [
+                id,
                 parsedAmount,
                 destinationChain,
                 destinationAsset,
                 address,
                 sourceAsset.symbol,
-                id,
                 lpAddress,
                 timeLock,
                 tokenContractAddress,
@@ -259,7 +258,6 @@ export default function useStarknet(): WalletProvider {
 
     const getDetails = async (params: CommitmentParams): Promise<Commit> => {
         const { id, contractAddress, chainId } = params
-
         const atomicContract = new Contract(
             PHTLCAbi,
             contractAddress,
