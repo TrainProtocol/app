@@ -5,15 +5,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const slug = req.query.slug && (req.query.slug as string[]).join('/');
 
     const queryParams = {}
-    for(const key in req.query) {
-        if(key !== 'slug') {
+    for (const key in req.query) {
+        if (key !== 'slug') {
             queryParams[key] = req.query[key]
         }
     }
 
     const searchParams = new URLSearchParams(queryParams);
-
-    const rpcRes = await axios.get(`http://unstable.mainnet.beacon-api.nimbus.team/${slug}${searchParams ? `?${searchParams.toString()}` : ''}`)
+    const version = process.env.NEXT_PUBLIC_API_VERSION
+    const rpcRes = await axios.get(`http://unstable.${version === 'sandbox' ? 'sepolia' : 'mainnet'}.beacon-api.nimbus.team/${slug}${searchParams ? `?${searchParams.toString()}` : ''}`)
 
     if (!rpcRes) {
         res.status(400).json({ error: { message: "Failed" } })

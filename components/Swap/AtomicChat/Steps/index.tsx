@@ -1,4 +1,4 @@
-import { FC, useMemo } from "react"
+import { FC, useEffect, useMemo, useRef } from "react"
 import { useAtomicState } from "../../../../context/atomicContext"
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -29,7 +29,7 @@ const AtomicSteps: FC = () => {
     const [openState, setOpenState] = React.useState("closed");
 
     const onClick = () => {
-        setOpenState((openState === "hover" || openState === 'closed') ? "opened" : "closed");
+        if ((openState === "hover" || openState === 'closed')) setOpenState("opened");
     }
     const handleMouseEnter = () => {
         if (openState === "closed") setOpenState("hover");
@@ -45,9 +45,26 @@ const AtomicSteps: FC = () => {
         return resolveCards({ commitFromApi, sourceDetails, destinationDetails, destination_network, timelockExpired: false, userLocked })
     }, [commitFromApi, sourceDetails, destinationDetails, destination_network, userLocked])
 
+    let ref = useRef(null);
+
+    useEffect(() => {
+        let handler = (e) => {
+            if (ref.current && !((ref.current as any).contains(e.target))) {
+                setOpenState('closed');
+            }
+        };
+
+        document.addEventListener("mousedown", handler);
+
+        return () => {
+            document.removeEventListener("mousedown", handler);
+        }
+
+    }, [ref]);
+
     return (
         <div className='relative space-y-4 z-20'>
-            <div onClick={onClick} className='relative flex items-center justify-center'>
+            <div ref={ref} onClick={onClick} className={`relative flex items-center justify-center`}>
                 <ul onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="w-full h-[100px] mt-7 relative" >
                     {cards.sort((a, b) => b.id - a.id).map((card, index) => {
                         return (
@@ -69,22 +86,22 @@ const AtomicSteps: FC = () => {
                         );
                     })}
                 </ul>
+            </div>
+
+            <ReactPortal wrapperId="widget_root">
                 <AnimatePresence>
                     {
                         openState === 'opened' &&
-                        <ReactPortal wrapperId="widget_root">
-                            <motion.div
-                                key="backdrop"
-                                className={`absolute inset-0 z-10 bg-black/20 backdrop-blur-sm block`}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                onClick={onClick}
-                            />
-                        </ReactPortal>
+                        <motion.div
+                            key="backdrop"
+                            className={`absolute inset-0 z-10 bg-black/20 backdrop-blur-sm block`}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                        />
                     }
                 </AnimatePresence>
-            </div>
+            </ReactPortal>
             <ResolveAction />
         </div >
 
@@ -99,13 +116,11 @@ const resolveCards = ({ commitFromApi, sourceDetails, destinationDetails, destin
         }
     ]
 
-    const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
     const userLockTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
 
     const commited = sourceDetails ? true : false;
     const lpLockDetected = destinationDetails?.hashlock ? true : false;
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
-    const redeemCompleted = (destinationDetails?.claimed == 3 ? true : false) || lpRedeemTransaction?.hash;
 
     if (commited) {
         cards.push({
