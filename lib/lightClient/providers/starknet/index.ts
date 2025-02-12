@@ -1,11 +1,19 @@
 import formatAmount from "../../../formatAmount"
 import _LightClient from "../../types/lightClient"
-import EVMERC20_PHTLC from '../../../abis/atomic/EVMERC20_PHTLC.json'
-import EVM_PHTLC from '../../../abis/atomic/EVM_PHTLC.json'
 import { Commit } from "../../../../Models/PHTLC"
 import KnownInternalNames from "../../../knownIds"
 import { Network, Token } from "../../../../Models/Network"
+import PHTLCAbi from "../../../../lib/abis/atomic/STARKNET_PHTLC.json"
 
+import { Contract, Abi, CallData, hash, shortString } from "starknet";
+import { BigNumber } from "ethers"
+import { a } from "@starknet-react/core/dist/index-BztLWTpJ"
+function splitUint256(value) {
+    const hex = BigNumber.from(value).toHexString().padStart(66, "0"); // Ensure 32 bytes
+    const high = "0x" + hex.slice(2, 34); // First 16 bytes (most significant)
+    const low = "0x" + hex.slice(34, 66); // Last 16 bytes (least significant)
+    return [low, high];
+}
 export default class StarknetLightClient extends _LightClient {
 
     private worker: Worker
@@ -67,12 +75,28 @@ export default class StarknetLightClient extends _LightClient {
         return new Promise(async (resolve: (value: Commit) => void, reject) => {
             try {
 
+
                 if (!this.worker) {
                     const result = await this.init({ network })
                     if (!result.initialized) {
                         throw new Error('Worker could not be initialized')
                     }
                 }
+
+
+                const calldata = splitUint256(commitId)
+                const selector = hash.getSelectorFromName("getHTLCDetails");
+                console.log('commitId:', commitId)
+
+                //TODO: construct call data here and pass to the worker
+                const call = {
+                    execute: {
+                        calldata,
+                        contract_address: atomicContract,
+                        entry_point_selector: selector
+                    }
+                };
+                console.log('Call:', call)
 
                 const workerMessage = {
                     type: 'getDetails',
@@ -81,22 +105,31 @@ export default class StarknetLightClient extends _LightClient {
                             commitConfigs: {
                                 commitId: commitId,
                                 contractAddress: atomicContract,
+                                call,
                             },
                         },
                     },
                 }
+
+                let attempts = 1;
                 this.worker.postMessage(workerMessage)
 
-                this.worker.onmessage = (event) => {
-                    const result = event.data.data
-                    const parsedResult: Commit = {
-                        ...result,
-                        secret: Number(result.secret) !== 1 ? result.secret : null,
-                        amount: formatAmount(Number(result.amount), token.decimals),
-                        timelock: Number(result.timelock)
+                this.worker.onmessage = async (event) => {
+
+                    const rawData = event.data.data
+                    const CallDataInstance = new CallData(PHTLCAbi)
+                    const result = CallDataInstance.parse("getHTLCDetails", rawData) as Commit;
+                    console.log('rawData:', rawData)
+
+                    console.log('parsed result:', result)
+                    if (attempts > 15 || (result.hashlock)) {
+                        resolve(result)
+                        return
                     }
-                    console.log('Worker event:', event)
-                    resolve(parsedResult)
+                    console.log('Retrying in 5 seconds ', attempts)
+                    await sleep(5000)
+                    this.worker.postMessage(workerMessage)
+                    attempts++
                 }
                 this.worker.onerror = (error) => {
                     reject(error)
@@ -110,4 +143,8 @@ export default class StarknetLightClient extends _LightClient {
         });
 
     }
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
