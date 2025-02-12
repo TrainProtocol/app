@@ -9,7 +9,7 @@ import { useSwapDataState, useSwapDataUpdate } from "../../../context/swap";
 import shortenAddress from "../../utils/ShortenAddress";
 
 const ConnectedWallet: FC<{ disabled: boolean }> = ({ disabled }) => {
-    const { source_asset, source_network, commitId } = useAtomicState()
+    const { source_asset, source_network } = useAtomicState()
     const { selectedSourceAccount } = useSwapDataState()
     const { setSelectedSourceAccount } = useSwapDataUpdate()
     const { provider } = useWallet(source_network, 'withdrawal')

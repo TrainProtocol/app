@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useRef, useState } from "react"
+import { FC, useEffect, useMemo, useRef } from "react"
 import { useAtomicState } from "../../../../context/atomicContext"
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -7,8 +7,8 @@ import { CommitFromApi, CommitTransaction } from "../../../../lib/layerSwapApiCl
 import { Commit } from "../../../../Models/PHTLC";
 import { Network } from "../../../../Models/Network";
 import { ResolveAction } from "../Resolver";
-import { createPortal } from "react-dom";
 import ReactPortal from "../../../Common/ReactPortal";
+import useWindowDimensions from "../../../../hooks/useWindowDimensions";
 
 const variations = {
     "closed": {
@@ -27,6 +27,7 @@ const variations = {
 
 const AtomicSteps: FC = () => {
 
+    const { isDesktop } = useWindowDimensions()
     const [openState, setOpenState] = React.useState("closed");
 
     const onClick = () => {
@@ -67,8 +68,9 @@ const AtomicSteps: FC = () => {
         <div className='relative space-y-4 z-20'>
             <div
                 ref={ref}
-                onClick={onClick} className={`relative flex items-center justify-center`}>
-                <ul onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="w-full h-[100px] mt-7 relative" >
+                onClick={onClick} className='relative flex items-center justify-center'
+            >
+                <ul onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} style={{ marginTop: isDesktop ? (openState === 'opened' ? `${cards.length > 3 && cards.length * 28}px` : (cards.length > 2 ? '28px' : '')) : '' }} className={`w-full relative h-[100px] transition-all`} >
                     {cards.sort((a, b) => b.id - a.id).map((card, index) => {
                         return (
                             <motion.li
@@ -90,7 +92,6 @@ const AtomicSteps: FC = () => {
                     })}
                 </ul>
             </div>
-
             <AnimatePresence>
                 {
                     openState === 'opened' &&

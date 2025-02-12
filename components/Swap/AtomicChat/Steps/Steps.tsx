@@ -10,13 +10,19 @@ import Link from "next/link"
 import shortenAddress from "../../../utils/ShortenAddress"
 import LockIcon from "../../../Icons/LockIcon"
 import LoaderIcon from "../../../Icons/LoaderIcon"
+import useWallet from "../../../../hooks/useWallet"
+import { addressFormat } from "../../../../lib/address/formatter"
+import AddressIcon from "../../../AddressIcon"
 
 const WrappedLoaderIcon = (props: SVGProps<SVGSVGElement>) => <LoaderIcon {...props} className={`${props.className} animate-reverse-spin`} />
 const WrappedCheckedIcon = (props: SVGProps<SVGSVGElement>) => <CheckedIcon {...props} className={`${props.className} text-accent`} />
 
 export const RequestStep: FC = () => {
-    const { sourceDetails, commitId, commitFromApi } = useAtomicState()
+    const { sourceDetails, commitId, commitFromApi, source_network } = useAtomicState()
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
+
+    const { provider } = useWallet(source_network, 'withdrawal')
+    const activeWallet = provider?.activeWallet
 
     const commtting = (commitId && !sourceDetails) ? true : false;
     const commited = (sourceDetails || lpLockTx) ? true : false;
@@ -31,31 +37,67 @@ export const RequestStep: FC = () => {
         return WalletIcon
     })()
 
-    const resolvedTitle = (() => {
+    const resolvedParams = (() => {
         if (commited) {
-            return "Confirmed"
+            return {
+                title: "Confirmed",
+                description: <div>
+                    <p>
+                        Initiates a swap process with the solver
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <p>
+                            Sent from
+                        </p>
+                        {
+                            sourceDetails ?
+                                ((activeWallet && source_network) && (addressFormat(activeWallet?.address, source_network) === addressFormat(sourceDetails?.sender, source_network)) ?
+                                    <ConnectedWallet
+                                        disabled={commtting || commited}
+                                    />
+                                    :
+                                    <div className="cursor-pointer flex rounded-lg justify-between space-x-3 items-center text-primary-text bg-secondary-600 w-fit p-1">
+                                        <div className="flex items-center space-x-1">
+                                            <AddressIcon className=" h-4 w-4" address={sourceDetails.sender} size={16} />
+                                            <p>
+                                                {shortenAddress(sourceDetails.sender)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )
+                                :
+                                <></>
+                        }
+                    </div>
+                </div>,
+                icon: WrappedCheckedIcon
+            }
         }
-        return "Confirm in wallet"
+        return {
+            title: "Confirm in wallet",
+            description: <div>
+                <p>
+                    Initiates a swap process with the solver
+                </p>
+                {
+                    activeWallet &&
+                    <div className="flex items-center gap-2">
+                        <p>
+                            Sending from
+                        </p>
+                        <ConnectedWallet
+                            disabled={commtting || commited}
+                        />
+                    </div>
+                }
+            </div>,
+            icon: WalletIcon
+        }
     })()
 
-    const description = <div>
-        <p>
-            Initiates a swap process with the solver
-        </p>
-        <div className="flex items-center gap-2">
-            <p>
-                Sending from
-            </p>
-            <ConnectedWallet
-                disabled={commtting || commited}
-            />
-        </div>
-    </div>
-
     return <AtomicCard
+        {...resolvedParams}
         icon={resolvedIcon}
-        title={resolvedTitle}
-        description={description}
     // titleDetails='($0.02)'
     />
 
