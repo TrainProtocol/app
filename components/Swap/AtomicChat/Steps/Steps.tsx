@@ -13,6 +13,7 @@ import LoaderIcon from "../../../Icons/LoaderIcon"
 import useWallet from "../../../../hooks/useWallet"
 import { addressFormat } from "../../../../lib/address/formatter"
 import AddressIcon from "../../../AddressIcon"
+import WarningIcon from "../../../Icons/WarningIcon"
 
 const WrappedLoaderIcon = (props: SVGProps<SVGSVGElement>) => <LoaderIcon {...props} className={`${props.className} animate-reverse-spin`} />
 const WrappedCheckedIcon = (props: SVGProps<SVGSVGElement>) => <CheckedIcon {...props} className={`${props.className} text-accent`} />
@@ -56,7 +57,7 @@ export const RequestStep: FC = () => {
                                         disabled={commtting || commited}
                                     />
                                     :
-                                    <div className="cursor-pointer flex rounded-lg justify-between space-x-3 items-center text-primary-text bg-secondary-600 w-fit p-1">
+                                    <div className="flex rounded-lg justify-between space-x-3 items-center text-primary-text bg-secondary-600 w-fit p-1">
                                         <div className="flex items-center space-x-1">
                                             <AddressIcon className=" h-4 w-4" address={sourceDetails.sender} size={16} />
                                             <p>
@@ -201,5 +202,45 @@ export const ClaimStep: FC = () => {
 
     return <AtomicCard
         {...resolvedParams}
+    />
+}
+
+export const RefundStep: FC = () => {
+    const { source_network, refundTxId, sourceDetails } = useAtomicState()
+
+    const resolvedParams = useMemo(() => (() => {
+        if (sourceDetails?.claimed == 2) {
+            return {
+                title: 'Refund completed',
+                description: <div className="inline-flex gap-1 items-center">
+                    <p>Transaction ID:</p> {(refundTxId && source_network) ? <Link className="underline hover:no-underline" target="_blank" href={source_network?.transaction_explorer_template.replace('{0}', refundTxId)}>{shortenAddress(refundTxId)}</Link> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />}
+                </div>,
+                icon: WrappedCheckedIcon
+            }
+        }
+        if (refundTxId) {
+            return {
+                title: 'Refund in progress',
+                description: 'The assets will be refunded to your address shortly.',
+                icon: WrappedLoaderIcon
+            }
+        }
+        return {
+            title: 'Refund',
+            description: 'The assets will be refunded to your address shortly.',
+            icon: SignatureIcon
+        }
+    })(), [refundTxId, source_network])
+
+    return <AtomicCard
+        {...resolvedParams}
+    />
+}
+
+export const TimelockExpiredStep: FC = () => {
+    return <AtomicCard
+        title='Timelock expired'
+        description='The timelock has expired. You can refund your assets.'
+        icon={WarningIcon}
     />
 }

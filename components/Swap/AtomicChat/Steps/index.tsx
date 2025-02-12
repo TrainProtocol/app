@@ -1,14 +1,14 @@
 import { FC, useEffect, useMemo, useRef } from "react"
-import { useAtomicState } from "../../../../context/atomicContext"
+import { CommitStatus, useAtomicState } from "../../../../context/atomicContext"
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ClaimStep, LpLockStep, RequestStep, SignAndConfirmStep } from "./Steps";
+import { ClaimStep, LpLockStep, RefundStep, RequestStep, SignAndConfirmStep, TimelockExpiredStep } from "./Steps";
 import { CommitFromApi, CommitTransaction } from "../../../../lib/layerSwapApiClient";
 import { Commit } from "../../../../Models/PHTLC";
 import { Network } from "../../../../Models/Network";
-import { ResolveAction } from "../Resolver";
 import ReactPortal from "../../../Common/ReactPortal";
 import useWindowDimensions from "../../../../hooks/useWindowDimensions";
+import TimelockTimer from "../Timer";
 
 const variations = {
     "closed": {
@@ -32,6 +32,7 @@ const AtomicSteps: FC = () => {
 
     const onClick = () => {
         if ((openState === "hover" || openState === 'closed') && cards.length > 1) setOpenState("opened");
+        else setOpenState("closed");
     }
     const handleMouseEnter = () => {
         if (openState === "closed") setOpenState("hover");
@@ -41,10 +42,13 @@ const AtomicSteps: FC = () => {
         if (openState === "hover") setOpenState("closed");
     }
 
-    const { commitFromApi, sourceDetails, destinationDetails, destination_network, userLocked } = useAtomicState()
+    const { commitFromApi, sourceDetails, destinationDetails, destination_network, userLocked, commitStatus } = useAtomicState()
+    const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
+    const allDone = ((sourceDetails?.hashlock && destinationDetails?.claimed == 3) || lpRedeemTransaction?.hash || sourceDetails?.claimed == 2) ? true : false
+    const showTimer = sourceDetails && commitStatus !== CommitStatus.TimelockExpired && !allDone && openState == 'opened'
 
     const cards = useMemo(() => {
-        return resolveCards({ commitFromApi, sourceDetails, destinationDetails, destination_network, timelockExpired: false, userLocked })
+        return resolveCards({ commitFromApi, sourceDetails, destinationDetails, destination_network, commitStatus, userLocked })
     }, [commitFromApi, sourceDetails, destinationDetails, destination_network, userLocked])
 
     let ref = useRef(null);
@@ -65,17 +69,25 @@ const AtomicSteps: FC = () => {
     }, [ref]);
 
     return (
-        <div className='relative space-y-4 z-20'>
+        <div className='relative z-20'>
             <div
                 ref={ref}
                 onClick={onClick} className='relative flex items-center justify-center'
             >
-                <ul onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} style={{ marginTop: isDesktop ? (openState === 'opened' ? `${cards.length > 3 && cards.length * 28}px` : (cards.length > 2 ? '28px' : '')) : '' }} className={`w-full relative h-[100px] transition-all`} >
+                <ul
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
+                    style={{
+                        marginTop: isDesktop ? (openState === 'opened' ? `${cards.length > 3 && cards.length * 28}px` : (cards.length > 2 ? '28px' : '')) : '',
+                        height: '100px'
+                    }}
+                    className='w-full relative transition-all'
+                >
                     {cards.sort((a, b) => b.id - a.id).map((card, index) => {
                         return (
                             <motion.li
                                 key={card.id}
-                                className={`absolute w-full rounded-componentRoundness origin-top list-none ${cards.length > 1 && (openState === 'opened' || (index + 1 < cards.length)) && 'drop-shadow-[0px_-3px_3px_rgba(0,0,0,0.3)]'}`}
+                                className={`absolute w-full rounded-componentRoundness origin-top list-none ${cards.length > 1 && (index + 1 < cards.length && openState != 'opened') && 'drop-shadow-[0px_-3px_3px_rgba(0,0,0,0.3)]'}`}
                                 initial={{
                                     y: '8vh'
                                 }}
@@ -90,6 +102,19 @@ const AtomicSteps: FC = () => {
                             </motion.li>
                         );
                     })}
+                    <AnimatePresence>
+                        {
+                            showTimer &&
+                            <motion.div
+                                className="absolute -bottom-8 left-0"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                            >
+                                <TimelockTimer timelock={sourceDetails?.timelock} />
+                            </motion.div>
+                        }
+                    </AnimatePresence>
                 </ul>
             </div>
             <AnimatePresence>
@@ -105,13 +130,13 @@ const AtomicSteps: FC = () => {
                     </ReactPortal>
                 }
             </AnimatePresence>
-            <ResolveAction />
         </div >
 
     );
 };
 
-const resolveCards = ({ commitFromApi, sourceDetails, destinationDetails, destination_network, timelockExpired, userLocked }: { commitFromApi: CommitFromApi | undefined, sourceDetails: Commit | undefined, destinationDetails: Commit | undefined, destination_network: Network | undefined, timelockExpired: boolean, userLocked: boolean }) => {
+const resolveCards = ({ commitFromApi, sourceDetails, destinationDetails, destination_network, commitStatus, userLocked }: { commitFromApi: CommitFromApi | undefined, sourceDetails: Commit | undefined, destinationDetails: Commit | undefined, destination_network: Network | undefined, commitStatus: CommitStatus, userLocked: boolean }) => {
+
     const cards = [
         {
             id: 0,
@@ -126,21 +151,42 @@ const resolveCards = ({ commitFromApi, sourceDetails, destinationDetails, destin
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
 
     if (commited) {
-        cards.push({
-            id: 1,
-            component: LpLockStep,
-        })
+        if (commitStatus === CommitStatus.TimelockExpired) {
+            cards.push({
+                id: 1,
+                component: TimelockExpiredStep,
+            })
+        } else {
+            cards.push({
+                id: 1,
+                component: LpLockStep,
+            })
+        }
     }
     if (lpLockDetected) {
-        cards.push({
-            id: 2,
-            component: SignAndConfirmStep,
-        })
+        if (commitStatus === CommitStatus.TimelockExpired) {
+            cards.push({
+                id: 2,
+                component: TimelockExpiredStep,
+            })
+        }
+        else {
+            cards.push({
+                id: 2,
+                component: SignAndConfirmStep,
+            })
+        }
     }
     if (assetsLocked) {
         cards.push({
             id: 3,
             component: ClaimStep,
+        })
+    }
+    if (commitStatus === CommitStatus.TimelockExpired) {
+        cards.push({
+            id: 4,
+            component: RefundStep,
         })
     }
 

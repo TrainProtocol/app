@@ -6,7 +6,6 @@ import { Network, Token } from '../Models/Network';
 import useSWR from 'swr';
 import { ApiResponse } from '../Models/ApiResponse';
 import { CommitFromApi, CommitTransaction } from '../lib/layerSwapApiClient';
-import { toHex } from 'viem';
 import LightClient from '../lib/lightClient';
 
 export enum CommitStatus {

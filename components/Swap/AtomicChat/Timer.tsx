@@ -50,16 +50,15 @@ const TimelockTimer = ({ timelock }: { timelock: number }) => {
                 <Popover>
                     <PopoverTrigger>
                         <div className="px-2 py-0.5 rounded-md bg-opacity-0 hover:bg-opacity-100 transition-all duration-200 bg-secondary-700 text-sm text-secondary-text w-max">
-                            <div className="flex items-center gap-1.5">
-                                <p>Refund</p>
+                            <div className="flex items-center gap-3">
                                 <HelpCircle className="h-4 w-4" />
+                                <p className="text-sm text-primary-text">
+                                    <span>Refund available in</span> <span className="w-9"><Timer timelock={timelock} /></span>
+                                </p>
                             </div>
                         </div>
                     </PopoverTrigger>
                     <PopoverContent side="top" className="max-w-[300px] !border-0 !bg-secondary-600 p-3 space-y-1 !rounded-lg">
-                        <p className="text-sm text-primary-text">
-                            <span>Refund available in</span> <span className="w-9"><Timer timelock={timelock}/></span>
-                        </p>
                         <p className="text-xs">If the swap is not completed before the timelock expires, you can always refund</p>
                     </PopoverContent>
                 </Popover>
@@ -67,16 +66,15 @@ const TimelockTimer = ({ timelock }: { timelock: number }) => {
                 <Tooltip delayDuration={150}>
                     <TooltipTrigger>
                         <div className="px-2 py-0.5 rounded-md bg-opacity-0 hover:bg-opacity-100 transition-all duration-200 bg-secondary-700 text-sm text-secondary-text w-max">
-                            <div className="flex items-center gap-1.5">
-                                <p>Refund</p>
+                            <div className="flex items-center gap-3">
                                 <HelpCircle className="h-4 w-4" />
+                                <p className="text-sm text-primary-text">
+                                    <span>Refund available in</span> <span className="w-9"><Timer timelock={timelock} /></span>
+                                </p>
                             </div>
                         </div>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-[300px] !border-0 !bg-secondary-600 p-3 space-y-1 !rounded-lg">
-                        <p className="text-sm text-primary-text">
-                            <span>Refund available in</span> <span className="w-9"><Timer timelock={timelock}/></span>
-                        </p>
                         <p className="text-xs">If the swap is not completed before the timelock expires, you can always refund</p>
                     </TooltipContent>
                 </Tooltip>

@@ -7,6 +7,7 @@ import { useFee } from "../../../context/feeContext";
 import { useAtomicState } from "../../../context/atomicContext";
 import ResizablePanel from "../../ResizablePanel";
 import AtomicSteps from "./Steps";
+import { ResolveAction } from "./Resolver";
 
 type ContainerProps = {
     type: "widget" | "contained",
@@ -67,7 +68,10 @@ const Commitment: FC<ContainerProps> = (props) => {
                 </ResizablePanel>
             </Widget.Content>
             <Widget.Footer sticky={true}>
-                <AtomicSteps />
+                <div className='space-y-4'>
+                    <AtomicSteps />
+                    <ResolveAction />
+                </div>
             </Widget.Footer>
         </>
     )
