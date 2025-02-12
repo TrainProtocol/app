@@ -2,7 +2,7 @@ import { useWalletStore } from "../../../stores/walletStore"
 import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
 import toast from "react-hot-toast";
-import { Call, Contract, RpcProvider, shortString } from "starknet";
+import { cairo, Call, constants, Contract, RpcProvider, shortString, TypedData, TypedDataRevision } from "starknet";
 import PHTLCAbi from "../../../lib/abis/atomic/STARKNET_PHTLC.json"
 import ETHABbi from "../../../lib/abis/STARKNET_ETH.json"
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, GetCommitsParams, LockParams, RefundParams } from "../phtlc";
@@ -148,11 +148,12 @@ export default function useStarknet(): WalletProvider {
         }
     })
 
-    const LOCK_TIME = 1000 * 60 * 15 // 15 minutes
+    const LOCK_TIME = 1000 * 60 * 16 // 16 minutes
     const timeLock = Math.floor((Date.now() + LOCK_TIME) / 1000)
 
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
-        const { destinationChain, destinationAsset, sourceAsset, lpAddress, address, tokenContractAddress, amount, decimals, atomicContract: atomicAddress } = params
+        const { destinationChain, destinationAsset, sourceAsset, lpAddress, address, tokenContractAddress, amount, decimals, atomicContract } = params
+        const atomicAddress = '0x06320e634c2b96dc6d2617489e3f1264bbdac4d8fb40ba6ed6540bc69532ef15'
         if (!starknetWallet?.metadata?.starknetAccount) {
             throw new Error('Wallet not connected')
         }
@@ -175,10 +176,10 @@ export default function useStarknet(): WalletProvider {
                 crypto.getRandomValues(bytes);
                 return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
             }
-            const id = BigInt(`0x${generateBytes32Hex()}`)
+            const id = `0x${generateBytes32Hex()}`
 
             const args = [
-                id,
+                BigInt(id),
                 parsedAmount,
                 destinationChain,
                 destinationAsset,
@@ -203,8 +204,7 @@ export default function useStarknet(): WalletProvider {
                 trx.transaction_hash
             );
 
-            const res = toHex(id as bigint, { size: 32 })
-            return { hash: trx.transaction_hash as `0x${string}`, commitId: res as `0x${string}` }
+            return { hash: trx.transaction_hash as `0x${string}`, commitId: id }
         }
         catch (e) {
             console.log(e)
@@ -257,7 +257,9 @@ export default function useStarknet(): WalletProvider {
     }
 
     const getDetails = async (params: CommitmentParams): Promise<Commit> => {
-        const { id, contractAddress, chainId } = params
+        const { id, chainId } = params
+        const contractAddress = '0x06320e634c2b96dc6d2617489e3f1264bbdac4d8fb40ba6ed6540bc69532ef15'
+
         const atomicContract = new Contract(
             PHTLCAbi,
             contractAddress,
@@ -271,14 +273,14 @@ export default function useStarknet(): WalletProvider {
         if (!result) {
             throw new Error("No result")
         }
-        const networkToken = networks.find(network => chainId && Number(network.chain_id) == Number(chainId))?.tokens.find(token => token.symbol === shortString.decodeShortString(ethers.utils.hexlify(result.srcAsset as BigNumberish)))
+        // const networkToken = networks.find(network => chainId && Number(network.chain_id) == Number(chainId))?.tokens.find(token => token.symbol === shortString.decodeShortString(ethers.utils.hexlify(result.srcAsset as BigNumberish)))
 
         const parsedResult = {
             sender: ethers.utils.hexlify(result.sender as BigNumberish),
             srcReceiver: ethers.utils.hexlify(result.srcReceiver as BigNumberish),
             timelock: Number(result.timelock),
             id: result.lockId && toHex(result.id, { size: 32 }),
-            amount: formatAmount(Number(result.amount), networkToken?.decimals),
+            amount: formatAmount(Number(result.amount), 16),
             hashlock: result.hashlock && toHex(result.hashlock, { size: 32 }),
             secret: result.secret || null,
             claimed: result.claimed
@@ -310,6 +312,88 @@ export default function useStarknet(): WalletProvider {
         return { hash: trx.transaction_hash as `0x${string}`, result: trx.transaction_hash as `0x${string}` }
     }
 
+    const addLockSig = async (params: CommitmentParams & LockParams) => {
+        const { id, hashlock, chainId } = params
+        const contractAddress = '0x06320e634c2b96dc6d2617489e3f1264bbdac4d8fb40ba6ed6540bc69532ef15'
+
+        if (!starknetWallet?.metadata?.starknetAccount) {
+            throw new Error('Wallet not connected')
+        }
+
+        const atomicContract = new Contract(
+            PHTLCAbi,
+            contractAddress,
+            starknetWallet.metadata?.starknetAccount,
+        )
+
+        const u256Id = cairo.uint256(id);
+        const u256Hashlock = cairo.uint256(hashlock);
+        const u256TimeLock = cairo.uint256(timeLock);
+
+        const typedData: TypedData = {
+            domain: {
+                name: "Train",
+                chainId: constants.StarknetChainId.SN_SEPOLIA,
+                version: "v1",
+                revision: TypedDataRevision.ACTIVE,
+            },
+            types: {
+                StarknetDomain: [
+                    { name: "name", type: "shortstring" },
+                    { name: "version", type: "shortstring" },
+                    { name: "chainId", type: "shortstring" },
+                ],
+                Message: [
+                    { name: "Id", type: "u256" },
+                    { name: "hashlock", type: "u256" },
+                    { name: "timelock", type: "u256" },
+                ],
+                u256: [
+                    { name: "low", type: "felt" },
+                    { name: "high", type: "felt" },
+                ],
+            },
+            primaryType: "Message",
+            message: {
+                Id: u256Id,
+                hashlock: u256Hashlock,
+                timelock: u256TimeLock,
+            },
+        }
+
+        const signature = await starknetWallet?.metadata?.starknetAccount.signMessage(typedData)
+
+        function u256ToHex(u256) {
+            // Convert both parts to BigInt. (They might be provided as numbers or strings.)
+            const high = BigInt(u256[1]);
+            const low = BigInt(u256[0]);
+
+            // Shift the high part 128 bits to the left and add the low part.
+            const combined = (high << 128n) | low;
+
+            // Convert to hexadecimal string, padding to 64 characters (256 bits) if desired.
+            // (Remove padStart if you do not need a fixed width.)
+            let hex = combined.toString(16).padStart(64, '0');
+
+            // Return the hex string with "0x" prefix.
+            return '0x' + hex;
+        }
+
+        const hexSignature = u256ToHex(signature)
+
+        const args = [
+            id,
+            hashlock,
+            timeLock,
+            signature
+        ]
+        const committmentCall: Call = atomicContract.populate("addLockSig", args)
+        const trx = (await starknetWallet?.metadata?.starknetAccount?.execute(committmentCall))
+
+
+        return { hash: hexSignature, result: hexSignature }
+
+    }
 
     const getContracts = async (params: GetCommitsParams) => {
         const { contractAddress } = params
@@ -351,7 +435,7 @@ export default function useStarknet(): WalletProvider {
         claim,
         refund,
         getDetails,
-        addLock: addLock,
+        addLock: addLockSig,
         getContracts
     }
 
