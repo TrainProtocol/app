@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useRef } from "react"
+import { FC, useEffect, useMemo, useRef, useState } from "react"
 import { useAtomicState } from "../../../../context/atomicContext"
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -6,8 +6,9 @@ import { ClaimStep, LpLockStep, RequestStep, SignAndConfirmStep } from "./Steps"
 import { CommitFromApi, CommitTransaction } from "../../../../lib/layerSwapApiClient";
 import { Commit } from "../../../../Models/PHTLC";
 import { Network } from "../../../../Models/Network";
-import ReactPortal from "../../../Common/ReactPortal";
 import { ResolveAction } from "../Resolver";
+import { createPortal } from "react-dom";
+import ReactPortal from "../../../Common/ReactPortal";
 
 const variations = {
     "closed": {
@@ -29,7 +30,7 @@ const AtomicSteps: FC = () => {
     const [openState, setOpenState] = React.useState("closed");
 
     const onClick = () => {
-        if ((openState === "hover" || openState === 'closed')) setOpenState("opened");
+        if ((openState === "hover" || openState === 'closed') && cards.length > 1) setOpenState("opened");
     }
     const handleMouseEnter = () => {
         if (openState === "closed") setOpenState("hover");
@@ -64,7 +65,9 @@ const AtomicSteps: FC = () => {
 
     return (
         <div className='relative space-y-4 z-20'>
-            <div ref={ref} onClick={onClick} className={`relative flex items-center justify-center`}>
+            <div
+                ref={ref}
+                onClick={onClick} className={`relative flex items-center justify-center`}>
                 <ul onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="w-full h-[100px] mt-7 relative" >
                     {cards.sort((a, b) => b.id - a.id).map((card, index) => {
                         return (
@@ -88,20 +91,19 @@ const AtomicSteps: FC = () => {
                 </ul>
             </div>
 
-            <ReactPortal wrapperId="widget_root">
-                <AnimatePresence>
-                    {
-                        openState === 'opened' &&
+            <AnimatePresence>
+                {
+                    openState === 'opened' &&
+                    <ReactPortal wrapperId="widget_root">
                         <motion.div
-                            key="backdrop"
                             className={`absolute inset-0 z-10 bg-black/20 backdrop-blur-sm block`}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                         />
-                    }
-                </AnimatePresence>
-            </ReactPortal>
+                    </ReactPortal>
+                }
+            </AnimatePresence>
             <ResolveAction />
         </div >
 
