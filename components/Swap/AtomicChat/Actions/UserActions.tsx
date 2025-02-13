@@ -345,12 +345,12 @@ const setRefundQuery = (refundTxId: string, router: NextRouter) => {
     const basePath = router?.basePath || ""
     var swapURL = window.location.protocol + "//"
         + window.location.host + `${basePath}/atomic`;
-    const params = resolvePersistantQueryParams(router.query)
+
     if (router.query && Object.keys(router.query).length) {
         const search = new URLSearchParams(router.query as any);
         if (search)
             swapURL += `?${search}&refundTxId=${refundTxId}`;
     }
 
-    window.history.pushState({ ...window.history.state, as: swapURL, url: swapURL }, '', swapURL);
+    window.history.replaceState({ ...window.history.state, as: swapURL, url: swapURL }, '', swapURL);
 }
