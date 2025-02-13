@@ -152,8 +152,8 @@ export default function useStarknet(): WalletProvider {
     const timeLock = Math.floor((Date.now() + LOCK_TIME) / 1000)
 
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
-        const { destinationChain, destinationAsset, sourceAsset, lpAddress, address, tokenContractAddress, amount, decimals, atomicContract } = params
-        const atomicAddress = '0x06320e634c2b96dc6d2617489e3f1264bbdac4d8fb40ba6ed6540bc69532ef15'
+        const { destinationChain, destinationAsset, sourceAsset, lpAddress, address, tokenContractAddress, amount, decimals, atomicContract: atomicAddress } = params
+
         if (!starknetWallet?.metadata?.starknetAccount) {
             throw new Error('Wallet not connected')
         }
@@ -189,7 +189,7 @@ export default function useStarknet(): WalletProvider {
                 timeLock,
                 tokenContractAddress,
             ]
-            debugger
+
             const atomicContract = new Contract(
                 PHTLCAbi,
                 atomicAddress,
@@ -257,8 +257,7 @@ export default function useStarknet(): WalletProvider {
     }
 
     const getDetails = async (params: CommitmentParams): Promise<Commit> => {
-        const { id, chainId } = params
-        const contractAddress = '0x06320e634c2b96dc6d2617489e3f1264bbdac4d8fb40ba6ed6540bc69532ef15'
+        const { id, chainId, contractAddress } = params
 
         const atomicContract = new Contract(
             PHTLCAbi,
@@ -314,8 +313,7 @@ export default function useStarknet(): WalletProvider {
     }
 
     const addLockSig = async (params: CommitmentParams & LockParams) => {
-        const { id, hashlock, chainId } = params
-        const contractAddress = '0x06320e634c2b96dc6d2617489e3f1264bbdac4d8fb40ba6ed6540bc69532ef15'
+        const { id, hashlock, contractAddress } = params
 
         if (!starknetWallet?.metadata?.starknetAccount) {
             throw new Error('Wallet not connected')
