@@ -52,7 +52,7 @@ export type CommitFromApi = {
     destination_address: string,
     liquidity_provider_address: string,
     locked_amount: number,
-    receive_amount: number,
+    destination_amount: number,
     fee_amount: number,
     transactions: {
         type: CommitTransaction,

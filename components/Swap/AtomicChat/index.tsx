@@ -25,7 +25,7 @@ const Commitment: FC<ContainerProps> = (props) => {
     const { fee, valuesChanger } = useFee()
 
     const { sourceDetails, commitFromApi, commitId } = useAtomicState()
-    const receive_amount = commitFromApi?.receive_amount
+    const receive_amount = commitFromApi?.destination_amount
 
     const source_network = networks.find(n => n.name.toUpperCase() === source?.toUpperCase())
     const destination_network = networks.find(n => n.name.toUpperCase() === destination?.toUpperCase())

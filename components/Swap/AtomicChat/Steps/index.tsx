@@ -9,6 +9,7 @@ import { Network } from "../../../../Models/Network";
 import ReactPortal from "../../../Common/ReactPortal";
 import useWindowDimensions from "../../../../hooks/useWindowDimensions";
 import TimelockTimer from "../Timer";
+import { ChevronDown } from "lucide-react";
 
 const variations = {
     "closed": {
@@ -79,6 +80,7 @@ const AtomicSteps: FC = () => {
                     onMouseLeave={handleMouseLeave}
                     style={{
                         marginTop: isDesktop ? (openState === 'opened' ? `${cards.length > 3 && cards.length * 28}px` : (cards.length > 2 ? '28px' : '')) : '',
+                        marginBottom: (openState === 'opened' && !allDone) ? '20px' : '',
                         height: '100px'
                     }}
                     className='w-full relative transition-all'
@@ -98,6 +100,12 @@ const AtomicSteps: FC = () => {
                                     zIndex: cards.length - index,
                                 }}
                             >
+                                {
+                                    cards.length > 1 && card.id == 0 && openState == 'opened' &&
+                                    <div className="absolute -top-7 left-[calc(50%-12px)]">
+                                        <ChevronDown className="w-6 h-6 text-primary-text p-0.5 bg-transparent hover:bg-secondary-500 rounded-md cursor-pointer" />
+                                    </div>
+                                }
                                 <card.component />
                             </motion.li>
                         );
