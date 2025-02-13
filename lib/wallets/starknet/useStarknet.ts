@@ -148,7 +148,7 @@ export default function useStarknet(): WalletProvider {
         }
     })
 
-    const LOCK_TIME = 1000 * 60 * 16 // 16 minutes
+    const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
     const timeLock = Math.floor((Date.now() + LOCK_TIME) / 1000)
 
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
@@ -189,7 +189,7 @@ export default function useStarknet(): WalletProvider {
                 timeLock,
                 tokenContractAddress,
             ]
-
+            debugger
             const atomicContract = new Contract(
                 PHTLCAbi,
                 atomicAddress,
@@ -273,7 +273,8 @@ export default function useStarknet(): WalletProvider {
         if (!result) {
             throw new Error("No result")
         }
-        // const networkToken = networks.find(network => chainId && Number(network.chain_id) == Number(chainId))?.tokens.find(token => token.symbol === shortString.decodeShortString(ethers.utils.hexlify(result.srcAsset as BigNumberish)))
+
+        const networkToken = networks.find(network => chainId && Number(network.chain_id) == Number(chainId))?.tokens.find(token => token.symbol === "ETH")//shortString.decodeShortString(ethers.utils.hexlify(result.srcAsset as BigNumberish)))
 
         const parsedResult = {
             sender: ethers.utils.hexlify(result.sender as BigNumberish),

@@ -1,10 +1,12 @@
 import init, { set_panic_hook, Beerus } from './beerus_web.js';
+
 self.onmessage = (e) => {
     switch (e.data.type) {
         case 'init':
             initWorker(e.data.payload.data.initConfigs);
             break;
         case 'getDetails':
+            debugger
             console.log("getting details")
             getCommit(e.data.payload.data.commitConfigs);
             break;
@@ -28,67 +30,23 @@ async function initWorker(initConfigs) {
         self.postMessage({ type: 'init', data: { initialized: true } });
     }
     catch (e) {
-        debugger
         console.log("brrrusserrror", e.message)
         self.postMessage({ type: 'init', data: { initialized: false } });
         console.log(e);
     }
 }
-const functionSignature = "getHTLCDetails(uint256)";
-const functionSelector = getFunctionSelector(functionSignature);
-function getFunctionSelector(functionSignature) {
-    return keccak256(functionSignature).slice(0, 8); // First 4 bytes of the hash
-}
 
-function encodeArguments(Id) {
-    // Assuming Id is passed as an integer
-    return [BigInt(Id)];
-}
 async function getCommit(commitConfigs) {
     try {
-        const { commitId, contractAddress } = commitConfigs;
-        const encodedArguments = encodeArguments(commitId);
-        const callData = encodedArguments.map(arg => arg.toString(16).padStart(64, '0')).join('');
-        debugger
-        async function getCommitDetails() {
-            try {
-                const call = {
-                    "execute": {
-                        callData,
-                        "contract_address": contractAddress,
-                        "entry_point_selector": functionSelector
-                    }
-                };
-                const res = await starknetCall(call);
-                console.log("strknet res", res)
-                return res;
-            }
-            catch (e) {
-                console.log(e);
-            }
+        const { call } = commitConfigs; 
+        try {
+            const rawData = await starknetCall(call);
+            const parsedData = JSON.parse(rawData);
+            self.postMessage({ type: 'commitDetails', data: parsedData });
         }
-        let getDetailsHandler = undefined;
-        (async () => {
-            let attempts = 0;
-            getDetailsHandler = setInterval(async () => {
-                try {
-                    if (attempts > 15) {
-                        clearInterval(getDetailsHandler);
-                        self.postMessage({ type: 'commitDetails', data: null });
-                        return;
-                    }
-                    attempts++;
-                    const data = await getCommitDetails();
-                    if (data?.hashlock && data?.hashlock !== "0x0100000000000000000000000000000000000000000000000000000000000000" && data?.hashlock !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
-                        self.postMessage({ type: 'commitDetails', data: data });
-                        clearInterval(getDetailsHandler);
-                    }
-                }
-                catch (e) {
-                    console.log(e);
-                }
-            }, 5000);
-        })();
+        catch (e) {
+            console.log(e);
+        }
     }
     catch (e) {
         self.postMessage({ type: 'commitDetails', data: undefined });
