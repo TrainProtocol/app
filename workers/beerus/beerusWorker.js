@@ -48,11 +48,9 @@ async function getCommit(commitConfigs) {
                 }
 
                 const res = await starknetCall(call);
-                debugger
                 return res;
             }
             catch (e) {
-                debugger
                 console.log(e);
             }
         }

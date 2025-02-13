@@ -99,6 +99,7 @@ export function AtomicProvider({ children }) {
                     setLightClient(lightClient)
                 } catch (error) {
                     console.log(error.message)
+                    console.log(error)
                 }
 
             })()

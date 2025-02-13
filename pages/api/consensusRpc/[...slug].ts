@@ -12,9 +12,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const searchParams = new URLSearchParams(queryParams);
+
     const version = process.env.NEXT_PUBLIC_API_VERSION
     const rpcRes = await axios.get(`http://unstable.${version === 'sandbox' ? 'sepolia' : 'mainnet'}.beacon-api.nimbus.team/${slug}${searchParams ? `?${searchParams.toString()}` : ''}`)
-
+    
     if (!rpcRes) {
         res.status(400).json({ error: { message: "Failed" } })
         return

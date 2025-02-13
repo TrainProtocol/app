@@ -12,8 +12,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // }
 
     // const searchParams = new URLSearchParams(queryParams);
-
-    const checkpoint = (await axios.get('https://sync-sepolia.beaconcha.in/checkpointz/v1/status')).data
+    const version = process.env.NEXT_PUBLIC_API_VERSION
+    const checkpoint = (await axios.get(`https://sync-${version === 'sandbox' ? 'sepolia' : 'mainnet'}.beaconcha.in/checkpointz/v1/status`)).data
 
     if (!checkpoint) {
         res.status(400).json({ error: { message: "Failed" } })
