@@ -504,8 +504,7 @@ export default function useEVM({ network }: Props): WalletProvider {
         disconnectWallets,
         switchAccount,
         connectedWallets: resolvedConnectors,
-        //TODO: sometimes activeWallet is undefined, fix this
-        activeWallet: resolvedConnectors.find(w => w.isActive) || resolvedConnectors[0],
+        activeWallet: resolvedConnectors.find(w => w.isActive),
         autofillSupportedNetworks,
         withdrawalSupportedNetworks,
         asSourceSupportedNetworks,

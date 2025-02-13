@@ -48,22 +48,7 @@ export const ResolveAction: FC = () => {
         />
     }
     if (commitStatus === CommitStatus.TimelockExpired) {
-        if (sourceDetails?.claimed == 2) {
-            return <PendingButton
-            // status="success"
-            // title={
-            //     <div className="flex flex-col space-y-0">
-            //         <p className="text-base leading-5 font-medium">Refund Completed</p>
-            //         <div className="inline-flex gap-1 items-center text-sm">
-            //             <p>ID:</p> {(refundTxId && source_network) ? <Link className="underline hover:no-underline" target="_blank" href={source_network?.transaction_explorer_template.replace('{0}', refundTxId)}>{shortenAddress(refundTxId)}</Link> : <div className="h-3 w-14 bg-gray-400 animate-pulse rounded" />}
-            //         </div>
-            //     </div>
-            // }
-            />
-        }
-        else {
-            return <UserRefundAction />
-        }
+        return <UserRefundAction />
     }
     if (commitStatus === CommitStatus.AssetsLocked) {
         return <RedeemAction />

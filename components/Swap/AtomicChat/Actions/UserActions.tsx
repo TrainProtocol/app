@@ -1,10 +1,8 @@
 import { FC, useEffect, useState } from "react";
 import useWallet from "../../../../hooks/useWallet";
 import { useAtomicState } from "../../../../context/atomicContext";
-import ActionStatus from "./Status/ActionStatus";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
-import ButtonStatus from "./Status/ButtonStatus";
 import { NextRouter, useRouter } from "next/router";
 import { resolvePersistantQueryParams } from "../../../../helpers/querryHelper";
 import { ContractType, ManagedAccountType } from "../../../../Models/Network";
@@ -327,7 +325,7 @@ export const UserRefundAction: FC = () => {
 
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
         {
-            requestedRefund ?
+            (requestedRefund || sourceDetails?.claimed == 2) ?
                 <PendingButton />
                 :
                 <WalletActionButton

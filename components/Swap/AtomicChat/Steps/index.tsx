@@ -159,7 +159,7 @@ const resolveCards = ({ commitFromApi, sourceDetails, destinationDetails, destin
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
 
     if (commited) {
-        if (commitStatus === CommitStatus.TimelockExpired) {
+        if (commitStatus === CommitStatus.TimelockExpired && !lpLockDetected) {
             cards.push({
                 id: 1,
                 component: TimelockExpiredStep,
