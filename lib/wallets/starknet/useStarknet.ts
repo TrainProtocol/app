@@ -264,7 +264,6 @@ export default function useStarknet(): WalletProvider {
                 nodeUrl: nodeUrl,
             })
         )
-        debugger
         const result = await atomicContract.functions.getHTLCDetails(id)
 
         if (!result) {
@@ -277,7 +276,7 @@ export default function useStarknet(): WalletProvider {
             sender: ethers.utils.hexlify(result.sender as BigNumberish),
             srcReceiver: ethers.utils.hexlify(result.srcReceiver as BigNumberish),
             timelock: Number(result.timelock),
-            id: result.lockId && toHex(result.id, { size: 32 }),
+            id: result.id && toHex(result.id, { size: 32 }),
             amount: formatAmount(Number(result.amount), networkToken?.decimals),
             hashlock: result.hashlock && toHex(result.hashlock, { size: 32 }),
             secret: result.secret || null,

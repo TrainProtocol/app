@@ -8,6 +8,7 @@ import PHTLCAbi from "../../../../lib/abis/atomic/STARKNET_PHTLC.json"
 import { Contract, Abi, CallData, hash, shortString } from "starknet";
 import { BigNumber } from "ethers"
 import { a } from "@starknet-react/core/dist/index-BztLWTpJ"
+import { toHex } from "viem"
 function splitUint256(value) {
     const hex = BigNumber.from(value).toHexString().padStart(66, "0"); // Ensure 32 bytes
     const high = "0x" + hex.slice(2, 34); // First 16 bytes (most significant)
@@ -119,11 +120,20 @@ export default class StarknetLightClient extends _LightClient {
                     const rawData = event.data.data
                     const CallDataInstance = new CallData(PHTLCAbi)
                     const result = CallDataInstance.parse("getHTLCDetails", rawData) as Commit;
-                    console.log('rawData:', rawData)
 
+                    const parsedResult: Commit = {
+                        ...result,
+                        amount: formatAmount(result.amount, token.decimals),
+                        hashlock: result.hashlock && toHex(result.hashlock, { size: 32 }),
+                        claimed: Number(result.claimed),
+                        secret: Number(result.secret),
+                        timelock: Number(result.timelock),
+                    }
+
+                    console.log('rawData:', rawData)
                     console.log('parsed result:', result)
-                    if (attempts > 15 || (result.hashlock)) {
-                        resolve(result)
+                    if (attempts > 15 || (parsedResult.hashlock)) {
+                        resolve(parsedResult)
                         this.worker.terminate()
                         return
                     }
