@@ -60,22 +60,14 @@ async function getCommit(commitConfigs) {
             }
         }
         (async () => {
-            for (let attempt = 0; attempt < 40; attempt++) {
-                try {
-                    if (attempt > 40) {
-                        self.postMessage({ type: 'commitDetails', data: null });
-                        return;
-                    }
-                    const data = await getCommitDetails(self.web3Provider);
-                    if (data?.hashlock && data?.hashlock !== "0x0100000000000000000000000000000000000000000000000000000000000000" && data?.hashlock !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
-                        self.postMessage({ type: 'commitDetails', data: data });
-                        return;
-                    }
-                }
-                catch (e) {
-                    console.log(e);
-                }
-                await sleep(5000);
+            try {
+                const data = await getCommitDetails(self.web3Provider);
+                self.postMessage({ type: 'commitDetails', data: data });
+                return;
+            }
+            catch (e) {
+                console.log(e);
+                self.postMessage({ type: 'commitDetails', data: undefined });
             }
         })();
     }
@@ -83,7 +75,4 @@ async function getCommit(commitConfigs) {
         self.postMessage({ type: 'commitDetails', data: undefined });
         console.log(e);
     }
-}
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }

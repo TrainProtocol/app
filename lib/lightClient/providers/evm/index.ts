@@ -91,18 +91,28 @@ export default class EVMLightClient extends _LightClient {
                         },
                     },
                 }
+                let attempts = 1;
                 this.worker.postMessage(workerMessage)
 
-                this.worker.onmessage = (event) => {
+                this.worker.onmessage = async (event) => {
                     const result = event.data.data
-                    const parsedResult: Commit = result ? {
-                        ...result,
-                        secret: Number(hexToBigInt(result.secret._hex)) !== 1 ? result.secret : null,
-                        amount: formatAmount(Number(hexToBigInt(result.amount._hex)), token.decimals),
-                        timelock: Number(result.timelock)
-                    } : undefined
-                    console.log('Worker event:', event)
-                    resolve(parsedResult)
+
+                    console.log('result:', result)
+                    if (attempts > 15 || (result?.hashlock && result?.hashlock !== "0x0100000000000000000000000000000000000000000000000000000000000000" && result?.hashlock !== "0x0000000000000000000000000000000000000000000000000000000000000000")) {
+                        const parsedResult: Commit = result ? {
+                            ...result,
+                            secret: Number(hexToBigInt(result.secret._hex)) !== 1 ? result.secret : null,
+                            amount: formatAmount(Number(hexToBigInt(result.amount._hex)), token.decimals),
+                            timelock: Number(result.timelock)
+                        } : undefined
+                        resolve(parsedResult)
+                        this.worker.terminate()
+                        return
+                    }
+                    console.log('Retrying in 5 seconds ', attempts)
+                    await sleep(5000)
+                    this.worker.postMessage(workerMessage)
+                    attempts++
                 }
                 this.worker.onerror = (error) => {
                     reject(error)
@@ -116,4 +126,8 @@ export default class EVMLightClient extends _LightClient {
         });
 
     }
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
