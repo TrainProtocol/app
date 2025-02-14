@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import SubmitButton, { SubmitButtonProps } from "../buttons/submitButton";
 import { useSwitchChain } from "wagmi";
 import WalletMessage from "./messages/Message";
-import PendingButton from "./AtomicChat/Actions/Status/PendingButton";
+import ButtonStatus from "./AtomicChat/Actions/Status/ButtonStatus";
 export type ActionData = {
     error: Error | null;
     isError: boolean;
@@ -156,7 +156,12 @@ export const WalletActionButton: FC<LockButtonProps> = (props) => {
         />
     }
     if (isPending) {
-        return <PendingButton />
+        return <ButtonStatus
+            isLoading={isPending}
+            isDisabled={isPending}
+        >
+            Confirm in wallet
+        </ButtonStatus>
     }
     return <SubmitButton
         onClick={handleClick}

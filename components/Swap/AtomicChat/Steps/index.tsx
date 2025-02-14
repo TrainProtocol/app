@@ -80,7 +80,7 @@ const AtomicSteps: FC = () => {
                     onMouseLeave={handleMouseLeave}
                     style={{
                         marginTop: isDesktop ? (openState === 'opened' ? `${cards.length > 3 && cards.length * 28}px` : (cards.length > 2 ? '28px' : '')) : '',
-                        marginBottom: (openState === 'opened' && !allDone) ? '20px' : '',
+                        marginBottom: (openState === 'opened' && !allDone && commitStatus !== CommitStatus.TimelockExpired) ? '20px' : '',
                         height: '100px'
                     }}
                     className='w-full relative transition-all'
