@@ -339,8 +339,8 @@ export default function useStarknet(): WalletProvider {
             types: {
                 StarknetDomain: [
                     { name: "name", type: "shortstring" },
-                    { name: "version", type: "shortstring" },
                     { name: "chainId", type: "shortstring" },
+                    { name: "version", type: "shortstring" },
                 ],
                 Message: [
                     { name: "Id", type: "u256" },
