@@ -188,7 +188,6 @@ export default function useStarknet(): WalletProvider {
                 timeLock,
                 tokenContractAddress,
             ]
-            debugger
             const atomicContract = new Contract(
                 PHTLCAbi,
                 atomicAddress,
@@ -265,7 +264,7 @@ export default function useStarknet(): WalletProvider {
                 nodeUrl: nodeUrl,
             })
         )
-
+        debugger
         const result = await atomicContract.functions.getHTLCDetails(id)
 
         if (!result) {
