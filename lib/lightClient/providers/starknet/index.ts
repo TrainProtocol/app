@@ -124,6 +124,7 @@ export default class StarknetLightClient extends _LightClient {
                     console.log('parsed result:', result)
                     if (attempts > 15 || (result.hashlock)) {
                         resolve(result)
+                        this.worker.terminate()
                         return
                     }
                     console.log('Retrying in 5 seconds ', attempts)
