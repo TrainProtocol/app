@@ -264,7 +264,6 @@ export default function useStarknet(): WalletProvider {
                 nodeUrl: nodeUrl,
             })
         )
-        debugger
         const result = await atomicContract.functions.getHTLCDetails(id)
 
         if (!result) {
