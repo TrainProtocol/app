@@ -4,14 +4,21 @@ import { useAtomicState } from "../../../../context/atomicContext";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
 import { NextRouter, useRouter } from "next/router";
-import { resolvePersistantQueryParams } from "../../../../helpers/querryHelper";
 import { ContractType, ManagedAccountType } from "../../../../Models/Network";
 import PendingButton from "./Status/PendingButton";
+import { useWaitForTransactionReceipt } from "wagmi";
 
 export const UserCommitAction: FC = () => {
-    const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, setSourceDetails, setError } = useAtomicState();
+    const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, setSourceDetails, sourceDetails, setError } = useAtomicState();
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
+    const router = useRouter()
+
+    const txId = router.query.txId as `0x${string}`
+    const { status } = useWaitForTransactionReceipt({
+        hash: txId,
+        chainId: Number(source_network?.chain_id),
+    });
 
     const atomicContract = source_network?.contracts.find(c => source_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
     const lpAddress = source_network?.managed_accounts.find(a => a.type === ManagedAccountType.LP)?.address
@@ -76,6 +83,13 @@ export const UserCommitAction: FC = () => {
             setError(e.details || e.message)
         }
     }
+
+    useEffect(() => {
+        if (status === 'error') {
+            onCommit(undefined as any, undefined as any)
+            setError('Transaction failed')
+        }
+    }, [status])
 
     useEffect(() => {
         let commitHandler: any = undefined
