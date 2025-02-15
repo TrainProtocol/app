@@ -41,7 +41,6 @@ export function FeeProvider({ children }) {
 
     const apiClient = new LayerSwapApiClient()
 
-    const use_deposit_address = depositMethod === 'wallet' ? false : true
     const { data: amountRange, mutate: mutateLimits } = useSWR<ApiResponse<{
         min_amount: number
         min_amount_in_usd: number

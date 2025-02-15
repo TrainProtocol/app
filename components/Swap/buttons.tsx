@@ -5,8 +5,8 @@ import { Network } from "../../Models/Network";
 import toast from "react-hot-toast";
 import SubmitButton, { SubmitButtonProps } from "../buttons/submitButton";
 import { useSwitchChain } from "wagmi";
-import ButtonStatus from "./AtomicChat/Actions/Status/ButtonStatus";
 import WalletMessage from "./messages/Message";
+import ButtonStatus from "./AtomicChat/Actions/Status/ButtonStatus";
 export type ActionData = {
     error: Error | null;
     isError: boolean;

@@ -58,12 +58,12 @@ export const THEME_COLORS: { [key: string]: ThemeData } = {
             '800': '171, 171, 171',
             '900': '143, 143, 143',
             '950': '129, 129, 129',
-            'text': '230, 230, 230',
+            'text': '255, 255, 255',
             'textMuted': '128, 128, 128',
         },
         accent: {
-            DEFAULT: '60, 208, 183',
-            hover: '28, 115, 100'
+            DEFAULT: '39, 142, 246',
+            hover: '27, 106, 185'
         },
         secondary: {
             DEFAULT: '32, 59, 70',

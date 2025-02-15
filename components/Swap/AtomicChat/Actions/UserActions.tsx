@@ -1,14 +1,12 @@
 import { FC, useEffect, useState } from "react";
 import useWallet from "../../../../hooks/useWallet";
 import { useAtomicState } from "../../../../context/atomicContext";
-import ActionStatus from "./Status/ActionStatus";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
-import ButtonStatus from "./Status/ButtonStatus";
 import { NextRouter, useRouter } from "next/router";
-import { resolvePersistantQueryParams } from "../../../../helpers/querryHelper";
 import { ContractType, ManagedAccountType } from "../../../../Models/Network";
-import { useConfig, useWaitForTransactionReceipt } from "wagmi";
+import PendingButton from "./Status/PendingButton";
+import { useWaitForTransactionReceipt } from "wagmi";
 
 export const UserCommitAction: FC = () => {
     const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, setSourceDetails, sourceDetails, setError } = useAtomicState();
@@ -126,11 +124,7 @@ export const UserCommitAction: FC = () => {
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
         {
             commitId ?
-                <ButtonStatus
-                    isDisabled={true}
-                >
-                    Confirm in wallet
-                </ButtonStatus>
+                <PendingButton />
                 :
                 source_network.chain_id &&
                 <WalletActionButton
@@ -223,11 +217,7 @@ export const UserLockAction: FC = () => {
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
         {
             userLocked ?
-                <ButtonStatus
-                    isDisabled={true}
-                >
-                    Sign & Confirm
-                </ButtonStatus>
+                <PendingButton />
                 :
                 source_network && <WalletActionButton
                     activeChain={wallet?.chainId}
@@ -349,11 +339,8 @@ export const UserRefundAction: FC = () => {
 
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
         {
-            requestedRefund ?
-                <ActionStatus
-                    status="pending"
-                    title={'Waiting for confirmations'}
-                />
+            (requestedRefund || sourceDetails?.claimed == 2) ?
+                <PendingButton />
                 :
                 <WalletActionButton
                     activeChain={wallet?.chainId}
@@ -372,12 +359,12 @@ const setRefundQuery = (refundTxId: string, router: NextRouter) => {
     const basePath = router?.basePath || ""
     var swapURL = window.location.protocol + "//"
         + window.location.host + `${basePath}/atomic`;
-    const params = resolvePersistantQueryParams(router.query)
+
     if (router.query && Object.keys(router.query).length) {
         const search = new URLSearchParams(router.query as any);
         if (search)
             swapURL += `?${search}&refundTxId=${refundTxId}`;
     }
 
-    window.history.pushState({ ...window.history.state, as: swapURL, url: swapURL }, '', swapURL);
+    window.history.replaceState({ ...window.history.state, as: swapURL, url: swapURL }, '', swapURL);
 }

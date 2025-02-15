@@ -10,7 +10,6 @@ import { useQueryState } from "../../../context/query";
 import { useFee } from "../../../context/feeContext";
 import useWallet from "../../../hooks/useWallet";
 import { dynamicWithRetries } from "../../../lib/dynamicWithRetries";
-import { useAddressesStore } from "../../../stores/addressesStore";
 
 const SwapDetails = dynamicWithRetries(() => import("../Atomic"),
     <div className="w-full h-[450px]">
@@ -27,14 +26,10 @@ const SwapDetails = dynamicWithRetries(() => import("../Atomic"),
 export default function Form() {
     const formikRef = useRef<FormikProps<SwapFormValues>>(null);
     const [showSwapModal, setShowSwapModal] = useState(false);
-    const [isAddressFromQueryConfirmed, setIsAddressFromQueryConfirmed] = useState(false);
     const router = useRouter();
-    const addresses = useAddressesStore(state => state.addresses)
-
     const query = useQueryState()
 
-
-    const { minAllowedAmount, maxAllowedAmount, updatePolling: pollFee, mutateLimits } = useFee()
+    const { minAllowedAmount, maxAllowedAmount } = useFee()
     const { getProvider } = useWallet()
 
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
@@ -67,22 +62,6 @@ export default function Form() {
             if (!destination_provider) {
                 throw new Error("No destination_provider")
             }
-
-            // const { commitId, hash } = await source_provider.createPreHTLC({
-            //     abi: details.abi,
-            //     address: values.destination_address,
-            //     amount: values.amount,
-            //     destinationChain: values.to?.name,
-            //     sourceChain: values.from?.name,
-            //     destinationAsset: values.toCurrency.symbol,
-            //     sourceAsset: values.fromCurrency.symbol,
-            //     lpAddress: values.from.metadata.lp_address,
-            //     tokenContractAddress: values.fromCurrency.contract,
-            //     decimals: values.fromCurrency.decimals,
-            //     atomicContrcat: values.from.metadata.htlc_contract as `0x${string}`,
-            //     chainId: values.from?.chain_id,
-            // })
-            // router.push(`/commitment/${commitId}?network=${values.from?.name}`)
 
             return await router.push({
                 pathname: `/atomic`,
