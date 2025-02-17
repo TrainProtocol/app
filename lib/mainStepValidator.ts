@@ -22,6 +22,9 @@ export default function MainStepValidation({ maxAllowedAmount, minAllowedAmount 
         if (amount && amount < 0) {
             errors.amount = "Can't be negative";
         }
+        if(!minAllowedAmount || !maxAllowedAmount) {
+            errors.amount = 'Route unavailable';
+        }
         if (maxAllowedAmount != undefined && (amount && amount > maxAllowedAmount)) {
             errors.amount = `Max amount is ${maxAllowedAmount}`;
         }

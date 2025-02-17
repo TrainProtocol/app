@@ -101,18 +101,18 @@ export default function Layout({ children, settings, themeData }: Props) {
       <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
       <link rel="shortcut icon" href="/favicon/favicon.ico" />
       <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
-      <meta name="apple-mobile-web-app-title" content="Train Protocol" />
+      <meta name="apple-mobile-web-app-title" content="TRAIN Protocol" />
       <link rel="manifest" href={`/favicon/site.webmanifest`} />
       <link rel="canonical" href="https://app.train.tech/" />
       <meta name="msapplication-TileColor" content="#ffffff" />
       <meta name="theme-color" content={`rgb(${themeData.secondary?.[900]})`} />
-      <meta name="description" content="Experience Layerswap's Atomic Bridging Protocol in Testnet. No third parties, just seamless and secure cross-chain asset transactions." />
+      <meta name="description" content="Trustless, permissionless cross-chain bridging protocol" />
 
       {/* Facebook Meta Tags */}
       <meta property="og:url" content={`https://app.train.tech/`} />
       <meta property="og:type" content="website" />
       <meta property="og:title" content="Train Protocol" />
-      <meta property="og:description" content="Experience Layerswap's Atomic Bridging Protocol in Testnet. No third parties, just seamless and secure cross-chain asset transactions." />
+      <meta property="og:description" content="Trustless, permissionless cross-chain bridging protocol" />
       <meta property="og:image" content={`https://app.train.tech/opengraph.jpg?v=2`} />
 
       {/* Twitter Meta Tags */}
@@ -120,7 +120,7 @@ export default function Layout({ children, settings, themeData }: Props) {
       <meta property="twitter:domain" content="app.train.tech" />
       <meta property="twitter:url" content={`https://app.train.tech/`} />
       <meta name="twitter:title" content="Train Protocol" />
-      <meta name="twitter:description" content="Experience Layerswap's Atomic Bridging Protocol in Testnet. No third parties, just seamless and secure cross-chain asset transactions." />
+      <meta name="twitter:description" content="Trustless, permissionless cross-chain bridging protocol" />
       <meta name="twitter:image" content={`https://app.train.tech/opengraphtw.jpg`} />
     </Head>
     {
