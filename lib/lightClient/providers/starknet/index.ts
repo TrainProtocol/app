@@ -4,17 +4,10 @@ import { Commit } from "../../../../Models/PHTLC"
 import KnownInternalNames from "../../../knownIds"
 import { Network, Token } from "../../../../Models/Network"
 import PHTLCAbi from "../../../../lib/abis/atomic/STARKNET_PHTLC.json"
-
-import { Contract, Abi, CallData, hash, shortString } from "starknet";
+import { CallData, hash } from "starknet";
 import { BigNumber } from "ethers"
-import { a } from "@starknet-react/core/dist/index-BztLWTpJ"
 import { toHex } from "viem"
-function splitUint256(value) {
-    const hex = BigNumber.from(value).toHexString().padStart(66, "0"); // Ensure 32 bytes
-    const high = "0x" + hex.slice(2, 34); // First 16 bytes (most significant)
-    const low = "0x" + hex.slice(34, 66); // Last 16 bytes (least significant)
-    return [low, high];
-}
+
 export default class StarknetLightClient extends _LightClient {
 
     private worker: Worker
@@ -158,4 +151,11 @@ export default class StarknetLightClient extends _LightClient {
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function splitUint256(value) {
+    const hex = BigNumber.from(value).toHexString().padStart(66, "0"); // Ensure 32 bytes
+    const high = "0x" + hex.slice(2, 34); // First 16 bytes (most significant)
+    const low = "0x" + hex.slice(34, 66); // Last 16 bytes (least significant)
+    return [low, high];
 }
