@@ -33,7 +33,6 @@ export default function Form() {
 
     const query = useQueryState()
 
-
     const { minAllowedAmount, maxAllowedAmount, updatePolling: pollFee, mutateLimits } = useFee()
     const { getProvider } = useWallet()
 
