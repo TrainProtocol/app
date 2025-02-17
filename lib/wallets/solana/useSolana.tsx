@@ -210,6 +210,7 @@ export default function useSolana({ network }: { network: Network | undefined })
                 secret: result.secret,
                 tokenContract: new PublicKey(result.tokenContract).toString(),
                 tokenWallet: new PublicKey(result.tokenWallet).toString(),
+                claimed: result.refunded ? 2 : result.redeemed ? 3 : 0
             }
 
             return parsedResult
@@ -278,7 +279,7 @@ export default function useSolana({ network }: { network: Network | undefined })
             senderTokenAccount: senderTokenAddress,
         }).rpc();
 
-        return { result: result }
+        return result
     }
 
     const claim = async (params: ClaimParams) => {
