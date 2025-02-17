@@ -12,13 +12,13 @@ export type CreatePreHTLCParams = {
     atomicContract: string;
     address: string;
     tokenContractAddress?: string | undefined | null;
-    chainId: string;
+    chainId?: string | null;
 }
 
 export type CommitmentParams = {
     type: 'erc20' | 'native';
     id: string,
-    chainId: string,
+    chainId: string | null,
     contractAddress: `0x${string}`
 }
 
@@ -27,7 +27,7 @@ export type LockParams = {
     id: string,
     lockData?: Commit,
     hashlock: string,
-    chainId: string,
+    chainId: string | null,
     contractAddress: `0x${string}`,
     lockDataResolver?: (data: any[]) => Commit,
     sourceAsset?: Token,
@@ -35,7 +35,7 @@ export type LockParams = {
 
 export type RefundParams = {
     type: 'erc20' | 'native';
-    chainId: string,
+    chainId: string | null,
     contractAddress: `0x${string}`,
     id: string,
     hashlock?: string | undefined,
@@ -44,7 +44,7 @@ export type RefundParams = {
 
 export type ClaimParams = {
     type: 'erc20' | 'native';
-    chainId: string,
+    chainId: string | null,
     contractAddress: `0x${string}`,
     id: string,
     secret: string | number,

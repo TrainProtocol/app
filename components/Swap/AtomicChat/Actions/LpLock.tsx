@@ -34,9 +34,6 @@ export const LpLockingAssets: FC = () => {
 
         let lockHandler: any = undefined
         lockHandler = setInterval(async () => {
-            if (!network.chain_id)
-                throw Error("No chain id")
-
             if (provider.secureGetDetails) {
                 try {
                     const destiantionDetails = await provider.secureGetDetails({
