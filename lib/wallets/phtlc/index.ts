@@ -12,13 +12,13 @@ export type CreatePreHTLCParams = {
     atomicContract: string;
     address: string;
     tokenContractAddress?: string | undefined | null;
-    chainId: string;
+    chainId?: string | null;
 }
 
 export type CommitmentParams = {
     type: 'erc20' | 'native';
     id: string,
-    chainId: string,
+    chainId: string | null,
     contractAddress: `0x${string}`
 }
 

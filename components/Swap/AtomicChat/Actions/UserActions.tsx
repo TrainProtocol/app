@@ -16,11 +16,11 @@ export const UserCommitAction: FC = () => {
     const wallet = provider?.activeWallet
     const router = useRouter()
 
-    const txId = router.query.txId as `0x${string}`
-    const { status } = useWaitForTransactionReceipt({
-        hash: txId,
-        chainId: Number(source_network?.chain_id),
-    });
+    // const txId = router.query.txId as `0x${string}`
+    // const { status } = useWaitForTransactionReceipt({
+    //     hash: txId,
+    //     chainId: Number(source_network?.chain_id),
+    // });
 
     const atomicContract = source_network?.contracts.find(c => source_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
     const lpAddress = source_network?.managed_accounts.find(a => a.type === ManagedAccountType.LP)?.address
@@ -34,9 +34,6 @@ export const UserCommitAction: FC = () => {
             }
             if (!destination_network) {
                 throw new Error("No destination chain")
-            }
-            if (!source_network?.chain_id) {
-                throw new Error("No source chain")
             }
             if (!source_asset) {
                 throw new Error("No source asset")
@@ -86,20 +83,18 @@ export const UserCommitAction: FC = () => {
         }
     }
 
-    useEffect(() => {
-        if (status === 'error') {
-            onCommit(undefined as any, undefined as any)
-            setError('Transaction failed')
-        }
-    }, [status])
+    // useEffect(() => {
+    //     if (status === 'error') {
+    //         onCommit(undefined as any, undefined as any)
+    //         setError('Transaction failed')
+    //     }
+    // }, [status])
 
     useEffect(() => {
         let commitHandler: any = undefined
         if (source_network && commitId) {
             (async () => {
                 commitHandler = setInterval(async () => {
-                    if (!source_network?.chain_id)
-                        throw Error("No chain id")
                     if (!provider)
                         throw new Error("No source provider")
 
@@ -132,7 +127,6 @@ export const UserCommitAction: FC = () => {
                     Confirm in wallet
                 </ButtonStatus>
                 :
-                source_network.chain_id &&
                 <WalletActionButton
                     activeChain={wallet?.chainId}
                     isConnected={!!wallet}

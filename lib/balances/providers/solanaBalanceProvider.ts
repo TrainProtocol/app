@@ -4,7 +4,7 @@ import KnownInternalNames from "../../knownIds";
 
 export class SolanaBalanceProvider {
     supportsNetwork(network: Network): boolean {
-        return KnownInternalNames.Networks.SolanaMainnet.includes(network.name)
+        return (KnownInternalNames.Networks.SolanaMainnet.includes(network.name) || KnownInternalNames.Networks.SolanaDevnet.includes(network.name) || KnownInternalNames.Networks.SolanaTestnet.includes(network.name))
     }
 
     fetchBalance = async (address: string, network: Network) => {

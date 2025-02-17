@@ -1,6 +1,6 @@
 import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon"
-import { ContractType, ManagedAccountType, Network } from "../../../Models/Network"
+import { ContractType, ManagedAccountType, Network, NetworkGroup } from "../../../Models/Network"
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider"
 import { useMemo } from "react"
 import { useConnectModal } from "../../../components/WalletModal"
@@ -16,6 +16,8 @@ import { lockTransactionBuilder, phtlcTransactionBuilder } from "./transactionBu
 const solanaNames = [KnownInternalNames.Networks.SolanaMainnet, KnownInternalNames.Networks.SolanaDevnet, KnownInternalNames.Networks.SolanaTestnet]
 
 export default function useSolana({ network }: { network: Network | undefined }): WalletProvider {
+
+    network = network?.group === NetworkGroup.SOLANA ? network : undefined
 
     const commonSupportedNetworks = [
         KnownInternalNames.Networks.SolanaMainnet,

@@ -44,12 +44,6 @@ export default function Form() {
             if (!values.destination_address) {
                 throw new Error("Please enter a valid address")
             }
-            if (!values.to?.chain_id) {
-                throw new Error("No destination chain")
-            }
-            if (!values.from?.chain_id) {
-                throw new Error("No source chain")
-            }
             if (!values.fromCurrency) {
                 throw new Error("No source asset")
             }
