@@ -409,7 +409,7 @@ export default function useEVM({ network }: Props): WalletProvider {
         const sig = ethers.utils.splitSignature(signature)
 
         try {
-            account?.address && await apiClient.AddLockSig({
+            await apiClient.AddLockSig({
                 signature,
                 v: sig.v.toString(),
                 r: sig.r,
