@@ -8,11 +8,19 @@ import ButtonStatus from "./Status/ButtonStatus";
 import { NextRouter, useRouter } from "next/router";
 import { resolvePersistantQueryParams } from "../../../../helpers/querryHelper";
 import { ContractType, ManagedAccountType } from "../../../../Models/Network";
+import { useConfig, useWaitForTransactionReceipt } from "wagmi";
 
 export const UserCommitAction: FC = () => {
-    const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, setSourceDetails, setError } = useAtomicState();
+    const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, setSourceDetails, sourceDetails, setError } = useAtomicState();
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
+    const router = useRouter()
+
+    // const txId = router.query.txId as `0x${string}`
+    // const { status } = useWaitForTransactionReceipt({
+    //     hash: txId,
+    //     chainId: Number(source_network?.chain_id),
+    // });
 
     const atomicContract = source_network?.contracts.find(c => source_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
     const lpAddress = source_network?.managed_accounts.find(a => a.type === ManagedAccountType.LP)?.address
@@ -27,9 +35,6 @@ export const UserCommitAction: FC = () => {
             if (!destination_network) {
                 throw new Error("No destination chain")
             }
-            if (!source_network?.chain_id) {
-                throw new Error("No source chain")
-            }
             if (!source_asset) {
                 throw new Error("No source asset")
             }
@@ -39,10 +44,10 @@ export const UserCommitAction: FC = () => {
             if (!provider) {
                 throw new Error("No source_provider")
             }
-            if(!atomicContract) {
+            if (!atomicContract) {
                 throw new Error("No atomic contract")
             }
-            if(!lpAddress) {
+            if (!lpAddress) {
                 throw new Error("No lp address")
             }
 
@@ -78,13 +83,18 @@ export const UserCommitAction: FC = () => {
         }
     }
 
+    // useEffect(() => {
+    //     if (status === 'error') {
+    //         onCommit(undefined as any, undefined as any)
+    //         setError('Transaction failed')
+    //     }
+    // }, [status])
+
     useEffect(() => {
         let commitHandler: any = undefined
         if (source_network && commitId) {
             (async () => {
                 commitHandler = setInterval(async () => {
-                    if (!source_network?.chain_id)
-                        throw Error("No chain id")
                     if (!provider)
                         throw new Error("No source provider")
 
@@ -117,7 +127,6 @@ export const UserCommitAction: FC = () => {
                     Confirm in wallet
                 </ButtonStatus>
                 :
-                source_network.chain_id &&
                 <WalletActionButton
                     activeChain={wallet?.chainId}
                     isConnected={!!wallet}
@@ -143,13 +152,11 @@ export const UserLockAction: FC = () => {
 
     const handleLockAssets = async () => {
         try {
-            if (!source_network?.chain_id)
-                throw Error("No chain id")
             if (!provider)
                 throw new Error("No source provider")
             if (!destinationDetails?.hashlock)
                 throw new Error("No destination hashlock")
-            if(!atomicContract) 
+            if (!atomicContract)
                 throw new Error("No atomic contract")
 
             await provider.addLock({
@@ -184,8 +191,6 @@ export const UserLockAction: FC = () => {
         if (!sourceDetails?.hashlock && atomicContract) {
             (async () => {
                 commitHandler = setInterval(async () => {
-                    if (!source_network?.chain_id)
-                        throw Error("No chain id")
                     if (!provider)
                         throw new Error("No source provider")
 
@@ -230,11 +235,11 @@ export const UserLockAction: FC = () => {
 
 export const UserRefundAction: FC = () => {
     const { source_network, commitId, sourceDetails, setSourceDetails, setError, source_asset, destination_network, destination_asset, setDestinationDetails } = useAtomicState()
-    const { getProvider } = useWallet()
+    const { provider: source_provider } = useWallet(source_network, 'withdrawal')
+    const { provider: destination_provider } = useWallet(destination_network, 'withdrawal')
+
     const [requestedRefund, setRequestedRefund] = useState(false)
     const router = useRouter()
-    const source_provider = source_network && getProvider(source_network, 'withdrawal')
-    const destination_provider = destination_network && getProvider(destination_network, 'autofil')
 
     const wallet = source_provider?.activeWallet
 
@@ -246,9 +251,8 @@ export const UserRefundAction: FC = () => {
             if (!source_network) throw new Error("No source network")
             if (!commitId) throw new Error("No commitment details")
             if (!sourceDetails) throw new Error("No commitment")
-            if (!source_network.chain_id) throw new Error("No chain id")
             if (!source_asset) throw new Error("No source asset")
-                if(!sourceAtomicContract) throw new Error("No atomic contract")
+            if (!sourceAtomicContract) throw new Error("No atomic contract")
 
             const res = await source_provider?.refund({
                 type: source_asset?.contract ? 'erc20' : 'native',
@@ -269,8 +273,8 @@ export const UserRefundAction: FC = () => {
 
             if (res) {
                 setRefundQuery(res, router)
+                setRequestedRefund(true)
             }
-            setRequestedRefund(true)
         }
         catch (e) {
             setError(e.details || e.message)
@@ -281,11 +285,9 @@ export const UserRefundAction: FC = () => {
         let commitHandler: any = undefined;
         (async () => {
             commitHandler = setInterval(async () => {
-                if (!source_network?.chain_id)
-                    throw Error("No chain id")
                 if (!source_provider)
                     throw new Error("No source provider")
-                if(!sourceAtomicContract)
+                if (!sourceAtomicContract)
                     throw new Error("No atomic contract")
 
                 const data = await source_provider.getDetails({
@@ -307,8 +309,6 @@ export const UserRefundAction: FC = () => {
         let lockHandler: any = undefined
         if (destination_provider) {
             lockHandler = setInterval(async () => {
-                if (!destination_network?.chain_id)
-                    throw Error("No chain id")
                 if (!commitId)
                     throw Error("No commitId")
                 if (!destinationAtomicContract)

@@ -30,8 +30,6 @@ export const RedeemAction: FC = () => {
         if (commitId) {
             (async () => {
                 commitHandler = setInterval(async () => {
-                    if (!destination_network?.chain_id)
-                        throw Error("No chain id")
                     if (!destination_provider)
                         throw new Error("No destination provider")
 
@@ -56,8 +54,6 @@ export const RedeemAction: FC = () => {
         if (commitId) {
             (async () => {
                 commitHandler = setInterval(async () => {
-                    if (!source_network?.chain_id)
-                        throw Error("No chain id")
                     if (!source_provider)
                         throw new Error("No source provider")
 
@@ -83,7 +79,6 @@ export const RedeemAction: FC = () => {
             if (!destination_network) throw new Error("No source network")
             if (!commitId) throw new Error("No commitment details")
             if (!destinationDetails) throw new Error("No commitment")
-            if (!destination_network.chain_id) throw new Error("No chain id")
             if (!destination_asset) throw new Error("No source asset")
             if (!destinationDetails?.secret) throw new Error("No secret")
 

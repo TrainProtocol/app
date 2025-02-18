@@ -409,7 +409,7 @@ export default function useEVM({ network }: Props): WalletProvider {
         const sig = ethers.utils.splitSignature(signature)
 
         try {
-            account?.address && await apiClient.AddLockSig({
+            await apiClient.AddLockSig({
                 signature,
                 v: sig.v.toString(),
                 r: sig.r,
@@ -504,7 +504,8 @@ export default function useEVM({ network }: Props): WalletProvider {
         disconnectWallets,
         switchAccount,
         connectedWallets: resolvedConnectors,
-        activeWallet: resolvedConnectors.find(w => w.isActive),
+        //TODO: sometimes activeWallet is undefined, fix this
+        activeWallet: resolvedConnectors.find(w => w.isActive) || resolvedConnectors[0],
         autofillSupportedNetworks,
         withdrawalSupportedNetworks,
         asSourceSupportedNetworks,

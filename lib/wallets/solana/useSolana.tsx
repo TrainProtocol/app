@@ -1,6 +1,6 @@
 import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon"
-import { ContractType, ManagedAccountType, Network } from "../../../Models/Network"
+import { ContractType, ManagedAccountType, Network, NetworkGroup } from "../../../Models/Network"
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider"
 import { useMemo } from "react"
 import { useConnectModal } from "../../../components/WalletModal"
@@ -16,6 +16,8 @@ import { lockTransactionBuilder, phtlcTransactionBuilder } from "./transactionBu
 const solanaNames = [KnownInternalNames.Networks.SolanaMainnet, KnownInternalNames.Networks.SolanaDevnet, KnownInternalNames.Networks.SolanaTestnet]
 
 export default function useSolana({ network }: { network: Network | undefined }): WalletProvider {
+
+    network = network?.group === NetworkGroup.SOLANA ? network : undefined
 
     const commonSupportedNetworks = [
         KnownInternalNames.Networks.SolanaMainnet,
@@ -208,6 +210,7 @@ export default function useSolana({ network }: { network: Network | undefined })
                 secret: result.secret,
                 tokenContract: new PublicKey(result.tokenContract).toString(),
                 tokenWallet: new PublicKey(result.tokenWallet).toString(),
+                claimed: result.refunded ? 2 : result.redeemed ? 3 : 0
             }
 
             return parsedResult
@@ -276,7 +279,7 @@ export default function useSolana({ network }: { network: Network | undefined })
             senderTokenAccount: senderTokenAddress,
         }).rpc();
 
-        return { result: result }
+        return result
     }
 
     const claim = async (params: ClaimParams) => {

@@ -6,7 +6,7 @@ import { cairo, Call, constants, Contract, RpcProvider, shortString, TypedData, 
 import PHTLCAbi from "../../../lib/abis/atomic/STARKNET_PHTLC.json"
 import ETHABbi from "../../../lib/abis/STARKNET_ETH.json"
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, GetCommitsParams, LockParams, RefundParams } from "../phtlc";
-import { BigNumberish, ethers } from "ethers";
+import { ethers } from "ethers";
 import { Commit } from "../../../Models/PHTLC";
 import { toHex } from "viem";
 import formatAmount from "../../formatAmount";
@@ -15,6 +15,7 @@ import { useConnect, useDisconnect } from "@starknet-react/core";
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider";
 import { useConnectModal } from "../../../components/WalletModal";
 import { useMemo } from "react";
+import LayerSwapApiClient from "../../layerSwapApiClient";
 
 const starknetNames = [KnownInternalNames.Networks.StarkNetGoerli, KnownInternalNames.Networks.StarkNetMainnet, KnownInternalNames.Networks.StarkNetSepolia]
 export default function useStarknet(): WalletProvider {
@@ -189,7 +190,6 @@ export default function useStarknet(): WalletProvider {
                 timeLock,
                 tokenContractAddress,
             ]
-
             const atomicContract = new Contract(
                 PHTLCAbi,
                 atomicAddress,
@@ -266,7 +266,6 @@ export default function useStarknet(): WalletProvider {
                 nodeUrl: nodeUrl,
             })
         )
-
         const result = await atomicContract.functions.getHTLCDetails(id)
 
         if (!result) {
@@ -275,15 +274,14 @@ export default function useStarknet(): WalletProvider {
 
         const networkToken = networks.find(network => chainId && Number(network.chain_id) == Number(chainId))?.tokens.find(token => token.symbol === "ETH")//shortString.decodeShortString(ethers.utils.hexlify(result.srcAsset as BigNumberish)))
 
-        const parsedResult = {
-            sender: ethers.utils.hexlify(result.sender as BigNumberish),
-            srcReceiver: ethers.utils.hexlify(result.srcReceiver as BigNumberish),
-            timelock: Number(result.timelock),
-            id: result.lockId && toHex(result.id, { size: 32 }),
-            amount: formatAmount(Number(result.amount), 16),
+        const parsedResult: Commit = {
+            ...result,
+            sender: toHex(result.sender),
+            amount: formatAmount(result.amount, networkToken?.decimals),
             hashlock: result.hashlock && toHex(result.hashlock, { size: 32 }),
-            secret: result.secret || null,
-            claimed: result.claimed
+            claimed: Number(result.claimed),
+            secret: Number(result.secret),
+            timelock: Number(result.timelock),
         }
 
         return parsedResult
@@ -371,25 +369,17 @@ export default function useStarknet(): WalletProvider {
                 ],
             }
         }
-        const msgHash = await starknetWallet?.metadata?.starknetAccount.hashMessage(addlockData);
-        const messageTypeHash = typedData.encodeType(addlockData.types, 'AddLockMsg', TypedDataRevision.ACTIVE)
-        const DomainTypeHash = typedData.encodeType(addlockData.types, 'StarknetDomain', TypedDataRevision.ACTIVE)
-        console.log('selector hash ' + Buffer.from(messageTypeHash, "utf8").toString("hex"))
         const signature = await starknetWallet?.metadata?.starknetAccount.signMessage(addlockData)
-        const resolvedSignature = [
-            signature[1],
-            signature[2]
-        ]
+        const apiClient = new LayerSwapApiClient()
 
-        const args = [
-            u256Id,
-            u256Hashlock,
-            u256TimeLock,
-            signature
-        ]
-        const committmentCall: Call = atomicContract.populate("addLockSig", args)
-        const trx = (await starknetWallet?.metadata?.starknetAccount?.execute(committmentCall))
-        debugger
+        try {
+            await apiClient.AddLockSig({
+                signature,
+                timelock: timeLock,
+            }, id)
+        } catch (e) {
+            throw new Error("Failed to add lock")
+        }
 
         return { hash: signature as any, result: signature }
 

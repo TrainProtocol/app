@@ -16,11 +16,11 @@ self.onmessage = (e) => {
 async function initWorker(initConfigs) {
     try {
         await init();
-        // const ethCheckpoint = await fetch(initConfigs.hostname + '/api/getCheckpoint').then(res => res.json());
+        const ethCheckpoint = await fetch(initConfigs.hostname + '/api/getCheckpoint').then(res => res.json());
         const ethereumConfig = {
             executionRpc: `${initConfigs.version == 'sandbox' ? 'https://eth-sepolia.g.alchemy.com/v2/' : 'https://eth-mainnet.g.alchemy.com/v2/'}${initConfigs.alchemyKey}`,
             consensusRpc: initConfigs.version == 'sandbox' ? initConfigs.hostname + '/api/consensusRpc' : undefined,
-            checkpoint: initConfigs.version == 'sandbox' ? '0x527a8a4949bc2128d73fa4e2a022aa56881b2053ba83c900013a66eb7c93343e' : '0xf5a73de5020ab47bb6648dee250e60d6f031516327f4b858bc7f3e3ecad84c40',
+            checkpoint: ethCheckpoint?.finality?.finalized?.root || initConfigs.version == 'sandbox' ? '0x527a8a4949bc2128d73fa4e2a022aa56881b2053ba83c900013a66eb7c93343e' : '0xf5a73de5020ab47bb6648dee250e60d6f031516327f4b858bc7f3e3ecad84c40',
             dbType: "localstorage",
             network: initConfigs.version == 'sandbox' ? 'sepolia' : undefined
         };
@@ -60,22 +60,14 @@ async function getCommit(commitConfigs) {
             }
         }
         (async () => {
-            for (let attempt = 0; attempt < 40; attempt++) {
-                try {
-                    if (attempt > 40) {
-                        self.postMessage({ type: 'commitDetails', data: null });
-                        return;
-                    }
-                    const data = await getCommitDetails(self.web3Provider);
-                    if (data?.hashlock && data?.hashlock !== "0x0100000000000000000000000000000000000000000000000000000000000000" && data?.hashlock !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
-                        self.postMessage({ type: 'commitDetails', data: data });
-                        return;
-                    }
-                }
-                catch (e) {
-                    console.log(e);
-                }
-                await sleep(5000);
+            try {
+                const data = await getCommitDetails(self.web3Provider);
+                self.postMessage({ type: 'commitDetails', data: data });
+                return;
+            }
+            catch (e) {
+                console.log(e);
+                self.postMessage({ type: 'commitDetails', data: undefined });
             }
         })();
     }
@@ -83,7 +75,4 @@ async function getCommit(commitConfigs) {
         self.postMessage({ type: 'commitDetails', data: undefined });
         console.log(e);
     }
-}
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }

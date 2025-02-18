@@ -6,7 +6,6 @@ self.onmessage = (e) => {
             initWorker(e.data.payload.data.initConfigs);
             break;
         case 'getDetails':
-            debugger
             console.log("getting details")
             getCommit(e.data.payload.data.commitConfigs);
             break;
@@ -38,7 +37,7 @@ async function initWorker(initConfigs) {
 
 async function getCommit(commitConfigs) {
     try {
-        const { call } = commitConfigs; 
+        const { call } = commitConfigs;
         try {
             const rawData = await starknetCall(call);
             const parsedData = JSON.parse(rawData);
@@ -69,6 +68,7 @@ async function starknetCall(commitConfigs) {
     else if (request.hasOwnProperty('execute')) {
         let req = JSON.stringify(request['execute']);
         try {
+            let state = await self.client.get_state();
             let result = await self.client.execute(req);
             return result;
         }
@@ -83,7 +83,7 @@ async function starknetCall(commitConfigs) {
         return "unknown request";
     }
 }
-;
+
 function post(url, body) {
     let call = method(body);
     let now = performance.now();
