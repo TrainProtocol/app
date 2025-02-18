@@ -2,7 +2,7 @@ import { useWalletStore } from "../../../stores/walletStore"
 import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
 import toast from "react-hot-toast";
-import { cairo, Call, constants, Contract, RpcProvider, shortString, TypedData, TypedDataRevision } from "starknet";
+import { cairo, Call, constants, Contract, RpcProvider, shortString, TypedData, TypedDataRevision, typedData } from "starknet";
 import PHTLCAbi from "../../../lib/abis/atomic/STARKNET_PHTLC.json"
 import ETHABbi from "../../../lib/abis/STARKNET_ETH.json"
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, GetCommitsParams, LockParams, RefundParams } from "../phtlc";
@@ -313,8 +313,7 @@ export default function useStarknet(): WalletProvider {
     }
 
     const addLockSig = async (params: CommitmentParams & LockParams) => {
-        const { id, hashlock, contractAddress } = params
-
+        const { id, hashlock, contractAddress } = params;
         if (!starknetWallet?.metadata?.starknetAccount) {
             throw new Error('Wallet not connected')
         }
@@ -329,68 +328,70 @@ export default function useStarknet(): WalletProvider {
         const u256Hashlock = cairo.uint256(hashlock);
         const u256TimeLock = cairo.uint256(timeLock);
 
-        const typedData: TypedData = {
+        const addlockData: TypedData = {
             domain: {
-                name: "Train",
+                name: 'Train',
+                version: shortString.encodeShortString("v1"),
                 chainId: constants.StarknetChainId.SN_SEPOLIA,
-                version: "v1",
                 revision: TypedDataRevision.ACTIVE,
             },
-            types: {
-                StarknetDomain: [
-                    { name: "name", type: "shortstring" },
-                    { name: "chainId", type: "shortstring" },
-                    { name: "version", type: "shortstring" },
-                ],
-                Message: [
-                    { name: "Id", type: "u256" },
-                    { name: "hashlock", type: "u256" },
-                    { name: "timelock", type: "u256" },
-                ],
-                u256: [
-                    { name: "low", type: "felt" },
-                    { name: "high", type: "felt" },
-                ],
-            },
-            primaryType: "Message",
             message: {
                 Id: u256Id,
                 hashlock: u256Hashlock,
                 timelock: u256TimeLock,
             },
+            primaryType: 'AddLockMsg',
+            types: {
+                StarknetDomain: [
+                    {
+                        name: 'name',
+                        type: 'shortstring',
+                    },
+                    {
+                        name: 'version',
+                        type: 'shortstring',
+                    },
+                    {
+                        name: 'chainId',
+                        type: 'shortstring',
+                    },
+                    {
+                        name: 'revision',
+                        type: 'shortstring'
+                    }
+                ],
+                AddLockMsg: [
+                    { name: 'Id', type: 'u256' },
+                    { name: 'hashlock', type: 'u256' },
+                    { name: 'timelock', type: 'u256' }
+                ],
+                u256: [
+                    { name: 'low', type: 'felt' },
+                    { name: 'high', type: 'felt' }
+                ],
+            }
         }
-
-        const signature = await starknetWallet?.metadata?.starknetAccount.signMessage(typedData)
-
-        function u256ToHex(u256) {
-            // Convert both parts to BigInt. (They might be provided as numbers or strings.)
-            const high = BigInt(u256[1]);
-            const low = BigInt(u256[0]);
-
-            // Shift the high part 128 bits to the left and add the low part.
-            const combined = (high << 128n) | low;
-
-            // Convert to hexadecimal string, padding to 64 characters (256 bits) if desired.
-            // (Remove padStart if you do not need a fixed width.)
-            let hex = combined.toString(16).padStart(64, '0');
-
-            // Return the hex string with "0x" prefix.
-            return '0x' + hex;
-        }
-
-        const hexSignature = u256ToHex(signature)
+        const msgHash = await starknetWallet?.metadata?.starknetAccount.hashMessage(addlockData);
+        const messageTypeHash = typedData.encodeType(addlockData.types, 'AddLockMsg', TypedDataRevision.ACTIVE)
+        const DomainTypeHash = typedData.encodeType(addlockData.types, 'StarknetDomain', TypedDataRevision.ACTIVE)
+        console.log('selector hash ' + Buffer.from(messageTypeHash, "utf8").toString("hex"))
+        const signature = await starknetWallet?.metadata?.starknetAccount.signMessage(addlockData)
+        const resolvedSignature = [
+            signature[1],
+            signature[2]
+        ]
 
         const args = [
-            id,
-            hashlock,
-            timeLock,
+            u256Id,
+            u256Hashlock,
+            u256TimeLock,
             signature
         ]
         const committmentCall: Call = atomicContract.populate("addLockSig", args)
         const trx = (await starknetWallet?.metadata?.starknetAccount?.execute(committmentCall))
+        debugger
 
-
-        return { hash: hexSignature, result: hexSignature }
+        return { hash: signature as any, result: signature }
 
     }
 
