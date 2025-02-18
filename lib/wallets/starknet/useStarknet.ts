@@ -316,12 +316,6 @@ export default function useStarknet(): WalletProvider {
             throw new Error('Wallet not connected')
         }
 
-        const atomicContract = new Contract(
-            PHTLCAbi,
-            contractAddress,
-            starknetWallet.metadata?.starknetAccount,
-        )
-
         const u256Id = cairo.uint256(id);
         const u256Hashlock = cairo.uint256(hashlock);
         const u256TimeLock = cairo.uint256(timeLock);
