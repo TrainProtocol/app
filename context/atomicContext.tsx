@@ -6,7 +6,6 @@ import { Network, Token } from '../Models/Network';
 import useSWR from 'swr';
 import { ApiResponse } from '../Models/ApiResponse';
 import { CommitFromApi, CommitTransaction } from '../lib/layerSwapApiClient';
-import { toHex } from 'viem';
 import LightClient from '../lib/lightClient';
 
 export enum CommitStatus {
@@ -39,43 +38,125 @@ type DataContextType = {
     lightClient: LightClient | undefined,
     commitStatus: CommitStatus,
     refundTxId?: string | null,
+    atomicQuery?: any,
     onCommit: (commitId: string, txId: string) => void;
     setDestinationDetails: (data: Commit & { fetchedByLightClient?: boolean }) => void;
     setSourceDetails: (data: Commit) => void;
     setUserLocked: (locked: boolean) => void,
-    setError(error: string | undefined): void
+    setError(error: string | undefined): void,
+    setAtomicQuery: (query: any) => void
 }
+
+interface CommitState {
+    sourceDetails?: Commit;
+    destinationDetails?: Commit & { fetchedByLightClient?: boolean };
+    userLocked: boolean;
+    error?: string;
+    commitFromApi?: CommitFromApi;
+    lightClient?: LightClient;
+    commitStatus: CommitStatus;
+    isTimelockExpired: boolean;
+    refundTxId?: string | null;
+}
+
+type CommitStatesDict = Record<string, CommitState>;
 
 export function AtomicProvider({ children }) {
     const router = useRouter()
+    const { networks } = useSettingsState()
+
+    const [atomicQuery, setAtomicQuery] = useState(router.query)
+
     const {
         address,
         amount,
         destination,
         destination_asset,
         source,
-        source_asset
-    } = router.query
+        source_asset,
+        commitTxId
+    } = atomicQuery
 
-    const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined)
+    const commitId = atomicQuery?.commitId as string
 
-    const [commitId, setCommitId] = useState<string | undefined>(router.query.commitId as string | undefined)
-    const [commitTxId, setCommitTxId] = useState<string | undefined>(router.query.txId as string | undefined)
-    const { networks } = useSettingsState()
-    const [sourceDetails, setSourceDetails] = useState<Commit | undefined>(undefined)
-    const [destinationDetails, setDestinationDetails] = useState<Commit | undefined>(undefined)
+    const [commitStates, setCommitStates] = useState<CommitStatesDict>({});
 
-    const [commitFromApi, setCommitFromApi] = useState<CommitFromApi | undefined>(undefined)
+    const updateCommitState = (commitId: string, newState: Partial<CommitState>) => {
+        setCommitStates((prev) => ({
+            ...prev,
+            [commitId]: {
+                ...prev[commitId],
+                ...newState,
+            },
+        }));
+    };
 
-    const [userLocked, setUserLocked] = useState<boolean>(false)
+    const updateCommitStatus = (commitId: string) => {
+        const state = commitStates[commitId] || {};
+        const computedStatus = statusResolver({
+            commitFromApi: state.commitFromApi,
+            sourceDetails: state.sourceDetails,
+            destinationDetails: state.destinationDetails,
+            destination_network,
+            timelockExpired: state.isTimelockExpired,
+            userLocked: state.userLocked,
+        });
+        updateCommitState(commitId, { commitStatus: computedStatus });
+    };
 
-    const [isTimelockExpired, setIsTimelockExpired] = useState<boolean>(false)
-    const [error, setError] = useState<string | undefined>(undefined)
+    const setSourceDetails = (data: Commit) => {
+        updateCommitState(commitId, { sourceDetails: data });
+        updateCommitStatus(commitId);
+    };
+
+    const setDestinationDetails = (
+
+        data: Commit & { fetchedByLightClient?: boolean }
+    ) => {
+        updateCommitState(commitId, { destinationDetails: data });
+        updateCommitStatus(commitId);
+    };
+
+    const setUserLocked = (locked: boolean) => {
+        updateCommitState(commitId, { userLocked: locked });
+        updateCommitStatus(commitId);
+    };
+
+    const setError = (error?: string) => {
+        updateCommitState(commitId, { error });
+    };
+
+    const setCommitFromApi = (data: CommitFromApi) => {
+        updateCommitState(commitId, { commitFromApi: data });
+        updateCommitStatus(commitId);
+    };
+
+    const setLightClient = (client: LightClient) => {
+        updateCommitState(commitId, { lightClient: client });
+    };
+
+    // const setRefundTxId = (refundTxId: string | null) => {
+    //     updateCommitState(commitId, { refundTxId });
+    // };
+
+    const setIsTimelockExpired = (isTimelockExpired: boolean) => {
+        updateCommitState(commitId, { isTimelockExpired });
+        updateCommitStatus(commitId);
+    }
+
+    const sourceDetails = commitStates[commitId]?.sourceDetails;
+    const destinationDetails = commitStates[commitId]?.destinationDetails;
+    const userLocked = commitStates[commitId]?.userLocked;
+    const error = commitStates[commitId]?.error;
+    const commitFromApi = commitStates[commitId]?.commitFromApi;
+    const lightClient = commitStates[commitId]?.lightClient;
+    const isTimelockExpired = commitStates[commitId]?.isTimelockExpired;
 
     const source_network = networks.find(n => n.name.toUpperCase() === (source as string)?.toUpperCase())
     const destination_network = networks.find(n => n.name.toUpperCase() === (destination as string)?.toUpperCase())
     const source_token = source_network?.tokens.find(t => t.symbol === source_asset)
     const destination_token = destination_network?.tokens.find(t => t.symbol === destination_asset)
+    
     const urlParams = !!(typeof window !== 'undefined') && new URLSearchParams(window.location.search);
     const refundTxId = urlParams ? urlParams.get('refundTxId') : null;
 
@@ -134,16 +215,25 @@ export function AtomicProvider({ children }) {
     }, [sourceDetails, destinationDetails])
 
     const handleCommited = (commitId: string, txId: string) => {
-        setCommitId(commitId)
-        setCommitTxId(txId)
-        router.replace({
-            pathname: router.pathname,
-            query: { ...router.query, commitId, txId }
-        }, undefined, { shallow: true })
+        setAtomicQuery({ ...atomicQuery, commitId, txId })
+        const basePath = router?.basePath || ""
+        var atomicURL = window.location.protocol + "//"
+            + window.location.host + `${basePath}/atomic`;
+        const atomicParams = new URLSearchParams({ ...atomicQuery, commitId, txId })
+        if (atomicParams) {
+            atomicURL += `?${atomicParams}`
+        }
+        window.history.pushState({ ...window.history.state, as: atomicURL, url: atomicURL }, '', atomicURL);
+        updateCommitState(commitId, {});
+        // router.replace({
+        //     pathname: '/atomic', // router.pathname,
+        //     query: { ...atomicQuery, commitId, txId }
+        // }, undefined, { shallow: true })
     }
 
     return (
         <AtomicStateContext.Provider value={{
+            atomicQuery,
             source_network,
             onCommit: handleCommited,
             source_asset: source_token,
@@ -151,8 +241,8 @@ export function AtomicProvider({ children }) {
             address: address as string,
             amount: amount ? Number(amount) : undefined,
             destination_network,
-            commitId,
-            commitTxId,
+            commitId: commitId as string,
+            commitTxId: commitTxId as string,
             sourceDetails,
             destinationDetails,
             userLocked,
@@ -164,7 +254,8 @@ export function AtomicProvider({ children }) {
             setDestinationDetails,
             setSourceDetails,
             setUserLocked,
-            setError
+            setError,
+            setAtomicQuery
         }}>
             {children}
         </AtomicStateContext.Provider>
@@ -180,8 +271,8 @@ const statusResolver = ({ commitFromApi, sourceDetails, destinationDetails, dest
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
     const redeemCompleted = (destinationDetails?.claimed == 3 ? true : false) || lpRedeemTransaction?.hash;
 
-    if (timelockExpired) return CommitStatus.TimelockExpired
-    else if (redeemCompleted) return CommitStatus.RedeemCompleted
+    if (redeemCompleted) return CommitStatus.RedeemCompleted
+    else if (timelockExpired) return CommitStatus.TimelockExpired
     else if (assetsLocked) return CommitStatus.AssetsLocked
     else if (userLocked) return CommitStatus.UserLocked
     else if (lpLockDetected) return CommitStatus.LpLockDetected
