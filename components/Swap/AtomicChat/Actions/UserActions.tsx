@@ -234,7 +234,7 @@ export const UserLockAction: FC = () => {
 }
 
 export const UserRefundAction: FC = () => {
-    const { source_network, commitId, sourceDetails, source_asset, destination_network, destination_asset, updateCommit } = useAtomicState()
+    const { source_network, commitId, sourceDetails, source_asset, destination_network, destination_asset, updateCommit, setAtomicQuery, atomicQuery } = useAtomicState()
     const { provider: source_provider } = useWallet(source_network, 'withdrawal')
     const { provider: destination_provider } = useWallet(destination_network, 'withdrawal')
 
@@ -273,6 +273,7 @@ export const UserRefundAction: FC = () => {
 
             if (res) {
                 setRefundQuery(res, router)
+                setAtomicQuery({ ...atomicQuery, refundTxId: res })
                 setRequestedRefund(true)
             }
         }

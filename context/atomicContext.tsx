@@ -70,10 +70,11 @@ export function AtomicProvider({ children }) {
         destination_asset,
         source,
         source_asset,
-        commitTxId
+        commitTxId,
     } = atomicQuery
 
     const commitId = atomicQuery?.commitId as string
+    const refundTxId = atomicQuery?.refundTxId as string
 
     const [commitStates, setCommitStates] = useState<CommitStatesDict>({});
 
@@ -107,9 +108,6 @@ export function AtomicProvider({ children }) {
     const destination_network = networks.find(n => n.name.toUpperCase() === (destination as string)?.toUpperCase())
     const source_token = source_network?.tokens.find(t => t.symbol === source_asset)
     const destination_token = destination_network?.tokens.find(t => t.symbol === destination_asset)
-
-    const urlParams = !!(typeof window !== 'undefined') && new URLSearchParams(window.location.search);
-    const refundTxId = urlParams ? urlParams.get('refundTxId') : null;
 
     const fetcher = (args) => fetch(args).then(res => res.json())
     const url = process.env.NEXT_PUBLIC_TRAIN_API
