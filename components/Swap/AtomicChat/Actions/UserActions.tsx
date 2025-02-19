@@ -11,7 +11,7 @@ import { ContractType, ManagedAccountType } from "../../../../Models/Network";
 import { useConfig, useWaitForTransactionReceipt } from "wagmi";
 
 export const UserCommitAction: FC = () => {
-    const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, setSourceDetails, sourceDetails, setError } = useAtomicState();
+    const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, updateCommit } = useAtomicState();
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
     const router = useRouter()
@@ -79,7 +79,7 @@ export const UserCommitAction: FC = () => {
             }
         }
         catch (e) {
-            setError(e.details || e.message)
+            updateCommit('error', e.details || e.message)
         }
     }
 
@@ -105,7 +105,7 @@ export const UserCommitAction: FC = () => {
                         contractAddress: atomicContract as `0x${string}`,
                     })
                     if (data && data.sender != '0x0000000000000000000000000000000000000000') {
-                        setSourceDetails(data)
+                        updateCommit('sourceDetails', data)
                         clearInterval(commitHandler)
                     }
                 }, 5000)
@@ -142,7 +142,7 @@ export const UserCommitAction: FC = () => {
 
 
 export const UserLockAction: FC = () => {
-    const { source_network, commitId, sourceDetails, setSourceDetails, setUserLocked, userLocked, setError, source_asset, destinationDetails } = useAtomicState()
+    const { source_network, commitId, sourceDetails, updateCommit, userLocked, source_asset, destinationDetails } = useAtomicState()
 
     const { provider } = useWallet(source_network, 'withdrawal')
 
@@ -177,10 +177,10 @@ export const UserLockAction: FC = () => {
                 chainId: source_network.chain_id,
             })
 
-            setUserLocked(true)
+            updateCommit('userLocked', true)
         }
         catch (e) {
-            setError(e.details || e.message)
+            updateCommit('error', e.details || e.message)
         }
         finally {
         }
@@ -201,7 +201,7 @@ export const UserLockAction: FC = () => {
                         contractAddress: atomicContract as `0x${string}`,
                     })
                     if (data?.hashlock) {
-                        setSourceDetails(data)
+                        updateCommit('sourceDetails', data)
                         clearInterval(commitHandler)
                     }
                 }, 5000)
@@ -234,7 +234,7 @@ export const UserLockAction: FC = () => {
 }
 
 export const UserRefundAction: FC = () => {
-    const { source_network, commitId, sourceDetails, setSourceDetails, setError, source_asset, destination_network, destination_asset, setDestinationDetails } = useAtomicState()
+    const { source_network, commitId, sourceDetails, source_asset, destination_network, destination_asset, updateCommit } = useAtomicState()
     const { provider: source_provider } = useWallet(source_network, 'withdrawal')
     const { provider: destination_provider } = useWallet(destination_network, 'withdrawal')
 
@@ -277,7 +277,7 @@ export const UserRefundAction: FC = () => {
             }
         }
         catch (e) {
-            setError(e.details || e.message)
+            updateCommit('error', e.details || e.message)
         }
     }
 
@@ -297,7 +297,7 @@ export const UserRefundAction: FC = () => {
                     contractAddress: sourceAtomicContract as `0x${string}`,
                 })
                 if (data?.claimed == 2) {
-                    setSourceDetails(data)
+                    updateCommit('sourceDetails', data)
                     clearInterval(commitHandler)
                 }
             }, 5000)
@@ -321,7 +321,7 @@ export const UserRefundAction: FC = () => {
                     contractAddress: destinationAtomicContract as `0x${string}`,
                 })
 
-                if (data) setDestinationDetails(data)
+                if (data) updateCommit('destinationDetails', data)
                 if (data?.claimed == 2) {
                     clearInterval(lockHandler)
                 }

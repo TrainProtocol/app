@@ -8,7 +8,7 @@ import { ContractType } from "../../../../Models/Network";
 import { CommitTransaction } from "../../../../lib/layerSwapApiClient";
 
 export const RedeemAction: FC = () => {
-    const { destination_network, source_network, sourceDetails, destinationDetails, setDestinationDetails, setSourceDetails, destination_asset, source_asset, commitId, commitFromApi, setError } = useAtomicState()
+    const { destination_network, source_network, sourceDetails, destinationDetails, updateCommit, destination_asset, source_asset, commitId, commitFromApi } = useAtomicState()
     const [requestedManualClaim, setRequestedManualClaim] = useState(false)
     const [sourceClaimTime, setSourceClaimTime] = useState<number | undefined>(undefined)
     const { getProvider } = useWallet()
@@ -39,7 +39,7 @@ export const RedeemAction: FC = () => {
                         id: commitId,
                         contractAddress: destination_contract as `0x${string}`,
                     })
-                    if (data) setDestinationDetails(data)
+                    if (data) updateCommit('destinationDetails', data)
                     if (data?.claimed == 3) {
                         clearInterval(commitHandler)
                     }
@@ -63,7 +63,7 @@ export const RedeemAction: FC = () => {
                         id: commitId,
                         contractAddress: source_contract as `0x${string}`,
                     })
-                    if (data) setSourceDetails(data)
+                    if (data) updateCommit('sourceDetails', data)
                     if (data?.claimed == 3) {
                         clearInterval(commitHandler)
                         if (!sourceClaimTime) setSourceClaimTime(Date.now())
@@ -94,7 +94,7 @@ export const RedeemAction: FC = () => {
             setRequestedManualClaim(true)
         }
         catch (e) {
-            setError(e.details || e.message)
+            updateCommit('error', e.details || e.message)
         }
     }
 

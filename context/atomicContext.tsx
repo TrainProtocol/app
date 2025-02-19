@@ -40,10 +40,7 @@ type DataContextType = {
     refundTxId?: string | null,
     atomicQuery?: any,
     onCommit: (commitId: string, txId: string) => void;
-    setDestinationDetails: (data: Commit & { fetchedByLightClient?: boolean }) => void;
-    setSourceDetails: (data: Commit) => void;
-    setUserLocked: (locked: boolean) => void,
-    setError(error: string | undefined): void,
+    updateCommit: (field: keyof CommitState, value: any) => void;
     setAtomicQuery: (query: any) => void
 }
 
@@ -54,7 +51,6 @@ interface CommitState {
     error?: string;
     commitFromApi?: CommitFromApi;
     lightClient?: LightClient;
-    commitStatus: CommitStatus;
     isTimelockExpired: boolean;
     refundTxId?: string | null;
 }
@@ -91,56 +87,12 @@ export function AtomicProvider({ children }) {
         }));
     };
 
-    const updateCommitStatus = (commitId: string) => {
-        const state = commitStates[commitId] || {};
-        const computedStatus = statusResolver({
-            commitFromApi: state.commitFromApi,
-            sourceDetails: state.sourceDetails,
-            destinationDetails: state.destinationDetails,
-            destination_network,
-            timelockExpired: state.isTimelockExpired,
-            userLocked: state.userLocked,
-        });
-        updateCommitState(commitId, { commitStatus: computedStatus });
-    };
-
-    const setSourceDetails = (data: Commit) => {
-        updateCommitState(commitId, { sourceDetails: data });
-        updateCommitStatus(commitId);
-    };
-
-    const setDestinationDetails = (
-        data: Commit & { fetchedByLightClient?: boolean }
-    ) => {
-        updateCommitState(commitId, { destinationDetails: data });
-        updateCommitStatus(commitId);
-    };
-
-    const setUserLocked = (locked: boolean) => {
-        updateCommitState(commitId, { userLocked: locked });
-        updateCommitStatus(commitId);
-    };
-
-    const setError = (error?: string) => {
-        updateCommitState(commitId, { error });
-    };
-
-    const setCommitFromApi = (data: CommitFromApi) => {
-        updateCommitState(commitId, { commitFromApi: data });
-        updateCommitStatus(commitId);
-    };
-
-    const setLightClient = (client: LightClient) => {
-        updateCommitState(commitId, { lightClient: client });
-    };
-
-    // const setRefundTxId = (refundTxId: string | null) => {
-    //     updateCommitState(commitId, { refundTxId });
-    // };
-
     const setIsTimelockExpired = (isTimelockExpired: boolean) => {
         updateCommitState(commitId, { isTimelockExpired });
-        updateCommitStatus(commitId);
+    }
+
+    const updateCommit = (field: keyof CommitState, value: any) => {
+        updateCommitState(commitId, { [field]: value });
     }
 
     const sourceDetails = commitStates[commitId]?.sourceDetails;
@@ -167,7 +119,7 @@ export function AtomicProvider({ children }) {
 
     useEffect(() => {
         if (data?.data) {
-            setCommitFromApi(data.data)
+            updateCommit('commitFromApi', data.data)
         }
     }, [data])
 
@@ -177,7 +129,7 @@ export function AtomicProvider({ children }) {
                 try {
                     const lightClient = new LightClient()
                     await lightClient.initProvider({ network: destination_network })
-                    setLightClient(lightClient)
+                    updateCommit('lightClient', lightClient)
                 } catch (error) {
                     console.log(error.message)
                     console.log(error)
@@ -246,10 +198,7 @@ export function AtomicProvider({ children }) {
             lightClient,
             commitStatus,
             refundTxId,
-            setDestinationDetails,
-            setSourceDetails,
-            setUserLocked,
-            setError,
+            updateCommit,
             setAtomicQuery
         }}>
             {children}

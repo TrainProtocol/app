@@ -141,7 +141,7 @@ export const ResolveMessages: FC<{ timelock: number | undefined, showTimer: bool
     </div>
 }
 const ResolveAction: FC = () => {
-    const { sourceDetails, destination_network, error, setError, commitStatus, commitFromApi, refundTxId, source_network } = useAtomicState()
+    const { sourceDetails, destination_network, error, commitStatus, commitFromApi, refundTxId, source_network, updateCommit } = useAtomicState()
     const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
 
     //TODO: remove lp actions just disable the button
@@ -153,7 +153,7 @@ const ResolveAction: FC = () => {
                     title={<p className="break-all">{error}</p>}
                 />
             </div >
-            <SubmitButton onClick={() => setError(undefined)}>
+            <SubmitButton onClick={() => updateCommit('error', undefined)}>
                 Try again
             </SubmitButton>
         </div>
