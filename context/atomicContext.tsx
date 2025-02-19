@@ -110,7 +110,6 @@ export function AtomicProvider({ children }) {
     };
 
     const setDestinationDetails = (
-
         data: Commit & { fetchedByLightClient?: boolean }
     ) => {
         updateCommitState(commitId, { destinationDetails: data });
@@ -156,7 +155,7 @@ export function AtomicProvider({ children }) {
     const destination_network = networks.find(n => n.name.toUpperCase() === (destination as string)?.toUpperCase())
     const source_token = source_network?.tokens.find(t => t.symbol === source_asset)
     const destination_token = destination_network?.tokens.find(t => t.symbol === destination_asset)
-    
+
     const urlParams = !!(typeof window !== 'undefined') && new URLSearchParams(window.location.search);
     const refundTxId = urlParams ? urlParams.get('refundTxId') : null;
 
@@ -225,10 +224,6 @@ export function AtomicProvider({ children }) {
         }
         window.history.pushState({ ...window.history.state, as: atomicURL, url: atomicURL }, '', atomicURL);
         updateCommitState(commitId, {});
-        // router.replace({
-        //     pathname: '/atomic', // router.pathname,
-        //     query: { ...atomicQuery, commitId, txId }
-        // }, undefined, { shallow: true })
     }
 
     return (
