@@ -6,7 +6,6 @@ import { Network, Token } from '../Models/Network';
 import useSWR from 'swr';
 import { ApiResponse } from '../Models/ApiResponse';
 import { CommitFromApi, CommitTransaction } from '../lib/layerSwapApiClient';
-import { toHex } from 'viem';
 import LightClient from '../lib/lightClient';
 
 export enum CommitStatus {
@@ -29,10 +28,10 @@ type DataContextType = {
     destination_asset?: Token,
     address?: string,
     amount?: number,
-    commitId?: string,
-    commitTxId?: string,
+    commitId?: string | null,
+    commitTxId?: string | null,
     destinationDetails?: Commit & { fetchedByLightClient?: boolean },
-    userLocked?: boolean,
+    userLocked: boolean,
     sourceDetails?: Commit,
     error: string | undefined,
     commitFromApi?: CommitFromApi,
@@ -59,8 +58,8 @@ export function AtomicProvider({ children }) {
 
     const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined)
 
-    const [commitId, setCommitId] = useState<string | undefined>(router.query.commitId as string | undefined)
-    const [commitTxId, setCommitTxId] = useState<string | undefined>(router.query.txId as string | undefined)
+    const [commitId, setCommitId] = useState<string | null>(router.query.commitId as string | null)
+    const [commitTxId, setCommitTxId] = useState<string | null>(router.query.txId as string | null)
     const { networks } = useSettingsState()
     const [sourceDetails, setSourceDetails] = useState<Commit | undefined>(undefined)
     const [destinationDetails, setDestinationDetails] = useState<Commit | undefined>(undefined)
@@ -78,6 +77,13 @@ export function AtomicProvider({ children }) {
     const destination_token = destination_network?.tokens.find(t => t.symbol === destination_asset)
     const urlParams = !!(typeof window !== 'undefined') && new URLSearchParams(window.location.search);
     const refundTxId = urlParams ? urlParams.get('refundTxId') : null;
+
+    useEffect(() => {
+        if (urlParams) {
+            setCommitId(urlParams.get('commitId'))
+            setCommitTxId(urlParams.get('txId'))
+        }
+    }, [urlParams])
 
     const fetcher = (args) => fetch(args).then(res => res.json())
     const url = process.env.NEXT_PUBLIC_TRAIN_API
@@ -136,10 +142,19 @@ export function AtomicProvider({ children }) {
     const handleCommited = (commitId: string, txId: string) => {
         setCommitId(commitId)
         setCommitTxId(txId)
-        router.replace({
-            pathname: router.pathname,
-            query: { ...router.query, commitId, txId }
-        }, undefined, { shallow: true })
+
+        const basePath = router?.basePath || ""
+        var swapURL = window.location.protocol + "//"
+            + window.location.host + `${basePath}/atomic`;
+
+        if (router.query && Object.keys(router.query).length) {
+            const search = new URLSearchParams(router.query as any);
+            if (search)
+                swapURL += `?${search}&commitId=${commitId}&txId=${txId}`;
+        }
+
+        window.history.replaceState({ ...window.history.state, as: swapURL, url: swapURL }, '', swapURL);
+
     }
 
     return (
@@ -178,7 +193,7 @@ const statusResolver = ({ commitFromApi, sourceDetails, destinationDetails, dest
     const commited = sourceDetails ? true : false;
     const lpLockDetected = destinationDetails?.hashlock ? true : false;
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
-    const redeemCompleted = (destinationDetails?.claimed == 3 ? true : false) || lpRedeemTransaction?.hash;
+    const redeemCompleted = (destinationDetails?.claimed == 3 ? true : false);
 
     if (timelockExpired) return CommitStatus.TimelockExpired
     else if (redeemCompleted) return CommitStatus.RedeemCompleted

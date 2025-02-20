@@ -4,10 +4,10 @@ import { useSettingsState } from "../../../context/settings";
 import useWallet from "../../../hooks/useWallet";
 import Summary from "./Summary";
 import { useFee } from "../../../context/feeContext";
-import ConnectedWallet from "./ConnectedWallet";
-import { Actions } from "./Resolver";
 import { useAtomicState } from "../../../context/atomicContext";
 import ResizablePanel from "../../ResizablePanel";
+import AtomicSteps from "./Steps";
+import { ResolveAction } from "./Resolver";
 
 type ContainerProps = {
     type: "widget" | "contained",
@@ -24,7 +24,8 @@ const Commitment: FC<ContainerProps> = (props) => {
     const { networks } = useSettingsState()
     const { fee, valuesChanger } = useFee()
 
-    const { commitId, sourceDetails } = useAtomicState()
+    const { sourceDetails, commitFromApi, commitId } = useAtomicState()
+    const receive_amount = commitFromApi?.destination_amount
 
     const source_network = networks.find(n => n.name.toUpperCase() === source?.toUpperCase())
     const destination_network = networks.find(n => n.name.toUpperCase() === destination?.toUpperCase())
@@ -34,7 +35,7 @@ const Commitment: FC<ContainerProps> = (props) => {
     const { provider } = useWallet(source_network, 'withdrawal')
 
     useEffect(() => {
-        if (amount && source_network && destination_network && source_asset && destination_asset)
+        if (amount && source_network && destination_network && source_asset && destination_asset && !commitId && !commitFromApi)
             valuesChanger({
                 amount: amount.toString(),
                 from: source_network,
@@ -42,37 +43,35 @@ const Commitment: FC<ContainerProps> = (props) => {
                 to: destination_network,
                 toCurrency: destination_token,
             })
-    }, [amount, source_network, destination, source_token, destination_token])
+    }, [amount, source_network, destination, source_token, destination_token, commitId, commitFromApi])
 
     const wallet = provider?.activeWallet
-    const receiveAmount = fee?.quote?.receive_amount
+    const receiveAmount = receive_amount || fee?.quote?.receive_amount
 
     return (
         <>
             <Widget.Content>
                 <ResizablePanel>
-                    <div className="w-full flex flex-col justify-between  text-secondary-text">
-                        <div className='grid grid-cols-1 gap-4'>
-                            {
-                                destination_network && source_network && destination_token && source_token &&
-                                <Summary
-                                    destination={destination_network}
-                                    source={source_network}
-                                    destinationAddress={address}
-                                    destinationCurrency={destination_token}
-                                    requestedAmount={amount}
-                                    sourceCurrency={source_token}
-                                    sourceAccountAddress={sourceDetails?.sender || wallet?.address}
-                                    receiveAmount={receiveAmount}
-                                />
-                            }
-                            <ConnectedWallet />
-                        </div>
-                    </div>
+                    {
+                        destination_network && source_network && destination_token && source_token &&
+                        <Summary
+                            destination={destination_network}
+                            source={source_network}
+                            destinationAddress={address}
+                            destinationCurrency={destination_token}
+                            requestedAmount={amount}
+                            sourceCurrency={source_token}
+                            sourceAccountAddress={sourceDetails?.sender || wallet?.address}
+                            receiveAmount={receiveAmount}
+                        />
+                    }
                 </ResizablePanel>
             </Widget.Content>
             <Widget.Footer sticky={true}>
-                <Actions />
+                <div className='space-y-4'>
+                    <AtomicSteps />
+                    <ResolveAction />
+                </div>
             </Widget.Footer>
         </>
     )
