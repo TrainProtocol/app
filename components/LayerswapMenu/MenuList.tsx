@@ -1,4 +1,4 @@
-import { BookOpen, Map, Home, LibraryIcon, Shield, MessageSquarePlus, ScrollText } from "lucide-react";
+import { BookOpen, Map, Home, LibraryIcon, Shield, MessageSquarePlus } from "lucide-react";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
 import { useIntercom } from "react-use-intercom";
@@ -36,25 +36,26 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path: string) => void }> = ({ go
 
             <WalletsMenu />
 
+            {
+                router.pathname != '/' &&
+                <Menu.Group>
+                    <>
 
-            <Menu.Group>
-                <>
-                    {
-                        router.pathname != '/' &&
                         <Menu.Item pathname='/' icon={<Home className="h-5 w-5" />} >
                             Home
                         </Menu.Item>
-                    }
-                </>
-                <>
-                    {
-                        router.pathname != '/committments' &&
-                        <Menu.Item pathname="/committments" icon={<ScrollText className="h-5 w-5" />} >
+
+                    </>
+                    {/* <>
+                    {router.pathname != '/transactions' &&
+                        <Menu.Item onClick={() => goToStep(MenuStep.Transactions, "/transactions")} icon={<ScrollText className="h-5 w-5" />} >
                             Transactions
                         </Menu.Item>
                     }
                 </>
-            </Menu.Group>
+              */}
+                </Menu.Group>
+            }
             <Menu.Group>
                 <Menu.Item onClick={() => {
                     boot();
