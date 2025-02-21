@@ -368,7 +368,7 @@ export default function useStarknet(): WalletProvider {
 
         try {
             await apiClient.AddLockSig({
-                signature,
+                signature_array: signature,
                 timelock: timeLock,
             }, id)
         } catch (e) {
