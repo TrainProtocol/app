@@ -5,14 +5,17 @@ import React from "react";
 import MainStepValidation from "../../../lib/mainStepValidator";
 import SwapForm from "./Form";
 import { NextRouter, useRouter } from "next/router";
-import { resolvePersistantQueryParams } from "../../../helpers/querryHelper";
 import { useQueryState } from "../../../context/query";
 import { useFee } from "../../../context/feeContext";
 import useWallet from "../../../hooks/useWallet";
 import { dynamicWithRetries } from "../../../lib/dynamicWithRetries";
-import { useAddressesStore } from "../../../stores/addressesStore";
+import { useAtomicState } from "../../../context/atomicContext";
+import { AnimatePresence, motion } from "framer-motion";
+import Image from "next/image";
+import { ChevronRight } from "lucide-react";
+import VaulDrawer from "../../Modal/vaulModal";
 
-const SwapDetails = dynamicWithRetries(() => import("../Atomic"),
+const AtomicPage = dynamicWithRetries(() => import("../AtomicChat"),
     <div className="w-full h-[450px]">
         <div className="animate-pulse flex space-x-4">
             <div className="flex-1 space-y-6 py-1">
@@ -27,14 +30,23 @@ const SwapDetails = dynamicWithRetries(() => import("../Atomic"),
 export default function Form() {
     const formikRef = useRef<FormikProps<SwapFormValues>>(null);
     const [showSwapModal, setShowSwapModal] = useState(false);
-    const [isAddressFromQueryConfirmed, setIsAddressFromQueryConfirmed] = useState(false);
     const router = useRouter();
-    const addresses = useAddressesStore(state => state.addresses)
 
     const query = useQueryState()
 
-    const { minAllowedAmount, maxAllowedAmount, updatePolling: pollFee, mutateLimits } = useFee()
+    const { minAllowedAmount, maxAllowedAmount, updatePolling: pollFee } = useFee()
     const { getProvider } = useWallet()
+    const { atomicQuery, setAtomicQuery } = useAtomicState()
+
+    const {
+        address,
+        amount,
+        destination,
+        destination_asset,
+        source,
+        source_asset,
+        commitId
+    } = atomicQuery
 
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
@@ -61,33 +73,19 @@ export default function Form() {
                 throw new Error("No destination_provider")
             }
 
-            // const { commitId, hash } = await source_provider.createPreHTLC({
-            //     abi: details.abi,
-            //     address: values.destination_address,
-            //     amount: values.amount,
-            //     destinationChain: values.to?.name,
-            //     sourceChain: values.from?.name,
-            //     destinationAsset: values.toCurrency.symbol,
-            //     sourceAsset: values.fromCurrency.symbol,
-            //     lpAddress: values.from.metadata.lp_address,
-            //     tokenContractAddress: values.fromCurrency.contract,
-            //     decimals: values.fromCurrency.decimals,
-            //     atomicContrcat: values.from.metadata.htlc_contract as `0x${string}`,
-            //     chainId: values.from?.chain_id,
-            // })
-            // router.push(`/commitment/${commitId}?network=${values.from?.name}`)
-
-            return await router.push({
-                pathname: `/atomic`,
-                query: {
-                    amount: values.amount,
-                    address: values.destination_address,
-                    source: values.from?.name,
-                    destination: values.to?.name,
-                    source_asset: values.fromCurrency.symbol,
-                    destination_asset: values.toCurrency.symbol,
-                }
-            }, undefined, { shallow: false })
+            setAtomicPath({
+                atomicQuery: values,
+                router
+            })
+            setAtomicQuery({
+                amount: values.amount,
+                address: values.destination_address,
+                source: values.from?.name!,
+                destination: values.to?.name!,
+                source_asset: values.fromCurrency.symbol,
+                destination_asset: values.toCurrency.symbol,
+            })
+            handleShowSwapModal(true)
         }
         catch (error) {
             console.log(error)
@@ -101,34 +99,40 @@ export default function Form() {
         formikRef.current?.validateForm();
     }, [minAllowedAmount, maxAllowedAmount]);
 
-    // const handleShowSwapModal = useCallback((value: boolean) => {
-    //     pollFee(!value)
-    //     setShowSwapModal(value)
-    //     value && swap?.id ? setSwapPath(swap?.id, router) : removeSwapPath(router)
-    // }, [router, swap])
+    const handleShowSwapModal = useCallback((value: boolean) => {
+        pollFee(!value)
+        setShowSwapModal(value)
+        value ? setAtomicPath({ atomicQuery, router }) : removeSwapPath(router)
+    }, [router, atomicQuery])
 
     return <>
-        {/* <div className="rounded-r-lg cursor-pointer absolute z-10 md:mt-3 border-l-0">
-            <AnimatePresence mode='wait'>
-                {
-                    swap &&
-                    !showSwapModal &&
+        <AnimatePresence mode='wait'>
+            {
+                commitId &&
+                !showSwapModal &&
+                <div className="rounded-r-lg cursor-pointer absolute z-10 md:mt-3 border-l-0">
                     <PendingSwap key="pendingSwap" onClick={() => handleShowSwapModal(true)} />
-                }
-            </AnimatePresence>
-        </div> */}
-        {/* <Modal
-            height='fit'
+                </div>
+            }
+        </AnimatePresence>
+        <VaulDrawer
             show={showSwapModal}
             setShow={handleShowSwapModal}
-            header={`Complete the swap`}
-            modalId="showSwap"
+            header={'Complete the swap'}
+            modalId={"showSwap"}
         >
-            <ResizablePanel>
-                <>
-                </>
-            </ResizablePanel>
-        </Modal> */}
+            <VaulDrawer.Snap id='item-1'>
+                <AtomicPage
+                    address={address as string}
+                    amount={Number(amount)}
+                    destination={destination as string}
+                    destination_asset={destination_asset as string}
+                    source={source as string}
+                    source_asset={source_asset as string}
+                    type='contained'
+                />
+            </VaulDrawer.Snap>
+        </VaulDrawer>
         <Formik
             innerRef={formikRef}
             initialValues={{}}
@@ -165,17 +169,21 @@ const textMotion = {
 };
 
 
-const setSwapPath = (swapId: string, router: NextRouter) => {
+const setAtomicPath = ({
+    atomicQuery,
+    router
+}: {
+    atomicQuery: any
+    router: NextRouter
+}) => {
     const basePath = router?.basePath || ""
-    var swapURL = window.location.protocol + "//"
-        + window.location.host + `${basePath}/swap/${swapId}`;
-    const params = resolvePersistantQueryParams(router.query)
-    if (params && Object.keys(params).length) {
-        const search = new URLSearchParams(params as any);
-        if (search)
-            swapURL += `?${search}`
+    var atomicURL = window.location.protocol + "//"
+        + window.location.host + `${basePath}/atomic`;
+    const atomicParams = new URLSearchParams({...atomicQuery})
+    if (atomicParams) {
+        atomicURL += `?${atomicParams}`
     }
-    window.history.pushState({ ...window.history.state, as: swapURL, url: swapURL }, '', swapURL);
+    window.history.pushState({ ...window.history.state, as: atomicURL, url: atomicURL }, '', atomicURL);
 }
 
 const removeSwapPath = (router: NextRouter) => {
@@ -183,11 +191,51 @@ const removeSwapPath = (router: NextRouter) => {
     let homeURL = window.location.protocol + "//"
         + window.location.host + basePath
 
-    const params = resolvePersistantQueryParams(router.query)
-    if (params && Object.keys(params).length) {
-        const search = new URLSearchParams(params as any);
-        if (search)
-            homeURL += `?${search}`
-    }
     window.history.replaceState({ ...window.history.state, as: homeURL, url: homeURL }, '', homeURL);
+}
+
+const PendingSwap = ({ onClick }: { onClick: () => void }) => {
+    const { source_network, destination_network } = useAtomicState()
+
+    return <motion.div
+        initial={{ y: 10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: -10, opacity: 0 }}
+        transition={{ duration: 0.2 }}
+    >
+        <motion.div
+            onClick={onClick}
+            initial="rest" whileHover="hover" animate="rest"
+            className="relative bg-secondary-600 rounded-r-lg">
+            <motion.div
+                variants={textMotion}
+                className="flex items-center bg-secondary-600 rounded-r-lg">
+                <div className="text-primary-text flex px-3 p-2 items-center space-x-2">
+                    <div className="flex-shrink-0 h-5 w-5 relative">
+                        {source_network ?
+                            <Image
+                                src={source_network.logo}
+                                alt="From Logo"
+                                height="60"
+                                width="60"
+                                className="rounded-md object-contain"
+                            /> : null
+                        }
+                    </div>
+                    <ChevronRight className="block h-4 w-4 mx-1" />
+                    <div className="flex-shrink-0 h-5 w-5 relative block">
+                        {destination_network ?
+                            <Image
+                                src={destination_network.logo}
+                                alt="To Logo"
+                                height="60"
+                                width="60"
+                                className="rounded-md object-contain"
+                            /> : null
+                        }
+                    </div>
+                </div>
+            </motion.div>
+        </motion.div>
+    </motion.div>
 }
