@@ -63,6 +63,7 @@ export class Token {
     logo: string;
     contract: string | null | undefined;
     decimals: number;
+    precision: number;
     price_in_usd: number;
     listing_date: string;
 }

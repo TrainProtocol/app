@@ -19,6 +19,11 @@ export default class LayerSwapApiClient {
         return await this.UnauthenticatedRequest<ApiResponse<Network[]>>("GET", `/networks`);
     }
 
+    async GetSwapsAsync(addresses: string[], page?: number): Promise<ApiResponse<CommitFromApi[]>> {
+        const addressesQuery = addresses.map(a => `addresses=${a}`).join('&');
+        return await this.UnauthenticatedRequest<ApiResponse<CommitFromApi[]>>("GET", `/swaps?${addressesQuery}&page=${page ? page : 1}`);
+    }
+
     async AddLockSig(params: AddLockSig, commit_id: string): Promise<ApiResponse<{}>> {
         return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/swaps/${commit_id}/add_lock_sig`, params);
     }
@@ -45,7 +50,8 @@ export type AddLockSig = {
 }
 
 export type CommitFromApi = {
-    source_netowrk: string,
+    commit_id: string,
+    source_network: string,
     source_asset: string,
     destination_network: string,
     destination_asset: string,
