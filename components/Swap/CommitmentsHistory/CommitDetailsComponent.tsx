@@ -8,24 +8,34 @@ import { useRouter } from 'next/router';
 import { Eye } from 'lucide-react';
 import StatusIcon from './StatusIcons';
 import { HistoryCommit } from '.';
-import { Network, Token } from '../../../Models/Network';
 import { truncateDecimals } from '../../utils/RoundDecimals';
 
 type Props = {
     commit: HistoryCommit,
-    source_network: Network
-    source_asset: Token,
-    destination_network: Network,
 }
 
-const CommitDetails: FC<Props> = ({ commit, source_network, destination_network, source_asset }) => {
+const CommitDetails: FC<Props> = ({ commit }) => {
     const router = useRouter()
+    const { networks } = useSettingsState()
 
-    const { amount, id } = commit
+    const {
+        amount,
+        id,
+        destination_address,
+        source_network: srcNetwork,
+        destination_network: dstNetwork,
+        source_asset: srcAsset,
+        destination_asset: dstAsset
+    } = commit
+
+    const source_network = networks.find(n => n.name === srcNetwork)
+    const destination_network = networks.find(n => n.name === dstNetwork)
+    const source_asset = source_network?.tokens.find(t => t.symbol === srcAsset)
+    const destination_asset = destination_network?.tokens.find(t => t.symbol === dstAsset)
 
     return (
         <>
-            {/* <div className="w-full grid grid-flow-row animate-fade-in">
+            <div className="w-full grid grid-flow-row animate-fade-in">
                 <div className="rounded-md w-full grid grid-flow-row">
                     <div className="items-center space-y-1.5 block text-base font-lighter leading-6 text-secondary-text">
                         <div className="flex justify-between p items-baseline">
@@ -98,8 +108,8 @@ const CommitDetails: FC<Props> = ({ commit, source_network, destination_network,
                             <span className="text-left">Address </span>
                             <span className="text-primary-text">
                                 <div className='inline-flex items-center'>
-                                    <CopyButton toCopy={dstAddress} iconClassName="text-gray-500">
-                                        {shortenAddress(dstAddress)}
+                                    <CopyButton toCopy={destination_address} iconClassName="text-gray-500">
+                                        {shortenAddress(destination_address)}
                                     </CopyButton>
                                 </div>
                             </span>
@@ -122,11 +132,11 @@ const CommitDetails: FC<Props> = ({ commit, source_network, destination_network,
                             pathname: `/atomic`,
                             query: {
                                 amount: source_asset && truncateDecimals(amount, source_asset?.precision),
-                                address: dstAddress,
+                                address: destination_address,
                                 source: source_network?.name,
                                 destination: destination_network?.name,
-                                source_asset: srcAsset,
-                                destination_asset: dstAsset,
+                                source_asset: source_asset?.symbol,
+                                destination_asset: destination_asset?.symbol,
                                 commitId: id
                             }
                         }, undefined, { shallow: false })}
@@ -137,7 +147,7 @@ const CommitDetails: FC<Props> = ({ commit, source_network, destination_network,
                         View swap
                     </SubmitButton>
                 </div>
-            </div> */}
+            </div>
         </>
     )
 }
