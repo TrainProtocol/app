@@ -33,6 +33,7 @@ export type ThemeColor = {
     950?: string;
     text: string,
     textMuted?: string,
+    textPlaceholder?: string,
 }
 
 export const THEME_COLORS: { [key: string]: ThemeData } = {
@@ -60,10 +61,11 @@ export const THEME_COLORS: { [key: string]: ThemeData } = {
             '950': '129, 129, 129',
             'text': '230, 230, 230',
             'textMuted': '128, 128, 128',
+            'textPlaceholder': '184, 184, 184',
         },
         accent: {
-            DEFAULT: '60, 208, 183',
-            hover: '28, 115, 100'
+            DEFAULT: '39, 142, 246',
+            hover: '27, 106, 185'
         },
         secondary: {
             DEFAULT: '32, 59, 70',

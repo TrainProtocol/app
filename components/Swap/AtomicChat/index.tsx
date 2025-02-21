@@ -5,9 +5,10 @@ import useWallet from "../../../hooks/useWallet";
 import Summary from "./Summary";
 import { useFee } from "../../../context/feeContext";
 import ConnectedWallet from "./ConnectedWallet";
-import { Actions } from "./Resolver";
 import { useAtomicState } from "../../../context/atomicContext";
 import ResizablePanel from "../../ResizablePanel";
+import { Actions } from "./Actions";
+import ResolveMessages from "./Steps";
 
 type ContainerProps = {
     type: "widget" | "contained",
@@ -49,7 +50,7 @@ const Commitment: FC<ContainerProps> = (props) => {
 
     return (
         <>
-            <Widget.Content>
+            <Widget.Content className="!py-0">
                 <ResizablePanel>
                     <div className="w-full flex flex-col justify-between  text-secondary-text">
                         <div className='grid grid-cols-1 gap-4'>
@@ -66,7 +67,8 @@ const Commitment: FC<ContainerProps> = (props) => {
                                     receiveAmount={receiveAmount}
                                 />
                             }
-                            <ConnectedWallet />
+                            {/* <ConnectedWallet /> */}
+                            <ResolveMessages />
                         </div>
                     </div>
                 </ResizablePanel>
@@ -82,11 +84,11 @@ const Container: FC<ContainerProps> = (props) => {
     const { type } = props
 
     if (type === "widget")
-        return <Widget>
+        return <Widget className="!space-y-3">
             <Commitment {...props} />
         </Widget>
     else
-        return <div className="w-full flex flex-col justify-between h-full space-y-5 text-secondary-text">
+        return <div className="w-full flex flex-col justify-between h-full space-y-3 text-secondary-text">
             <Commitment {...props} />
         </div>
 

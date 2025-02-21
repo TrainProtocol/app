@@ -108,7 +108,7 @@ const Comp: FC<VaulDrawerProps> = ({ children, show, setShow, header, descriptio
 
                 <Drawer.Content
                     data-testid="content"
-                    className={clsx('fixed sm:absolute flex flex-col bg-secondary-900 rounded-t-3xl bottom-0 left-0 right-0 h-full z-50 pb-6 text-primary-text !ring-0 !outline-none ', {
+                    className={clsx('fixed sm:absolute flex flex-col bg-secondary-900 rounded-t-3xl bottom-0 left-0 right-0 h-full z-50 pb-4 text-primary-text !ring-0 !outline-none ', {
                         '!border-none !rounded-none': snap === 1,
                     })}
                 >
@@ -119,7 +119,7 @@ const Comp: FC<VaulDrawerProps> = ({ children, show, setShow, header, descriptio
                             isMobile &&
                             <div className="absolute w-12 h-1 flex-shrink-0 rounded-full bg-primary-text-muted top-2.5 left-[calc(50%-24px)]" />
                         }
-                        <div className='flex items-center w-full text-left justify-between px-6 pt-3 pb-2'>
+                        <div className='flex items-center w-full text-left justify-between px-4 pt-3 pb-2'>
                             <Drawer.Title className="text-lg text-secondary-text font-semibold">
                                 {header}
                             </Drawer.Title>
@@ -134,13 +134,13 @@ const Comp: FC<VaulDrawerProps> = ({ children, show, setShow, header, descriptio
                         </div>
                         {
                             description &&
-                            <Drawer.Description className="text-sm mt-2 text-secondary-text px-6">
+                            <Drawer.Description className="text-sm mt-2 text-secondary-text px-4">
                                 {description}
                             </Drawer.Description>
                         }
                     </div>
                     <div
-                        className={clsx('flex flex-col w-full h-fit max-h-[90dvh] px-6 styled-scroll overflow-x-hidden relative', {
+                        className={clsx('flex flex-col w-full h-fit max-h-[90dvh] px-4 styled-scroll overflow-x-hidden relative', {
                             'overflow-y-auto': snap === 1,
                             'overflow-hidden': snap !== 1,
                             'h-full': modalConstantHeight
@@ -158,7 +158,7 @@ const Comp: FC<VaulDrawerProps> = ({ children, show, setShow, header, descriptio
                                     transition={{ duration: 0.15 }}
                                     ref={expandRef}
                                     style={{ top: `${Number(snapElement.height?.toString().replace('px', '')) - 88}px` }} className={`w-full fixed left-0 z-50`}>
-                                    <button type='button' onClick={goToNextSnap} className="w-full px-6 pt-10 pb-6 justify-center from-secondary-900 bg-gradient-to-t items-center gap-2 inline-flex text-secondary-text">
+                                    <button type='button' onClick={goToNextSnap} className="w-full px-4 pt-10 pb-4 justify-center from-secondary-900 bg-gradient-to-t items-center gap-2 inline-flex text-secondary-text">
                                         <ChevronUp className="w-6 h-6 relative" />
                                         <div className="text-sm font-medium">Expand</div>
                                     </button>
@@ -211,7 +211,7 @@ const VaulDrawerSnap: FC<React.HTMLAttributes<HTMLDivElement> & { id: string }> 
     }, [height])
 
     return (
-        <div {...props} className={props.className ?? 'pb-6'} id={props.id} ref={ref}>
+        <div {...props} className={props.className ?? 'pb-4'} id={props.id} ref={ref}>
             {props.children}
         </div>
     )
