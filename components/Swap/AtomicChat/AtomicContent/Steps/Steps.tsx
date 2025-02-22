@@ -59,7 +59,7 @@ export const SignAndConfirmStep: FC = () => {
         step={2}
         title={title}
         description={'Sign and finalize the swap, you can cancel and refund anytime before.'}
-        active={!!lpLockTx}
+        active={!!destinationDetails?.hashlock}
         completed={completed}
         loading={loading}
     />
@@ -98,7 +98,7 @@ const SolverStatus: FC = () => {
 export const LpLockingAssets: FC = () => {
     const { destinationDetails, commitStatus, commitId, sourceDetails } = useAtomicState()
     const completed = destinationDetails?.hashlock ? true : false;
-    const loading = !destinationDetails?.hashlock
+    const loading = sourceDetails && !destinationDetails?.hashlock
 
     return <div className={`inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 ${!sourceDetails ? 'opacity-60' : ''}`}>
         <div className="space-y-2">
@@ -108,8 +108,25 @@ export const LpLockingAssets: FC = () => {
                     <CheckedIcon className="h-5 w-5 text-accent" />
                 }
                 {
+                    !loading && !completed &&
+                    <Clock className="w-5 h-5 text-secondary-text" />
+                }
+                {
                     loading &&
-                    <Clock className="w-4 h-4 text-secondary-text" />
+                    <div className="flex justify-center">
+                        <div className="relative flex items-center justify-end w-5 h-5 overflow-hidden border-2 border-accent rounded-full ">
+                            <div className="absolute w-1/2 h-0.5  origin-left animate-spin-fast">
+                                <div className="w-3/4 h-full bg-accent rounded-full" />
+                            </div>
+
+                            <div className="absolute w-1/2 h-0.5  origin-left  animate-spin-slow">
+                                <div className="w-2/3 h-full bg-accent rounded-full" />
+                            </div>
+                            <div className="absolute flex justify-center flex-1 w-full">
+                                <div className="w-0.5 h-0.5 bg-accent rounded-full" />
+                            </div>
+                        </div>
+                    </div>
                 }
                 <div className="text-primary-text text-base leading-5">Locking Assets</div>
             </div>

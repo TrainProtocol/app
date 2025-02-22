@@ -66,6 +66,7 @@ module.exports = {
       animation: {
         'reverse-spin': 'reverse-spin 1s linear infinite',
         'spin-slow': 'spin 3s linear infinite',
+        'spin-fast': 'spin 1s linear infinite',
         'fade-in': 'fade-in 0.5s ease-in',
         'fade-in-down': 'fade-in-down 0.5s ease-in',
         'fadein': 'fadein 4s',
@@ -85,8 +86,8 @@ module.exports = {
       },
       keyframes: {
         rotate: {
-          "0%": { transform: "rotate(0deg) scale(10)" },
-          "100%": { transform: "rotate(-360deg) scale(10)" },
+          "0%": { transform: "rotate(-0deg) scale(-10)" },
+          "100%": { transform: "rotate(360deg) scale(-10)" },
         },
         "reverse-spin": {
           from: {

@@ -5,8 +5,8 @@ import { useSettingsState } from "../../../../../context/settings";
 import useWallet from "../../../../../hooks/useWallet";
 import Summary from "./Summary";
 import Details from "./Details";
-import { ChevronUp } from "lucide-react";
-import clsx from "clsx";
+import ResizablePanel from "../../../../ResizablePanel";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../../../shadcn/accordion";
 
 const MotionSummary: FC = () => {
 
@@ -55,29 +55,18 @@ const MotionSummary: FC = () => {
                     receiveAmount={receiveAmount}
                 />
             }
-
-            {
-                showDetails &&
-                <Details />
-            }
-
             {
                 assetsLocked &&
-                <div className="w-full flex justify-center">
-                    <button
-                        onClick={() => setShowDetails(!showDetails)}
-                        className="text-secondary-text text-sm font-semibold inline-flex items-center gap-1"
-                    >
-                        <p>
-                            Show details
-                        </p>
-                        <ChevronUp
-                            className={clsx("h-4 w-4 transition-all", {
-                                'rotate-180': showDetails,
-                            })}
-                        />
-                    </button>
-                </div>
+                <Accordion type="single" collapsible >
+                    <AccordionItem value="item-1" className="space-y-3">
+                        <AccordionContent>
+                            <Details />
+                        </AccordionContent>
+                        <div className="text-center flex justify-center w-full">
+                            <AccordionTrigger className="w-fit text-primary-text-placeholder text-base">View details</AccordionTrigger>
+                        </div>
+                    </AccordionItem>
+                </Accordion>
             }
         </div>
     )
