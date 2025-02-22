@@ -124,10 +124,7 @@ export const RedeemAction: FC = () => {
                                 Claim Manually
                             </WalletActionButton>
                         </div>)
-                    : <ActionStatus
-                        status="pending"
-                        title='Assets are currently being released'
-                    />
+                    : <></>
             }
         </>
     )

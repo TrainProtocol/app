@@ -1,0 +1,86 @@
+import { FC, useEffect, useState } from "react";
+import { useAtomicState, CommitStatus } from "../../../../../context/atomicContext";
+import { useFee } from "../../../../../context/feeContext";
+import { useSettingsState } from "../../../../../context/settings";
+import useWallet from "../../../../../hooks/useWallet";
+import Summary from "./Summary";
+import Details from "./Details";
+import { ChevronUp } from "lucide-react";
+import clsx from "clsx";
+
+const MotionSummary: FC = () => {
+
+    const { networks } = useSettingsState()
+    const { fee, valuesChanger } = useFee()
+    const { sourceDetails, atomicQuery, commitStatus } = useAtomicState()
+    const { source, destination, amount, address, source_asset, destination_asset } = atomicQuery;
+
+    const source_network = networks.find(n => n.name.toUpperCase() === source?.toUpperCase())
+    const destination_network = networks.find(n => n.name.toUpperCase() === destination?.toUpperCase())
+    const source_token = source_network?.tokens.find(t => t.symbol === source_asset)
+    const destination_token = destination_network?.tokens.find(t => t.symbol === destination_asset)
+
+    const { provider } = useWallet(source_network, 'withdrawal')
+
+    useEffect(() => {
+        if (amount && source_network && destination_network && source_asset && destination_asset)
+            valuesChanger({
+                amount: amount.toString(),
+                from: source_network,
+                fromCurrency: source_token,
+                to: destination_network,
+                toCurrency: destination_token,
+            })
+    }, [amount, source_network, destination, source_token, destination_token])
+
+    const wallet = provider?.activeWallet
+    const receiveAmount = fee?.quote?.receive_amount
+
+    const [showDetails, setShowDetails] = useState(false)
+    const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
+
+    return (
+        <div
+            className={`bg-secondary-800 rounded-componentRoundness p-3 w-full relative z-10 space-y-5 border border-transparent ${showDetails ? "!border-secondary-600" : ""} transition-all`}>
+            {
+                destination_network && source_network && destination_token && source_token &&
+                <Summary
+                    destination={destination_network}
+                    source={source_network}
+                    destinationAddress={address}
+                    destinationCurrency={destination_token}
+                    requestedAmount={amount}
+                    sourceCurrency={source_token}
+                    sourceAccountAddress={sourceDetails?.sender || wallet?.address}
+                    receiveAmount={receiveAmount}
+                />
+            }
+
+            {
+                showDetails &&
+                <Details />
+            }
+
+            {
+                assetsLocked &&
+                <div className="w-full flex justify-center">
+                    <button
+                        onClick={() => setShowDetails(!showDetails)}
+                        className="text-secondary-text text-sm font-semibold inline-flex items-center gap-1"
+                    >
+                        <p>
+                            Show details
+                        </p>
+                        <ChevronUp
+                            className={clsx("h-4 w-4 transition-all", {
+                                'rotate-180': showDetails,
+                            })}
+                        />
+                    </button>
+                </div>
+            }
+        </div>
+    )
+}
+
+export default MotionSummary;

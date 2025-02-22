@@ -1,11 +1,10 @@
 import Image from "next/image";
 import { FC } from "react";
-import { truncateDecimals } from "../../utils/RoundDecimals";
-import { Network, Token } from "../../../Models/Network";
-import { addressFormat } from "../../../lib/address/formatter";
-import { ExtendedAddress } from "../../Input/Address/AddressPicker/AddressWithIcon";
-import { isValidAddress } from "../../../lib/address/validator";
-import { ArrowDown } from "lucide-react";
+import { truncateDecimals } from "../../../../utils/RoundDecimals";
+import { Network, Token } from "../../../../../Models/Network";
+import { addressFormat } from "../../../../../lib/address/formatter";
+import { ExtendedAddress } from "../../../../Input/Address/AddressPicker/AddressWithIcon";
+import { isValidAddress } from "../../../../../lib/address/validator";
 
 type AtomicSummaryProps = {
     sourceCurrency: Token,
@@ -29,7 +28,7 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceAccountAddress, sourceCurrency,
     const destAddress = destinationAddress
 
     return (
-        <div className='bg-secondary-800 rounded-componentRoundness p-3 w-full relative z-10'>
+        <>
             <div className="font-normal flex flex-col w-full relative z-10 space-y-5">
                 <div className="space-y-1">
                     <p className="text-secondary-text text-xs">
@@ -89,7 +88,7 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceAccountAddress, sourceCurrency,
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     )
 }
 

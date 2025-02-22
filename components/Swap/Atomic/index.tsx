@@ -122,15 +122,7 @@ export default function Form() {
             modalId={"showSwap"}
         >
             <VaulDrawer.Snap id='item-1'>
-                <AtomicPage
-                    address={address as string}
-                    amount={Number(amount)}
-                    destination={destination as string}
-                    destination_asset={destination_asset as string}
-                    source={source as string}
-                    source_asset={source_asset as string}
-                    type='contained'
-                />
+                <AtomicPage type='contained' />
             </VaulDrawer.Snap>
         </VaulDrawer>
         <Formik
@@ -179,7 +171,7 @@ const setAtomicPath = ({
     const basePath = router?.basePath || ""
     var atomicURL = window.location.protocol + "//"
         + window.location.host + `${basePath}/atomic`;
-    const atomicParams = new URLSearchParams({...atomicQuery})
+    const atomicParams = new URLSearchParams({ ...atomicQuery })
     if (atomicParams) {
         atomicURL += `?${atomicParams}`
     }

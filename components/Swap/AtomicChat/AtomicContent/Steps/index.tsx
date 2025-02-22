@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { LpLockingAssets, RequestStep, SignAndConfirmStep } from "./Steps";
 
-const ResolveMessages: FC = () => {
+const Steps: FC = () => {
     return <div className="space-y-2">
         <RequestStep />
         <LpLockingAssets />
@@ -9,4 +9,4 @@ const ResolveMessages: FC = () => {
     </div>
 }
 
-export default ResolveMessages;
+export default Steps;

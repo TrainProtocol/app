@@ -1,13 +1,12 @@
 import { FC } from "react";
-import { CommitStatus, useAtomicState } from "../../../../context/atomicContext";
-import { CommitTransaction } from "../../../../lib/layerSwapApiClient";
-import LockIcon from "../../../Icons/LockIcon";
-import LockFilledCircleIcon from "../../../Icons/LockFilledCircleIcon";
+import { CommitStatus, useAtomicState } from "../../../../../context/atomicContext";
+import { CommitTransaction } from "../../../../../lib/layerSwapApiClient";
+import LockIcon from "../../../../Icons/LockIcon";
 import Link from "next/link";
-import shortenAddress from "../../../utils/ShortenAddress";
+import shortenAddress from "../../../../utils/ShortenAddress";
 import Step from "./Step";
-import { Timer } from "lucide-react";
-import CheckedIcon from "../../../Icons/CheckedIcon";
+import { Clock } from "lucide-react";
+import CheckedIcon from "../../../../Icons/CheckedIcon";
 
 
 export const RequestStep: FC = () => {
@@ -110,7 +109,7 @@ export const LpLockingAssets: FC = () => {
                 }
                 {
                     loading &&
-                    <Timer className="w-4 h-4 text-secondary-text" />
+                    <Clock className="w-4 h-4 text-secondary-text" />
                 }
                 <div className="text-primary-text text-base leading-5">Locking Assets</div>
             </div>

@@ -1,16 +1,16 @@
 import { FC, useCallback, useEffect, useState } from "react";
-import useWallet from "../../../hooks/useWallet";
-import { truncateDecimals } from "../../utils/RoundDecimals";
-import AddressWithIcon from "../../Input/Address/AddressPicker/AddressWithIcon";
-import { AddressGroup } from "../../Input/Address/AddressPicker";
+import useWallet from "../../../../hooks/useWallet";
+import { truncateDecimals } from "../../../utils/RoundDecimals";
+import AddressWithIcon from "../../../Input/Address/AddressPicker/AddressWithIcon";
+import { AddressGroup } from "../../../Input/Address/AddressPicker";
 import { ChevronRight, RefreshCw } from "lucide-react";
-import { Wallet } from "../../../Models/WalletProvider";
-import useSWRBalance from "../../../lib/balances/useSWRBalance";
-import VaulDrawer from "../../Modal/vaulModal";
-import WalletsList from "../../Wallet/WalletsList";
-import { useAtomicState } from "../../../context/atomicContext";
-import { useSettingsState } from "../../../context/settings";
-import { useSwapDataState, useSwapDataUpdate } from "../../../context/swap";
+import { Wallet } from "../../../../Models/WalletProvider";
+import useSWRBalance from "../../../../lib/balances/useSWRBalance";
+import VaulDrawer from "../../../Modal/vaulModal";
+import WalletsList from "../../../Wallet/WalletsList";
+import { useAtomicState } from "../../../../context/atomicContext";
+import { useSettingsState } from "../../../../context/settings";
+import { useSwapDataState, useSwapDataUpdate } from "../../../../context/swap";
 
 const Component: FC = () => {
     const { source_asset, source_network, commitId } = useAtomicState()
