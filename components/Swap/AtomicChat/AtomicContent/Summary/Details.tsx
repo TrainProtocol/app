@@ -2,6 +2,10 @@ import { FC, ReactNode, SVGProps } from "react";
 import WalletIcon from "../../../../Icons/WalletIcon";
 import LockIcon from "../../../../Icons/LockIcon";
 import SignatureIcon from "../../../../Icons/SignatureIcon";
+import { useAtomicState } from "../../../../../context/atomicContext";
+import shortenAddress from "../../../../utils/ShortenAddress";
+import Link from "next/link";
+import { CommitTransaction } from "../../../../../lib/layerSwapApiClient";
 
 const Details: FC = () => {
     return (
@@ -14,31 +18,53 @@ const Details: FC = () => {
 }
 
 const Confirmed: FC = () => {
+    const { commitTxId, source_network } = useAtomicState()
+    console.log('commitTxId', commitTxId)
+    const description = (commitTxId && source_network) && <p><span>Transaction ID:</span> <Link target="_blank" className="underline hover:no-underline" href={source_network?.transaction_explorer_template.replace('{0}', commitTxId)}>{shortenAddress(commitTxId)}</Link></p>
+
     return (
         <Item
             icon={WalletIcon}
             title="Confirmed"
-            description="Your transaction has been confirmed"
+            description={description}
         />
     )
 }
 
 const AssetsReady: FC = () => {
+    const { destination_network, commitFromApi, destinationDetails } = useAtomicState()
+
+    const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
+    const description = (lpLockTx && destination_network) ? <p><span>Transaction ID:</span> <Link className="underline hover:no-underline" target="_blank" href={destination_network?.transaction_explorer_template.replace('{0}', lpLockTx?.hash)}>{shortenAddress(lpLockTx.hash)}</Link></p> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />
+
     return (
         <Item
             icon={LockIcon}
             title="Assets Ready"
-            description="Your assets are ready to be claimed"
+            description={description}
+            titleDetails={
+                destinationDetails?.fetchedByLightClient
+                    ? <div className="text-accent flex items-center gap-1">
+                        <p>Light Client</p>
+                        <LockIcon className="h-4 w-4 text-accent" />
+                    </div>
+                    : null
+            }
         />
     )
 }
 
 const SignAndConfirm: FC = () => {
+    const { source_network, commitFromApi } = useAtomicState()
+
+    const addLockSigTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
+    const description = (addLockSigTx && source_network) ? <p><span>Transaction ID:</span> <Link className="underline hover:no-underline" target="_blank" href={source_network?.transaction_explorer_template.replace('{0}', addLockSigTx?.hash)}>{shortenAddress(addLockSigTx.hash)}</Link></p> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />
+
     return (
         <Item
             icon={SignatureIcon}
             title="Signed & Confirmed"
-            description="Sign and finalize the swap, you can cancel and refund anytime before."
+            description={description}
         />
     )
 }

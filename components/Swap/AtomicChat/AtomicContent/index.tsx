@@ -1,4 +1,4 @@
-import { FC, SVGProps } from "react";
+import { FC } from "react";
 import ResizablePanel from "../../../ResizablePanel";
 import Steps from "./Steps";
 import { CommitStatus, useAtomicState } from "../../../../context/atomicContext";
@@ -28,13 +28,18 @@ const AtomicContent: FC = () => {
                         <MotionSummary />
                     </motion.div>
 
-                    <div
-                        style={{
-                            opacity: assetsLocked ? 0 : 1
-                        }}
-                        className="transition-opacity">
-                        <Steps />
-                    </div>
+                    {
+                        assetsLocked ?
+                            <div className="h-[220px]" />
+                            :
+                            <div
+                                style={{
+                                    opacity: assetsLocked ? 0 : 1
+                                }}
+                                className="transition-opacity">
+                                <Steps />
+                            </div>
+                    }
                 </div>
             </div>
         </ResizablePanel >
@@ -78,7 +83,7 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus }> = ({ commitStatus }) =
                 opacity: show ? 1 : 0,
                 height: show ? 'auto' : '172px',
             }}
-            className="flex flex-col gap-6 pt-10 pb-4 transition-all duration-500"
+            className="flex flex-col gap-6 pt-10 pb-6 transition-all duration-500"
         >
             <ResolvedIcon />
             <div className="text-center space-y-2">

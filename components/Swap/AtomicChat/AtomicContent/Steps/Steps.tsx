@@ -8,7 +8,6 @@ import Step from "./Step";
 import { Clock } from "lucide-react";
 import CheckedIcon from "../../../../Icons/CheckedIcon";
 
-
 export const RequestStep: FC = () => {
     const { sourceDetails, commitId, commitTxId, source_network, commitFromApi } = useAtomicState()
 

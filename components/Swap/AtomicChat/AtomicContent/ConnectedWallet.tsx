@@ -1,9 +1,9 @@
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import useWallet from "../../../../hooks/useWallet";
 import { truncateDecimals } from "../../../utils/RoundDecimals";
 import AddressWithIcon from "../../../Input/Address/AddressPicker/AddressWithIcon";
 import { AddressGroup } from "../../../Input/Address/AddressPicker";
-import { ChevronRight, RefreshCw } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Wallet } from "../../../../Models/WalletProvider";
 import useSWRBalance from "../../../../lib/balances/useSWRBalance";
 import VaulDrawer from "../../../Modal/vaulModal";
@@ -94,6 +94,7 @@ const Component: FC = () => {
                     </VaulDrawer.Snap>
                 </VaulDrawer>
             }
-        </>)
+        </>
+    )
 }
 export default Component;

@@ -70,11 +70,11 @@ export function AtomicProvider({ children }) {
         destination_asset,
         source,
         source_asset,
-        commitTxId,
     } = atomicQuery
 
     const commitId = atomicQuery?.commitId as string
     const refundTxId = atomicQuery?.refundTxId as string
+    const commitTxId = atomicQuery?.txId as string
 
     const [commitStates, setCommitStates] = useState<CommitStatesDict>({});
 

@@ -64,10 +64,7 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceAccountAddress, sourceCurrency,
                     </p>
                     <div className="flex items-center justify-between w-full ">
                         <div className="flex items-center gap-3">
-                            {
-                                <Image src={destination.logo} alt={destination.display_name} width={44} height={44} className="rounded-lg" />
-
-                            }
+                            <Image src={destination.logo} alt={destination.display_name} width={44} height={44} className="rounded-lg" />
                             <div className="group/addressItem text-secondary-text">
                                 <p>{destination?.display_name}</p>
                                 <ExtendedAddress address={addressFormat(destAddress, to)} network={to} />

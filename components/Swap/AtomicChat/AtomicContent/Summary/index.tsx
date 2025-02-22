@@ -5,7 +5,6 @@ import { useSettingsState } from "../../../../../context/settings";
 import useWallet from "../../../../../hooks/useWallet";
 import Summary from "./Summary";
 import Details from "./Details";
-import ResizablePanel from "../../../../ResizablePanel";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../../../shadcn/accordion";
 
 const MotionSummary: FC = () => {
@@ -36,12 +35,11 @@ const MotionSummary: FC = () => {
     const wallet = provider?.activeWallet
     const receiveAmount = fee?.quote?.receive_amount
 
-    const [showDetails, setShowDetails] = useState(false)
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
 
     return (
         <div
-            className={`bg-secondary-800 rounded-componentRoundness p-3 w-full relative z-10 space-y-5 border border-transparent ${showDetails ? "!border-secondary-600" : ""} transition-all`}>
+            className='bg-secondary-800 rounded-componentRoundness p-3 w-full relative z-10 space-y-5 border border-transparent transition-all'>
             {
                 destination_network && source_network && destination_token && source_token &&
                 <Summary
