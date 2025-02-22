@@ -55,5 +55,4 @@ export type WalletProvider = {
     getDetails: (args: CommitmentParams) => Promise<Commit | null>,
     secureGetDetails?: (args: CommitmentParams) => Promise<Commit | null>,
     addLock: (args: CommitmentParams & LockParams) => Promise<{ hash: string, result: any } | null>,
-    getContracts?: (params: GetCommitsParams) => Promise<string[]>,
 }

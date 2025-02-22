@@ -6,7 +6,7 @@ import { WalletProvider } from "../../../../Models/WalletProvider";
 import ActionStatus from "./Status/ActionStatus";
 
 export const LpLockingAssets: FC = () => {
-    const { destination_network, commitId, setDestinationDetails, destination_asset, lightClient, sourceDetails } = useAtomicState()
+    const { destination_network, commitId, updateCommit, destination_asset, lightClient, sourceDetails } = useAtomicState()
     const { provider } = useWallet(destination_network, 'autofil')
     const isLoading = useRef(false)
 
@@ -23,7 +23,7 @@ export const LpLockingAssets: FC = () => {
                     atomicContract
                 })
                 if (destinationDetails) {
-                    setDestinationDetails({ ...destinationDetails, fetchedByLightClient: true })
+                    updateCommit('destinationDetails', { ...destinationDetails, fetchedByLightClient: true })
                     return
                 }
             }
@@ -44,7 +44,7 @@ export const LpLockingAssets: FC = () => {
                     })
 
                     if (destiantionDetails?.hashlock) {
-                        setDestinationDetails({ ...destiantionDetails, fetchedByLightClient: false })
+                        updateCommit('destinationDetails', { ...destiantionDetails, fetchedByLightClient: false })
                         clearInterval(lockHandler)
                     }
                     return
@@ -64,7 +64,7 @@ export const LpLockingAssets: FC = () => {
             })
 
             if (destiantionDetails?.hashlock) {
-                setDestinationDetails({ ...destiantionDetails, fetchedByLightClient: false })
+                updateCommit('destinationDetails', { ...destiantionDetails, fetchedByLightClient: false })
                 clearInterval(lockHandler)
             }
 
