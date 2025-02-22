@@ -65,7 +65,7 @@ export const THEME_COLORS: { [key: string]: ThemeData } = {
         },
         accent: {
             DEFAULT: '39, 142, 246',
-            hover: '27, 106, 185'
+            hover: '35, 128, 222'
         },
         secondary: {
             DEFAULT: '32, 59, 70',
