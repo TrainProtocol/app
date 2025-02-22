@@ -59,7 +59,7 @@ export const SignAndConfirmStep: FC = () => {
         step={2}
         title={title}
         description={'Sign and finalize the swap, you can cancel and refund anytime before.'}
-        active={commited}
+        active={!!lpLockTx}
         completed={completed}
         loading={loading}
     />
