@@ -19,6 +19,7 @@ const AtomicContent: FC = () => {
                     <ReleasingAssets commitStatus={commitStatus} />
                     <motion.div
                         layout
+                        transition={{ duration: 0.4 }}
                         style={{
                             bottom: assetsLocked ? '0px' : undefined,
                             top: assetsLocked ? undefined : '0px',
