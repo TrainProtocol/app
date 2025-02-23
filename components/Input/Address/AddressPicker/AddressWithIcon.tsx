@@ -53,12 +53,7 @@ const AddressWithIcon: FC<Props> = ({ addressItem, connectedWallet, network, bal
     return (
         <div className="w-full flex items-center justify-between">
             <div className="flex bg-secondary-400 text-primary-text items-center justify-center rounded-md h-8 overflow-hidden w-8">
-                {
-                    addressItem.group === AddressGroup.FromQuery && (
-
-                        <AddressIcon className="scale-150 h-9 w-9" address={addressItem.address} size={36} />
-                    )
-                }
+                <AddressIcon className="scale-150 h-9 w-9" address={addressItem.address} size={36} />
             </div>
 
             <div className="flex flex-col items-start flex-grow min-w-0 ml-3 text-sm">
