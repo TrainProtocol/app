@@ -42,10 +42,11 @@ export default class LayerSwapApiClient {
 }
 
 export type AddLockSig = {
-    r: string
-    s: string
-    v: string
-    signature: string
+    r?: string
+    s?: string
+    v?: string
+    signature?: any,
+    signature_array?: any,
     timelock: number
 }
 
