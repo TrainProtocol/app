@@ -14,7 +14,7 @@ const AtomicContent: FC = () => {
 
     return (
         <ResizablePanel>
-            <div className="w-full flex flex-col justify-between  text-secondary-text">
+            <div className="w-full flex flex-col justify-between text-secondary-text">
                 <div className='grid grid-cols-1 gap-4'>
                     <ReleasingAssets commitStatus={commitStatus} />
                     <motion.div
@@ -29,17 +29,16 @@ const AtomicContent: FC = () => {
                     </motion.div>
 
                     {
-                        assetsLocked ?
-                            <div className="h-[220px]" />
-                            :
-                            <div
-                                style={{
-                                    opacity: assetsLocked ? 0 : 1
-                                }}
-                                className="transition-opacity">
-                                <Steps />
-                            </div>
+                        assetsLocked &&
+                        <div className="h-[220px]" />
                     }
+                    <div
+                        style={{
+                            display: assetsLocked ? 'none' : 'block'
+                        }}
+                        className="transition-opacity">
+                        <Steps />
+                    </div>
                 </div>
             </div>
         </ResizablePanel >
