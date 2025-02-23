@@ -18,7 +18,7 @@ const ButtonStatus: FC<Props> = ({ isDisabled, isLoading, children }) => {
             {children}
             {
                 isLoading &&
-                <span className="order-first absolute right-0 inset-y-0 flex items-center pr-3">
+                <span className="order-first absolute left-0 inset-y-0 flex items-center pl-3">
                     <LoaderIcon className="animate-reverse-spin h-6 w-6" />
                 </span>
             }
