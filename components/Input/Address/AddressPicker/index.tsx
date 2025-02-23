@@ -47,13 +47,11 @@ interface Input {
     disabled: boolean;
     name: string;
     close: () => void,
-    partner?: Partner,
     canFocus?: boolean,
-
 }
 
 const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Address
-    ({ showAddressModal, setShowAddressModal, name, canFocus, close, disabled, partner, children }, ref) {
+    ({ showAddressModal, setShowAddressModal, name, canFocus, close, disabled, children }, ref) {
 
     const {
         values,
@@ -147,7 +145,7 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
         <AddressButton
             disabled={disabled}
             openAddressModal={() => setShowAddressModal(true)}
-        >{children({ destination, disabled, addressItem: destinationAddressItem, connectedWallet: connectedWallet, partner })}</AddressButton>
+        >{children({ destination, disabled, addressItem: destinationAddressItem, connectedWallet: connectedWallet })}</AddressButton>
         <Modal
             header='Send To'
             height="80%"
@@ -175,7 +173,6 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
                         setManualAddress={setManualAddress}
                         setNewAddress={setNewAddress}
                         values={values}
-                        partner={partner}
                         name={name}
                         inputReference={inputReference}
                         setFieldValue={setFieldValue}
@@ -206,7 +203,6 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
                             onSelectAddress={handleSelectAddress}
                             destination={destination}
                             destination_address={destination_address}
-                            partner={partner}
                         />
                     }
                 </div>

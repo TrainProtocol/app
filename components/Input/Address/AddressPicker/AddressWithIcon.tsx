@@ -15,12 +15,11 @@ import { Wallet } from "../../../../Models/WalletProvider";
 type Props = {
     addressItem: AddressItem;
     connectedWallet?: Wallet | undefined;
-    partner?: Partner;
     network: Network;
     balance?: { amount: number, symbol: string, isLoading: boolean } | undefined;
 }
 
-const AddressWithIcon: FC<Props> = ({ addressItem, connectedWallet, partner, network, balance }) => {
+const AddressWithIcon: FC<Props> = ({ addressItem, connectedWallet, network, balance }) => {
 
     const difference_in_days = addressItem?.date ? Math.round(Math.abs(((new Date()).getTime() - new Date(addressItem.date).getTime()) / (1000 * 3600 * 24))) : undefined
     const maxWalletNameWidth = calculateMaxWidth(String(balance?.amount));
@@ -46,11 +45,6 @@ const AddressWithIcon: FC<Props> = ({ addressItem, connectedWallet, partner, net
             group: AddressGroup.ConnectedWallet,
             text: <p className={`${maxWalletNameWidth} text-ellipsis sm:max-w-full text-nowrap overflow-hidden`}>{connectedWallet?.displayName || 'Connected wallet'}</p>,
             icon: connectedWallet?.icon || WalletIcon
-        },
-        {
-            group: AddressGroup.FromQuery,
-            text: <p><span>Autofilled</span> <span>{partner ? `by ${partner.display_name}` : 'from URL'}</span></p>,
-            icon: Link2
         }
     ]
 
@@ -60,17 +54,8 @@ const AddressWithIcon: FC<Props> = ({ addressItem, connectedWallet, partner, net
         <div className="w-full flex items-center justify-between">
             <div className="flex bg-secondary-400 text-primary-text items-center justify-center rounded-md h-8 overflow-hidden w-8">
                 {
-                    (partner?.is_wallet && addressItem.group === AddressGroup.FromQuery) ? (
-                        partner?.logo && (
-                            <Image
-                                alt="Partner logo"
-                                className="rounded-md object-contain"
-                                src={partner.logo}
-                                width="36"
-                                height="36"
-                            />
-                        )
-                    ) : (
+                    addressItem.group === AddressGroup.FromQuery && (
+
                         <AddressIcon className="scale-150 h-9 w-9" address={addressItem.address} size={36} />
                     )
                 }

@@ -8,7 +8,7 @@ import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import useSWR from "swr";
 import { ApiResponse } from "../../../Models/ApiResponse";
 import { motion, useCycle } from "framer-motion";
-import { ArrowUpDown, ExternalLink, Loader2 } from 'lucide-react'
+import { ArrowUpDown, Loader2 } from 'lucide-react'
 import { Widget } from "../../Widget/Index";
 import { classNames } from "../../utils/classNames";
 import { useQueryState } from "../../../context/query";
@@ -22,7 +22,7 @@ import { Network } from "../../../Models/Network";
 import { resolveRoutesURLForSelectedToken } from "../../../helpers/routes";
 import { useSwapDataState, useSwapDataUpdate } from "../../../context/swap";
 import useWallet from "../../../hooks/useWallet";
-import { FormSourceWalletButton } from "../../Input/SourceWalletPicker";
+import FormButton from "../FormButton";
 
 const ReserveGasNote = dynamic(() => import("../../ReserveGasNote"), {
     loading: () => <></>,
@@ -55,7 +55,6 @@ const SwapForm: FC = () => {
         valuesChanger(values)
     }, [values])
 
-
     useEffect(() => {
         if (values.refuel && minAllowedAmount && (Number(values.amount) < minAllowedAmount)) {
             setFieldValue('amount', minAllowedAmount)
@@ -74,10 +73,10 @@ const SwapForm: FC = () => {
     const { data: destinationRoutesRes, isLoading: destinationLoading } = useSWR<ApiResponse<Network[]>>(destinationRoutesEndpoint, layerswapApiClient.fetcher, { keepPreviousData: true })
     const sourceRoutes = sourceRoutesRes?.data
     const destinationRoutes = destinationRoutesRes?.data
-    const sourceCanBeSwapped = !source ? true : (destinationRoutes?.some(l => l.name === source?.name && l.tokens.some(t => t.symbol === fromCurrency?.symbol 
+    const sourceCanBeSwapped = !source ? true : (destinationRoutes?.some(l => l.name === source?.name && l.tokens.some(t => t.symbol === fromCurrency?.symbol
         // && t.status === 'active'
     )) ?? false)
-    const destinationCanBeSwapped = !destination ? true : (sourceRoutes?.some(l => l.name === destination?.name && l.tokens.some(t => t.symbol === toCurrency?.symbol 
+    const destinationCanBeSwapped = !destination ? true : (sourceRoutes?.some(l => l.name === destination?.name && l.tokens.some(t => t.symbol === toCurrency?.symbol
         // && t.status === 'active'
     )) ?? false)
 
@@ -196,32 +195,18 @@ const SwapForm: FC = () => {
                     </Widget.Content>
                 </ResizablePanel>
                 <Widget.Footer>
-                    {
-                        shouldConnectWallet ?
-                            <FormSourceWalletButton />
-                            :
-                            <SwapButton
-                                className="plausible-event-name=Swap+initiated"
-                                type='submit'
-                                isDisabled={!isValid}
-                                isSubmitting={isSubmitting}>
-                                {ActionText(errors, actionDisplayName)}
-                            </SwapButton>
-                    }
+                    <FormButton
+                        shouldConnectWallet={shouldConnectWallet}
+                        values={values}
+                        isValid={isValid}
+                        errors={errors}
+                        isSubmitting={isSubmitting}
+                        actionDisplayName={actionDisplayName}
+                    />
                 </Widget.Footer>
             </Form>
         </Widget>
     </>
-}
-
-function ActionText(errors: FormikErrors<SwapFormValues>, actionDisplayName: string): string {
-    return errors.from?.toString()
-        || errors.to?.toString()
-        || errors.fromCurrency
-        || errors.toCurrency
-        || errors.amount
-        || errors.destination_address
-        || (actionDisplayName)
 }
 
 export default SwapForm
