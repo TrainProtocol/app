@@ -72,11 +72,6 @@ export default function Form() {
             if (!destination_provider) {
                 throw new Error("No destination_provider")
             }
-
-            setAtomicPath({
-                atomicQuery: values,
-                router
-            })
             setAtomicQuery({
                 amount: values.amount,
                 address: values.destination_address,
@@ -84,6 +79,17 @@ export default function Form() {
                 destination: values.to?.name!,
                 source_asset: values.fromCurrency.symbol,
                 destination_asset: values.toCurrency.symbol,
+            })
+            setAtomicPath({
+                atomicQuery: {
+                    amount: values.amount,
+                    address: values.destination_address,
+                    source: values.from?.name!,
+                    destination: values.to?.name!,
+                    source_asset: values.fromCurrency.symbol,
+                    destination_asset: values.toCurrency.symbol,
+                },
+                router
             })
             handleShowSwapModal(true)
         }
@@ -102,7 +108,7 @@ export default function Form() {
     const handleShowSwapModal = useCallback((value: boolean) => {
         pollFee(!value)
         setShowSwapModal(value)
-        value ? setAtomicPath({ atomicQuery, router }) : removeSwapPath(router)
+        value ? (atomicQuery.source && setAtomicPath({ atomicQuery, router })) : removeSwapPath(router)
     }, [router, atomicQuery])
 
     return <>
@@ -179,7 +185,7 @@ const setAtomicPath = ({
     const basePath = router?.basePath || ""
     var atomicURL = window.location.protocol + "//"
         + window.location.host + `${basePath}/atomic`;
-    const atomicParams = new URLSearchParams({...atomicQuery})
+    const atomicParams = new URLSearchParams({ ...atomicQuery })
     if (atomicParams) {
         atomicURL += `?${atomicParams}`
     }
