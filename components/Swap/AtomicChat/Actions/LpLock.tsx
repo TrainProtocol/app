@@ -87,7 +87,6 @@ export const LpLockingAssets: FC = () => {
 
     return <ButtonStatus
         isDisabled={true}
-        isLoading={true}
     >
         Locking assets
     </ButtonStatus>
