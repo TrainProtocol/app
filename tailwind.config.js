@@ -23,7 +23,7 @@ module.exports = {
           '900': 'rgb(var(--ls-colors-primary-900, 110, 0, 64), <alpha-value>)',
           'background': 'rgb(var(--ls-colors-backdrop, 62, 18, 64), <alpha-value>)',
           'text': 'rgb(var(--ls-colors-primary-text, 255, 255, 255), <alpha-value>)',
-          'text-muted': 'rgb(var(--ls-colors-primary-textMuted, 86, 97, 123), <alpha-value>)',
+          'text-muted': 'rgb(var(--ls-colors-primary-textMuted, 128, 128, 128), <alpha-value>)',
           'text-placeholder': 'rgb(var(--ls-colors-textPlaceholder, 184, 184, 184), <alpha-value>)',
           'actionButtonText': 'rgb(var(--ls-colors-actionButtonText, 255, 255, 255), <alpha-value>)',
           'buttonTextColor': 'rgb(var(--ls-colors-buttonTextColor, 228, 229, 240), <alpha-value>)',
