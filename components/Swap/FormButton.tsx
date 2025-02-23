@@ -23,18 +23,9 @@ const FormButton = ({
 
     if (values?.to && !values?.destination_address) {
         return (
-            <button className="border border-primary disabled:border-primary-900 items-center space-x-1 disabled:text-opacity-40 disabled:bg-primary-900 disabled:cursor-not-allowed relative w-full flex justify-center font-semibold rounded-md transform hover:brightness-125 transition duration-200 ease-in-out bg-primary text-primary-actionButtonText py-3 px-2 md:px-3 plausible-event-name=Swap+initiated">
-                <Address>
-                    {() => (
-                        <div className="flex justify-center space-x-2">
-                            <span className="order-first absolute left-0 inset-y-0 flex items-center pl-3">
-                                <PlusIcon className="stroke-1" />
-                            </span>
-                            <span className="grow text-center">Enter destination address</span>
-                        </div>
-                    )}
-                </Address>
-            </button>
+            <div className="flex items-center col-span-6">
+                <Address>{SecondDestinationWalletPicker}</Address>
+            </div>
         );
     }
 
@@ -57,6 +48,17 @@ function ActionText(errors: FormikErrors<SwapFormValues>, actionDisplayName: str
         || errors.toCurrency
         || errors.amount
         || (actionDisplayName)
+}
+
+export const SecondDestinationWalletPicker = () => {
+    return <div className="border border-primary disabled:border-primary-900 items-center space-x-1 disabled:text-opacity-40 disabled:bg-primary-900 disabled:cursor-not-allowed relative w-full flex justify-center font-semibold rounded-md transform hover:brightness-125 transition duration-200 ease-in-out bg-primary text-primary-actionButtonText py-3 px-2 md:px-3 plausible-event-name=Swap+initiated">
+        <div className="flex justify-center space-x-2">
+            <span className="order-first absolute left-0 inset-y-0 flex items-center pl-3">
+                <PlusIcon className="stroke-1" />
+            </span>
+            <span className="grow text-center">Enter destination address</span>
+        </div>
+    </div>
 }
 
 export default FormButton;

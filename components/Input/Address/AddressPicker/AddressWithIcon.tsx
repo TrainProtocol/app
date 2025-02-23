@@ -2,9 +2,7 @@ import { FC, useState } from "react"
 import { AddressGroup, AddressItem } from ".";
 import AddressIcon from "../../../AddressIcon";
 import shortenAddress from "../../../utils/ShortenAddress";
-import { History, ExternalLink, Copy, Check, ChevronDown, WalletIcon, Pencil, Link2, Power } from "lucide-react";
-import Image from "next/image";
-import { Partner } from "../../../../Models/Partner";
+import { History, ExternalLink, Copy, Check, ChevronDown, WalletIcon, Pencil, Power } from "lucide-react";
 import { Network } from "../../../../Models/Network";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../shadcn/popover";
 import useCopyClipboard from "../../../../hooks/useCopyClipboard";

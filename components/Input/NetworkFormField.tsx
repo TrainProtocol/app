@@ -141,6 +141,7 @@ const NetworkFormField = forwardRef(function NetworkFormField({ direction, label
     </div >)
 });
 
+
 function groupByType(values: ISelectMenuItem[]) {
     let groups: SelectMenuItemGroup[] = [];
     values.forEach((v) => {
