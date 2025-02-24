@@ -2,9 +2,7 @@ import { FC, useState } from "react"
 import { AddressGroup, AddressItem } from ".";
 import AddressIcon from "../../../AddressIcon";
 import shortenAddress from "../../../utils/ShortenAddress";
-import { History, ExternalLink, Copy, Check, ChevronDown, WalletIcon, Pencil, Link2, Power } from "lucide-react";
-import Image from "next/image";
-import { Partner } from "../../../../Models/Partner";
+import { History, ExternalLink, Copy, Check, ChevronDown, WalletIcon, Pencil, Power } from "lucide-react";
 import { Network } from "../../../../Models/Network";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../shadcn/popover";
 import useCopyClipboard from "../../../../hooks/useCopyClipboard";
@@ -15,12 +13,11 @@ import { Wallet } from "../../../../Models/WalletProvider";
 type Props = {
     addressItem: AddressItem;
     connectedWallet?: Wallet | undefined;
-    partner?: Partner;
     network: Network;
     balance?: { amount: number, symbol: string, isLoading: boolean } | undefined;
 }
 
-const AddressWithIcon: FC<Props> = ({ addressItem, connectedWallet, partner, network, balance }) => {
+const AddressWithIcon: FC<Props> = ({ addressItem, connectedWallet, network, balance }) => {
 
     const difference_in_days = addressItem?.date ? Math.round(Math.abs(((new Date()).getTime() - new Date(addressItem.date).getTime()) / (1000 * 3600 * 24))) : undefined
     const maxWalletNameWidth = calculateMaxWidth(String(balance?.amount));
@@ -46,11 +43,6 @@ const AddressWithIcon: FC<Props> = ({ addressItem, connectedWallet, partner, net
             group: AddressGroup.ConnectedWallet,
             text: <p className={`${maxWalletNameWidth} text-ellipsis sm:max-w-full text-nowrap overflow-hidden`}>{connectedWallet?.displayName || 'Connected wallet'}</p>,
             icon: connectedWallet?.icon || WalletIcon
-        },
-        {
-            group: AddressGroup.FromQuery,
-            text: <p><span>Autofilled</span> <span>{partner ? `by ${partner.display_name}` : 'from URL'}</span></p>,
-            icon: Link2
         }
     ]
 
@@ -59,21 +51,7 @@ const AddressWithIcon: FC<Props> = ({ addressItem, connectedWallet, partner, net
     return (
         <div className="w-full flex items-center justify-between">
             <div className="flex bg-secondary-400 text-primary-text items-center justify-center rounded-md h-8 overflow-hidden w-8">
-                {
-                    (partner?.is_wallet && addressItem.group === AddressGroup.FromQuery) ? (
-                        partner?.logo && (
-                            <Image
-                                alt="Partner logo"
-                                className="rounded-md object-contain"
-                                src={partner.logo}
-                                width="36"
-                                height="36"
-                            />
-                        )
-                    ) : (
-                        <AddressIcon className="scale-150 h-9 w-9" address={addressItem.address} size={36} />
-                    )
-                }
+                <AddressIcon className="scale-150 h-9 w-9" address={addressItem.address} size={36} />
             </div>
 
             <div className="flex flex-col items-start flex-grow min-w-0 ml-3 text-sm">

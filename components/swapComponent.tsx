@@ -5,6 +5,8 @@ import Atomic from "./Swap/Atomic"
 import { SWRConfig } from 'swr';
 import { FeeProvider } from '../context/feeContext';
 import { AtomicProvider } from '../context/atomicContext';
+import { FormWizardProvider } from '../context/formWizardProvider';
+import { AtomicSteps } from '../Models/Wizard';
 
 const Swap: FC = () => {
 
@@ -15,7 +17,9 @@ const Swap: FC = () => {
           <AtomicProvider>
             <TimerProvider>
               <FeeProvider>
-                <Atomic />
+                <FormWizardProvider initialStep={AtomicSteps.Form}>
+                  <Atomic />
+                </FormWizardProvider>
               </FeeProvider>
             </TimerProvider>
           </AtomicProvider>

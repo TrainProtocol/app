@@ -6,22 +6,11 @@ import { SwapDataProvider } from '../context/swap';
 import { TimerProvider } from '../context/timerContext';
 import { getThemeData } from '../helpers/settingsHelper';
 import AtmoicSteps from '../components/Swap/AtomicChat'
-import { useRouter } from 'next/router';
 import { FeeProvider } from '../context/feeContext';
 import { AtomicProvider } from '../context/atomicContext';
 
 const AtomicPage = ({ settings, themeData, apiKey }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
     LayerSwapApiClient.apiKey = apiKey
-
-    const router = useRouter()
-    const {
-        address,
-        amount,
-        destination,
-        destination_asset,
-        source,
-        source_asset
-    } = router.query
 
     return (<>
         <Layout settings={settings} themeData={themeData}>
@@ -29,15 +18,7 @@ const AtomicPage = ({ settings, themeData, apiKey }: InferGetServerSidePropsType
                 <TimerProvider>
                     <FeeProvider>
                         <AtomicProvider>
-                            <AtmoicSteps
-                                address={address as string}
-                                amount={Number(amount)}
-                                destination={destination as string}
-                                destination_asset={destination_asset as string}
-                                source={source as string}
-                                source_asset={source_asset as string}
-                                type='widget'
-                            />
+                            <AtmoicSteps type='widget' />
                         </AtomicProvider>
                     </FeeProvider>
                 </TimerProvider>

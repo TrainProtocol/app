@@ -21,7 +21,7 @@ export enum CommitStatus {
 
 const AtomicStateContext = createContext<DataContextType | null>(null);
 
-type DataContextType = {
+type DataContextType = CommitState & {
     source_network?: Network,
     destination_network?: Network,
     source_asset?: Token,
@@ -30,29 +30,25 @@ type DataContextType = {
     amount?: number,
     commitId?: string,
     commitTxId?: string,
-    destinationDetails?: Commit & { fetchedByLightClient?: boolean },
-    userLocked?: boolean,
-    sourceDetails?: Commit,
-    error: string | undefined,
-    commitFromApi?: CommitFromApi,
-    lightClient: LightClient | undefined,
     commitStatus: CommitStatus,
-    refundTxId?: string | null,
     atomicQuery?: any,
+    isManualClaimable?: boolean,
     onCommit: (commitId: string, txId: string) => void;
     updateCommit: (field: keyof CommitState, value: any) => void;
     setAtomicQuery: (query: any) => void
 }
 
 interface CommitState {
-    sourceDetails?: Commit;
+    sourceDetails?: Commit & { claimTime?: number };
     destinationDetails?: Commit & { fetchedByLightClient?: boolean };
     userLocked: boolean;
-    error?: string;
+    error?: string | undefined;
     commitFromApi?: CommitFromApi;
-    lightClient?: LightClient;
+    lightClient?: LightClient | undefined;
     isTimelockExpired: boolean;
     refundTxId?: string | null;
+    isManualClaimable?: boolean;
+    manualClaimRequested?: boolean,
 }
 
 type CommitStatesDict = Record<string, CommitState>;
@@ -70,13 +66,14 @@ export function AtomicProvider({ children }) {
         destination_asset,
         source,
         source_asset,
-        commitTxId,
     } = atomicQuery
 
     const commitId = atomicQuery?.commitId as string
     const refundTxId = atomicQuery?.refundTxId as string
+    const commitTxId = atomicQuery?.txId as string
 
     const [commitStates, setCommitStates] = useState<CommitStatesDict>({});
+    const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
 
     const updateCommitState = (commitId: string, newState: Partial<CommitState>) => {
         setCommitStates((prev) => ({
@@ -101,13 +98,16 @@ export function AtomicProvider({ children }) {
     const userLocked = commitStates[commitId]?.userLocked;
     const error = commitStates[commitId]?.error;
     const commitFromApi = commitStates[commitId]?.commitFromApi;
-    const lightClient = commitStates[commitId]?.lightClient;
     const isTimelockExpired = commitStates[commitId]?.isTimelockExpired;
 
     const source_network = networks.find(n => n.name.toUpperCase() === (source as string)?.toUpperCase())
     const destination_network = networks.find(n => n.name.toUpperCase() === (destination as string)?.toUpperCase())
     const source_token = source_network?.tokens.find(t => t.symbol === source_asset)
     const destination_token = destination_network?.tokens.find(t => t.symbol === destination_asset)
+
+    const userLockTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
+    const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
+    const isManualClaimable = !!(assetsLocked && sourceDetails?.claimed == 3 && destinationDetails?.claimed != 3 && (sourceDetails.claimTime && (Date.now() - sourceDetails.claimTime > 30000)))
 
     const fetcher = (args) => fetch(args).then(res => res.json())
     const url = process.env.NEXT_PUBLIC_TRAIN_API
@@ -127,7 +127,7 @@ export function AtomicProvider({ children }) {
                 try {
                     const lightClient = new LightClient()
                     await lightClient.initProvider({ network: destination_network })
-                    updateCommit('lightClient', lightClient)
+                    setLightClient(lightClient)
                 } catch (error) {
                     console.log(error.message)
                     console.log(error)
@@ -195,7 +195,9 @@ export function AtomicProvider({ children }) {
             commitFromApi,
             lightClient,
             commitStatus,
+            isTimelockExpired,
             refundTxId,
+            isManualClaimable,
             updateCommit,
             setAtomicQuery
         }}>
