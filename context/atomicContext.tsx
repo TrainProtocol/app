@@ -73,6 +73,7 @@ export function AtomicProvider({ children }) {
     const commitTxId = atomicQuery?.txId as string
 
     const [commitStates, setCommitStates] = useState<CommitStatesDict>({});
+    const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
 
     const updateCommitState = (commitId: string, newState: Partial<CommitState>) => {
         setCommitStates((prev) => ({
@@ -97,7 +98,6 @@ export function AtomicProvider({ children }) {
     const userLocked = commitStates[commitId]?.userLocked;
     const error = commitStates[commitId]?.error;
     const commitFromApi = commitStates[commitId]?.commitFromApi;
-    const lightClient = commitStates[commitId]?.lightClient;
     const isTimelockExpired = commitStates[commitId]?.isTimelockExpired;
 
     const source_network = networks.find(n => n.name.toUpperCase() === (source as string)?.toUpperCase())
@@ -127,7 +127,7 @@ export function AtomicProvider({ children }) {
                 try {
                     const lightClient = new LightClient()
                     await lightClient.initProvider({ network: destination_network })
-                    updateCommit('lightClient', lightClient)
+                    setLightClient(lightClient)
                 } catch (error) {
                     console.log(error.message)
                     console.log(error)
