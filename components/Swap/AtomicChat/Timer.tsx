@@ -48,7 +48,7 @@ const TimelockTimer = ({ timelock, children }: { timelock: number, children?: Re
         (
             isMobile ?
                 <Popover>
-                    <PopoverTrigger>
+                    <PopoverTrigger asChild>
                         {
                             children
                                 ? children
@@ -69,7 +69,7 @@ const TimelockTimer = ({ timelock, children }: { timelock: number, children?: Re
                 </Popover>
                 :
                 <Tooltip delayDuration={150}>
-                    <TooltipTrigger>
+                    <TooltipTrigger className="inline-flex" asChild>
                         {
                             children
                                 ? children
