@@ -335,7 +335,7 @@ export const UserRefundAction: FC = () => {
 
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
         {
-            requestedRefund ?
+            (requestedRefund || sourceDetails?.claimed == 2) ?
                 <></>
                 :
                 <WalletActionButton
@@ -345,7 +345,7 @@ export const UserRefundAction: FC = () => {
                     networkChainId={Number(source_network?.chain_id)}
                     onClick={handleRefundAssets}
                 >
-                    Refund
+                    Cancel & Refund
                 </WalletActionButton>
         }
     </div>

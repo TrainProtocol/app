@@ -19,7 +19,7 @@ export const RequestStep: FC = () => {
     const commited = (sourceDetails || lpLockTx) ? true : false;
 
     const title = commited ? "Confirmed" : "Confirm the details"
-    const description = (commitTxId && source_network) ? <Link target="_blank" className="no-underline hover:underline" href={source_network?.transaction_explorer_template.replace('{0}', commitTxId)}>Swap details confirmed in wallet</Link> : <>Review and confirm the swap details</>
+    const description = (commitTxId && source_network) ? <Link target="_blank" className="no-underline hover:underline" href={source_network?.transaction_explorer_template.replace('{0}', commitTxId)}>Swap details confirmed</Link> : <>Review and confirm the swap details</>
     return <Step
         step={1}
         title={title}
@@ -105,7 +105,7 @@ const SolverStatus: FC = () => {
         </p>
     }
 
-    return <div className="text-sm text-primary-text-placeholder">Assets are prepared for you in the destination chain</div>
+    return <div className="text-sm text-primary-text-placeholder">Wait for the assets to be reserved for you at the destination</div>
 }
 
 
