@@ -19,7 +19,7 @@ export const RequestStep: FC = () => {
     const commited = (sourceDetails || lpLockTx) ? true : false;
 
     const title = commited ? "Confirmed" : "Confirm the details"
-    const description = (commitTxId && source_network) ? <p><span>Transaction ID:</span> <Link target="_blank" className="no-underline hover:underline" href={source_network?.transaction_explorer_template.replace('{0}', commitTxId)}>Swap details confirmed in wallet</Link></p> : <>Review and confirm the swap details</>
+    const description = (commitTxId && source_network) ? <Link target="_blank" className="no-underline hover:underline" href={source_network?.transaction_explorer_template.replace('{0}', commitTxId)}>Swap details confirmed in wallet</Link> : <>Review and confirm the swap details</>
     return <Step
         step={1}
         title={title}
