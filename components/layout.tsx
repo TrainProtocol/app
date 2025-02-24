@@ -17,6 +17,8 @@ import ColorSchema from "./ColorSchema";
 import { IsExtensionError } from "../helpers/errorHelper";
 import { AsyncModalProvider } from "../context/asyncModal";
 import WalletsProviders from "./WalletProviders";
+import PulsatingCircles from "./utils/pulse";
+import { PulsatingCirclesProvider, usePulsatingCircles } from "../context/PulsatingCirclesContext";
 // import { datadogRum } from '@datadog/browser-rum';
 
 type Props = {
@@ -127,22 +129,29 @@ export default function Layout({ children, settings, themeData }: Props) {
       themeData &&
       <ColorSchema themeData={themeData} />
     }
-    <QueryProvider query={query}>
-      <SettingsProvider data={appSettings}>
-        <TooltipProvider delayDuration={500}>
-          <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
-            <ThemeWrapper>
-              <WalletsProviders basePath={basePath} themeData={themeData} appName={router.query.appName?.toString()}>
-                <AsyncModalProvider>
-                  {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
-                    <MaintananceContent />
-                    : children}
-                </AsyncModalProvider>
-              </WalletsProviders>
-            </ThemeWrapper>
-          </ErrorBoundary>
-        </TooltipProvider>
-      </SettingsProvider >
-    </QueryProvider >
+    <PulsatingCirclesProvider>
+      <QueryProvider query={query}>
+        <SettingsProvider data={appSettings}>
+          <TooltipProvider delayDuration={500}>
+            <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
+              <ThemeWrapper>
+                <WalletsProviders basePath={basePath} themeData={themeData} appName={router.query.appName?.toString()}>
+                  <AsyncModalProvider>
+                    {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
+                      <MaintananceContent />
+                      : children}
+                  </AsyncModalProvider>
+                </WalletsProviders>
+              </ThemeWrapper>
+            </ErrorBoundary>
+          </TooltipProvider>
+        </SettingsProvider >
+      </QueryProvider >
+    </PulsatingCirclesProvider>
   </>)
 }
+
+const PulsatingCirclesContainer = () => {
+  const { isActive } = usePulsatingCircles();
+  return <PulsatingCircles isActive={isActive} />;
+};

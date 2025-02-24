@@ -81,6 +81,9 @@ module.exports = {
         // Gauge
         gauge_fadeIn: "gauge_fadeIn 1s ease forwards",
         gauge_fill: "gauge_fill 1s ease forwards",
+
+        //pulse
+        pulsate: "pulsate 2.5s infinite ease-in-out",
       },
       keyframes: {
         "reverse-spin": {
@@ -160,6 +163,11 @@ module.exports = {
         gauge_fill: {
           from: { "stroke-dashoffset": "332", opacity: "0" },
           to: { opacity: "1" },
+        },
+        pulsate: {
+          "0%": { opacity: "0.2" },
+          "50%": { opacity: "1" },
+          "100%": { opacity: "0.2" },
         },
       },
       letterSpacing: {
