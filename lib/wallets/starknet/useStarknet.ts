@@ -324,7 +324,7 @@ export default function useStarknet(): WalletProvider {
             domain: {
                 name: 'Train',
                 version: shortString.encodeShortString("v1"),
-                chainId: constants.StarknetChainId.SN_SEPOLIA,
+                chainId: isMainnet ? constants.StarknetChainId.SN_MAIN : constants.StarknetChainId.SN_SEPOLIA,
                 revision: TypedDataRevision.ACTIVE,
             },
             message: {
