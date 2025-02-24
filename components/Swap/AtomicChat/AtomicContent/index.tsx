@@ -5,51 +5,74 @@ import { CommitStatus, useAtomicState } from "../../../../context/atomicContext"
 import { motion } from "framer-motion";
 import CheckedIcon from "../../../Icons/CheckedIcon";
 import MotionSummary from "./Summary";
-import { CircleAlert } from "lucide-react";
+import { CircleAlert, ExternalLink } from "lucide-react";
 import SpinIcon from "../../../Icons/spinIcon";
 import ConnectedWallet from "./ConnectedWallet";
+import Link from "next/link";
+import { CommitTransaction } from "../../../../lib/layerSwapApiClient";
 
 const AtomicContent: FC = () => {
 
-    const { commitStatus, isManualClaimable, manualClaimRequested } = useAtomicState()
+    const { commitStatus, isManualClaimable, manualClaimRequested, commitFromApi, destination_network } = useAtomicState()
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
+    const redeemTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
 
     return (
-        <ResizablePanel>
-            <div className="w-full flex flex-col justify-between text-secondary-text">
-                <div className='grid grid-cols-1 gap-4'>
-                    <ReleasingAssets
-                        commitStatus={commitStatus}
-                        isManualClaimable={isManualClaimable}
-                        manualClaimRequested={manualClaimRequested}
-                    />
-                    <motion.div
-                        layout
-                        transition={{ duration: 0.4 }}
-                        style={{
-                            bottom: assetsLocked ? '0px' : undefined,
-                            top: assetsLocked ? undefined : '0px',
-                        }}
-                        className="z-20 absolute left-0 w-full"
-                    >
-                        <MotionSummary />
-                    </motion.div>
-                    <ConnectedWallet />
+        <>
+            <ResizablePanel>
+                <div className="w-full flex flex-col justify-between text-secondary-text">
+                    <div className='grid grid-cols-1 gap-4'>
+                        <ReleasingAssets
+                            commitStatus={commitStatus}
+                            isManualClaimable={isManualClaimable}
+                            manualClaimRequested={manualClaimRequested}
+                        />
+                        <motion.div
+                            layout
+                            transition={{ duration: 0.4 }}
+                            style={{
+                                bottom: assetsLocked ? '0px' : undefined,
+                                top: assetsLocked ? undefined : '0px',
+                            }}
+                            className="z-20 absolute left-0 w-full"
+                        >
+                            <MotionSummary />
+                        </motion.div>
 
-                    {
-                        assetsLocked &&
-                        <div className="h-[220px]" />
-                    }
-                    <div
-                        style={{
-                            display: assetsLocked ? 'none' : 'block'
-                        }}
-                        className="transition-opacity">
-                        <Steps />
+                        {
+                            redeemTx?.hash && destination_network &&
+                            <div className="w-full flex justify-center">
+
+                                <Link
+                                    href={destination_network?.transaction_explorer_template.replace('{0}', redeemTx?.hash)}
+                                    target='_blank'
+                                    className="p-1 px-2 rounded-lg bg-secondary-700 flex gap-2 items-center text-primary-text-placeholder"
+                                >
+                                    <p>
+                                        View transaction
+                                    </p>
+                                    <ExternalLink className="h-4 w-auto" />
+                                </Link>
+                            </div>
+                        }
+
+                        {
+                            assetsLocked &&
+                            <div className="h-[220px]" />
+                        }
+                        <div
+                            style={{
+                                display: assetsLocked ? 'none' : 'block'
+                            }}
+                            className="transition-opacity">
+                            <Steps />
+                        </div>
                     </div>
                 </div>
-            </div>
-        </ResizablePanel >
+            </ResizablePanel >
+            <ConnectedWallet />
+        </>
+
     )
 }
 
