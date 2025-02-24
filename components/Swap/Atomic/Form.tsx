@@ -151,7 +151,6 @@ const SwapForm: FC = () => {
     const shouldConnectWallet = (sourceWalletNetwork && !selectedSourceAccount) || (!values.from && !wallets.length)
 
     return <>
-        <Widget className="sm:min-h-[450px]">
             <Form className={`h-full ${(isSubmitting) ? 'pointer-events-none' : 'pointer-events-auto'}`} >
                 <ResizablePanel>
                     <Widget.Content>
@@ -205,7 +204,6 @@ const SwapForm: FC = () => {
                     />
                 </Widget.Footer>
             </Form>
-        </Widget>
     </>
 }
 

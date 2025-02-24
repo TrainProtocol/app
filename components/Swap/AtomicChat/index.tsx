@@ -13,7 +13,7 @@ const Commitment: FC<ContainerProps> = ({ type }) => {
             <Widget.Content className="!py-0">
                 <AtomicContent />
             </Widget.Content>
-            <Widget.Footer sticky={type === 'widget'} >
+            <Widget.Footer sticky={true} >
                 <Actions />
             </Widget.Footer>
         </>

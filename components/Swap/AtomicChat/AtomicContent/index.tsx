@@ -3,20 +3,25 @@ import ResizablePanel from "../../../ResizablePanel";
 import Steps from "./Steps";
 import { CommitStatus, useAtomicState } from "../../../../context/atomicContext";
 import { motion } from "framer-motion";
-import LoaderIcon from "../../../Icons/LoaderIcon";
 import CheckedIcon from "../../../Icons/CheckedIcon";
 import MotionSummary from "./Summary";
+import { CircleAlert } from "lucide-react";
+import SpinIcon from "../../../Icons/spinIcon";
 
 const AtomicContent: FC = () => {
 
-    const { commitStatus } = useAtomicState()
+    const { commitStatus, isManualClaimable, manualClaimRequested } = useAtomicState()
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
 
     return (
         <ResizablePanel>
             <div className="w-full flex flex-col justify-between text-secondary-text">
                 <div className='grid grid-cols-1 gap-4'>
-                    <ReleasingAssets commitStatus={commitStatus} />
+                    <ReleasingAssets
+                        commitStatus={commitStatus}
+                        isManualClaimable={isManualClaimable}
+                        manualClaimRequested={manualClaimRequested}
+                    />
                     <motion.div
                         layout
                         transition={{ duration: 0.4 }}
@@ -46,19 +51,28 @@ const AtomicContent: FC = () => {
     )
 }
 
-const ReleasingAssets: FC<{ commitStatus: CommitStatus }> = ({ commitStatus }) => {
+const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boolean | undefined, manualClaimRequested: boolean | undefined }> = ({ commitStatus, isManualClaimable, manualClaimRequested }) => {
 
     const ResolvedIcon = () => {
         if (commitStatus === CommitStatus.RedeemCompleted) {
             return <CheckedIcon className="h-16 w-auto text-accent" />
         }
-        return <LoaderIcon className="h-16 w-auto text-accent animate-reverse-spin" />
+        if (isManualClaimable && !manualClaimRequested) {
+
+            return <CircleAlert className="h-16 w-auto text-yellow-600" />
+        }
+        return <SpinIcon className="h-16 w-auto text-accent animate-reverse-spin" />
     }
 
     const ResolvedTitle = () => {
         if (commitStatus === CommitStatus.RedeemCompleted) {
             return <p className="text-3xl text-primary-text">
                 Transaction Completed Successfully
+            </p>
+        }
+        if (isManualClaimable && !manualClaimRequested) {
+            return <p className="text-xl text-primary-text">
+                Release Failed
             </p>
         }
         return <p className="text-xl text-primary-text">
@@ -69,6 +83,11 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus }> = ({ commitStatus }) =
     const ResolvedDescription = () => {
         if (commitStatus === CommitStatus.RedeemCompleted) {
             return undefined
+        }
+        if (isManualClaimable && !manualClaimRequested) {
+            return <p className="text-base text-secondary-text max-w-sm mx-auto">
+                The solver was unable to release your funds. Please claim them manually.
+            </p>
         }
         return <p className="text-base text-secondary-text max-w-sm mx-auto">
             You will receive your assets at the destination address shortly.

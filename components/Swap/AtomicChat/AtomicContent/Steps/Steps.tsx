@@ -7,6 +7,8 @@ import shortenAddress from "../../../../utils/ShortenAddress";
 import Step from "./Step";
 import { Clock } from "lucide-react";
 import CheckedIcon from "../../../../Icons/CheckedIcon";
+import XCircle from "../../../../Icons/CircleX";
+import TimelockTimer from "../../Timer";
 
 export const RequestStep: FC = () => {
     const { sourceDetails, commitId, commitTxId, source_network, commitFromApi } = useAtomicState()
@@ -54,18 +56,29 @@ export const SignAndConfirmStep: FC = () => {
 
     const completed = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || !!lpRedeemTransaction?.hash || commitStatus === CommitStatus.RedeemCompleted || commitStatus === CommitStatus.AssetsLocked
 
-    return <Step
-        step={2}
-        title={title}
-        description={'Sign and finalize the swap, you can cancel and refund anytime before.'}
-        active={!!destinationDetails?.hashlock}
-        completed={completed}
-        loading={loading}
-    />
+    return (
+        commitStatus !== CommitStatus.TimelockExpired &&
+        <>
+            {/* {
+                <TimelockTimer timelock={sourceDetails?.timelock} >
+                </TimelockTimer>
+            } */}
+            <Step
+                step={2}
+                title={title}
+                description={'Sign and finalize the swap, you can cancel and refund anytime before.'}
+                active={!!destinationDetails?.hashlock}
+                completed={completed}
+                loading={loading}
+            />
+        </>
+
+    )
 }
 
+
 const SolverStatus: FC = () => {
-    const { commitId, sourceDetails, destinationDetails, commitFromApi, destination_network, commitStatus } = useAtomicState()
+    const { commitId, destinationDetails, commitFromApi } = useAtomicState()
 
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
 
@@ -95,41 +108,87 @@ const SolverStatus: FC = () => {
 
 
 export const LpLockingAssets: FC = () => {
-    const { destinationDetails, commitStatus, commitId, sourceDetails } = useAtomicState()
+    const { destinationDetails, commitStatus, sourceDetails } = useAtomicState()
     const completed = destinationDetails?.hashlock ? true : false;
     const loading = sourceDetails && !destinationDetails?.hashlock
 
-    return <div className={`inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 ${!sourceDetails ? 'opacity-60' : ''}`}>
-        <div className="space-y-2">
-            <div className="inline-flex items-center gap-2">
-                {
-                    completed &&
-                    <CheckedIcon className="h-5 w-5 text-accent" />
-                }
-                {
-                    !loading && !completed &&
-                    <Clock className="w-5 h-5 text-secondary-text" />
-                }
-                {
-                    loading &&
-                    <div className="flex justify-center">
-                        <div className="relative flex items-center justify-end w-5 h-5 overflow-hidden border-2 border-accent rounded-full ">
-                            <div className="absolute w-1/2 h-0.5  origin-left animate-spin-fast">
-                                <div className="w-3/4 h-full bg-accent rounded-full" />
-                            </div>
+    return (
+        commitStatus !== CommitStatus.TimelockExpired &&
+        <div className={`inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 ${!sourceDetails ? 'opacity-60' : ''}`}>
+            <div className="space-y-2">
+                <div className="inline-flex items-center gap-2">
+                    {
+                        completed &&
+                        <CheckedIcon className="h-5 w-5 text-accent" />
+                    }
+                    {
+                        !loading && !completed &&
+                        <Clock className="w-5 h-5 text-secondary-text" />
+                    }
+                    {
+                        loading &&
+                        <div className="flex justify-center">
+                            <div className="relative flex items-center justify-end w-5 h-5 overflow-hidden border-2 border-accent rounded-full ">
+                                <div className="absolute w-1/2 h-0.5  origin-left animate-spin-fast">
+                                    <div className="w-3/4 h-full bg-accent rounded-full" />
+                                </div>
 
-                            <div className="absolute w-1/2 h-0.5  origin-left  animate-spin-slow">
-                                <div className="w-2/3 h-full bg-accent rounded-full" />
-                            </div>
-                            <div className="absolute flex justify-center flex-1 w-full">
-                                <div className="w-0.5 h-0.5 bg-accent rounded-full" />
+                                <div className="absolute w-1/2 h-0.5  origin-left  animate-spin-slow">
+                                    <div className="w-2/3 h-full bg-accent rounded-full" />
+                                </div>
+                                <div className="absolute flex justify-center flex-1 w-full">
+                                    <div className="w-0.5 h-0.5 bg-accent rounded-full" />
+                                </div>
                             </div>
                         </div>
-                    </div>
-                }
-                <div className="text-primary-text text-base leading-5">Locking Assets</div>
+                    }
+                    <div className="text-primary-text text-base leading-5">Locking Assets</div>
+                </div>
+                <SolverStatus />
             </div>
-            <SolverStatus />
         </div>
-    </div>
+    )
+}
+
+
+export const TimelockExpired: FC = () => {
+    const { commitStatus } = useAtomicState()
+
+    const title = "Timelock Expired"
+    const description = 'Assets are prepared for you in the destination chain'
+
+    return (
+        commitStatus === CommitStatus.TimelockExpired &&
+        <div className='inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3'>
+            <div className="space-y-2">
+                <div className="inline-flex items-center gap-2">
+                    <XCircle className="h-5 w-5" />
+                    <div className="text-primary-text text-base leading-5">{title}</div>
+                </div>
+                <div className="text-sm text-primary-text-placeholder">{description}</div>
+            </div>
+        </div>
+    )
+}
+
+export const CancelAndRefund: FC = () => {
+    const { commitStatus, refundTxId } = useAtomicState()
+
+    const resolvedTitle = refundTxId ? 'Refund Completed' : 'Refund'
+
+    return (
+        commitStatus === CommitStatus.TimelockExpired &&
+        <div className='inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3'>
+            <div className="space-y-2">
+                <div className="inline-flex items-center gap-2">
+                    {
+                        refundTxId &&
+                        <CheckedIcon className="h-5 w-5 text-accent" />
+                    }
+                    <div className="text-primary-text text-base leading-5">{resolvedTitle}</div>
+                </div>
+                <div className="text-sm text-primary-text-placeholder">short description of what happened and what will follow.</div>
+            </div>
+        </div>
+    )
 }

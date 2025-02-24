@@ -22,7 +22,7 @@ const Comp = () => {
         setOpenTopModal(value)
         if (value === false) {
             goToStep(MenuStep.Menu)
-            clearMenuPath(router)
+            // clearMenuPath(router)
         }
     }
     const goBackToMenuStep = () => { goToStep(MenuStep.Menu, "back"); clearMenuPath(router) }
