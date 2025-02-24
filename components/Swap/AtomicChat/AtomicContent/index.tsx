@@ -7,6 +7,7 @@ import CheckedIcon from "../../../Icons/CheckedIcon";
 import MotionSummary from "./Summary";
 import { CircleAlert } from "lucide-react";
 import SpinIcon from "../../../Icons/spinIcon";
+import ConnectedWallet from "./ConnectedWallet";
 
 const AtomicContent: FC = () => {
 
@@ -33,6 +34,7 @@ const AtomicContent: FC = () => {
                     >
                         <MotionSummary />
                     </motion.div>
+                    <ConnectedWallet />
 
                     {
                         assetsLocked &&

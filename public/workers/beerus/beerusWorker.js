@@ -1,12 +1,11 @@
 import init, { set_panic_hook, Beerus } from './beerus_web.js';
-
 self.onmessage = (e) => {
     switch (e.data.type) {
         case 'init':
             initWorker(e.data.payload.data.initConfigs);
             break;
         case 'getDetails':
-            console.log("getting details")
+            console.log("getting details");
             getCommit(e.data.payload.data.commitConfigs);
             break;
         default:
@@ -29,12 +28,11 @@ async function initWorker(initConfigs) {
         self.postMessage({ type: 'init', data: { initialized: true } });
     }
     catch (e) {
-        console.log("brrrusserrror", e.message)
+        console.log("brrrusserrror", e.message);
         self.postMessage({ type: 'init', data: { initialized: false } });
         console.log(e);
     }
 }
-
 async function getCommit(commitConfigs) {
     try {
         const { call } = commitConfigs;
@@ -83,7 +81,6 @@ async function starknetCall(commitConfigs) {
         return "unknown request";
     }
 }
-
 function post(url, body) {
     let call = method(body);
     let now = performance.now();

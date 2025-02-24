@@ -82,6 +82,9 @@ export class HeliosProvider {
       case "eth_getCode": {
         return this.#client.get_code(req.params[0], req.params[1]);
       }
+      case "eth_getStorageAt": {
+        return this.#client.get_storage_at(req.params[0], req.params[1], req.params[2]);
+      }
       case "eth_call": {
         return this.#client.call(req.params[0], req.params[1]);
       }
@@ -121,11 +124,30 @@ export class HeliosProvider {
       case "eth_getLogs": {
         return this.#client.get_logs(req.params[0]);
       }
+      case "eth_getFilterChanges": {
+        return this.#client.get_filter_changes(req.params[0]);
+      }
+      case "eth_getFilterLogs": {
+        return this.#client.get_filter_logs(req.params[0]);
+      }
+      case "eth_uninstallFilter": {
+        return this.#client.uninstall_filter(req.params[0]);
+      }
+      case "eth_newFilter": {
+        return this.#client.new_filter(req.params[0]);
+      }
+      case "eth_newBlockFilter": {
+        return this.#client.new_block_filter();
+      }
+      case "eth_newPendingTransactionFilter": {
+        return this.#client.new_pending_transaction_filter();
+      }
       case "net_version": {
         return this.#chainId;
       }
       case "eth_getBlockByNumber": {
-        return this.#client.get_block_by_number(req.params[0], req.params[1]);
+        const block = await this.#client.get_block_by_number(req.params[0], req.params[1]);
+        return mapToObj(block);
       }
       case "web3_clientVersion": {
         return this.#client.client_version();

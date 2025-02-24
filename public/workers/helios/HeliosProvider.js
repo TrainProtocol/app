@@ -82,6 +82,9 @@ _HeliosProvider_client = new WeakMap(), _HeliosProvider_chainId = new WeakMap(),
         case "eth_getCode": {
             return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_code(req.params[0], req.params[1]);
         }
+        case "eth_getStorageAt": {
+            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_storage_at(req.params[0], req.params[1], req.params[2]);
+        }
         case "eth_call": {
             return __classPrivateFieldGet(this, _HeliosProvider_client, "f").call(req.params[0], req.params[1]);
         }
@@ -115,11 +118,30 @@ _HeliosProvider_client = new WeakMap(), _HeliosProvider_chainId = new WeakMap(),
         case "eth_getLogs": {
             return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_logs(req.params[0]);
         }
+        case "eth_getFilterChanges": {
+            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_filter_changes(req.params[0]);
+        }
+        case "eth_getFilterLogs": {
+            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_filter_logs(req.params[0]);
+        }
+        case "eth_uninstallFilter": {
+            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").uninstall_filter(req.params[0]);
+        }
+        case "eth_newFilter": {
+            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").new_filter(req.params[0]);
+        }
+        case "eth_newBlockFilter": {
+            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").new_block_filter();
+        }
+        case "eth_newPendingTransactionFilter": {
+            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").new_pending_transaction_filter();
+        }
         case "net_version": {
             return __classPrivateFieldGet(this, _HeliosProvider_chainId, "f");
         }
         case "eth_getBlockByNumber": {
-            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_block_by_number(req.params[0], req.params[1]);
+            const block = await __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_block_by_number(req.params[0], req.params[1]);
+            return mapToObj(block);
         }
         case "web3_clientVersion": {
             return __classPrivateFieldGet(this, _HeliosProvider_client, "f").client_version();

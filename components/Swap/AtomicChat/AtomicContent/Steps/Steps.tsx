@@ -87,7 +87,7 @@ const SolverStatus: FC = () => {
 
     if (lpLockDetected) {
         if (destinationDetails?.fetchedByLightClient) {
-            return <div className="inlien-flex items-center gap-1 text-sm">
+            return <div className="flex items-center gap-1 text-sm">
                 <p>
                     Transaction verified by
                 </p>

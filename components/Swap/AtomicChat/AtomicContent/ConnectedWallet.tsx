@@ -56,7 +56,7 @@ const Component: FC = () => {
     return (
         !commitId &&
         <>
-            <div className="grid content-end">
+            {/* <div className="grid content-end">
                 {
                     selectedWallet &&
                     source_network &&
@@ -93,7 +93,7 @@ const Component: FC = () => {
                         />
                     </VaulDrawer.Snap>
                 </VaulDrawer>
-            }
+            } */}
         </>
     )
 }

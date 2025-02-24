@@ -11,7 +11,7 @@ const MotionSummary: FC = () => {
 
     const { networks } = useSettingsState()
     const { fee, valuesChanger } = useFee()
-    const { sourceDetails, atomicQuery, commitStatus } = useAtomicState()
+    const { sourceDetails, atomicQuery, commitStatus, commitFromApi } = useAtomicState()
     const { source, destination, amount, address, source_asset, destination_asset } = atomicQuery;
 
     const source_network = networks.find(n => n.name.toUpperCase() === source?.toUpperCase())
@@ -33,7 +33,7 @@ const MotionSummary: FC = () => {
     }, [amount, source_network, destination, source_token, destination_token])
 
     const wallet = provider?.activeWallet
-    const receiveAmount = fee?.quote?.receive_amount
+    const receiveAmount = commitFromApi?.destination_amount || fee?.quote?.receive_amount
 
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
 
