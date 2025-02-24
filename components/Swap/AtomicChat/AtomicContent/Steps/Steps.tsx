@@ -101,7 +101,7 @@ const SolverStatus: FC = () => {
         }
 
         return <p className="text-sm text-primary-text-placeholder">
-            Transaction verified by rpcs
+            Transaction verified by RPCs
         </p>
     }
 
