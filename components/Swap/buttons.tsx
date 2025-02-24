@@ -1,5 +1,5 @@
 import { WalletIcon } from "lucide-react";
-import { FC, ReactNode, useCallback, useMemo, useState } from "react";
+import { FC, ReactNode, useCallback, useState } from "react";
 import useWallet from "../../hooks/useWallet";
 import { Network } from "../../Models/Network";
 import toast from "react-hot-toast";

@@ -1,16 +1,11 @@
-import { FC, useEffect, useState } from "react"
+import { FC, useEffect } from "react"
 import useWallet from "../../../../hooks/useWallet";
 import { useAtomicState } from "../../../../context/atomicContext";
-import ActionStatus from "./Status/ActionStatus";
 import { WalletActionButton } from "../../buttons";
-import { TriangleAlert } from "lucide-react";
 import { ContractType } from "../../../../Models/Network";
-import { CommitTransaction } from "../../../../lib/layerSwapApiClient";
 
 export const RedeemAction: FC = () => {
-    const { destination_network, source_network, sourceDetails, destinationDetails, updateCommit, destination_asset, source_asset, commitId, commitFromApi } = useAtomicState()
-    const [requestedManualClaim, setRequestedManualClaim] = useState(false)
-    const [sourceClaimTime, setSourceClaimTime] = useState<number | undefined>(undefined)
+    const { destination_network, source_network, sourceDetails, destinationDetails, updateCommit, manualClaimRequested, destination_asset, source_asset, commitId, isManualClaimable } = useAtomicState()
     const { getProvider } = useWallet()
 
     const source_provider = source_network && getProvider(source_network, 'withdrawal')
@@ -19,11 +14,6 @@ export const RedeemAction: FC = () => {
 
     const destination_contract = destination_network?.contracts.find(c => destination_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
     const source_contract = source_network?.contracts.find(c => source_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
-
-    const userLockTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
-    const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
-
-    const isManualClaimable = !!(assetsLocked && sourceDetails?.claimed == 3 && destinationDetails?.claimed != 3 && (sourceClaimTime && (Date.now() - sourceClaimTime > 30000)))
 
     useEffect(() => {
         let commitHandler: any = undefined;
@@ -39,7 +29,7 @@ export const RedeemAction: FC = () => {
                         id: commitId,
                         contractAddress: destination_contract as `0x${string}`,
                     })
-                    if (data) updateCommit('destinationDetails', data)
+                    if (data) updateCommit('destinationDetails', { ...data, fetchedByLightClient: destinationDetails?.fetchedByLightClient })
                     if (data?.claimed == 3) {
                         clearInterval(commitHandler)
                     }
@@ -66,7 +56,10 @@ export const RedeemAction: FC = () => {
                     if (data) updateCommit('sourceDetails', data)
                     if (data?.claimed == 3) {
                         clearInterval(commitHandler)
-                        if (!sourceClaimTime) setSourceClaimTime(Date.now())
+                        updateCommit('sourceDetails', {
+                            ...data,
+                            claimTime: !sourceDetails?.claimTime ? Date.now() : sourceDetails?.claimTime
+                        })
                     }
                 }, 5000)
             })()
@@ -91,7 +84,7 @@ export const RedeemAction: FC = () => {
                 sourceAsset: destination_asset,
             })
 
-            setRequestedManualClaim(true)
+            updateCommit('manualClaimRequested', true)
         }
         catch (e) {
             updateCommit('error', e.details || e.message)
@@ -102,19 +95,10 @@ export const RedeemAction: FC = () => {
         <>
             {
                 isManualClaimable
-                    ? (requestedManualClaim
-                        ? <ActionStatus
-                            status="pending"
-                            title='Assets are currently being released'
-                        />
-                        : <div className="space-y-2">
-                            <div className="inline-flex text-secondary-text">
-                                <TriangleAlert className="w-6 h-6" />
-                                <p className="p- text-center">
-                                    The solver was unable to release your funds. Please claim them manually.
-                                </p>
-                            </div>
-                            <WalletActionButton
+                    ? (
+                        manualClaimRequested
+                            ? <></>
+                            : <WalletActionButton
                                 activeChain={destination_wallet?.chainId}
                                 isConnected={!!destination_wallet}
                                 network={destination_network!}
@@ -123,11 +107,8 @@ export const RedeemAction: FC = () => {
                             >
                                 Claim Manually
                             </WalletActionButton>
-                        </div>)
-                    : <ActionStatus
-                        status="pending"
-                        title='Assets are currently being released'
-                    />
+                    )
+                    : <></>
             }
         </>
     )

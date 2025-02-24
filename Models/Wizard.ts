@@ -60,7 +60,12 @@ export enum MenuStep {
     TransactionDetails = "Transaction Details"
 }
 
-export type Steps = AuthStep | SwapWithdrawalStep | SwapCreateStep | MenuStep
+export enum AtomicSteps {
+    Form = "Form",
+    Swap = "Swap",
+}
+
+export type Steps = AuthStep | SwapWithdrawalStep | SwapCreateStep | MenuStep | AtomicSteps
 
 export const ExchangeAuthorizationSteps: { [key: string]: SwapCreateStep } = {
     "api_credentials": SwapCreateStep.ApiKey,

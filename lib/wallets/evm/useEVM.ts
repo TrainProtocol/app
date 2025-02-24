@@ -427,10 +427,7 @@ export default function useEVM({ network }: Props): WalletProvider {
         const { chainId, id, contractAddress, type } = params
         const abi = type === 'erc20' ? ERC20PHTLCAbi : PHTLCAbi
 
-        if (!account?.address) throw new Error("Wallet not connected")
-
         const { request } = await simulateContract(config, {
-            account: account.address as `0x${string}`,
             abi: abi,
             address: contractAddress,
             functionName: 'refund',

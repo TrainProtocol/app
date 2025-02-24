@@ -15,7 +15,6 @@ type AddressInput = {
     setManualAddress: (address: string) => void,
     setNewAddress: (value: { address: string, networkType: NetworkType | string } | undefined) => void,
     values: SwapFormValues,
-    partner?: Partner,
     name: string,
     inputReference: React.Ref<HTMLInputElement>,
     setFieldValue: (field: string, value: any) => void,
@@ -24,7 +23,7 @@ type AddressInput = {
     connectedWallet: Wallet | undefined
 }
 
-const ManualAddressInput: FC<AddressInput> = ({ manualAddress, setManualAddress, setNewAddress, values, name, inputReference, setFieldValue, close, addresses, connectedWallet, partner }) => {
+const ManualAddressInput: FC<AddressInput> = ({ manualAddress, setManualAddress, setNewAddress, values, name, inputReference, setFieldValue, close, addresses, connectedWallet }) => {
 
     const { to: destination } = values || {}
     const [isFocused, setIsFocused] = useState(false);
@@ -107,7 +106,7 @@ const ManualAddressInput: FC<AddressInput> = ({ manualAddress, setManualAddress,
                 {
                     manualAddress && !errorMessage && destination &&
                     <div onClick={handleSaveNewAddress} className={`group/addressItem text-left min-h-12 cursor-pointer space-x-2 bg-secondary-800 shadow-xl flex text-sm rounded-componentRoundness items-center w-full transform hover:bg-secondary-700 transition duration-200 p-3 hover:shadow-xl mt-3`}>
-                        <AddressWithIcon addressItem={addressFromList || { address: manualAddress, group: AddressGroup.ManualAdded }} connectedWallet={connectedWallet} partner={partner} network={destination} />
+                        <AddressWithIcon addressItem={addressFromList || { address: manualAddress, group: AddressGroup.ManualAdded }} connectedWallet={connectedWallet} network={destination} />
                     </div>
                 }
             </div>

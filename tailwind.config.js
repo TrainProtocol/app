@@ -23,8 +23,8 @@ module.exports = {
           '900': 'rgb(var(--ls-colors-primary-900, 110, 0, 64), <alpha-value>)',
           'background': 'rgb(var(--ls-colors-backdrop, 62, 18, 64), <alpha-value>)',
           'text': 'rgb(var(--ls-colors-primary-text, 255, 255, 255), <alpha-value>)',
-          'text-muted': 'rgb(var(--ls-colors-primary-text-muted, 86, 97, 123), <alpha-value>)',
-          'text-placeholder': 'rgb(var(--ls-colors-text-placeholder, 140, 152, 192), <alpha-value>)',
+          'text-muted': 'rgb(var(--ls-colors-primary-textMuted, 128, 128, 128), <alpha-value>)',
+          'text-placeholder': 'rgb(var(--ls-colors-textPlaceholder, 184, 184, 184), <alpha-value>)',
           'actionButtonText': 'rgb(var(--ls-colors-actionButtonText, 255, 255, 255), <alpha-value>)',
           'buttonTextColor': 'rgb(var(--ls-colors-buttonTextColor, 228, 229, 240), <alpha-value>)',
           'logoColor': 'rgb(var(--ls-colors-logo, 255, 0, 147), <alpha-value>)',
@@ -66,6 +66,7 @@ module.exports = {
       animation: {
         'reverse-spin': 'reverse-spin 1s linear infinite',
         'spin-slow': 'spin 3s linear infinite',
+        'spin-fast': 'spin 1s linear infinite',
         'fade-in': 'fade-in 0.5s ease-in',
         'fade-in-down': 'fade-in-down 0.5s ease-in',
         'fadein': 'fadein 4s',
@@ -73,6 +74,7 @@ module.exports = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "blinking": "blink 1.1s step-end infinite",
+        rotate: "rotate 2s linear infinite",
 
         // Tooltip
         "slide-up-fade": "slide-up-fade 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
@@ -83,6 +85,10 @@ module.exports = {
         gauge_fill: "gauge_fill 1s ease forwards",
       },
       keyframes: {
+        rotate: {
+          "0%": { transform: "rotate(-0deg) scale(-10)" },
+          "100%": { transform: "rotate(360deg) scale(-10)" },
+        },
         "reverse-spin": {
           from: {
             transform: 'rotate(360deg)'
