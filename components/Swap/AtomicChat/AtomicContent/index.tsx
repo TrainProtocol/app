@@ -3,10 +3,10 @@ import ResizablePanel from "../../../ResizablePanel";
 import Steps from "./Steps";
 import { CommitStatus, useAtomicState } from "../../../../context/atomicContext";
 import { motion } from "framer-motion";
-import LoaderIcon from "../../../Icons/LoaderIcon";
 import CheckedIcon from "../../../Icons/CheckedIcon";
 import MotionSummary from "./Summary";
 import { CircleAlert } from "lucide-react";
+import SpinIcon from "../../../Icons/spinIcon";
 
 const AtomicContent: FC = () => {
 
@@ -61,7 +61,7 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
 
             return <CircleAlert className="h-16 w-auto text-yellow-600" />
         }
-        return <LoaderIcon className="h-16 w-auto text-accent animate-reverse-spin" />
+        return <SpinIcon className="h-16 w-auto text-accent animate-reverse-spin" />
     }
 
     const ResolvedTitle = () => {

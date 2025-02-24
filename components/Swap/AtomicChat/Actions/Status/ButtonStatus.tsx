@@ -1,6 +1,6 @@
 import { FC } from "react"
 import { clsx } from 'clsx';
-import LoaderIcon from "../../../../Icons/LoaderIcon";
+import SpinIcon from "../../../../Icons/spinIcon";
 
 type Props = {
     isLoading?: boolean;
@@ -19,7 +19,7 @@ const ButtonStatus: FC<Props> = ({ isDisabled, isLoading, children }) => {
             {
                 isLoading &&
                 <span className="order-first absolute left-0 inset-y-0 flex items-center pl-3">
-                    <LoaderIcon className="animate-reverse-spin h-6 w-6" />
+                    <SpinIcon className="animate-reverse-spin h-6 w-6" />
                 </span>
             }
         </div>

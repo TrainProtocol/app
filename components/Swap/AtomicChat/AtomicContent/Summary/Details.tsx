@@ -19,7 +19,6 @@ const Details: FC = () => {
 
 const Confirmed: FC = () => {
     const { commitTxId, source_network } = useAtomicState()
-    console.log('commitTxId', commitTxId)
     const description = (commitTxId && source_network) && <p><span>Transaction ID:</span> <Link target="_blank" className="underline hover:no-underline" href={source_network?.transaction_explorer_template.replace('{0}', commitTxId)}>{shortenAddress(commitTxId)}</Link></p>
 
     return (
