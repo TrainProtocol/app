@@ -5,15 +5,14 @@ import { getServerSideProps } from '../helpers/getSettings'
 import { SWRConfig } from 'swr'
 import LayerSwapApiClient from '../lib/layerSwapApiClient'
 import { resolveRoutesURLForSelectedToken } from '../helpers/routes'
-import { usePulsatingCircles } from '../context/PulsatingCirclesContext'
+import PulsatingCircles from '../components/utils/pulse'
 
 export default function Home({ settings, themeData, apiKey }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   LayerSwapApiClient.apiKey = apiKey
 
   const sourceRoutesDeafultKey = resolveRoutesURLForSelectedToken({ direction: 'from', network: undefined, token: undefined, includes: { unmatched: true, unavailable: true } })
   const destinationRoutesDefaultKey = resolveRoutesURLForSelectedToken({ direction: 'to', network: undefined, token: undefined, includes: { unmatched: true, unavailable: true } })
-  const { isActive, setIsActive } = usePulsatingCircles();
-  
+
   return (
     <SWRConfig value={{
       fallback: {
@@ -22,6 +21,7 @@ export default function Home({ settings, themeData, apiKey }: InferGetServerSide
       }
     }}>
       <Layout settings={settings} themeData={themeData}>
+        <PulsatingCircles />
         <Swap />
       </Layout>
     </SWRConfig>

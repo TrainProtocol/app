@@ -18,7 +18,7 @@ import { IsExtensionError } from "../helpers/errorHelper";
 import { AsyncModalProvider } from "../context/asyncModal";
 import WalletsProviders from "./WalletProviders";
 import PulsatingCircles from "./utils/pulse";
-import { PulsatingCirclesProvider, usePulsatingCircles } from "../context/PulsatingCirclesContext";
+import { PulsatingCirclesProvider } from "../context/PulsatingCirclesContext";
 // import { datadogRum } from '@datadog/browser-rum';
 
 type Props = {
@@ -97,39 +97,39 @@ export default function Layout({ children, settings, themeData }: Props) {
   const basePath = router?.basePath ?? ""
 
   return (<>
-    <Head>
-      <title>Train | Permissionless and trustless asset bridging protocol</title>
-      <link rel="icon" type="image/png" href="favicon/favicon-96x96.png" sizes="96x96" />
-      <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
-      <link rel="shortcut icon" href="/favicon/favicon.ico" />
-      <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
-      <meta name="apple-mobile-web-app-title" content="TRAIN Protocol" />
-      <link rel="manifest" href={`/favicon/site.webmanifest`} />
-      <link rel="canonical" href="https://app.train.tech/" />
-      <meta name="msapplication-TileColor" content="#ffffff" />
-      <meta name="theme-color" content={`rgb(${themeData.secondary?.[900]})`} />
-      <meta name="description" content="Trustless, permissionless cross-chain bridging protocol" />
-
-      {/* Facebook Meta Tags */}
-      <meta property="og:url" content={`https://app.train.tech/`} />
-      <meta property="og:type" content="website" />
-      <meta property="og:title" content="Train Protocol" />
-      <meta property="og:description" content="Trustless, permissionless cross-chain bridging protocol" />
-      <meta property="og:image" content={`https://app.train.tech/opengraph.jpg?v=2`} />
-
-      {/* Twitter Meta Tags */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta property="twitter:domain" content="app.train.tech" />
-      <meta property="twitter:url" content={`https://app.train.tech/`} />
-      <meta name="twitter:title" content="Train Protocol" />
-      <meta name="twitter:description" content="Trustless, permissionless cross-chain bridging protocol" />
-      <meta name="twitter:image" content={`https://app.train.tech/opengraphtw.jpg`} />
-    </Head>
-    {
-      themeData &&
-      <ColorSchema themeData={themeData} />
-    }
     <PulsatingCirclesProvider>
+      <Head>
+        <title>Train | Permissionless and trustless asset bridging protocol</title>
+        <link rel="icon" type="image/png" href="favicon/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+        <meta name="apple-mobile-web-app-title" content="TRAIN Protocol" />
+        <link rel="manifest" href={`/favicon/site.webmanifest`} />
+        <link rel="canonical" href="https://app.train.tech/" />
+        <meta name="msapplication-TileColor" content="#ffffff" />
+        <meta name="theme-color" content={`rgb(${themeData.secondary?.[900]})`} />
+        <meta name="description" content="Trustless, permissionless cross-chain bridging protocol" />
+
+        {/* Facebook Meta Tags */}
+        <meta property="og:url" content={`https://app.train.tech/`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Train Protocol" />
+        <meta property="og:description" content="Trustless, permissionless cross-chain bridging protocol" />
+        <meta property="og:image" content={`https://app.train.tech/opengraph.jpg?v=2`} />
+
+        {/* Twitter Meta Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta property="twitter:domain" content="app.train.tech" />
+        <meta property="twitter:url" content={`https://app.train.tech/`} />
+        <meta name="twitter:title" content="Train Protocol" />
+        <meta name="twitter:description" content="Trustless, permissionless cross-chain bridging protocol" />
+        <meta name="twitter:image" content={`https://app.train.tech/opengraphtw.jpg`} />
+      </Head>
+      {
+        themeData &&
+        <ColorSchema themeData={themeData} />
+      }
       <QueryProvider query={query}>
         <SettingsProvider data={appSettings}>
           <TooltipProvider delayDuration={500}>
@@ -150,8 +150,3 @@ export default function Layout({ children, settings, themeData }: Props) {
     </PulsatingCirclesProvider>
   </>)
 }
-
-const PulsatingCirclesContainer = () => {
-  const { isActive } = usePulsatingCircles();
-  return <PulsatingCircles isActive={isActive} />;
-};

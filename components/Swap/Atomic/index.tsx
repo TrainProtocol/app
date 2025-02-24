@@ -14,6 +14,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import VaulDrawer from "../../Modal/vaulModal";
+import { usePulsatingCircles } from "../../../context/PulsatingCirclesContext";
 
 const AtomicPage = dynamicWithRetries(() => import("../AtomicChat"),
     <div className="w-full h-[450px]">
@@ -37,7 +38,7 @@ export default function Form() {
     const { minAllowedAmount, maxAllowedAmount, updatePolling: pollFee } = useFee()
     const { getProvider } = useWallet()
     const { atomicQuery, setAtomicQuery } = useAtomicState()
-
+    
     const {
         address,
         amount,
