@@ -26,6 +26,7 @@ const AtomicContent: FC = () => {
                             commitStatus={commitStatus}
                             isManualClaimable={isManualClaimable}
                             manualClaimRequested={manualClaimRequested}
+                            redeemTxLink={redeemTx && destination_network?.transaction_explorer_template.replace('{0}', redeemTx?.hash)}
                         />
                         <motion.div
                             layout
@@ -38,23 +39,6 @@ const AtomicContent: FC = () => {
                         >
                             <MotionSummary />
                         </motion.div>
-
-                        {
-                            redeemTx?.hash && destination_network &&
-                            <div className="w-full flex justify-center">
-
-                                <Link
-                                    href={destination_network?.transaction_explorer_template.replace('{0}', redeemTx?.hash)}
-                                    target='_blank'
-                                    className="p-1 px-2 rounded-lg bg-secondary-700 flex gap-2 items-center text-primary-text-placeholder"
-                                >
-                                    <p>
-                                        View transaction
-                                    </p>
-                                    <ExternalLink className="h-4 w-auto" />
-                                </Link>
-                            </div>
-                        }
 
                         {
                             assetsLocked &&
@@ -76,7 +60,7 @@ const AtomicContent: FC = () => {
     )
 }
 
-const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boolean | undefined, manualClaimRequested: boolean | undefined }> = ({ commitStatus, isManualClaimable, manualClaimRequested }) => {
+const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boolean | undefined, manualClaimRequested: boolean | undefined, redeemTxLink: string | undefined }> = ({ commitStatus, isManualClaimable, manualClaimRequested, redeemTxLink }) => {
 
     const ResolvedIcon = () => {
         if (commitStatus === CommitStatus.RedeemCompleted) {
@@ -107,7 +91,20 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
 
     const ResolvedDescription = () => {
         if (commitStatus === CommitStatus.RedeemCompleted) {
-            return undefined
+            return redeemTxLink &&
+                <div className="w-full flex justify-center">
+                    <Link
+                        href={redeemTxLink}
+                        target='_blank'
+                        className="p-1 px-2 rounded-full bg-secondary-700 flex gap-2 items-center text-primary-text-placeholder"
+                    >
+                        <p>
+                            View transaction
+                        </p>
+                        <ExternalLink className="h-4 w-auto" />
+                    </Link>
+                </div>
+
         }
         if (isManualClaimable && !manualClaimRequested) {
             return <p className="text-base text-secondary-text max-w-sm mx-auto">
