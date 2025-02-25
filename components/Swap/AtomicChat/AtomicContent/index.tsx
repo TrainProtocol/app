@@ -96,7 +96,7 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
                     <Link
                         href={redeemTxLink}
                         target='_blank'
-                        className="p-1 px-2 rounded-full bg-secondary-700 flex gap-2 items-center text-primary-text-placeholder"
+                        className="p-1 px-4 rounded-full bg-secondary-700 flex gap-2 items-center text-primary-text-placeholder"
                     >
                         <p>
                             View transaction

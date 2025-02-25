@@ -123,7 +123,7 @@ export const LpLockingAssets: FC = () => {
         commitStatus !== CommitStatus.TimelockExpired &&
         <div className={`relative inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 ${!sourceDetails ? 'opacity-60' : ''}`}>
             <div className="space-y-2">
-                <div className="inline-flex items-center gap-2">
+                <div className="inline-flex items-center gap-2 h-[19px]">
                     {
                         completed &&
                         <CheckedIcon className="h-5 w-5 text-accent" />
@@ -135,7 +135,7 @@ export const LpLockingAssets: FC = () => {
                     {
                         loading &&
                         <div className="flex justify-center">
-                            <div className="relative flex items-center justify-end w-5 h-5 overflow-hidden border-2 border-accent rounded-full ">
+                            <div className="relative flex items-center justify-end w-[18px] h-[18px] overflow-hidden border-2 border-accent rounded-full ">
                                 <div className="absolute w-1/2 h-0.5  origin-left animate-spin-fast">
                                     <div className="w-3/4 h-full bg-accent rounded-full" />
                                 </div>
@@ -192,10 +192,9 @@ export const TimelockExpired: FC = () => {
 export const CancelAndRefund: FC = () => {
     const { commitStatus, refundTxId, source_network, sourceDetails } = useAtomicState()
 
-    const resolvedDescription = refundTxId ? 'Assets are received back at the source address' : 'Cancel & refund to receive your assets back at the source address'
-
     const completed = sourceDetails?.claimed == 2
     const loading = refundTxId && !completed
+    const resolvedDescription = completed ? 'Assets are received back at the source address' : 'Cancel & refund to receive your assets back at the source address'
 
     return (
         commitStatus === CommitStatus.TimelockExpired &&
@@ -210,28 +209,22 @@ export const CancelAndRefund: FC = () => {
                                 loading &&
                                 <div className="animate-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(theme(colors.accent.DEFAULT)_120deg,transparent_120deg)]" />
                             }
-                            <div
-                                className={clsx('py-0.5 px-2.5 bg-secondary-400 z-20 rounded-full relative text-sm transition-all inline-flex items-center gap-1', {
-                                    '!bg-accent inline-flex items-center gap-1': completed,
-                                })}
-                            >
-                                {
-                                    completed &&
-                                    <motion.div
-                                        initial={{ scale: 0 }}
-                                        animate={{ scale: 1 }}
-                                        exit={{ scale: 0 }}
-                                        transition={{ duration: 0.15 }}
-                                    >
-                                        <Check className="w-3 h-3" />
-                                    </motion.div>
-                                }
-                                <p>
+                            {
+                                !completed &&
+                                <div className='py-0.5 px-2.5 bg-secondary-400 z-20 rounded-full relative text-sm transition-all inline-flex items-center gap-1' >
                                     Refund
-                                </p>
-                            </div>
+                                </div>
+                            }
+                            {
+                                completed &&
+                                <CheckedIcon className="h-5 w-5 text-accent" />
+                            }
                         </div>
                     </div>
+                    {
+                        completed &&
+                        <div className="text-primary-text text-base leading-5">Refund Completed</div>
+                    }
                 </div>
                 <div className="text-sm text-primary-text-placeholder">{resolvedDescription}</div>
             </div>
