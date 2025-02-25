@@ -37,19 +37,19 @@ const PulsatingCircles: React.FC = () => {
                         style={{ animationDelay: "0s", clipPath: "inset(0 0 70% 0)" }}
                     ></div>
                     <div
-                        className="absolute w-[29%] aspect-square border border-primary-text-placeholder rounded-full opacity-25"
+                        className="absolute w-[28%] aspect-square border border-primary-text-placeholder rounded-full opacity-25"
                         style={{ animationDelay: "0.6s", clipPath: "inset(0 0 60% 0)" }}
                     ></div>
                     <div
-                        className="absolute w-[33%] aspect-square border-2 border-primary-text-placeholder rounded-full opacity-25"
+                        className="absolute w-[31%] aspect-square border-2 border-primary-text-placeholder rounded-full opacity-25"
                         style={{ animationDelay: "1.2s", clipPath: "inset(0 0 55% 0)" }}
                     ></div>
                     <div
-                        className="absolute w-[37%] aspect-square border-4 border-primary-text-placeholder rounded-full opacity-25"
+                        className="absolute w-[34%] aspect-square border-4 border-primary-text-placeholder rounded-full opacity-25"
                         style={{ animationDelay: "1.8s", clipPath: "inset(0 0 50% 0)" }}
                     ></div>
                     <div
-                        className="absolute w-[41%] aspect-square border-[6px] border-primary-text-placeholder rounded-full opacity-25"
+                        className="absolute w-[37%] aspect-square border-[6px] border-primary-text-placeholder rounded-full opacity-25"
                         style={{ animationDelay: "2.4s", clipPath: "inset(0 0 45% 0)" }}
                     ></div>
                 </>
