@@ -5,7 +5,7 @@ const PulsatingCircles: React.FC = () => {
     const { isActive } = usePulsatingCircles();
 
     return (
-        <div className="absolute inset-0 xl:top-[110%] lg:top-[40%] hidden md:flex items-center justify-center">
+        <div className="absolute inset-0 xl:top-[130%] lg:top-[60%] hidden md:flex items-center justify-center">
             {isActive && (
                 <>
                     <div

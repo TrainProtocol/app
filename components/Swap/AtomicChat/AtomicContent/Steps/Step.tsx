@@ -1,7 +1,8 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import clsx from "clsx";
 import { Check } from "lucide-react";
 import { motion } from "framer-motion";
+import { usePulsatingCircles } from "../../../../../context/PulsatingCirclesContext";
 
 type StepProps = {
     step: number;
@@ -12,6 +13,12 @@ type StepProps = {
     loading?: boolean
 }
 const Step: FC<StepProps> = ({ step, title, description, active, completed, loading }) => {
+    const { setIsActive } = usePulsatingCircles();
+
+    useEffect(() => {
+        setIsActive(!!loading);
+    }, [loading, setIsActive]);
+
     return <div className={`inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 ${!active ? 'opacity-60' : ''}`}>
         <div className="space-y-2">
             <div className="inline-flex items-center gap-2">
