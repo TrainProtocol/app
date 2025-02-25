@@ -1,5 +1,5 @@
 import { Formik, FormikProps } from "formik";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import React from "react";
 import MainStepValidation from "../../../lib/mainStepValidator";
@@ -13,7 +13,10 @@ import { useAtomicState } from "../../../context/atomicContext";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
-import VaulDrawer from "../../Modal/vaulModal";
+import WizardItem from "../../Wizard/WizardItem";
+import Wizard from "../../Wizard/Wizard";
+import { AtomicSteps } from "../../../Models/Wizard";
+import { useFormWizardaUpdate, useFormWizardState } from "../../../context/formWizardProvider";
 
 const AtomicPage = dynamicWithRetries(() => import("../AtomicChat"),
     <div className="w-full h-[450px]">
@@ -29,9 +32,9 @@ const AtomicPage = dynamicWithRetries(() => import("../AtomicChat"),
 
 export default function Form() {
     const formikRef = useRef<FormikProps<SwapFormValues>>(null);
-    const [showSwapModal, setShowSwapModal] = useState(false);
     const router = useRouter();
-
+    const { goToStep } = useFormWizardaUpdate()
+    const { currentStepName } = useFormWizardState()
     const query = useQueryState()
 
     const { minAllowedAmount, maxAllowedAmount, updatePolling: pollFee } = useFee()
@@ -39,12 +42,6 @@ export default function Form() {
     const { atomicQuery, setAtomicQuery } = useAtomicState()
 
     const {
-        address,
-        amount,
-        destination,
-        destination_asset,
-        source,
-        source_asset,
         commitId
     } = atomicQuery
 
@@ -91,7 +88,7 @@ export default function Form() {
                 },
                 router
             })
-            handleShowSwapModal(true)
+            goToStep(AtomicSteps.Swap)
         }
         catch (error) {
             console.log(error)
@@ -105,40 +102,23 @@ export default function Form() {
         formikRef.current?.validateForm();
     }, [minAllowedAmount, maxAllowedAmount]);
 
-    const handleShowSwapModal = useCallback((value: boolean) => {
-        pollFee(!value)
-        setShowSwapModal(value)
-        value ? (atomicQuery.source && setAtomicPath({ atomicQuery, router })) : removeSwapPath(router)
-    }, [router, atomicQuery])
+    const handleWizardRouting = useCallback((step: AtomicSteps, move?: 'back' | 'forward') => {
+        pollFee(move === 'back')
+        goToStep(step, move)
+        move == 'forward' ? (atomicQuery.source && setAtomicPath({ atomicQuery, router })) : removeSwapPath(router)
+    }, [atomicQuery, router])
 
     return <>
         <AnimatePresence mode='wait'>
             {
                 commitId &&
-                !showSwapModal &&
+                currentStepName !== AtomicSteps.Swap &&
                 <div className="rounded-r-lg cursor-pointer absolute z-10 md:mt-3 border-l-0">
-                    <PendingSwap key="pendingSwap" onClick={() => handleShowSwapModal(true)} />
+                    <PendingSwap key="pendingSwap" onClick={() => handleWizardRouting(AtomicSteps.Swap)} />
                 </div>
             }
         </AnimatePresence>
-        <VaulDrawer
-            show={showSwapModal}
-            setShow={handleShowSwapModal}
-            header={'Complete the swap'}
-            modalId={"showSwap"}
-        >
-            <VaulDrawer.Snap id='item-1'>
-                <AtomicPage
-                    address={address as string}
-                    amount={Number(amount)}
-                    destination={destination as string}
-                    destination_asset={destination_asset as string}
-                    source={source as string}
-                    source_asset={source_asset as string}
-                    type='contained'
-                />
-            </VaulDrawer.Snap>
-        </VaulDrawer>
+
         <Formik
             innerRef={formikRef}
             initialValues={{}}
@@ -146,9 +126,17 @@ export default function Form() {
             validate={MainStepValidation({ minAllowedAmount, maxAllowedAmount })}
             onSubmit={handleSubmit}
         >
-            <>
-                <SwapForm />
-            </>
+            <Wizard wizardId={"atomicSteps"}>
+                <WizardItem StepName={AtomicSteps.Form}>
+
+                    <div className="flex flex-col justify-between h-full">
+                        <SwapForm />
+                    </div>
+                </WizardItem>
+                <WizardItem StepName={AtomicSteps.Swap} GoBack={() => handleWizardRouting(AtomicSteps.Form, 'back')}>
+                    <AtomicPage type='contained' />
+                </WizardItem>
+            </Wizard>
         </Formik>
     </>
 }

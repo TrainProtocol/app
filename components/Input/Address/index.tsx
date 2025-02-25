@@ -6,10 +6,9 @@ import AddressPicker, { AddressTriggerProps } from "./AddressPicker"
 
 type AddressProps = {
     children: (props: AddressTriggerProps) => JSX.Element;
-    partner: Partner | undefined
 }
 
-const Address = ({ partner, children }: AddressProps) => {
+const Address = ({ children }: AddressProps) => {
     const {
         values,
     } = useFormikContext<SwapFormValues>();
@@ -23,7 +22,6 @@ const Address = ({ partner, children }: AddressProps) => {
             close={() => setShowAddressModal(false)}
             disabled={!values.to}
             name={"destination_address"}
-            partner={partner}
         >
             {children}
         </AddressPicker>

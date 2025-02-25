@@ -112,9 +112,11 @@ const NetworkFormField = forwardRef(function NetworkFormField({ direction, label
                 direction === "from" ?
                     <SourceWalletPicker />
                     : <>
-                        <span><Address partner={partner} >{
-                            ({ destination, disabled, addressItem, connectedWallet, partner }) => <DestinationWalletPicker destination={destination} disabled={disabled} addressItem={addressItem} connectedWallet={connectedWallet} partner={partner} />
-                        }</Address></span>
+                        <span>
+                            <Address>{
+                                ({ destination, disabled, addressItem, connectedWallet, partner }) => <DestinationWalletPicker destination={destination} disabled={disabled} addressItem={addressItem} connectedWallet={connectedWallet} partner={partner} />
+                            }</Address>
+                        </span>
                     </>
             }
         </div>
@@ -135,21 +137,9 @@ const NetworkFormField = forwardRef(function NetworkFormField({ direction, label
             <div className="col-span-2 w-full">
                 <CurrencyFormField direction={name} />
             </div>
-            {
-                direction === "to" && !destination_address && to &&
-                <div className="flex items-center col-span-6">
-                    <Address partner={partner} >{SecondDestinationWalletPicker}</Address>
-                </div>
-            }
         </div>
     </div >)
 });
-
-export const SecondDestinationWalletPicker = () => {
-    return <div className=" justify-center w-full pl-3 pr-2 py-2 bg-secondary-600 items-center flex font-light space-x-2 mx-auto rounded-lg focus-peer:ring-primary focus-peer:border-secondary-400 focus-peer:border focus-peer:ring-1 focus:outline-none disabled:cursor-not-allowed relative grow h-12 ">
-        <PlusIcon className="stroke-1" /> <span>Destination Address</span>
-    </div>
-}
 
 
 function groupByType(values: ISelectMenuItem[]) {
@@ -180,12 +170,12 @@ function GenerateMenuItems(routes: Network[] | undefined, direction: SwapDirecti
         const isAvailable = !lock &&
             (
                 // r.tokens?.some(r => r.status === 'active' || r.status === 'not_found') ||
-                !query.lockAsset && !query.lockFromAsset && !query.lockToAsset && !query.lockFrom && !query.lockTo && !query.lockNetwork && !query.lockExchange 
+                !query.lockAsset && !query.lockFromAsset && !query.lockToAsset && !query.lockFrom && !query.lockTo && !query.lockNetwork && !query.lockExchange
                 // && r.tokens?.some(r => r.status !== 'inactive')
             );
 
         const order = ResolveNetworkOrder(r, direction, isNewlyListed)
-        const routeNotFound = isAvailable 
+        const routeNotFound = isAvailable
         // && !r.tokens?.some(r => r.status === 'active');
 
         const res: SelectMenuItem<Network> & { isExchange: boolean } = {

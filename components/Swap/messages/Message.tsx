@@ -12,7 +12,7 @@ export type WalletMessageProps = {
 const WalletMessage: FC<WalletMessageProps> = ({ header, details, status, showInModal }) => {
     const [showErrorModal, setShowErrorModal] = useState(false);
 
-    return <div className="flex text-center mb-2 space-x-2">
+    return <div className="flex text-center space-x-2">
         <div className='relative'>
             {
                 status === "error" ?
@@ -27,23 +27,17 @@ const WalletMessage: FC<WalletMessageProps> = ({ header, details, status, showIn
         </div>
         {
             showInModal ?
-                <div className="text-left space-y-1 w-full max-w-2xl">
+                <div className="text-left space-y-1 mt-0.5 w-full max-w-2xl">
                     <button type="button" onClick={() => setShowErrorModal(true)} className="flex justify-between w-full">
                         <p className="text-md font-semibold self-center text-primary-text">
                             {header}
                         </p>
                         {showErrorModal ? <ChevronDown className="text-primary-text" /> : <ChevronUp className="text-primary-text" />}
                     </button>
-                    {/* TODO handle overflow */}
-                    <Modal height="fit" show={showErrorModal} setShow={setShowErrorModal} modalId="walletMessage">
-                        <div className="text-left space-y-1">
-                            <p className="text-md font-semibold self-center text-primary-text">
-                                {header}
-                            </p>
-                            <p className="text-sm text-secondary-text break-normal whitespace-pre-wrap">
-                                {details}
-                            </p>
-                        </div>
+                    <Modal height="fit" show={showErrorModal} setShow={setShowErrorModal} header={header} modalId="walletMessage">
+                        <p className="text-sm text-left text-secondary-text break-normal whitespace-pre-wrap">
+                            {details}
+                        </p>
                     </Modal>
                 </div>
                 :

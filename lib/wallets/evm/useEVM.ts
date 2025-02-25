@@ -204,7 +204,7 @@ export default function useEVM({ network }: Props): WalletProvider {
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
         const { destinationChain, destinationAsset, sourceAsset, lpAddress, address, amount, decimals, atomicContract, chainId } = params
 
-        const LOCK_TIME = 1000 * 60 * 16 // 16 minutes
+        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
         const timeLockMS = Date.now() + LOCK_TIME
         const timeLock = Math.floor(timeLockMS / 1000)
 
@@ -370,7 +370,7 @@ export default function useEVM({ network }: Props): WalletProvider {
     const addLock = async (params: CommitmentParams & LockParams) => {
         const { chainId, id, hashlock, contractAddress } = params
 
-        const LOCK_TIME = 1000 * 60 * 16 // 16 minutes
+        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
         const timeLockMS = Date.now() + LOCK_TIME
         const timeLock = Math.floor(timeLockMS / 1000)
 
@@ -427,10 +427,7 @@ export default function useEVM({ network }: Props): WalletProvider {
         const { chainId, id, contractAddress, type } = params
         const abi = type === 'erc20' ? ERC20PHTLCAbi : PHTLCAbi
 
-        if (!account?.address) throw new Error("Wallet not connected")
-
         const { request } = await simulateContract(config, {
-            account: account.address as `0x${string}`,
             abi: abi,
             address: contractAddress,
             functionName: 'refund',

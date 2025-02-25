@@ -5,7 +5,6 @@ import { AddressGroup, AddressItem } from ".";
 import { Network } from "../../../../Models/Network";
 import { FC } from "react";
 import AddressWithIcon from "./AddressWithIcon";
-import { Partner } from "../../../../Models/Partner";
 import { Wallet } from "../../../../Models/WalletProvider";
 import { BookOpen } from "lucide-react";
 
@@ -14,10 +13,9 @@ type AddressBookProps = {
     onSelectAddress: (address: string, wallet: Wallet | undefined) => void;
     destination: Network;
     destination_address: string | undefined;
-    partner?: Partner;
 }
 
-const AddressBook: FC<AddressBookProps> = ({ addressBook, onSelectAddress, destination, destination_address, partner }) => {
+const AddressBook: FC<AddressBookProps> = ({ addressBook, onSelectAddress, destination, destination_address }) => {
 
     return (
         <div className="text-left !mt-1">
@@ -38,7 +36,7 @@ const AddressBook: FC<AddressBookProps> = ({ addressBook, onSelectAddress, desti
                                 return (
                                     <button type="button" key={item.address} onClick={() => onSelectAddress(item.address, item.wallet)} className={`group/addressItem px-3 py-3 rounded-componentRoundness hover:bg-secondary-600 w-full transition duration-200 bg-secondary-700 ${isSelected && 'bg-secondary-800'}`}>
                                         <div className={`flex items-center justify-between w-full`}>
-                                            <AddressWithIcon addressItem={item} partner={partner} network={destination} connectedWallet={item.wallet} />
+                                            <AddressWithIcon addressItem={item} network={destination} connectedWallet={item.wallet} />
                                             <div className="flex h-6 items-center px-1">
                                                 {
                                                     isSelected &&

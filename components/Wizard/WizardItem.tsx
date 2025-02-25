@@ -16,7 +16,7 @@ type Props = {
 const WizardItem: FC<Props> = (({ StepName, children, GoBack, PositionPercent, fitHeight = false, className, inModal }: Props) => {
     const { currentStepName, wrapperWidth, moving } = useFormWizardState()
     const { setGoBack, setPositionPercent } = useFormWizardaUpdate()
-    const styleConfigs = fitHeight ? { width: `${wrapperWidth}px`, height: '100%' } : { width: `${wrapperWidth}px`, minHeight: inModal ? 'inherit' : '534px', height: '100%' }
+    const styleConfigs = fitHeight ? { width: `${wrapperWidth}px`, height: '100%' } : { width: `${wrapperWidth}px`, minHeight: inModal ? 'inherit' : '400px', height: '100%' }
 
     useEffect(() => {
         if (currentStepName === StepName) {
