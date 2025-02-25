@@ -21,7 +21,7 @@ export default function Home({ settings, themeData, apiKey }: InferGetServerSide
       }
     }}>
       <Layout settings={settings} themeData={themeData}>
-        <div className="relative w-full flex justify-center">
+        <div className="w-full">
           <PulsatingCircles />
           <Swap />
         </div>
