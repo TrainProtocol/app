@@ -38,7 +38,7 @@ export default function Form() {
     const { minAllowedAmount, maxAllowedAmount, updatePolling: pollFee } = useFee()
     const { getProvider } = useWallet()
     const { atomicQuery, setAtomicQuery } = useAtomicState()
-    
+
     const {
         address,
         amount,

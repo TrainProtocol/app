@@ -12,7 +12,7 @@ interface PulsatingCirclesProviderProps {
 }
 
 export const PulsatingCirclesProvider = ({ children }: PulsatingCirclesProviderProps) => {
-    const [isActive, setIsActive] = useState(true);
+    const [isActive, setIsActive] = useState(false);
 
     return (
         <PulsatingCirclesContext.Provider value={{ isActive, setIsActive }}>

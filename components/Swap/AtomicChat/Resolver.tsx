@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { UserCommitAction, UserLockAction, UserRefundAction } from "./Actions/UserActions";
 import { CommitStatus, useAtomicState } from "../../../context/atomicContext";
 import { LpLockingAssets } from "./Actions/LpLock";
@@ -13,6 +13,7 @@ import CheckedIcon from "../../Icons/CheckedIcon";
 import LockIcon from "../../Icons/LockIcon";
 import Link from "next/link";
 import { CommitTransaction } from "../../../lib/layerSwapApiClient";
+import { usePulsatingCircles } from "../../../context/PulsatingCirclesContext";
 
 const RequestStep: FC = () => {
     const { sourceDetails, commitId, commitTxId, source_network, commitFromApi } = useAtomicState()
@@ -226,6 +227,12 @@ type StepProps = {
     loading?: boolean
 }
 const Step: FC<StepProps> = ({ step, title, description, active, children, completed, loading }) => {
+    const { setIsActive } = usePulsatingCircles();
+
+    useEffect(() => {
+        setIsActive(!!loading);
+    }, [loading, setIsActive]);
+    
     return <div className={`flex flex-col w-full bg-secondary-600 rounded-componentRoundness p-2 ${!active ? 'opacity-40' : ''}`}>
         <div className="flex items-center gap-3">
             <div className="w-10 h-9 text-center content-center bg-secondary-400 rounded-md grow">{step}</div>
