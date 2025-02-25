@@ -172,7 +172,7 @@ export function AtomicProvider({ children }) {
         if (atomicParams) {
             atomicURL += `?${atomicParams}`
         }
-        window.history.pushState({ ...window.history.state, as: atomicURL, url: atomicURL }, '', atomicURL);
+        window.history.replaceState({ ...window.history.state, as: atomicURL, url: atomicURL }, '', atomicURL);
         updateCommitState(commitId, {});
     }
 
