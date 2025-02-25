@@ -335,8 +335,12 @@ export const UserRefundAction: FC = () => {
 
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
         {
-            (requestedRefund || sourceDetails?.claimed == 2) ?
-                <></>
+            (requestedRefund && sourceDetails?.claimed !== 2) ?
+                <ButtonStatus
+                    isDisabled={true}
+                >
+                    Cancel & Refund
+                </ButtonStatus>
                 :
                 <WalletActionButton
                     activeChain={wallet?.chainId}
