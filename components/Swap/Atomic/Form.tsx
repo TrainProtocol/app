@@ -151,59 +151,59 @@ const SwapForm: FC = () => {
     const shouldConnectWallet = (sourceWalletNetwork && !selectedSourceAccount) || (!values.from && !wallets.length)
 
     return <>
-            <Form className={`h-full ${(isSubmitting) ? 'pointer-events-none' : 'pointer-events-auto'}`} >
-                <ResizablePanel>
-                    <Widget.Content>
-                        <div className='flex-col relative flex justify-between gap-1.5 w-full mb-3.5 leading-4 bg-secondary-700 rounded-xl'>
-                            {!(query?.hideFrom && values?.from) && <div className="flex flex-col w-full">
-                                <NetworkFormField direction="from" label="From" className="rounded-t-componentRoundness pt-2.5" />
-                            </div>}
-                            {!query?.hideFrom && !query?.hideTo &&
-                                <button
-                                    type="button"
-                                    aria-label="Reverse the source and destination"
-                                    disabled={valuesSwapperDisabled || sourceLoading || destinationLoading}
-                                    onClick={valuesSwapper}
-                                    className={`${sourceLoading || destinationLoading ? "" : "hover:text-primary"} absolute right-[calc(50%-16px)] top-[122px] z-10 border-2 border-secondary-900 bg-secondary-900 rounded-[10px] disabled:cursor-not-allowed disabled:text-secondary-text duration-200 transition disabled:pointer-events-none`}>
-                                    <motion.div
-                                        animate={animate}
-                                        transition={{ duration: 0.3 }}
-                                        onTap={() => !valuesSwapperDisabled && cycle()}
-                                    >
-                                        {sourceLoading || destinationLoading ?
-                                            <Loader2 className="opacity-50 w-7 h-auto p-1 bg-secondary-900 border-2 border-secondary-500 rounded-lg disabled:opacity-30 animate-spin" />
-                                            :
-                                            <ArrowUpDown className={classNames(valuesSwapperDisabled && 'opacity-50', "w-7 h-auto p-1 bg-secondary-900 border-2 border-secondary-500 rounded-lg disabled:opacity-30")} />
-                                        }
-                                    </motion.div>
-                                </button>}
-                            {!(query?.hideTo && values?.to) && <div className="flex flex-col w-full">
-                                <NetworkFormField direction="to" label="To" className="rounded-b-componentRoundness" />
-                            </div>}
-                        </div>
-                        <div className="mb-6 leading-4">
-                            <AmountField />
-                        </div>
-                        <div className="w-full">
-                            <FeeDetailsComponent values={values} />
-                            {
-                                values.amount &&
-                                <ReserveGasNote onSubmit={(walletBalance, networkGas) => handleReserveGas(walletBalance, networkGas)} />
-                            }
-                        </div>
-                    </Widget.Content>
-                </ResizablePanel>
-                <Widget.Footer>
-                    <FormButton
-                        shouldConnectWallet={shouldConnectWallet}
-                        values={values}
-                        isValid={isValid}
-                        errors={errors}
-                        isSubmitting={isSubmitting}
-                        actionDisplayName={actionDisplayName}
-                    />
-                </Widget.Footer>
-            </Form>
+        <Form className={`h-full ${(isSubmitting) ? 'pointer-events-none' : 'pointer-events-auto'}`} >
+            <ResizablePanel>
+                <Widget.Content>
+                    <div className='flex-col relative flex justify-between gap-1.5 w-full mb-3.5 leading-4 bg-secondary-700 rounded-xl'>
+                        {!(query?.hideFrom && values?.from) && <div className="flex flex-col w-full">
+                            <NetworkFormField direction="from" label="From" className="rounded-t-componentRoundness pt-2.5" />
+                        </div>}
+                        {!query?.hideFrom && !query?.hideTo &&
+                            <button
+                                type="button"
+                                aria-label="Reverse the source and destination"
+                                disabled={valuesSwapperDisabled || sourceLoading || destinationLoading}
+                                onClick={valuesSwapper}
+                                className={`${sourceLoading || destinationLoading ? "" : "hover:text-primary"} absolute right-[calc(50%-16px)] top-[122px] z-10 border-2 border-secondary-900 bg-secondary-900 rounded-[10px] disabled:cursor-not-allowed disabled:text-secondary-text duration-200 transition disabled:pointer-events-none`}>
+                                <motion.div
+                                    animate={animate}
+                                    transition={{ duration: 0.3 }}
+                                    onTap={() => !valuesSwapperDisabled && cycle()}
+                                >
+                                    {sourceLoading || destinationLoading ?
+                                        <Loader2 className="opacity-50 w-7 h-auto p-1 bg-secondary-900 border-2 border-secondary-500 rounded-lg disabled:opacity-30 animate-spin" />
+                                        :
+                                        <ArrowUpDown className={classNames(valuesSwapperDisabled && 'opacity-50', "w-7 h-auto p-1 bg-secondary-900 border-2 border-secondary-500 rounded-lg disabled:opacity-30")} />
+                                    }
+                                </motion.div>
+                            </button>}
+                        {!(query?.hideTo && values?.to) && <div className="flex flex-col w-full">
+                            <NetworkFormField direction="to" label="To" className="rounded-b-componentRoundness" />
+                        </div>}
+                    </div>
+                    <div className="mb-6 leading-4">
+                        <AmountField />
+                    </div>
+                    <div className="w-full">
+                        <FeeDetailsComponent values={values} />
+                        {
+                            values.amount &&
+                            <ReserveGasNote onSubmit={(walletBalance, networkGas) => handleReserveGas(walletBalance, networkGas)} />
+                        }
+                    </div>
+                </Widget.Content>
+            </ResizablePanel>
+            <Widget.Footer>
+                <FormButton
+                    shouldConnectWallet={shouldConnectWallet}
+                    values={values}
+                    isValid={isValid}
+                    errors={errors}
+                    isSubmitting={isSubmitting}
+                    actionDisplayName={actionDisplayName}
+                />
+            </Widget.Footer>
+        </Form>
     </>
 }
 
