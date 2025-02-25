@@ -73,6 +73,7 @@ module.exports = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "blinking": "blink 1.1s step-end infinite",
+        rotate: "rotate 2s linear infinite",
 
         // Tooltip
         "slide-up-fade": "slide-up-fade 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
@@ -86,6 +87,10 @@ module.exports = {
         pulsate: "pulsate 2.5s infinite ease-in-out",
       },
       keyframes: {
+        rotate: {
+          "0%": { transform: "rotate(-0deg) scale(-10)" },
+          "100%": { transform: "rotate(360deg) scale(-10)" },
+        },
         "reverse-spin": {
           from: {
             transform: 'rotate(360deg)'
