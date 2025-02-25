@@ -11,7 +11,7 @@ export default function Home({ settings, themeData, apiKey }: InferGetServerSide
 
   const sourceRoutesDeafultKey = resolveRoutesURLForSelectedToken({ direction: 'from', network: undefined, token: undefined, includes: { unmatched: true, unavailable: true } })
   const destinationRoutesDefaultKey = resolveRoutesURLForSelectedToken({ direction: 'to', network: undefined, token: undefined, includes: { unmatched: true, unavailable: true } })
-
+  
   return (
     <SWRConfig value={{
       fallback: {

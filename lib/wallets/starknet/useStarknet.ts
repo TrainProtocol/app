@@ -149,8 +149,6 @@ export default function useStarknet(): WalletProvider {
         }
     })
 
-    const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
-    const timeLock = Math.floor((Date.now() + LOCK_TIME) / 1000)
 
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
         const { destinationChain, destinationAsset, sourceAsset, lpAddress, address, tokenContractAddress, amount, decimals, atomicContract: atomicAddress } = params
@@ -178,7 +176,8 @@ export default function useStarknet(): WalletProvider {
                 return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
             }
             const id = `0x${generateBytes32Hex()}`
-
+            const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
+            const timeLock = Math.floor((Date.now() + LOCK_TIME) / 1000)
             const args = [
                 BigInt(id),
                 parsedAmount,
@@ -289,7 +288,9 @@ export default function useStarknet(): WalletProvider {
 
     const addLock = async (params: CommitmentParams & LockParams) => {
         const { id, hashlock, contractAddress } = params
-
+        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
+        const timeLock = Math.floor((Date.now() + LOCK_TIME) / 1000)
+        
         if (!starknetWallet?.metadata?.starknetAccount) {
             throw new Error('Wallet not connected')
         }
@@ -315,6 +316,8 @@ export default function useStarknet(): WalletProvider {
         if (!starknetWallet?.metadata?.starknetAccount) {
             throw new Error('Wallet not connected')
         }
+        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
+        const timeLock = Math.floor((Date.now() + LOCK_TIME) / 1000)
 
         const u256Id = cairo.uint256(id);
         const u256Hashlock = cairo.uint256(hashlock);
@@ -324,7 +327,7 @@ export default function useStarknet(): WalletProvider {
             domain: {
                 name: 'Train',
                 version: shortString.encodeShortString("v1"),
-                chainId: constants.StarknetChainId.SN_SEPOLIA,
+                chainId: process.env.NEXT_PUBLIC_API_VERSION === 'sandbox' ? constants.StarknetChainId.SN_SEPOLIA : constants.StarknetChainId.SN_MAIN,
                 revision: TypedDataRevision.ACTIVE,
             },
             message: {

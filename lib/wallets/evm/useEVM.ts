@@ -204,7 +204,7 @@ export default function useEVM({ network }: Props): WalletProvider {
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
         const { destinationChain, destinationAsset, sourceAsset, lpAddress, address, amount, decimals, atomicContract, chainId } = params
 
-        const LOCK_TIME = 1000 * 60 * 16 // 16 minutes
+        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
         const timeLockMS = Date.now() + LOCK_TIME
         const timeLock = Math.floor(timeLockMS / 1000)
 
@@ -370,14 +370,14 @@ export default function useEVM({ network }: Props): WalletProvider {
     const addLock = async (params: CommitmentParams & LockParams) => {
         const { chainId, id, hashlock, contractAddress } = params
 
-        const LOCK_TIME = 1000 * 60 * 16 // 16 minutes
+        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
         const timeLockMS = Date.now() + LOCK_TIME
         const timeLock = Math.floor(timeLockMS / 1000)
 
         const apiClient = new LayerSwapApiClient()
 
         const domain = {
-            name: "LayerswapV8",
+            name: "Train",
             version: "1",
             chainId: Number(chainId),
             verifyingContract: contractAddress as `0x${string}`,

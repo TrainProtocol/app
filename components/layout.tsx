@@ -127,22 +127,22 @@ export default function Layout({ children, settings, themeData }: Props) {
       themeData &&
       <ColorSchema themeData={themeData} />
     }
-    <QueryProvider query={query}>
-      <SettingsProvider data={appSettings}>
-        <TooltipProvider delayDuration={500}>
-          <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
-            <ThemeWrapper>
-              <WalletsProviders basePath={basePath} themeData={themeData} appName={router.query.appName?.toString()}>
-                <AsyncModalProvider>
-                  {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
-                    <MaintananceContent />
-                    : children}
-                </AsyncModalProvider>
-              </WalletsProviders>
-            </ThemeWrapper>
-          </ErrorBoundary>
-        </TooltipProvider>
-      </SettingsProvider >
-    </QueryProvider >
+      <QueryProvider query={query}>
+        <SettingsProvider data={appSettings}>
+          <TooltipProvider delayDuration={500}>
+            <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
+              <ThemeWrapper>
+                <WalletsProviders basePath={basePath} themeData={themeData} appName={router.query.appName?.toString()}>
+                  <AsyncModalProvider>
+                    {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
+                      <MaintananceContent />
+                      : children}
+                  </AsyncModalProvider>
+                </WalletsProviders>
+              </ThemeWrapper>
+            </ErrorBoundary>
+          </TooltipProvider>
+        </SettingsProvider >
+      </QueryProvider >
   </>)
 }

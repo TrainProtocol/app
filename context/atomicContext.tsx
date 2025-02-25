@@ -141,8 +141,8 @@ export function AtomicProvider({ children }) {
     useEffect(() => {
         let timer: NodeJS.Timeout;
 
-        if (!sourceDetails || isTimelockExpired || (sourceDetails.hashlock && !destinationDetails?.hashlock)) return
-        const time = (Number(sourceDetails?.timelock) * 1000) - Date.now()
+        if (!sourceDetails?.timelock || isTimelockExpired || (sourceDetails.hashlock && !destinationDetails?.hashlock)) return
+        const time = (Number(sourceDetails?.timelock + 5) * 1000) - Date.now()
 
 
         if (!sourceDetails.hashlock || (destinationDetails && destinationDetails.claimed == 1)) {
@@ -172,7 +172,7 @@ export function AtomicProvider({ children }) {
         if (atomicParams) {
             atomicURL += `?${atomicParams}`
         }
-        window.history.pushState({ ...window.history.state, as: atomicURL, url: atomicURL }, '', atomicURL);
+        window.history.replaceState({ ...window.history.state, as: atomicURL, url: atomicURL }, '', atomicURL);
         updateCommitState(commitId, {});
     }
 
@@ -213,7 +213,7 @@ const statusResolver = ({ commitFromApi, sourceDetails, destinationDetails, dest
     const commited = sourceDetails ? true : false;
     const lpLockDetected = destinationDetails?.hashlock ? true : false;
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
-    const redeemCompleted = (destinationDetails?.claimed == 3 ? true : false) || lpRedeemTransaction?.hash;
+    const redeemCompleted = ((destinationDetails?.claimed == 3 && lpRedeemTransaction?.hash) ? true : false);
 
     if (redeemCompleted) return CommitStatus.RedeemCompleted
     else if (timelockExpired) return CommitStatus.TimelockExpired
