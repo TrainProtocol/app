@@ -1,24 +1,20 @@
 import { FC } from "react";
 import { CommitStatus, useAtomicState } from "../../../../context/atomicContext";
-import { CommitTransaction } from "../../../../lib/layerSwapApiClient";
-import SubmitButton from "../../../buttons/submitButton";
 import { LpLockingAssets } from "./LpLock";
 import { RedeemAction } from "./Redeem";
 import { UserRefundAction, UserLockAction, UserCommitAction } from "./UserActions";
 import TransactionMessages from "../../messages/TransactionMessages";
+import { Commit } from "../../../../Models/PHTLC";
+import { AnimatePresence, motion } from "framer-motion";
+import ReactPortal from "../../../Common/ReactPortal";
+import ButtonStatus from "./Status/ButtonStatus";
 
-const ResolveAction: FC = () => {
-    const { sourceDetails, error, updateCommit, commitStatus } = useAtomicState()
+const ResolveAction: FC<{ sourceDetails: Commit | undefined, commitStatus: CommitStatus, error: string | undefined }> = ({ commitStatus, sourceDetails, error }) => {
 
     if (error) {
-        return <div className="w-full space-y-2 flex flex-col justify-between h-full text-secondary-text">
-            <div className="p-3 bg-secondary-600 rounded-xl">
-                <TransactionMessage error={error} isLoading={false} />
-            </div>
-            <SubmitButton onClick={() => updateCommit('error', undefined)}>
-                Try again
-            </SubmitButton>
-        </div >
+        return <ButtonStatus>
+            Error
+        </ButtonStatus>
     }
     if (commitStatus === CommitStatus.RedeemCompleted) {
         return <></>
@@ -44,15 +40,62 @@ const ResolveAction: FC = () => {
 }
 
 export const Actions: FC = () => {
-    const { destinationDetails, sourceDetails, commitFromApi, destination_network, commitStatus } = useAtomicState()
+    const { sourceDetails, commitStatus, error } = useAtomicState()
 
-    const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
+    return (
+        <div className="relative">
+            <Error />
+            <ResolveAction
+                commitStatus={commitStatus}
+                sourceDetails={sourceDetails}
+                error={error}
+            />
+        </div>
+    )
+}
 
-    const allDone = ((sourceDetails?.hashlock && destinationDetails?.claimed == 3) || lpRedeemTransaction?.hash || sourceDetails?.claimed == 2) ? true : false
-    const showTimer = !allDone && commitStatus !== CommitStatus.TimelockExpired
-    const timelock = sourceDetails?.timelock || sourceDetails?.timelock
+const Error: FC = () => {
+    const { error, updateCommit } = useAtomicState()
 
-    return <ResolveAction />
+    return <>
+        <AnimatePresence>
+            {
+                error &&
+                <ReactPortal wrapperId="widget_root">
+                    <motion.div
+                        className={`absolute inset-0 z-20 bg-black/50 block`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    />
+                </ReactPortal>
+            }
+        </AnimatePresence>
+
+        <AnimatePresence>
+            {
+                error &&
+                <motion.div
+                    initial={{ y: 150 }}
+                    animate={{ y: 0 }}
+                    exit={{ y: 150 }}
+                    transition={{ duration: 0.15, bounceDamping: 0 }}
+                    className="absolute z-30 bottom-0 bg-secondary-700 rounded-2xl p-3 w-full"
+                >
+                    <div className="w-full space-y-3 flex flex-col justify-between h-full text-secondary-text">
+                        <TransactionMessage error={error} isLoading={false} />
+                        <button
+                            type="button"
+                            onClick={() => updateCommit('error', undefined)}
+                            className='relative w-full font-semibold rounded-componentRoundness transition duration-200 ease-in-out bg-secondary-400 border border-secondary-500 text-primary-text py-3 px-2 md:px-3'
+                        >
+                            Try again
+                        </button>
+                    </div>
+                </motion.div>
+            }
+        </AnimatePresence>
+    </>
 }
 
 const TransactionMessage: FC<{ isLoading: boolean, error: string | undefined }> = ({ error }) => {
