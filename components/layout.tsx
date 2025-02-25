@@ -17,8 +17,6 @@ import ColorSchema from "./ColorSchema";
 import { IsExtensionError } from "../helpers/errorHelper";
 import { AsyncModalProvider } from "../context/asyncModal";
 import WalletsProviders from "./WalletProviders";
-import PulsatingCircles from "./utils/pulse";
-import { PulsatingCirclesProvider, usePulsatingCircles } from "../context/PulsatingCirclesContext";
 // import { datadogRum } from '@datadog/browser-rum';
 
 type Props = {
@@ -129,7 +127,6 @@ export default function Layout({ children, settings, themeData }: Props) {
       themeData &&
       <ColorSchema themeData={themeData} />
     }
-    <PulsatingCirclesProvider>
       <QueryProvider query={query}>
         <SettingsProvider data={appSettings}>
           <TooltipProvider delayDuration={500}>
@@ -147,11 +144,5 @@ export default function Layout({ children, settings, themeData }: Props) {
           </TooltipProvider>
         </SettingsProvider >
       </QueryProvider >
-    </PulsatingCirclesProvider>
   </>)
 }
-
-const PulsatingCirclesContainer = () => {
-  const { isActive } = usePulsatingCircles();
-  return <PulsatingCircles isActive={isActive} />;
-};
