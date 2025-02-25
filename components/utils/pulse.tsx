@@ -5,7 +5,7 @@ const PulsatingCircles: React.FC = () => {
     const { isActive } = usePulsatingCircles();
 
     return (
-        <div className="absolute inset-0 xl:top-[130%] lg:top-[60%] hidden md:flex items-center justify-center">
+        <div className="absolute inset-0 hidden md:flex items-center justify-center">
             {isActive && (
                 <>
                     <div
@@ -33,24 +33,24 @@ const PulsatingCircles: React.FC = () => {
             {!isActive && (
                 <>
                     <div
-                        className="absolute w-[80%] aspect-square border border-primary-text-placeholder rounded-full"
-                        style={{ animationDelay: "0s" }}
+                        className="absolute w-[20%] aspect-square border border-primary-text-placeholder rounded-full opacity-25"
+                        style={{ animationDelay: "0s", clipPath: "inset(0 0 50% 0)" }}
                     ></div>
                     <div
-                        className="absolute w-[90%] aspect-square border border-primary-text-placeholder rounded-full"
-                        style={{ animationDelay: "0.6s" }}
+                        className="absolute w-[25%] aspect-square border border-primary-text-placeholder rounded-full opacity-25"
+                        style={{ animationDelay: "0.6s", clipPath: "inset(0 0 50% 0)" }}
                     ></div>
                     <div
-                        className="absolute w-[100%] aspect-square border-2 border-primary-text-placeholder rounded-full"
-                        style={{ animationDelay: "1.2s" }}
+                        className="absolute w-[30%] aspect-square border-2 border-primary-text-placeholder rounded-full opacity-25"
+                        style={{ animationDelay: "1.2s", clipPath: "inset(0 0 50% 0)" }}
                     ></div>
                     <div
-                        className="absolute w-[110%] aspect-square border-4 border-primary-text-placeholder rounded-full"
-                        style={{ animationDelay: "1.8s" }}
+                        className="absolute w-[35%] aspect-square border-4 border-primary-text-placeholder rounded-full opacity-25"
+                        style={{ animationDelay: "1.8s", clipPath: "inset(0 0 50% 0)" }}
                     ></div>
                     <div
-                        className="absolute w-[120%] aspect-square border-[6px] border-primary-text-placeholder rounded-full"
-                        style={{ animationDelay: "2.4s" }}
+                        className="absolute w-[40%] aspect-square border-[6px] border-primary-text-placeholder rounded-full opacity-25"
+                        style={{ animationDelay: "2.4s", clipPath: "inset(0 0 50% 0)" }}
                     ></div>
                 </>
             )}
