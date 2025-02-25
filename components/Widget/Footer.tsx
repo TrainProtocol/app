@@ -34,7 +34,7 @@ const Footer = ({ children, hidden, sticky = true }: FooterProps) => {
     let [footerRef, { height }] = useMeasure();
 
     return (
-        sticky ?
+        sticky && height ?
             <>
                 <motion.div
                     ref={footerRef}

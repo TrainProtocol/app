@@ -128,7 +128,6 @@ export default function Form() {
         >
             <Wizard wizardId={"atomicSteps"}>
                 <WizardItem StepName={AtomicSteps.Form}>
-
                     <div className="flex flex-col justify-between h-full">
                         <SwapForm />
                     </div>
