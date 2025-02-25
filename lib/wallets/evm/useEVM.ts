@@ -377,7 +377,7 @@ export default function useEVM({ network }: Props): WalletProvider {
         const apiClient = new LayerSwapApiClient()
 
         const domain = {
-            name: "LayerswapV8",
+            name: "Train",
             version: "1",
             chainId: Number(chainId),
             verifyingContract: contractAddress as `0x${string}`,
