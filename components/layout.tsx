@@ -17,7 +17,6 @@ import ColorSchema from "./ColorSchema";
 import { IsExtensionError } from "../helpers/errorHelper";
 import { AsyncModalProvider } from "../context/asyncModal";
 import WalletsProviders from "./WalletProviders";
-import PulsatingCircles from "./utils/pulse";
 import { PulsatingCirclesProvider } from "../context/PulsatingCirclesContext";
 // import { datadogRum } from '@datadog/browser-rum';
 

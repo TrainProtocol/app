@@ -22,7 +22,7 @@ export default function MainStepValidation({ maxAllowedAmount, minAllowedAmount 
         if (amount && amount < 0) {
             errors.amount = "Can't be negative";
         }
-        if(!minAllowedAmount || !maxAllowedAmount) {
+        if (!minAllowedAmount || !maxAllowedAmount) {
             errors.amount = 'Route unavailable';
         }
         if (maxAllowedAmount != undefined && (amount && amount > maxAllowedAmount)) {
@@ -32,10 +32,7 @@ export default function MainStepValidation({ maxAllowedAmount, minAllowedAmount 
             errors.amount = `Min amount is ${minAllowedAmount}`;
         }
         if (values.to) {
-            if (!values.destination_address) {
-                errors.destination_address = `Enter ${values.to?.display_name} address`;
-            }
-            else if (!isValidAddress(values.destination_address, values.to)) {
+            if (values.destination_address && !isValidAddress(values.destination_address, values.to)) {
                 errors.destination_address = `Enter a valid ${values.to?.display_name} address`;
             }
         }

@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as AccordionPrimitive from "@radix-ui/react-accordion"
-import { ChevronDown } from "lucide-react"
+import { ChevronUp } from "lucide-react"
 import { classNames } from "../utils/classNames"
 
 const Accordion = AccordionPrimitive.Root
@@ -27,13 +27,13 @@ const AccordionTrigger = React.forwardRef<
         <AccordionPrimitive.Trigger
             ref={ref}
             className={classNames(
-                "flex items-center font-medium transition-all [&[data-state=open]>svg]:rotate-180",
+                "flex items-center font-medium transition-all [&[data-state=open]>svg]:rotate-180 gap-1",
                 className
             )}
             {...props}
         >
             {children}
-            <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+            <ChevronUp className="h-4 w-4 transition-transform duration-200" />
         </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
 ))

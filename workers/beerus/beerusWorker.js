@@ -1,10 +1,12 @@
 import init, { set_panic_hook, Beerus } from './beerus_web.js';
+
 self.onmessage = (e) => {
     switch (e.data.type) {
         case 'init':
             initWorker(e.data.payload.data.initConfigs);
             break;
         case 'getDetails':
+            console.log("getting details")
             getCommit(e.data.payload.data.commitConfigs);
             break;
         default:
@@ -27,55 +29,23 @@ async function initWorker(initConfigs) {
         self.postMessage({ type: 'init', data: { initialized: true } });
     }
     catch (e) {
+        console.log("brrrusserrror", e.message)
         self.postMessage({ type: 'init', data: { initialized: false } });
         console.log(e);
     }
 }
+
 async function getCommit(commitConfigs) {
     try {
-        const { commitId, contractAddress } = commitConfigs;
-        async function getCommitDetails() {
-            try {
-                const call = {
-                    "execute": {
-                        "calldata": [
-                            "0x266ca",
-                            "0x0"
-                        ],
-                        "contract_address": "0x47e9bb930cd69fbf37d57dc168562c15224b5c82d2e7d55d185d7259553d43d",
-                        "entry_point_selector": "0x12c1391cfaa9ef9e9ca09ecc94bd018890bd054699849cb213e73508977b704"
-                    }
-                }
-
-                const res = await starknetCall(call);
-                return res;
-            }
-            catch (e) {
-                console.log(e);
-            }
+        const { call } = commitConfigs;
+        try {
+            const rawData = await starknetCall(call);
+            const parsedData = JSON.parse(rawData);
+            self.postMessage({ type: 'commitDetails', data: parsedData });
         }
-        let getDetailsHandler = undefined;
-        (async () => {
-            let attempts = 0;
-            getDetailsHandler = setInterval(async () => {
-                try {
-                    if (attempts > 15) {
-                        clearInterval(getDetailsHandler);
-                        self.postMessage({ type: 'commitDetails', data: null });
-                        return;
-                    }
-                    attempts++;
-                    const data = await getCommitDetails();
-                    if (data?.hashlock && data?.hashlock !== "0x0100000000000000000000000000000000000000000000000000000000000000" && data?.hashlock !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
-                        self.postMessage({ type: 'commitDetails', data: data });
-                        clearInterval(getDetailsHandler);
-                    }
-                }
-                catch (e) {
-                    console.log(e);
-                }
-            }, 5000);
-        })();
+        catch (e) {
+            console.log(e);
+        }
     }
     catch (e) {
         self.postMessage({ type: 'commitDetails', data: undefined });
@@ -83,37 +53,37 @@ async function getCommit(commitConfigs) {
     }
 }
 async function starknetCall(commitConfigs) {
-    console.log('worker: ', commitConfigs);
     let request = commitConfigs;
     if (request.hasOwnProperty('state')) {
         try {
             let state = await self.client.get_state();
-            return state
+            return state;
         }
         catch (e) {
             console.error(e);
             let error = sanitize(e.toString());
-            return error
+            return error;
         }
     }
     else if (request.hasOwnProperty('execute')) {
         let req = JSON.stringify(request['execute']);
         try {
+            let state = await self.client.get_state();
             let result = await self.client.execute(req);
-            return result
+            return result;
         }
         catch (e) {
             console.error(e);
             let error = sanitize(e.toString());
-            return error
+            return error;
         }
     }
     else {
         console.error('worker: unknown request: ', commitConfigs.data);
-        return "unknown request"
+        return "unknown request";
     }
 }
-;
+
 function post(url, body) {
     let call = method(body);
     let now = performance.now();
