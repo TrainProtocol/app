@@ -1,7 +1,5 @@
 import { FC } from "react";
-import clsx from "clsx";
-import { Check } from "lucide-react";
-import { motion } from "framer-motion";
+import CheckedIcon from "../../../../Icons/CheckedIcon";
 
 type StepProps = {
     step: number;
@@ -23,26 +21,16 @@ const Step: FC<StepProps> = ({ step, title, description, active, completed, load
                             loading &&
                             <div className="animate-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(theme(colors.accent.DEFAULT)_120deg,transparent_120deg)]" />
                         }
-                        <div
-                            className={clsx('py-0.5 px-2.5 bg-secondary-400 z-20 rounded-full relative text-[10px] transition-all inline-flex items-center gap-1', {
-                                '!bg-accent inline-flex items-center gap-1': completed,
-                            })}
-                        >
-                            {
-                                completed &&
-                                <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    exit={{ scale: 0 }}
-                                    transition={{ duration: 0.15 }}
-                                >
-                                    <Check className="w-3 h-3" />
-                                </motion.div>
-                            }
-                            <p>
+                        {
+                            !completed &&
+                            <div className={'py-0.5 px-2.5 bg-secondary-400 z-20 rounded-full relative text-[10px] transition-all inline-flex items-center gap-1'} >
                                 Step {step}
-                            </p>
-                        </div>
+                            </div>
+                        }
+                        {
+                            completed &&
+                            <CheckedIcon className="h-5 w-5 text-accent" />
+                        }
                     </div>
                 </div>
                 <div className="text-primary-text text-base leading-5">{title}</div>

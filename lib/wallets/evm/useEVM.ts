@@ -381,7 +381,6 @@ export default function useEVM({ network }: Props): WalletProvider {
             version: "1",
             chainId: Number(chainId),
             verifyingContract: contractAddress as `0x${string}`,
-            salt: "0x2e4ff7169d640efc0d28f2e302a56f1cf54aff7e127eededda94b3df0946f5c0" as `0x${string}`
         };
 
         const types = {

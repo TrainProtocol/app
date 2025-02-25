@@ -5,10 +5,12 @@ import LockIcon from "../../../../Icons/LockIcon";
 import Link from "next/link";
 import shortenAddress from "../../../../utils/ShortenAddress";
 import Step from "./Step";
-import { Clock, Link2 } from "lucide-react";
+import { Check, Clock, Link2 } from "lucide-react";
 import CheckedIcon from "../../../../Icons/CheckedIcon";
 import XCircle from "../../../../Icons/CircleX";
 import TimelockTimer from "../../Timer";
+import clsx from "clsx";
+import { motion } from "framer-motion";
 
 export const RequestStep: FC = () => {
     const { sourceDetails, commitId, commitTxId, source_network, commitFromApi } = useAtomicState()
@@ -121,7 +123,7 @@ export const LpLockingAssets: FC = () => {
         commitStatus !== CommitStatus.TimelockExpired &&
         <div className={`relative inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 ${!sourceDetails ? 'opacity-60' : ''}`}>
             <div className="space-y-2">
-                <div className="inline-flex items-center gap-2">
+                <div className="inline-flex items-center gap-2 h-[19px]">
                     {
                         completed &&
                         <CheckedIcon className="h-5 w-5 text-accent" />
@@ -133,7 +135,7 @@ export const LpLockingAssets: FC = () => {
                     {
                         loading &&
                         <div className="flex justify-center">
-                            <div className="relative flex items-center justify-end w-5 h-5 overflow-hidden border-2 border-accent rounded-full ">
+                            <div className="relative flex items-center justify-end w-[18px] h-[18px] overflow-hidden border-2 border-accent rounded-full ">
                                 <div className="absolute w-1/2 h-0.5  origin-left animate-spin-fast">
                                     <div className="w-3/4 h-full bg-accent rounded-full" />
                                 </div>
@@ -188,26 +190,46 @@ export const TimelockExpired: FC = () => {
 }
 
 export const CancelAndRefund: FC = () => {
-    const { commitStatus, refundTxId, source_network } = useAtomicState()
+    const { commitStatus, refundTxId, source_network, sourceDetails } = useAtomicState()
 
-    const resolvedTitle = refundTxId ? 'Refund Completed' : 'Refund'
-    const resolvedDescription = refundTxId ? 'Assets are received back at the source address' : 'Cancel & refund to receive your assets back at the source address'
+    const completed = sourceDetails?.claimed == 2
+    const loading = refundTxId && !completed
+    const resolvedDescription = completed ? 'Assets are received back at the source address' : 'Cancel & refund to receive your assets back at the source address'
 
     return (
         commitStatus === CommitStatus.TimelockExpired &&
-        <div className='inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 relative'>
+        <div className={`inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 relative`}>
             <div className="space-y-2">
                 <div className="inline-flex items-center gap-2">
+                    <div className="flex w-fit items-center justify-center h-[19px]">
+                        <div
+                            className="relative z-10 flex w-full items-center overflow-hidden rounded-full p-0.5"
+                        >
+                            {
+                                loading &&
+                                <div className="animate-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(theme(colors.accent.DEFAULT)_120deg,transparent_120deg)]" />
+                            }
+                            {
+                                !completed &&
+                                <div className='py-0.5 px-2.5 bg-secondary-400 z-20 rounded-full relative text-sm transition-all inline-flex items-center gap-1' >
+                                    Refund
+                                </div>
+                            }
+                            {
+                                completed &&
+                                <CheckedIcon className="h-5 w-5 text-accent" />
+                            }
+                        </div>
+                    </div>
                     {
-                        refundTxId &&
-                        <CheckedIcon className="h-5 w-5 text-accent" />
+                        completed &&
+                        <div className="text-primary-text text-base leading-5">Refund Completed</div>
                     }
-                    <div className="text-primary-text text-base leading-5">{resolvedTitle}</div>
                 </div>
                 <div className="text-sm text-primary-text-placeholder">{resolvedDescription}</div>
             </div>
             {
-                refundTxId && source_network &&
+                refundTxId && source_network && completed &&
                 <div className="absolute right-5 top-6 flex items-center gap-2 bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm">
                     <Link className="flex items-center gap-1" target="_blank" href={source_network?.transaction_explorer_template.replace('{0}', refundTxId)}>
                         <p>
@@ -218,5 +240,6 @@ export const CancelAndRefund: FC = () => {
                 </div>
             }
         </div>
+
     )
 }
