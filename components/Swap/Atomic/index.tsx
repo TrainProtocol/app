@@ -113,7 +113,7 @@ export default function Form() {
             {
                 commitId &&
                 currentStepName !== AtomicSteps.Swap &&
-                <div className="rounded-r-lg cursor-pointer absolute z-10 md:mt-3 border-l-0">
+                <div className="cursor-pointer absolute z-10 md:mt-3">
                     <PendingSwap key="pendingSwap" onClick={() => handleWizardRouting(AtomicSteps.Swap)} />
                 </div>
             }
@@ -199,10 +199,10 @@ const PendingSwap = ({ onClick }: { onClick: () => void }) => {
         <motion.div
             onClick={onClick}
             initial="rest" whileHover="hover" animate="rest"
-            className="relative bg-secondary-600 rounded-r-lg">
+            className="relative bg-secondary-600 rounded-r-lg rounded-tl-lg">
             <motion.div
                 variants={textMotion}
-                className="flex items-center bg-secondary-600 rounded-r-lg">
+                className="flex items-center bg-secondary-600 rounded-r-lg rounded-tl-lg">
                 <div className="text-primary-text flex px-3 p-2 items-center space-x-2">
                     <div className="flex-shrink-0 h-5 w-5 relative">
                         {source_network ?
