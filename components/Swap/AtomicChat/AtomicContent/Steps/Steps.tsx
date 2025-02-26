@@ -107,7 +107,7 @@ export const LpLockingAssets: FC = () => {
             <div className={`relative inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 ${!sourceDetails ? 'opacity-60' : ''}`}>
                 <div className="space-y-1">
                     <div className="inline-flex items-center gap-2">
-                        <div className="flex w-fit items-center justify-center h-[19px]">
+                        <div className="flex w-fit items-center justify-center">
                             <div
                                 className="z-10 flex w-full items-center overflow-hidden rounded-full p-0.5"
                             >
@@ -144,14 +144,12 @@ export const LpLockingAssets: FC = () => {
                 </div>
                 {
                     lpLockTx && destination_network && destinationDetails?.hashlock &&
-                    <div className="absolute right-5 top-[calc(50%-14px)] flex items-center gap-2 bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm">
-                        <Link className="flex items-center gap-1" target="_blank" href={destination_network?.transaction_explorer_template.replace('{0}', lpLockTx?.hash)}>
-                            <p>
-                                View
-                            </p>
-                            <Link2 className="h-4 w-auto" />
-                        </Link>
-                    </div>
+                    <Link className="mr-2 flex items-center gap-1 bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm" target="_blank" href={destination_network?.transaction_explorer_template.replace('{0}', lpLockTx?.hash)}>
+                        <p>
+                            View
+                        </p>
+                        <Link2 className="h-4 w-auto" />
+                    </Link>
                 }
             </div>
         </>

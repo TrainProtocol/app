@@ -16,10 +16,8 @@ const Step: FC<StepProps> = ({ step, title, description, active, completed, load
     return <div className={`relative inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 ${!active ? 'opacity-60' : ''}`}>
         <div className="space-y-1">
             <div className="inline-flex items-center gap-2">
-                <div className="flex w-fit items-center justify-center h-[19px]">
-                    <div
-                        className="relative z-10 flex w-full items-center overflow-hidden rounded-full p-0.5"
-                    >
+                <div className="flex w-fit items-center justify-center">
+                    <div className="relative z-10 flex w-full items-center overflow-hidden rounded-full p-0.5">
                         {
                             loading &&
                             <div className="animate-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(theme(colors.accent.DEFAULT)_120deg,transparent_120deg)]" />
@@ -42,14 +40,12 @@ const Step: FC<StepProps> = ({ step, title, description, active, completed, load
         </div>
         {
             completedTxLink && completed &&
-            <div className="absolute right-5 top-[calc(50%-14px)] flex items-center gap-2 bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm">
-                <Link className="flex items-center gap-1" target="_blank" href={completedTxLink}>
-                    <p>
-                        View
-                    </p>
-                    <Link2 className="h-4 w-auto" />
-                </Link>
-            </div>
+            <Link className="mr-2 flex items-center gap-1 bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm" target="_blank" href={completedTxLink}>
+                <p>
+                    View
+                </p>
+                <Link2 className="h-4 w-auto" />
+            </Link>
         }
     </div>
 }
