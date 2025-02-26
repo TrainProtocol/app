@@ -18,7 +18,10 @@ export const RequestStep: FC = () => {
     const commited = (sourceDetails || lpLockTx) ? true : false;
 
     const title = commited ? "Confirmed" : "Confirm the details"
-    const description = (commitTxId && source_network) ? <Link target="_blank" className="no-underline hover:underline" href={source_network?.transaction_explorer_template.replace('{0}', commitTxId)}>Swap details confirmed</Link> : <>Review and confirm the swap details</>
+    const description = (commited && source_network) ? <>Swap details confirmed</> : <>Review and confirm the swap details</>
+
+    const completedTxLink = source_network && commitTxId && source_network?.transaction_explorer_template.replace('{0}', commitTxId)
+
     return <Step
         step={1}
         title={title}
@@ -26,6 +29,7 @@ export const RequestStep: FC = () => {
         active={true}
         completed={commited}
         loading={commtting && !commited}
+        completedTxLink={completedTxLink}
     />
 
 }
@@ -140,7 +144,7 @@ export const LpLockingAssets: FC = () => {
                 </div>
                 {
                     lpLockTx && destination_network && destinationDetails?.hashlock &&
-                    <div className="absolute right-5 top-6 flex items-center gap-2 bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm">
+                    <div className="absolute right-5 top-[calc(50%-14px)] flex items-center gap-2 bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm">
                         <Link className="flex items-center gap-1" target="_blank" href={destination_network?.transaction_explorer_template.replace('{0}', lpLockTx?.hash)}>
                             <p>
                                 View
@@ -216,7 +220,7 @@ export const CancelAndRefund: FC = () => {
             </div>
             {
                 refundTxId && source_network && completed &&
-                <div className="absolute right-5 top-6 flex items-center gap-2 bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm">
+                <div className="absolute right-5 top-[calc(50%-14px)] flex items-center gap-2 bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm">
                     <Link className="flex items-center gap-1" target="_blank" href={source_network?.transaction_explorer_template.replace('{0}', refundTxId)}>
                         <p>
                             View
