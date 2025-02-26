@@ -7,7 +7,7 @@ const PulsatingCircles: React.FC = () => {
     return (
         <>
 
-            <svg id='rectangle' width="1732" height="890" viewBox="0 0 1732 890" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute -top-40 z-[1]  h-auto text-secondary-950">
+            <svg id='rectangle' width="1732" height="890" viewBox="0 0 1732 890" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute -top-32 z-[1]  h-auto text-secondary-950">
                 <path d="M874.5 0.950492L1732 445L857.499 889.049L0.00024594 445L874.5 0.950492Z" fill="currentColor" />
             </svg>
             <div className="absolute inset-0 hidden md:flex items-center justify-center mx-4 isolate">
