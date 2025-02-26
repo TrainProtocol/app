@@ -6,7 +6,7 @@ const PulsatingCircles: React.FC = () => {
 
     return (
         <div className="absolute inset-0 hidden md:flex items-center justify-center mx-4">
-            {!isActive && (
+            {isActive && (
                 <>
                     <div
                         className="absolute w-[130%] aspect-square border border-secondary-text rounded-full animate-pulsate opacity-25"
@@ -45,7 +45,7 @@ const PulsatingCircles: React.FC = () => {
                     ></div>
                 </>
             )}
-            {isActive && (
+            {!isActive && (
                 <>
                     <div
                         className="absolute w-[130%] aspect-square border border-secondary-text rounded-full opacity-25"
