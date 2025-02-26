@@ -1,4 +1,4 @@
-import { BookOpen, Map, Home, LibraryIcon, Shield, MessageSquarePlus } from "lucide-react";
+import { BookOpen, Map, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info } from "lucide-react";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
 import { useIntercom } from "react-use-intercom";
@@ -13,6 +13,7 @@ import SendFeedback from "../sendFeedback";
 import Menu from "./Menu";
 import dynamic from "next/dynamic";
 import { MenuStep } from "../../Models/Wizard";
+import useWindowDimensions from "../../hooks/useWindowDimensions";
 
 const WalletsMenu = dynamic(() => import("../Wallet/ConnectedWallets").then((comp) => comp.WalletsMenu), {
     loading: () => <></>
@@ -23,6 +24,7 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path: string) => void }> = ({ go
     const { boot, show, update } = useIntercom()
     const [embedded, setEmbedded] = useState<boolean>()
     const [openFeedbackModal, setOpenFeedbackModal] = useState(false);
+    const { isMobile } = useWindowDimensions()
 
     useEffect(() => {
         setEmbedded(inIframe())
@@ -64,6 +66,20 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path: string) => void }> = ({ go
                 }} target="_blank" icon={<ChatIcon strokeWidth={2} className="h-5 w-5" />} >
                     Help
                 </Menu.Item>
+
+                {
+                    isMobile
+                        ? <>
+                            <Menu.Item pathname='https://v8-docs.layerswap.io/protocol/introduction' target="_blank" icon={<CircleHelp className="h-5 w-5" />} >
+                                How
+                            </Menu.Item>
+                            <Menu.Item pathname='https://v8-docs.layerswap.io/protocol/introduction' target="_blank" icon={<Info className="h-5 w-5" />} >
+                                About
+                            </Menu.Item>
+                        </>
+                        : <></>
+                }
+
                 <Menu.Item pathname='https://v8-docs.layerswap.io/protocol/introduction' target="_blank" icon={<BookOpen className="h-5 w-5" />} >
                     Protocol Docs
                 </Menu.Item>

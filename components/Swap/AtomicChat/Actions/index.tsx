@@ -43,14 +43,14 @@ export const Actions: FC = () => {
     const { sourceDetails, commitStatus, error } = useAtomicState()
 
     return (
-        <div className="relative">
+        <>
             <Error />
             <ResolveAction
                 commitStatus={commitStatus}
                 sourceDetails={sourceDetails}
                 error={error}
             />
-        </div>
+        </>
     )
 }
 

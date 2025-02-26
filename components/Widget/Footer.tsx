@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import GoHomeButton from "../utils/GoHome";
 import { useMeasure } from "@uidotdev/usehooks";
 
 const variants = {
@@ -43,7 +42,7 @@ const Footer = ({ children, hidden, sticky = true }: FooterProps) => {
                     }}
                     custom={{ direction: -1, width: 100 }}
                     variants={variants}
-                    className={(height && height !== 0) ? `text-primary-text text-base mt-3        
+                    className={!!(height && height !== 0) ? `text-primary-text text-base mt-3
                         max-sm:fixed
                         max-sm:inset-x-0
                         max-sm:bottom-0 
@@ -54,7 +53,9 @@ const Footer = ({ children, hidden, sticky = true }: FooterProps) => {
                         max-sm:px-6 
                         max-sm:w-full ${hidden ? 'animation-slide-out' : ''}`
                         : ''}>
-                    {children}
+                    <div className="relative w-full">
+                        {children}
+                    </div>
                 </motion.div>
 
                 <div style={{ height: `${height}px` }}
@@ -65,9 +66,9 @@ const Footer = ({ children, hidden, sticky = true }: FooterProps) => {
                 </div>
             </ >
             :
-            <>
+            <div className="relative">
                 {children}
-            </>
+            </div>
     )
 }
 export default Footer;
