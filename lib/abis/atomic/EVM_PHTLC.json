@@ -68,6 +68,11 @@
     },
     {
         "inputs": [],
+        "name": "InvalidShortString",
+        "type": "error"
+    },
+    {
+        "inputs": [],
         "name": "InvalidSignature",
         "type": "error"
     },
@@ -90,6 +95,23 @@
         "inputs": [],
         "name": "ReentrancyGuardReentrantCall",
         "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "str",
+                "type": "string"
+            }
+        ],
+        "name": "StringTooLong",
+        "type": "error"
+    },
+    {
+        "anonymous": false,
+        "inputs": [],
+        "name": "EIP712DomainChanged",
+        "type": "event"
     },
     {
         "anonymous": false,
@@ -367,7 +389,7 @@
                         "type": "uint48"
                     }
                 ],
-                "internalType": "struct LayerswapV8.addLockMsg",
+                "internalType": "struct Train.addLockMsg",
                 "name": "message",
                 "type": "tuple"
             },
@@ -463,6 +485,49 @@
         "type": "function"
     },
     {
+        "inputs": [],
+        "name": "eip712Domain",
+        "outputs": [
+            {
+                "internalType": "bytes1",
+                "name": "fields",
+                "type": "bytes1"
+            },
+            {
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "version",
+                "type": "string"
+            },
+            {
+                "internalType": "uint256",
+                "name": "chainId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "verifyingContract",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "salt",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256[]",
+                "name": "extensions",
+                "type": "uint256[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "internalType": "bytes32",
@@ -510,7 +575,7 @@
                         "type": "uint8"
                     }
                 ],
-                "internalType": "struct LayerswapV8.HTLC",
+                "internalType": "struct Train.HTLC",
                 "name": "",
                 "type": "tuple"
             }
@@ -541,7 +606,7 @@
                         "type": "uint48"
                     }
                 ],
-                "internalType": "struct LayerswapV8.Reward",
+                "internalType": "struct Train.Reward",
                 "name": "",
                 "type": "tuple"
             }

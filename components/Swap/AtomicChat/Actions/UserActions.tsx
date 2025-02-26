@@ -8,13 +8,11 @@ import ButtonStatus from "./Status/ButtonStatus";
 import { NextRouter, useRouter } from "next/router";
 import { resolvePersistantQueryParams } from "../../../../helpers/querryHelper";
 import { ContractType, ManagedAccountType } from "../../../../Models/Network";
-import { useConfig, useWaitForTransactionReceipt } from "wagmi";
 
 export const UserCommitAction: FC = () => {
     const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, updateCommit } = useAtomicState();
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
-    const router = useRouter()
 
     // const txId = router.query.txId as `0x${string}`
     // const { status } = useWaitForTransactionReceipt({
@@ -335,8 +333,12 @@ export const UserRefundAction: FC = () => {
 
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
         {
-            (requestedRefund || sourceDetails?.claimed == 2) ?
-                <></>
+            (requestedRefund && sourceDetails?.claimed !== 2) ?
+                <ButtonStatus
+                    isDisabled={true}
+                >
+                    Cancel & Refund
+                </ButtonStatus>
                 :
                 <WalletActionButton
                     activeChain={wallet?.chainId}
