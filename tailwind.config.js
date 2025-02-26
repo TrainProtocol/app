@@ -23,8 +23,8 @@ module.exports = {
           '900': 'rgb(var(--ls-colors-primary-900, 110, 0, 64), <alpha-value>)',
           'background': 'rgb(var(--ls-colors-backdrop, 62, 18, 64), <alpha-value>)',
           'text': 'rgb(var(--ls-colors-primary-text, 255, 255, 255), <alpha-value>)',
-          'text-muted': 'rgb(var(--ls-colors-primary-textMuted, 128, 128, 128), <alpha-value>)',
-          'text-placeholder': 'rgb(var(--ls-colors-textPlaceholder, 184, 184, 184), <alpha-value>)',
+          'text-muted': 'rgb(var(--ls-colors-primary-text-muted, 86, 97, 123), <alpha-value>)',
+          'text-placeholder': 'rgb(var(--ls-colors-text-placeholder, 140, 152, 192), <alpha-value>)',
           'actionButtonText': 'rgb(var(--ls-colors-actionButtonText, 255, 255, 255), <alpha-value>)',
           'buttonTextColor': 'rgb(var(--ls-colors-buttonTextColor, 228, 229, 240), <alpha-value>)',
           'logoColor': 'rgb(var(--ls-colors-logo, 255, 0, 147), <alpha-value>)',
@@ -66,7 +66,6 @@ module.exports = {
       animation: {
         'reverse-spin': 'reverse-spin 1s linear infinite',
         'spin-slow': 'spin 3s linear infinite',
-        'spin-fast': 'spin 1s linear infinite',
         'fade-in': 'fade-in 0.5s ease-in',
         'fade-in-down': 'fade-in-down 0.5s ease-in',
         'fadein': 'fadein 4s',
@@ -83,6 +82,9 @@ module.exports = {
         // Gauge
         gauge_fadeIn: "gauge_fadeIn 1s ease forwards",
         gauge_fill: "gauge_fill 1s ease forwards",
+
+        //pulse
+        pulsate: "pulsate 4s infinite ease-in-out alternate",
       },
       keyframes: {
         rotate: {
@@ -166,6 +168,11 @@ module.exports = {
         gauge_fill: {
           from: { "stroke-dashoffset": "332", opacity: "0" },
           to: { opacity: "1" },
+        },
+        pulsate: {
+          "0%": { opacity: "0.1" },
+          "50%": { opacity: "0.6" },
+          "100%": { opacity: "0.1" },
         },
       },
       letterSpacing: {
