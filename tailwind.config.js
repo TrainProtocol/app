@@ -84,7 +84,7 @@ module.exports = {
         gauge_fill: "gauge_fill 1s ease forwards",
 
         //pulse
-        pulsate: "pulsate 2.5s infinite ease-in-out",
+        pulsate: "pulsate 4s infinite ease-in-out alternate",
       },
       keyframes: {
         rotate: {
@@ -170,9 +170,9 @@ module.exports = {
           to: { opacity: "1" },
         },
         pulsate: {
-          "0%": { opacity: "0.2" },
-          "50%": { opacity: "1" },
-          "100%": { opacity: "0.2" },
+          "0%": { opacity: "0.1" },
+          "50%": { opacity: "0.6" },
+          "100%": { opacity: "0.1" },
         },
       },
       letterSpacing: {
