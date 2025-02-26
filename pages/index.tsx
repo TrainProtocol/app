@@ -22,7 +22,7 @@ export default function Home({ settings, themeData, apiKey }: InferGetServerSide
     }}>
       <Layout settings={settings} themeData={themeData}>
         <div className="relative w-full flex flex-col items-center">
-          <div className="absolute top-[530px] left-0 w-full flex items-center justify-center pointer-events-none">
+          <div className="absolute top-[460px] left-0 w-full flex items-center justify-center pointer-events-none">
             <PulsatingCircles />
           </div>
           <Swap />
