@@ -33,9 +33,7 @@ export const RequestStep: FC = () => {
 export const SignAndConfirmStep: FC = () => {
     const { sourceDetails, destinationDetails, destination_network, commitFromApi, commitStatus } = useAtomicState()
 
-    const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
     const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
-
     const assetsLocked = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted;
     const loading = commitStatus === CommitStatus.UserLocked
 
