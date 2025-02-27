@@ -10,10 +10,10 @@ const PulsatingCircles: React.FC = () => {
     rgba(39, 142, 246, 0.7) 6px 0px 11px 1px inset, 
     rgba(39, 142, 246, 0.7) -6px 0px 11px 1px inset
 ` : `
-    rgba(128, 128, 128, 0.7) 6px -4px 14px -2px, 
-    rgba(128, 128, 128, 0.7) -5px 1px 12px 0px, 
-    rgba(128, 128, 128, 0.7) 6px 0px 11px 1px inset, 
-    rgba(128, 128, 128, 0.7) -6px 0px 11px 1px inset
+    rgba(128, 128, 128, 0.5) 6px -4px 14px -2px, 
+    rgba(128, 128, 128, 0.5) -5px 1px 12px 0px, 
+    rgba(128, 128, 128, 0.5) 6px 0px 11px 1px inset, 
+    rgba(128, 128, 128, 0.5) -6px 0px 11px 1px inset
 `;
 
     const sharedBoxShadowLight = pulseState === 'completed' ? `
@@ -22,10 +22,10 @@ const PulsatingCircles: React.FC = () => {
     rgba(39, 142, 246, 0.7) 6px 0px 11px 1px inset, 
     rgba(39, 142, 246, 0.7) -6px 0px 11px 1px inset
 ` : `
-    rgba(184, 184, 184, 0.7) 6px -4px 14px -2px, 
-    rgba(184, 184, 184, 0.7) -5px 1px 12px 0px, 
-    rgba(184, 184, 184, 0.7) 6px 0px 11px 1px inset, 
-    rgba(184, 184, 184, 0.7) -6px 0px 11px 1px inset
+    rgba(184, 184, 184, 0.5) 6px -4px 14px -2px, 
+    rgba(184, 184, 184, 0.5) -5px 1px 12px 0px, 
+    rgba(184, 184, 184, 0.5) 6px 0px 11px 1px inset, 
+    rgba(184, 184, 184, 0.5) -6px 0px 11px 1px inset
 `;
 
     return (

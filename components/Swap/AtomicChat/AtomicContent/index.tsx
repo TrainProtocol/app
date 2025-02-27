@@ -65,9 +65,12 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
     const { setPulseState } = usePulsatingCircles();
 
     useEffect(() => {
-        if (commitStatus === CommitStatus.RedeemCompleted)
+        if (commitStatus === CommitStatus.RedeemCompleted) {
             setPulseState("completed");
-    }, [setPulseState, commitStatus]);
+        } else if (!(isManualClaimable && !manualClaimRequested)) {
+            setPulseState("pulsing");
+        }
+    }, [setPulseState, commitStatus, isManualClaimable, manualClaimRequested]);
 
     const ResolvedIcon = () => {
         if (commitStatus === CommitStatus.RedeemCompleted) {

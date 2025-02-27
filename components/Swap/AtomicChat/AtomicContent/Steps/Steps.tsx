@@ -107,7 +107,7 @@ export const LpLockingAssets: FC = () => {
     useEffect(() => {
         setPulseState(loading ? "pulsing" : "initial");
     }, [loading, setPulseState]);
-console.log(loading,"loading1")
+
     return (
         commitStatus !== CommitStatus.TimelockExpired &&
         <>
