@@ -17,11 +17,11 @@ const ResolveAction: FC<{ sourceDetails: Commit | undefined, commitStatus: Commi
         </ButtonStatus>
     }
     if (commitStatus === CommitStatus.RedeemCompleted) {
-        return <></>
+        return null
     }
     if (commitStatus === CommitStatus.TimelockExpired) {
         if (sourceDetails?.claimed == 2) {
-            return <></>
+            return null
         }
         else {
             return <UserRefundAction />
