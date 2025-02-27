@@ -85,6 +85,12 @@ module.exports = {
 
         //pulse
         pulsate: "pulsate 4s infinite ease-in-out alternate",
+
+        circle1: "circle1 5s ease-in-out infinite",
+        circle2: "circle2 5s ease-in-out infinite",
+        circle3: "circle3 5s ease-in-out infinite",
+        circle4: "circle4 5s ease-in-out infinite",
+        circle5: "circle5 5s ease-in-out infinite",
       },
       keyframes: {
         scaleLoop: {
@@ -178,6 +184,40 @@ module.exports = {
           "50%": { opacity: "0.6" },
           "100%": { opacity: "0.1" },
         },
+        circle1: {
+          "0%": { opacity: "0.1" },
+          "10%": { opacity: "0.6" },  
+          "90%": { opacity: "0.6" },  
+          "100%": { opacity: "0.1" }  
+        },
+        
+        circle2: {
+          "10%": { opacity: "0.1" },
+          "20%": { opacity: "0.6" }, 
+          "80%": { opacity: "0.6" },
+          "90%": { opacity: "0.1" }  
+        },
+        
+        circle3: {
+          "20%": { opacity: "0.1" },
+          "30%": { opacity: "0.6" },  
+          "70%": { opacity: "0.6" },
+          "80%": { opacity: "0.1" }   
+        },
+        
+        circle4: {
+          "30%": { opacity: "0.1" },
+          "40%": { opacity: "0.6" },  
+          "60%": { opacity: "0.6" },
+          "70%": { opacity: "0.1" }   
+        },
+        
+        circle5: {
+          "40%": { opacity: "0.1" },
+          "50%": { opacity: "0.6" },  
+          "51%": { opacity: "0.6" },  
+          "60%": { opacity: "0.1" }   
+        }
       },
       letterSpacing: {
         tightest: '-.075em',

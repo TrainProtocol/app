@@ -12,49 +12,47 @@ const PulsatingCircles: React.FC = () => {
             </svg>
             <div className="absolute inset-0 hidden md:flex items-center justify-center mx-4 isolate">
 
-                {isActive && (
+                {!isActive && (
                     <>
-                        {
-                            <div className="absolute size-[1100px] rounded-full bg-secondary-950 animate-scaleLoop" />
-                        }
+                        
                         <div
-                            className="absolute w-[130%] aspect-square border border-secondary-text rounded-full mix-blend-color opacity-25"
+                            className="absolute w-[130%] aspect-square border border-secondary-text rounded-full  opacity-10 animate-circle1"
                             style={{
-                                animationDelay: "4s", boxShadow: `
+                                boxShadow: `
                             rgba(128, 128, 128, 0.7) 6px -4px 14px -2px, rgba(128, 128, 128, 0.7) -5px 1px 12px 0px, rgba(128, 128, 128, 0.7) 6px 0px 11px 1px inset, rgba(128, 128, 128, 0.7) -6px 0px 11px 1px inset 
                         ` }}
                         ></div>
                         <div
-                            className="absolute w-[150%] aspect-square border border-secondary-text rounded-full mix-blend-color opacity-25"
+                            className="absolute w-[150%] aspect-square border border-secondary-text rounded-full opacity-10 animate-circle2"
                             style={{
-                                animationDelay: "3.2s", boxShadow: `
+                                boxShadow: `
                             rgba(128, 128, 128, 0.7) 6px -4px 14px -2px, rgba(128, 128, 128, 0.7) -5px 1px 12px 0px, rgba(128, 128, 128, 0.7) 6px 0px 11px 1px inset, rgba(128, 128, 128, 0.7) -6px 0px 11px 1px inset 
                         ` }}
                         ></div>
                         <div
-                            className="absolute w-[175%] aspect-square border-2 border-secondary-text rounded-full mix-blend-color opacity-25"
+                            className="absolute w-[175%] aspect-square border-2 border-secondary-text rounded-full  opacity-10 animate-circle3"
                             style={{
-                                animationDelay: "2.4s", boxShadow: `
+                                boxShadow: `
                             rgba(128, 128, 128, 0.7) 6px -4px 14px -2px, rgba(128, 128, 128, 0.7) -5px 1px 12px 0px, rgba(128, 128, 128, 0.7) 6px 0px 11px 1px inset, rgba(128, 128, 128, 0.7) -6px 0px 11px 1px inset 
                         ` }}
                         ></div>
                         <div
-                            className="absolute w-[205%] aspect-square border-4 border-secondary-text rounded-full mix-blend-color opacity-25"
+                            className="absolute w-[205%] aspect-square border-4 border-secondary-text rounded-full opacity-10 animate-circle4"
                             style={{
-                                animationDelay: "1.6s", boxShadow: `
+                                boxShadow: `
                             rgba(128, 128, 128, 0.7) 6px -4px 14px -2px, rgba(128, 128, 128, 0.7) -5px 1px 12px 0px, rgba(128, 128, 128, 0.7) 6px 0px 11px 1px inset, rgba(128, 128, 128, 0.7) -6px 0px 11px 1px inset 
                         ` }}
                         ></div>
                         <div
-                            className="absolute w-[245%] aspect-square border-[6px] border-secondary-text rounded-full mix-blend-color opacity-25"
+                            className="absolute w-[245%] aspect-square border-[6px] border-secondary-text rounded-full  opacity-10 animate-circle5"
                             style={{
-                                animationDelay: "0.8s", boxShadow: `
+                                boxShadow: `
                             rgba(184, 184, 184, 0.7) 6px -4px 14px -2px, rgba(184, 184, 184, 0.7) -5px 1px 12px 0px, rgba(184, 184, 184, 0.7) 6px 0px 11px 1px inset, rgba(184, 184, 184, 0.7) -6px 0px 11px 1px inset 
                         ` }}
                         ></div>
                     </>
                 )}
-                {
+                {isActive && 
                     <>
                         <div
                             className="absolute w-[130%] aspect-square border border-secondary-text rounded-full opacity-25"
