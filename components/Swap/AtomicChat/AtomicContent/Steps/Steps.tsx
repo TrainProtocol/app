@@ -10,7 +10,7 @@ import XCircle from "../../../../Icons/CircleX";
 import TimelockTimer from "../../Timer";
 
 export const RequestStep: FC = () => {
-    const { sourceDetails, commitId, commitTxId, source_network, commitFromApi } = useAtomicState()
+    const { sourceDetails, commitId, commitTxId, source_network, commitFromApi, isTimelockExpired } = useAtomicState()
 
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
 
@@ -30,6 +30,8 @@ export const RequestStep: FC = () => {
         completed={commited}
         loading={commtting && !commited}
         completedTxLink={completedTxLink}
+        timelock={sourceDetails?.timelock}
+        isTimelocKExpired={isTimelockExpired}
     />
 
 }
@@ -45,12 +47,12 @@ export const SignAndConfirmStep: FC = () => {
     const completed = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || !!lpRedeemTransaction?.hash || commitStatus === CommitStatus.RedeemCompleted || commitStatus === CommitStatus.AssetsLocked
 
     const description = assetsLocked
-        ? <div>
+        ? <span>
             You will receive your assets at the destination address shortly.
-        </div>
-        : <div>
-            <span>Sign and finalize the swap, you can</span> {sourceDetails?.timelock ? <TimelockTimer timelock={sourceDetails.timelock}><span className="p-0.5 px-1 rounded-md bg-secondary-500">cancel and refund</span></TimelockTimer> : <span className="p-0.5 px-1 rounded-md bg-secondary-500">cancel and refund</span>} <span>anytime before.</span>
-        </div>
+        </span>
+        : <span>
+            Sign and finalize the swap, you can cancel and refund anytime before.
+        </span>
 
     return (
         commitStatus !== CommitStatus.TimelockExpired &&
@@ -145,9 +147,6 @@ export const LpLockingAssets: FC = () => {
                 {
                     lpLockTx && destination_network && destinationDetails?.hashlock &&
                     <Link className="mr-2 flex items-center gap-1 bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm" target="_blank" href={destination_network?.transaction_explorer_template.replace('{0}', lpLockTx?.hash)}>
-                        <p>
-                            View
-                        </p>
                         <Link2 className="h-4 w-auto" />
                     </Link>
                 }
@@ -166,7 +165,7 @@ export const TimelockExpired: FC = () => {
     return (
         commitStatus === CommitStatus.TimelockExpired &&
         <div className='inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3'>
-            <div className="space-y-2">
+            <div className="space-y-1">
                 <div className="inline-flex items-center gap-2">
                     <XCircle className="h-5 w-5" />
                     <div className="text-primary-text text-base leading-5">{title}</div>
@@ -187,11 +186,11 @@ export const CancelAndRefund: FC = () => {
     return (
         commitStatus === CommitStatus.TimelockExpired &&
         <div className={`inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 relative`}>
-            <div className="space-y-2">
+            <div className="space-y-1">
                 <div className="inline-flex items-center gap-2">
-                    <div className="flex w-fit items-center justify-center h-[19px]">
+                    <div className="flex w-fit items-center justify-center">
                         <div
-                            className="relative z-10 flex w-full items-center overflow-hidden rounded-full p-0.5"
+                            className="relative z-0 flex w-full items-center overflow-hidden rounded-full p-0.5"
                         >
                             {
                                 loading &&
@@ -220,9 +219,6 @@ export const CancelAndRefund: FC = () => {
                 refundTxId && source_network && completed &&
                 <div className="absolute right-5 top-[calc(50%-14px)] flex items-center gap-2 bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm">
                     <Link className="flex items-center gap-1" target="_blank" href={source_network?.transaction_explorer_template.replace('{0}', refundTxId)}>
-                        <p>
-                            View
-                        </p>
                         <Link2 className="h-4 w-auto" />
                     </Link>
                 </div>
