@@ -86,11 +86,11 @@ module.exports = {
         //pulse
         pulsate: "pulsate 4s infinite ease-in-out alternate",
 
-        circle1: "circle1 5s ease-in-out infinite",
-        circle2: "circle2 5s ease-in-out infinite",
-        circle3: "circle3 5s ease-in-out infinite",
-        circle4: "circle4 5s ease-in-out infinite",
-        circle5: "circle5 5s ease-in-out infinite",
+        circle1: "circle1 7s ease-in-out infinite",
+        circle2: "circle2 7s ease-in-out infinite",
+        circle3: "circle3 7s ease-in-out infinite",
+        circle4: "circle4 7s ease-in-out infinite",
+        circle5: "circle5 7s ease-in-out infinite",
       },
       keyframes: {
         scaleLoop: {

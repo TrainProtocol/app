@@ -102,12 +102,12 @@ export const LpLockingAssets: FC = () => {
 
     const title = completed ? 'Assets reserved' : 'Wait for response'
 
-    const { setIsActive } = usePulsatingCircles();
+    const { setPulseState } = usePulsatingCircles();
 
     useEffect(() => {
-        setIsActive(!!loading);
-    }, [loading, setIsActive]);
-
+        setPulseState(loading ? "pulsing" : "initial");
+    }, [loading, setPulseState]);
+console.log(loading,"loading1")
     return (
         commitStatus !== CommitStatus.TimelockExpired &&
         <>

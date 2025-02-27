@@ -1,8 +1,10 @@
 import React, { createContext, useState, useContext, ReactNode } from "react";
 
+type PulsatingState = "initial" | "pulsing" | "completed";
+
 interface PulsatingCirclesContextProps {
-    isActive: boolean;
-    setIsActive: (active: boolean) => void;
+    pulseState: PulsatingState;
+    setPulseState: (state: PulsatingState) => void;
 }
 
 const PulsatingCirclesContext = createContext<PulsatingCirclesContextProps | undefined>(undefined);
@@ -12,10 +14,10 @@ interface PulsatingCirclesProviderProps {
 }
 
 export const PulsatingCirclesProvider = ({ children }: PulsatingCirclesProviderProps) => {
-    const [isActive, setIsActive] = useState(false);
+    const [pulseState, setPulseState] = useState<PulsatingState>("initial");
 
     return (
-        <PulsatingCirclesContext.Provider value={{ isActive, setIsActive }}>
+        <PulsatingCirclesContext.Provider value={{ pulseState, setPulseState }}>
             {children}
         </PulsatingCirclesContext.Provider>
     );

@@ -5,7 +5,6 @@ import { getServerSideProps } from '../helpers/getSettings'
 import { SWRConfig } from 'swr'
 import LayerSwapApiClient from '../lib/layerSwapApiClient'
 import { resolveRoutesURLForSelectedToken } from '../helpers/routes'
-import PulsatingCircles from '../components/utils/pulse'
 
 export default function Home({ settings, themeData, apiKey }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   LayerSwapApiClient.apiKey = apiKey
@@ -21,12 +20,7 @@ export default function Home({ settings, themeData, apiKey }: InferGetServerSide
       }
     }}>
       <Layout settings={settings} themeData={themeData}>
-        <div className="relative w-full flex flex-col items-center">
-          <div className="absolute top-[460px] left-0 w-full flex items-center justify-center pointer-events-none">
-            <PulsatingCircles />
-          </div>
-          <Swap />
-        </div>
+        <Swap />
       </Layout>
     </SWRConfig>
   )
