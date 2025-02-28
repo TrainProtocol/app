@@ -43,8 +43,8 @@ export default function Form() {
 
     const {
         commitId
-    } = atomicQuery
-
+    } = atomicQuery;
+    console.log("heey")
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
             if (!values.amount) {
