@@ -5,13 +5,13 @@ import useWallet from "../../hooks/useWallet";
 import shortenAddress from "../utils/ShortenAddress";
 import { ChevronDown } from "lucide-react";
 import Balance from "./dynamic/Balance";
-import { useSwapDataState, useSwapDataUpdate } from "../../context/swap";
 import VaulDrawer from "../Modal/vaulModal";
 import { Wallet } from "../../Models/WalletProvider";
 import WalletIcon from "../Icons/WalletIcon";
 import SubmitButton from "../buttons/submitButton";
 import { useConnectModal } from "../WalletModal";
 import WalletsList from "../Wallet/WalletsList";
+import { useAtomicState } from "../../context/atomicContext";
 
 const Component: FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false)
@@ -21,8 +21,7 @@ const Component: FC = () => {
         setFieldValue
     } = useFormikContext<SwapFormValues>();
 
-    const { setSelectedSourceAccount } = useSwapDataUpdate()
-    const { selectedSourceAccount } = useSwapDataState()
+    const { selectedSourceAccount, setSelectedSourceAccount } = useAtomicState()
     const walletNetwork = values.from
     const source_token = values.fromCurrency
     const destination_address = values.destination_address
@@ -132,7 +131,7 @@ export const FormSourceWalletButton: FC = () => {
         setFieldValue
     } = useFormikContext<SwapFormValues>();
 
-    const { setSelectedSourceAccount } = useSwapDataUpdate()
+    const { setSelectedSourceAccount } = useAtomicState()
 
 
     const walletNetwork = values.from
