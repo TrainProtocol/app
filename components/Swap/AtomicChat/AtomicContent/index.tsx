@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import ResizablePanel from "../../../ResizablePanel";
 import Steps from "./Steps";
 import { CommitStatus, useAtomicState } from "../../../../context/atomicContext";
@@ -10,6 +10,7 @@ import SpinIcon from "../../../Icons/spinIcon";
 import ConnectedWallet from "./ConnectedWallet";
 import Link from "next/link";
 import { CommitTransaction } from "../../../../lib/layerSwapApiClient";
+import { usePulsatingCircles } from "../../../../context/PulsatingCirclesContext";
 
 const AtomicContent: FC = () => {
 
@@ -61,6 +62,15 @@ const AtomicContent: FC = () => {
 }
 
 const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boolean | undefined, manualClaimRequested: boolean | undefined, redeemTxLink: string | undefined }> = ({ commitStatus, isManualClaimable, manualClaimRequested, redeemTxLink }) => {
+    const { setPulseState } = usePulsatingCircles();
+
+    useEffect(() => {
+        if (commitStatus === CommitStatus.RedeemCompleted) {
+            setPulseState("completed");
+        } else if (!(isManualClaimable && !manualClaimRequested)) {
+            setPulseState("pulsing");
+        }
+    }, [setPulseState, commitStatus, isManualClaimable, manualClaimRequested]);
 
     const ResolvedIcon = () => {
         if (commitStatus === CommitStatus.RedeemCompleted) {
