@@ -20,7 +20,7 @@ const Step: FC<StepProps> = ({ step, title, description, active, completed, load
     const { setPulseState } = usePulsatingCircles();
 
     useEffect(() => {
-        setPulseState(loading ? "pulsing" : "initial");
+        setPulseState(loading ? "pulsing" : "initial")
     }, [loading, setPulseState]);
 
     return <div className={`inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 ${!active ? 'opacity-60' : ''}`}>
