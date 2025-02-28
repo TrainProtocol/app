@@ -1,5 +1,4 @@
 import { FC } from 'react';
-import { SwapDataProvider } from '../context/swap';
 import { TimerProvider } from '../context/timerContext';
 import Atomic from "./Swap/Atomic"
 import { SWRConfig } from 'swr';
@@ -13,7 +12,6 @@ const Swap: FC = () => {
   return (
     <div className="text-primary-text">
       <SWRConfig>
-        <SwapDataProvider >
           <AtomicProvider>
             <TimerProvider>
               <FeeProvider>
@@ -23,7 +21,6 @@ const Swap: FC = () => {
               </FeeProvider>
             </TimerProvider>
           </AtomicProvider>
-        </SwapDataProvider >
       </SWRConfig>
     </div >
   )

@@ -4,13 +4,16 @@ import { CommitTransaction } from "../../../../../lib/layerSwapApiClient";
 import LockIcon from "../../../../Icons/LockIcon";
 import Link from "next/link";
 import Step from "./Step";
-import { Clock, Link2 } from "lucide-react";
+import { Clock, Fuel, Link2 } from "lucide-react";
 import CheckedIcon from "../../../../Icons/CheckedIcon";
 import XCircle from "../../../../Icons/CircleX";
-import TimelockTimer from "../../Timer";
+import useSWRGas from "../../../../../lib/gases/useSWRGas";
 
 export const RequestStep: FC = () => {
-    const { sourceDetails, commitId, commitTxId, source_network, commitFromApi, isTimelockExpired } = useAtomicState()
+    const { sourceDetails, commitId, commitTxId, source_network, commitFromApi, isTimelockExpired, source_asset, amount, selectedSourceAccount } = useAtomicState()
+
+
+    const { gas } = useSWRGas(selectedSourceAccount, source_network, source_asset, 'commit')
 
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
 
@@ -20,12 +23,22 @@ export const RequestStep: FC = () => {
     const title = commited ? "Confirmed" : "Confirm the details"
     const description = (commited && source_network) ? <>Swap details confirmed</> : <>Review and confirm the swap details</>
 
+    const receiveAmountInUsd = amount && source_asset?.price_in_usd ? (amount * source_asset.price_in_usd).toFixed(2) : undefined
+
+    const titleDetails = (commited || !gas) ? null : <div className="flex items-center gap-1">
+        <Fuel className="h-4 w-4" />
+        <p>
+            (${receiveAmountInUsd})
+        </p>
+    </div>
+
     const completedTxLink = source_network && commitTxId && source_network?.transaction_explorer_template.replace('{0}', commitTxId)
 
     return <Step
         step={1}
         title={title}
         description={description}
+        titleDetails={titleDetails}
         active={true}
         completed={commited}
         loading={commtting && !commited}
@@ -46,6 +59,13 @@ export const SignAndConfirmStep: FC = () => {
     const title = assetsLocked ? "Finalized" : "Finalize"
     const completed = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || !!lpRedeemTransaction?.hash || commitStatus === CommitStatus.RedeemCompleted || commitStatus === CommitStatus.AssetsLocked
 
+    const titleDetails = completed ? null : <div className="flex items-center gap-1">
+        <Fuel className="h-4 w-4" />
+        <p>
+            ($0.00)
+        </p>
+    </div>
+
     const description = assetsLocked
         ? <span>
             You will receive your assets at the destination address shortly.
@@ -60,6 +80,7 @@ export const SignAndConfirmStep: FC = () => {
             step={2}
             title={title}
             description={description}
+            titleDetails={titleDetails}
             active={!!destinationDetails?.hashlock}
             completed={completed}
             loading={loading}

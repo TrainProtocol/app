@@ -7,8 +7,8 @@ import dynamic from "next/dynamic";
 import { useQueryState } from "../../context/query";
 import useSWRGas from "../../lib/gases/useSWRGas";
 import useSWRBalance from "../../lib/balances/useSWRBalance";
-import { useSwapDataState } from "../../context/swap";
 import { Token } from "../../Models/Network";
+import { useAtomicState } from "../../context/atomicContext";
 
 const MinMax = dynamic(() => import("./dynamic/MinMax"), {
     loading: () => <></>,
@@ -20,8 +20,8 @@ const AmountField = forwardRef(function AmountField(_, ref: any) {
     const [requestedAmountInUsd, setRequestedAmountInUsd] = useState<string>();
     const { fromCurrency, from, to, amount, toCurrency } = values || {};
     const { minAllowedAmount, maxAllowedAmount: maxAmountFromApi, fee, isFeeLoading } = useFee()
+    const { selectedSourceAccount } = useAtomicState()
     const [isFocused, setIsFocused] = useState(false);
-    const { selectedSourceAccount } = useSwapDataState()
     const sourceAddress = selectedSourceAccount?.address
 
     const { balance, isBalanceLoading } = useSWRBalance(sourceAddress, from)

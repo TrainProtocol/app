@@ -6,13 +6,13 @@ import { ExtendedAddress } from "../Input/Address/AddressPicker/AddressWithIcon"
 import { clsx } from 'clsx';
 import { useConnectModal } from "../WalletModal";
 import { Network, Token } from "../../Models/Network";
-import { useSwapDataState } from "../../context/swap";
 import FilledCheck from "../Icons/FilledCheck";
 import { truncateDecimals } from "../utils/RoundDecimals";
 import useSWRBalance from "../../lib/balances/useSWRBalance";
 import { useSettingsState } from "../../context/settings";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../shadcn/tooltip";
 import Image from 'next/image'
+import { useAtomicState } from "../../context/atomicContext";
 
 type Props = ({
     selectable?: false;
@@ -45,7 +45,7 @@ const WalletsList: FC<Props> = (props) => {
 
     }
 
-    const { selectedSourceAccount } = useSwapDataState()
+    const { selectedSourceAccount } = useAtomicState()
 
     return (
         <div className="space-y-3">
