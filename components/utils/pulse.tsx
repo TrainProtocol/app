@@ -2,7 +2,7 @@ import React from "react";
 import { usePulsatingCircles } from "../../context/PulsatingCirclesContext";
 
 const PulsatingCircles: React.FC = () => {
-    const { pulseState } = usePulsatingCircles();
+    const { pulseState } = usePulsatingCircles()
 
     return (
         <>
