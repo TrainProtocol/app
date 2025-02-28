@@ -42,7 +42,7 @@ interface CommitState {
     sourceDetails?: Commit & { claimTime?: number };
     destinationDetails?: Commit & { fetchedByLightClient?: boolean };
     userLocked: boolean;
-    error?: string | undefined;
+    error?: { message: string, buttonText?: string } | undefined;
     commitFromApi?: CommitFromApi;
     lightClient?: LightClient | undefined;
     isTimelockExpired: boolean;
@@ -148,11 +148,13 @@ export function AtomicProvider({ children }) {
         if (!sourceDetails.hashlock || (destinationDetails && destinationDetails.claimed == 1)) {
             if (time < 0) {
                 setIsTimelockExpired(true)
+                if (destinationDetails?.hashlock) updateCommit('error', { message: 'Timelock expired', buttonText: 'Got it' })
                 return
             }
             timer = setInterval(() => {
                 if (!isTimelockExpired) {
                     setIsTimelockExpired(true)
+                    if (destinationDetails?.hashlock) updateCommit('error', { message: 'Timelock expired', buttonText: 'Got it' })
                     clearInterval(timer)
                 }
             }, time);

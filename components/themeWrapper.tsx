@@ -10,7 +10,7 @@ export default function ThemeWrapper({ children }: Props) {
     return <div className='styled-scroll'>
         <div className="invisible light"></div>
         <main className="styled-scroll">
-            <div className={`flex flex-col items-center min-h-screen overflow-hidden relative font-robo`}>
+            <div className={`flex flex-col items-center min-h-screen overflow-hidden relative font-robo w-full`}>
                 <Toaster position="top-center" toastOptions={{
                     duration: 5000,
                     style: {
