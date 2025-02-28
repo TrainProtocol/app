@@ -73,12 +73,12 @@ export const RedeemAction: FC = () => {
             if (!commitId) throw new Error("No commitment details")
             if (!destinationDetails) throw new Error("No commitment")
             if (!destination_asset) throw new Error("No source asset")
-            if (!destinationDetails?.secret) throw new Error("No secret")
+            if (!sourceDetails?.secret) throw new Error("No secret")
 
-            await source_provider?.claim({
-                type: source_asset?.contract ? 'erc20' : 'native',
+            await destination_provider?.claim({
+                type: destination_asset?.contract ? 'erc20' : 'native',
                 id: commitId,
-                secret: destinationDetails?.secret,
+                secret: sourceDetails?.secret,
                 chainId: destination_network.chain_id,
                 contractAddress: destination_contract as `0x${string}`,
                 sourceAsset: destination_asset,
@@ -97,7 +97,7 @@ export const RedeemAction: FC = () => {
                 isManualClaimable
                     ? (
                         manualClaimRequested
-                            ? <></>
+                            ? null
                             : <WalletActionButton
                                 activeChain={destination_wallet?.chainId}
                                 isConnected={!!destination_wallet}
@@ -108,7 +108,7 @@ export const RedeemAction: FC = () => {
                                 Claim Manually
                             </WalletActionButton>
                     )
-                    : <></>
+                    : null
             }
         </>
     )

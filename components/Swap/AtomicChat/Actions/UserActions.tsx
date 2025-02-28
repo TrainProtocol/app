@@ -77,7 +77,7 @@ export const UserCommitAction: FC = () => {
             }
         }
         catch (e) {
-            updateCommit('error', e.details || e.message)
+            updateCommit('error', { message: e.details || e.message })
         }
     }
 
@@ -178,7 +178,7 @@ export const UserLockAction: FC = () => {
             updateCommit('userLocked', true)
         }
         catch (e) {
-            updateCommit('error', e.details || e.message)
+            updateCommit('error', { message: e.details || e.message })
         }
         finally {
         }
@@ -276,7 +276,7 @@ export const UserRefundAction: FC = () => {
             }
         }
         catch (e) {
-            updateCommit('error', e.details || e.message)
+            updateCommit('error', { message: e.details || e.message })
         }
     }
 

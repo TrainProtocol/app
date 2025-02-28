@@ -8,6 +8,7 @@ import { Commit } from "../../../../Models/PHTLC";
 import { AnimatePresence, motion } from "framer-motion";
 import ReactPortal from "../../../Common/ReactPortal";
 import ButtonStatus from "./Status/ButtonStatus";
+import WalletMessage from "../../messages/Message";
 
 const ResolveAction: FC<{ sourceDetails: Commit | undefined, commitStatus: CommitStatus, error: string | undefined }> = ({ commitStatus, sourceDetails, error }) => {
 
@@ -17,11 +18,11 @@ const ResolveAction: FC<{ sourceDetails: Commit | undefined, commitStatus: Commi
         </ButtonStatus>
     }
     if (commitStatus === CommitStatus.RedeemCompleted) {
-        return <></>
+        return null
     }
     if (commitStatus === CommitStatus.TimelockExpired) {
         if (sourceDetails?.claimed == 2) {
-            return <></>
+            return null
         }
         else {
             return <UserRefundAction />
@@ -48,14 +49,14 @@ export const Actions: FC = () => {
             <ResolveAction
                 commitStatus={commitStatus}
                 sourceDetails={sourceDetails}
-                error={error}
+                error={error?.message}
             />
         </>
     )
 }
 
 const Error: FC = () => {
-    const { error, updateCommit } = useAtomicState()
+    const { error, updateCommit, isTimelockExpired } = useAtomicState()
 
     return <>
         <AnimatePresence>
@@ -70,13 +71,15 @@ const Error: FC = () => {
                         className="absolute z-30 bottom-0 bg-secondary-700 rounded-2xl p-3 w-full shadow-card"
                     >
                         <div className="w-full space-y-3 flex flex-col justify-between h-full text-secondary-text">
-                            <TransactionMessage error={error} isLoading={false} />
+                            <TransactionMessage
+                                error={error.message}
+                            />
                             <button
                                 type="button"
                                 onClick={() => updateCommit('error', undefined)}
                                 className='relative w-full font-semibold rounded-componentRoundness transition duration-200 ease-in-out bg-secondary-400 border border-secondary-500 text-primary-text py-3 px-2 md:px-3'
                             >
-                                Try again
+                                {error.buttonText || 'Try again'}
                             </button>
                         </div>
                     </motion.div>
@@ -96,9 +99,16 @@ const Error: FC = () => {
     </>
 }
 
-const TransactionMessage: FC<{ isLoading: boolean, error: string | undefined }> = ({ error }) => {
+const TransactionMessage: FC<{ error: string | undefined }> = ({ error }) => {
     if (error === "An error occurred (USER_REFUSED_OP)" || error === "Execute failed" || error?.toLowerCase()?.includes('denied')) {
         return <TransactionMessages.TransactionRejectedMessage />
+    }
+    else if (error === "Timelock expired") {
+        return <WalletMessage
+            status="error"
+            header='Timelock expired'
+            details='Unfortunately the time lock was expired, continuing the transaction is not recommended, cancel & refund to receive your assets back.'
+        />
     }
     else if (error) {
         return <TransactionMessages.UexpectedErrorMessage message={error} />
