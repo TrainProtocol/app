@@ -12,26 +12,26 @@ const PulsatingCircles: React.FC = () => {
             <div
                 className={`absolute w-[130%] aspect-square border ${pulseState === 'completed' ? "border-[#278EF6] opacity-50" : "opacity-10 border-[#808080]"} rounded-full ${pulseState === 'pulsing' ? "animate-circle1" : ""}`}
                 style={{
-                    filter: pulseState === 'completed' ? "drop-shadow(0px -2px 4px rgba(39, 142, 246, 0.8))" : "drop-shadow(0px -2px 4px rgba(255, 255, 255, 0.5))"
+                    filter: pulseState === 'completed' ? "drop-shadow(0px -2px 4px rgba(39, 142, 246, 0.8))" : "drop-shadow(0px -2px 4px rgba(255, 255, 255, 0.9))"
                 }}
             ></div>
 
             <div
                 className={`absolute w-[150%] aspect-square border ${pulseState === 'completed' ? "border-[#278EF6] opacity-50" : "opacity-10 border-[#808080]"} rounded-full ${pulseState === 'pulsing' ? "animate-circle2" : ""}`}
-                style={{ filter: pulseState === 'completed' ? "drop-shadow(0px -2px 7px rgba(39, 142, 246, 0.8))" : "drop-shadow(0px -2px 6px rgba(255, 255, 255, 0.6))" }}
+                style={{ filter: pulseState === 'completed' ? "drop-shadow(0px -2px 7px rgba(39, 142, 246, 0.8))" : "drop-shadow(0px -2px 6px rgba(255, 255, 255, 0.9))" }}
             ></div>
 
             <div
                 className={`absolute w-[175%] aspect-square border-2 ${pulseState === 'completed' ? "border-[#278EF6] opacity-50" : "opacity-10 border-[#808080]"} rounded-full ${pulseState === 'pulsing' ? "animate-circle3" : ""}`}
                 style={{
-                    filter: pulseState === 'completed' ? "drop-shadow(0px -2px 5px rgba(39, 142, 246, 0.8))" : "drop-shadow(0px -2px 8px rgba(255, 255, 255, 0.7))"
+                    filter: pulseState === 'completed' ? "drop-shadow(0px -2px 5px rgba(39, 142, 246, 0.8))" : "drop-shadow(0px -2px 8px rgba(255, 255, 255, 0.9))"
                 }}
             ></div>
 
             <div
                 className={`absolute w-[205%] aspect-square border-[3px] ${pulseState === 'completed' ? "border-[#278EF6] opacity-50" : "opacity-10 border-[#808080]"} rounded-full ${pulseState === 'pulsing' ? "animate-circle4" : ""}`}
                 style={{
-                    filter: pulseState === 'completed' ? "drop-shadow(0px -2px 10px rgba(39, 142, 246, 0.8))" : "drop-shadow(0px -2px 10px rgba(255, 255, 255, 0.8))"
+                    filter: pulseState === 'completed' ? "drop-shadow(0px -2px 10px rgba(39, 142, 246, 0.8))" : "drop-shadow(0px -2px 10px rgba(255, 255, 255, 0.9))"
                 }}
             ></div>
 
