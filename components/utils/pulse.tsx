@@ -12,33 +12,33 @@ const PulsatingCircles: React.FC = () => {
             <div
                 className={`absolute w-[130%] aspect-square border ${pulseState === 'completed' ? "border-[#278EF6] opacity-50" : "opacity-10 border-[#808080]"} rounded-full ${pulseState === 'pulsing' ? "animate-circle1" : ""}`}
                 style={{
-                    filter: pulseState === 'completed' ? "drop-shadow(0px -2px 4px rgba(39, 142, 246, 0.80))" : "drop-shadow(0px -2px 4px rgba(255, 255, 255, 0.40))"
+                    filter: pulseState === 'completed' ? "drop-shadow(0px -2px 4px rgba(39, 142, 246, 0.8))" : "drop-shadow(0px -2px 4px rgba(255, 255, 255, 0.5))"
                 }}
             ></div>
 
             <div
                 className={`absolute w-[150%] aspect-square border ${pulseState === 'completed' ? "border-[#278EF6] opacity-50" : "opacity-10 border-[#808080]"} rounded-full ${pulseState === 'pulsing' ? "animate-circle2" : ""}`}
-                style={{ filter: pulseState === 'completed' ? "drop-shadow(0px -2px 7px rgba(39, 142, 246, 0.80))" : "drop-shadow(0px -2px 6px rgba(255, 255, 255, 0.60))" }}
+                style={{ filter: pulseState === 'completed' ? "drop-shadow(0px -2px 7px rgba(39, 142, 246, 0.8))" : "drop-shadow(0px -2px 6px rgba(255, 255, 255, 0.6))" }}
             ></div>
 
             <div
                 className={`absolute w-[175%] aspect-square border-2 ${pulseState === 'completed' ? "border-[#278EF6] opacity-50" : "opacity-10 border-[#808080]"} rounded-full ${pulseState === 'pulsing' ? "animate-circle3" : ""}`}
                 style={{
-                    filter: pulseState === 'completed' ? "drop-shadow(0px -2px 5px #278EF6)" : "drop-shadow(0px -2px 8px rgba(255, 255, 255, 0.60))"
+                    filter: pulseState === 'completed' ? "drop-shadow(0px -2px 5px rgba(39, 142, 246, 0.8))" : "drop-shadow(0px -2px 8px rgba(255, 255, 255, 0.7))"
                 }}
             ></div>
 
             <div
                 className={`absolute w-[205%] aspect-square border-[3px] ${pulseState === 'completed' ? "border-[#278EF6] opacity-50" : "opacity-10 border-[#808080]"} rounded-full ${pulseState === 'pulsing' ? "animate-circle4" : ""}`}
                 style={{
-                    filter: pulseState === 'completed' ? "drop-shadow(0px -2px 10px rgba(39, 142, 246, 0.80))" : "drop-shadow(0px -2px 10px rgba(255, 255, 255, 0.70))"
+                    filter: pulseState === 'completed' ? "drop-shadow(0px -2px 10px rgba(39, 142, 246, 0.8))" : "drop-shadow(0px -2px 10px rgba(255, 255, 255, 0.8))"
                 }}
             ></div>
 
             <div
                 className={`absolute w-[245%] aspect-square border-4 ${pulseState === 'completed' ? "border-[#278EF6] opacity-50" : "opacity-10 border-[#B8B8B8]"} rounded-full ${pulseState === 'pulsing' ? "animate-circle5" : ""}`}
                 style={{
-                    filter: pulseState === 'completed' ? "drop-shadow(0px -2px 12px #278EF6)" : "drop-shadow(0px -2px 12px rgba(255, 255, 255, 0.80))"
+                    filter: pulseState === 'completed' ? "drop-shadow(0px -2px 12px rgba(39, 142, 246, 0.8))" : "drop-shadow(0px -2px 12px rgba(255, 255, 255, 0.9))"
                 }}
             ></div>
         </>

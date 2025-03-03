@@ -84,8 +84,6 @@ module.exports = {
         gauge_fill: "gauge_fill 1s ease forwards",
 
         //pulse
-        pulsate: "pulsate 4s infinite ease-in-out alternate",
-
         circle1: "circle1 7s ease-in-out infinite",
         circle2: "circle2 7s ease-in-out infinite",
         circle3: "circle3 7s ease-in-out infinite",
@@ -178,11 +176,6 @@ module.exports = {
         gauge_fill: {
           from: { "stroke-dashoffset": "332", opacity: "0" },
           to: { opacity: "1" },
-        },
-        pulsate: {
-          "0%": { opacity: "0.1" },
-          "50%": { opacity: "0.6" },
-          "100%": { opacity: "0.1" },
         },
         circle1: {
           "0%": { opacity: "0.1" },
