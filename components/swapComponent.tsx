@@ -11,7 +11,7 @@ import { AtomicSteps } from '../Models/Wizard';
 const Swap: FC = () => {
 
   return (
-    <div className="text-primary-text">
+    <div className="text-primary-text z-10">
       <SWRConfig>
         <SwapDataProvider >
           <AtomicProvider>
