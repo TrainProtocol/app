@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Link2 } from "lucide-react";
 import TimelockTimer from "../../Timer";
 import { usePulsatingCircles } from "../../../../../context/PulsatingCirclesContext";
+import { Tooltip, TooltipTrigger, TooltipContent } from "../../../../shadcn/tooltip";
 
 type StepProps = {
     step: number;
@@ -64,12 +65,23 @@ const Step: FC<StepProps> = ({ step, title, description, active, completed, load
             }
             {
                 completedTxLink && completed &&
-                <Link className="bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm" target="_blank" href={completedTxLink}>
-                    <Link2 className="h-4 w-auto" />
-                </Link>
+                <TxLink txLink={completedTxLink} />
             }
         </div>
     </div>
+}
+
+export const TxLink: FC<{ txLink: string }> = ({ txLink }) => {
+    return <Tooltip delayDuration={200}>
+        <TooltipTrigger asChild>
+            <Link className="bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm" target="_blank" href={txLink}>
+                <Link2 className="h-4 w-auto" />
+            </Link>
+        </TooltipTrigger>
+        <TooltipContent>
+            View transaction
+        </TooltipContent>
+    </Tooltip>
 }
 
 export default Step;

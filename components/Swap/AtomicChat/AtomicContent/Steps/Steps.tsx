@@ -3,7 +3,7 @@ import { CommitStatus, useAtomicState } from "../../../../../context/atomicConte
 import { CommitTransaction } from "../../../../../lib/layerSwapApiClient";
 import LockIcon from "../../../../Icons/LockIcon";
 import Link from "next/link";
-import Step from "./Step";
+import Step, { TxLink } from "./Step";
 import { Clock, Fuel, Link2 } from "lucide-react";
 import CheckedIcon from "../../../../Icons/CheckedIcon";
 import XCircle from "../../../../Icons/CircleX";
@@ -134,7 +134,7 @@ export const LpLockingAssets: FC = () => {
     return (
         commitStatus !== CommitStatus.TimelockExpired &&
         <>
-            <div className={`relative inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 ${!sourceDetails ? 'opacity-60' : ''}`}>
+            <div className={`relative inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 pr-5 ${!sourceDetails ? 'opacity-60' : ''}`}>
                 <div className="space-y-1">
                     <div className="inline-flex items-center gap-2">
                         <div className="flex w-fit items-center justify-center">
@@ -174,9 +174,7 @@ export const LpLockingAssets: FC = () => {
                 </div>
                 {
                     lpLockTx && destination_network && destinationDetails?.hashlock &&
-                    <Link className="mr-2 flex items-center gap-1 bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm" target="_blank" href={destination_network?.transaction_explorer_template.replace('{0}', lpLockTx?.hash)}>
-                        <Link2 className="h-4 w-auto" />
-                    </Link>
+                    <TxLink txLink={lpLockTx.hash} />
                 }
             </div>
         </>
@@ -213,7 +211,7 @@ export const CancelAndRefund: FC = () => {
 
     return (
         commitStatus === CommitStatus.TimelockExpired &&
-        <div className={`inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 relative`}>
+        <div className={`inline-flex items-center justify-between w-full pr-5 bg-secondary-700 rounded-2xl p-3 relative`}>
             <div className="space-y-1">
                 <div className="inline-flex items-center gap-2">
                     <div className="flex w-fit items-center justify-center">
@@ -245,11 +243,7 @@ export const CancelAndRefund: FC = () => {
             </div>
             {
                 refundTxId && source_network && completed &&
-                <div className="absolute right-5 top-[calc(50%-14px)] flex items-center gap-2 bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm">
-                    <Link className="flex items-center gap-1" target="_blank" href={source_network?.transaction_explorer_template.replace('{0}', refundTxId)}>
-                        <Link2 className="h-4 w-auto" />
-                    </Link>
-                </div>
+                <TxLink txLink={refundTxId} />
             }
         </div>
 
