@@ -135,7 +135,7 @@ export const LpLockingAssets: FC = () => {
                                                 <div className="w-3/4 h-full bg-accent rounded-full" />
                                             </div>
 
-                                            <div className="absolute w-1/2 h-0.5  origin-left  animate-spin-slow">
+                                            <div className="absolute w-1/2 h-0.5  origin-left animate-spin-slow">
                                                 <div className="w-2/3 h-full bg-accent rounded-full" />
                                             </div>
                                             <div className="absolute flex justify-center flex-1 w-full">

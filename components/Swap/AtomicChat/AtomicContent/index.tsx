@@ -1,4 +1,4 @@
-import { FC, useEffect } from "react";
+import { FC, useEffect, useMemo } from "react";
 import ResizablePanel from "../../../ResizablePanel";
 import Steps from "./Steps";
 import { CommitStatus, useAtomicState } from "../../../../context/atomicContext";
@@ -77,7 +77,7 @@ const AtomicContent: FC = () => {
 
 const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boolean | undefined, manualClaimRequested: boolean | undefined, redeemTxLink: string | undefined }> = ({ commitStatus, isManualClaimable, manualClaimRequested, redeemTxLink }) => {
 
-    const ResolvedIcon = () => {
+    const ResolvedIcon = useMemo(() => {
         if (commitStatus === CommitStatus.RedeemCompleted) {
             return <CheckedIcon className="h-16 w-auto text-accent" />
         }
@@ -86,9 +86,9 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
             return <CircleAlert className="h-16 w-auto text-yellow-600" />
         }
         return <SpinIcon className="h-16 w-auto text-accent animate-reverse-spin" />
-    }
+    }, [commitStatus, isManualClaimable, manualClaimRequested])
 
-    const ResolvedTitle = () => {
+    const ResolvedTitle = useMemo(() => {
         if (commitStatus === CommitStatus.RedeemCompleted) {
             return <p className="text-3xl text-primary-text">
                 Transaction Completed Successfully
@@ -102,9 +102,9 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
         return <p className="text-xl text-primary-text">
             Releasing assets
         </p>
-    }
+    }, [commitStatus, isManualClaimable, manualClaimRequested])
 
-    const ResolvedDescription = () => {
+    const ResolvedDescription = useMemo(() => {
         if (commitStatus === CommitStatus.RedeemCompleted) {
             return redeemTxLink &&
                 <div className="w-full flex justify-center">
@@ -129,7 +129,7 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
         return <p className="text-base text-secondary-text max-w-xs mx-auto">
             You will receive your assets at the destination address shortly.
         </p>
-    }
+    }, [commitStatus, isManualClaimable, manualClaimRequested, redeemTxLink])
 
     const show = commitStatus === CommitStatus.RedeemCompleted || commitStatus === CommitStatus.AssetsLocked
 
@@ -141,10 +141,10 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
             }}
             className="flex flex-col gap-6 pt-10 pb-6 transition-all duration-500"
         >
-            <ResolvedIcon />
+            {ResolvedIcon}
             <div className="text-center space-y-2">
-                <ResolvedTitle />
-                <ResolvedDescription />
+                {ResolvedTitle}
+                {ResolvedDescription}
             </div>
         </div>
     )
