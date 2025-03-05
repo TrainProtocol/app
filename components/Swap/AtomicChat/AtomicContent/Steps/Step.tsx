@@ -1,4 +1,5 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
+import { usePulsatingCircles } from "../../../../../context/PulsatingCirclesContext";
 import CheckedIcon from "../../../../Icons/CheckedIcon";
 import Link from "next/link";
 import { Link2 } from "lucide-react";
@@ -15,9 +16,15 @@ type StepProps = {
     timelock?: number;
     isTimelocKExpired?: boolean;
 }
-const Step: FC<StepProps> = ({ step, title, description, active, completed, loading, completedTxLink, timelock, isTimelocKExpired }) => {
-    return <div className={`relative inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 ${!active ? 'opacity-60' : ''}`}>
-        <div className="space-y-1">
+const Step: FC<StepProps> = ({ step, title, description, active, completed, loading, completedTxLink, isTimelocKExpired, timelock }) => {
+    const { setPulseState } = usePulsatingCircles();
+
+    useEffect(() => {
+        setPulseState(loading ? "pulsing" : "initial")
+    }, [loading, setPulseState]);
+
+    return <div className={`inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 ${!active ? 'opacity-60' : ''}`}>
+        <div className="space-y-2">
             <div className="inline-flex items-center gap-2">
                 <div className="flex w-fit items-center justify-center">
                     <div className="relative z-10 flex w-full items-center overflow-hidden rounded-full p-0.5">

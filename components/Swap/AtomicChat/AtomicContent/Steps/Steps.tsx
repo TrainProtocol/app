@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { CommitStatus, useAtomicState } from "../../../../../context/atomicContext";
 import { CommitTransaction } from "../../../../../lib/layerSwapApiClient";
 import LockIcon from "../../../../Icons/LockIcon";
@@ -8,6 +8,7 @@ import { Clock, Link2 } from "lucide-react";
 import CheckedIcon from "../../../../Icons/CheckedIcon";
 import XCircle from "../../../../Icons/CircleX";
 import TimelockTimer from "../../Timer";
+import { usePulsatingCircles } from "../../../../../context/PulsatingCirclesContext";
 
 export const RequestStep: FC = () => {
     const { sourceDetails, commitId, commitTxId, source_network, commitFromApi, isTimelockExpired } = useAtomicState()
@@ -102,6 +103,12 @@ export const LpLockingAssets: FC = () => {
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
 
     const title = completed ? 'Assets reserved' : 'Wait for response'
+
+    const { setPulseState } = usePulsatingCircles();
+
+    useEffect(() => {
+        setPulseState(loading ? "pulsing" : "initial");
+    }, [loading, setPulseState]);
 
     return (
         commitStatus !== CommitStatus.TimelockExpired &&

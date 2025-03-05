@@ -43,8 +43,8 @@ export default function Form() {
 
     const {
         commitId
-    } = atomicQuery
-
+    } = atomicQuery;
+    
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
             if (!values.amount) {
@@ -118,11 +118,11 @@ export default function Form() {
                 </div>
             }
         </AnimatePresence>
-
+        
         <Formik
             innerRef={formikRef}
             initialValues={{}}
-            validateOnMount={true}
+            validateOnMount={true}wddsdedsdsdsdxcfn
             validate={MainStepValidation({ minAllowedAmount, maxAllowedAmount })}
             onSubmit={handleSubmit}
         >
