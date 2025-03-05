@@ -103,6 +103,9 @@ const TransactionMessage: FC<{ error: string | undefined }> = ({ error }) => {
     if (error === "An error occurred (USER_REFUSED_OP)" || error === "Execute failed" || error?.toLowerCase()?.includes('denied')) {
         return <TransactionMessages.TransactionRejectedMessage />
     }
+    else if (error?.includes('insufficient funds')) {
+        return <TransactionMessages.InsufficientFundsMessage />
+    }
     else if (error === "Timelock expired") {
         return <WalletMessage
             status="error"

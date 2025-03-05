@@ -3,6 +3,7 @@ import GoHomeButton from './utils/GoHome';
 import Link from 'next/link';
 import { JetBrains_Mono } from "next/font/google";
 import clsx from 'clsx';
+import { ArrowUpRight } from 'lucide-react';
 
 const jetBrainsMono = JetBrains_Mono({
     variable: "--font-jb-mono",
@@ -13,17 +14,14 @@ const jetBrainsMono = JetBrains_Mono({
 export default function Navbar() {
 
     const navigation = [
-        { name: 'home', href: 'https://www.train.tech/', current: false },
         { name: 'app', href: '/', current: true },
-        { name: 'how', href: 'https://www.train.tech/how', current: false },
-        { name: 'about', href: 'https://www.train.tech/about', current: false },
-        { name: 'docs', href: 'https://docs.train.tech/protocol/introduction', current: false, target: '_blank' },
+        { name: 'home', href: 'https://www.train.tech/', current: false, target: '_blank' },
     ]
 
     return (
         <div className='mt-5 mb-8  px-8 overflow-hidden hidden md:block relative z-20 w-full'>
             <div className="flex items-center justify-between w-full">
-                <GoHomeButton className='h-auto w-48 text-primary-logoColor fill-primary-text cursor-pointer headerLogo' />
+                <GoHomeButton className='h-auto w-36 text-primary-logoColor fill-primary-text cursor-pointer headerLogo' />
                 <div className='flex space-x-5 text-primary-text'>
                     {
                         navigation.map((item, index) => {
@@ -37,6 +35,10 @@ export default function Navbar() {
                                     })}
                                 >
                                     {item.name}
+                                    {
+                                        item.target === '_blank' &&
+                                        <ArrowUpRight className='h-4 w-4 inline-flex ml-0.5' />
+                                    }
                                 </Link>
                             )
                         })

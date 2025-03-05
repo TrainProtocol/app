@@ -1,8 +1,9 @@
-import { FC, ReactNode } from "react";
+import { FC, ReactNode, useEffect } from "react";
 import CheckedIcon from "../../../../Icons/CheckedIcon";
 import Link from "next/link";
 import { Link2 } from "lucide-react";
 import TimelockTimer from "../../Timer";
+import { usePulsatingCircles } from "../../../../../context/PulsatingCirclesContext";
 
 type StepProps = {
     step: number;
@@ -17,6 +18,12 @@ type StepProps = {
     isTimelocKExpired?: boolean;
 }
 const Step: FC<StepProps> = ({ step, title, description, active, completed, loading, completedTxLink, timelock, isTimelocKExpired, titleDetails }) => {
+    const { setPulseState } = usePulsatingCircles();
+
+    useEffect(() => {
+        setPulseState(loading ? "pulsing" : "initial")
+    }, [loading]);
+
     return <div className={`relative inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 ${!active ? 'opacity-60' : ''}`}>
         <div className="space-y-1 w-full">
             <div className="inline-flex items-center justify-between w-full">

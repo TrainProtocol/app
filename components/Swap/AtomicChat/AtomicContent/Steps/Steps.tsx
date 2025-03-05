@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { CommitStatus, useAtomicState } from "../../../../../context/atomicContext";
 import { CommitTransaction } from "../../../../../lib/layerSwapApiClient";
 import LockIcon from "../../../../Icons/LockIcon";
@@ -8,6 +8,7 @@ import { Clock, Fuel, Link2 } from "lucide-react";
 import CheckedIcon from "../../../../Icons/CheckedIcon";
 import XCircle from "../../../../Icons/CircleX";
 import useSWRGas from "../../../../../lib/gases/useSWRGas";
+import { usePulsatingCircles } from "../../../../../context/PulsatingCirclesContext";
 
 export const RequestStep: FC = () => {
     const { sourceDetails, commitId, commitTxId, source_network, commitFromApi, isTimelockExpired, source_asset, amount, selectedSourceAccount } = useAtomicState()
@@ -124,6 +125,12 @@ export const LpLockingAssets: FC = () => {
 
     const title = completed ? 'Assets reserved' : 'Wait for response'
 
+    const { setPulseState } = usePulsatingCircles();
+
+    useEffect(() => {
+        setPulseState(loading ? "pulsing" : "initial");
+    }, [loading, setPulseState]);
+
     return (
         commitStatus !== CommitStatus.TimelockExpired &&
         <>
@@ -150,7 +157,7 @@ export const LpLockingAssets: FC = () => {
                                                 <div className="w-3/4 h-full bg-accent rounded-full" />
                                             </div>
 
-                                            <div className="absolute w-1/2 h-0.5  origin-left  animate-spin-slow">
+                                            <div className="absolute w-1/2 h-0.5  origin-left animate-spin-slow">
                                                 <div className="w-2/3 h-full bg-accent rounded-full" />
                                             </div>
                                             <div className="absolute flex justify-center flex-1 w-full">
