@@ -62,7 +62,7 @@ export default function ThemeWrapper({ children }: Props) {
                     <div className="flex h-full content-center items-center justify-center space-y-5 flex-col container mx-auto sm:px-6 max-w-lg">
                         <div className="flex h-full flex-col w-full text-primary-text">
                             <div className="relative w-full flex flex-col items-center">
-                                <div className="absolute top-[500px] left-0 w-full flex items-center justify-center pointer-events-none">
+                                <div className="absolute top-[500px] left-0 w-full items-center justify-center pointer-events-none hidden md:flex">
                                     <PulsatingCircles />
                                 </div>
                             </div>
