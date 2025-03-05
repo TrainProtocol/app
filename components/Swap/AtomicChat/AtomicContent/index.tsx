@@ -18,6 +18,20 @@ const AtomicContent: FC = () => {
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
     const redeemTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
 
+    const { setPulseState } = usePulsatingCircles();
+
+    useEffect(() => {
+        if (commitStatus === CommitStatus.RedeemCompleted) {
+            setPulseState("completed");
+        }
+        else if (isManualClaimable && !manualClaimRequested) {
+            setPulseState("initial");
+        }
+        else if (assetsLocked) {
+            setPulseState("pulsing");
+        }
+    }, [assetsLocked, commitStatus, isManualClaimable, manualClaimRequested]);
+
     return (
         <>
             <ResizablePanel>
@@ -62,15 +76,6 @@ const AtomicContent: FC = () => {
 }
 
 const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boolean | undefined, manualClaimRequested: boolean | undefined, redeemTxLink: string | undefined }> = ({ commitStatus, isManualClaimable, manualClaimRequested, redeemTxLink }) => {
-    const { setPulseState } = usePulsatingCircles();
-
-    useEffect(() => {
-        if (commitStatus === CommitStatus.RedeemCompleted) {
-            setPulseState("completed");
-        } else if (!(isManualClaimable && !manualClaimRequested)) {
-            setPulseState("pulsing");
-        }
-    }, [setPulseState, commitStatus, isManualClaimable, manualClaimRequested]);
 
     const ResolvedIcon = () => {
         if (commitStatus === CommitStatus.RedeemCompleted) {
@@ -117,11 +122,11 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
 
         }
         if (isManualClaimable && !manualClaimRequested) {
-            return <p className="text-base text-secondary-text max-w-sm mx-auto">
+            return <p className="text-base text-secondary-text max-w-xs mx-auto">
                 The solver was unable to release your funds. Please claim them manually.
             </p>
         }
-        return <p className="text-base text-secondary-text max-w-sm mx-auto">
+        return <p className="text-base text-secondary-text max-w-xs mx-auto">
             You will receive your assets at the destination address shortly.
         </p>
     }

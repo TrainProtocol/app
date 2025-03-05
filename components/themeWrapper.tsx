@@ -3,7 +3,7 @@ import toast, { ToastBar, Toaster } from "react-hot-toast"
 import Navbar from "./navbar"
 import GlobalFooter from "./globalFooter";
 import { usePulsatingCircles } from "../context/PulsatingCirclesContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PulsatingCircles from "./utils/pulse";
 
 type Props = {
@@ -12,10 +12,20 @@ type Props = {
 export default function ThemeWrapper({ children }: Props) {
     const { pulseState, setPulseState } = usePulsatingCircles();
     const [clickCount, setClickCount] = useState(0);
+    let resetTimer: NodeJS.Timeout;
 
-    const handleClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    useEffect(() => {
+        if (clickCount > 0) {
+            resetTimer = setTimeout(() => {
+                setClickCount(0);
+            }, 1000);
+        }
+        return () => clearTimeout(resetTimer);
+    }, [clickCount]);
+
+    const togglePulse = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         if (event.target !== event.currentTarget) return;
-    
+
         const newCount = clickCount + 1;
         if (newCount >= 5) {
             setPulseState(pulseState === "initial" ? "pulsing" : "initial");
@@ -28,7 +38,7 @@ export default function ThemeWrapper({ children }: Props) {
     return <div className='styled-scroll'>
         <div className="invisible light"></div>
         <main className="styled-scroll">
-            <div className={`flex flex-col items-center min-h-screen overflow-hidden relative font-robo w-full`} onClick={handleClick}>
+            <div className={`flex flex-col items-center min-h-screen overflow-hidden relative font-robo w-full`} onClick={togglePulse}>
                 <Toaster position="top-center" toastOptions={{
                     duration: 5000,
                     style: {

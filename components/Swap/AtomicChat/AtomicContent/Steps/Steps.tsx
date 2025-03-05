@@ -7,7 +7,6 @@ import Step from "./Step";
 import { Clock, Link2 } from "lucide-react";
 import CheckedIcon from "../../../../Icons/CheckedIcon";
 import XCircle from "../../../../Icons/CircleX";
-import TimelockTimer from "../../Timer";
 import { usePulsatingCircles } from "../../../../../context/PulsatingCirclesContext";
 
 export const RequestStep: FC = () => {
