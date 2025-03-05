@@ -25,7 +25,7 @@ import { InternalConnector, Wallet, WalletProvider } from "../../../Models/Walle
 import { useConnectModal } from "../../../components/WalletModal"
 import { explicitInjectedproviderDetected } from "../connectors/getInjectedConnector"
 import { type ConnectorAlreadyConnectedError } from '@wagmi/core'
-import { useSwapDataState } from "../../../context/swap"
+import { useAtomicState } from "../../../context/atomicContext"
 
 type Props = {
     network: Network | undefined,
@@ -38,7 +38,7 @@ export default function useEVM({ network }: Props): WalletProvider {
     const id = 'evm'
     const { networks } = useSettingsState()
     const config = useConfig()
-    const { selectedSourceAccount } = useSwapDataState()
+    const { selectedSourceAccount } = useAtomicState()
     const account = selectedSourceAccount
     const asSourceSupportedNetworks = [
         ...networks.filter(network => network.group.toLowerCase().includes('evm')).map(l => l.name),
@@ -239,9 +239,9 @@ export default function useEVM({ network }: Props): WalletProvider {
             address: atomicContract,
             functionName: 'commit',
             args: [
-                [destinationChain],
-                [destinationAsset],
-                [lpAddress],
+                [],
+                [],
+                [],
                 destinationChain,
                 destinationAsset,
                 address,

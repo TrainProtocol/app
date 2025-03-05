@@ -1,13 +1,13 @@
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import { useEffect, useRef } from "react";
 import { truncateDecimals } from "../../utils/RoundDecimals";
-import { useSwapDataState } from "../../../context/swap";
 import useSWRBalance from "../../../lib/balances/useSWRBalance";
+import { useAtomicState } from "../../../context/atomicContext";
 
 const Balance = ({ values, direction }: { values: SwapFormValues, direction: string }) => {
 
     const { to, fromCurrency, toCurrency, from, destination_address } = values
-    const { selectedSourceAccount } = useSwapDataState()
+    const { selectedSourceAccount } = useAtomicState()
     const token = direction === 'from' ? fromCurrency : toCurrency
     const network = direction === 'from' ? from : to
     const address = direction === 'from' ? selectedSourceAccount?.address : destination_address

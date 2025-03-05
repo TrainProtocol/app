@@ -7,6 +7,7 @@ import useSWR from 'swr';
 import { ApiResponse } from '../Models/ApiResponse';
 import { CommitFromApi, CommitTransaction } from '../lib/layerSwapApiClient';
 import LightClient from '../lib/lightClient';
+import { Wallet } from '../Models/WalletProvider';
 
 export enum CommitStatus {
     Commit = 'commit',
@@ -22,6 +23,7 @@ export enum CommitStatus {
 const AtomicStateContext = createContext<DataContextType | null>(null);
 
 type DataContextType = CommitState & {
+    selectedSourceAccount?: { wallet: Wallet, address: string }
     source_network?: Network,
     destination_network?: Network,
     source_asset?: Token,
@@ -35,7 +37,8 @@ type DataContextType = CommitState & {
     isManualClaimable?: boolean,
     onCommit: (commitId: string, txId: string) => void;
     updateCommit: (field: keyof CommitState, value: any) => void;
-    setAtomicQuery: (query: any) => void
+    setAtomicQuery: (query: any) => void;
+    setSelectedSourceAccount: (value: { wallet: Wallet, address: string } | undefined) => void
 }
 
 interface CommitState {
@@ -57,6 +60,7 @@ export function AtomicProvider({ children }) {
     const router = useRouter()
     const { networks } = useSettingsState()
 
+    const [selectedSourceAccount, setSelectedSourceAccount] = useState<{ wallet: Wallet, address: string } | undefined>()
     const [atomicQuery, setAtomicQuery] = useState(router.query)
 
     const {
@@ -180,6 +184,7 @@ export function AtomicProvider({ children }) {
 
     return (
         <AtomicStateContext.Provider value={{
+            selectedSourceAccount,
             atomicQuery,
             source_network,
             onCommit: handleCommited,
@@ -201,7 +206,8 @@ export function AtomicProvider({ children }) {
             refundTxId,
             isManualClaimable,
             updateCommit,
-            setAtomicQuery
+            setAtomicQuery,
+            setSelectedSourceAccount
         }}>
             {children}
         </AtomicStateContext.Provider>

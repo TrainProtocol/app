@@ -14,8 +14,8 @@ import AddressButton from "./AddressButton";
 import { useQueryState } from "../../../../context/query";
 import { useAddressesStore } from "../../../../stores/addressesStore";
 import ConnectedWallets from "./ConnectedWallets";
-import { useSwapDataState } from "../../../../context/swap";
 import { Wallet } from "../../../../Models/WalletProvider";
+import { useAtomicState } from "../../../../context/atomicContext";
 
 export enum AddressGroup {
     ConnectedWallet = "Connected wallet",
@@ -61,7 +61,7 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
     const { destination_address, to: destination, toCurrency: destinationAsset } = values
     const groupedAddresses = useAddressesStore(state => state.addresses)
     const setAddresses = useAddressesStore(state => state.setAddresses)
-    const { selectedSourceAccount } = useSwapDataState()
+    const { selectedSourceAccount } = useAtomicState()
     const { provider, wallets } = useWallet(destination, 'autofil')
     const connectedWallets = provider?.connectedWallets
     const connectedWalletskey = connectedWallets?.map(w => w.addresses.join('')).join('')

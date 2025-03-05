@@ -20,9 +20,9 @@ import { Balance } from "../../../Models/Balance";
 import ResizablePanel from "../../ResizablePanel";
 import { Network } from "../../../Models/Network";
 import { resolveRoutesURLForSelectedToken } from "../../../helpers/routes";
-import { useSwapDataState, useSwapDataUpdate } from "../../../context/swap";
 import useWallet from "../../../hooks/useWallet";
 import FormButton from "../FormButton";
+import { useAtomicState } from "../../../context/atomicContext";
 
 const ReserveGasNote = dynamic(() => import("../../ReserveGasNote"), {
     loading: () => <></>,
@@ -40,8 +40,7 @@ const SwapForm: FC = () => {
         toCurrency,
         from: source,
     } = values
-    const { selectedSourceAccount } = useSwapDataState()
-    const { setSelectedSourceAccount } = useSwapDataUpdate()
+    const { selectedSourceAccount, setSelectedSourceAccount } = useAtomicState()
     const { providers, wallets } = useWallet()
     const { minAllowedAmount, valuesChanger } = useFee()
 

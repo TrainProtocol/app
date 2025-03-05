@@ -2,7 +2,6 @@ import LayerSwapApiClient from '../lib/layerSwapApiClient';
 import Layout from '../components/layout';
 import { InferGetServerSidePropsType } from 'next';
 import React from 'react';
-import { SwapDataProvider } from '../context/swap';
 import { TimerProvider } from '../context/timerContext';
 import { getThemeData } from '../helpers/settingsHelper';
 import AtmoicSteps from '../components/Swap/AtomicChat'
@@ -14,15 +13,13 @@ const AtomicPage = ({ settings, themeData, apiKey }: InferGetServerSidePropsType
 
     return (<>
         <Layout settings={settings} themeData={themeData}>
-            <SwapDataProvider >
-                <TimerProvider>
-                    <FeeProvider>
-                        <AtomicProvider>
-                            <AtmoicSteps type='widget' />
-                        </AtomicProvider>
-                    </FeeProvider>
-                </TimerProvider>
-            </SwapDataProvider >
+            <TimerProvider>
+                <FeeProvider>
+                    <AtomicProvider>
+                        <AtmoicSteps type='widget' />
+                    </AtomicProvider>
+                </FeeProvider>
+            </TimerProvider>
         </Layout>
     </>)
 }

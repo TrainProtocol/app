@@ -5,7 +5,7 @@ import { useFee } from "../../../context/feeContext";
 import { useQueryState } from "../../../context/query";
 import useSWRBalance from "../../../lib/balances/useSWRBalance";
 import useSWRGas from "../../../lib/gases/useSWRGas";
-import { useSwapDataState } from "../../../context/swap";
+import { useAtomicState } from "../../../context/atomicContext";
 
 const MinMax = () => {
 
@@ -15,7 +15,7 @@ const MinMax = () => {
 
     const query = useQueryState()
 
-    const { selectedSourceAccount } = useSwapDataState()
+    const { selectedSourceAccount } = useAtomicState()
 
     const { gas } = useSWRGas(selectedSourceAccount?.address, values.from, fromCurrency)
     const { balance, mutate } = useSWRBalance(selectedSourceAccount?.address, values.from)
