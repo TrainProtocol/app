@@ -13,11 +13,8 @@ const jetBrainsMono = JetBrains_Mono({
 export default function Navbar() {
 
     const navigation = [
-        { name: 'home', href: 'https://www.train.tech/', current: false },
         { name: 'app', href: '/', current: true },
-        { name: 'how', href: 'https://www.train.tech/how', current: false },
-        { name: 'about', href: 'https://www.train.tech/about', current: false },
-        { name: 'docs', href: 'https://docs.train.tech/protocol/introduction', current: false, target: '_blank' },
+        { name: 'home', href: 'https://www.train.tech/', current: false, target: '_blank' },
     ]
 
     return (

@@ -122,7 +122,7 @@ export default function Form() {
         <Formik
             innerRef={formikRef}
             initialValues={{}}
-            validateOnMount={true}wddsdedsdsdsdxcfn
+            validateOnMount={true}
             validate={MainStepValidation({ minAllowedAmount, maxAllowedAmount })}
             onSubmit={handleSubmit}
         >
