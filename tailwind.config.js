@@ -66,7 +66,6 @@ module.exports = {
       animation: {
         'reverse-spin': 'reverse-spin 1s linear infinite',
         'spin-slow': 'spin 3s linear infinite',
-        'spin-fast': 'spin 1s linear infinite',
         'fade-in': 'fade-in 0.5s ease-in',
         'fade-in-down': 'fade-in-down 0.5s ease-in',
         'fadein': 'fadein 4s',
@@ -85,11 +84,11 @@ module.exports = {
         gauge_fill: "gauge_fill 1s ease forwards",
 
         //pulse
-        circle1: "circle1 7s ease-in-out infinite",
-        circle2: "circle2 7s ease-in-out infinite",
-        circle3: "circle3 7s ease-in-out infinite",
-        circle4: "circle4 7s ease-in-out infinite",
-        circle5: "circle5 7s ease-in-out infinite",
+        circle1: "circle1 4s ease-in-out infinite",
+        circle2: "circle2 4s ease-in-out infinite",
+        circle3: "circle3 4s ease-in-out infinite",
+        circle4: "circle4 4s ease-in-out infinite",
+        circle5: "circle5 4s ease-in-out infinite",
       },
       keyframes: {
         scaleLoop: {
@@ -180,38 +179,43 @@ module.exports = {
         },
         circle1: {
           "0%": { opacity: "0.1" },
-          "10%": { opacity: "0.6" },  
-          "90%": { opacity: "0.6" },  
-          "100%": { opacity: "0.1" }  
+          "10%": { opacity: "0.6" },
+          "20%": { opacity: "0.5" },
+          "40%": { opacity: "0.4" },
+          "60%": { opacity: "0.3" },
+          "80%": { opacity: "0.2" },
+          "100%": { opacity: "0.1" },
         },
-        
         circle2: {
-          "10%": { opacity: "0.1" },
-          "20%": { opacity: "0.6" }, 
-          "80%": { opacity: "0.6" },
-          "90%": { opacity: "0.1" }  
-        },
-        
-        circle3: {
+          "0%": { opacity: "0.1" },
           "20%": { opacity: "0.1" },
-          "30%": { opacity: "0.6" },  
-          "70%": { opacity: "0.6" },
-          "80%": { opacity: "0.1" }   
+          "30%": { opacity: "0.6" },
+          "40%": { opacity: "0.5" },
+          "60%": { opacity: "0.4" },
+          "80%": { opacity: "0.3" },
+          "100%": { opacity: "0.1" },
         },
-        
-        circle4: {
-          "30%": { opacity: "0.1" },
-          "40%": { opacity: "0.6" },  
-          "60%": { opacity: "0.6" },
-          "70%": { opacity: "0.1" }   
-        },
-        
-        circle5: {
+        circle3: {
+          "0%": { opacity: "0.1" },
           "40%": { opacity: "0.1" },
-          "50%": { opacity: "0.6" },  
-          "51%": { opacity: "0.6" },  
-          "60%": { opacity: "0.1" }   
-        }
+          "50%": { opacity: "0.6" },
+          "60%": { opacity: "0.5" },
+          "80%": { opacity: "0.4" },
+          "100%": { opacity: "0.1" },
+        },
+        circle4: {
+          "0%": { opacity: "0.1" },
+          "60%": { opacity: "0.1" },
+          "70%": { opacity: "0.6" },
+          "80%": { opacity: "0.5" },
+          "100%": { opacity: "0.1" },
+        },
+        circle5: {
+          "0%": { opacity: "0.1" },
+          "80%": { opacity: "0.1" },
+          "85%": { opacity: "0.6" },
+          "100%": { opacity: "0.1" },
+        },
       },
       letterSpacing: {
         tightest: '-.075em',
