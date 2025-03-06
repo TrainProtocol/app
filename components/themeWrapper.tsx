@@ -4,8 +4,7 @@ import Navbar from "./navbar"
 import GlobalFooter from "./globalFooter";
 import { usePulsatingCircles } from "../context/PulsatingCirclesContext";
 import { useState, useEffect } from "react";
-import PulsatingCircles from "./utils/pulse";
-import Rive, { Fit, Layout, useRive } from '@rive-app/react-canvas';
+import { useRive } from '@rive-app/react-canvas';
 
 type Props = {
     children: JSX.Element | JSX.Element[]
