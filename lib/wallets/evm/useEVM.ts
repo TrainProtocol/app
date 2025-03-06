@@ -25,7 +25,7 @@ import { InternalConnector, Wallet, WalletProvider } from "../../../Models/Walle
 import { useConnectModal } from "../../../components/WalletModal"
 import { explicitInjectedproviderDetected } from "../connectors/getInjectedConnector"
 import { type ConnectorAlreadyConnectedError } from '@wagmi/core'
-import { useSwapDataState } from "../../../context/swap"
+import { useAtomicState } from "../../../context/atomicContext"
 
 type Props = {
     network: Network | undefined,
@@ -38,7 +38,7 @@ export default function useEVM({ network }: Props): WalletProvider {
     const id = 'evm'
     const { networks } = useSettingsState()
     const config = useConfig()
-    const { selectedSourceAccount } = useSwapDataState()
+    const { selectedSourceAccount } = useAtomicState()
     const account = selectedSourceAccount
     const asSourceSupportedNetworks = [
         ...networks.filter(network => network.group.toLowerCase().includes('evm')).map(l => l.name),
@@ -239,9 +239,9 @@ export default function useEVM({ network }: Props): WalletProvider {
             address: atomicContract,
             functionName: 'commit',
             args: [
-                [destinationChain],
-                [destinationAsset],
-                [lpAddress],
+                [],
+                [],
+                [],
                 destinationChain,
                 destinationAsset,
                 address,
@@ -310,7 +310,7 @@ export default function useEVM({ network }: Props): WalletProvider {
 
         const parsedResult = {
             ...result,
-            secret: Number(result.secret) !== 1 ? result.secret : null,
+            secret: Number(result.secret) !== 1 ? Number(result.secret) : null,
             hashlock: (result.hashlock == "0x0100000000000000000000000000000000000000000000000000000000000000" || result.hashlock == "0x0000000000000000000000000000000000000000000000000000000000000000") ? null : result.hashlock,
             amount: formatAmount(Number(result.amount), networkToken?.decimals),
             timelock: Number(result.timelock)
@@ -362,8 +362,14 @@ export default function useEVM({ network }: Props): WalletProvider {
             throw new Error('Hashlocks do not match across the provided nodes')
         }
 
+        const parsedResult = {
+            ...results[0],
+            secret: Number(results[0].secret) !== 1 ? Number(results[0].secret) : undefined,
+            timelock: Number(results[0].timelock)
+        }
+
         // All hashlocks match, return one of the results (e.g., the first one)
-        return results[0]
+        return parsedResult
 
     }
 

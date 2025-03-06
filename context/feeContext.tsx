@@ -21,7 +21,7 @@ export function FeeProvider({ children }) {
 
     const [values, setValues] = useState<SwapFormValues>()
     const [cachedRateData, setCachedRateData] = useState<Quote>()
-    const { fromCurrency, toCurrency, from, to, amount, refuel, depositMethod } = values || {}
+    const { fromCurrency, toCurrency, from, to, amount, refuel } = values || {}
     const [debouncedAmount, setDebouncedAmount] = useState(amount);
     const [poll, updatePolling] = useState(true)
 
@@ -41,7 +41,6 @@ export function FeeProvider({ children }) {
 
     const apiClient = new LayerSwapApiClient()
 
-    const use_deposit_address = depositMethod === 'wallet' ? false : true
     const { data: amountRange, mutate: mutateLimits } = useSWR<ApiResponse<{
         min_amount: number
         min_amount_in_usd: number
@@ -52,7 +51,9 @@ export function FeeProvider({ children }) {
         refreshInterval: poll ? 20000 : 0,
     })
 
-    const { data: lsFee, mutate: mutateFee, isLoading: isFeeLoading } = useSWR<ApiResponse<SwapQuote>>((from && fromCurrency && to && toCurrency && debouncedAmount) ?
+    const isAmountInRange = (amountRange?.data && debouncedAmount) && (Number(debouncedAmount) >= amountRange?.data?.min_amount && Number(debouncedAmount) <= amountRange?.data?.max_amount)
+
+    const { data: lsFee, mutate: mutateFee, isLoading: isFeeLoading } = useSWR<ApiResponse<SwapQuote>>((from && fromCurrency && to && toCurrency && debouncedAmount && isAmountInRange) ?
         `/quote?source_network=${from?.name}&source_token=${fromCurrency?.symbol}&destination_network=${to?.name}&destination_token=${toCurrency?.symbol}&amount=${debouncedAmount}&refuel=${!!refuel}` : null, apiClient.fetcher, {
         refreshInterval: poll ? 42000 : 0,
     })

@@ -6,14 +6,14 @@ import { useFee } from "../context/feeContext"
 import { Balance } from "../Models/Balance"
 import useSWRBalance from "../lib/balances/useSWRBalance"
 import useSWRGas from "../lib/gases/useSWRGas"
-import { useSwapDataState } from "../context/swap"
+import { useAtomicState } from "../context/atomicContext"
 
 const ReserveGasNote = ({ onSubmit }: { onSubmit: (walletBalance: Balance, networkGas: number) => void }) => {
     const {
         values,
     } = useFormikContext<SwapFormValues>();
     const { minAllowedAmount, maxAllowedAmount } = useFee()
-    const { selectedSourceAccount } = useSwapDataState()
+    const { selectedSourceAccount } = useAtomicState()
 
     const { balance } = useSWRBalance(selectedSourceAccount?.address, values.from)
     const { gas: networkGas } = useSWRGas(selectedSourceAccount?.address, values.from, values.fromCurrency)
