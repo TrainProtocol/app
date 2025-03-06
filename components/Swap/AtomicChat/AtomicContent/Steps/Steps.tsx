@@ -24,7 +24,7 @@ export const RequestStep: FC = () => {
     const title = commited ? "Confirmed" : "Confirm the details"
     const description = (commited && source_network) ? <>Swap details confirmed</> : <>Review and confirm the swap details</>
 
-    const receiveAmountInUsd = amount && source_asset?.price_in_usd ? (amount * source_asset.price_in_usd).toFixed(2) : undefined
+    const receiveAmountInUsd = amount && source_asset?.price_in_usd ? (gas * source_asset.price_in_usd).toFixed(6) : undefined
 
     const titleDetails = (commited || !gas) ? null : <div className="flex items-center gap-1">
         <Fuel className="h-4 w-4" />
