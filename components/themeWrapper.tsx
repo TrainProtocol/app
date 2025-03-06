@@ -35,7 +35,7 @@ export default function ThemeWrapper({ children }: Props) {
             setClickCount(newCount);
         }
     };
-
+  
     return <div className='styled-scroll'>
         <div className="invisible light"></div>
         <main className="styled-scroll">
