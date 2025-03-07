@@ -2,9 +2,8 @@ import { FC, useEffect } from "react";
 import { CommitStatus, useAtomicState } from "../../../../../context/atomicContext";
 import { CommitTransaction } from "../../../../../lib/layerSwapApiClient";
 import LockIcon from "../../../../Icons/LockIcon";
-import Link from "next/link";
 import Step, { TxLink } from "./Step";
-import { Clock, Fuel, Link2 } from "lucide-react";
+import { Clock, Fuel } from "lucide-react";
 import CheckedIcon from "../../../../Icons/CheckedIcon";
 import XCircle from "../../../../Icons/CircleX";
 import useSWRGas from "../../../../../lib/gases/useSWRGas";
@@ -123,6 +122,7 @@ export const LpLockingAssets: FC = () => {
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
 
     const title = completed ? 'Assets reserved' : 'Wait for response'
+    const completedTxLink = lpLockTx && destination_network?.transaction_explorer_template.replace('{0}', lpLockTx.hash)
 
     const { setPulseState } = usePulsatingCircles();
 
@@ -172,8 +172,8 @@ export const LpLockingAssets: FC = () => {
                     <SolverStatus />
                 </div>
                 {
-                    lpLockTx && destination_network && destinationDetails?.hashlock &&
-                    <TxLink txLink={lpLockTx.hash} />
+                    lpLockTx && destination_network && completedTxLink &&
+                    <TxLink txLink={completedTxLink} />
                 }
             </div>
         </>
@@ -207,6 +207,7 @@ export const CancelAndRefund: FC = () => {
     const completed = sourceDetails?.claimed == 2
     const loading = refundTxId && !completed
     const resolvedDescription = completed ? 'Assets are received back at the source address' : 'Cancel & refund to receive your assets back at the source address'
+    const completedTxLink = refundTxId && source_network?.transaction_explorer_template.replace('{0}', refundTxId)
 
     return (
         commitStatus === CommitStatus.TimelockExpired &&
@@ -241,8 +242,8 @@ export const CancelAndRefund: FC = () => {
                 <div className="text-sm text-primary-text-placeholder">{resolvedDescription}</div>
             </div>
             {
-                refundTxId && source_network && completed &&
-                <TxLink txLink={refundTxId} />
+                refundTxId && source_network && completedTxLink &&
+                <TxLink txLink={completedTxLink} />
             }
         </div>
 
