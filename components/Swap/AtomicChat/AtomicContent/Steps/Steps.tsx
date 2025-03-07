@@ -172,7 +172,7 @@ export const LpLockingAssets: FC = () => {
                     <SolverStatus />
                 </div>
                 {
-                    lpLockTx && destination_network && completedTxLink &&
+                    destination_network && completedTxLink && completed &&
                     <TxLink txLink={completedTxLink} />
                 }
             </div>

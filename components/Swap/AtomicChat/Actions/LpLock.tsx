@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef } from "react";
+import { FC, useEffect, useState } from "react";
 import { ContractType, Network, Token } from "../../../../Models/Network";
 import { useAtomicState } from "../../../../context/atomicContext";
 import useWallet from "../../../../hooks/useWallet";
@@ -8,7 +8,7 @@ import ButtonStatus from "./Status/ButtonStatus";
 export const LpLockingAssets: FC = () => {
     const { destination_network, commitId, updateCommit, destination_asset, lightClient, sourceDetails } = useAtomicState()
     const { provider } = useWallet(destination_network, 'autofil')
-    const isLoading = useRef(false)
+    const [loading, setLoading] = useState(false)
 
     const atomicContract = destination_network?.contracts.find(c => destination_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
 
@@ -78,12 +78,12 @@ export const LpLockingAssets: FC = () => {
 
     useEffect(() => {
         (async () => {
-            if (provider && destination_network && commitId && destination_asset && !isLoading.current) {
-                isLoading.current = true
+            if (provider && destination_network && commitId && destination_asset && !loading) {
+                setLoading(true)
                 await getDetails({ provider, network: destination_network, commitId, asset: destination_asset })
             }
         })()
-    }, [provider, destination_network, commitId, isLoading])
+    }, [provider, destination_network, commitId, loading])
 
     return <ButtonStatus
         isDisabled={true}
