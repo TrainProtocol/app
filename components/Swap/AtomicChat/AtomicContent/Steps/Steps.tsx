@@ -51,14 +51,13 @@ export const RequestStep: FC = () => {
 }
 
 export const SignAndConfirmStep: FC = () => {
-    const { sourceDetails, destinationDetails, destination_network, commitFromApi, commitStatus } = useAtomicState()
+    const { sourceDetails, destinationDetails, commitStatus, destRedeemTx } = useAtomicState()
 
-    const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
     const assetsLocked = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted;
     const loading = commitStatus === CommitStatus.UserLocked
 
     const title = assetsLocked ? "Finalized" : "Finalize"
-    const completed = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || !!lpRedeemTransaction?.hash || commitStatus === CommitStatus.RedeemCompleted || commitStatus === CommitStatus.AssetsLocked
+    const completed = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || !!destRedeemTx || commitStatus === CommitStatus.RedeemCompleted || commitStatus === CommitStatus.AssetsLocked
 
     const titleDetails = completed ? null : <div className="flex items-center gap-1">
         <Fuel className="h-4 w-4" />

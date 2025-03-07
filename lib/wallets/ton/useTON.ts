@@ -262,7 +262,11 @@ export default function useTON(): WalletProvider {
             ]
         }
 
-        await tonConnectUI.sendTransaction(tx)
+        const result = await tonConnectUI.sendTransaction(tx);
+        const cell = Cell.fromBase64(result.boc);
+        const buffer = cell.hash();
+        const messageHash = buffer.toString('hex');
+        return messageHash;
     }
 
 

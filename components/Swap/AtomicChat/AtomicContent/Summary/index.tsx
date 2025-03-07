@@ -61,7 +61,7 @@ const MotionSummary: FC = () => {
                             <Details />
                         </AccordionContent>
                         <div className="text-center flex justify-center w-full">
-                            <AccordionTrigger className="w-fit text-primary-text-placeholder text-base">View details</AccordionTrigger>
+                            <AccordionTrigger className="w-fit text-secondary-text text-base">View details</AccordionTrigger>
                         </div>
                     </AccordionItem>
                 </Accordion>

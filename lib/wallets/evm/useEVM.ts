@@ -38,6 +38,9 @@ export default function useEVM({ network }: Props): WalletProvider {
     const id = 'evm'
     const { networks } = useSettingsState()
     const config = useConfig()
+
+    const evmAccount = useAccount()
+
     const { selectedSourceAccount } = useAtomicState()
     const account = selectedSourceAccount
     const asSourceSupportedNetworks = [
@@ -310,7 +313,7 @@ export default function useEVM({ network }: Props): WalletProvider {
 
         const parsedResult = {
             ...result,
-            secret: Number(result.secret) !== 1 ? Number(result.secret) : null,
+            secret: (result.secret as any) != 1 ? BigInt(result.secret!) : undefined,
             hashlock: (result.hashlock == "0x0100000000000000000000000000000000000000000000000000000000000000" || result.hashlock == "0x0000000000000000000000000000000000000000000000000000000000000000") ? null : result.hashlock,
             amount: formatAmount(Number(result.amount), networkToken?.decimals),
             timelock: Number(result.timelock)
@@ -364,7 +367,7 @@ export default function useEVM({ network }: Props): WalletProvider {
 
         const parsedResult = {
             ...results[0],
-            secret: Number(results[0].secret) !== 1 ? Number(results[0].secret) : undefined,
+            secret: (results[0].secret as any) != 1 ? BigInt(results[0].secret!) : undefined,
             timelock: Number(results[0].timelock)
         }
 
@@ -451,15 +454,16 @@ export default function useEVM({ network }: Props): WalletProvider {
     const claim = async (params: ClaimParams) => {
         const { chainId, id, contractAddress, type, secret } = params
         const abi = type === 'erc20' ? ERC20PHTLCAbi : PHTLCAbi
+        if (!evmAccount?.address) throw new Error("Wallet not connected")
 
-        if (!account?.address) throw new Error("Wallet not connected")
+            const bigIntSecret = BigInt(secret)
 
-        const { request } = await simulateContract(config, {
-            account: account.address as `0x${string}`,
+            const { request } = await simulateContract(config, {
+            account: evmAccount.address as `0x${string}`,
             abi: abi,
             address: contractAddress,
             functionName: 'redeem',
-            args: [id, secret],
+            args: [id, bigIntSecret],
             chainId: Number(chainId),
         })
 
@@ -468,6 +472,8 @@ export default function useEVM({ network }: Props): WalletProvider {
         if (!result) {
             throw new Error("No result")
         }
+
+        return result
     }
 
     const getContracts = async (params: GetCommitsParams) => {

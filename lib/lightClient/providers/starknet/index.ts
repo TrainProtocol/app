@@ -111,25 +111,33 @@ export default class StarknetLightClient extends _LightClient {
                 this.worker.onmessage = async (event) => {
 
                     const rawData = event.data.data
-                    const CallDataInstance = new CallData(PHTLCAbi)
-                    const result = CallDataInstance.parse("getHTLCDetails", rawData) as Commit;
+                    if (rawData) {
+                        const CallDataInstance = new CallData(PHTLCAbi)
+                        const result = CallDataInstance.parse("getHTLCDetails", rawData) as Commit;
 
-                    const parsedResult: Commit = {
-                        ...result,
-                        sender: toHex(result.sender),
-                        amount: formatAmount(result.amount, token.decimals),
-                        hashlock: result.hashlock && toHex(result.hashlock, { size: 32 }),
-                        claimed: Number(result.claimed),
-                        secret: Number(result.secret),
-                        timelock: Number(result.timelock),
+                        const parsedResult: Commit = {
+                            ...result,
+                            sender: toHex(result.sender),
+                            amount: formatAmount(result.amount, token.decimals),
+                            hashlock: result.hashlock && toHex(result.hashlock, { size: 32 }),
+                            claimed: Number(result.claimed),
+                            secret: result.secret && BigInt(result.secret),
+                            timelock: Number(result.timelock),
+                        }
+
+                        console.log('rawData:', rawData)
+                        console.log('parsed result:', result)
+                        if (attempts > 15 || (parsedResult.hashlock)) {
+                            resolve(parsedResult)
+                            return
+                        }
                     }
 
-                    console.log('rawData:', rawData)
-                    console.log('parsed result:', result)
-                    if (attempts > 15 || (parsedResult.hashlock)) {
-                        resolve(parsedResult)
+                    if (attempts > 15) {
+                        reject(null)
                         return
                     }
+
                     console.log('Retrying in 5 seconds ', attempts)
                     await sleep(5000)
                     this.worker.postMessage(workerMessage)

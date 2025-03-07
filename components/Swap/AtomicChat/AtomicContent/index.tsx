@@ -14,9 +14,8 @@ import { usePulsatingCircles } from "../../../../context/PulsatingCirclesContext
 
 const AtomicContent: FC = () => {
 
-    const { commitStatus, isManualClaimable, manualClaimRequested, commitFromApi, destination_network } = useAtomicState()
+    const { commitStatus, isManualClaimable, manualClaimRequested, destination_network, destRedeemTx } = useAtomicState()
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
-    const redeemTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
 
     const { setPulseState } = usePulsatingCircles();
 
@@ -41,7 +40,7 @@ const AtomicContent: FC = () => {
                             commitStatus={commitStatus}
                             isManualClaimable={isManualClaimable}
                             manualClaimRequested={manualClaimRequested}
-                            redeemTxLink={redeemTx && destination_network?.transaction_explorer_template.replace('{0}', redeemTx?.hash)}
+                            redeemTxLink={destRedeemTx && destination_network?.transaction_explorer_template.replace('{0}', destRedeemTx)}
                         />
                         <motion.div
                             layout
@@ -111,7 +110,7 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
                     <Link
                         href={redeemTxLink}
                         target='_blank'
-                        className="p-1 px-4 rounded-full bg-secondary-700 flex gap-2 items-center text-primary-text-placeholder"
+                        className="p-1 px-4 rounded-full bg-secondary-700 flex gap-2 items-center text-secondary-text"
                     >
                         <p>
                             View transaction

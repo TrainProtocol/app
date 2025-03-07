@@ -34,7 +34,7 @@ type DataContextType = CommitState & {
     commitTxId?: string,
     commitStatus: CommitStatus,
     atomicQuery?: any,
-    isManualClaimable?: boolean,
+    destRedeemTx?: string,
     onCommit: (commitId: string, txId: string) => void;
     updateCommit: (field: keyof CommitState, value: any) => void;
     setAtomicQuery: (query: any) => void;
@@ -52,6 +52,7 @@ interface CommitState {
     refundTxId?: string | null;
     isManualClaimable?: boolean;
     manualClaimRequested?: boolean,
+    claimTxId?: string | null;
 }
 
 type CommitStatesDict = Record<string, CommitState>;
@@ -75,6 +76,7 @@ export function AtomicProvider({ children }) {
     const commitId = atomicQuery?.commitId as string
     const refundTxId = atomicQuery?.refundTxId as string
     const commitTxId = atomicQuery?.txId as string
+    const claimTxId = atomicQuery?.claimTxId as string
 
     const [commitStates, setCommitStates] = useState<CommitStatesDict>({});
     const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
@@ -103,6 +105,9 @@ export function AtomicProvider({ children }) {
     const error = commitStates[commitId]?.error;
     const commitFromApi = commitStates[commitId]?.commitFromApi;
     const isTimelockExpired = commitStates[commitId]?.isTimelockExpired;
+    const manualClaimRequested = commitStates[commitId]?.manualClaimRequested;
+
+    const destinationRedeemTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination)?.hash || claimTxId
 
     const source_network = networks.find(n => n.name.toUpperCase() === (source as string)?.toUpperCase())
     const destination_network = networks.find(n => n.name.toUpperCase() === (destination as string)?.toUpperCase())
@@ -117,7 +122,7 @@ export function AtomicProvider({ children }) {
     const url = process.env.NEXT_PUBLIC_TRAIN_API
     const { data } = useSWR<ApiResponse<CommitFromApi>>((commitId && commitFromApi?.transactions.length !== 3) ? `${url}/api/swaps/${commitId}` : null, fetcher, { refreshInterval: 5000 })
 
-    const commitStatus = useMemo(() => statusResolver({ commitFromApi, sourceDetails, destinationDetails, destination_network, timelockExpired: isTimelockExpired, userLocked }), [commitFromApi, sourceDetails, destinationDetails, destination_network, isTimelockExpired, userLocked, refundTxId])
+    const commitStatus = useMemo(() => statusResolver({ commitFromApi, sourceDetails, destinationDetails, destination_network, timelockExpired: isTimelockExpired, userLocked, destRedeemTx: destinationRedeemTx }), [commitFromApi, sourceDetails, destinationDetails, destination_network, isTimelockExpired, userLocked, refundTxId, destinationRedeemTx])
 
     useEffect(() => {
         if (data?.data) {
@@ -140,7 +145,6 @@ export function AtomicProvider({ children }) {
             })()
         }
     }, [destination_network])
-
 
     useEffect(() => {
         let timer: NodeJS.Timeout;
@@ -195,6 +199,7 @@ export function AtomicProvider({ children }) {
             destination_network,
             commitId: commitId as string,
             commitTxId: commitTxId as string,
+            claimTxId: claimTxId as string,
             sourceDetails,
             destinationDetails,
             userLocked,
@@ -205,6 +210,8 @@ export function AtomicProvider({ children }) {
             isTimelockExpired,
             refundTxId,
             isManualClaimable,
+            manualClaimRequested,
+            destRedeemTx: destinationRedeemTx,
             updateCommit,
             setAtomicQuery,
             setSelectedSourceAccount
@@ -214,14 +221,13 @@ export function AtomicProvider({ children }) {
     )
 }
 
-const statusResolver = ({ commitFromApi, sourceDetails, destinationDetails, destination_network, timelockExpired, userLocked }: { commitFromApi: CommitFromApi | undefined, sourceDetails: Commit | undefined, destinationDetails: Commit | undefined, destination_network: Network | undefined, timelockExpired: boolean, userLocked: boolean }) => {
-    const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
+const statusResolver = ({ commitFromApi, sourceDetails, destinationDetails, destination_network, timelockExpired, userLocked, destRedeemTx }: { commitFromApi: CommitFromApi | undefined, sourceDetails: Commit | undefined, destinationDetails: Commit | undefined, destination_network: Network | undefined, timelockExpired: boolean, userLocked: boolean, destRedeemTx: string | undefined }) => {
     const userLockTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
 
     const commited = sourceDetails ? true : false;
     const lpLockDetected = destinationDetails?.hashlock ? true : false;
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
-    const redeemCompleted = ((destinationDetails?.claimed == 3 && lpRedeemTransaction?.hash) ? true : false);
+    const redeemCompleted = ((destinationDetails?.claimed == 3 && destRedeemTx) ? true : false);
 
     if (redeemCompleted) return CommitStatus.RedeemCompleted
     else if (timelockExpired) return CommitStatus.TimelockExpired

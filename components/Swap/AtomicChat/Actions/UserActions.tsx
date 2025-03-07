@@ -270,8 +270,17 @@ export const UserRefundAction: FC = () => {
             })
 
             if (res) {
-                setRefundQuery(res, router)
                 setAtomicQuery({ ...atomicQuery, refundTxId: res })
+
+                const basePath = router?.basePath || ""
+                var atomicURL = window.location.protocol + "//"
+                    + window.location.host + `${basePath}/atomic`;
+                const atomicParams = new URLSearchParams({ ...atomicQuery, commitId, refundTxId: res })
+                if (atomicParams) {
+                    atomicURL += `?${atomicParams}`
+                }
+                window.history.replaceState({ ...window.history.state, as: atomicURL, url: atomicURL }, '', atomicURL);
+
                 setRequestedRefund(true)
             }
         }
@@ -351,18 +360,4 @@ export const UserRefundAction: FC = () => {
                 </WalletActionButton>
         }
     </div>
-}
-
-const setRefundQuery = (refundTxId: string, router: NextRouter) => {
-    const basePath = router?.basePath || ""
-    var swapURL = window.location.protocol + "//"
-        + window.location.host + `${basePath}/atomic`;
-    const params = resolvePersistantQueryParams(router.query)
-    if (router.query && Object.keys(router.query).length) {
-        const search = new URLSearchParams(router.query as any);
-        if (search)
-            swapURL += `?${search}&refundTxId=${refundTxId}`;
-    }
-
-    window.history.pushState({ ...window.history.state, as: swapURL, url: swapURL }, '', swapURL);
 }

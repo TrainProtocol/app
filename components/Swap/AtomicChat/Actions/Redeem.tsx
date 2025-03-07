@@ -3,11 +3,12 @@ import useWallet from "../../../../hooks/useWallet";
 import { useAtomicState } from "../../../../context/atomicContext";
 import { WalletActionButton } from "../../buttons";
 import { ContractType } from "../../../../Models/Network";
+import { useRouter } from "next/router";
 
 export const RedeemAction: FC = () => {
-    const { destination_network, source_network, sourceDetails, destinationDetails, updateCommit, manualClaimRequested, destination_asset, source_asset, commitId, isManualClaimable } = useAtomicState()
+    const { destination_network, source_network, sourceDetails, destinationDetails, updateCommit, manualClaimRequested, destination_asset, source_asset, commitId, isManualClaimable, atomicQuery, setAtomicQuery } = useAtomicState()
     const { getProvider } = useWallet()
-
+    const router = useRouter()
     const source_provider = source_network && getProvider(source_network, 'withdrawal')
     const destination_provider = destination_network && getProvider(destination_network, 'autofil')
     const destination_wallet = destination_provider?.activeWallet
@@ -75,7 +76,7 @@ export const RedeemAction: FC = () => {
             if (!destination_asset) throw new Error("No source asset")
             if (!sourceDetails?.secret) throw new Error("No secret")
 
-            await destination_provider?.claim({
+            const claimTx = await destination_provider?.claim({
                 type: destination_asset?.contract ? 'erc20' : 'native',
                 id: commitId,
                 secret: sourceDetails?.secret,
@@ -84,10 +85,21 @@ export const RedeemAction: FC = () => {
                 sourceAsset: destination_asset,
             })
 
+            setAtomicQuery({ ...atomicQuery, claimTxId: claimTx })
+
+            const basePath = router?.basePath || ""
+            var atomicURL = window.location.protocol + "//"
+                + window.location.host + `${basePath}/atomic`;
+            const atomicParams = new URLSearchParams({ ...atomicQuery, commitId, claimTxId: claimTx })
+            if (atomicParams) {
+                atomicURL += `?${atomicParams}`
+            }
+            window.history.replaceState({ ...window.history.state, as: atomicURL, url: atomicURL }, '', atomicURL);
+
             updateCommit('manualClaimRequested', true)
         }
         catch (e) {
-            updateCommit('error', e.details || e.message)
+            updateCommit('error', { message: e.details || e.message })
         }
     }
 

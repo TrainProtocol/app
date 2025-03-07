@@ -47,7 +47,7 @@ export type ClaimParams = {
     chainId: string | null,
     contractAddress: `0x${string}`,
     id: string,
-    secret: string | number,
+    secret: string | bigint,
     sourceAsset: Token,
 }
 
