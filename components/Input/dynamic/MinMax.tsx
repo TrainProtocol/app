@@ -26,7 +26,7 @@ const MinMax = () => {
         setFieldValue('amount', minAllowedAmount);
     }
     const walletBalance = selectedSourceAccount?.address && balance?.find(b => b?.network === from?.name && b?.token === fromCurrency?.symbol)
-    const native_currency = from?.native_token
+    const native_currency = from?.nativeToken
 
     let maxAllowedAmount: number | null = maxAmountFromApi || 0
     if (query.balances && fromCurrency) {

@@ -147,7 +147,7 @@ export const ExtendedAddress: FC<ExtendedAddressProps> = ({ address, network, ad
                     </div>
                     {
                         network &&
-                        <Link href={network?.account_explorer_template?.replace('{0}', address)} target="_blank" className="hover:text-primary-text px-2 py-1.5 hover:bg-secondary-600 rounded transition-all duartion-200 flex items-center justify-between gap-5 w-full">
+                        <Link href={network?.accountExplorerTemplate?.replace('{0}', address)} target="_blank" className="hover:text-primary-text px-2 py-1.5 hover:bg-secondary-600 rounded transition-all duartion-200 flex items-center justify-between gap-5 w-full">
                             <p>
                                 Open in explorer
                             </p>

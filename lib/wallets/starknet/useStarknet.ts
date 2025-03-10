@@ -273,7 +273,7 @@ export default function useStarknet(): WalletProvider {
             throw new Error("No result")
         }
 
-        const networkToken = networks.find(network => chainId && Number(network.chain_id) == Number(chainId))?.tokens.find(token => token.symbol === "ETH")//shortString.decodeShortString(ethers.utils.hexlify(result.srcAsset as BigNumberish)))
+        const networkToken = networks.find(network => chainId && Number(network.chainId) == Number(chainId))?.tokens.find(token => token.symbol === "ETH")//shortString.decodeShortString(ethers.utils.hexlify(result.srcAsset as BigNumberish)))
 
         const parsedResult: Commit = {
             ...result,
@@ -373,7 +373,7 @@ export default function useStarknet(): WalletProvider {
 
         try {
             await apiClient.AddLockSig({
-                signature_array: signature,
+                signatureArray: signature,
                 timelock: timeLock,
             }, id)
         } catch (e) {

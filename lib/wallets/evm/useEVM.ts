@@ -1,5 +1,5 @@
 import { useAccount, useConfig, useConnect, useConnectors, useDisconnect, useSwitchAccount, Connector } from "wagmi"
-import { Network } from "../../../Models/Network"
+import { Network, NetworkType } from "../../../Models/Network"
 import { useSettingsState } from "../../../context/settings"
 import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon, resolveWalletConnectorIndex } from "../utils/resolveWalletIcon"
@@ -309,7 +309,7 @@ export default function useEVM({ network }: Props): WalletProvider {
             chainId: Number(chainId),
         })
 
-        const networkToken = networks.find(network => chainId && network.chain_id == chainId)?.tokens.find(token => token.symbol === result.srcAsset)
+        const networkToken = networks.find(network => chainId && network.chainId == chainId)?.tokens.find(token => token.symbol === result.srcAsset)
 
         const parsedResult = {
             ...result,
@@ -329,9 +329,9 @@ export default function useEVM({ network }: Props): WalletProvider {
         const { chainId, id, contractAddress, type } = params
         const abi = type === 'erc20' ? ERC20PHTLCAbi : PHTLCAbi
 
-        const network = networks.find(n => n.chain_id === chainId)
+        const network = networks.find(n => n.chainId === chainId)
         const nodeUrls = network?.nodes
-        if (!network?.chain_id) throw new Error("No network found")
+        if (!network?.chainId) throw new Error("No network found")
         if (!nodeUrls) throw new Error("No node urls found")
 
         const chain = resolveChain(network) as Chain
@@ -456,9 +456,9 @@ export default function useEVM({ network }: Props): WalletProvider {
         const abi = type === 'erc20' ? ERC20PHTLCAbi : PHTLCAbi
         if (!evmAccount?.address) throw new Error("Wallet not connected")
 
-            const bigIntSecret = BigInt(secret)
+        const bigIntSecret = BigInt(secret)
 
-            const { request } = await simulateContract(config, {
+        const { request } = await simulateContract(config, {
             account: evmAccount.address as `0x${string}`,
             abi: abi,
             address: contractAddress,

@@ -165,7 +165,7 @@ function GenerateCurrencyMenuItems(
         const displayName = currency.symbol;
         const balance = balances?.find(b => b?.token === c?.symbol && (direction === 'from' ? from : to)?.name === b.network)
         const formatted_balance_amount = balance ? Number(truncateDecimals(balance?.amount,Math.min(c.decimals, 8))) : ''
-        const isNewlyListed = new Date(c?.listing_date)?.getTime() >= new Date().getTime() - ONE_WEEK;
+        const isNewlyListed = new Date(c?.listingDate)?.getTime() >= new Date().getTime() - ONE_WEEK;
 
         const currencyIsAvailable = (
             // currency?.status === "active" && 

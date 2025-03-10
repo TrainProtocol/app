@@ -26,7 +26,7 @@ export const RedeemAction: FC = () => {
 
                     const data = await destination_provider.getDetails({
                         type: destination_asset?.contract ? 'erc20' : 'native',
-                        chainId: destination_network.chain_id,
+                        chainId: destination_network.chainId,
                         id: commitId,
                         contractAddress: destination_contract as `0x${string}`,
                     })
@@ -50,7 +50,7 @@ export const RedeemAction: FC = () => {
 
                     const data = await source_provider.getDetails({
                         type: source_asset?.contract ? 'erc20' : 'native',
-                        chainId: source_network.chain_id,
+                        chainId: source_network.chainId,
                         id: commitId,
                         contractAddress: source_contract as `0x${string}`,
                     })
@@ -80,7 +80,7 @@ export const RedeemAction: FC = () => {
                 type: destination_asset?.contract ? 'erc20' : 'native',
                 id: commitId,
                 secret: sourceDetails?.secret,
-                chainId: destination_network.chain_id,
+                chainId: destination_network.chainId,
                 contractAddress: destination_contract as `0x${string}`,
                 sourceAsset: destination_asset,
             })
@@ -114,7 +114,7 @@ export const RedeemAction: FC = () => {
                                 activeChain={destination_wallet?.chainId}
                                 isConnected={!!destination_wallet}
                                 network={destination_network!}
-                                networkChainId={Number(destination_network?.chain_id)}
+                                networkChainId={Number(destination_network?.chainId)}
                                 onClick={handleClaimAssets}
                             >
                                 Claim Manually

@@ -38,7 +38,7 @@ export const LpLockingAssets: FC = () => {
                 try {
                     const destiantionDetails = await provider.secureGetDetails({
                         type: asset?.contract ? 'erc20' : 'native',
-                        chainId: network.chain_id,
+                        chainId: network.chainId,
                         id: commitId,
                         contractAddress: atomicContract as `0x${string}`,
                     })
@@ -58,7 +58,7 @@ export const LpLockingAssets: FC = () => {
 
             const destiantionDetails = await provider.getDetails({
                 type: asset?.contract ? 'erc20' : 'native',
-                chainId: network.chain_id,
+                chainId: network.chainId,
                 id: commitId,
                 contractAddress: atomicContract as `0x${string}`,
             })

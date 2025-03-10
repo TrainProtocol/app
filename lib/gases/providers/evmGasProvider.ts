@@ -12,12 +12,12 @@ import { ethers } from "ethers";
 
 export class EVMGasProvider implements Provider {
     supportsNetwork(network: Network): boolean {
-        return network.group.toLowerCase().includes('evm') && !!network.native_token
+        return network.group.toLowerCase().includes('evm') && !!network.nativeToken
     }
 
     getGas = async ({ address, network, token, recipientAddress = '0x2fc617e933a52713247ce25730f6695920b3befe', contractMethod }: GasProps) => {
 
-        const chainId = Number(network?.chain_id)
+        const chainId = Number(network?.chainId)
 
         if (!network || !address || !chainId || !recipientAddress) {
             return
@@ -45,7 +45,7 @@ export class EVMGasProvider implements Provider {
                     from: network,
                     currency: token,
                     destination: atomicContract,
-                    nativeToken: network.native_token
+                    nativeToken: network.nativeToken
                 }
             )
 

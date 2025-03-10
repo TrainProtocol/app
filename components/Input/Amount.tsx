@@ -27,7 +27,7 @@ const AmountField = forwardRef(function AmountField(_, ref: any) {
     const { balance, isBalanceLoading } = useSWRBalance(sourceAddress, from)
     const { gas, isGasLoading } = useSWRGas(sourceAddress, from, fromCurrency)
     const gasAmount = gas || 0;
-    const native_currency = from?.native_token
+    const native_currency = from?.nativeToken
     const query = useQueryState()
 
     const name = "amount"
@@ -60,8 +60,8 @@ const AmountField = forwardRef(function AmountField(_, ref: any) {
     const amountRef = useRef(ref)
 
     const updateRequestedAmountInUsd = (requestedAmount: number, source_asset: Token | undefined) => {
-        if (source_asset?.price_in_usd && !isNaN(requestedAmount)) {
-            setRequestedAmountInUsd((source_asset?.price_in_usd * requestedAmount).toFixed(2));
+        if (source_asset?.priceInUsd && !isNaN(requestedAmount)) {
+            setRequestedAmountInUsd((source_asset?.priceInUsd * requestedAmount).toFixed(2));
         } else {
             setRequestedAmountInUsd(undefined);
         }

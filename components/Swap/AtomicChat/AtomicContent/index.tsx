@@ -40,7 +40,7 @@ const AtomicContent: FC = () => {
                             commitStatus={commitStatus}
                             isManualClaimable={isManualClaimable}
                             manualClaimRequested={manualClaimRequested}
-                            redeemTxLink={destRedeemTx && destination_network?.transaction_explorer_template.replace('{0}', destRedeemTx)}
+                            redeemTxLink={destRedeemTx && destination_network?.transactionExplorerTemplate.replace('{0}', destRedeemTx)}
                         />
                         <motion.div
                             layout

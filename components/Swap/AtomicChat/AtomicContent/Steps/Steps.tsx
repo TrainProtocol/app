@@ -23,7 +23,7 @@ export const RequestStep: FC = () => {
     const title = commited ? "Confirmed" : "Confirm the details"
     const description = (commited && source_network) ? <>Swap details confirmed</> : <>Review and confirm the swap details</>
 
-    const receiveAmountInUsd = amount && source_asset?.price_in_usd ? (gas * source_asset.price_in_usd).toFixed(6) : undefined
+    const receiveAmountInUsd = amount && source_asset?.priceInUsd ? (gas * source_asset.priceInUsd).toFixed(6) : undefined
 
     const titleDetails = (commited || !gas) ? null : <div className="flex items-center gap-1">
         <Fuel className="h-4 w-4" />
@@ -32,7 +32,7 @@ export const RequestStep: FC = () => {
         </p>
     </div>
 
-    const completedTxLink = source_network && commitTxId && source_network?.transaction_explorer_template.replace('{0}', commitTxId)
+    const completedTxLink = source_network && commitTxId && source_network?.transactionExplorerTemplate.replace('{0}', commitTxId)
 
     return <Step
         step={1}
@@ -122,7 +122,7 @@ export const LpLockingAssets: FC = () => {
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
 
     const title = completed ? 'Assets reserved' : 'Wait for response'
-    const completedTxLink = lpLockTx && destination_network?.transaction_explorer_template.replace('{0}', lpLockTx.hash)
+    const completedTxLink = lpLockTx && destination_network?.transactionExplorerTemplate.replace('{0}', lpLockTx.hash)
 
     const { setPulseState } = usePulsatingCircles();
 
@@ -207,7 +207,7 @@ export const CancelAndRefund: FC = () => {
     const completed = sourceDetails?.claimed == 2
     const loading = refundTxId && !completed
     const resolvedDescription = completed ? 'Assets are received back at the source address' : 'Cancel & refund to receive your assets back at the source address'
-    const completedTxLink = refundTxId && source_network?.transaction_explorer_template.replace('{0}', refundTxId)
+    const completedTxLink = refundTxId && source_network?.transactionExplorerTemplate.replace('{0}', refundTxId)
 
     return (
         commitStatus === CommitStatus.TimelockExpired &&

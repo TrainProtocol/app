@@ -160,7 +160,7 @@ export default function useTON(): WalletProvider {
     }
 
     const getDetails = async (params: CommitmentParams): Promise<Commit> => {
-        const network = networks.find(n => n.chain_id === params.chainId)
+        const network = networks.find(n => n.chainId === params.chainId)
 
         try {
 
