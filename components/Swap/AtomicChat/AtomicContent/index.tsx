@@ -28,7 +28,7 @@ const AtomicContent: FC = () => {
         else if (assetsLocked || (manualClaimRequested && destinationDetails?.claimed !== 3)) {
             setPulseState("pulsing");
         }
-    }, [assetsLocked, commitStatus, isManualClaimable, manualClaimRequested]);
+    }, [assetsLocked, commitStatus, isManualClaimable, manualClaimRequested, destinationDetails?.claimed]);
 
     return (
         <>
