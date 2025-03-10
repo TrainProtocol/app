@@ -12,7 +12,7 @@ import { datadogRum } from "@datadog/browser-rum"
 
 export class EVMBalanceProvider {
     supportsNetwork(network: Network): boolean {
-        return network.group.toLowerCase().includes('evm') && !!network.native_token
+        return network.group.toLowerCase().includes('evm') && !!network.nativeToken
     }
 
     fetchBalance = async (address: string, network: Network) => {

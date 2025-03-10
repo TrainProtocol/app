@@ -2,27 +2,21 @@ import LayerSwapApiClient from '../lib/layerSwapApiClient';
 import Layout from '../components/layout';
 import { InferGetServerSidePropsType } from 'next';
 import React from 'react';
-import { SwapDataProvider } from '../context/swap';
 import { TimerProvider } from '../context/timerContext';
 import { getThemeData } from '../helpers/settingsHelper';
 import AtmoicSteps from '../components/Swap/AtomicChat'
 import { FeeProvider } from '../context/feeContext';
-import { AtomicProvider } from '../context/atomicContext';
 
 const AtomicPage = ({ settings, themeData, apiKey }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
     LayerSwapApiClient.apiKey = apiKey
 
     return (<>
         <Layout settings={settings} themeData={themeData}>
-            <SwapDataProvider >
-                <TimerProvider>
-                    <FeeProvider>
-                        <AtomicProvider>
-                            <AtmoicSteps type='widget' />
-                        </AtomicProvider>
-                    </FeeProvider>
-                </TimerProvider>
-            </SwapDataProvider >
+            <TimerProvider>
+                <FeeProvider>
+                    <AtmoicSteps type='widget' />
+                </FeeProvider>
+            </TimerProvider>
         </Layout>
     </>)
 }
@@ -39,7 +33,7 @@ export const getServerSideProps = async (ctx) => {
     const version = process.env.NEXT_PUBLIC_API_VERSION
 
     const settings = {
-        networks: networkData.filter(n => version == 'sandbox' ? n.is_testnet : !n.is_testnet),
+        networks: networkData.filter(n => version == 'sandbox' ? n.isTestnet : !n.isTestnet),
     }
 
     const themeData = await getThemeData(ctx.query)

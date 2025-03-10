@@ -72,11 +72,24 @@ export class EthereumClient {
    */
   get_block_by_number(block: any, full_tx: boolean): Promise<any>;
   /**
+   * @param {string} hash
+   * @param {boolean} full_tx
+   * @returns {Promise<any>}
+   */
+  get_block_by_hash(hash: string, full_tx: boolean): Promise<any>;
+  /**
    * @param {any} addr
    * @param {any} block
    * @returns {Promise<string>}
    */
   get_code(addr: any, block: any): Promise<string>;
+  /**
+   * @param {any} address
+   * @param {any} slot
+   * @param {any} block
+   * @returns {Promise<any>}
+   */
+  get_storage_at(address: any, slot: any, block: any): Promise<any>;
   /**
    * @param {any} opts
    * @param {any} block
@@ -116,6 +129,34 @@ export class EthereumClient {
    * @returns {Promise<any>}
    */
   get_logs(filter: any): Promise<any>;
+  /**
+   * @param {any} filter_id
+   * @returns {Promise<any>}
+   */
+  get_filter_changes(filter_id: any): Promise<any>;
+  /**
+   * @param {any} filter_id
+   * @returns {Promise<any>}
+   */
+  get_filter_logs(filter_id: any): Promise<any>;
+  /**
+   * @param {any} filter_id
+   * @returns {Promise<boolean>}
+   */
+  uninstall_filter(filter_id: any): Promise<boolean>;
+  /**
+   * @param {any} filter
+   * @returns {Promise<any>}
+   */
+  new_filter(filter: any): Promise<any>;
+  /**
+   * @returns {Promise<any>}
+   */
+  new_block_filter(): Promise<any>;
+  /**
+   * @returns {Promise<any>}
+   */
+  new_pending_transaction_filter(): Promise<any>;
   /**
    * @returns {Promise<string>}
    */
@@ -190,11 +231,24 @@ export class OpStackClient {
    */
   get_block_by_number(block: any, full_tx: boolean): Promise<any>;
   /**
+   * @param {string} hash
+   * @param {boolean} full_tx
+   * @returns {Promise<any>}
+   */
+  get_block_by_hash(hash: string, full_tx: boolean): Promise<any>;
+  /**
    * @param {any} addr
    * @param {any} block
    * @returns {Promise<string>}
    */
   get_code(addr: any, block: any): Promise<string>;
+  /**
+   * @param {any} address
+   * @param {any} slot
+   * @param {any} block
+   * @returns {Promise<any>}
+   */
+  get_storage_at(address: any, slot: any, block: any): Promise<any>;
   /**
    * @param {any} opts
    * @param {any} block
@@ -235,6 +289,34 @@ export class OpStackClient {
    */
   get_logs(filter: any): Promise<any>;
   /**
+   * @param {any} filter_id
+   * @returns {Promise<any>}
+   */
+  get_filter_changes(filter_id: any): Promise<any>;
+  /**
+   * @param {any} filter_id
+   * @returns {Promise<any>}
+   */
+  get_filter_logs(filter_id: any): Promise<any>;
+  /**
+   * @param {any} filter_id
+   * @returns {Promise<boolean>}
+   */
+  uninstall_filter(filter_id: any): Promise<boolean>;
+  /**
+   * @param {any} filter
+   * @returns {Promise<any>}
+   */
+  new_filter(filter: any): Promise<any>;
+  /**
+   * @returns {Promise<any>}
+   */
+  new_block_filter(): Promise<any>;
+  /**
+   * @returns {Promise<any>}
+   */
+  new_pending_transaction_filter(): Promise<any>;
+  /**
    * @returns {Promise<string>}
    */
   client_version(): Promise<string>;
@@ -258,7 +340,9 @@ export interface InitOutput {
   readonly ethereumclient_get_block_transaction_count_by_hash: (a: number, b: number) => number;
   readonly ethereumclient_get_block_transaction_count_by_number: (a: number, b: number) => number;
   readonly ethereumclient_get_block_by_number: (a: number, b: number, c: number) => number;
+  readonly ethereumclient_get_block_by_hash: (a: number, b: number, c: number, d: number) => number;
   readonly ethereumclient_get_code: (a: number, b: number, c: number) => number;
+  readonly ethereumclient_get_storage_at: (a: number, b: number, c: number, d: number) => number;
   readonly ethereumclient_call: (a: number, b: number, c: number) => number;
   readonly ethereumclient_estimate_gas: (a: number, b: number) => number;
   readonly ethereumclient_gas_price: (a: number) => number;
@@ -267,6 +351,12 @@ export interface InitOutput {
   readonly ethereumclient_get_transaction_receipt: (a: number, b: number) => number;
   readonly ethereumclient_get_block_receipts: (a: number, b: number) => number;
   readonly ethereumclient_get_logs: (a: number, b: number) => number;
+  readonly ethereumclient_get_filter_changes: (a: number, b: number) => number;
+  readonly ethereumclient_get_filter_logs: (a: number, b: number) => number;
+  readonly ethereumclient_uninstall_filter: (a: number, b: number) => number;
+  readonly ethereumclient_new_filter: (a: number, b: number) => number;
+  readonly ethereumclient_new_block_filter: (a: number) => number;
+  readonly ethereumclient_new_pending_transaction_filter: (a: number) => number;
   readonly ethereumclient_client_version: (a: number) => number;
   readonly __wbg_opstackclient_free: (a: number, b: number) => void;
   readonly opstackclient_new: (a: number, b: number, c: number, d: number) => Array;
@@ -282,7 +372,9 @@ export interface InitOutput {
   readonly opstackclient_get_block_transaction_count_by_hash: (a: number, b: number) => number;
   readonly opstackclient_get_block_transaction_count_by_number: (a: number, b: number) => number;
   readonly opstackclient_get_block_by_number: (a: number, b: number, c: number) => number;
+  readonly opstackclient_get_block_by_hash: (a: number, b: number, c: number, d: number) => number;
   readonly opstackclient_get_code: (a: number, b: number, c: number) => number;
+  readonly opstackclient_get_storage_at: (a: number, b: number, c: number, d: number) => number;
   readonly opstackclient_call: (a: number, b: number, c: number) => number;
   readonly opstackclient_estimate_gas: (a: number, b: number) => number;
   readonly opstackclient_gas_price: (a: number) => number;
@@ -291,18 +383,24 @@ export interface InitOutput {
   readonly opstackclient_get_transaction_receipt: (a: number, b: number) => number;
   readonly opstackclient_get_block_receipts: (a: number, b: number) => number;
   readonly opstackclient_get_logs: (a: number, b: number) => number;
+  readonly opstackclient_get_filter_changes: (a: number, b: number) => number;
+  readonly opstackclient_get_filter_logs: (a: number, b: number) => number;
+  readonly opstackclient_uninstall_filter: (a: number, b: number) => number;
+  readonly opstackclient_new_filter: (a: number, b: number) => number;
+  readonly opstackclient_new_block_filter: (a: number) => number;
+  readonly opstackclient_new_pending_transaction_filter: (a: number) => number;
   readonly opstackclient_client_version: (a: number) => number;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export_2: WebAssembly.Table;
   readonly __wbindgen_export_3: WebAssembly.Table;
-  readonly closure238_externref_shim: (a: number, b: number, c: number) => void;
-  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h01d972fcfce72436: (a: number, b: number) => void;
+  readonly closure276_externref_shim: (a: number, b: number, c: number) => void;
+  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h1e7a0f184f3962eb: (a: number, b: number) => void;
   readonly __externref_table_dealloc: (a: number) => void;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
   readonly __wbindgen_exn_store: (a: number) => void;
   readonly __externref_table_alloc: () => number;
-  readonly closure179_externref_shim: (a: number, b: number, c: number, d: number) => void;
+  readonly closure215_externref_shim: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_start: () => void;
 }
 

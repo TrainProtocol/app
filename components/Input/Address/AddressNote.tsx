@@ -35,11 +35,11 @@ const AddressNote: FC<AddressNoteModalProps> = ({ partner, values }) => {
                 <div className="gap-4 flex relative items-center outline-none w-full text-primary-text">
                     <div className="flex items-center justify-between w-full">
                         <div className="text-secondary-text">
-                            <span>{destination?.display_name}</span> <span>address</span>
+                            <span>{destination?.displayName}</span> <span>address</span>
                         </div>
                         <div className="flex items-center gap-4 text-secondary-text">
                             <CopyButton toCopy={destination_address} />
-                            <Link href={destination?.account_explorer_template?.replace('{0}', destination_address) || ''} target="_blank">
+                            <Link href={destination?.accountExplorerTemplate?.replace('{0}', destination_address) || ''} target="_blank">
                                 <ExternalLink className="h-4 w-4" />
                             </Link>
                         </div>

@@ -51,7 +51,7 @@ const ManualAddressInput: FC<AddressInput> = ({ manualAddress, setManualAddress,
 
     let errorMessage = '';
     if (manualAddress && !isValidAddress(manualAddress, destination)) {
-        errorMessage = `Enter a valid ${values.to?.display_name} address`
+        errorMessage = `Enter a valid ${values.to?.displayName} address`
     }
 
     const addressFromList = destination && addresses?.find(a => addressFormat(a.address, destination) === addressFormat(manualAddress, destination))

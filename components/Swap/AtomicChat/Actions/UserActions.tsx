@@ -21,7 +21,7 @@ export const UserCommitAction: FC = () => {
     // });
 
     const atomicContract = source_network?.contracts.find(c => source_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
-    const lpAddress = source_network?.managed_accounts.find(a => a.type === ManagedAccountType.LP)?.address
+    const lpAddress = source_network?.managedAccounts.find(a => a.type === ManagedAccountType.LP)?.address
     const handleCommit = async () => {
         try {
             if (!amount) {
@@ -60,7 +60,7 @@ export const UserCommitAction: FC = () => {
                 tokenContractAddress: source_asset.contract as `0x${string}`,
                 decimals: source_asset.decimals,
                 atomicContract: atomicContract,
-                chainId: source_network.chain_id,
+                chainId: source_network.chainId,
             }) || {}
             if (commitId && hash) {
                 onCommit(commitId, hash)
@@ -98,7 +98,7 @@ export const UserCommitAction: FC = () => {
 
                     const data = await provider.getDetails({
                         type: source_asset?.contract ? 'erc20' : 'native',
-                        chainId: source_network.chain_id,
+                        chainId: source_network.chainId,
                         id: commitId,
                         contractAddress: atomicContract as `0x${string}`,
                     })
@@ -129,7 +129,7 @@ export const UserCommitAction: FC = () => {
                     activeChain={wallet?.chainId}
                     isConnected={!!wallet}
                     network={source_network}
-                    networkChainId={source_network.chain_id}
+                    networkChainId={source_network.chainId}
                     onClick={handleCommit}
                 >
                     Request
@@ -159,7 +159,7 @@ export const UserLockAction: FC = () => {
 
             await provider.addLock({
                 type: source_asset?.contract ? 'erc20' : 'native',
-                chainId: source_network.chain_id,
+                chainId: source_network.chainId,
                 id: commitId as string,
                 hashlock: destinationDetails?.hashlock,
                 contractAddress: atomicContract as `0x${string}`,
@@ -172,7 +172,7 @@ export const UserLockAction: FC = () => {
                 hashlock: destinationDetails?.hashlock,
                 contractAddress: atomicContract,
                 lockData: destinationDetails,
-                chainId: source_network.chain_id,
+                chainId: source_network.chainId,
             })
 
             updateCommit('userLocked', true)
@@ -194,7 +194,7 @@ export const UserLockAction: FC = () => {
 
                     const data = await provider.getDetails({
                         type: source_asset?.contract ? 'erc20' : 'native',
-                        chainId: source_network.chain_id,
+                        chainId: source_network.chainId,
                         id: commitId as string,
                         contractAddress: atomicContract as `0x${string}`,
                     })
@@ -221,7 +221,7 @@ export const UserLockAction: FC = () => {
                     activeChain={wallet?.chainId}
                     isConnected={!!wallet}
                     network={source_network}
-                    networkChainId={source_network.chain_id}
+                    networkChainId={source_network.chainId}
                     onClick={handleLockAssets}
                 >
                     Sign & Confirm
@@ -256,7 +256,7 @@ export const UserRefundAction: FC = () => {
                 type: source_asset?.contract ? 'erc20' : 'native',
                 id: commitId,
                 hashlock: sourceDetails?.hashlock,
-                chainId: source_network.chain_id,
+                chainId: source_network.chainId,
                 contractAddress: sourceAtomicContract as `0x${string}`,
                 sourceAsset: source_asset,
             })
@@ -265,13 +265,22 @@ export const UserRefundAction: FC = () => {
                 commitId: commitId,
                 commit: sourceDetails,
                 hashlock: sourceDetails?.hashlock,
-                chainId: source_network.chain_id,
+                chainId: source_network.chainId,
                 contractAddress: sourceAtomicContract
             })
 
             if (res) {
-                setRefundQuery(res, router)
                 setAtomicQuery({ ...atomicQuery, refundTxId: res })
+
+                const basePath = router?.basePath || ""
+                var atomicURL = window.location.protocol + "//"
+                    + window.location.host + `${basePath}/atomic`;
+                const atomicParams = new URLSearchParams({ ...atomicQuery, commitId, refundTxId: res })
+                if (atomicParams) {
+                    atomicURL += `?${atomicParams}`
+                }
+                window.history.replaceState({ ...window.history.state, as: atomicURL, url: atomicURL }, '', atomicURL);
+
                 setRequestedRefund(true)
             }
         }
@@ -291,7 +300,7 @@ export const UserRefundAction: FC = () => {
 
                 const data = await source_provider.getDetails({
                     type: source_asset?.contract ? 'erc20' : 'native',
-                    chainId: source_network.chain_id,
+                    chainId: source_network.chainId,
                     id: commitId as string,
                     contractAddress: sourceAtomicContract as `0x${string}`,
                 })
@@ -315,7 +324,7 @@ export const UserRefundAction: FC = () => {
 
                 const data = await destination_provider.getDetails({
                     type: destination_asset?.contract ? 'erc20' : 'native',
-                    chainId: destination_network.chain_id,
+                    chainId: destination_network.chainId,
                     id: commitId,
                     contractAddress: destinationAtomicContract as `0x${string}`,
                 })
@@ -344,25 +353,11 @@ export const UserRefundAction: FC = () => {
                     activeChain={wallet?.chainId}
                     isConnected={!!wallet}
                     network={source_network!}
-                    networkChainId={Number(source_network?.chain_id)}
+                    networkChainId={Number(source_network?.chainId)}
                     onClick={handleRefundAssets}
                 >
                     Cancel & Refund
                 </WalletActionButton>
         }
     </div>
-}
-
-const setRefundQuery = (refundTxId: string, router: NextRouter) => {
-    const basePath = router?.basePath || ""
-    var swapURL = window.location.protocol + "//"
-        + window.location.host + `${basePath}/atomic`;
-    const params = resolvePersistantQueryParams(router.query)
-    if (router.query && Object.keys(router.query).length) {
-        const search = new URLSearchParams(router.query as any);
-        if (search)
-            swapURL += `?${search}&refundTxId=${refundTxId}`;
-    }
-
-    window.history.pushState({ ...window.history.state, as: swapURL, url: swapURL }, '', swapURL);
 }

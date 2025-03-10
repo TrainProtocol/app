@@ -6,10 +6,10 @@ import { chainConfig } from 'viem/op-stack'
 
 export default function resolveChain(network: Network) {
 
-    const nativeCurrency = network.native_token;
+    const nativeCurrency = network.nativeToken;
     const blockExplorersBaseURL =
-        network.transaction_explorer_template ?
-            new URL(network.transaction_explorer_template).origin
+        network.transactionExplorerTemplate ?
+            new URL(network.transactionExplorerTemplate).origin
             : null
 
     const evm_multicall_contract  = network.contracts.find(c => c.type === ContractType.EvmMultiCallContract)?.address || {}
@@ -19,11 +19,11 @@ export default function resolveChain(network: Network) {
         return
     }
 
-    const opStackChainConfig = Number(network.chain_id) == 10 ? chainConfig : {}
+    const opStackChainConfig = Number(network.chainId) == 10 ? chainConfig : {}
 
     const res = defineChain({
-        id: Number(network.chain_id),
-        name: network.display_name,
+        id: Number(network.chainId),
+        name: network.displayName,
         nativeCurrency: {
             name: nativeCurrency.symbol,
             symbol: nativeCurrency.symbol,

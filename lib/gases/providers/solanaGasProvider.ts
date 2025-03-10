@@ -28,7 +28,7 @@ export class SolanaGasProvider implements Provider {
 
             const transaction = await transactionBuilder(network, token, walletPublicKey)
 
-            const nativeToken = network.native_token
+            const nativeToken = network.nativeToken
 
             if (!transaction || !nativeToken) return
 

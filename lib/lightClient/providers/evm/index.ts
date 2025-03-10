@@ -116,6 +116,7 @@ export default class EVMLightClient extends _LightClient {
                 }
                 this.worker.onerror = (error) => {
                     reject(error)
+                    this.worker.terminate()
                     console.error('Worker error:', error)
                 }
 

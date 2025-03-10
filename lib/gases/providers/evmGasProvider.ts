@@ -6,21 +6,22 @@ import { PublicClient, TransactionSerializedEIP1559, encodeFunctionData, seriali
 import { erc20Abi } from "viem";
 import { datadogRum } from "@datadog/browser-rum";
 import formatAmount from "../../formatAmount";
+import EVM_ERC20PHTLC from "../../abis/atomic/EVMERC20_PHTLC.json";
+import EVM_PHTLC from "../../abis/atomic/EVM_PHTLC.json";
+import { ethers } from "ethers";
 
 export class EVMGasProvider implements Provider {
     supportsNetwork(network: Network): boolean {
-        return network.group.toLowerCase().includes('evm') && !!network.native_token
+        return network.group.toLowerCase().includes('evm') && !!network.nativeToken
     }
 
-    getGas = async ({ address, network, token, recipientAddress = '0x2fc617e933a52713247ce25730f6695920b3befe' }: GasProps) => {
+    getGas = async ({ address, network, token, recipientAddress = '0x2fc617e933a52713247ce25730f6695920b3befe', contractMethod }: GasProps) => {
 
-        const chainId = Number(network?.chain_id)
+        const chainId = Number(network?.chainId)
 
         if (!network || !address || !chainId || !recipientAddress) {
             return
         }
-
-        const contract_address = token.contract as `0x${string}`
 
         try {
 
@@ -30,8 +31,9 @@ export class EVMGasProvider implements Provider {
             const resolveNetworkChain = (await import("../../resolveChain")).default
             const publicClient = createPublicClient({
                 chain: resolveNetworkChain(network),
-                transport: http(),
+                transport: http(network.nodes[0].url),
             })
+            const atomicContract = network.contracts.find(c => token.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address as `0x${string}`
 
             const getGas = network?.contracts.some(c => c.type === ContractType.GasPriceOracleContract) ? getOptimismGas : getEthereumGas
 
@@ -39,16 +41,15 @@ export class EVMGasProvider implements Provider {
                 {
                     publicClient,
                     chainId,
-                    contract_address,
                     account: address,
                     from: network,
                     currency: token,
-                    destination: recipientAddress as `0x${string}`,
-                    nativeToken: token
+                    destination: atomicContract,
+                    nativeToken: network.nativeToken
                 }
             )
 
-            const gas = await gasProvider.resolveGas()
+            const gas = await gasProvider.resolveGas(contractMethod)
 
             return gas
         }
@@ -64,7 +65,6 @@ abstract class getEVMGas {
 
     protected publicClient: PublicClient
     protected chainId: number
-    protected contract_address: `0x${string}`
     protected account: `0x${string}`
     protected from: Network
     protected currency: Token
@@ -74,7 +74,6 @@ abstract class getEVMGas {
         {
             publicClient,
             chainId,
-            contract_address,
             account,
             from,
             currency,
@@ -83,7 +82,6 @@ abstract class getEVMGas {
         }: {
             publicClient: PublicClient,
             chainId: number,
-            contract_address: `0x${string}`,
             account: `0x${string}`,
             from: Network,
             currency: Token,
@@ -93,7 +91,6 @@ abstract class getEVMGas {
     ) {
         this.publicClient = publicClient
         this.chainId = chainId
-        this.contract_address = contract_address
         this.account = account
         this.from = from
         this.currency = currency
@@ -101,7 +98,7 @@ abstract class getEVMGas {
         this.nativeToken = nativeToken
     }
 
-    abstract resolveGas(): Promise<number | undefined>
+    abstract resolveGas(contractMethod?: 'commit' | 'addLock'): Promise<number | undefined>
 
     protected async resolveFeeData() {
 
@@ -152,35 +149,125 @@ abstract class getEVMGas {
         }
     }
 
-    protected async estimateNativeGasLimit() {
-        const to = this.destination;
-        const gasEstimate = await this.publicClient.estimateGas({
-            account: this.account,
-            to: to,
-            data: this.constructSweeplessTxData(),
+    protected async estimateNativeGasLimit(contractMethod?: 'commit' | 'addLock') {
+
+        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
+        const timeLockMS = Date.now() + LOCK_TIME
+        const timeLock = Math.floor(timeLockMS / 1000)
+
+        const contract = getContract({
+            address: this.destination,
+            abi: EVM_PHTLC,
+            client: this.publicClient,
         })
 
-        return gasEstimate
-    }
-
-    protected async estimateERC20GasLimit() {
-        let encodedData = encodeFunctionData({
-            abi: erc20Abi,
-            functionName: "transfer",
-            args: [this.destination, BigInt(1000)]
-        })
-
-        if (encodedData) {
-            encodedData = this.constructSweeplessTxData(encodedData)
+        function generateBytes32Hex() {
+            const bytes = new Uint8Array(32); // 32 bytes = 64 hex characters
+            crypto.getRandomValues(bytes);
+            return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        const estimatedERC20GasLimit = await this.publicClient.estimateGas({
-            data: encodedData,
-            to: this.contract_address,
-            account: this.account
-        });
+        const id = `0x${generateBytes32Hex()}`;
 
-        return estimatedERC20GasLimit
+        if (contractMethod === 'addLock') {
+            const gasEstimate = await contract.estimateGas.addLock([
+                [],
+                [],
+                [],
+                'ETHEREUM_SEPOLIA',
+                "ETH",
+                "0x2fc617e933a52713247ce25730f6695920b3befe",
+                "ETH",
+                id,
+                "0x2fc617e933a52713247ce25730f6695920b3befe",
+                timeLock
+            ], {
+                account: this.account,
+                value: ethers.utils.parseUnits(0.00005.toString(), 18).toBigInt()
+            })
+
+            return gasEstimate
+        } else {
+            const gasEstimate = await contract.estimateGas.commit([
+                [],
+                [],
+                [],
+                'ETHEREUM_SEPOLIA',
+                "ETH",
+                "0x2fc617e933a52713247ce25730f6695920b3befe",
+                "ETH",
+                id,
+                "0x2fc617e933a52713247ce25730f6695920b3befe",
+                timeLock
+            ], {
+                account: this.account,
+                value: ethers.utils.parseUnits(0.00005.toString(), 18).toBigInt()
+            })
+
+            return gasEstimate
+        }
+
+    }
+
+    protected async estimateERC20GasLimit(contractMethod?: 'commit' | 'addLock') {
+
+        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
+        const timeLockMS = Date.now() + LOCK_TIME
+        const timeLock = Math.floor(timeLockMS / 1000)
+
+        const contract = getContract({
+            address: this.destination,
+            abi: EVM_ERC20PHTLC,
+            client: this.publicClient,
+        })
+
+        function generateBytes32Hex() {
+            const bytes = new Uint8Array(32); // 32 bytes = 64 hex characters
+            crypto.getRandomValues(bytes);
+            return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        const id = `0x${generateBytes32Hex()}`;
+
+        if (contractMethod === 'addLock') {
+            const gasEstimate = await contract.estimateGas.addLock([
+                [],
+                [],
+                [],
+                'ETHEREUM_SEPOLIA',
+                "ETH",
+                "0x2fc617e933a52713247ce25730f6695920b3befe",
+                "ETH",
+                id,
+                "0x2fc617e933a52713247ce25730f6695920b3befe",
+                timeLock
+            ], {
+                account: this.account,
+                value: ethers.utils.parseUnits(0.00005.toString(), 18).toBigInt()
+            })
+
+            return gasEstimate
+        } else {
+            const gasEstimate = await contract.estimateGas.commit([
+                [],
+                [],
+                [],
+                'ETHEREUM_SEPOLIA',
+                "ETH",
+                "0x2fc617e933a52713247ce25730f6695920b3befe",
+                "ETH",
+                id,
+                "0x2fc617e933a52713247ce25730f6695920b3befe",
+                timeLock
+            ], {
+                account: this.account,
+                value: ethers.utils.parseUnits(0.00005.toString(), 18).toBigInt()
+            })
+
+            return gasEstimate
+        }
+
+
     }
 
     protected constructSweeplessTxData = (txData: string = "0x") => {
@@ -193,12 +280,12 @@ abstract class getEVMGas {
 
 
 class getEthereumGas extends getEVMGas {
-    resolveGas = async () => {
+    resolveGas = async (contractMethod?: 'commit' | 'addLock') => {
         const feeData = await this.resolveFeeData()
 
-        const estimatedGasLimit = this.contract_address ?
-            await this.estimateERC20GasLimit()
-            : await this.estimateNativeGasLimit()
+        const estimatedGasLimit = this.currency.contract
+            ? await this.estimateERC20GasLimit(contractMethod)
+            : await this.estimateNativeGasLimit(contractMethod)
 
         const multiplier = feeData.maxFeePerGas || feeData.gasPrice
 
@@ -208,6 +295,7 @@ class getEthereumGas extends getEVMGas {
         const totalGas = multiplier * estimatedGasLimit
 
         const formattedGas = formatAmount(totalGas, this.nativeToken?.decimals)
+
         return formattedGas
     }
 
@@ -215,12 +303,12 @@ class getEthereumGas extends getEVMGas {
 
 
 export default class getOptimismGas extends getEVMGas {
-    resolveGas = async () => {
+    resolveGas = async (contractMethod?: 'commit' | 'addLock') => {
         const feeData = await this.resolveFeeData()
 
-        const estimatedGasLimit = this.contract_address ?
-            await this.estimateERC20GasLimit()
-            : await this.estimateNativeGasLimit()
+        const estimatedGasLimit = this.currency.contract ?
+            await this.estimateERC20GasLimit(contractMethod)
+            : await this.estimateNativeGasLimit(contractMethod)
 
         const multiplier = feeData.maxFeePerGas || feeData.gasPrice
 
@@ -237,7 +325,7 @@ export default class getOptimismGas extends getEVMGas {
         const amount = BigInt(1000)
         let serializedTransaction: TransactionSerializedEIP1559
 
-        if (this.contract_address) {
+        if (this.currency.contract) {
             let encodedData = encodeFunctionData({
                 abi: erc20Abi,
                 functionName: "transfer",
@@ -254,7 +342,7 @@ export default class getOptimismGas extends getEVMGas {
                 functionName: "transfer",
                 chainId: this.chainId,
                 args: [this.destination, amount],
-                to: this.contract_address,
+                to: this.currency.contract as `0x${string}`,
                 data: encodedData,
                 type: 'eip1559',
             }) as TransactionSerializedEIP1559
@@ -271,7 +359,7 @@ export default class getOptimismGas extends getEVMGas {
 
         const oracleContract = this.from.contracts.find(c => c.type === ContractType.GasPriceOracleContract)!.address as `0x${string}`
 
-        if(!oracleContract) throw new Error("No oracle contract")
+        if (!oracleContract) throw new Error("No oracle contract")
 
         const fee = await getL1Fee({
             data: serializedTransaction,

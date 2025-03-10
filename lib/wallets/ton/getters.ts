@@ -47,7 +47,7 @@ export const getTONDetails = async (params: CommitmentParams & { network: Networ
         amount,
         hashlock,
         id,
-        secret: Number(details[7]),
+        secret: BigInt(details[7]),
         claimed: Number(details[12]) === 1 ? 2 : Number(details[11]) === 1 ? 3 : 1
     }
 

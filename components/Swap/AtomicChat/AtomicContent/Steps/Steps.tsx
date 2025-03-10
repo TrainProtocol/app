@@ -2,15 +2,18 @@ import { FC, useEffect } from "react";
 import { CommitStatus, useAtomicState } from "../../../../../context/atomicContext";
 import { CommitTransaction } from "../../../../../lib/layerSwapApiClient";
 import LockIcon from "../../../../Icons/LockIcon";
-import Link from "next/link";
-import Step from "./Step";
-import { Clock, Link2 } from "lucide-react";
+import Step, { TxLink } from "./Step";
+import { Clock, Fuel } from "lucide-react";
 import CheckedIcon from "../../../../Icons/CheckedIcon";
 import XCircle from "../../../../Icons/CircleX";
+import useSWRGas from "../../../../../lib/gases/useSWRGas";
 import { usePulsatingCircles } from "../../../../../context/PulsatingCirclesContext";
 
 export const RequestStep: FC = () => {
-    const { sourceDetails, commitId, commitTxId, source_network, commitFromApi, isTimelockExpired } = useAtomicState()
+    const { sourceDetails, commitId, commitTxId, source_network, commitFromApi, isTimelockExpired, source_asset, amount, selectedSourceAccount } = useAtomicState()
+
+
+    const { gas } = useSWRGas(selectedSourceAccount, source_network, source_asset, 'commit')
 
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
 
@@ -20,12 +23,22 @@ export const RequestStep: FC = () => {
     const title = commited ? "Confirmed" : "Confirm the details"
     const description = (commited && source_network) ? <>Swap details confirmed</> : <>Review and confirm the swap details</>
 
-    const completedTxLink = source_network && commitTxId && source_network?.transaction_explorer_template.replace('{0}', commitTxId)
+    const receiveAmountInUsd = amount && source_asset?.priceInUsd ? (gas * source_asset.priceInUsd).toFixed(6) : undefined
+
+    const titleDetails = (commited || !gas) ? null : <div className="flex items-center gap-1">
+        <Fuel className="h-4 w-4" />
+        <p>
+            (${receiveAmountInUsd})
+        </p>
+    </div>
+
+    const completedTxLink = source_network && commitTxId && source_network?.transactionExplorerTemplate.replace('{0}', commitTxId)
 
     return <Step
         step={1}
         title={title}
         description={description}
+        titleDetails={titleDetails}
         active={true}
         completed={commited}
         loading={commtting && !commited}
@@ -37,14 +50,20 @@ export const RequestStep: FC = () => {
 }
 
 export const SignAndConfirmStep: FC = () => {
-    const { sourceDetails, destinationDetails, destination_network, commitFromApi, commitStatus } = useAtomicState()
+    const { sourceDetails, destinationDetails, commitStatus, destRedeemTx } = useAtomicState()
 
-    const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
     const assetsLocked = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted;
     const loading = commitStatus === CommitStatus.UserLocked
 
     const title = assetsLocked ? "Finalized" : "Finalize"
-    const completed = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || !!lpRedeemTransaction?.hash || commitStatus === CommitStatus.RedeemCompleted || commitStatus === CommitStatus.AssetsLocked
+    const completed = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || !!destRedeemTx || commitStatus === CommitStatus.RedeemCompleted || commitStatus === CommitStatus.AssetsLocked
+
+    const titleDetails = completed ? null : <div className="flex items-center gap-1">
+        <Fuel className="h-4 w-4" />
+        <p>
+            ($0.00)
+        </p>
+    </div>
 
     const description = assetsLocked
         ? <span>
@@ -60,6 +79,7 @@ export const SignAndConfirmStep: FC = () => {
             step={2}
             title={title}
             description={description}
+            titleDetails={titleDetails}
             active={!!destinationDetails?.hashlock}
             completed={completed}
             loading={loading}
@@ -102,6 +122,7 @@ export const LpLockingAssets: FC = () => {
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
 
     const title = completed ? 'Assets reserved' : 'Wait for response'
+    const completedTxLink = lpLockTx && destination_network?.transactionExplorerTemplate.replace('{0}', lpLockTx.hash)
 
     const { setPulseState } = usePulsatingCircles();
 
@@ -112,7 +133,7 @@ export const LpLockingAssets: FC = () => {
     return (
         commitStatus !== CommitStatus.TimelockExpired &&
         <>
-            <div className={`relative inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 ${!sourceDetails ? 'opacity-60' : ''}`}>
+            <div className={`relative inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 pr-5 ${!sourceDetails ? 'opacity-60' : ''}`}>
                 <div className="space-y-1">
                     <div className="inline-flex items-center gap-2">
                         <div className="flex w-fit items-center justify-center">
@@ -151,10 +172,8 @@ export const LpLockingAssets: FC = () => {
                     <SolverStatus />
                 </div>
                 {
-                    lpLockTx && destination_network && destinationDetails?.hashlock &&
-                    <Link className="mr-2 flex items-center gap-1 bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm" target="_blank" href={destination_network?.transaction_explorer_template.replace('{0}', lpLockTx?.hash)}>
-                        <Link2 className="h-4 w-auto" />
-                    </Link>
+                    destination_network && completedTxLink && completed &&
+                    <TxLink txLink={completedTxLink} />
                 }
             </div>
         </>
@@ -188,10 +207,11 @@ export const CancelAndRefund: FC = () => {
     const completed = sourceDetails?.claimed == 2
     const loading = refundTxId && !completed
     const resolvedDescription = completed ? 'Assets are received back at the source address' : 'Cancel & refund to receive your assets back at the source address'
+    const completedTxLink = refundTxId && source_network?.transactionExplorerTemplate.replace('{0}', refundTxId)
 
     return (
         commitStatus === CommitStatus.TimelockExpired &&
-        <div className={`inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 relative`}>
+        <div className={`inline-flex items-center justify-between w-full pr-5 bg-secondary-700 rounded-2xl p-3 relative`}>
             <div className="space-y-1">
                 <div className="inline-flex items-center gap-2">
                     <div className="flex w-fit items-center justify-center">
@@ -222,12 +242,8 @@ export const CancelAndRefund: FC = () => {
                 <div className="text-sm text-primary-text-placeholder">{resolvedDescription}</div>
             </div>
             {
-                refundTxId && source_network && completed &&
-                <div className="absolute right-5 top-[calc(50%-14px)] flex items-center gap-2 bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm">
-                    <Link className="flex items-center gap-1" target="_blank" href={source_network?.transaction_explorer_template.replace('{0}', refundTxId)}>
-                        <Link2 className="h-4 w-auto" />
-                    </Link>
-                </div>
+                refundTxId && source_network && completedTxLink &&
+                <TxLink txLink={completedTxLink} />
             }
         </div>
 

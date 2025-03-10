@@ -33,7 +33,7 @@ const MotionSummary: FC = () => {
     }, [amount, source_network, destination, source_token, destination_token])
 
     const wallet = provider?.activeWallet
-    const receiveAmount = commitFromApi?.destination_amount || fee?.quote?.receive_amount
+    const receiveAmount = commitFromApi?.destinationAmount || fee?.quote?.receiveAmount
 
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
 
@@ -61,7 +61,7 @@ const MotionSummary: FC = () => {
                             <Details />
                         </AccordionContent>
                         <div className="text-center flex justify-center w-full">
-                            <AccordionTrigger className="w-fit text-primary-text-placeholder text-base">View details</AccordionTrigger>
+                            <AccordionTrigger className="w-fit text-secondary-text text-base">View details</AccordionTrigger>
                         </div>
                     </AccordionItem>
                 </Accordion>

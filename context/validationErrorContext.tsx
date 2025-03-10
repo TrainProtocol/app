@@ -33,8 +33,8 @@ export const ValidationProvider: React.FC<{ children: ReactNode }> = ({ children
 
     const { to, from, fromCurrency, toCurrency } = values;
     const query = useQueryState();
-    const fromDisplayName = from?.display_name;
-    const toDisplayName = to?.display_name;
+    const fromDisplayName = from?.displayName;
+    const toDisplayName = to?.displayName;
 
     let validationMessage = '';
     let validationDetails: ValidationDetails = {};

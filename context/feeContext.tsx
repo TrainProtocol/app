@@ -42,19 +42,19 @@ export function FeeProvider({ children }) {
     const apiClient = new LayerSwapApiClient()
 
     const { data: amountRange, mutate: mutateLimits } = useSWR<ApiResponse<{
-        min_amount: number
-        min_amount_in_usd: number
-        max_amount: number
-        max_amount_in_usd: number
+        minAmount: number
+        minAmountInUsd: number
+        maxAmount: number
+        maxAmountInUsd: number
     }>>((from && fromCurrency && to && toCurrency) ?
-        `/limits?source_network=${from?.name}&source_token=${fromCurrency?.symbol}&destination_network=${to?.name}&destination_token=${toCurrency?.symbol}&refuel=${!!refuel}` : null, apiClient.fetcher, {
+        `/limits?SourceNetwork=${from?.name}&SourceToken=${fromCurrency?.symbol}&DestinationNetwork=${to?.name}&DestinationToken=${toCurrency?.symbol}` : null, apiClient.fetcher, {
         refreshInterval: poll ? 20000 : 0,
     })
 
-    const isAmountInRange = (amountRange?.data && debouncedAmount) && (Number(debouncedAmount) >= amountRange?.data?.min_amount && Number(debouncedAmount) <= amountRange?.data?.max_amount)
+    const isAmountInRange = (amountRange?.data && debouncedAmount) && (Number(debouncedAmount) >= amountRange?.data?.minAmount && Number(debouncedAmount) <= amountRange?.data?.maxAmount)
 
     const { data: lsFee, mutate: mutateFee, isLoading: isFeeLoading } = useSWR<ApiResponse<SwapQuote>>((from && fromCurrency && to && toCurrency && debouncedAmount && isAmountInRange) ?
-        `/quote?source_network=${from?.name}&source_token=${fromCurrency?.symbol}&destination_network=${to?.name}&destination_token=${toCurrency?.symbol}&amount=${debouncedAmount}&refuel=${!!refuel}` : null, apiClient.fetcher, {
+        `/quote?SourceNetwork=${from?.name}&SourceToken=${fromCurrency?.symbol}&DestinationNetwork=${to?.name}&DestinationToken=${toCurrency?.symbol}&Amount=${debouncedAmount}` : null, apiClient.fetcher, {
         refreshInterval: poll ? 42000 : 0,
     })
     useEffect(() => {
@@ -66,8 +66,8 @@ export function FeeProvider({ children }) {
 
     return (
         <FeeStateContext.Provider value={{
-            minAllowedAmount: amountRange?.data?.min_amount,
-            maxAllowedAmount: amountRange?.data?.max_amount,
+            minAllowedAmount: amountRange?.data?.minAmount,
+            maxAllowedAmount: amountRange?.data?.maxAmount,
             fee: {
                 quote: lsFee?.data
             },

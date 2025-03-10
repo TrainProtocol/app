@@ -7,8 +7,8 @@ import dynamic from "next/dynamic";
 import { useQueryState } from "../../context/query";
 import useSWRGas from "../../lib/gases/useSWRGas";
 import useSWRBalance from "../../lib/balances/useSWRBalance";
-import { useSwapDataState } from "../../context/swap";
 import { Token } from "../../Models/Network";
+import { useAtomicState } from "../../context/atomicContext";
 
 const MinMax = dynamic(() => import("./dynamic/MinMax"), {
     loading: () => <></>,
@@ -20,14 +20,14 @@ const AmountField = forwardRef(function AmountField(_, ref: any) {
     const [requestedAmountInUsd, setRequestedAmountInUsd] = useState<string>();
     const { fromCurrency, from, to, amount, toCurrency } = values || {};
     const { minAllowedAmount, maxAllowedAmount: maxAmountFromApi, fee, isFeeLoading } = useFee()
+    const { selectedSourceAccount } = useAtomicState()
     const [isFocused, setIsFocused] = useState(false);
-    const { selectedSourceAccount } = useSwapDataState()
     const sourceAddress = selectedSourceAccount?.address
 
     const { balance, isBalanceLoading } = useSWRBalance(sourceAddress, from)
     const { gas, isGasLoading } = useSWRGas(sourceAddress, from, fromCurrency)
     const gasAmount = gas || 0;
-    const native_currency = from?.native_token
+    const native_currency = from?.nativeToken
     const query = useQueryState()
 
     const name = "amount"
@@ -60,8 +60,8 @@ const AmountField = forwardRef(function AmountField(_, ref: any) {
     const amountRef = useRef(ref)
 
     const updateRequestedAmountInUsd = (requestedAmount: number, source_asset: Token | undefined) => {
-        if (source_asset?.price_in_usd && !isNaN(requestedAmount)) {
-            setRequestedAmountInUsd((source_asset?.price_in_usd * requestedAmount).toFixed(2));
+        if (source_asset?.priceInUsd && !isNaN(requestedAmount)) {
+            setRequestedAmountInUsd((source_asset?.priceInUsd * requestedAmount).toFixed(2));
         } else {
             setRequestedAmountInUsd(undefined);
         }

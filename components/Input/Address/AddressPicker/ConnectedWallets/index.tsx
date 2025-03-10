@@ -83,7 +83,7 @@ const ConnectedWallets: FC<Props> = ({ provider, wallets, onClick, onConnect, de
                             className="flex items-center justify-between w-full"
                         >
                             <p className="text-sm font-medium text-secondary-text">
-                                <span>Not compatible with</span> <span>{destination.display_name}</span>
+                                <span>Not compatible with</span> <span>{destination.displayName}</span>
                             </p>
                             <div
                                 className="text-secondary-text hover:text-primary-text text-xs rounded-lg flex items-center gap-1.5 transition-colors duration-200"
@@ -122,7 +122,7 @@ const ConnectedWallets: FC<Props> = ({ provider, wallets, onClick, onConnect, de
                     className="relative group/notCompatible w-full rounded-md transition duration-200 opacity-50 cursor-not-allowed"
                 >
                     <div className="absolute right-2 top-1/2 -translate-y-1/2 w-max px-2 py-0.5 text-secondary-text font-medium text-sm rounded-md transition-opacity duration-200 bg-secondary-500 group-hover/notCompatible:opacity-100 opacity-0 max-w-[150px] break-words sm:max-w-none sm:whitespace-nowrap z-20">
-                        Not compatible with {destination.display_name}
+                        Not compatible with {destination.displayName}
                     </div>
                     <div className="w-full z-10">
                         <WalletItem

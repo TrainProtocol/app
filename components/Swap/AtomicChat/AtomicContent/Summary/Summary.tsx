@@ -23,8 +23,8 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceAccountAddress, sourceCurrency,
     const source = from
     const destination = to
 
-    const requestedAmountInUsd = requestedAmount && (sourceCurrency?.price_in_usd * requestedAmount).toFixed(2)
-    const receiveAmountInUsd = receiveAmount ? (destinationCurrency?.price_in_usd * receiveAmount).toFixed(2) : undefined
+    const requestedAmountInUsd = requestedAmount && (sourceCurrency?.priceInUsd * requestedAmount).toFixed(2)
+    const receiveAmountInUsd = receiveAmount ? (destinationCurrency?.priceInUsd * receiveAmount).toFixed(2) : undefined
     const destAddress = destinationAddress
 
     return (
@@ -36,9 +36,9 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceAccountAddress, sourceCurrency,
                     </p>
                     <div className="flex items-center justify-between gap-2 w-full">
                         <div className="flex items-center gap-3">
-                            <Image src={source.logo} alt={source.display_name} width={44} height={44} className="rounded-lg" />
+                            <Image src={source.logo} alt={source.displayName} width={44} height={44} className="rounded-lg" />
                             <div className="text-ellipsis overflow-hidden">
-                                <p className="text-primary-text truncate">{source?.display_name}</p>
+                                <p className="text-primary-text truncate">{source?.displayName}</p>
                                 {
                                     sourceAccountAddress && isValidAddress(sourceAccountAddress, from) ?
                                         <div className="text-sm group/addressItem text-secondary-text">
@@ -64,9 +64,9 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceAccountAddress, sourceCurrency,
                     </p>
                     <div className="flex items-center gap-2 justify-between w-full ">
                         <div className="flex items-center gap-3">
-                            <Image src={destination.logo} alt={destination.display_name} width={44} height={44} className="rounded-lg" />
+                            <Image src={destination.logo} alt={destination.displayName} width={44} height={44} className="rounded-lg" />
                             <div className="group/addressItem text-secondary-text text-ellipsis overflow-hidden">
-                                <p className="truncate">{destination?.display_name}</p>
+                                <p className="truncate">{destination?.displayName}</p>
                                 <ExtendedAddress address={addressFormat(destAddress, to)} network={to} />
                             </div>
                         </div>

@@ -160,7 +160,7 @@ export default function useTON(): WalletProvider {
     }
 
     const getDetails = async (params: CommitmentParams): Promise<Commit> => {
-        const network = networks.find(n => n.chain_id === params.chainId)
+        const network = networks.find(n => n.chainId === params.chainId)
 
         try {
 
@@ -262,7 +262,11 @@ export default function useTON(): WalletProvider {
             ]
         }
 
-        await tonConnectUI.sendTransaction(tx)
+        const result = await tonConnectUI.sendTransaction(tx);
+        const cell = Cell.fromBase64(result.boc);
+        const buffer = cell.hash();
+        const messageHash = buffer.toString('hex');
+        return messageHash;
     }
 
 
