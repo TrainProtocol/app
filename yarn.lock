@@ -4484,12 +4484,24 @@
   resolved "https://registry.npmjs.org/@rive-app/canvas-lite/-/canvas-lite-2.25.1.tgz"
   integrity sha512-m1AB7bLDxTH32PdQKNiYT8k5JLmQYDZkL3zpB9LCr085Ro/worD3ZDhEkKdEE9rdThI/QoXp2OqE6io66dVlqg==
 
+"@rive-app/canvas@2.26.4":
+  version "2.26.4"
+  resolved "https://registry.yarnpkg.com/@rive-app/canvas/-/canvas-2.26.4.tgz#52ef70dfaac2a29a42122296231852bb9147a7c0"
+  integrity sha512-a9bSM2Hwe2K5hcRMC0dDfR4ygDgrJhVrEtv2L+QYS8bmjI2V2IgZsocKvtc/gW7Gt+R7NIBNgcy/vW1hl6KzFg==
+
 "@rive-app/react-canvas-lite@^4.9.0":
   version "4.17.3"
   resolved "https://registry.npmjs.org/@rive-app/react-canvas-lite/-/react-canvas-lite-4.17.3.tgz"
   integrity sha512-K74GDC/ISWtIElOUQIEbfj+NRAyZ2Ra84mYmLSmR0/DdHBP0myThF2g5zNyPUNUiM1aloR3+GTcvMMmoZdUYEQ==
   dependencies:
     "@rive-app/canvas-lite" "2.25.1"
+
+"@rive-app/react-canvas@^4.18.3":
+  version "4.18.3"
+  resolved "https://registry.yarnpkg.com/@rive-app/react-canvas/-/react-canvas-4.18.3.tgz#b6446ec0ff14db9216566ee04c62f16cbcacbb99"
+  integrity sha512-0bRoiFlel6zUY8KBhD6AA1Tzr83h/PSXwm9d4BJqU72r16gg56Z4uLxupgmGdSAb5pCFP7LzKhjuoY3aa3JyBg==
+  dependencies:
+    "@rive-app/canvas" "2.26.4"
 
 "@rometools/cli-darwin-arm64@12.1.3":
   version "12.1.3"

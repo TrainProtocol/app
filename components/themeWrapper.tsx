@@ -4,7 +4,8 @@ import Navbar from "./navbar"
 import GlobalFooter from "./globalFooter";
 import { usePulsatingCircles } from "../context/PulsatingCirclesContext";
 import { useState, useEffect } from "react";
-import PulsatingCircles from "./utils/pulse";
+import { useRive } from '@rive-app/react-canvas';
+import Background from "./Icons/Background";
 
 type Props = {
     children: JSX.Element | JSX.Element[]
@@ -46,8 +47,6 @@ export default function ThemeWrapper({ children }: Props) {
                         color: '#D9D9D9'
                     },
                     position: 'top-center',
-
-
                     error: {
                         duration: Infinity,
                     },
@@ -72,8 +71,8 @@ export default function ThemeWrapper({ children }: Props) {
                     <div className="flex h-full content-center items-center justify-center space-y-5 flex-col container mx-auto sm:px-6 max-w-lg">
                         <div className="flex h-full flex-col w-full text-primary-text">
                             <div className="relative w-full flex flex-col items-center">
-                                <div className="absolute top-[500px] left-0 w-full items-center justify-center pointer-events-none hidden md:flex">
-                                    <PulsatingCircles />
+                                <div className="absolute top-[350px] left-0 w-full items-center justify-center pointer-events-none hidden md:flex">
+                                    <RiveComponent />
                                 </div>
                             </div>
                             <div className="z-20">
@@ -88,3 +87,36 @@ export default function ThemeWrapper({ children }: Props) {
         </main>
     </div>
 }
+
+export const RiveComponent = () => {
+    const { pulseState } = usePulsatingCircles();
+
+    const { RiveComponent: RiveAnimation, rive } = useRive({
+        src: "/bg-animation.riv",
+        stateMachines: "State Machine 1",
+        autoplay: true,
+    });
+   
+    useEffect(() => {
+        if (rive) {
+            const inputs = rive?.stateMachineInputs("State Machine 1");
+            if (inputs && inputs.length > 0) {
+                const input = inputs[0];
+
+                if (pulseState === "initial") {
+                    input.value = 0;
+                } else if (pulseState === "pulsing") {
+                    input.value = 1;
+                } else if (pulseState === "completed") {
+                    input.value = 2;
+                }
+            }
+        }
+    }, [pulseState, rive]);
+
+    return (
+        <div className="h-[982px] w-[1512px] absolute">
+            <RiveAnimation />
+        </div>
+    );
+};
