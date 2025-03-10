@@ -5,7 +5,7 @@ const variants = {
     enter: () => {
         return ({
             opacity: 0,
-            y: '100%',
+            y: 0,
         })
     },
     center: () => {
