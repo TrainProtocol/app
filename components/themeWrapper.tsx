@@ -5,6 +5,7 @@ import GlobalFooter from "./globalFooter";
 import { usePulsatingCircles } from "../context/PulsatingCirclesContext";
 import { useState, useEffect } from "react";
 import { useRive } from '@rive-app/react-canvas';
+import Background from "./Icons/Background";
 
 type Props = {
     children: JSX.Element | JSX.Element[]
@@ -35,7 +36,7 @@ export default function ThemeWrapper({ children }: Props) {
             setClickCount(newCount);
         }
     };
-  
+
     return <div className='styled-scroll'>
         <div className="invisible light"></div>
         <main className="styled-scroll">
@@ -92,18 +93,20 @@ export default function ThemeWrapper({ children }: Props) {
 
 export const RiveComponent = () => {
     const { pulseState } = usePulsatingCircles();
+    const [riveLoaded, setRiveLoaded] = useState(false);
 
-    const { RiveComponent, rive } = useRive({
-        src: "/bg-animation.riv",
+    const { RiveComponent: RiveAnimation, rive } = useRive({
+        src: "/bg-animation-tr.riv",
         stateMachines: "State Machine 1",
         autoplay: true,
     });
-   
+
     useEffect(() => {
         if (rive) {
+            setRiveLoaded(true);
             const inputs = rive.stateMachineInputs("State Machine 1");
             if (inputs && inputs.length > 0) {
-                const input = inputs[0]; 
+                const input = inputs[0];
 
                 if (pulseState === "initial") {
                     input.value = 0;
@@ -116,7 +119,10 @@ export const RiveComponent = () => {
         }
     }, [pulseState, rive]);
 
-    return <div className="h-[982px] w-[1512px] absolute">
-        <RiveComponent />
-    </div>
+    return (
+        <div className="h-[982px] w-[1512px] absolute">
+            <RiveAnimation style={{ display: riveLoaded ? "block" : "none" }} />
+            {!riveLoaded && <Background />}
+        </div>
+    );
 };

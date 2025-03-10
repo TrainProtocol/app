@@ -21,7 +21,7 @@ const Step: FC<StepProps> = ({ step, title, description, active, completed, load
 
     useEffect(() => {
         setPulseState(loading ? "pulsing" : "initial")
-    }, [loading, setPulseState]);
+    }, [loading]);
 
     return <div className={`inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 ${!active ? 'opacity-60' : ''}`}>
         <div className="space-y-2">

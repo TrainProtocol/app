@@ -14,7 +14,7 @@ import { usePulsatingCircles } from "../../../../context/PulsatingCirclesContext
 
 const AtomicContent: FC = () => {
 
-    const { commitStatus, isManualClaimable, manualClaimRequested, commitFromApi, destination_network } = useAtomicState()
+    const { commitStatus, isManualClaimable, manualClaimRequested, commitFromApi, destination_network, destinationDetails } = useAtomicState()
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
     const redeemTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
 
@@ -27,7 +27,7 @@ const AtomicContent: FC = () => {
         else if (isManualClaimable && !manualClaimRequested) {
             setPulseState("initial");
         }
-        else if (assetsLocked) {
+        else if (assetsLocked || (manualClaimRequested && destinationDetails?.claimed !== 3)) {
             setPulseState("pulsing");
         }
     }, [assetsLocked, commitStatus, isManualClaimable, manualClaimRequested]);

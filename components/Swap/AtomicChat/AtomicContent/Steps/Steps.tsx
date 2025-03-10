@@ -106,8 +106,8 @@ export const LpLockingAssets: FC = () => {
     const { setPulseState } = usePulsatingCircles();
 
     useEffect(() => {
-        setPulseState(loading ? "pulsing" : "initial");
-    }, [loading, setPulseState]);
+        setPulseState((loading && commitStatus !== CommitStatus.TimelockExpired) ? "pulsing" : "initial");
+    }, [loading]);
 
     return (
         commitStatus !== CommitStatus.TimelockExpired &&
