@@ -6,7 +6,6 @@ import { TimerProvider } from '../context/timerContext';
 import { getThemeData } from '../helpers/settingsHelper';
 import AtmoicSteps from '../components/Swap/AtomicChat'
 import { FeeProvider } from '../context/feeContext';
-import { AtomicProvider } from '../context/atomicContext';
 
 const AtomicPage = ({ settings, themeData, apiKey }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
     LayerSwapApiClient.apiKey = apiKey
@@ -15,9 +14,7 @@ const AtomicPage = ({ settings, themeData, apiKey }: InferGetServerSidePropsType
         <Layout settings={settings} themeData={themeData}>
             <TimerProvider>
                 <FeeProvider>
-                    <AtomicProvider>
-                        <AtmoicSteps type='widget' />
-                    </AtomicProvider>
+                    <AtmoicSteps type='widget' />
                 </FeeProvider>
             </TimerProvider>
         </Layout>
