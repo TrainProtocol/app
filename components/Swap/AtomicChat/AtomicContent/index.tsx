@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import ResizablePanel from "../../../ResizablePanel";
 import Steps from "./Steps";
 import { CommitStatus, useAtomicState } from "../../../../context/atomicContext";
@@ -11,6 +11,7 @@ import ConnectedWallet from "./ConnectedWallet";
 import Link from "next/link";
 import { CommitTransaction } from "../../../../lib/layerSwapApiClient";
 import { usePulsatingCircles } from "../../../../context/PulsatingCirclesContext";
+import { useRive } from "@rive-app/react-canvas";
 
 const AtomicContent: FC = () => {
 
@@ -85,7 +86,8 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
 
             return <CircleAlert className="h-16 w-auto text-yellow-600" />
         }
-        return <SpinIcon className="h-16 w-auto text-accent animate-reverse-spin" />
+        return <RiveComponent />
+            
     }, [commitStatus, isManualClaimable, manualClaimRequested])
 
     const ResolvedTitle = useMemo(() => {
@@ -139,7 +141,7 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
                 opacity: show ? 1 : 0,
                 height: show ? 'auto' : '172px',
             }}
-            className="flex flex-col gap-6 pt-10 pb-6 transition-all duration-500"
+            className="flex flex-col pt-10 pb-6 transition-all duration-500"
         >
             {ResolvedIcon}
             <div className="text-center space-y-2">
@@ -151,3 +153,34 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
 }
 
 export default AtomicContent;
+
+const RiveComponent = () => {
+    const { pulseState } = usePulsatingCircles();
+
+    const { RiveComponent: RiveAnimation, rive } = useRive({
+        src: "/finalload.riv",
+        stateMachines: "State Machine 1",
+        autoplay: true,
+    });
+    
+    useEffect(() => {
+        if (rive) {
+            const inputs = rive.stateMachineInputs("State Machine 1");
+            if (inputs && inputs.length > 0) {
+                const input = inputs[0];
+
+                if (pulseState === "pulsing") {
+                    input.value = 0;
+                } else if (pulseState === "completed") {
+                    input.value = 2;
+                }
+            }
+        }
+    }, [pulseState, rive]);
+
+    return (
+        <div className="h-[136px] w-[136px] m-auto">
+            <RiveAnimation />
+        </div>
+    );
+};

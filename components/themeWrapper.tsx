@@ -30,7 +30,6 @@ export default function ThemeWrapper({ children }: Props) {
         const newCount = clickCount + 1;
         if (newCount >= 5) {
             setPulseState(pulseState === "initial" ? "pulsing" : "initial");
-            console.log(pulseState, "pulseState")
             setClickCount(0);
         } else {
             setClickCount(newCount);
@@ -48,8 +47,6 @@ export default function ThemeWrapper({ children }: Props) {
                         color: '#D9D9D9'
                     },
                     position: 'top-center',
-
-
                     error: {
                         duration: Infinity,
                     },
@@ -93,18 +90,16 @@ export default function ThemeWrapper({ children }: Props) {
 
 export const RiveComponent = () => {
     const { pulseState } = usePulsatingCircles();
-    const [riveLoaded, setRiveLoaded] = useState(false);
 
     const { RiveComponent: RiveAnimation, rive } = useRive({
-        src: "/bg-animation-tr.riv",
+        src: "/bg-animation.riv",
         stateMachines: "State Machine 1",
         autoplay: true,
     });
-
+   
     useEffect(() => {
         if (rive) {
-            setRiveLoaded(true);
-            const inputs = rive.stateMachineInputs("State Machine 1");
+            const inputs = rive?.stateMachineInputs("State Machine 1");
             if (inputs && inputs.length > 0) {
                 const input = inputs[0];
 
@@ -121,8 +116,7 @@ export const RiveComponent = () => {
 
     return (
         <div className="h-[982px] w-[1512px] absolute">
-            <RiveAnimation style={{ display: riveLoaded ? "block" : "none" }} />
-            {!riveLoaded && <Background />}
+            <RiveAnimation />
         </div>
     );
 };
