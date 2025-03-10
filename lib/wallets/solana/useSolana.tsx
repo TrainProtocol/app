@@ -17,7 +17,7 @@ const solanaNames = [KnownInternalNames.Networks.SolanaMainnet, KnownInternalNam
 
 export default function useSolana({ network }: { network: Network | undefined }): WalletProvider {
 
-    network = network?.group === NetworkGroup.SOLANA ? network : undefined
+    network = network?.group === NetworkGroup.Solana ? network : undefined
 
     const commonSupportedNetworks = [
         KnownInternalNames.Networks.SolanaMainnet,
@@ -175,7 +175,7 @@ export default function useSolana({ network }: { network: Network | undefined })
 
     const getDetails = async (params: CommitmentParams) => {
 
-        const lpAddress = network?.managed_accounts.find(c => c.type === ManagedAccountType.LP)?.address
+        const lpAddress = network?.managedAccounts.find(c => c.type === ManagedAccountType.LP)?.address
 
         if (!lpAddress) throw new Error("No LP address")
 

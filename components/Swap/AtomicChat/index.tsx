@@ -10,7 +10,7 @@ type ContainerProps = {
 const Commitment: FC<ContainerProps> = ({ type }) => {
     return (
         <>
-            <Widget.Content className="!py-0">
+            <Widget.Content className="!py-0 z-0">
                 <AtomicContent />
             </Widget.Content>
             <Widget.Footer sticky={true} >

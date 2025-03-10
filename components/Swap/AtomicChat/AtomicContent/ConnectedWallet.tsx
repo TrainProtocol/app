@@ -10,12 +10,9 @@ import VaulDrawer from "../../../Modal/vaulModal";
 import WalletsList from "../../../Wallet/WalletsList";
 import { useAtomicState } from "../../../../context/atomicContext";
 import { useSettingsState } from "../../../../context/settings";
-import { useSwapDataState, useSwapDataUpdate } from "../../../../context/swap";
 
 const Component: FC = () => {
-    const { source_asset, source_network, commitId } = useAtomicState()
-    const { selectedSourceAccount } = useSwapDataState()
-    const { setSelectedSourceAccount } = useSwapDataUpdate()
+    const { source_asset, source_network, commitId, setSelectedSourceAccount, selectedSourceAccount } = useAtomicState()
     const { provider } = useWallet(source_network, 'withdrawal')
     const { networks } = useSettingsState()
     const sourceNetworkWithTokens = networks.find(n => n.name === source_network?.name)

@@ -36,7 +36,7 @@ export class HeliosProvider {
             __classPrivateFieldSet(this, _HeliosProvider_client, new OpStackClient(executionRpc, network), "f");
         }
         else {
-            throw "invalid kind: must be ethereum or opstack";
+            throw new Error("Invalid kind: must be 'ethereum' or 'opstack'");
         }
         __classPrivateFieldSet(this, _HeliosProvider_chainId, __classPrivateFieldGet(this, _HeliosProvider_client, "f").chain_id(), "f");
     }
@@ -101,28 +101,35 @@ _HeliosProvider_client = new WeakMap(), _HeliosProvider_chainId = new WeakMap(),
             return __classPrivateFieldGet(this, _HeliosProvider_client, "f").send_raw_transaction(req.params[0]);
         }
         case "eth_getTransactionReceipt": {
-            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_transaction_receipt(req.params[0]);
-        }
-        case "eth_getTransactionByHash": {
-            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_transaction_by_hash(req.params[0]);
+            const receipt = await __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_transaction_receipt(req.params[0]);
+            return mapToObj(receipt);
         }
         case "eth_getTransactionByBlockHashAndIndex": {
-            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_transaction_by_block_hash_and_index(req.params[0], req.params[1]);
+            const tx = await __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_transaction_by_block_hash_and_index(req.params[0], req.params[1]);
+            return mapToObj(tx);
         }
         case "eth_getTransactionByBlockNumberAndIndex": {
-            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_transaction_by_block_number_and_index(req.params[0], req.params[1]);
+            const tx = await __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_transaction_by_block_number_and_index(req.params[0], req.params[1]);
+            return mapToObj(tx);
         }
         case "eth_getBlockReceipts": {
-            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_block_receipts(req.params[0]);
+            const receipts = await __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_block_receipts(req.params[0]);
+            return receipts.map(mapToObj);
         }
         case "eth_getLogs": {
-            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_logs(req.params[0]);
+            const logs = await __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_logs(req.params[0]);
+            return logs.map(mapToObj);
         }
         case "eth_getFilterChanges": {
-            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_filter_changes(req.params[0]);
+            const changes = await __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_filter_changes(req.params[0]);
+            if (changes.length > 0 && typeof changes[0] === "object") {
+                return changes.map(mapToObj);
+            }
+            return changes;
         }
         case "eth_getFilterLogs": {
-            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_filter_logs(req.params[0]);
+            const logs = await __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_filter_logs(req.params[0]);
+            return logs.map(mapToObj);
         }
         case "eth_uninstallFilter": {
             return __classPrivateFieldGet(this, _HeliosProvider_client, "f").uninstall_filter(req.params[0]);
@@ -141,6 +148,10 @@ _HeliosProvider_client = new WeakMap(), _HeliosProvider_chainId = new WeakMap(),
         }
         case "eth_getBlockByNumber": {
             const block = await __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_block_by_number(req.params[0], req.params[1]);
+            return mapToObj(block);
+        }
+        case "eth_getBlockByHash": {
+            const block = await __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_block_by_hash(req.params[0], req.params[1]);
             return mapToObj(block);
         }
         case "web3_clientVersion": {

@@ -33,7 +33,7 @@ export default function MainStepValidation({ maxAllowedAmount, minAllowedAmount 
         }
         if (values.to) {
             if (values.destination_address && !isValidAddress(values.destination_address, values.to)) {
-                errors.destination_address = `Enter a valid ${values.to?.display_name} address`;
+                errors.destination_address = `Enter a valid ${values.to?.displayName} address`;
             }
         }
         return errors;

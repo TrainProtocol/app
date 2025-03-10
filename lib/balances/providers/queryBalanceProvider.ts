@@ -50,7 +50,7 @@ export class QueryBalanceProvider {
             network: network.name,
             amount: formatAmount(balancesFromQueries[asset.symbol], asset.decimals),
             decimals: asset.decimals,
-            isNativeCurrency: network.native_token?.symbol === asset.symbol,
+            isNativeCurrency: network.nativeToken?.symbol === asset.symbol,
             token: asset.symbol,
             request_time: new Date().toJSON(),
         }];

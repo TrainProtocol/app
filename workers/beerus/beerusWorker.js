@@ -1,12 +1,11 @@
 import init, { set_panic_hook, Beerus } from './beerus_web.js';
-
 self.onmessage = (e) => {
     switch (e.data.type) {
         case 'init':
             initWorker(e.data.payload.data.initConfigs);
             break;
         case 'getDetails':
-            console.log("getting details")
+            console.log("getting details");
             getCommit(e.data.payload.data.commitConfigs);
             break;
         default:
@@ -19,9 +18,9 @@ async function initWorker(initConfigs) {
         await init();
         set_panic_hook();
         const config = JSON.stringify({
-            ethereum_url: `https://eth-sepolia.g.alchemy.com/v2/${initConfigs.alchemyKey}`,
-            gateway_url: 'https://alpha-sepolia.starknet.io',
-            starknet_url: `https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/${initConfigs.alchemyKey}`
+            ethereum_url: `${initConfigs.version == 'sandbox' ? 'https://eth-sepolia.g.alchemy.com/v2/' : 'https://eth-mainnet.g.alchemy.com/v2/'}${initConfigs.alchemyKey}`,
+            gateway_url: initConfigs.version === 'sandbox' ? 'https://alpha-sepolia.starknet.io' : 'https://alpha-mainnet.starknet.io',
+            starknet_url: `${initConfigs.version == 'sandbox' ? 'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/' : 'https://starknet-mainnet.g.alchemy.com/starknet/version/rpc/v0_7/'}${initConfigs.alchemyKey}`
         });
         let beerus = await new Beerus(config, post);
         console.log('Beerus instance created');
@@ -29,23 +28,17 @@ async function initWorker(initConfigs) {
         self.postMessage({ type: 'init', data: { initialized: true } });
     }
     catch (e) {
-        console.log("brrrusserrror", e.message)
+        console.log("brrrusserrror", e.message);
         self.postMessage({ type: 'init', data: { initialized: false } });
         console.log(e);
     }
 }
-
 async function getCommit(commitConfigs) {
     try {
         const { call } = commitConfigs;
-        try {
-            const rawData = await starknetCall(call);
-            const parsedData = JSON.parse(rawData);
-            self.postMessage({ type: 'commitDetails', data: parsedData });
-        }
-        catch (e) {
-            console.log(e);
-        }
+        const rawData = await starknetCall(call);
+        const parsedData = JSON.parse(rawData);
+        self.postMessage({ type: 'commitDetails', data: parsedData });
     }
     catch (e) {
         self.postMessage({ type: 'commitDetails', data: undefined });
@@ -62,20 +55,20 @@ async function starknetCall(commitConfigs) {
         catch (e) {
             console.error(e);
             let error = sanitize(e.toString());
-            return error;
+            throw error;
         }
     }
     else if (request.hasOwnProperty('execute')) {
         let req = JSON.stringify(request['execute']);
         try {
-            let state = await self.client.get_state();
+            await self.client.get_state();
             let result = await self.client.execute(req);
             return result;
         }
         catch (e) {
             console.error(e);
             let error = sanitize(e.toString());
-            return error;
+            throw error;
         }
     }
     else {
@@ -83,7 +76,6 @@ async function starknetCall(commitConfigs) {
         return "unknown request";
     }
 }
-
 function post(url, body) {
     let call = method(body);
     let now = performance.now();

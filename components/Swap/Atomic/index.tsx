@@ -43,8 +43,8 @@ export default function Form() {
 
     const {
         commitId
-    } = atomicQuery
-
+    } = atomicQuery;
+    
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
             if (!values.amount) {
@@ -113,12 +113,12 @@ export default function Form() {
             {
                 commitId &&
                 currentStepName !== AtomicSteps.Swap &&
-                <div className="rounded-r-lg cursor-pointer absolute z-10 md:mt-3 border-l-0">
+                <div className="cursor-pointer absolute z-10 mt-4 ml-6">
                     <PendingSwap key="pendingSwap" onClick={() => handleWizardRouting(AtomicSteps.Swap)} />
                 </div>
             }
         </AnimatePresence>
-
+        
         <Formik
             innerRef={formikRef}
             initialValues={{}}
@@ -139,28 +139,6 @@ export default function Form() {
         </Formik>
     </>
 }
-
-const textMotion = {
-    rest: {
-        color: "grey",
-        x: 0,
-        transition: {
-            duration: 0.4,
-            type: "tween",
-            ease: "easeIn"
-        }
-    },
-    hover: {
-        color: "blue",
-        x: 30,
-        transition: {
-            duration: 0.4,
-            type: "tween",
-            ease: "easeOut"
-        }
-    }
-};
-
 
 const setAtomicPath = ({
     atomicQuery,
@@ -196,13 +174,11 @@ const PendingSwap = ({ onClick }: { onClick: () => void }) => {
         exit={{ y: -10, opacity: 0 }}
         transition={{ duration: 0.2 }}
     >
-        <motion.div
+        <div
             onClick={onClick}
-            initial="rest" whileHover="hover" animate="rest"
-            className="relative bg-secondary-600 rounded-r-lg">
-            <motion.div
-                variants={textMotion}
-                className="flex items-center bg-secondary-600 rounded-r-lg">
+            className="relative bg-secondary-600 rounded-lg hover:bg-secondary-500 transition-colors">
+            <div
+                className="flex items-center">
                 <div className="text-primary-text flex px-3 p-2 items-center space-x-2">
                     <div className="flex-shrink-0 h-5 w-5 relative">
                         {source_network ?
@@ -228,7 +204,7 @@ const PendingSwap = ({ onClick }: { onClick: () => void }) => {
                         }
                     </div>
                 </div>
-            </motion.div>
-        </motion.div>
+            </div>
+        </div>
     </motion.div>
 }

@@ -7,6 +7,7 @@ export type GasProps = {
     address?: `0x${string}`,
     recipientAddress?: string,
     wallet?: Wallet
+    contractMethod?: 'commit' | 'addLock',
 }
 
 export type Balance = {

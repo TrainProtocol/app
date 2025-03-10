@@ -61,7 +61,7 @@ export class FuelBalanceProvider {
                     network: network.name,
                     amount: formatAmount(Number(balance?.amount || 0), token.decimals),
                     decimals: token.decimals,
-                    isNativeCurrency: network.native_token?.symbol === token.symbol,
+                    isNativeCurrency: network.nativeToken?.symbol === token.symbol,
                     token: token.symbol,
                     request_time: new Date().toJSON()
                 }

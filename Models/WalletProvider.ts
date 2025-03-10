@@ -50,7 +50,7 @@ export type WalletProvider = {
     id: string,
 
     createPreHTLC: (args: CreatePreHTLCParams) => Promise<{ hash: string, commitId: string } | null | undefined>,
-    claim: (args: ClaimParams) => Promise<void> | undefined | void,
+    claim: (args: ClaimParams) => Promise<string> | undefined | void,
     refund: (args: RefundParams) => Promise<any> | undefined | void,
     getDetails: (args: CommitmentParams) => Promise<Commit | null>,
     secureGetDetails?: (args: CommitmentParams) => Promise<Commit | null>,

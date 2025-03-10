@@ -26,7 +26,7 @@ export class StarknetGasProvider implements Provider {
 
         const recipient = version === 'prod' ? mainnetRecipient : testnetRecipient
         const watchdogContract = version === 'prod' ? mainnetWatchdog : testnetWatchdog
-        const nativeToken = network.native_token
+        const nativeToken = network.nativeToken
         if (!token || !nativeToken) return
 
         const client = new InternalApiClient()

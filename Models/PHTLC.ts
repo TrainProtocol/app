@@ -5,6 +5,6 @@ export type Commit = {
     amount: number,
     id?: string | undefined,
     hashlock: string | undefined,
-    secret: number | undefined,
+    secret: bigint | undefined,
     claimed: number,
 }

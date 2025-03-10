@@ -21,19 +21,19 @@ export const resolveRoutesURLForSelectedToken = ({ direction, network, token, in
         // include_unavailable,
         ...(network ?
             {
-                [direction === 'to' ? 'source_network' : 'destination_network']: network,
+                [direction === 'to' ? 'sourceNetwork' : 'destinationNetwork']: network,
             }
             : {}
         ),
         ...(network && token ?
             {
-                [direction === 'to' ? 'source_network' : 'destination_network']: network,
+                [direction === 'to' ? 'sourceNetwork' : 'destinationNetwork']: network,
             }
             : {}
         ),
         ...(token ?
             {
-                [direction === 'to' ? 'source_token' : 'destination_token']: token,
+                [direction === 'to' ? 'sourceToken' : 'destinationToken']: token,
             }
             : {}
         )

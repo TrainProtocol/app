@@ -27,10 +27,10 @@ function WagmiComponent({ children }: Props) {
     const settings = useSettingsState();
     const isChain = (c: Chain | undefined): c is Chain => c != undefined
     const settingsChains = settings?.networks
-        .sort((a, b) => (NetworkSettings.KnownSettings[a.name]?.ChainOrder || Number(a.chain_id)) - (NetworkSettings.KnownSettings[b.name]?.ChainOrder || Number(b.chain_id)))
+        .sort((a, b) => (NetworkSettings.KnownSettings[a.name]?.ChainOrder || Number(a.chainId)) - (NetworkSettings.KnownSettings[b.name]?.ChainOrder || Number(b.chainId)))
         .filter(net => net.group.toLowerCase().includes('evm')
             && net.nodes.length > 0
-            && net.native_token)
+            && net.nativeToken)
         .map(resolveChain).filter(isChain) as Chain[]
 
     const transports = {}

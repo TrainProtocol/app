@@ -21,11 +21,11 @@ const CommitDetails: FC<Props> = ({ commit }) => {
     const {
         amount,
         id,
-        destination_address,
-        source_network: srcNetwork,
-        destination_network: dstNetwork,
-        source_asset: srcAsset,
-        destination_asset: dstAsset
+        destinationAddress: destination_address,
+        sourceNetwork: srcNetwork,
+        destinationNetwork: dstNetwork,
+        sourceAsset: srcAsset,
+        destinationAsset: dstAsset
     } = commit
 
     const source_network = networks.find(n => n.name === srcNetwork)
@@ -78,7 +78,7 @@ const CommitDetails: FC<Props> = ({ commit }) => {
                                         }
 
                                     </div>
-                                    <div className="mx-1 text-primary-text">{source_network?.display_name}</div>
+                                    <div className="mx-1 text-primary-text">{source_network?.displayName}</div>
                                 </div>
                             }
                         </div>
@@ -99,7 +99,7 @@ const CommitDetails: FC<Props> = ({ commit }) => {
                                             />
                                         }
                                     </div>
-                                    <div className="mx-1 text-primary-text">{destination_network.display_name}</div>
+                                    <div className="mx-1 text-primary-text">{destination_network.displayName}</div>
                                 </div>
                             }
                         </div>

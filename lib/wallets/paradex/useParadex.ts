@@ -48,7 +48,7 @@ export default function useParadex({ network }: Props): WalletProvider {
                 createPreHTLC: function (args: CreatePreHTLCParams): Promise<{ hash: string; commitId: string } | null | undefined> {
                     throw new Error("Function not implemented.")
                 },
-                claim: function (args: ClaimParams): Promise<void> | undefined | void {
+                claim: function (args: ClaimParams): Promise<string> | undefined | void {
                     throw new Error("Function not implemented.")
                 },
                 refund: function (args: RefundParams): Promise<any> | undefined | void {

@@ -22,9 +22,9 @@ export async function getServerSideProps(context) {
     const version = process.env.NEXT_PUBLIC_API_VERSION
     
     const settings = {
-        networks: networkData.filter(n => version == 'sandbox' ? n.is_testnet : !n.is_testnet),
-        sourceRoutes: sourceRoutes?.filter(n => version == 'sandbox' ? n.is_testnet : !n.is_testnet) || [],
-        destinationRoutes: destinationRoutes?.filter(n => version == 'sandbox' ? n.is_testnet : !n.is_testnet) || []
+        networks: networkData.filter(n => version == 'sandbox' ? n.isTestnet : !n.isTestnet),
+        sourceRoutes: sourceRoutes?.filter(n => version == 'sandbox' ? n.isTestnet : !n.isTestnet) || [],
+        destinationRoutes: destinationRoutes?.filter(n => version == 'sandbox' ? n.isTestnet : !n.isTestnet) || []
     }
 
     const themeData = await getThemeData(context.query)

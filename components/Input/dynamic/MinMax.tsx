@@ -5,7 +5,7 @@ import { useFee } from "../../../context/feeContext";
 import { useQueryState } from "../../../context/query";
 import useSWRBalance from "../../../lib/balances/useSWRBalance";
 import useSWRGas from "../../../lib/gases/useSWRGas";
-import { useSwapDataState } from "../../../context/swap";
+import { useAtomicState } from "../../../context/atomicContext";
 
 const MinMax = () => {
 
@@ -15,7 +15,7 @@ const MinMax = () => {
 
     const query = useQueryState()
 
-    const { selectedSourceAccount } = useSwapDataState()
+    const { selectedSourceAccount } = useAtomicState()
 
     const { gas } = useSWRGas(selectedSourceAccount?.address, values.from, fromCurrency)
     const { balance, mutate } = useSWRBalance(selectedSourceAccount?.address, values.from)
@@ -26,7 +26,7 @@ const MinMax = () => {
         setFieldValue('amount', minAllowedAmount);
     }
     const walletBalance = selectedSourceAccount?.address && balance?.find(b => b?.network === from?.name && b?.token === fromCurrency?.symbol)
-    const native_currency = from?.native_token
+    const native_currency = from?.nativeToken
 
     let maxAllowedAmount: number | null = maxAmountFromApi || 0
     if (query.balances && fromCurrency) {

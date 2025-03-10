@@ -12,20 +12,19 @@ export enum NetworkType {
 
 export class Network {
     name: string;
-    display_name: string;
+    displayName: string;
     logo: string;
-    chain_id: string | null;
-    // type: NetworkType;
+    chainId: string | null;
     group: NetworkGroup
-    transaction_explorer_template: string;
-    account_explorer_template: string;
+    transactionExplorerTemplate: string;
+    accountExplorerTemplate: string;
     tokens: Token[]
-    native_token: Token;
+    nativeToken: Token;
     get type(): NetworkType {
         return NETWORK_GROUP_TYPES[this.group];
     }
-    listing_date: string;
-    is_testnet: boolean
+    listingDate: string;
+    isTestnet: boolean
     nodes: [
         {
             type: string
@@ -38,7 +37,7 @@ export class Network {
             address: string
         }
     ]
-    managed_accounts: [
+    managedAccounts: [
         {
             type: ManagedAccountType
             address: string,
@@ -64,63 +63,51 @@ export class Token {
     contract: string | null | undefined;
     decimals: number;
     precision: number;
-    price_in_usd: number;
-    listing_date: string;
+    priceInUsd: number;
+    listingDate: string;
 }
 
 const NETWORK_GROUP_TYPES = {
-    EVM_LEGACY: NetworkType.EVM,
-    EVM_EIP1559: NetworkType.EVM,
-    EVM_ARBITRUM_LEGACY: NetworkType.EVM,
-    EVM_ARBITRUM_EIP1559: NetworkType.EVM,
-    EVM_OPTIMISM_EIP1559: NetworkType.EVM,
-    EVM_OPTIMISM_LEGACY: NetworkType.EVM,
-    EVM_POLYGON_LEGACY: NetworkType.EVM,
-    EVM_POLYGON_EIP1559: NetworkType.EVM,
-    LOOPRING: NetworkType.EVM,
+    EVMEthereumLegacy: NetworkType.EVM,
+    EVMEthereumEip1559: NetworkType.EVM,
+    EVMArbitrumLegacy: NetworkType.EVM,
+    EVMArbitrumEip1559: NetworkType.EVM,
+    EVMOptimismEip1559: NetworkType.EVM,
+    EVMOptimismLegacy: NetworkType.EVM,
+    EVMPolygonLegacy: NetworkType.EVM,
+    EVMPolygonEip1559: NetworkType.EVM,
+    Loopring: NetworkType.EVM,
 
-    IMMUTABLEX: NetworkType.EVM,
-    BRINE: NetworkType.EVM,
-    RHINOFI: NetworkType.EVM,
-    APTOS: NetworkType.EVM,
+    ImmutableX: NetworkType.EVM,
+    Brine: NetworkType.EVM,
+    RhinoFi: NetworkType.EVM,
+    Aptos: NetworkType.EVM,
 
-    FUEL: NetworkType.Fuel,
-    SOLANA: NetworkType.Solana,
-    STARKNET: NetworkType.Starknet,
-    STARKNET_PARADEX: NetworkType.Starknet,
+    Fuel: NetworkType.Fuel,
+    Solana: NetworkType.Solana,
+    Starknet: NetworkType.Starknet,
+    StarknetParadex: NetworkType.Starknet,
 
-    TON: NetworkType.TON,
-    TRON: NetworkType.TON,
-    ZKSYNC: NetworkType.ZkSyncLite,
+    Ton: NetworkType.TON,
+    Tron: NetworkType.TON,
+    Zksync: NetworkType.ZkSyncLite,
 
-    ZKSPACE: NetworkType.ZkSyncLite,
-    ZKSYNC_ERA_PAYMASTER: NetworkType.ZkSyncLite,
+    Zkspace: NetworkType.ZkSyncLite,
+    ZksyncEraPaymaster: NetworkType.ZkSyncLite,
 
-    OSMOSIS: NetworkType.Cosmos,
+    Osmosis: NetworkType.Cosmos,
 }
 
 export enum NetworkGroup {
-    EVM_LEGACY = "EVM_LEGACY",
-    EVM_EIP1559 = "EVM_EIP1559",
-    EVM_ARBITRUM_LEGACY = "EVM_ARBITRUM_LEGACY",
-    EVM_ARBITRUM_EIP1559 = "EVM_ARBITRUM_EIP1559",
-    EVM_OPTIMISM_EIP1559 = "EVM_OPTIMISM_EIP1559",
-    EVM_OPTIMISM_LEGACY = "EVM_OPTIMISM_LEGACY",
-    EVM_POLYGON_LEGACY = "EVM_POLYGON_LEGACY",
-    EVM_POLYGON_EIP1559 = "EVM_POLYGON_EIP1559",
-    FUEL = "FUEL",
-    IMMUTABLEX = "IMMUTABLEX",
-    LOOPRING = "LOOPRING",
-    OSMOSIS = "OSMOSIS",
-    SOLANA = "SOLANA",
-    STARKNET = "STARKNET",
-    STARKNET_PARADEX = "STARKNET_PARADEX",
-    TON = "TON",
-    TRON = "TRON",
-    ZKSYNC = "ZKSYNC",
-    BRINE = "BRINE",
-    RHINOFI = "RHINOFI",
-    APTOS = "APTOS",
-    ZKSPACE = "ZKSPACE",
-    ZKSYNC_ERA_PAYMASTER = "ZKSYNC_ERA_PAYMASTER",
+    EVMEthereumLegacy = 'EVMEthereumLegacy',
+    EVMEthereumEip1559 = 'EVMEthereumEip1559',
+    EVMArbitrumLegacy = 'EVMArbitrumLegacy',
+    EVMArbitrumEip1559 = 'EVMArbitrumEip1559',
+    EVMOptimismEip1559 = 'EVMOptimismEip1559',
+    EVMOptimismLegacy = 'EVMOptimismLegacy',
+    EVMPolygonLegacy = 'EVMPolygonLegacy',
+    EVMPolygonEip1559 = 'EVMPolygonEip1559',
+    Solana = 'Solana',
+    Starknet = 'Starknet',
+
 }

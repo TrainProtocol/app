@@ -25,7 +25,7 @@ export default class LayerSwapApiClient {
     }
 
     async AddLockSig(params: AddLockSig, commit_id: string): Promise<ApiResponse<{}>> {
-        return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/swaps/${commit_id}/add_lock_sig`, params);
+        return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/swaps/${commit_id}/addLockSig`, params);
     }
 
 
@@ -46,20 +46,20 @@ export type AddLockSig = {
     s?: string
     v?: string
     signature?: any,
-    signature_array?: any,
+    signatureArray?: any,
     timelock: number
 }
 
 export type CommitFromApi = {
-    commit_id: string,
-    source_network: string,
-    source_asset: string,
-    destination_network: string,
-    destination_asset: string,
-    destination_address: string,
-    liquidity_provider_address: string,
-    destination_amount: number,
-    fee_amount: number,
+    commitId: string,
+    sourceNetwork: string,
+    sourceAsset: string,
+    destinationNetwork: string,
+    destinationAsset: string,
+    destinationAddress: string,
+    liquidityProviderAddress: string,
+    destinationAmount: number,
+    feeAmount: number,
     transactions: {
         type: CommitTransaction,
         hash: string,
@@ -78,17 +78,16 @@ export type Quote = {
 }
 
 export type SwapQuote = {
-    source_network?: Network,
-    source_token?: Token,
-    destination_network?: Network,
-    destination_token?: Token,
-    receive_amount: number,
-    min_receive_amount: number,
-    total_fee: number,
-    total_fee_in_usd: number,
-    blockchain_fee: number,
-    service_fee: number,
-    avg_completion_time: string,
-    refuel_in_source?: number,
+    sourceNetwork?: Network,
+    sourceToken?: Token,
+    destinationNetwork?: Network,
+    destinationToken?: Token,
+    receiveAmount: number,
+    minReceiveAmount: number,
+    totalFee: number,
+    totalFeeInUsd: number,
+    blockchainFee: number,
+    serviceFee: number,
+    avgCompletionTime: string,
+    refuelInSource?: number,
 }
-

@@ -253,6 +253,8 @@ export default function useStarknet(): WalletProvider {
         if (!trx) {
             throw new Error("No result")
         }
+
+        return trx.transaction_hash
     }
 
     const getDetails = async (params: CommitmentParams): Promise<Commit> => {
@@ -271,7 +273,7 @@ export default function useStarknet(): WalletProvider {
             throw new Error("No result")
         }
 
-        const networkToken = networks.find(network => chainId && Number(network.chain_id) == Number(chainId))?.tokens.find(token => token.symbol === "ETH")//shortString.decodeShortString(ethers.utils.hexlify(result.srcAsset as BigNumberish)))
+        const networkToken = networks.find(network => chainId && Number(network.chainId) == Number(chainId))?.tokens.find(token => token.symbol === "ETH")//shortString.decodeShortString(ethers.utils.hexlify(result.srcAsset as BigNumberish)))
 
         const parsedResult: Commit = {
             ...result,
@@ -279,7 +281,7 @@ export default function useStarknet(): WalletProvider {
             amount: formatAmount(result.amount, networkToken?.decimals),
             hashlock: result.hashlock && toHex(result.hashlock, { size: 32 }),
             claimed: Number(result.claimed),
-            secret: Number(result.secret),
+            secret: BigInt(result.secret),
             timelock: Number(result.timelock),
         }
 
@@ -290,7 +292,7 @@ export default function useStarknet(): WalletProvider {
         const { id, hashlock, contractAddress } = params
         const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
         const timeLock = Math.floor((Date.now() + LOCK_TIME) / 1000)
-        
+
         if (!starknetWallet?.metadata?.starknetAccount) {
             throw new Error('Wallet not connected')
         }
@@ -371,7 +373,7 @@ export default function useStarknet(): WalletProvider {
 
         try {
             await apiClient.AddLockSig({
-                signature_array: signature,
+                signatureArray: signature,
                 timelock: timeLock,
             }, id)
         } catch (e) {
