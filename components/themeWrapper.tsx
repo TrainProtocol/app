@@ -4,8 +4,7 @@ import Navbar from "./navbar"
 import GlobalFooter from "./globalFooter";
 import { usePulsatingCircles } from "../context/PulsatingCirclesContext";
 import { useState, useEffect } from "react";
-import { useRive } from '@rive-app/react-canvas';
-import Background from "./Icons/Background";
+import Rive, { useRive } from '@rive-app/react-webgl2';
 
 type Props = {
     children: JSX.Element | JSX.Element[]
@@ -91,18 +90,17 @@ export default function ThemeWrapper({ children }: Props) {
 export const RiveComponent = () => {
     const { pulseState } = usePulsatingCircles();
 
-    const { RiveComponent: RiveAnimation, rive } = useRive({
+    const { rive, RiveComponent: RiveAnimation } = useRive({
         src: "/bg-animation.riv",
         stateMachines: "State Machine 1",
-        autoplay: true,
+        autoplay: true, // Controls whether it plays automatically
     });
-   
+
     useEffect(() => {
         if (rive) {
             const inputs = rive?.stateMachineInputs("State Machine 1");
             if (inputs && inputs.length > 0) {
                 const input = inputs[0];
-
                 if (pulseState === "initial") {
                     input.value = 0;
                 } else if (pulseState === "pulsing") {
@@ -113,10 +111,33 @@ export const RiveComponent = () => {
             }
         }
     }, [pulseState, rive]);
+    
+        // const { RiveComponent: RiveAnimation, rive } = useRive({
+        //     src: "/bg-animation.riv",
+        //     stateMachines: "State Machine 1",
+        //     autoplay: true
+        // });
 
-    return (
-        <div className="h-[982px] w-[1512px] absolute">
-            <RiveAnimation />
-        </div>
-    );
-};
+        // useEffect(() => {
+        //     if (rive) {
+        //         const inputs = rive?.stateMachineInputs("State Machine 1");
+        //         if (inputs && inputs.length > 0) {
+        //             const input = inputs[0];
+
+        //             if (pulseState === "initial") {
+        //                 input.value = 0;
+        //             } else if (pulseState === "pulsing") {
+        //                 input.value = 1;
+        //             } else if (pulseState === "completed") {
+        //                 input.value = 2;
+        //             }
+        //         }
+        //     }
+        // }, [pulseState, rive]);
+
+        return (
+            <div className="h-[982px] w-[1512px] absolute">
+                <RiveAnimation />
+            </div>
+        );
+    };
