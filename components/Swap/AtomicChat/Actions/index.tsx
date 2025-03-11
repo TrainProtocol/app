@@ -57,7 +57,7 @@ export const Actions: FC = () => {
 
 const Error: FC = () => {
     const { error, updateCommit, isTimelockExpired } = useAtomicState()
-    
+
     return <>
         <AnimatePresence>
             {
@@ -100,7 +100,7 @@ const Error: FC = () => {
 }
 
 const TransactionMessage: FC<{ error: string | undefined }> = ({ error }) => {
-    if (error === "An error occurred (USER_REFUSED_OP)" || error === "Execute failed" || error?.toLowerCase()?.includes('denied')) {
+    if (error === "An error occurred (USER_REFUSED_OP)" || error === "Execute failed" || error?.toLowerCase()?.includes('denied') || error?.toLowerCase()?.includes('user rejected')) {
         return <TransactionMessages.TransactionRejectedMessage />
     }
     else if (error?.includes('insufficient funds')) {

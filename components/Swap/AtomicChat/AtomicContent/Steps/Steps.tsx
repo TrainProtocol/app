@@ -242,7 +242,7 @@ export const CancelAndRefund: FC = () => {
                 <div className="text-sm text-primary-text-placeholder">{resolvedDescription}</div>
             </div>
             {
-                refundTxId && source_network && completedTxLink &&
+                completedTxLink && completed &&
                 <TxLink txLink={completedTxLink} />
             }
         </div>

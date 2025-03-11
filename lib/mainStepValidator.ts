@@ -13,6 +13,12 @@ export default function MainStepValidation({ maxAllowedAmount, minAllowedAmount 
         if (!values.toCurrency) {
             errors.toCurrency = 'Select destination asset';
         }
+        if (!values.from) {
+            errors.from = 'Select source';
+        }
+        if (!values.to) {
+            errors.to = 'Select destination';
+        }
         if (!amount) {
             errors.amount = 'Enter an amount';
         }

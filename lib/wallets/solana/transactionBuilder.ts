@@ -79,7 +79,7 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
 
     if (!sourceAsset.contract || !network.nativeToken) return null
 
-    const LOCK_TIME = 1000 * 60 * 16 // 16 minutes
+    const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
     const timeLockMS = Date.now() + LOCK_TIME
     const timeLock = Math.floor(timeLockMS / 1000)
     const bnTimelock = new BN(timeLock);
@@ -89,7 +89,12 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
     const bnAmount = new BN(Number(amount) * Math.pow(10, 6));
 
     try {
-        const commitId = await program?.methods.getCommitId(bnAmount, bnTimelock).accountsPartial({ sender: walletPublicKey, receiver: lpAddressPublicKey }).view();
+        function generateBytes32Hex() {
+            const bytes = new Uint8Array(32); // 32 bytes = 64 hex characters
+            crypto.getRandomValues(bytes);
+            return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        const commitId = Buffer.from(generateBytes32Hex(), 'hex')
 
         let [htlcTokenAccount, b] = commitId && PublicKey.findProgramAddressSync(
             [Buffer.from("htlc_token_account"), commitId],
@@ -188,20 +193,26 @@ export const lockTransactionBuilder = async (params: CommitmentParams & LockPara
     const lockTx = await program.methods.addLock(commitIdBuffer, hashlockBuffer, TIMELOCK)
         .accountsPartial({
             sender: walletPublicKey,
+            payer: walletPublicKey,
             htlc,
-            htlcTokenAccount: htlcTokenAccount,
-            tokenContract: new PublicKey(sourceAsset.contract),
         })
         .transaction();
 
     let addLock = new Transaction();
     addLock.add(lockTx);
 
-    const blockHash = await connection.getLatestBlockhash();
+    const nonce = await connection.getNonce(walletPublicKey)
 
-    addLock.recentBlockhash = blockHash.blockhash;
-    addLock.lastValidBlockHeight = blockHash.lastValidBlockHeight;
+    if (!nonce) throw new Error('Failed to get nonce')
+
+    addLock.nonceInfo = {
+        nonce: nonce?.nonce,
+        nonceInstruction: SystemProgram.nonceAdvance({
+            noncePubkey: nonce?.authorizedPubkey,
+            authorizedPubkey: walletPublicKey
+        })
+    }
     addLock.feePayer = walletPublicKey;
 
-    return { lockCommit: addLock, lockId: hashlockBuffer }
+    return { lockCommit: addLock, lockId: hashlockBuffer, timelock: timeLock }
 }
