@@ -1,8 +1,8 @@
 import { Network } from "../Models/Network"
-import useEVM from "../lib/wallets/evm/useEVM";
-import useSolana from "../lib/wallets/solana/useSolana";
-import useStarknet from "../lib/wallets/starknet/useStarknet";
-import useTON from "../lib/wallets/ton/useTON";
+// import useEVM from "../lib/wallets/evm/useEVM";
+// import useSolana from "../lib/wallets/solana/useSolana";
+// import useStarknet from "../lib/wallets/starknet/useStarknet";
+// import useTON from "../lib/wallets/ton/useTON";
 import { Wallet, WalletProvider } from "../Models/WalletProvider";
 import { useMemo } from "react";
 
@@ -11,10 +11,10 @@ export type WalletPurpose = "autofil" | "withdrawal" | "asSource"
 export default function useWallet(network?: Network | undefined, purpose?: WalletPurpose) {
 
     const walletProviders: WalletProvider[] = [
-        useEVM({ network }),
-        useStarknet(),
-        useSolana({ network }),
-        useTON(),
+        // useEVM({ network }),
+        // useStarknet(),
+        // useSolana({ network }),
+        // useTON(),
     ]
 
     const provider = network && resolveProvider(network, walletProviders, purpose)
