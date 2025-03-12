@@ -44,7 +44,7 @@ export default function Form() {
     const {
         commitId
     } = atomicQuery;
-    
+
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
             if (!values.amount) {
@@ -114,11 +114,11 @@ export default function Form() {
                 commitId &&
                 currentStepName !== AtomicSteps.Swap &&
                 <div className="cursor-pointer absolute z-10 mt-4 ml-6">
-                    <PendingSwap key="pendingSwap" onClick={() => handleWizardRouting(AtomicSteps.Swap)} />
+                    <PendingSwap key="pendingSwap" onClick={() => handleWizardRouting(AtomicSteps.Swap, 'forward')} />
                 </div>
             }
         </AnimatePresence>
-        
+
         <Formik
             innerRef={formikRef}
             initialValues={{}}
@@ -132,9 +132,14 @@ export default function Form() {
                         <SwapForm />
                     </div>
                 </WizardItem>
-                <WizardItem StepName={AtomicSteps.Swap} GoBack={() => handleWizardRouting(AtomicSteps.Form, 'back')}>
-                    <AtomicPage type='contained' />
-                </WizardItem>
+                {
+                    formikRef.current?.values.amount ?
+                        <WizardItem StepName={AtomicSteps.Swap} GoBack={() => handleWizardRouting(AtomicSteps.Form, 'back')}>
+                            <AtomicPage type='contained' />
+                        </WizardItem>
+                        :
+                        <></>
+                }
             </Wizard>
         </Formik>
     </>
