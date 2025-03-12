@@ -1,5 +1,5 @@
 import { useAccount, useConfig, useConnect, useConnectors, useDisconnect, useSwitchAccount, Connector } from "wagmi"
-import { Network } from "../../../Models/Network"
+import { Network, NetworkType } from "../../../Models/Network"
 import { useSettingsState } from "../../../context/settings"
 import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon, resolveWalletConnectorIndex } from "../utils/resolveWalletIcon"
@@ -25,7 +25,7 @@ import { InternalConnector, Wallet, WalletProvider } from "../../../Models/Walle
 import { useConnectModal } from "../../../components/WalletModal"
 import { explicitInjectedproviderDetected } from "../connectors/getInjectedConnector"
 import { type ConnectorAlreadyConnectedError } from '@wagmi/core'
-import { useSwapDataState } from "../../../context/swap"
+import { useAtomicState } from "../../../context/atomicContext"
 
 type Props = {
     network: Network | undefined,
@@ -38,7 +38,10 @@ export default function useEVM({ network }: Props): WalletProvider {
     const id = 'evm'
     const { networks } = useSettingsState()
     const config = useConfig()
-    const { selectedSourceAccount } = useSwapDataState()
+
+    const evmAccount = useAccount()
+
+    const { selectedSourceAccount } = useAtomicState()
     const account = selectedSourceAccount
     const asSourceSupportedNetworks = [
         ...networks.filter(network => network.group.toLowerCase().includes('evm')).map(l => l.name),
@@ -239,9 +242,9 @@ export default function useEVM({ network }: Props): WalletProvider {
             address: atomicContract,
             functionName: 'commit',
             args: [
-                [destinationChain],
-                [destinationAsset],
-                [lpAddress],
+                [],
+                [],
+                [],
                 destinationChain,
                 destinationAsset,
                 address,
@@ -306,11 +309,11 @@ export default function useEVM({ network }: Props): WalletProvider {
             chainId: Number(chainId),
         })
 
-        const networkToken = networks.find(network => chainId && network.chain_id == chainId)?.tokens.find(token => token.symbol === result.srcAsset)
+        const networkToken = networks.find(network => chainId && network.chainId == chainId)?.tokens.find(token => token.symbol === result.srcAsset)
 
         const parsedResult = {
             ...result,
-            secret: Number(result.secret) !== 1 ? result.secret : null,
+            secret: (result.secret as any) != 1 ? BigInt(result.secret!) : undefined,
             hashlock: (result.hashlock == "0x0100000000000000000000000000000000000000000000000000000000000000" || result.hashlock == "0x0000000000000000000000000000000000000000000000000000000000000000") ? null : result.hashlock,
             amount: formatAmount(Number(result.amount), networkToken?.decimals),
             timelock: Number(result.timelock)
@@ -326,9 +329,9 @@ export default function useEVM({ network }: Props): WalletProvider {
         const { chainId, id, contractAddress, type } = params
         const abi = type === 'erc20' ? ERC20PHTLCAbi : PHTLCAbi
 
-        const network = networks.find(n => n.chain_id === chainId)
+        const network = networks.find(n => n.chainId === chainId)
         const nodeUrls = network?.nodes
-        if (!network?.chain_id) throw new Error("No network found")
+        if (!network?.chainId) throw new Error("No network found")
         if (!nodeUrls) throw new Error("No node urls found")
 
         const chain = resolveChain(network) as Chain
@@ -362,8 +365,14 @@ export default function useEVM({ network }: Props): WalletProvider {
             throw new Error('Hashlocks do not match across the provided nodes')
         }
 
+        const parsedResult = {
+            ...results[0],
+            secret: (results[0].secret as any) != 1 ? BigInt(results[0].secret!) : undefined,
+            timelock: Number(results[0].timelock)
+        }
+
         // All hashlocks match, return one of the results (e.g., the first one)
-        return results[0]
+        return parsedResult
 
     }
 
@@ -445,15 +454,16 @@ export default function useEVM({ network }: Props): WalletProvider {
     const claim = async (params: ClaimParams) => {
         const { chainId, id, contractAddress, type, secret } = params
         const abi = type === 'erc20' ? ERC20PHTLCAbi : PHTLCAbi
+        if (!evmAccount?.address) throw new Error("Wallet not connected")
 
-        if (!account?.address) throw new Error("Wallet not connected")
+        const bigIntSecret = BigInt(secret)
 
         const { request } = await simulateContract(config, {
-            account: account.address as `0x${string}`,
+            account: evmAccount.address as `0x${string}`,
             abi: abi,
             address: contractAddress,
             functionName: 'redeem',
-            args: [id, secret],
+            args: [id, bigIntSecret],
             chainId: Number(chainId),
         })
 
@@ -462,6 +472,8 @@ export default function useEVM({ network }: Props): WalletProvider {
         if (!result) {
             throw new Error("No result")
         }
+
+        return result
     }
 
     const getContracts = async (params: GetCommitsParams) => {

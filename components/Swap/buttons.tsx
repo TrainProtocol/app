@@ -151,7 +151,7 @@ export const WalletActionButton: FC<LockButtonProps> = (props) => {
     if (activeChain != networkChainId && !!network && !!networkChainId) {
         return <ChangeNetworkButton
             chainId={networkChainId}
-            network={network.display_name}
+            network={network.displayName}
             defaultText="Change network"
         />
     }

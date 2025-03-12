@@ -7,7 +7,8 @@ import dynamic from "next/dynamic";
 import { useQueryState } from "../../context/query";
 import useSWRGas from "../../lib/gases/useSWRGas";
 import useSWRBalance from "../../lib/balances/useSWRBalance";
-import { useSwapDataState } from "../../context/swap";
+import { Token } from "../../Models/Network";
+import { useAtomicState } from "../../context/atomicContext";
 
 const MinMax = dynamic(() => import("./dynamic/MinMax"), {
     loading: () => <></>,
@@ -19,20 +20,20 @@ const AmountField = forwardRef(function AmountField(_, ref: any) {
     const [requestedAmountInUsd, setRequestedAmountInUsd] = useState<string>();
     const { fromCurrency, from, to, amount, toCurrency } = values || {};
     const { minAllowedAmount, maxAllowedAmount: maxAmountFromApi, fee, isFeeLoading } = useFee()
+    const { selectedSourceAccount } = useAtomicState()
     const [isFocused, setIsFocused] = useState(false);
-    const { selectedSourceAccount } = useSwapDataState()
     const sourceAddress = selectedSourceAccount?.address
 
     const { balance, isBalanceLoading } = useSWRBalance(sourceAddress, from)
     const { gas, isGasLoading } = useSWRGas(sourceAddress, from, fromCurrency)
     const gasAmount = gas || 0;
-    const native_currency = from?.native_token
+    const native_currency = from?.nativeToken
     const query = useQueryState()
 
     const name = "amount"
     const walletBalance = balance?.find(b => b?.network === from?.name && b?.token === fromCurrency?.symbol)
     let maxAllowedAmount: number | null = maxAmountFromApi || 0
-    
+
     if (query.balances && fromCurrency) {
         try {
             const balancesFromQueries = new URL(window.location.href.replaceAll('&quot;', '"')).searchParams.get('balances');
@@ -58,10 +59,17 @@ const AmountField = forwardRef(function AmountField(_, ref: any) {
     const step = 1 / Math.pow(10, (fromCurrency && Math.min(fromCurrency?.decimals, 8)) || 1)
     const amountRef = useRef(ref)
 
+    const updateRequestedAmountInUsd = (requestedAmount: number, source_asset: Token | undefined) => {
+        if (source_asset?.priceInUsd && !isNaN(requestedAmount)) {
+            setRequestedAmountInUsd((source_asset?.priceInUsd * requestedAmount).toFixed(2));
+        } else {
+            setRequestedAmountInUsd(undefined);
+        }
+    };
 
     useEffect(() => {
-        if (isFeeLoading) setRequestedAmountInUsd(undefined)
-    }, [amount, fromCurrency, fee, isFeeLoading])
+        updateRequestedAmountInUsd(Number(amount), fromCurrency);
+    }, [amount])
 
     return (<>
         <p className="block font-semibold text-secondary-text text-xs mb-1 p-2">Amount</p>
@@ -70,11 +78,11 @@ const AmountField = forwardRef(function AmountField(_, ref: any) {
                 <NumericInput
                     placeholder={placeholder}
                     min={minAllowedAmount}
-                    max={maxAllowedAmount}
+                    max={maxAllowedAmount || 0}
                     step={isNaN(step) ? 0.01 : step}
                     name={name}
                     ref={amountRef}
-                    precision={Math.min(fromCurrency?.decimals || 8, 8)}
+                    precision={fromCurrency?.precision}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
                     className="text-primary-text pr-0 w-full"

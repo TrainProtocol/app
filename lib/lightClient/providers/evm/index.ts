@@ -96,12 +96,16 @@ export default class EVMLightClient extends _LightClient {
 
                 this.worker.onmessage = async (event) => {
                     const result = event.data.data
+                    if(attempts > 15) {
+                        reject('Could not get details via light client')
+                        this.worker.terminate()
+                        return
+                    }
 
-                    console.log('result:', result)
-                    if (attempts > 15 || (result?.hashlock && result?.hashlock !== "0x0100000000000000000000000000000000000000000000000000000000000000" && result?.hashlock !== "0x0000000000000000000000000000000000000000000000000000000000000000")) {
+                    if (result?.hashlock && result?.hashlock !== "0x0100000000000000000000000000000000000000000000000000000000000000" && result?.hashlock !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
                         const parsedResult: Commit = result ? {
                             ...result,
-                            secret: Number(hexToBigInt(result.secret._hex)) !== 1 ? result.secret : null,
+                            secret: Number(result.secret) !== 1 ? Number(result.secret) : null,
                             amount: formatAmount(Number(hexToBigInt(result.amount._hex)), token.decimals),
                             timelock: Number(result.timelock)
                         } : undefined
@@ -116,6 +120,7 @@ export default class EVMLightClient extends _LightClient {
                 }
                 this.worker.onerror = (error) => {
                     reject(error)
+                    this.worker.terminate()
                     console.error('Worker error:', error)
                 }
 

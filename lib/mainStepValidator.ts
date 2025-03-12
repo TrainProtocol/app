@@ -13,6 +13,12 @@ export default function MainStepValidation({ maxAllowedAmount, minAllowedAmount 
         if (!values.toCurrency) {
             errors.toCurrency = 'Select destination asset';
         }
+        if (!values.from) {
+            errors.from = 'Select source';
+        }
+        if (!values.to) {
+            errors.to = 'Select destination';
+        }
         if (!amount) {
             errors.amount = 'Enter an amount';
         }
@@ -33,7 +39,7 @@ export default function MainStepValidation({ maxAllowedAmount, minAllowedAmount 
         }
         if (values.to) {
             if (values.destination_address && !isValidAddress(values.destination_address, values.to)) {
-                errors.destination_address = `Enter a valid ${values.to?.display_name} address`;
+                errors.destination_address = `Enter a valid ${values.to?.displayName} address`;
             }
         }
         return errors;

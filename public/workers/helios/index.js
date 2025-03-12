@@ -170,10 +170,10 @@ function makeMutClosure(arg0, arg1, dtor, f) {
     return real;
 }
 function __wbg_adapter_52(arg0, arg1, arg2) {
-    wasm.closure238_externref_shim(arg0, arg1, arg2);
+    wasm.closure276_externref_shim(arg0, arg1, arg2);
 }
 function __wbg_adapter_55(arg0, arg1) {
-    wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h01d972fcfce72436(arg0, arg1);
+    wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h1e7a0f184f3962eb(arg0, arg1);
 }
 function takeFromExternrefTable0(idx) {
     const value = wasm.__wbindgen_export_2.get(idx);
@@ -194,8 +194,8 @@ function handleError(f, args) {
         wasm.__wbindgen_exn_store(idx);
     }
 }
-function __wbg_adapter_160(arg0, arg1, arg2, arg3) {
-    wasm.closure179_externref_shim(arg0, arg1, arg2, arg3);
+function __wbg_adapter_178(arg0, arg1, arg2, arg3) {
+    wasm.closure215_externref_shim(arg0, arg1, arg2, arg3);
 }
 function notDefined(what) { return () => { throw new Error(`${what} is not defined`); }; }
 const __wbindgen_enum_RequestCredentials = ["omit", "same-origin", "include"];
@@ -340,12 +340,33 @@ export class EthereumClient {
         return ret;
     }
     /**
+     * @param {string} hash
+     * @param {boolean} full_tx
+     * @returns {Promise<any>}
+     */
+    get_block_by_hash(hash, full_tx) {
+        const ptr0 = passStringToWasm0(hash, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.ethereumclient_get_block_by_hash(this.__wbg_ptr, ptr0, len0, full_tx);
+        return ret;
+    }
+    /**
      * @param {any} addr
      * @param {any} block
      * @returns {Promise<string>}
      */
     get_code(addr, block) {
         const ret = wasm.ethereumclient_get_code(this.__wbg_ptr, addr, block);
+        return ret;
+    }
+    /**
+     * @param {any} address
+     * @param {any} slot
+     * @param {any} block
+     * @returns {Promise<any>}
+     */
+    get_storage_at(address, slot, block) {
+        const ret = wasm.ethereumclient_get_storage_at(this.__wbg_ptr, address, slot, block);
         return ret;
     }
     /**
@@ -411,6 +432,52 @@ export class EthereumClient {
      */
     get_logs(filter) {
         const ret = wasm.ethereumclient_get_logs(this.__wbg_ptr, filter);
+        return ret;
+    }
+    /**
+     * @param {any} filter_id
+     * @returns {Promise<any>}
+     */
+    get_filter_changes(filter_id) {
+        const ret = wasm.ethereumclient_get_filter_changes(this.__wbg_ptr, filter_id);
+        return ret;
+    }
+    /**
+     * @param {any} filter_id
+     * @returns {Promise<any>}
+     */
+    get_filter_logs(filter_id) {
+        const ret = wasm.ethereumclient_get_filter_logs(this.__wbg_ptr, filter_id);
+        return ret;
+    }
+    /**
+     * @param {any} filter_id
+     * @returns {Promise<boolean>}
+     */
+    uninstall_filter(filter_id) {
+        const ret = wasm.ethereumclient_uninstall_filter(this.__wbg_ptr, filter_id);
+        return ret;
+    }
+    /**
+     * @param {any} filter
+     * @returns {Promise<any>}
+     */
+    new_filter(filter) {
+        const ret = wasm.ethereumclient_new_filter(this.__wbg_ptr, filter);
+        return ret;
+    }
+    /**
+     * @returns {Promise<any>}
+     */
+    new_block_filter() {
+        const ret = wasm.ethereumclient_new_block_filter(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @returns {Promise<any>}
+     */
+    new_pending_transaction_filter() {
+        const ret = wasm.ethereumclient_new_pending_transaction_filter(this.__wbg_ptr);
         return ret;
     }
     /**
@@ -552,12 +619,33 @@ export class OpStackClient {
         return ret;
     }
     /**
+     * @param {string} hash
+     * @param {boolean} full_tx
+     * @returns {Promise<any>}
+     */
+    get_block_by_hash(hash, full_tx) {
+        const ptr0 = passStringToWasm0(hash, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.opstackclient_get_block_by_hash(this.__wbg_ptr, ptr0, len0, full_tx);
+        return ret;
+    }
+    /**
      * @param {any} addr
      * @param {any} block
      * @returns {Promise<string>}
      */
     get_code(addr, block) {
         const ret = wasm.opstackclient_get_code(this.__wbg_ptr, addr, block);
+        return ret;
+    }
+    /**
+     * @param {any} address
+     * @param {any} slot
+     * @param {any} block
+     * @returns {Promise<any>}
+     */
+    get_storage_at(address, slot, block) {
+        const ret = wasm.opstackclient_get_storage_at(this.__wbg_ptr, address, slot, block);
         return ret;
     }
     /**
@@ -626,6 +714,52 @@ export class OpStackClient {
         return ret;
     }
     /**
+     * @param {any} filter_id
+     * @returns {Promise<any>}
+     */
+    get_filter_changes(filter_id) {
+        const ret = wasm.opstackclient_get_filter_changes(this.__wbg_ptr, filter_id);
+        return ret;
+    }
+    /**
+     * @param {any} filter_id
+     * @returns {Promise<any>}
+     */
+    get_filter_logs(filter_id) {
+        const ret = wasm.opstackclient_get_filter_logs(this.__wbg_ptr, filter_id);
+        return ret;
+    }
+    /**
+     * @param {any} filter_id
+     * @returns {Promise<boolean>}
+     */
+    uninstall_filter(filter_id) {
+        const ret = wasm.opstackclient_uninstall_filter(this.__wbg_ptr, filter_id);
+        return ret;
+    }
+    /**
+     * @param {any} filter
+     * @returns {Promise<any>}
+     */
+    new_filter(filter) {
+        const ret = wasm.opstackclient_new_filter(this.__wbg_ptr, filter);
+        return ret;
+    }
+    /**
+     * @returns {Promise<any>}
+     */
+    new_block_filter() {
+        const ret = wasm.opstackclient_new_block_filter(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @returns {Promise<any>}
+     */
+    new_pending_transaction_filter() {
+        const ret = wasm.opstackclient_new_pending_transaction_filter(this.__wbg_ptr);
+        return ret;
+    }
+    /**
      * @returns {Promise<string>}
      */
     client_version() {
@@ -664,18 +798,6 @@ async function __wbg_load(module, imports) {
 function __wbg_get_imports() {
     const imports = {};
     imports.wbg = {};
-    imports.wbg.__wbg_length_f217bbbf7e8e4df4 = function (arg0) {
-        const ret = arg0.length;
-        return ret;
-    };
-    imports.wbg.__wbg_iterator_695d699a44d6234c = function () {
-        const ret = Symbol.iterator;
-        return ret;
-    };
-    imports.wbg.__wbindgen_number_new = function (arg0) {
-        const ret = arg0;
-        return ret;
-    };
     imports.wbg.__wbg_new_034f913e7636e987 = function () {
         const ret = new Array();
         return ret;
@@ -683,15 +805,12 @@ function __wbg_get_imports() {
     imports.wbg.__wbg_set_425e70f7c64ac962 = function (arg0, arg1, arg2) {
         arg0[arg1 >>> 0] = arg2;
     };
-    imports.wbg.__wbg_set_277a63e77c89279f = function (arg0, arg1, arg2) {
-        const ret = arg0.set(arg1, arg2);
+    imports.wbg.__wbg_length_f217bbbf7e8e4df4 = function (arg0) {
+        const ret = arg0.length;
         return ret;
     };
-    imports.wbg.__wbg_set_f975102236d3c502 = function (arg0, arg1, arg2) {
-        arg0[arg1] = arg2;
-    };
-    imports.wbg.__wbindgen_bigint_from_i64 = function (arg0) {
-        const ret = arg0;
+    imports.wbg.__wbg_iterator_695d699a44d6234c = function () {
+        const ret = Symbol.iterator;
         return ret;
     };
     imports.wbg.__wbg_now_70af4fe37a792251 = function () {
@@ -734,6 +853,10 @@ function __wbg_get_imports() {
         const ret = typeof (val) === 'object' && val !== null;
         return ret;
     };
+    imports.wbg.__wbindgen_bigint_from_i64 = function (arg0) {
+        const ret = arg0;
+        return ret;
+    };
     imports.wbg.__wbindgen_bigint_from_u64 = function (arg0) {
         const ret = BigInt.asUintN(64, arg0);
         return ret;
@@ -767,9 +890,12 @@ function __wbg_get_imports() {
         const ret = arg0.length;
         return ret;
     };
-    imports.wbg.__wbindgen_as_number = function (arg0) {
-        const ret = +arg0;
+    imports.wbg.__wbg_set_277a63e77c89279f = function (arg0, arg1, arg2) {
+        const ret = arg0.set(arg1, arg2);
         return ret;
+    };
+    imports.wbg.__wbg_set_f975102236d3c502 = function (arg0, arg1, arg2) {
+        arg0[arg1] = arg2;
     };
     imports.wbg.__wbindgen_jsval_eq = function (arg0, arg1) {
         const ret = arg0 === arg1;
@@ -777,6 +903,10 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbindgen_string_new = function (arg0, arg1) {
         const ret = getStringFromWasm0(arg0, arg1);
+        return ret;
+    };
+    imports.wbg.__wbindgen_as_number = function (arg0) {
+        const ret = +arg0;
         return ret;
     };
     imports.wbg.__wbg_String_b9412f8799faab3e = function (arg0, arg1) {
@@ -792,6 +922,10 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbindgen_is_undefined = function (arg0) {
         const ret = arg0 === undefined;
+        return ret;
+    };
+    imports.wbg.__wbindgen_number_new = function (arg0) {
+        const ret = arg0;
         return ret;
     };
     imports.wbg.__wbg_getItem_cc312d333f535f07 = function () {
@@ -810,7 +944,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wbg_adapter_160(a, state0.b, arg0, arg1);
+                    return __wbg_adapter_178(a, state0.b, arg0, arg1);
                 }
                 finally {
                     state0.a = a;
@@ -1083,6 +1217,20 @@ function __wbg_get_imports() {
         const ret = arg0.now();
         return ret;
     };
+    imports.wbg.__wbg_setTimeout_edba349dfdb92282 = function () {
+        return handleError(function (arg0, arg1, arg2) {
+            const ret = arg0.setTimeout(arg1, arg2);
+            return ret;
+        }, arguments);
+    };
+    imports.wbg.__wbg_performance_35e51174ec9155ea = function (arg0) {
+        const ret = arg0.performance;
+        return ret;
+    };
+    imports.wbg.__wbg_now_b9332efc43011191 = function (arg0) {
+        const ret = arg0.now();
+        return ret;
+    };
     imports.wbg.__wbg_setbody_aa8b691bec428bf4 = function (arg0, arg1) {
         arg0.body = arg1;
     };
@@ -1181,16 +1329,20 @@ function __wbg_get_imports() {
         const ret = arg0.now();
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper6432 = function (arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 239, __wbg_adapter_52);
+    imports.wbg.__wbindgen_closure_wrapper7274 = function (arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 277, __wbg_adapter_52);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper6488 = function (arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 239, __wbg_adapter_55);
+    imports.wbg.__wbindgen_closure_wrapper7328 = function (arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 277, __wbg_adapter_55);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper6822 = function (arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 239, __wbg_adapter_55);
+    imports.wbg.__wbindgen_closure_wrapper7374 = function (arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 277, __wbg_adapter_55);
+        return ret;
+    };
+    imports.wbg.__wbindgen_closure_wrapper7700 = function (arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 277, __wbg_adapter_55);
         return ret;
     };
     imports.wbg.__wbindgen_init_externref_table = function () {

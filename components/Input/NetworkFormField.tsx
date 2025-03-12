@@ -162,7 +162,7 @@ function groupByType(values: ISelectMenuItem[]) {
 
 function GenerateMenuItems(routes: Network[] | undefined, direction: SwapDirection, lock: boolean, query: QueryParams): (SelectMenuItem<Network>)[] {
     const mappedLayers = routes?.map(r => {
-        const isNewlyListed = r?.tokens?.every(t => new Date(t?.listing_date)?.getTime() >= new Date().getTime() - ONE_WEEK);
+        const isNewlyListed = r?.tokens?.every(t => new Date(t?.listingDate)?.getTime() >= new Date().getTime() - ONE_WEEK);
         const badge = isNewlyListed ? (
             <span className="bg-secondary-50 px-1 rounded text-xs flex items-center">New</span>
         ) : undefined;
@@ -181,7 +181,7 @@ function GenerateMenuItems(routes: Network[] | undefined, direction: SwapDirecti
         const res: SelectMenuItem<Network> & { isExchange: boolean } = {
             baseObject: r,
             id: r.name,
-            name: r.display_name,
+            name: r.displayName,
             order,
             imgSrc: r.logo,
             isAvailable: isAvailable,

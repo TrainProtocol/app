@@ -16,8 +16,8 @@ import { ApiError, LSAPIKnownErrorCode } from "../../Models/ApiError";
 import { resolveNetworkRoutesURL } from "../../helpers/routes";
 import { ONE_WEEK } from "./NetworkFormField";
 import RouteIcon from "./RouteIcon";
-import { useSwapDataState } from "../../context/swap";
 import useSWRBalance from "../../lib/balances/useSWRBalance";
+import { useAtomicState } from "../../context/atomicContext";
 
 const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
     const {
@@ -28,7 +28,7 @@ const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
     const { from, to, fromCurrency, toCurrency, destination_address } = values
     const name = direction === 'from' ? 'fromCurrency' : 'toCurrency';
     const query = useQueryState()
-    const { selectedSourceAccount } = useSwapDataState()
+    const { selectedSourceAccount } = useAtomicState()
 
     const address = direction === 'from' ? (selectedSourceAccount?.address) : (destination_address)
 
@@ -165,7 +165,7 @@ function GenerateCurrencyMenuItems(
         const displayName = currency.symbol;
         const balance = balances?.find(b => b?.token === c?.symbol && (direction === 'from' ? from : to)?.name === b.network)
         const formatted_balance_amount = balance ? Number(truncateDecimals(balance?.amount,Math.min(c.decimals, 8))) : ''
-        const isNewlyListed = new Date(c?.listing_date)?.getTime() >= new Date().getTime() - ONE_WEEK;
+        const isNewlyListed = new Date(c?.listingDate)?.getTime() >= new Date().getTime() - ONE_WEEK;
 
         const currencyIsAvailable = (
             // currency?.status === "active" && 

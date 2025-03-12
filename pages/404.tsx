@@ -4,6 +4,8 @@ import SubmitButton from "../components/buttons/submitButton"
 import MessageComponent from "../components/MessageComponent"
 import Navbar from "../components/navbar"
 import GoHomeButton from "../components/utils/GoHome"
+import ColorSchema from "../components/ColorSchema"
+import { THEME_COLORS } from "../Models/Theme"
 
 export default function Custom404() {
 
@@ -11,12 +13,18 @@ export default function Custom404() {
         plausible("404", { props: { path: document.location.pathname } })
     }, [])
 
+    const themeData = THEME_COLORS.default
+
     return (
-        <div className="styled-scroll">
+        <>
+            {
+                themeData &&
+                <ColorSchema themeData={themeData} />
+            }
             <main className="styled-scroll">
                 <div className="min-h-screen overflow-hidden relative font-robo">
                     <Navbar />
-                    <div className="mx-auto max-w-xl bg-darkblue-900 md:shadow-card rounded-lg w-full overflow-hidden relative px-6 py-6 h-[500px] min-h-[550px]">
+                    <div className="mx-auto max-w-xl bg-secondary-900 md:shadow-card rounded-lg w-full overflow-hidden relative px-6 py-6 h-[500px] min-h-[550px]">
                         <MessageComponent>
                             <MessageComponent.Content icon="red">
                                 <div className="text-center">
@@ -36,6 +44,6 @@ export default function Custom404() {
                     </div>
                 </div>
             </main>
-        </div>
+        </>
     )
 }

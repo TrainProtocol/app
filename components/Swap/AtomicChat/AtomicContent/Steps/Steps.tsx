@@ -1,19 +1,19 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { CommitStatus, useAtomicState } from "../../../../../context/atomicContext";
 import { CommitTransaction } from "../../../../../lib/layerSwapApiClient";
 import LockIcon from "../../../../Icons/LockIcon";
-import Link from "next/link";
-import shortenAddress from "../../../../utils/ShortenAddress";
-import Step from "./Step";
-import { Check, Clock, Link2 } from "lucide-react";
+import Step, { TxLink } from "./Step";
+import { Clock, Fuel } from "lucide-react";
 import CheckedIcon from "../../../../Icons/CheckedIcon";
 import XCircle from "../../../../Icons/CircleX";
-import TimelockTimer from "../../Timer";
-import clsx from "clsx";
-import { motion } from "framer-motion";
+import useSWRGas from "../../../../../lib/gases/useSWRGas";
+import { usePulsatingCircles } from "../../../../../context/PulsatingCirclesContext";
 
 export const RequestStep: FC = () => {
-    const { sourceDetails, commitId, commitTxId, source_network, commitFromApi } = useAtomicState()
+    const { sourceDetails, commitId, commitTxId, source_network, commitFromApi, isTimelockExpired, source_asset, amount, selectedSourceAccount } = useAtomicState()
+
+
+    const { gas } = useSWRGas(selectedSourceAccount, source_network, source_asset, 'commit')
 
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
 
@@ -21,50 +21,57 @@ export const RequestStep: FC = () => {
     const commited = (sourceDetails || lpLockTx) ? true : false;
 
     const title = commited ? "Confirmed" : "Confirm the details"
-    const description = (commitTxId && source_network) ? <Link target="_blank" className="no-underline hover:underline" href={source_network?.transaction_explorer_template.replace('{0}', commitTxId)}>Swap details confirmed</Link> : <>Review and confirm the swap details</>
+    const description = (commited && source_network) ? <>Swap details confirmed</> : <>Review and confirm the swap details</>
+
+    const receiveAmountInUsd = amount && source_asset?.priceInUsd ? (gas * source_asset.priceInUsd).toFixed(6) : undefined
+
+    const titleDetails = (commited || !gas) ? null : <div className="flex items-center gap-1">
+        <Fuel className="h-4 w-4" />
+        <p>
+            (${receiveAmountInUsd})
+        </p>
+    </div>
+
+    const completedTxLink = source_network && commitTxId && source_network?.transactionExplorerTemplate.replace('{0}', commitTxId)
+
     return <Step
         step={1}
         title={title}
         description={description}
+        titleDetails={titleDetails}
         active={true}
         completed={commited}
         loading={commtting && !commited}
+        completedTxLink={completedTxLink}
+        timelock={sourceDetails?.timelock}
+        isTimelocKExpired={isTimelockExpired}
     />
 
 }
 
 export const SignAndConfirmStep: FC = () => {
-    const { sourceDetails, destinationDetails, source_network, destination_network, commitFromApi, commitStatus } = useAtomicState()
-
-    const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
-    const lpRedeemTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination_network?.name)
-    const addLockSigTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
-    const commited = (sourceDetails || lpLockTx) ? true : false;
+    const { sourceDetails, destinationDetails, commitStatus, destRedeemTx } = useAtomicState()
 
     const assetsLocked = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted;
     const loading = commitStatus === CommitStatus.UserLocked
 
     const title = assetsLocked ? "Finalized" : "Finalize"
-    // const description = (assetsLocked)
-    //     ? <div className="inline-flex gap-3">
-    //         <div className="inline-flex gap-1 items-center">
-    //             <p>Solver:</p> {(lpLockTx && destination_network) ? <Link className="underline hover:no-underline" target="_blank" href={destination_network?.transaction_explorer_template.replace('{0}', lpLockTx?.hash)}>{shortenAddress(lpLockTx.hash)}</Link> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />}
-    //         </div>
-    //         <div className="inline-flex gap-1 items-center">
-    //             <p>You:</p> {(addLockSigTx && source_network) ? <Link className="underline hover:no-underline" target="_blank" href={source_network?.transaction_explorer_template.replace('{0}', addLockSigTx?.hash)}>{shortenAddress(addLockSigTx.hash)}</Link> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />}
-    //         </div>
-    //     </div>
-    //     : <>Sign and finalize the swap, you can cancel and refund anytime before.</>
+    const completed = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || !!destRedeemTx || commitStatus === CommitStatus.RedeemCompleted || commitStatus === CommitStatus.AssetsLocked
 
-    const completed = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || !!lpRedeemTransaction?.hash || commitStatus === CommitStatus.RedeemCompleted || commitStatus === CommitStatus.AssetsLocked
+    const titleDetails = completed ? null : <div className="flex items-center gap-1">
+        <Fuel className="h-4 w-4" />
+        <p>
+            ($0.00)
+        </p>
+    </div>
 
     const description = assetsLocked
-        ? <div>
+        ? <span>
             You will receive your assets at the destination address shortly.
-        </div>
-        : <div>
-            <span>Sign and finalize the swap, you can</span> {sourceDetails?.timelock ? <TimelockTimer timelock={sourceDetails.timelock}><span className="p-0.5 px-1 rounded-md bg-secondary-500">cancel and refund</span></TimelockTimer> : <span className="p-0.5 px-1 rounded-md bg-secondary-500">cancel and refund</span>} <span>anytime before.</span>
-        </div>
+        </span>
+        : <span>
+            Sign and finalize the swap, you can cancel and refund anytime before.
+        </span>
 
     return (
         commitStatus !== CommitStatus.TimelockExpired &&
@@ -72,6 +79,7 @@ export const SignAndConfirmStep: FC = () => {
             step={2}
             title={title}
             description={description}
+            titleDetails={titleDetails}
             active={!!destinationDetails?.hashlock}
             completed={completed}
             loading={loading}
@@ -82,11 +90,7 @@ export const SignAndConfirmStep: FC = () => {
 
 
 const SolverStatus: FC = () => {
-    const { commitId, destinationDetails, commitFromApi } = useAtomicState()
-
-    const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
-
-    const commited = commitId ? true : false;
+    const { destinationDetails } = useAtomicState()
     const lpLockDetected = destinationDetails?.hashlock ? true : false;
 
     if (lpLockDetected) {
@@ -118,53 +122,61 @@ export const LpLockingAssets: FC = () => {
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
 
     const title = completed ? 'Assets reserved' : 'Wait for response'
+    const completedTxLink = lpLockTx && destination_network?.transactionExplorerTemplate.replace('{0}', lpLockTx.hash)
+
+    const { setPulseState } = usePulsatingCircles();
+
+    useEffect(() => {
+        setPulseState((loading && commitStatus !== CommitStatus.TimelockExpired) ? "pulsing" : "initial");
+    }, [loading, commitStatus]);
 
     return (
         commitStatus !== CommitStatus.TimelockExpired &&
-        <div className={`relative inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 ${!sourceDetails ? 'opacity-60' : ''}`}>
-            <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 h-[19px]">
-                    {
-                        completed &&
-                        <CheckedIcon className="h-5 w-5 text-accent" />
-                    }
-                    {
-                        !loading && !completed &&
-                        <Clock className="w-5 h-5 text-secondary-text" />
-                    }
-                    {
-                        loading &&
-                        <div className="flex justify-center">
-                            <div className="relative flex items-center justify-end w-[18px] h-[18px] overflow-hidden border-2 border-accent rounded-full ">
-                                <div className="absolute w-1/2 h-0.5  origin-left animate-spin-fast">
-                                    <div className="w-3/4 h-full bg-accent rounded-full" />
-                                </div>
+        <>
+            <div className={`relative inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 pr-5 ${!sourceDetails ? 'opacity-60' : ''}`}>
+                <div className="space-y-1">
+                    <div className="inline-flex items-center gap-2">
+                        <div className="flex w-fit items-center justify-center">
+                            <div
+                                className="z-10 flex w-full items-center overflow-hidden rounded-full p-0.5"
+                            >
+                                {
+                                    completed &&
+                                    <CheckedIcon className="h-5 w-5 text-accent" />
+                                }
+                                {
+                                    !loading && !completed &&
+                                    <Clock className="w-5 h-5 text-secondary-text" />
+                                }
+                                {
+                                    loading &&
+                                    <div className="flex justify-center">
+                                        <div className="relative flex items-center justify-end w-[18px] h-[18px] overflow-hidden border-2 border-accent rounded-full ">
+                                            <div className="absolute w-1/2 h-0.5  origin-left animate-spin-fast">
+                                                <div className="w-3/4 h-full bg-accent rounded-full" />
+                                            </div>
 
-                                <div className="absolute w-1/2 h-0.5  origin-left  animate-spin-slow">
-                                    <div className="w-2/3 h-full bg-accent rounded-full" />
-                                </div>
-                                <div className="absolute flex justify-center flex-1 w-full">
-                                    <div className="w-0.5 h-0.5 bg-accent rounded-full" />
-                                </div>
+                                            <div className="absolute w-1/2 h-0.5  origin-left animate-spin-slow">
+                                                <div className="w-2/3 h-full bg-accent rounded-full" />
+                                            </div>
+                                            <div className="absolute flex justify-center flex-1 w-full">
+                                                <div className="w-0.5 h-0.5 bg-accent rounded-full" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
                             </div>
                         </div>
-                    }
-                    <div className="text-primary-text text-base leading-5">{title}</div>
+                        <div className="text-primary-text text-base leading-5">{title}</div>
+                    </div>
+                    <SolverStatus />
                 </div>
-                <SolverStatus />
+                {
+                    destination_network && completedTxLink && completed &&
+                    <TxLink txLink={completedTxLink} />
+                }
             </div>
-            {
-                lpLockTx && destination_network && destinationDetails?.hashlock &&
-                <div className="absolute right-5 top-6 flex items-center gap-2 bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm">
-                    <Link className="flex items-center gap-1" target="_blank" href={destination_network?.transaction_explorer_template.replace('{0}', lpLockTx?.hash)}>
-                        <p>
-                            View
-                        </p>
-                        <Link2 className="h-4 w-auto" />
-                    </Link>
-                </div>
-            }
-        </div>
+        </>
     )
 }
 
@@ -178,7 +190,7 @@ export const TimelockExpired: FC = () => {
     return (
         commitStatus === CommitStatus.TimelockExpired &&
         <div className='inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3'>
-            <div className="space-y-2">
+            <div className="space-y-1">
                 <div className="inline-flex items-center gap-2">
                     <XCircle className="h-5 w-5" />
                     <div className="text-primary-text text-base leading-5">{title}</div>
@@ -195,15 +207,16 @@ export const CancelAndRefund: FC = () => {
     const completed = sourceDetails?.claimed == 2
     const loading = refundTxId && !completed
     const resolvedDescription = completed ? 'Assets are received back at the source address' : 'Cancel & refund to receive your assets back at the source address'
+    const completedTxLink = refundTxId && source_network?.transactionExplorerTemplate.replace('{0}', refundTxId)
 
     return (
         commitStatus === CommitStatus.TimelockExpired &&
-        <div className={`inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 relative`}>
-            <div className="space-y-2">
+        <div className={`inline-flex items-center justify-between w-full pr-5 bg-secondary-700 rounded-2xl p-3 relative`}>
+            <div className="space-y-1">
                 <div className="inline-flex items-center gap-2">
-                    <div className="flex w-fit items-center justify-center h-[19px]">
+                    <div className="flex w-fit items-center justify-center">
                         <div
-                            className="relative z-10 flex w-full items-center overflow-hidden rounded-full p-0.5"
+                            className="relative z-0 flex w-full items-center overflow-hidden rounded-full p-0.5"
                         >
                             {
                                 loading &&
@@ -229,15 +242,8 @@ export const CancelAndRefund: FC = () => {
                 <div className="text-sm text-primary-text-placeholder">{resolvedDescription}</div>
             </div>
             {
-                refundTxId && source_network && completed &&
-                <div className="absolute right-5 top-6 flex items-center gap-2 bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm">
-                    <Link className="flex items-center gap-1" target="_blank" href={source_network?.transaction_explorer_template.replace('{0}', refundTxId)}>
-                        <p>
-                            View
-                        </p>
-                        <Link2 className="h-4 w-auto" />
-                    </Link>
-                </div>
+                completedTxLink && completed &&
+                <TxLink txLink={completedTxLink} />
             }
         </div>
 

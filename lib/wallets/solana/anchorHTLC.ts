@@ -3,14 +3,14 @@ import { Idl } from "@coral-xyz/anchor"
 export const AnchorHtlc = (address: string): Idl => ({
   "address": address,
   "metadata": {
-    "name": "anchor_htlc",
+    "name": "anchorHtlc",
     "version": "0.1.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"
   },
   "instructions": [
     {
-      "name": "add_lock",
+      "name": "addLock",
       "docs": [
         "@dev Called by the sender to add hashlock to the HTLC",
         "",
@@ -30,6 +30,10 @@ export const AnchorHtlc = (address: string): Idl => ({
       "accounts": [
         {
           "name": "sender",
+          "signer": true
+        },
+        {
+          "name": "payer",
           "writable": true,
           "signer": true
         },
@@ -40,13 +44,13 @@ export const AnchorHtlc = (address: string): Idl => ({
             "seeds": [
               {
                 "kind": "arg",
-                "path": "Id"
+                "path": "id"
               }
             ]
           }
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         },
         {
@@ -56,7 +60,7 @@ export const AnchorHtlc = (address: string): Idl => ({
       ],
       "args": [
         {
-          "name": "Id",
+          "name": "id",
           "type": {
             "array": [
               "u8",
@@ -118,13 +122,13 @@ export const AnchorHtlc = (address: string): Idl => ({
             "seeds": [
               {
                 "kind": "arg",
-                "path": "Id"
+                "path": "id"
               }
             ]
           }
         },
         {
-          "name": "htlc_token_account",
+          "name": "htlcTokenAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -153,24 +157,24 @@ export const AnchorHtlc = (address: string): Idl => ({
               },
               {
                 "kind": "arg",
-                "path": "Id"
+                "path": "id"
               }
             ]
           }
         },
         {
-          "name": "token_contract"
+          "name": "tokenContract"
         },
         {
-          "name": "sender_token_account",
+          "name": "senderTokenAccount",
           "writable": true
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         },
         {
@@ -180,7 +184,7 @@ export const AnchorHtlc = (address: string): Idl => ({
       ],
       "args": [
         {
-          "name": "Id",
+          "name": "id",
           "type": {
             "array": [
               "u8",
@@ -207,23 +211,23 @@ export const AnchorHtlc = (address: string): Idl => ({
           }
         },
         {
-          "name": "dst_chain",
+          "name": "dstChain",
           "type": "string"
         },
         {
-          "name": "dst_asset",
+          "name": "dstAsset",
           "type": "string"
         },
         {
-          "name": "dst_address",
+          "name": "dstAddress",
           "type": "string"
         },
         {
-          "name": "src_asset",
+          "name": "srcAsset",
           "type": "string"
         },
         {
-          "name": "src_receiver",
+          "name": "srcReceiver",
           "type": "pubkey"
         },
         {
@@ -235,7 +239,7 @@ export const AnchorHtlc = (address: string): Idl => ({
           "type": "u64"
         },
         {
-          "name": "commit_bump",
+          "name": "commitBump",
           "type": "u8"
         }
       ],
@@ -269,7 +273,7 @@ export const AnchorHtlc = (address: string): Idl => ({
             "seeds": [
               {
                 "kind": "arg",
-                "path": "Id"
+                "path": "id"
               }
             ]
           }
@@ -277,7 +281,7 @@ export const AnchorHtlc = (address: string): Idl => ({
       ],
       "args": [
         {
-          "name": "Id",
+          "name": "id",
           "type": {
             "array": [
               "u8",
@@ -288,48 +292,8 @@ export const AnchorHtlc = (address: string): Idl => ({
       ],
       "returns": {
         "defined": {
-          "name": "HTLC"
+          "name": "htlc"
         }
-      }
-    },
-    {
-      "name": "get_commit_id",
-      "docs": [
-        "@dev Called by the Sender to get the commitId from the given parameters."
-      ],
-      "discriminator": [
-        9,
-        198,
-        196,
-        84,
-        37,
-        226,
-        163,
-        166
-      ],
-      "accounts": [
-        {
-          "name": "sender"
-        },
-        {
-          "name": "receiver"
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        },
-        {
-          "name": "timelock",
-          "type": "u64"
-        }
-      ],
-      "returns": {
-        "array": [
-          "u8",
-          32
-        ]
       }
     },
     {
@@ -366,13 +330,13 @@ export const AnchorHtlc = (address: string): Idl => ({
             "seeds": [
               {
                 "kind": "arg",
-                "path": "Id"
+                "path": "id"
               }
             ]
           }
         },
         {
-          "name": "htlc_token_account",
+          "name": "htlcTokenAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -401,24 +365,24 @@ export const AnchorHtlc = (address: string): Idl => ({
               },
               {
                 "kind": "arg",
-                "path": "Id"
+                "path": "id"
               }
             ]
           }
         },
         {
-          "name": "token_contract"
+          "name": "tokenContract"
         },
         {
-          "name": "sender_token_account",
+          "name": "senderTokenAccount",
           "writable": true
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         },
         {
@@ -428,7 +392,7 @@ export const AnchorHtlc = (address: string): Idl => ({
       ],
       "args": [
         {
-          "name": "Id",
+          "name": "id",
           "type": {
             "array": [
               "u8",
@@ -450,23 +414,23 @@ export const AnchorHtlc = (address: string): Idl => ({
           "type": "u64"
         },
         {
-          "name": "dst_chain",
+          "name": "dstChain",
           "type": "string"
         },
         {
-          "name": "dst_address",
+          "name": "dstAddress",
           "type": "string"
         },
         {
-          "name": "dst_asset",
+          "name": "dstAsset",
           "type": "string"
         },
         {
-          "name": "src_asset",
+          "name": "srcAsset",
           "type": "string"
         },
         {
-          "name": "src_receiver",
+          "name": "srcReceiver",
           "type": "pubkey"
         },
         {
@@ -474,7 +438,7 @@ export const AnchorHtlc = (address: string): Idl => ({
           "type": "u64"
         },
         {
-          "name": "lock_bump",
+          "name": "lockBump",
           "type": "u8"
         }
       ],
@@ -484,6 +448,87 @@ export const AnchorHtlc = (address: string): Idl => ({
           32
         ]
       }
+    },
+    {
+      "name": "lockReward",
+      "discriminator": [
+        66,
+        69,
+        228,
+        16,
+        76,
+        50,
+        65,
+        157
+      ],
+      "accounts": [
+        {
+          "name": "sender",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "htlc"
+          ]
+        },
+        {
+          "name": "htlc",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "arg",
+                "path": "id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "htlcTokenAccount"
+        },
+        {
+          "name": "tokenContract"
+        },
+        {
+          "name": "senderTokenAccount",
+          "writable": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "rewardTimelock",
+          "type": "u64"
+        },
+        {
+          "name": "reward",
+          "type": "u64"
+        },
+        {
+          "name": "lockBump",
+          "type": "u8"
+        }
+      ],
+      "returns": "bool"
     },
     {
       "name": "redeem",
@@ -506,9 +551,28 @@ export const AnchorHtlc = (address: string): Idl => ({
       ],
       "accounts": [
         {
-          "name": "user_signing",
+          "name": "userSigning",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "sender",
+          "writable": true,
+          "relations": [
+            "htlc"
+          ]
+        },
+        {
+          "name": "srcReceiver",
+          "relations": [
+            "htlc"
+          ]
+        },
+        {
+          "name": "tokenContract",
+          "relations": [
+            "htlc"
+          ]
         },
         {
           "name": "htlc",
@@ -517,13 +581,13 @@ export const AnchorHtlc = (address: string): Idl => ({
             "seeds": [
               {
                 "kind": "arg",
-                "path": "Id"
+                "path": "id"
               }
             ]
           }
         },
         {
-          "name": "htlc_token_account",
+          "name": "htlcTokenAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -552,130 +616,33 @@ export const AnchorHtlc = (address: string): Idl => ({
               },
               {
                 "kind": "arg",
-                "path": "Id"
+                "path": "id"
               }
             ]
           }
         },
         {
-          "name": "src_receiver_token_account",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "src_receiver"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "token_contract"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
+          "name": "senderTokenAccount",
+          "writable": true
         },
         {
-          "name": "sender",
-          "writable": true,
-          "relations": [
-            "htlc"
-          ]
+          "name": "srcReceiverTokenAccount",
+          "writable": true
         },
         {
-          "name": "src_receiver",
-          "relations": [
-            "htlc"
-          ]
+          "name": "rewardTokenAccount",
+          "writable": true
         },
         {
-          "name": "token_contract",
-          "relations": [
-            "htlc"
-          ]
-        },
-        {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "associated_token_program",
+          "name": "associatedTokenProgram",
           "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
@@ -685,7 +652,7 @@ export const AnchorHtlc = (address: string): Idl => ({
       ],
       "args": [
         {
-          "name": "Id",
+          "name": "id",
           "type": {
             "array": [
               "u8",
@@ -703,7 +670,7 @@ export const AnchorHtlc = (address: string): Idl => ({
           }
         },
         {
-          "name": "htlc_bump",
+          "name": "htlcBump",
           "type": "u8"
         }
       ],
@@ -729,7 +696,7 @@ export const AnchorHtlc = (address: string): Idl => ({
       ],
       "accounts": [
         {
-          "name": "user_signing",
+          "name": "userSigning",
           "writable": true,
           "signer": true
         },
@@ -740,13 +707,13 @@ export const AnchorHtlc = (address: string): Idl => ({
             "seeds": [
               {
                 "kind": "arg",
-                "path": "Id"
+                "path": "id"
               }
             ]
           }
         },
         {
-          "name": "htlc_token_account",
+          "name": "htlcTokenAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -775,7 +742,7 @@ export const AnchorHtlc = (address: string): Idl => ({
               },
               {
                 "kind": "arg",
-                "path": "Id"
+                "path": "id"
               }
             ]
           }
@@ -788,21 +755,21 @@ export const AnchorHtlc = (address: string): Idl => ({
           ]
         },
         {
-          "name": "token_contract",
+          "name": "tokenContract",
           "relations": [
             "htlc"
           ]
         },
         {
-          "name": "sender_token_account",
+          "name": "senderTokenAccount",
           "writable": true
         },
         {
-          "name": "system_program",
+          "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         },
         {
-          "name": "token_program",
+          "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
@@ -812,7 +779,7 @@ export const AnchorHtlc = (address: string): Idl => ({
       ],
       "args": [
         {
-          "name": "Id",
+          "name": "id",
           "type": {
             "array": [
               "u8",
@@ -821,7 +788,7 @@ export const AnchorHtlc = (address: string): Idl => ({
           }
         },
         {
-          "name": "htlc_bump",
+          "name": "htlcBump",
           "type": "u8"
         }
       ],
@@ -830,7 +797,7 @@ export const AnchorHtlc = (address: string): Idl => ({
   ],
   "accounts": [
     {
-      "name": "HTLC",
+      "name": "htlc",
       "discriminator": [
         172,
         245,
@@ -846,90 +813,90 @@ export const AnchorHtlc = (address: string): Idl => ({
   "errors": [
     {
       "code": 6000,
-      "name": "NotFutureTimeLock",
-      "msg": "Not Future TimeLock."
+      "name": "invalidTimeLock",
+      "msg": "Invalid TimeLock."
     },
     {
       "code": 6001,
-      "name": "NotPastTimeLock",
+      "name": "notPastTimeLock",
       "msg": "Not Past TimeLock."
     },
     {
       "code": 6002,
-      "name": "HashlockNotSet",
-      "msg": "Hashlock Is Not Set."
+      "name": "invalidRewardTimeLock",
+      "msg": "Invalid Reward TimeLock."
     },
     {
       "code": 6003,
-      "name": "HashlockNoMatch",
-      "msg": "Does Not Match the Hashlock."
+      "name": "hashlockNotSet",
+      "msg": "Hashlock Is Not Set."
     },
     {
       "code": 6004,
-      "name": "HashlockAlreadySet",
-      "msg": "Hashlock Already Set."
+      "name": "hashlockNoMatch",
+      "msg": "Does Not Match the Hashlock."
     },
     {
       "code": 6005,
-      "name": "AlreadyRedeemed",
-      "msg": "Funds Are Alredy Redeemed."
+      "name": "hashlockAlreadySet",
+      "msg": "Hashlock Already Set."
     },
     {
       "code": 6006,
-      "name": "AlreadyRefunded",
-      "msg": "Funds Are Alredy Refunded."
+      "name": "alreadyClaimed",
+      "msg": "Funds Are Alredy Claimed."
     },
     {
       "code": 6007,
-      "name": "FundsNotSent",
+      "name": "fundsNotSent",
       "msg": "Funds Can Not Be Zero."
     },
     {
       "code": 6008,
-      "name": "UnauthorizedAccess",
+      "name": "unauthorizedAccess",
       "msg": "Unauthorized Access."
     },
     {
       "code": 6009,
-      "name": "NotOwner",
+      "name": "notOwner",
       "msg": "Not The Owner."
     },
     {
       "code": 6010,
-      "name": "NotSender",
+      "name": "notSender",
       "msg": "Not The Sender."
     },
     {
       "code": 6011,
-      "name": "NotReciever",
+      "name": "notReciever",
       "msg": "Not The Reciever."
     },
     {
       "code": 6012,
-      "name": "NoToken",
+      "name": "noToken",
       "msg": "Wrong Token."
     }
   ],
   "types": [
     {
-      "name": "HTLC",
+      "name": "htlc",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "dst_address",
+            "name": "dstAddress",
             "type": "string"
           },
           {
-            "name": "dst_chain",
+            "name": "dstChain",
             "type": "string"
           },
           {
-            "name": "dst_asset",
+            "name": "dstAsset",
             "type": "string"
           },
           {
-            "name": "src_asset",
+            "name": "srcAsset",
             "type": "string"
           },
           {
@@ -937,7 +904,7 @@ export const AnchorHtlc = (address: string): Idl => ({
             "type": "pubkey"
           },
           {
-            "name": "src_receiver",
+            "name": "srcReceiver",
             "type": "pubkey"
           },
           {
@@ -967,20 +934,24 @@ export const AnchorHtlc = (address: string): Idl => ({
             "type": "u64"
           },
           {
-            "name": "token_contract",
+            "name": "reward",
+            "type": "u64"
+          },
+          {
+            "name": "rewardTimelock",
+            "type": "u64"
+          },
+          {
+            "name": "tokenContract",
             "type": "pubkey"
           },
           {
-            "name": "token_wallet",
+            "name": "tokenWallet",
             "type": "pubkey"
           },
           {
-            "name": "redeemed",
-            "type": "bool"
-          },
-          {
-            "name": "refunded",
-            "type": "bool"
+            "name": "claimed",
+            "type": "u8"
           }
         ]
       }

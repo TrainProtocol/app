@@ -12,12 +12,13 @@ import { PublicKey } from "@solana/web3.js"
 import { useSettingsState } from "../../../context/settings"
 import { useCallback } from "react"
 import { lockTransactionBuilder, phtlcTransactionBuilder } from "./transactionBuilder"
+import LayerSwapApiClient from "../../layerSwapApiClient"
 
 const solanaNames = [KnownInternalNames.Networks.SolanaMainnet, KnownInternalNames.Networks.SolanaDevnet, KnownInternalNames.Networks.SolanaTestnet]
 
 export default function useSolana({ network }: { network: Network | undefined }): WalletProvider {
 
-    network = network?.group === NetworkGroup.SOLANA ? network : undefined
+    network = network?.group === NetworkGroup.Solana ? network : undefined
 
     const commonSupportedNetworks = [
         KnownInternalNames.Networks.SolanaMainnet,
@@ -31,6 +32,7 @@ export default function useSolana({ network }: { network: Network | undefined })
     const { disconnect, wallet: solanaWallet, select, wallets, signTransaction } = useWallet();
     const publicKey = solanaWallet?.adapter.publicKey
     const { networks } = useSettingsState()
+    const { connect } = useConnectModal()
 
     const connectedWallet = wallets.find(w => w.adapter.connected === true)
     const connectedAddress = connectedWallet?.adapter.publicKey?.toBase58()
@@ -72,8 +74,6 @@ export default function useSolana({ network }: { network: Network | undefined })
         }
 
     }, [network, connectedAddress, connectedAdapterName])
-
-    const { connect } = useConnectModal()
 
     const connectWallet = async () => {
         try {
@@ -175,7 +175,7 @@ export default function useSolana({ network }: { network: Network | undefined })
 
     const getDetails = async (params: CommitmentParams) => {
 
-        const lpAddress = network?.managed_accounts.find(c => c.type === ManagedAccountType.LP)?.address
+        const lpAddress = network?.managedAccounts.find(c => c.type === ManagedAccountType.LP)?.address
 
         if (!lpAddress) throw new Error("No LP address")
 
@@ -210,7 +210,6 @@ export default function useSolana({ network }: { network: Network | undefined })
                 secret: result.secret,
                 tokenContract: new PublicKey(result.tokenContract).toString(),
                 tokenWallet: new PublicKey(result.tokenWallet).toString(),
-                claimed: result.refunded ? 2 : result.redeemed ? 3 : 0
             }
 
             return parsedResult
@@ -227,20 +226,21 @@ export default function useSolana({ network }: { network: Network | undefined })
 
         const transaction = await lockTransactionBuilder({ connection, program, walletPublicKey: publicKey, ...params })
 
-        const signed = transaction?.lockCommit && signTransaction && await signTransaction(transaction.lockCommit);
-        const signature = signed && await connection.sendRawTransaction(signed.serialize());
+        transaction?.lockCommit.partialSign()
+        const signature = transaction.lockCommit.serialize()
+        // const signature = signed && await connection.sendRawTransaction(signed.serialize());
 
         if (signature) {
-            const blockHash = await connection.getLatestBlockhash();
 
-            const res = await connection.confirmTransaction({
-                blockhash: blockHash.blockhash,
-                lastValidBlockHeight: blockHash.lastValidBlockHeight,
-                signature
-            });
+            const apiClient = new LayerSwapApiClient()
 
-            if (res?.value.err) {
-                throw new Error(res.value.err.toString())
+            try {
+                await apiClient.AddLockSig({
+                    signatureArray: signature,
+                    timelock: transaction.timelock,
+                }, id)
+            } catch (e) {
+                throw new Error("Failed to add lock")
             }
 
             return { hash: signature, result: `0x${toHexString(transaction.lockId)}` }
