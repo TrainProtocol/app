@@ -133,7 +133,7 @@ export default function Form() {
                     </div>
                 </WizardItem>
                 {
-                    formikRef.current?.values.amount ?
+                    formikRef.current?.values.amount || atomicQuery.commitId ?
                         <WizardItem StepName={AtomicSteps.Swap} GoBack={() => handleWizardRouting(AtomicSteps.Form, 'back')}>
                             <AtomicPage type='contained' />
                         </WizardItem>
