@@ -91,7 +91,7 @@ export const RiveComponent = () => {
     const { pulseState } = usePulsatingCircles();
 
     const { rive, RiveComponent: RiveAnimation } = useRive({
-        src: "/bg-animation.riv",
+        src: "/animation.riv",
         stateMachines: "State Machine 1",
         autoplay: true, 
     });
