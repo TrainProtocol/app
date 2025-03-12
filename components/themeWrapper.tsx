@@ -71,7 +71,7 @@ export default function ThemeWrapper({ children }: Props) {
                         <div className="flex h-full flex-col w-full text-primary-text">
                             <div className="relative w-full flex flex-col items-center">
                                 <div className="absolute top-[350px] left-0 w-full items-center justify-center pointer-events-none hidden md:flex">
-                                    <RiveComponent />
+                                    {/* <RiveComponent /> */}
                                 </div>
                             </div>
                             <div className="z-20">
