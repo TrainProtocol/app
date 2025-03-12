@@ -121,8 +121,7 @@ export function AtomicProvider({ children }) {
 
     const fetcher = (args) => fetch(args).then(res => res.json())
     const url = process.env.NEXT_PUBLIC_TRAIN_API
-    const foramttedCommitId = commitId ? toHex(BigInt(commitId)) : undefined
-    const { data } = useSWR<ApiResponse<CommitFromApi>>((foramttedCommitId && commitFromApi?.transactions.length !== 3) ? `${url}/api/swaps/${foramttedCommitId}` : null, fetcher, { refreshInterval: 5000 })
+    const { data } = useSWR<ApiResponse<CommitFromApi>>((commitId && commitFromApi?.transactions.length !== 3) ? `${url}/api/swaps/${commitId}` : null, fetcher, { refreshInterval: 5000 })
 
     const commitStatus = useMemo(() => statusResolver({ commitFromApi, sourceDetails, destinationDetails, destination_network, timelockExpired: isTimelockExpired, userLocked, destRedeemTx: destinationRedeemTx }), [commitFromApi, sourceDetails, destinationDetails, destination_network, isTimelockExpired, userLocked, refundTxId, destinationRedeemTx])
 
