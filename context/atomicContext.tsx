@@ -139,7 +139,6 @@ export function AtomicProvider({ children }) {
                     await lightClient.initProvider({ network: destination_network })
                     setLightClient(lightClient)
                 } catch (error) {
-                    console.log(error.message)
                     console.log(error)
                 }
 

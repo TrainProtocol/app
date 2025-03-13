@@ -12,10 +12,8 @@ export class HeliosProvider {
 
   /// Do not use this constructor. Instead use the createHeliosProvider function.
   constructor(config: Config, kind: "ethereum" | "opstack") {
-    const executionRpc = config.executionRpc;
-    const executionVerifiableApi = config.executionVerifiableApi;
-
     if (kind === "ethereum") {
+      const executionRpc = config.executionRpc;
       const consensusRpc = config.consensusRpc;
       const checkpoint = config.checkpoint;
       const network = config.network ?? Network.MAINNET;
@@ -23,7 +21,6 @@ export class HeliosProvider {
 
       this.#client = new EthereumClient(
         executionRpc,
-        executionVerifiableApi,
         consensusRpc,
         network,
         checkpoint,
@@ -33,11 +30,10 @@ export class HeliosProvider {
       const executionRpc = config.executionRpc;
       const network = config.network;
 
-      this.#client = new OpStackClient(executionRpc, executionVerifiableApi, network);
+      this.#client = new OpStackClient(executionRpc, network);
     } else {
       throw new Error("Invalid kind: must be 'ethereum' or 'opstack'");
     }
-
     this.#chainId = this.#client.chain_id();
   }
 
@@ -89,17 +85,11 @@ export class HeliosProvider {
       case "eth_getStorageAt": {
         return this.#client.get_storage_at(req.params[0], req.params[1], req.params[2]);
       }
-      case "eth_getProof": {
-        return this.#client.get_proof(req.params[0], req.params[1], req.params[2]);
-      }
       case "eth_call": {
         return this.#client.call(req.params[0], req.params[1]);
       }
       case "eth_estimateGas": {
-        return this.#client.estimate_gas(req.params[0], req.params[1]);
-      }
-      case "eth_createAccessList": {
-        return this.#client.create_access_list(req.params[0], req.params[1]);
+        return this.#client.estimate_gas(req.params[0]);
       }
       case "eth_gasPrice": {
         return this.#client.gas_price();
@@ -181,8 +171,7 @@ export class HeliosProvider {
 }
 
 export type Config = {
-  executionRpc?: string;
-  executionVerifiableApi?: string;
+  executionRpc: string;
   consensusRpc?: string;
   checkpoint?: string;
   network?: Network;
