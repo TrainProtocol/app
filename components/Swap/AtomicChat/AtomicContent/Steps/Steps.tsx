@@ -209,6 +209,16 @@ export const CancelAndRefund: FC = () => {
     const resolvedDescription = completed ? 'Assets are received back at the source address' : 'Cancel & refund to receive your assets back at the source address'
     const completedTxLink = refundTxId && source_network?.transactionExplorerTemplate.replace('{0}', refundTxId)
 
+    const { setPulseState } = usePulsatingCircles();
+
+    useEffect(() => {
+        if (loading) {
+            setPulseState("pulsing");
+        } else if (completed) {
+            setPulseState("completed");
+        }
+    }, [loading, completed]);
+
     return (
         commitStatus === CommitStatus.TimelockExpired &&
         <div className={`inline-flex items-center justify-between w-full pr-5 bg-secondary-700 rounded-2xl p-3 relative`}>
