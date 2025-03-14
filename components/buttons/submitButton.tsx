@@ -50,7 +50,7 @@ const SubmitButton: FC<SubmitButtonProps> = ({ isDisabled, isSubmitting, icon, c
             <span className={`${button_align === "right" ? 'order-last' : 'order-first'} ${text_align === 'center' ? "absolute left-0 inset-y-0 flex items-center pl-3" : "relative"}`}>
                 {(!isDisabled && !isSubmitting) && icon}
                 {isSubmitting ?
-                    <SpinIcon className="animate-spin h-5 w-5" />
+                    <SpinIcon className="animate-reverse-spin h-5 w-5" />
                     : null}
             </span>
             <span className={`grow ${text_align === 'left' ? 'text-left' : 'text-center'}`}>{children}</span>

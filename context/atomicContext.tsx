@@ -123,7 +123,7 @@ export function AtomicProvider({ children }) {
     const url = process.env.NEXT_PUBLIC_TRAIN_API
     const { data } = useSWR<ApiResponse<CommitFromApi>>((commitId && commitFromApi?.transactions.length !== 3) ? `${url}/api/swaps/${commitId}` : null, fetcher, { refreshInterval: 5000 })
 
-    const commitStatus = useMemo(() => statusResolver({ commitFromApi, sourceDetails, destinationDetails, destination_network, timelockExpired: isTimelockExpired, userLocked, destRedeemTx: destinationRedeemTx }), [commitFromApi, sourceDetails, destinationDetails, destination_network, isTimelockExpired, userLocked, refundTxId, destinationRedeemTx])
+    const commitStatus = useMemo(() => statusResolver({ commitFromApi, sourceDetails, destinationDetails, timelockExpired: isTimelockExpired, userLocked }), [commitFromApi, sourceDetails, destinationDetails, isTimelockExpired, userLocked, refundTxId])
 
     useEffect(() => {
         if (data?.data) {
@@ -221,13 +221,13 @@ export function AtomicProvider({ children }) {
     )
 }
 
-const statusResolver = ({ commitFromApi, sourceDetails, destinationDetails, destination_network, timelockExpired, userLocked, destRedeemTx }: { commitFromApi: CommitFromApi | undefined, sourceDetails: Commit | undefined, destinationDetails: Commit | undefined, destination_network: Network | undefined, timelockExpired: boolean, userLocked: boolean, destRedeemTx: string | undefined }) => {
+const statusResolver = ({ commitFromApi, sourceDetails, destinationDetails, timelockExpired, userLocked }: { commitFromApi: CommitFromApi | undefined, sourceDetails: Commit | undefined, destinationDetails: Commit | undefined, timelockExpired: boolean, userLocked: boolean }) => {
     const userLockTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
 
     const commited = sourceDetails ? true : false;
     const lpLockDetected = destinationDetails?.hashlock ? true : false;
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
-    const redeemCompleted = ((destinationDetails?.claimed == 3 && destRedeemTx) ? true : false);
+    const redeemCompleted = (destinationDetails?.claimed == 3 ? true : false);
 
     if (redeemCompleted) return CommitStatus.RedeemCompleted
     else if (timelockExpired) return CommitStatus.TimelockExpired

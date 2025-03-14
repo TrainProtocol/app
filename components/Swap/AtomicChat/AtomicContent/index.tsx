@@ -5,11 +5,12 @@ import { CommitStatus, useAtomicState } from "../../../../context/atomicContext"
 import { motion } from "framer-motion";
 import CheckedIcon from "../../../Icons/CheckedIcon";
 import MotionSummary from "./Summary";
-import { CircleAlert, ExternalLink } from "lucide-react";
+import { CircleAlert, ExternalLink, Loader2 } from "lucide-react";
 import ConnectedWallet from "./ConnectedWallet";
 import Link from "next/link";
 import { usePulsatingCircles } from "../../../../context/PulsatingCirclesContext";
 import { useRive } from "@rive-app/react-canvas";
+import SpinIcon from "../../../Icons/spinIcon";
 
 const AtomicContent: FC = () => {
 
@@ -84,7 +85,7 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
             return <CircleAlert className="h-16 w-auto text-yellow-600" />
         }
         return <RiveComponent />
-            
+
     }, [commitStatus, isManualClaimable, manualClaimRequested])
 
     const ResolvedTitle = useMemo(() => {
@@ -105,7 +106,7 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
 
     const ResolvedDescription = useMemo(() => {
         if (commitStatus === CommitStatus.RedeemCompleted) {
-            return redeemTxLink &&
+            return redeemTxLink ?
                 <div className="w-full flex justify-center">
                     <Link
                         href={redeemTxLink}
@@ -117,6 +118,17 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
                         </p>
                         <ExternalLink className="h-4 w-auto" />
                     </Link>
+                </div>
+                :
+                <div className="w-full flex justify-center opacity-75">
+                    <div
+                        className="p-1 px-4 rounded-full bg-secondary-700 flex gap-2 items-center text-secondary-text"
+                    >
+                        <p>
+                            View transaction
+                        </p>
+                        <SpinIcon className="h-4 w-auto animate-reverse-spin" />
+                    </div>
                 </div>
 
         }
@@ -159,7 +171,7 @@ const RiveComponent = () => {
         stateMachines: "State Machine 1",
         autoplay: true,
     });
-    
+
     useEffect(() => {
         if (rive) {
             const inputs = rive.stateMachineInputs("State Machine 1");
