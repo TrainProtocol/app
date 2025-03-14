@@ -327,46 +327,42 @@ export default function useStarknet(): WalletProvider {
         const addlockData: TypedData = {
             domain: {
                 name: 'Train',
-                version: shortString.encodeShortString("v1"),
+                version: shortString.encodeShortString("0"),
                 chainId: process.env.NEXT_PUBLIC_API_VERSION === 'sandbox' ? constants.StarknetChainId.SN_SEPOLIA : constants.StarknetChainId.SN_MAIN,
-                revision: TypedDataRevision.ACTIVE,
+            },
+            primaryType: 'AddLockMsg',
+            types: {
+                StarkNetDomain: [
+                    {
+                        name: "name",
+                        type: "felt",
+                    },
+                    {
+                        name: "version",
+                        type: "felt",
+                    },
+                    {
+                        name: "chainId",
+                        type: "felt",
+                    },
+                ],
+                AddLockMsg: [
+                    { name: "Id", type: "u256" },
+                    { name: "hashlock", type: "u256" },
+                    { name: "timelock", type: "u256" },
+                ],
+                u256: [
+                    { name: "low", type: "felt" },
+                    { name: "high", type: "felt" },
+                ],
             },
             message: {
                 Id: u256Id,
                 hashlock: u256Hashlock,
                 timelock: u256TimeLock,
             },
-            primaryType: 'AddLockMsg',
-            types: {
-                StarknetDomain: [
-                    {
-                        name: 'name',
-                        type: 'shortstring',
-                    },
-                    {
-                        name: 'version',
-                        type: 'shortstring',
-                    },
-                    {
-                        name: 'chainId',
-                        type: 'shortstring',
-                    },
-                    {
-                        name: 'revision',
-                        type: 'shortstring'
-                    }
-                ],
-                AddLockMsg: [
-                    { name: 'Id', type: 'u256' },
-                    { name: 'hashlock', type: 'u256' },
-                    { name: 'timelock', type: 'u256' }
-                ],
-                u256: [
-                    { name: 'low', type: 'felt' },
-                    { name: 'high', type: 'felt' }
-                ],
-            }
         }
+
         const signature = await starknetWallet?.metadata?.starknetAccount.signMessage(addlockData)
         const apiClient = new LayerSwapApiClient()
 
