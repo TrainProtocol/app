@@ -22,19 +22,18 @@ export class HeliosProvider {
         _HeliosProvider_instances.add(this);
         _HeliosProvider_client.set(this, void 0);
         _HeliosProvider_chainId.set(this, void 0);
-        const executionRpc = config.executionRpc;
-        const executionVerifiableApi = config.executionVerifiableApi;
         if (kind === "ethereum") {
+            const executionRpc = config.executionRpc;
             const consensusRpc = config.consensusRpc;
             const checkpoint = config.checkpoint;
             const network = config.network ?? Network.MAINNET;
             const dbType = config.dbType ?? "localstorage";
-            __classPrivateFieldSet(this, _HeliosProvider_client, new EthereumClient(executionRpc, executionVerifiableApi, consensusRpc, network, checkpoint, dbType), "f");
+            __classPrivateFieldSet(this, _HeliosProvider_client, new EthereumClient(executionRpc, consensusRpc, network, checkpoint, dbType), "f");
         }
         else if (kind === "opstack" && config.network) {
             const executionRpc = config.executionRpc;
             const network = config.network;
-            __classPrivateFieldSet(this, _HeliosProvider_client, new OpStackClient(executionRpc, executionVerifiableApi, network), "f");
+            __classPrivateFieldSet(this, _HeliosProvider_client, new OpStackClient(executionRpc, network), "f");
         }
         else {
             throw new Error("Invalid kind: must be 'ethereum' or 'opstack'");
@@ -86,17 +85,11 @@ _HeliosProvider_client = new WeakMap(), _HeliosProvider_chainId = new WeakMap(),
         case "eth_getStorageAt": {
             return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_storage_at(req.params[0], req.params[1], req.params[2]);
         }
-        case "eth_getProof": {
-            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_proof(req.params[0], req.params[1], req.params[2]);
-        }
         case "eth_call": {
             return __classPrivateFieldGet(this, _HeliosProvider_client, "f").call(req.params[0], req.params[1]);
         }
         case "eth_estimateGas": {
-            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").estimate_gas(req.params[0], req.params[1]);
-        }
-        case "eth_createAccessList": {
-            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").create_access_list(req.params[0], req.params[1]);
+            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").estimate_gas(req.params[0]);
         }
         case "eth_gasPrice": {
             return __classPrivateFieldGet(this, _HeliosProvider_client, "f").gas_price();
