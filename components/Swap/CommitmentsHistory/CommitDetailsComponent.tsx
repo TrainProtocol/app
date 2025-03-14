@@ -129,7 +129,7 @@ const CommitDetails: FC<Props> = ({ commit }) => {
                     <SubmitButton
                         text_align="center"
                         onClick={() => router.push({
-                            pathname: `/atomic`,
+                            pathname: `/swap`,
                             query: {
                                 amount: source_asset && truncateDecimals(amount, source_asset?.precision),
                                 address: destination_address,

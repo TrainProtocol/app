@@ -177,7 +177,7 @@ export function AtomicProvider({ children }) {
         setAtomicQuery({ ...atomicQuery, commitId, txId })
         const basePath = router?.basePath || ""
         var atomicURL = window.location.protocol + "//"
-            + window.location.host + `${basePath}/atomic`;
+            + window.location.host + `${basePath}/swap`;
         const atomicParams = new URLSearchParams({ ...atomicQuery, commitId, txId })
         if (atomicParams) {
             atomicURL += `?${atomicParams}`

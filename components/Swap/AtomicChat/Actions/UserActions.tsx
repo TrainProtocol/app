@@ -274,7 +274,7 @@ export const UserRefundAction: FC = () => {
 
                 const basePath = router?.basePath || ""
                 var atomicURL = window.location.protocol + "//"
-                    + window.location.host + `${basePath}/atomic`;
+                    + window.location.host + `${basePath}/swap`;
                 const atomicParams = new URLSearchParams({ ...atomicQuery, commitId, refundTxId: res })
                 if (atomicParams) {
                     atomicURL += `?${atomicParams}`
