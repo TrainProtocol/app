@@ -327,7 +327,7 @@ export default function useStarknet(): WalletProvider {
         const addlockData: TypedData = {
             domain: {
                 name: 'Train',
-                version: shortString.encodeShortString("0"),
+                version: shortString.encodeShortString("v1"),
                 chainId: process.env.NEXT_PUBLIC_API_VERSION === 'sandbox' ? constants.StarknetChainId.SN_SEPOLIA : constants.StarknetChainId.SN_MAIN,
             },
             primaryType: 'AddLockMsg',
