@@ -19,6 +19,7 @@ type ContextType = {
 
 export function FeeProvider({ children }) {
 
+    const commitId = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('commitId') : null
     const [values, setValues] = useState<SwapFormValues>()
     const [cachedRateData, setCachedRateData] = useState<Quote>()
     const { fromCurrency, toCurrency, from, to, amount, refuel } = values || {}
@@ -46,14 +47,14 @@ export function FeeProvider({ children }) {
         minAmountInUsd: number
         maxAmount: number
         maxAmountInUsd: number
-    }>>((from && fromCurrency && to && toCurrency) ?
+    }>>((from && fromCurrency && to && toCurrency && !commitId) ?
         `/limits?SourceNetwork=${from?.name}&SourceToken=${fromCurrency?.symbol}&DestinationNetwork=${to?.name}&DestinationToken=${toCurrency?.symbol}` : null, apiClient.fetcher, {
         refreshInterval: poll ? 20000 : 0,
     })
 
     const isAmountInRange = (amountRange?.data && debouncedAmount) && (Number(debouncedAmount) >= amountRange?.data?.minAmount && Number(debouncedAmount) <= amountRange?.data?.maxAmount)
 
-    const { data: lsFee, mutate: mutateFee, isLoading: isFeeLoading } = useSWR<ApiResponse<SwapQuote>>((from && fromCurrency && to && toCurrency && debouncedAmount && isAmountInRange) ?
+    const { data: lsFee, mutate: mutateFee, isLoading: isFeeLoading } = useSWR<ApiResponse<SwapQuote>>((from && fromCurrency && to && toCurrency && debouncedAmount && isAmountInRange && !commitId) ?
         `/quote?SourceNetwork=${from?.name}&SourceToken=${fromCurrency?.symbol}&DestinationNetwork=${to?.name}&DestinationToken=${toCurrency?.symbol}&Amount=${debouncedAmount}` : null, apiClient.fetcher, {
         refreshInterval: poll ? 42000 : 0,
     })
