@@ -361,10 +361,6 @@ export default function useStarknet(): WalletProvider {
                     { name: 'hashlock', type: 'u256' },
                     { name: 'timelock', type: 'u256' }
                 ],
-                u256: [
-                    { name: 'low', type: 'felt' },
-                    { name: 'high', type: 'felt' }
-                ],
             }
         }
         const signature = await starknetWallet?.metadata?.starknetAccount.signMessage(addlockData)
