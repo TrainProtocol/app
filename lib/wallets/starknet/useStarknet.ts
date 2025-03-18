@@ -313,7 +313,7 @@ export default function useStarknet(): WalletProvider {
     }
 
     const addLockSig = async (params: CommitmentParams & LockParams) => {
-        const { id, hashlock, contractAddress } = params;
+        const { id, hashlock } = params;
         if (!starknetWallet?.metadata?.starknetAccount) {
             throw new Error('Wallet not connected')
         }
