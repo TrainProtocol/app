@@ -9,7 +9,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _HeliosProvider_instances, _HeliosProvider_client, _HeliosProvider_chainId, _HeliosProvider_req;
+var _HeliosProvider_instances, _HeliosProvider_client, _HeliosProvider_chainId, _HeliosProvider_eventEmitter, _HeliosProvider_req, _HeliosProvider_handleSubscribe;
 import initWasm, { EthereumClient, OpStackClient } from "./index.js";
 export async function init() {
     await initWasm();
@@ -22,23 +22,25 @@ export class HeliosProvider {
         _HeliosProvider_instances.add(this);
         _HeliosProvider_client.set(this, void 0);
         _HeliosProvider_chainId.set(this, void 0);
+        _HeliosProvider_eventEmitter.set(this, void 0);
+        const executionRpc = config.executionRpc;
+        const executionVerifiableApi = config.executionVerifiableApi;
         if (kind === "ethereum") {
-            const executionRpc = config.executionRpc;
             const consensusRpc = config.consensusRpc;
             const checkpoint = config.checkpoint;
             const network = config.network ?? Network.MAINNET;
             const dbType = config.dbType ?? "localstorage";
-            __classPrivateFieldSet(this, _HeliosProvider_client, new EthereumClient(executionRpc, consensusRpc, network, checkpoint, dbType), "f");
+            __classPrivateFieldSet(this, _HeliosProvider_client, new EthereumClient(executionRpc, executionVerifiableApi, consensusRpc, network, checkpoint, dbType), "f");
         }
         else if (kind === "opstack" && config.network) {
-            const executionRpc = config.executionRpc;
             const network = config.network;
-            __classPrivateFieldSet(this, _HeliosProvider_client, new OpStackClient(executionRpc, network), "f");
+            __classPrivateFieldSet(this, _HeliosProvider_client, new OpStackClient(executionRpc, executionVerifiableApi, network), "f");
         }
         else {
             throw new Error("Invalid kind: must be 'ethereum' or 'opstack'");
         }
         __classPrivateFieldSet(this, _HeliosProvider_chainId, __classPrivateFieldGet(this, _HeliosProvider_client, "f").chain_id(), "f");
+        // this.#eventEmitter = new EventEmitter();
     }
     async sync() {
         await __classPrivateFieldGet(this, _HeliosProvider_client, "f").sync();
@@ -54,8 +56,14 @@ export class HeliosProvider {
             throw new Error(err.toString());
         }
     }
+    on(eventName, handler) {
+        __classPrivateFieldGet(this, _HeliosProvider_eventEmitter, "f").on(eventName, handler);
+    }
+    removeListener(eventName, handler) {
+        __classPrivateFieldGet(this, _HeliosProvider_eventEmitter, "f").off(eventName, handler);
+    }
 }
-_HeliosProvider_client = new WeakMap(), _HeliosProvider_chainId = new WeakMap(), _HeliosProvider_instances = new WeakSet(), _HeliosProvider_req = async function _HeliosProvider_req(req) {
+_HeliosProvider_client = new WeakMap(), _HeliosProvider_chainId = new WeakMap(), _HeliosProvider_eventEmitter = new WeakMap(), _HeliosProvider_instances = new WeakSet(), _HeliosProvider_req = async function _HeliosProvider_req(req) {
     switch (req.method) {
         case "eth_getBalance": {
             return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_balance(req.params[0], req.params[1]);
@@ -85,11 +93,17 @@ _HeliosProvider_client = new WeakMap(), _HeliosProvider_chainId = new WeakMap(),
         case "eth_getStorageAt": {
             return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_storage_at(req.params[0], req.params[1], req.params[2]);
         }
+        case "eth_getProof": {
+            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").get_proof(req.params[0], req.params[1], req.params[2]);
+        }
         case "eth_call": {
             return __classPrivateFieldGet(this, _HeliosProvider_client, "f").call(req.params[0], req.params[1]);
         }
         case "eth_estimateGas": {
-            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").estimate_gas(req.params[0]);
+            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").estimate_gas(req.params[0], req.params[1]);
+        }
+        case "eth_createAccessList": {
+            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").create_access_list(req.params[0], req.params[1]);
         }
         case "eth_gasPrice": {
             return __classPrivateFieldGet(this, _HeliosProvider_client, "f").gas_price();
@@ -157,9 +171,34 @@ _HeliosProvider_client = new WeakMap(), _HeliosProvider_chainId = new WeakMap(),
         case "web3_clientVersion": {
             return __classPrivateFieldGet(this, _HeliosProvider_client, "f").client_version();
         }
+        case "eth_subscribe": {
+            return __classPrivateFieldGet(this, _HeliosProvider_instances, "m", _HeliosProvider_handleSubscribe).call(this, req);
+        }
+        case "eth_unsubscribe": {
+            return __classPrivateFieldGet(this, _HeliosProvider_client, "f").unsubscribe(req.params[0]);
+        }
         default: {
             throw `method not implemented: ${req.method}`;
         }
+    }
+}, _HeliosProvider_handleSubscribe = async function _HeliosProvider_handleSubscribe(req) {
+    try {
+        let id = uuidv4();
+        await __classPrivateFieldGet(this, _HeliosProvider_client, "f").subscribe(req.params[0], id, (data, id) => {
+            let result = data instanceof Map ? mapToObj(data) : data;
+            let payload = {
+                type: 'eth_subscription',
+                data: {
+                    subscription: id,
+                    result,
+                },
+            };
+            __classPrivateFieldGet(this, _HeliosProvider_eventEmitter, "f").emit("message", payload);
+        });
+        return id;
+    }
+    catch (err) {
+        throw new Error(err.toString());
     }
 };
 export var Network;
@@ -176,4 +215,11 @@ function mapToObj(map) {
         }
         return obj;
     }, {});
+}
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+    });
 }
