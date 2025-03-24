@@ -52,9 +52,6 @@ async function getCommit(commitConfigs) {
         async function getCommitDetails(provider) {
             if (provider) {
                 try {
-                    console.log('start sync');
-                    await self.heliosProvider.waitSynced();
-                    console.log('synced');
                     const contract = new ethers.Contract(contractAddress, abi, provider);
                     const res = await contract.getHTLCDetails(commitId);
                     return res;
