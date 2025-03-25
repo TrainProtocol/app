@@ -310,7 +310,7 @@ export default class getOptimismGas extends getEVMGas {
             await this.estimateERC20GasLimit(contractMethod)
             : await this.estimateNativeGasLimit(contractMethod)
 
-        const multiplier = feeData.maxFeePerGas || feeData.gasPrice
+        const multiplier = feeData.gasPrice
 
         if (!multiplier)
             return undefined
