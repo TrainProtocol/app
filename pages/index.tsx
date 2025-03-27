@@ -6,8 +6,7 @@ import { SWRConfig } from 'swr'
 import LayerSwapApiClient from '../lib/layerSwapApiClient'
 import { resolveRoutesURLForSelectedToken } from '../helpers/routes'
 
-export default function Home({ settings, themeData, apiKey }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  LayerSwapApiClient.apiKey = apiKey
+export default function Home({ settings, themeData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 
   const sourceRoutesDeafultKey = resolveRoutesURLForSelectedToken({ direction: 'from', network: undefined, token: undefined, includes: { unmatched: true, unavailable: true } })
   const destinationRoutesDefaultKey = resolveRoutesURLForSelectedToken({ direction: 'to', network: undefined, token: undefined, includes: { unmatched: true, unavailable: true } })

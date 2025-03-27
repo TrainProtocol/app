@@ -1,7 +1,7 @@
 
 import { PublicClient } from "viem"
 import { Balance } from "../../../Models/Balance"
-import { Network, Token, ContractType } from "../../../Models/Network"
+import { Network, Token, ContractType, NetworkType } from "../../../Models/Network"
 import formatAmount from "../../formatAmount"
 import { http, createConfig } from '@wagmi/core'
 import { erc20Abi } from 'viem'
@@ -12,24 +12,24 @@ import { datadogRum } from "@datadog/browser-rum"
 
 export class EVMBalanceProvider {
     supportsNetwork(network: Network): boolean {
-        return network.group.toLowerCase().includes('evm') && !!network.nativeToken
+        return network.type == NetworkType.EVM && !!network.nativeToken
     }
 
     fetchBalance = async (address: string, network: Network) => {
 
         if (!network) return
-    
+
         try {
 
             const chain = resolveChain(network)
             if (!chain) return
-    
+
             const { createPublicClient, http } = await import("viem")
             const publicClient = createPublicClient({
                 chain: chain,
                 transport: http()
             })
-    
+
             const erc20BalancesContractRes = await getErc20Balances({
                 address,
                 assets: network.tokens,
@@ -37,15 +37,15 @@ export class EVMBalanceProvider {
                 publicClient,
                 hasMulticall: !!network.contracts.find(c => c.type === ContractType.EvmMultiCallContract)
             });
-    
+
             const erc20Balances = (erc20BalancesContractRes && await resolveERC20Balances(
                 erc20BalancesContractRes,
                 network
             )) || [];
-    
+
             const nativeTokens = network.tokens.filter(t => !t.contract)
             const nativeBalances: Balance[] = []
-    
+
             for (let i = 0; i < nativeTokens.length; i++) {
                 const token = nativeTokens[i]
                 const nativeBalanceData = await getTokenBalance(address as `0x${string}`, network)
@@ -54,7 +54,7 @@ export class EVMBalanceProvider {
                 if (nativeBalance)
                     nativeBalances.push(nativeBalance)
             }
-    
+
             let res: Balance[] = []
             return res.concat(erc20Balances, nativeBalances)
         }

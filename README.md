@@ -21,7 +21,6 @@ This repository contains implementation of Train UI
 
   ```yaml
   NEXT_PUBLIC_TRAIN_API = https://atomic-dev.layerswap.cloud/
-  NEXT_PUBLIC_API_KEY = sandbox #mainnet for mainnets
   NEXT_PUBLIC_API_VERSION = sandbox #mainnet for mainnets
 
 

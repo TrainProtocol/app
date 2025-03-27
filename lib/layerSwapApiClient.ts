@@ -6,8 +6,6 @@ import { Network, Token } from "../Models/Network";
 
 export default class LayerSwapApiClient {
     static apiBaseEndpoint?: string = AppSettings.LayerswapApiUri;
-    static apiKey: string | undefined;
-
     _unauthInterceptor: AxiosInstance
     constructor() {
         this._unauthInterceptor = InitializeUnauthInstance(LayerSwapApiClient.apiBaseEndpoint)

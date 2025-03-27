@@ -1,6 +1,6 @@
 
 import { GasProps } from "../../../Models/Balance"
-import { Network, Token, ContractType } from "../../../Models/Network"
+import { Network, Token, ContractType, NetworkType } from "../../../Models/Network"
 import { Provider } from "./types"
 import { PublicClient, TransactionSerializedEIP1559, encodeFunctionData, serializeTransaction } from "viem";
 import { erc20Abi } from "viem";
@@ -12,7 +12,7 @@ import { ethers } from "ethers";
 
 export class EVMGasProvider implements Provider {
     supportsNetwork(network: Network): boolean {
-        return network.group.toLowerCase().includes('evm') && !!network.nativeToken
+        return network.type == NetworkType.EVM && !!network.nativeToken
     }
 
     getGas = async ({ address, network, token, recipientAddress = '0x2fc617e933a52713247ce25730f6695920b3befe', contractMethod }: GasProps) => {

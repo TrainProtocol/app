@@ -44,7 +44,7 @@ export default function useEVM({ network }: Props): WalletProvider {
     const { selectedSourceAccount } = useAtomicState()
     const account = selectedSourceAccount
     const asSourceSupportedNetworks = [
-        ...networks.filter(network => network.group.toLowerCase().includes('evm')).map(l => l.name),
+        ...networks.filter(network => network.type == NetworkType.EVM).map(l => l.name),
         KnownInternalNames.Networks.ZksyncMainnet,
         KnownInternalNames.Networks.LoopringGoerli,
         KnownInternalNames.Networks.LoopringMainnet,
