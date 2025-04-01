@@ -91,7 +91,7 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
     const ResolvedTitle = useMemo(() => {
         if (commitStatus === CommitStatus.RedeemCompleted) {
             return <p className="text-3xl text-primary-text">
-                Transaction Completed Successfully
+                Swap Completed
             </p>
         }
         if (isManualClaimable && !manualClaimRequested) {

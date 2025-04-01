@@ -64,7 +64,7 @@ const TimelockTimer = ({ timelock, children }: { timelock: number, children?: Re
                         <p className="text-sm text-primary-text">
                             <span>Refund available in</span> <span className="w-9"><Timer timelock={timelock} /></span>
                         </p>
-                        <p className="text-xs">If the swap is not completed before the timelock expires, you can always refund</p>
+                        <p className="text-xs">If the transfer is not completed before the timelock expires, you can always request a refund</p>
                     </PopoverContent>
                 </Popover>
                 :
@@ -85,7 +85,7 @@ const TimelockTimer = ({ timelock, children }: { timelock: number, children?: Re
                         <p className="text-sm text-primary-text">
                             <span>Refund available in</span> <span className="w-9"><Timer timelock={timelock} /></span>
                         </p>
-                        <p className="text-xs">If the swap is not completed before the timelock expires, you can always refund</p>
+                        <p className="text-xs">If the transfer is not completed before the timelock expires, you can always request a refund</p>
                     </TooltipContent>
                 </Tooltip>
         )

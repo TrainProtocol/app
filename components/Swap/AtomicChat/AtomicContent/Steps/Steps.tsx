@@ -20,8 +20,8 @@ export const RequestStep: FC = () => {
     const commtting = (commitId && !sourceDetails) ? true : false;
     const commited = (sourceDetails || lpLockTx) ? true : false;
 
-    const title = commited ? "Confirmed" : "Confirm the details"
-    const description = (commited && source_network) ? <>Swap details confirmed</> : <>Review and confirm the swap details</>
+    const title = commited ? "Details confirmed" : "Confirm the details"
+    const description = (commited && source_network) ? <>Transaction details are confirmed</> : <>Review and confirm transfer details</>
 
     const receiveAmountInUsd = amount && source_asset?.priceInUsd ? (gas * source_asset.priceInUsd).toFixed(6) : undefined
 
@@ -70,7 +70,7 @@ export const SignAndConfirmStep: FC = () => {
             You will receive your assets at the destination address shortly.
         </span>
         : <span>
-            Sign and finalize the swap, you can cancel and refund anytime before.
+            Sign to finalize the transfer. You can get a refund anytime before this step.
         </span>
 
     return (
@@ -97,7 +97,7 @@ const SolverStatus: FC = () => {
         if (destinationDetails?.fetchedByLightClient) {
             return <div className="flex items-center gap-1 text-sm">
                 <p>
-                    Transaction verified by
+                    Transaction is verified by a
                 </p>
                 <div className="font-medium text-accent flex items-center gap-1">
                     <p>Light Client</p>
@@ -107,7 +107,7 @@ const SolverStatus: FC = () => {
         }
 
         return <p className="text-sm text-primary-text-placeholder">
-            Transaction verified by RPCs
+            Transaction is verified by RPCs
         </p>
     }
 
@@ -121,7 +121,7 @@ export const LpLockingAssets: FC = () => {
     const loading = sourceDetails && !destinationDetails?.hashlock
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
 
-    const title = completed ? 'Assets reserved' : 'Wait for response'
+    const title = completed ? 'Assets reserved' : 'Await reservation'
     const completedTxLink = lpLockTx && destination_network?.transactionExplorerTemplate.replace('{0}', lpLockTx.hash)
 
     const { setPulseState } = usePulsatingCircles();
