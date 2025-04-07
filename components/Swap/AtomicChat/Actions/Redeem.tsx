@@ -30,7 +30,7 @@ export const RedeemAction: FC = () => {
                         id: commitId,
                         contractAddress: destination_contract as `0x${string}`,
                     })
-                    if (data) updateCommit('destinationDetails', { ...data, fetchedByLightClient: destinationDetails?.fetchedByLightClient })
+                    if (data) updateCommit('destinationDetails', data)
                     if (data?.claimed == 3) {
                         clearInterval(commitHandler)
                     }

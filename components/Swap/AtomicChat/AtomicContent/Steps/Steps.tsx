@@ -3,11 +3,13 @@ import { CommitStatus, useAtomicState } from "../../../../../context/atomicConte
 import { CommitTransaction } from "../../../../../lib/layerSwapApiClient";
 import LockIcon from "../../../../Icons/LockIcon";
 import Step, { TxLink } from "./Step";
-import { Clock, Fuel } from "lucide-react";
+import { Clock, Fuel, Info, Loader2 } from "lucide-react";
 import CheckedIcon from "../../../../Icons/CheckedIcon";
 import XCircle from "../../../../Icons/CircleX";
 import useSWRGas from "../../../../../lib/gases/useSWRGas";
 import { usePulsatingCircles } from "../../../../../context/PulsatingCirclesContext";
+import LoaderIcon from "../../../../Icons/LoaderIcon";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../shadcn/tooltip";
 
 export const RequestStep: FC = () => {
     const { sourceDetails, commitId, commitTxId, source_network, commitFromApi, isTimelockExpired, source_asset, amount, selectedSourceAccount } = useAtomicState()
@@ -90,11 +92,11 @@ export const SignAndConfirmStep: FC = () => {
 
 
 const SolverStatus: FC = () => {
-    const { destinationDetails } = useAtomicState()
+    const { destinationDetails, destinationDetailsByLightClient } = useAtomicState()
     const lpLockDetected = destinationDetails?.hashlock ? true : false;
 
     if (lpLockDetected) {
-        if (destinationDetails?.fetchedByLightClient) {
+        if (destinationDetailsByLightClient?.data && destinationDetailsByLightClient?.data?.hashlock == destinationDetails?.hashlock) {
             return <div className="flex items-center gap-1 text-sm">
                 <p>
                     Transaction is verified by a
@@ -116,7 +118,7 @@ const SolverStatus: FC = () => {
 
 
 export const LpLockingAssets: FC = () => {
-    const { destinationDetails, commitStatus, sourceDetails, commitFromApi, destination_network } = useAtomicState()
+    const { destinationDetails, commitStatus, sourceDetails, commitFromApi, destination_network, verifyingByLightClient, destinationDetailsByLightClient } = useAtomicState()
     const completed = destinationDetails?.hashlock ? true : false;
     const loading = sourceDetails && !destinationDetails?.hashlock
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
@@ -171,10 +173,39 @@ export const LpLockingAssets: FC = () => {
                     </div>
                     <SolverStatus />
                 </div>
-                {
-                    destination_network && completedTxLink && completed &&
-                    <TxLink txLink={completedTxLink} />
-                }
+                <div className="flex flex-col items-end gap-2">
+                    <div className="flex items-center gap-1">
+                        {
+                            destinationDetailsByLightClient?.error &&
+                            <Tooltip delayDuration={200}>
+                                <TooltipTrigger asChild>
+                                    <div className="bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm">
+                                        <Info className="h-4 w-auto" />
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {destinationDetailsByLightClient?.error}
+                                </TooltipContent>
+                            </Tooltip>
+                        }
+                        {
+                            destination_network && completedTxLink && completed &&
+                            <TxLink txLink={completedTxLink} />
+                        }
+                    </div>
+                    {
+                        verifyingByLightClient && !destinationDetailsByLightClient?.data && destinationDetails?.hashlock &&
+                        <div className="flex items-center text-sm gap-1">
+                            <p>
+                                Verifying
+                            </p>
+                            <div className="relative">
+                                <LoaderIcon className="animate-reverse-spin h-6 w-6" />
+                                <LockIcon className="h-3 w-3 text-accent absolute top-1.5 right-1.5" />
+                            </div>
+                        </div>
+                    }
+                </div>
             </div>
         </>
     )
