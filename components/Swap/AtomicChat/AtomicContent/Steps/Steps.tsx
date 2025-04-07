@@ -9,7 +9,7 @@ import XCircle from "../../../../Icons/CircleX";
 import useSWRGas from "../../../../../lib/gases/useSWRGas";
 import { usePulsatingCircles } from "../../../../../context/PulsatingCirclesContext";
 import LoaderIcon from "../../../../Icons/LoaderIcon";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../shadcn/tooltip";
+import MobileTooltip from "../../../../Modal/mobileTooltip";
 
 export const RequestStep: FC = () => {
     const { sourceDetails, commitId, commitTxId, source_network, commitFromApi, isTimelockExpired, source_asset, amount, selectedSourceAccount } = useAtomicState()
@@ -118,7 +118,7 @@ const SolverStatus: FC = () => {
 
 
 export const LpLockingAssets: FC = () => {
-    const { destinationDetails, commitStatus, sourceDetails, commitFromApi, destination_network, verifyingByLightClient, destinationDetailsByLightClient } = useAtomicState()
+    const { destinationDetails, commitStatus, sourceDetails, commitFromApi, destination_network, verifyingByLightClient, destinationDetailsByLightClient, updateCommit } = useAtomicState()
     const completed = destinationDetails?.hashlock ? true : false;
     const loading = sourceDetails && !destinationDetails?.hashlock
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
@@ -127,6 +127,12 @@ export const LpLockingAssets: FC = () => {
     const completedTxLink = lpLockTx && destination_network?.transactionExplorerTemplate.replace('{0}', lpLockTx.hash)
 
     const { setPulseState } = usePulsatingCircles();
+
+    useEffect(() => {
+        if(destinationDetailsByLightClient?.data && destinationDetails?.hashlock !== destinationDetailsByLightClient?.data?.hashlock) {
+            updateCommit('error', { buttonText: 'Ok', message: 'Hashlock mismatch, please wait for refund.' })
+        }
+    }, [destinationDetails, destinationDetailsByLightClient]);
 
     useEffect(() => {
         setPulseState((loading && commitStatus !== CommitStatus.TimelockExpired) ? "pulsing" : "initial");
@@ -177,16 +183,15 @@ export const LpLockingAssets: FC = () => {
                     <div className="flex items-center gap-1">
                         {
                             destinationDetailsByLightClient?.error &&
-                            <Tooltip delayDuration={200}>
-                                <TooltipTrigger asChild>
+                            <MobileTooltip
+                                trigger={
                                     <div className="bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm">
                                         <Info className="h-4 w-auto" />
                                     </div>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    {destinationDetailsByLightClient?.error}
-                                </TooltipContent>
-                            </Tooltip>
+                                }
+                            >
+                                {destinationDetailsByLightClient?.error}
+                            </MobileTooltip>
                         }
                         {
                             destination_network && completedTxLink && completed &&
