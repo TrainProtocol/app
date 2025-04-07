@@ -170,7 +170,7 @@ const SwapForm: FC = () => {
                                     onTap={() => !valuesSwapperDisabled && cycle()}
                                 >
                                     {sourceLoading || destinationLoading ?
-                                        <Loader2 className="opacity-50 w-7 h-auto p-1 bg-secondary-900 border-2 border-secondary-500 rounded-lg disabled:opacity-30 animate-spin" />
+                                        <Loader2 className="opacity-50 w-7 h-auto p-1 bg-secondary-900 rounded-lg disabled:opacity-30 animate-spin" />
                                         :
                                         <ArrowUpDown className={classNames(valuesSwapperDisabled && 'opacity-50', "w-7 h-auto p-1 bg-secondary-900 border-2 border-secondary-500 rounded-lg disabled:opacity-30")} />
                                     }
