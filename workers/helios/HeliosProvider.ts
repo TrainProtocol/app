@@ -9,11 +9,14 @@ export async function init() {
 export class HeliosProvider {
   #client;
   #chainId;
+  #eventEmitter;
 
   /// Do not use this constructor. Instead use the createHeliosProvider function.
   constructor(config: Config, kind: "ethereum" | "opstack") {
+    const executionRpc = config.executionRpc;
+    const executionVerifiableApi = config.executionVerifiableApi;
+
     if (kind === "ethereum") {
-      const executionRpc = config.executionRpc;
       const consensusRpc = config.consensusRpc;
       const checkpoint = config.checkpoint;
       const network = config.network ?? Network.MAINNET;
@@ -21,20 +24,22 @@ export class HeliosProvider {
 
       this.#client = new EthereumClient(
         executionRpc,
+        executionVerifiableApi,
         consensusRpc,
         network,
         checkpoint,
         dbType
       );
     } else if (kind === "opstack" && config.network) {
-      const executionRpc = config.executionRpc;
       const network = config.network;
 
-      this.#client = new OpStackClient(executionRpc, network);
+      this.#client = new OpStackClient(executionRpc, executionVerifiableApi, network);
     } else {
       throw new Error("Invalid kind: must be 'ethereum' or 'opstack'");
     }
+
     this.#chainId = this.#client.chain_id();
+    // this.#eventEmitter = new EventEmitter();
   }
 
   async sync() {
@@ -85,11 +90,17 @@ export class HeliosProvider {
       case "eth_getStorageAt": {
         return this.#client.get_storage_at(req.params[0], req.params[1], req.params[2]);
       }
+      case "eth_getProof": {
+        return this.#client.get_proof(req.params[0], req.params[1], req.params[2]);
+      }
       case "eth_call": {
         return this.#client.call(req.params[0], req.params[1]);
       }
       case "eth_estimateGas": {
-        return this.#client.estimate_gas(req.params[0]);
+        return this.#client.estimate_gas(req.params[0], req.params[1]);
+      }
+      case "eth_createAccessList": {
+        return this.#client.create_access_list(req.params[0], req.params[1]);
       }
       case "eth_gasPrice": {
         return this.#client.gas_price();
@@ -163,15 +174,56 @@ export class HeliosProvider {
       case "web3_clientVersion": {
         return this.#client.client_version();
       }
+      case "eth_subscribe": {
+        return this.#handleSubscribe(req);
+      }
+      case "eth_unsubscribe": {
+        return this.#client.unsubscribe(req.params[0]);
+      }
       default: {
         throw `method not implemented: ${req.method}`;
       }
     }
   }
+
+  async #handleSubscribe(req: Request) {
+    try {
+      let id = uuidv4();
+      await this.#client.subscribe(req.params[0], id, (data: any, id: string) => {
+        let result = data instanceof Map ? mapToObj(data) : data;
+        let payload = {
+          type: 'eth_subscription',
+          data: {
+            subscription: id,
+            result,
+          },
+        };
+        this.#eventEmitter.emit("message", payload);
+      });
+      return id;
+    } catch (err) {
+      throw new Error(err.toString());
+    }
+  }
+
+  on(
+    eventName: string,
+    handler: (data: any) => void
+  ): void {
+    this.#eventEmitter.on(eventName, handler);
+  }
+
+  removeListener(
+    eventName: string,
+    handler: (data: any) => void
+  ): void {
+    this.#eventEmitter.off(eventName, handler);
+  }
 }
 
 export type Config = {
-  executionRpc: string;
+  executionRpc?: string;
+  executionVerifiableApi?: string;
   consensusRpc?: string;
   checkpoint?: string;
   network?: Network;
@@ -199,4 +251,12 @@ function mapToObj(map: Map<any, any> | undefined): Object | undefined {
 
     return obj;
   }, {});
+}
+
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 }

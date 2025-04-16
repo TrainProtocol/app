@@ -132,7 +132,7 @@ export const UserCommitAction: FC = () => {
                     networkChainId={source_network.chainId}
                     onClick={handleCommit}
                 >
-                    Request
+                    Confirm in wallet
                 </WalletActionButton>
         }
     </div>
@@ -214,7 +214,7 @@ export const UserLockAction: FC = () => {
                 <ButtonStatus
                     isDisabled={true}
                 >
-                    Sign & Confirm
+                    Sign to finalize
                 </ButtonStatus>
                 :
                 source_network && <WalletActionButton
@@ -224,7 +224,7 @@ export const UserLockAction: FC = () => {
                     networkChainId={source_network.chainId}
                     onClick={handleLockAssets}
                 >
-                    Sign & Confirm
+                    Sign to finalize
                 </WalletActionButton>
         }
     </div>

@@ -7,9 +7,7 @@ import { getThemeData } from '../helpers/settingsHelper';
 import AtmoicSteps from '../components/Swap/AtomicChat'
 import { FeeProvider } from '../context/feeContext';
 
-const AtomicPage = ({ settings, themeData, apiKey }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
-    LayerSwapApiClient.apiKey = apiKey
-
+const AtomicPage = ({ settings, themeData }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
     return (<>
         <Layout settings={settings} themeData={themeData}>
             <TimerProvider>
@@ -22,9 +20,6 @@ const AtomicPage = ({ settings, themeData, apiKey }: InferGetServerSidePropsType
 }
 
 export const getServerSideProps = async (ctx) => {
-    const app = ctx.query?.appName || ctx.query?.addressSource
-    const apiKey = JSON.parse(process.env.API_KEYS || "{}")?.[app] || process.env.NEXT_PUBLIC_API_KEY
-    LayerSwapApiClient.apiKey = apiKey
     const apiClient = new LayerSwapApiClient()
     const { data: networkData } = await apiClient.GetLSNetworksAsync()
 
@@ -42,7 +37,6 @@ export const getServerSideProps = async (ctx) => {
         props: {
             settings,
             themeData,
-            apiKey
         }
     }
 }

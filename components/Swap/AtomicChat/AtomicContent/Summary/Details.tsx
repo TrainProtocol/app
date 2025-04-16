@@ -31,7 +31,7 @@ const Confirmed: FC = () => {
 }
 
 const AssetsReady: FC = () => {
-    const { destination_network, commitFromApi, destinationDetails } = useAtomicState()
+    const { destination_network, commitFromApi, destinationDetails, destinationDetailsByLightClient } = useAtomicState()
 
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
     const description = (lpLockTx && destination_network) ? <p><span>Transaction ID:</span> <Link className="underline hover:no-underline" target="_blank" href={destination_network?.transactionExplorerTemplate.replace('{0}', lpLockTx?.hash)}>{shortenAddress(lpLockTx.hash)}</Link></p> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />
@@ -42,7 +42,7 @@ const AssetsReady: FC = () => {
             title="Assets Ready"
             description={description}
             titleDetails={
-                destinationDetails?.fetchedByLightClient
+                destinationDetailsByLightClient?.data
                     ? <div className="text-accent flex items-center gap-1">
                         <p>Light Client</p>
                         <LockIcon className="h-4 w-4 text-accent" />

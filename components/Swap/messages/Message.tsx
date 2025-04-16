@@ -47,7 +47,7 @@ const WalletMessage: FC<WalletMessageProps> = ({ header, details, status, showIn
                     </p>
                     {
                         details &&
-                        <p className={`text-sm text-secondary-text ${details.length > 200 ? 'break-words' : ''}`}>
+                        <p className={`text-sm text-secondary-text max-h-[300px] overflow-y-auto styled-scroll ${details.length > 200 ? 'break-words' : ''}`}>
                             {details}
                         </p>
                     }

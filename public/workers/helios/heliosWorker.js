@@ -36,6 +36,8 @@ async function initWorker(initConfigs) {
         const providerConfig = networkName === 'opstack' ? (initConfigs.network.toLowerCase().includes('base') ? baseConfig : opstackConfig) : ethereumConfig;
         const heliosProvider = new HeliosProvider(providerConfig, networkName);
         await heliosProvider.sync();
+
+        self.heliosProvider = heliosProvider
         self.web3Provider = new ethers.providers.Web3Provider(heliosProvider);
         self.postMessage({ type: 'init', data: { initialized: true } });
     }
@@ -50,6 +52,7 @@ async function getCommit(commitConfigs) {
         async function getCommitDetails(provider) {
             if (provider) {
                 try {
+                    await self.heliosProvider.waitSynced()
                     const contract = new ethers.Contract(contractAddress, abi, provider);
                     const res = await contract.getHTLCDetails(commitId);
                     return res;

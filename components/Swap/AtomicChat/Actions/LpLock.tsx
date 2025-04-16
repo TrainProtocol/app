@@ -6,7 +6,7 @@ import { WalletProvider } from "../../../../Models/WalletProvider";
 import ButtonStatus from "./Status/ButtonStatus";
 
 export const LpLockingAssets: FC = () => {
-    const { destination_network, commitId, updateCommit, destination_asset, lightClient, sourceDetails } = useAtomicState()
+    const { destination_network, commitId, updateCommit, destination_asset, lightClient, sourceDetails, setVerifyingByLightClient } = useAtomicState()
     const { provider } = useWallet(destination_network, 'autofil')
     const [loading, setLoading] = useState(false)
 
@@ -14,23 +14,6 @@ export const LpLockingAssets: FC = () => {
 
     const getDetails = async ({ provider, network, commitId, asset }: { provider: WalletProvider, network: Network, commitId: string, asset: Token }) => {
         if (!atomicContract) throw Error("No atomic contract")
-        if (lightClient && !sourceDetails?.hashlock) {
-            try {
-                const destinationDetails = await lightClient.getHashlock({
-                    network: network,
-                    token: asset,
-                    commitId,
-                    atomicContract
-                })
-                if (destinationDetails) {
-                    updateCommit('destinationDetails', { ...destinationDetails, fetchedByLightClient: true })
-                    return
-                }
-            }
-            catch (e) {
-                console.log(e)
-            }
-        }
 
         let lockHandler: any = undefined
         lockHandler = setInterval(async () => {
@@ -44,7 +27,7 @@ export const LpLockingAssets: FC = () => {
                     })
 
                     if (destiantionDetails?.hashlock) {
-                        updateCommit('destinationDetails', { ...destiantionDetails, fetchedByLightClient: false })
+                        updateCommit('destinationDetails', destiantionDetails)
                         clearInterval(lockHandler)
                     }
                     return
@@ -53,7 +36,6 @@ export const LpLockingAssets: FC = () => {
                     clearInterval(lockHandler)
                     console.log(e)
                 }
-
             }
 
             const destiantionDetails = await provider.getDetails({
@@ -64,7 +46,7 @@ export const LpLockingAssets: FC = () => {
             })
 
             if (destiantionDetails?.hashlock) {
-                updateCommit('destinationDetails', { ...destiantionDetails, fetchedByLightClient: false })
+                updateCommit('destinationDetails', destiantionDetails)
                 clearInterval(lockHandler)
             }
 
@@ -80,10 +62,32 @@ export const LpLockingAssets: FC = () => {
         (async () => {
             if (provider && destination_network && commitId && destination_asset && !loading) {
                 setLoading(true)
-                await getDetails({ provider, network: destination_network, commitId, asset: destination_asset })
+                getDetails({ provider, network: destination_network, commitId, asset: destination_asset })
+                if (lightClient && !sourceDetails?.hashlock && atomicContract) {
+                    try {
+                        setVerifyingByLightClient(true)
+                        const data = await lightClient.getHashlock({
+                            network: destination_network,
+                            token: destination_asset,
+                            commitId,
+                            atomicContract
+                        })
+                        if (data) {
+                            updateCommit('destinationDetailsByLightClient', data)
+                            return
+                        }
+                    }
+                    catch (e) {
+                        updateCommit('destinationDetailsByLightClient', { data: undefined, error: 'Light client is not available' })
+                        console.log(e)
+                    }
+                    finally {
+                        setVerifyingByLightClient(false)
+                    }
+                }
             }
         })()
-    }, [provider, destination_network, commitId, loading])
+    }, [provider, destination_network, commitId, loading, atomicContract])
 
     return <ButtonStatus
         isDisabled={true}

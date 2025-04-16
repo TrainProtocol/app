@@ -15,6 +15,7 @@ import { bitget } from '../../lib/wallets/connectors/bitget';
 import { isMobile } from '../../lib/isMobile';
 import FuelProviderWrapper from "./FuelProvider";
 import { browserInjected } from "../../lib/wallets/connectors/browserInjected";
+import { NetworkType } from "../../Models/Network";
 
 type Props = {
     children: JSX.Element | JSX.Element[]
@@ -28,7 +29,7 @@ function WagmiComponent({ children }: Props) {
     const isChain = (c: Chain | undefined): c is Chain => c != undefined
     const settingsChains = settings?.networks
         .sort((a, b) => (NetworkSettings.KnownSettings[a.name]?.ChainOrder || Number(a.chainId)) - (NetworkSettings.KnownSettings[b.name]?.ChainOrder || Number(b.chainId)))
-        .filter(net => net.group.toLowerCase().includes('evm')
+        .filter(net => net.type == NetworkType.EVM
             && !isNaN(Number(net.chainId))
             && net.nodes.length > 0
             && net.nativeToken)

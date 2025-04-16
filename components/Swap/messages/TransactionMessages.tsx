@@ -42,7 +42,7 @@ const UexpectedErrorMessage: FC<{ message: string }> = ({ message }) => {
         status="error"
         header='Unexpected error'
         details={message}
-        showInModal />
+         />
 }
 
 const TransactionMessages = {

@@ -8,7 +8,6 @@ import { ApiResponse } from '../Models/ApiResponse';
 import { CommitFromApi, CommitTransaction } from '../lib/layerSwapApiClient';
 import LightClient from '../lib/lightClient';
 import { Wallet } from '../Models/WalletProvider';
-import { toHex } from 'viem';
 
 export enum CommitStatus {
     Commit = 'commit',
@@ -36,6 +35,8 @@ type DataContextType = CommitState & {
     commitStatus: CommitStatus,
     atomicQuery?: any,
     destRedeemTx?: string,
+    verifyingByLightClient: boolean,
+    setVerifyingByLightClient: (value: boolean) => void;
     onCommit: (commitId: string, txId: string) => void;
     updateCommit: (field: keyof CommitState, value: any) => void;
     setAtomicQuery: (query: any) => void;
@@ -44,7 +45,8 @@ type DataContextType = CommitState & {
 
 interface CommitState {
     sourceDetails?: Commit & { claimTime?: number };
-    destinationDetails?: Commit & { fetchedByLightClient?: boolean };
+    destinationDetails?: Commit;
+    destinationDetailsByLightClient?: { data?: Commit, error?: string };
     userLocked: boolean;
     error?: { message: string, buttonText?: string } | undefined;
     commitFromApi?: CommitFromApi;
@@ -81,6 +83,7 @@ export function AtomicProvider({ children }) {
 
     const [commitStates, setCommitStates] = useState<CommitStatesDict>({});
     const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
+    const [verifyingByLightClient, setVerifyingByLightClient] = useState(false)
 
     const updateCommitState = (commitId: string, newState: Partial<CommitState>) => {
         setCommitStates((prev) => ({
@@ -107,6 +110,7 @@ export function AtomicProvider({ children }) {
     const commitFromApi = commitStates[commitId]?.commitFromApi;
     const isTimelockExpired = commitStates[commitId]?.isTimelockExpired;
     const manualClaimRequested = commitStates[commitId]?.manualClaimRequested;
+    const destinationDetailsByLightClient = commitStates[commitId]?.destinationDetailsByLightClient
 
     const destinationRedeemTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination)?.hash || claimTxId
 
@@ -212,6 +216,9 @@ export function AtomicProvider({ children }) {
             isManualClaimable,
             manualClaimRequested,
             destRedeemTx: destinationRedeemTx,
+            verifyingByLightClient,
+            destinationDetailsByLightClient,
+            setVerifyingByLightClient,
             updateCommit,
             setAtomicQuery,
             setSelectedSourceAccount

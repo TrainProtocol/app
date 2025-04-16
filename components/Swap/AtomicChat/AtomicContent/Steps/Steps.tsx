@@ -3,11 +3,13 @@ import { CommitStatus, useAtomicState } from "../../../../../context/atomicConte
 import { CommitTransaction } from "../../../../../lib/layerSwapApiClient";
 import LockIcon from "../../../../Icons/LockIcon";
 import Step, { TxLink } from "./Step";
-import { Clock, Fuel } from "lucide-react";
+import { Clock, Fuel, Info, Loader2 } from "lucide-react";
 import CheckedIcon from "../../../../Icons/CheckedIcon";
 import XCircle from "../../../../Icons/CircleX";
 import useSWRGas from "../../../../../lib/gases/useSWRGas";
 import { usePulsatingCircles } from "../../../../../context/PulsatingCirclesContext";
+import LoaderIcon from "../../../../Icons/LoaderIcon";
+import MobileTooltip from "../../../../Modal/mobileTooltip";
 
 export const RequestStep: FC = () => {
     const { sourceDetails, commitId, commitTxId, source_network, commitFromApi, isTimelockExpired, source_asset, amount, selectedSourceAccount } = useAtomicState()
@@ -20,8 +22,8 @@ export const RequestStep: FC = () => {
     const commtting = (commitId && !sourceDetails) ? true : false;
     const commited = (sourceDetails || lpLockTx) ? true : false;
 
-    const title = commited ? "Confirmed" : "Confirm the details"
-    const description = (commited && source_network) ? <>Swap details confirmed</> : <>Review and confirm the swap details</>
+    const title = commited ? "Details confirmed" : "Confirm the details"
+    const description = (commited && source_network) ? <>Transaction details are confirmed</> : <>Review and confirm transfer details</>
 
     const receiveAmountInUsd = amount && source_asset?.priceInUsd ? (gas * source_asset.priceInUsd).toFixed(6) : undefined
 
@@ -70,7 +72,7 @@ export const SignAndConfirmStep: FC = () => {
             You will receive your assets at the destination address shortly.
         </span>
         : <span>
-            Sign and finalize the swap, you can cancel and refund anytime before.
+            Sign to finalize the transfer. You can get a refund anytime before this step.
         </span>
 
     return (
@@ -90,14 +92,14 @@ export const SignAndConfirmStep: FC = () => {
 
 
 const SolverStatus: FC = () => {
-    const { destinationDetails } = useAtomicState()
+    const { destinationDetails, destinationDetailsByLightClient } = useAtomicState()
     const lpLockDetected = destinationDetails?.hashlock ? true : false;
 
     if (lpLockDetected) {
-        if (destinationDetails?.fetchedByLightClient) {
+        if (destinationDetailsByLightClient?.data && destinationDetailsByLightClient?.data?.hashlock == destinationDetails?.hashlock) {
             return <div className="flex items-center gap-1 text-sm">
                 <p>
-                    Transaction verified by
+                    Transaction is verified by a
                 </p>
                 <div className="font-medium text-accent flex items-center gap-1">
                     <p>Light Client</p>
@@ -107,7 +109,7 @@ const SolverStatus: FC = () => {
         }
 
         return <p className="text-sm text-primary-text-placeholder">
-            Transaction verified by RPCs
+            Transaction is verified by RPCs
         </p>
     }
 
@@ -116,15 +118,21 @@ const SolverStatus: FC = () => {
 
 
 export const LpLockingAssets: FC = () => {
-    const { destinationDetails, commitStatus, sourceDetails, commitFromApi, destination_network } = useAtomicState()
+    const { destinationDetails, commitStatus, sourceDetails, commitFromApi, destination_network, verifyingByLightClient, destinationDetailsByLightClient, updateCommit } = useAtomicState()
     const completed = destinationDetails?.hashlock ? true : false;
     const loading = sourceDetails && !destinationDetails?.hashlock
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
 
-    const title = completed ? 'Assets reserved' : 'Wait for response'
+    const title = completed ? 'Assets reserved' : 'Await reservation'
     const completedTxLink = lpLockTx && destination_network?.transactionExplorerTemplate.replace('{0}', lpLockTx.hash)
 
     const { setPulseState } = usePulsatingCircles();
+
+    useEffect(() => {
+        if(destinationDetailsByLightClient?.data && destinationDetails?.hashlock !== destinationDetailsByLightClient?.data?.hashlock) {
+            updateCommit('error', { buttonText: 'Ok', message: 'Hashlock mismatch, please wait for refund.' })
+        }
+    }, [destinationDetails, destinationDetailsByLightClient]);
 
     useEffect(() => {
         setPulseState((loading && commitStatus !== CommitStatus.TimelockExpired) ? "pulsing" : "initial");
@@ -171,10 +179,38 @@ export const LpLockingAssets: FC = () => {
                     </div>
                     <SolverStatus />
                 </div>
-                {
-                    destination_network && completedTxLink && completed &&
-                    <TxLink txLink={completedTxLink} />
-                }
+                <div className="flex flex-col items-end gap-2">
+                    <div className="flex items-center gap-1">
+                        {
+                            destinationDetailsByLightClient?.error &&
+                            <MobileTooltip
+                                trigger={
+                                    <div className="bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm">
+                                        <Info className="h-4 w-auto" />
+                                    </div>
+                                }
+                            >
+                                {destinationDetailsByLightClient?.error}
+                            </MobileTooltip>
+                        }
+                        {
+                            destination_network && completedTxLink && completed &&
+                            <TxLink txLink={completedTxLink} />
+                        }
+                    </div>
+                    {
+                        verifyingByLightClient && !destinationDetailsByLightClient?.data && destinationDetails?.hashlock &&
+                        <div className="flex items-center text-sm gap-1">
+                            <p>
+                                Verifying
+                            </p>
+                            <div className="relative">
+                                <LoaderIcon className="animate-reverse-spin h-6 w-6" />
+                                <LockIcon className="h-3 w-3 text-accent absolute top-1.5 right-1.5" />
+                            </div>
+                        </div>
+                    }
+                </div>
             </div>
         </>
     )
