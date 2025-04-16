@@ -18,6 +18,7 @@ import {
     getAddress,
     numberToHex,
 } from 'viem'
+import { getInjectedConnector, hasInjectedProvider } from '../getInjectedConnector'
 import { isAndroid } from '../utils/isMobile'
 
 type WalletConnectConnector = Connector & {
@@ -73,8 +74,14 @@ export type WalletConnectParameters = Compute<
     ExactPartial<Pick<EthereumProviderOptions, 'showQrModal'>>
 >
 
-bitget.type = 'my_walletConnect' as const
-export function bitget(parameters: WalletConnectParameters) {
+export function okxWallet(parameters: WalletConnectParameters & { providers?: any[] }) {
+    const isOkxInjected = parameters?.providers?.some((provider) => provider.info.name.toLowerCase() === 'okx wallet');
+    const shouldUseWalletConnect = !isOkxInjected;
+    return shouldUseWalletConnect ? walletConnect(parameters) : getInjectedConnector({ flag: 'isOkxWallet' })({ id: 'okxWallet', name: 'OKX Wallet' });
+}
+
+walletConnect.type = 'okxWallet' as const
+export function walletConnect(parameters: WalletConnectParameters) {
     const isNewChainsStale = parameters.isNewChainsStale ?? true
 
     type Provider = Awaited<ReturnType<(typeof EthereumProvider)['init']>>
@@ -109,16 +116,17 @@ export function bitget(parameters: WalletConnectParameters) {
 
     return createConnector<Provider, Properties, StorageItem>((config) => {
         return ({
-            id: 'bitget',
-            name: 'BitGet',
-            rdns: 'com.bitget.web3',
-            deepLink: 'bitkeep://wc',
+            id: 'okxWallet',
+            name: 'OKX Wallet',
+            rdns: 'com.okex.wallet',
+            deepLink: 'okex://main/wc',
             resolveURI: (uri: string) => {
                 return isAndroid()
                     ? uri
-                    : `bitkeep://wc?uri=${encodeURIComponent(uri)}`;
+                    : `okex://main/wc?uri=${encodeURIComponent(uri)}`;
             },
-            type: bitget.type,
+            icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCAyOCAyOCI+PHBhdGggZmlsbD0iIzAwMCIgZD0iTTAgMGgyOHYyOEgweiIvPjxwYXRoIGZpbGw9IiNmZmYiIGZpbGwtcnVsZT0iZXZlbm9kZCIgZD0iTTEwLjgxOSA1LjU1Nkg1LjkzYS4zNzYuMzc2IDAgMCAwLS4zNzUuMzc1djQuODg4YzAgLjIwNy4xNjguMzc1LjM3NS4zNzVoNC44ODhhLjM3Ni4zNzYgMCAwIDAgLjM3NS0uMzc2VjUuOTMyYS4zNzYuMzc2IDAgMCAwLS4zNzYtLjM3NVptNS42NCA1LjYzOGgtNC44ODZhLjM3Ni4zNzYgMCAwIDAtLjM3Ni4zNzZ2NC44ODdjMCAuMjA4LjE2OC4zNzYuMzc2LjM3Nmg0Ljg4N2EuMzc2LjM3NiAwIDAgMCAuMzc2LS4zNzVWMTEuNTdhLjM3Ni4zNzYgMCAwIDAtLjM3Ni0uMzc3Wm0uNzUtNS42MzhoNC44ODdjLjIwOCAwIC4zNzYuMTY4LjM3Ni4zNzV2NC44ODhhLjM3Ni4zNzYgMCAwIDEtLjM3Ni4zNzVIMTcuMjFhLjM3Ni4zNzYgMCAwIDEtLjM3Ni0uMzc2VjUuOTMzYzAtLjIwOC4xNjktLjM3Ni4zNzYtLjM3NlptLTYuMzkgMTEuMjc3SDUuOTNhLjM3Ni4zNzYgMCAwIDAtLjM3NS4zNzZ2NC44ODdjMCAuMjA4LjE2OC4zNzYuMzc1LjM3Nmg0Ljg4OGEuMzc2LjM3NiAwIDAgMCAuMzc1LS4zNzZWMTcuMjFhLjM3Ni4zNzYgMCAwIDAtLjM3Ni0uMzc2Wm02LjM5IDBoNC44ODdjLjIwOCAwIC4zNzYuMTY5LjM3Ni4zNzZ2NC44ODdhLjM3Ni4zNzYgMCAwIDEtLjM3Ni4zNzZIMTcuMjFhLjM3Ni4zNzYgMCAwIDEtLjM3Ni0uMzc2VjE3LjIxYzAtLjIwNy4xNjktLjM3Ni4zNzYtLjM3NloiIGNsaXAtcnVsZT0iZXZlbm9kZCIvPjwvc3ZnPg==',
+            type: walletConnect.type,
             async setup() {
                 const provider = await this.getProvider().catch(() => null)
                 if (!provider) return

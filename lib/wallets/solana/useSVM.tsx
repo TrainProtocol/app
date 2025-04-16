@@ -13,10 +13,11 @@ import { useSettingsState } from "../../../context/settings"
 import { useCallback } from "react"
 import { lockTransactionBuilder, phtlcTransactionBuilder } from "./transactionBuilder"
 import LayerSwapApiClient from "../../layerSwapApiClient"
+import { Adapter } from "@solana/wallet-adapter-base"
 
 const solanaNames = [KnownInternalNames.Networks.SolanaMainnet, KnownInternalNames.Networks.SolanaDevnet, KnownInternalNames.Networks.SolanaTestnet]
 
-export default function useSolana({ network }: { network: Network | undefined }): WalletProvider {
+export default function useSVM({ network }: { network: Network | undefined }): WalletProvider {
 
     network = network?.type === NetworkType.Solana ? network : undefined
 
@@ -63,9 +64,10 @@ export default function useSolana({ network }: { network: Network | undefined })
             connect: () => connectWallet(),
             isActive: true,
             addresses: [connectedAddress],
-            withdrawalSupportedNetworks: commonSupportedNetworks,
-            asSourceSupportedNetworks: commonSupportedNetworks,
-            autofillSupportedNetworks: commonSupportedNetworks,
+            isNotAvailable: isNotAvailable(connectedWallet?.adapter, network),
+            asSourceSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
+            autofillSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
+            withdrawalSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
             networkIcon: networks.find(n => solanaNames.some(name => name === n.name))?.logo
         } : undefined
 
@@ -87,24 +89,26 @@ export default function useSolana({ network }: { network: Network | undefined })
     const connectConnector = async ({ connector }: { connector: InternalConnector }) => {
         const solanaConnector = wallets.find(w => w.adapter.name === connector.name)
         if (!solanaConnector) throw new Error('Connector not found')
+        if (connectedWallet) await solanaConnector.adapter.disconnect()
         select(solanaConnector.adapter.name)
         await solanaConnector.adapter.connect()
 
-        const connectedWallet = wallets.find(w => w.adapter.connected === true)
-        const connectedAddress = connectedWallet?.adapter.publicKey?.toBase58()
-        const wallet: Wallet | undefined = connectedAddress && connectedWallet ? {
-            id: connectedWallet.adapter.name,
+        const newConnectedWallet = wallets.find(w => w.adapter.connected === true)
+        const connectedAddress = newConnectedWallet?.adapter.publicKey?.toBase58()
+        const wallet: Wallet | undefined = connectedAddress && newConnectedWallet ? {
+            id: newConnectedWallet.adapter.name,
             address: connectedAddress,
-            displayName: `${connectedWallet?.adapter.name} - Solana`,
+            displayName: `${newConnectedWallet?.adapter.name} - Solana`,
             providerName: name,
-            icon: resolveWalletConnectorIcon({ connector: String(connectedWallet?.adapter.name), address: connectedAddress, iconUrl: connectedWallet?.adapter.icon }),
+            icon: resolveWalletConnectorIcon({ connector: String(newConnectedWallet?.adapter.name), address: connectedAddress, iconUrl: newConnectedWallet?.adapter.icon }),
             disconnect,
             connect: () => connectWallet(),
             isActive: true,
             addresses: [connectedAddress],
-            withdrawalSupportedNetworks: commonSupportedNetworks,
-            asSourceSupportedNetworks: commonSupportedNetworks,
-            autofillSupportedNetworks: commonSupportedNetworks,
+            isNotAvailable: isNotAvailable(solanaConnector.adapter, network),
+            asSourceSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
+            autofillSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
+            withdrawalSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
             networkIcon: networks.find(n => solanaNames.some(name => name === n.name))?.logo
         } : undefined
 
@@ -120,32 +124,28 @@ export default function useSolana({ network }: { network: Network | undefined })
         }
     }
 
+
+    const filterConnectors = wallet => !isNotAvailable(wallet.adapter, network)
+    const filteredWallets = wallets.filter(filterConnectors)
+
     const availableWalletsForConnect = useMemo(() => {
         const connectors: InternalConnector[] = [];
-        const solNetwork = network?.name?.toLowerCase().includes('eclipse') ? 'eclipse' : 'solana'
 
-        for (const wallet of wallets) {
+        for (const wallet of filteredWallets) {
 
             const internalConnector: InternalConnector = {
                 name: wallet.adapter.name,
                 id: wallet.adapter.name,
                 icon: wallet.adapter.icon,
-                type: wallet.readyState === 'Installed' ? 'injected' : 'other'
+                type: wallet.readyState === 'Installed' ? 'injected' : 'other',
+                installUrl: (wallet.readyState === 'Installed' || wallet.readyState === 'Loadable') ? undefined : wallet.adapter?.url,
             }
 
-            if (solNetwork === 'eclipse') {
-                if (!(wallet.adapter.name.toLowerCase() === "backpack" || wallet.adapter.name.toLowerCase() === "nightly")) {
-                    continue
-                } else {
-                    connectors.push(internalConnector)
-                }
-            } else {
-                connectors.push(internalConnector)
-            }
+            connectors.push(internalConnector)
         }
 
         return connectors;
-    }, [wallets]);
+    }, [filteredWallets]);
 
     const createPreHTLC = useCallback(async (params: CreatePreHTLCParams): Promise<{ hash: string; commitId: string; } | null | undefined> => {
         if (!program || !publicKey || !network) return null
@@ -326,6 +326,7 @@ export default function useSolana({ network }: { network: Network | undefined })
         asSourceSupportedNetworks: commonSupportedNetworks,
         name,
         id,
+        providerIcon: networks.find(n => solanaNames.some(name => name === n.name))?.logo,
 
         createPreHTLC,
         getDetails,
@@ -342,4 +343,30 @@ function toHexString(byteArray) {
     return Array.from(byteArray, function (byte: any) {
         return ('0' + (byte & 0xFF).toString(16)).slice(-2);
     }).join('')
+}
+
+const isNotAvailable = (connector: Adapter | undefined, network: Network | undefined) => {
+    if (!network) return false
+    if (!connector) return true
+    return resolveSupportedNetworks([network.name], connector.name).length === 0
+}
+
+const networkSupport = {
+    soon: ["okx wallet", "tokenpocket", "nightly"],
+    eclipse: ["nightly", "backpack"],
+};
+
+function resolveSupportedNetworks(supportedNetworks: string[], connectorId: string): string[] {
+    const supportedNetworksForWallet: string[] = [];
+
+    supportedNetworks.forEach((network) => {
+        const networkName = network.split("_")[0].toLowerCase();
+        if (networkName === "solana") {
+            supportedNetworksForWallet.push(networkName);
+        } else if (networkSupport[networkName] && networkSupport[networkName].includes(connectorId?.toLowerCase())) {
+            supportedNetworksForWallet.push(networkName);
+        }
+    });
+
+    return supportedNetworksForWallet;
 }

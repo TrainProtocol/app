@@ -68,7 +68,7 @@ export default function useEVM({ network }: Props): WalletProvider {
     const allConnectors = useConnectors()
     const { connectAsync } = useConnect();
 
-    const { connect, setSelectedProvider } = useConnectModal()
+    const { connect, setSelectedConnector } = useConnectModal()
 
     const connectWallet = async () => {
         try {
@@ -105,8 +105,9 @@ export default function useEVM({ network }: Props): WalletProvider {
 
     const connectConnector = async ({ connector }: { connector: InternalConnector & LSConnector }) => {
         try {
-
-            setSelectedProvider({ ...provider, connector: { name: connector.name } })
+            const Icon = connector.icon || resolveWalletConnectorIcon({ connector: evmConnectorNameResolver(connector) })
+            const base64Icon = typeof Icon == 'string' ? Icon : convertSvgComponentToBase64(Icon)
+            setSelectedConnector({ ...connector, icon: base64Icon })
             if (connector.id !== "coinbaseWalletSDK") {
                 await connector.disconnect()
                 await disconnectAsync({ connector })
@@ -119,22 +120,18 @@ export default function useEVM({ network }: Props): WalletProvider {
                     })
                 }
             }
-            else {
+            else if (connector.type !== 'injected' && connector.id !== "coinbaseWalletSDK") {
+                setSelectedConnector({ ...connector, qr: { state: 'loading', value: undefined } })
                 getWalletConnectUri(connector, connector?.resolveURI, (uri: string) => {
-                    const Icon = resolveWalletConnectorIcon({ connector: evmConnectorNameResolver(connector) })
-                    const base64Icon = convertSvgComponentToBase64(Icon)
-
-                    setSelectedProvider({ ...provider, connector: { name: connector.name, qr: uri, iconUrl: base64Icon } })
+                    setSelectedConnector({ ...connector, icon: base64Icon, qr: { state: 'fetched', value: uri } })
                 })
             }
 
-            await connectAsync({
-                connector: connector,
-            });
+            await connectAsync({ connector });
 
-            const activeAccount = getAccount(config)
+            const activeAccount = await attemptGetAccount(config)
             const connections = getConnections(config)
-            const connection = connections.find(c => c.connector.id === activeAccount.connector?.id)
+            const connection = connections.find(c => c.connector.id === connector?.id)
 
             const wallet = ResolveWallet({
                 activeConnection: (activeAccount.connector && activeAccount.address) ? {
@@ -156,14 +153,13 @@ export default function useEVM({ network }: Props): WalletProvider {
             return wallet
 
         } catch (e) {
-            const error = e as ConnectorAlreadyConnectedError
+            //TODO: handle error like in transfer
+            const error = e
             if (error.name == 'ConnectorAlreadyConnectedError') {
-                toast.error('Wallet is already connected.')
+                throw new Error("Wallet is already connected");
+            } else {
+                throw new Error(e.message || e);
             }
-            else {
-                toast.error('Error connecting wallet')
-            }
-            throw new Error(e)
         }
     }
 
@@ -503,7 +499,7 @@ export default function useEVM({ network }: Props): WalletProvider {
         .map(w => ({
             ...w,
             order: resolveWalletConnectorIndex(w.id),
-            type: (!network?.name.toLowerCase().includes("immutable") && w.id === "com.immutable.passport") ? "other" : w.type
+            type: (w.type == 'injected' && w.id !== 'com.immutable.passport') ? w.type : "other",
         }))
 
     const provider = {
@@ -647,4 +643,20 @@ const resolveSupportedNetworks = (supportedNetworks: string[], connectorId: stri
 
     return supportedNetworks
 
+}
+
+async function attemptGetAccount(config, maxAttempts = 5) {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const account = await getAccount(config);
+
+        if (account.address) {
+            return account;
+        }
+        await sleep(500);
+    }
+
+    return await getAccount(config);
+}
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }

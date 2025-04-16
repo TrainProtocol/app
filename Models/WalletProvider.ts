@@ -8,7 +8,11 @@ export type InternalConnector = {
     id: string,
     icon?: string | undefined,
     order?: number,
-    type?: 'injected' | 'other'
+    type?: 'injected' | 'other',
+    isMultiChain?: boolean,
+    providerName?: string,
+    installUrl?: string,
+    isMobileSupported?: boolean,
 }
 
 export type Wallet = {
@@ -21,7 +25,9 @@ export type Wallet = {
     icon: (props: any) => React.JSX.Element;
     metadata?: {
         starknetAccount?: AccountInterface,
-        wallet?: StarknetWindowObject
+        wallet?: StarknetWindowObject,
+        l1Address?: string,
+        deepLink?: string
     }
     chainId?: string | number,
     isLoading?: boolean,
@@ -36,7 +42,7 @@ export type Wallet = {
 
 
 export type WalletProvider = {
-    isWrapper?: boolean,
+    hideFromList?: boolean,
     connectWallet: () => Promise<Wallet | undefined>,
     connectConnector?: (props?: { connector: InternalConnector }) => Promise<Wallet | undefined> | undefined
     switchAccount?: (connector: Wallet, address: string) => Promise<void>
@@ -48,6 +54,7 @@ export type WalletProvider = {
     asSourceSupportedNetworks?: string[],
     name: string,
     id: string,
+    providerIcon?: string,
 
     createPreHTLC: (args: CreatePreHTLCParams) => Promise<{ hash: string, commitId: string } | null | undefined>,
     claim: (args: ClaimParams) => Promise<string> | undefined | void,
