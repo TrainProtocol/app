@@ -55,8 +55,8 @@ function WagmiComponent({ children }: Props) {
     const config = createConfig({
         connectors: [
             coinbaseWallet({
-                appName: 'Layerswap',
-                appLogoUrl: 'https://layerswap.io/app/symbol.png',
+                appName: 'TRAIN',
+                appLogoUrl: 'https://app.train.tech/symbol.png',
             }),
             walletConnect({ projectId: WALLETCONNECT_PROJECT_ID, showQrModal: isMobile(), customStoragePrefix: 'walletConnect' }),
             argent({ projectId: WALLETCONNECT_PROJECT_ID, showQrModal: false, customStoragePrefix: 'argent' }),
