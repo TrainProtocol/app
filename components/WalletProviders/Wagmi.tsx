@@ -1,4 +1,5 @@
 import { useSettingsState } from "../../context/settings";
+import { NetworkType } from "../../Models/Network";
 import resolveChain from "../../lib/resolveChain";
 import React from "react";
 import NetworkSettings from "../../lib/NetworkSettings";
@@ -9,13 +10,15 @@ import { Chain, http } from 'viem';
 import { WalletModalProvider } from '../WalletModal';
 import { argent } from '../../lib/wallets/connectors/argent';
 import { rainbow } from '../../lib/wallets/connectors/rainbow';
-import { coinbaseWallet, metaMask, walletConnect } from 'wagmi/connectors'
+import { metaMask } from '../../lib/wallets/connectors/metamask';
+import { coinbaseWallet, walletConnect } from '@wagmi/connectors'
 import { hasInjectedProvider } from '../../lib/wallets/connectors/getInjectedConnector';
 import { bitget } from '../../lib/wallets/connectors/bitget';
 import { isMobile } from '../../lib/isMobile';
 import FuelProviderWrapper from "./FuelProvider";
 import { browserInjected } from "../../lib/wallets/connectors/browserInjected";
-import { NetworkType } from "../../Models/Network";
+import { useSyncProviders } from "../../lib/wallets/connectors/useSyncProviders";
+import { okxWallet } from "../../lib/wallets/connectors/okxWallet";
 
 type Props = {
     children: JSX.Element | JSX.Element[]
@@ -25,6 +28,7 @@ const WALLETCONNECT_PROJECT_ID = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_
 const queryClient = new QueryClient()
 
 function WagmiComponent({ children }: Props) {
+    const providers = useSyncProviders();
     const settings = useSettingsState();
     const isChain = (c: Chain | undefined): c is Chain => c != undefined
     const settingsChains = settings?.networks
@@ -40,7 +44,8 @@ function WagmiComponent({ children }: Props) {
     settingsChains.forEach(chain => {
         transports[chain.id] = chain.rpcUrls.default.http[0] ? http(chain.rpcUrls.default.http[0]) : http()
     })
-    const isMetaMaskInjected = hasInjectedProvider({ flag: 'isMetaMask' });
+    const isMetaMaskInjected = providers?.some(provider => provider.info.name.toLowerCase() === 'metamask');
+    const isOkxInjected = providers?.some(provider => provider.info.name.toLowerCase() === 'okx wallet');
     const isRainbowInjected = hasInjectedProvider({ flag: 'isRainbow' });
     const isBitKeepInjected = hasInjectedProvider({
         namespace: 'bitkeep.ethereum',
@@ -50,14 +55,15 @@ function WagmiComponent({ children }: Props) {
     const config = createConfig({
         connectors: [
             coinbaseWallet({
-                appName: 'Layerswap',
-                appLogoUrl: 'https://layerswap.io/app/symbol.png',
+                appName: 'TRAIN',
+                appLogoUrl: 'https://app.train.tech/symbol.png',
             }),
             walletConnect({ projectId: WALLETCONNECT_PROJECT_ID, showQrModal: isMobile(), customStoragePrefix: 'walletConnect' }),
             argent({ projectId: WALLETCONNECT_PROJECT_ID, showQrModal: false, customStoragePrefix: 'argent' }),
-            ...(!isMetaMaskInjected ? [metaMask()] : []),
+            ...(!isMetaMaskInjected ? [metaMask({ projectId: WALLETCONNECT_PROJECT_ID, showQrModal: false, customStoragePrefix: 'metamask', providers })] : []),
             ...(!isRainbowInjected ? [rainbow({ projectId: WALLETCONNECT_PROJECT_ID, showQrModal: false, customStoragePrefix: 'rainbow' })] : []),
             ...(!isBitKeepInjected ? [bitget({ projectId: WALLETCONNECT_PROJECT_ID, showQrModal: false, customStoragePrefix: 'bitget' })] : []),
+            ...(!isOkxInjected ? [okxWallet({ projectId: WALLETCONNECT_PROJECT_ID, showQrModal: false, customStoragePrefix: 'okxWallet', providers })] : []),
             browserInjected()
         ],
         chains: settingsChains as [Chain, ...Chain[]],

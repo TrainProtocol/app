@@ -1,27 +1,29 @@
 import { Network } from "../Models/Network"
 import useEVM from "../lib/wallets/evm/useEVM";
-import useSolana from "../lib/wallets/solana/useSolana";
+import useSVM from "../lib/wallets/solana/useSVM";
 import useStarknet from "../lib/wallets/starknet/useStarknet";
 import useTON from "../lib/wallets/ton/useTON";
 import { Wallet, WalletProvider } from "../Models/WalletProvider";
 import { useMemo } from "react";
+import { useSettingsState } from "../context/settings";
 
 export type WalletPurpose = "autofil" | "withdrawal" | "asSource"
 
 export default function useWallet(network?: Network | undefined, purpose?: WalletPurpose) {
+    const { networks } = useSettingsState()
 
     const walletProviders: WalletProvider[] = [
         useEVM({ network }),
         useStarknet(),
-        useSolana({ network }),
+        useSVM({ network }),
         useTON(),
-    ]
+    ].filter(provider => networks.some(obj => provider?.autofillSupportedNetworks?.includes(obj.name) || provider?.withdrawalSupportedNetworks?.includes(obj.name) || provider?.asSourceSupportedNetworks?.includes(obj.name)))
 
     const provider = network && resolveProvider(network, walletProviders, purpose)
 
     const wallets = useMemo(() => {
         let connectedWallets: Wallet[] = [];
-        walletProviders.filter(p => !p.isWrapper).forEach((wallet) => {
+        walletProviders.forEach((wallet) => {
             const w = wallet.connectedWallets;
             connectedWallets = w ? [...connectedWallets, ...w] : [...connectedWallets];
         });
