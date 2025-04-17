@@ -1,10 +1,10 @@
 
 <br />
 <div align="left">
-  <h1 align="left">UI for Train web application</h1>
+  <h1 align="left">UI for TRAIN web application</h1>
 </div>
  
-This repository contains implementation of Train UI
+This repository contains implementation of TRAIN UI
 
  
 
