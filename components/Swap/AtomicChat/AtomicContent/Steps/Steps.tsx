@@ -96,7 +96,7 @@ const SolverStatus: FC = () => {
     const lpLockDetected = destinationDetails?.hashlock ? true : false;
 
     if (lpLockDetected) {
-        if (destinationDetailsByLightClient?.data && destinationDetailsByLightClient?.data?.hashlock == destinationDetails?.hashlock) {
+        if (destinationDetailsByLightClient?.data?.hashlock && destinationDetails?.hashlock && destinationDetailsByLightClient?.data?.hashlock == destinationDetails?.hashlock) {
             return <div className="flex items-center gap-1 text-sm">
                 <p>
                     Transaction is verified by a
@@ -129,7 +129,7 @@ export const LpLockingAssets: FC = () => {
     const { setPulseState } = usePulsatingCircles();
 
     useEffect(() => {
-        if(destinationDetailsByLightClient?.data && destinationDetails?.hashlock !== destinationDetailsByLightClient?.data?.hashlock) {
+        if (destinationDetailsByLightClient?.data?.hashlock && destinationDetails?.hashlock && destinationDetails?.hashlock !== destinationDetailsByLightClient?.data?.hashlock) {
             updateCommit('error', { buttonText: 'Ok', message: 'Hashlock mismatch, please wait for refund.' })
         }
     }, [destinationDetails, destinationDetailsByLightClient]);

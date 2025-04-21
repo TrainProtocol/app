@@ -2,7 +2,7 @@ import { Context, createContext, useContext, useEffect, useMemo, useState } from
 import { useRouter } from 'next/router';
 import { useSettingsState } from './settings';
 import { Commit } from '../Models/PHTLC';
-import { Network, Token } from '../Models/Network';
+import { ContractType, Network, Token } from '../Models/Network';
 import useSWR from 'swr';
 import { ApiResponse } from '../Models/ApiResponse';
 import { CommitFromApi, CommitTransaction } from '../lib/layerSwapApiClient';
@@ -123,6 +123,8 @@ export function AtomicProvider({ children }) {
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
     const isManualClaimable = !!(assetsLocked && sourceDetails?.claimed == 3 && destinationDetails?.claimed != 3 && (sourceDetails.claimTime && (Date.now() - sourceDetails.claimTime > 30000)))
 
+    const destAtomicContract = destination_network?.contracts.find(c => destination_token?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
+
     const fetcher = (args) => fetch(args).then(res => res.json())
     const url = process.env.NEXT_PUBLIC_TRAIN_API
     const { data } = useSWR<ApiResponse<CommitFromApi>>((commitId && !destinationRedeemTx) ? `${url}/api/swaps/${commitId}` : null, fetcher, { refreshInterval: 5000 })
@@ -149,6 +151,34 @@ export function AtomicProvider({ children }) {
             })()
         }
     }, [destination_network])
+
+    useEffect(() => {
+        (async () => {
+            if (destination_network && destination_token && commitId && destination_asset && lightClient && !sourceDetails?.hashlock && destAtomicContract) {
+                try {
+                    setVerifyingByLightClient(true)
+                    const data = await lightClient.getHashlock({
+                        network: destination_network,
+                        token: destination_token,
+                        commitId,
+                        atomicContract: destAtomicContract
+                    })
+                    if (data) {
+                        updateCommit('destinationDetailsByLightClient', {data})
+                        return
+                    }
+                }
+                catch (e) {
+                    updateCommit('destinationDetailsByLightClient', { data: undefined, error: 'Light client is not available' })
+                    console.log(e)
+                }
+                finally {
+                    setVerifyingByLightClient(false)
+                }
+            }
+        })()
+    }, [destination_network, commitId, destAtomicContract, lightClient, destination_token, sourceDetails, destination_asset])
+
 
     useEffect(() => {
         let timer: NodeJS.Timeout;
