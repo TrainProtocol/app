@@ -6,7 +6,7 @@ import { WalletProvider } from "../../../../Models/WalletProvider";
 import ButtonStatus from "./Status/ButtonStatus";
 
 export const LpLockingAssets: FC = () => {
-    const { destination_network, commitId, updateCommit, destination_asset, lightClient, sourceDetails, setVerifyingByLightClient } = useAtomicState()
+    const { destination_network, commitId, updateCommit, destination_asset } = useAtomicState()
     const { provider } = useWallet(destination_network, 'autofil')
     const [loading, setLoading] = useState(false)
 
@@ -63,31 +63,10 @@ export const LpLockingAssets: FC = () => {
             if (provider && destination_network && commitId && destination_asset && !loading) {
                 setLoading(true)
                 getDetails({ provider, network: destination_network, commitId, asset: destination_asset })
-                if (lightClient && !sourceDetails?.hashlock && atomicContract) {
-                    try {
-                        setVerifyingByLightClient(true)
-                        const data = await lightClient.getHashlock({
-                            network: destination_network,
-                            token: destination_asset,
-                            commitId,
-                            atomicContract
-                        })
-                        if (data) {
-                            updateCommit('destinationDetailsByLightClient', data)
-                            return
-                        }
-                    }
-                    catch (e) {
-                        updateCommit('destinationDetailsByLightClient', { data: undefined, error: 'Light client is not available' })
-                        console.log(e)
-                    }
-                    finally {
-                        setVerifyingByLightClient(false)
-                    }
-                }
             }
         })()
     }, [provider, destination_network, commitId, loading, atomicContract])
+
 
     return <ButtonStatus
         isDisabled={true}

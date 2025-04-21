@@ -193,7 +193,6 @@ export const lockTransactionBuilder = async (params: CommitmentParams & LockPara
     const lockTx = await program.methods.addLock(commitIdBuffer, hashlockBuffer, TIMELOCK)
         .accountsPartial({
             sender: walletPublicKey,
-            payer: walletPublicKey,
             htlc,
         })
         .transaction();
