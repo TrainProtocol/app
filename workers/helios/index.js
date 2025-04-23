@@ -211,8 +211,8 @@ function __wbg_adapter_55(arg0, arg1) {
     wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h1a810c12566889eb(arg0, arg1);
 }
 
-function __wbg_adapter_188(arg0, arg1, arg2, arg3) {
-    wasm.closure220_externref_shim(arg0, arg1, arg2, arg3);
+function __wbg_adapter_223(arg0, arg1, arg2, arg3) {
+    wasm.closure221_externref_shim(arg0, arg1, arg2, arg3);
 }
 
 const __wbindgen_enum_RequestCredentials = ["omit", "same-origin", "include"];
@@ -556,6 +556,334 @@ export class EthereumClient {
     client_version() {
         const ret = wasm.ethereumclient_client_version(this.__wbg_ptr);
         return ret;
+    }
+}
+
+const LineaClientFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_lineaclient_free(ptr >>> 0, 1));
+
+export class LineaClient {
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        LineaClientFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_lineaclient_free(ptr, 0);
+    }
+    /**
+     * @param {string | null | undefined} execution_rpc
+     * @param {string} network
+     */
+    constructor(execution_rpc, network) {
+        var ptr0 = isLikeNone(execution_rpc) ? 0 : passStringToWasm0(execution_rpc, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        const ptr1 = passStringToWasm0(network, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len1 = WASM_VECTOR_LEN;
+        const ret = wasm.lineaclient_new(ptr0, len0, ptr1, len1);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        this.__wbg_ptr = ret[0] >>> 0;
+        LineaClientFinalization.register(this, this.__wbg_ptr, this);
+        return this;
+    }
+    /**
+     * @returns {Promise<void>}
+     */
+    sync() {
+        const ret = wasm.lineaclient_sync(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @returns {Promise<void>}
+     */
+    wait_synced() {
+        const ret = wasm.lineaclient_wait_synced(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @returns {number}
+     */
+    chain_id() {
+        const ret = wasm.lineaclient_chain_id(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * @returns {Promise<number>}
+     */
+    get_block_number() {
+        const ret = wasm.lineaclient_get_block_number(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {any} addr
+     * @param {any} block
+     * @returns {Promise<string>}
+     */
+    get_balance(addr, block) {
+        const ret = wasm.lineaclient_get_balance(this.__wbg_ptr, addr, block);
+        return ret;
+    }
+    /**
+     * @param {string} hash
+     * @returns {Promise<any>}
+     */
+    get_transaction_by_hash(hash) {
+        const ptr0 = passStringToWasm0(hash, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.lineaclient_get_transaction_by_hash(this.__wbg_ptr, ptr0, len0);
+        return ret;
+    }
+    /**
+     * @param {any} hash
+     * @param {any} index
+     * @returns {Promise<any>}
+     */
+    get_transaction_by_block_hash_and_index(hash, index) {
+        const ret = wasm.lineaclient_get_transaction_by_block_hash_and_index(this.__wbg_ptr, hash, index);
+        return ret;
+    }
+    /**
+     * @param {any} block
+     * @param {any} index
+     * @returns {Promise<any>}
+     */
+    get_transaction_by_block_number_and_index(block, index) {
+        const ret = wasm.lineaclient_get_transaction_by_block_number_and_index(this.__wbg_ptr, block, index);
+        return ret;
+    }
+    /**
+     * @param {any} addr
+     * @param {any} block
+     * @returns {Promise<number>}
+     */
+    get_transaction_count(addr, block) {
+        const ret = wasm.lineaclient_get_transaction_count(this.__wbg_ptr, addr, block);
+        return ret;
+    }
+    /**
+     * @param {any} hash
+     * @returns {Promise<number | undefined>}
+     */
+    get_block_transaction_count_by_hash(hash) {
+        const ret = wasm.lineaclient_get_block_transaction_count_by_hash(this.__wbg_ptr, hash);
+        return ret;
+    }
+    /**
+     * @param {any} block
+     * @returns {Promise<number | undefined>}
+     */
+    get_block_transaction_count_by_number(block) {
+        const ret = wasm.lineaclient_get_block_transaction_count_by_number(this.__wbg_ptr, block);
+        return ret;
+    }
+    /**
+     * @param {any} block
+     * @param {boolean} full_tx
+     * @returns {Promise<any>}
+     */
+    get_block_by_number(block, full_tx) {
+        const ret = wasm.lineaclient_get_block_by_number(this.__wbg_ptr, block, full_tx);
+        return ret;
+    }
+    /**
+     * @param {string} hash
+     * @param {boolean} full_tx
+     * @returns {Promise<any>}
+     */
+    get_block_by_hash(hash, full_tx) {
+        const ptr0 = passStringToWasm0(hash, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.lineaclient_get_block_by_hash(this.__wbg_ptr, ptr0, len0, full_tx);
+        return ret;
+    }
+    /**
+     * @param {any} addr
+     * @param {any} block
+     * @returns {Promise<string>}
+     */
+    get_code(addr, block) {
+        const ret = wasm.lineaclient_get_code(this.__wbg_ptr, addr, block);
+        return ret;
+    }
+    /**
+     * @param {any} address
+     * @param {any} slot
+     * @param {any} block
+     * @returns {Promise<any>}
+     */
+    get_storage_at(address, slot, block) {
+        const ret = wasm.lineaclient_get_storage_at(this.__wbg_ptr, address, slot, block);
+        return ret;
+    }
+    /**
+     * @param {any} address
+     * @param {any} storage_keys
+     * @param {any} block
+     * @returns {Promise<any>}
+     */
+    get_proof(address, storage_keys, block) {
+        const ret = wasm.lineaclient_get_proof(this.__wbg_ptr, address, storage_keys, block);
+        return ret;
+    }
+    /**
+     * @param {any} opts
+     * @param {any} block
+     * @returns {Promise<string>}
+     */
+    call(opts, block) {
+        const ret = wasm.lineaclient_call(this.__wbg_ptr, opts, block);
+        return ret;
+    }
+    /**
+     * @param {any} opts
+     * @param {any} block
+     * @returns {Promise<number>}
+     */
+    estimate_gas(opts, block) {
+        const ret = wasm.lineaclient_estimate_gas(this.__wbg_ptr, opts, block);
+        return ret;
+    }
+    /**
+     * @param {any} opts
+     * @param {any} block
+     * @returns {Promise<any>}
+     */
+    create_access_list(opts, block) {
+        const ret = wasm.lineaclient_create_access_list(this.__wbg_ptr, opts, block);
+        return ret;
+    }
+    /**
+     * @returns {Promise<any>}
+     */
+    gas_price() {
+        const ret = wasm.lineaclient_gas_price(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @returns {Promise<any>}
+     */
+    max_priority_fee_per_gas() {
+        const ret = wasm.lineaclient_max_priority_fee_per_gas(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {string} tx
+     * @returns {Promise<any>}
+     */
+    send_raw_transaction(tx) {
+        const ptr0 = passStringToWasm0(tx, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.lineaclient_send_raw_transaction(this.__wbg_ptr, ptr0, len0);
+        return ret;
+    }
+    /**
+     * @param {any} tx
+     * @returns {Promise<any>}
+     */
+    get_transaction_receipt(tx) {
+        const ret = wasm.lineaclient_get_transaction_receipt(this.__wbg_ptr, tx);
+        return ret;
+    }
+    /**
+     * @param {any} block
+     * @returns {Promise<any>}
+     */
+    get_block_receipts(block) {
+        const ret = wasm.lineaclient_get_block_receipts(this.__wbg_ptr, block);
+        return ret;
+    }
+    /**
+     * @param {any} filter
+     * @returns {Promise<any>}
+     */
+    get_logs(filter) {
+        const ret = wasm.lineaclient_get_logs(this.__wbg_ptr, filter);
+        return ret;
+    }
+    /**
+     * @param {any} filter_id
+     * @returns {Promise<any>}
+     */
+    get_filter_changes(filter_id) {
+        const ret = wasm.lineaclient_get_filter_changes(this.__wbg_ptr, filter_id);
+        return ret;
+    }
+    /**
+     * @param {any} filter_id
+     * @returns {Promise<any>}
+     */
+    get_filter_logs(filter_id) {
+        const ret = wasm.lineaclient_get_filter_logs(this.__wbg_ptr, filter_id);
+        return ret;
+    }
+    /**
+     * @param {any} filter_id
+     * @returns {Promise<boolean>}
+     */
+    uninstall_filter(filter_id) {
+        const ret = wasm.lineaclient_uninstall_filter(this.__wbg_ptr, filter_id);
+        return ret;
+    }
+    /**
+     * @param {any} filter
+     * @returns {Promise<any>}
+     */
+    new_filter(filter) {
+        const ret = wasm.lineaclient_new_filter(this.__wbg_ptr, filter);
+        return ret;
+    }
+    /**
+     * @returns {Promise<any>}
+     */
+    new_block_filter() {
+        const ret = wasm.lineaclient_new_block_filter(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @returns {Promise<any>}
+     */
+    new_pending_transaction_filter() {
+        const ret = wasm.lineaclient_new_pending_transaction_filter(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @returns {Promise<string>}
+     */
+    client_version() {
+        const ret = wasm.lineaclient_client_version(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {any} sub_type
+     * @param {string} id
+     * @param {Function} callback
+     * @returns {Promise<boolean>}
+     */
+    subscribe(sub_type, id, callback) {
+        const ptr0 = passStringToWasm0(id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.lineaclient_subscribe(this.__wbg_ptr, sub_type, ptr0, len0, callback);
+        return ret;
+    }
+    /**
+     * @param {string} id
+     * @returns {boolean}
+     */
+    unsubscribe(id) {
+        const ptr0 = passStringToWasm0(id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.lineaclient_unsubscribe(this.__wbg_ptr, ptr0, len0);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return ret[0] !== 0;
     }
 }
 
@@ -1106,7 +1434,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wbg_adapter_188(a, state0.b, arg0, arg1);
+                    return __wbg_adapter_223(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -1336,19 +1664,19 @@ function __wbg_get_imports() {
         const ret = false;
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper7916 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper8382 = function(arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 278, __wbg_adapter_52);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper7975 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper8445 = function(arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 278, __wbg_adapter_55);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper8022 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper8499 = function(arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 278, __wbg_adapter_55);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper8349 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper8828 = function(arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 278, __wbg_adapter_55);
         return ret;
     };

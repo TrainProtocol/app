@@ -38,6 +38,44 @@ export class EthereumClient {
   new_pending_transaction_filter(): Promise<any>;
   client_version(): Promise<string>;
 }
+export class LineaClient {
+  free(): void;
+  constructor(execution_rpc: string | null | undefined, network: string);
+  sync(): Promise<void>;
+  wait_synced(): Promise<void>;
+  chain_id(): number;
+  get_block_number(): Promise<number>;
+  get_balance(addr: any, block: any): Promise<string>;
+  get_transaction_by_hash(hash: string): Promise<any>;
+  get_transaction_by_block_hash_and_index(hash: any, index: any): Promise<any>;
+  get_transaction_by_block_number_and_index(block: any, index: any): Promise<any>;
+  get_transaction_count(addr: any, block: any): Promise<number>;
+  get_block_transaction_count_by_hash(hash: any): Promise<number | undefined>;
+  get_block_transaction_count_by_number(block: any): Promise<number | undefined>;
+  get_block_by_number(block: any, full_tx: boolean): Promise<any>;
+  get_block_by_hash(hash: string, full_tx: boolean): Promise<any>;
+  get_code(addr: any, block: any): Promise<string>;
+  get_storage_at(address: any, slot: any, block: any): Promise<any>;
+  get_proof(address: any, storage_keys: any, block: any): Promise<any>;
+  call(opts: any, block: any): Promise<string>;
+  estimate_gas(opts: any, block: any): Promise<number>;
+  create_access_list(opts: any, block: any): Promise<any>;
+  gas_price(): Promise<any>;
+  max_priority_fee_per_gas(): Promise<any>;
+  send_raw_transaction(tx: string): Promise<any>;
+  get_transaction_receipt(tx: any): Promise<any>;
+  get_block_receipts(block: any): Promise<any>;
+  get_logs(filter: any): Promise<any>;
+  get_filter_changes(filter_id: any): Promise<any>;
+  get_filter_logs(filter_id: any): Promise<any>;
+  uninstall_filter(filter_id: any): Promise<boolean>;
+  new_filter(filter: any): Promise<any>;
+  new_block_filter(): Promise<any>;
+  new_pending_transaction_filter(): Promise<any>;
+  client_version(): Promise<string>;
+  subscribe(sub_type: any, id: string, callback: Function): Promise<boolean>;
+  unsubscribe(id: string): boolean;
+}
 export class OpStackClient {
   free(): void;
   constructor(execution_rpc: string | null | undefined, execution_verifiable_api: string | null | undefined, network: string);
@@ -117,6 +155,42 @@ export interface InitOutput {
   readonly ethereumclient_new_block_filter: (a: number) => any;
   readonly ethereumclient_new_pending_transaction_filter: (a: number) => any;
   readonly ethereumclient_client_version: (a: number) => any;
+  readonly __wbg_lineaclient_free: (a: number, b: number) => void;
+  readonly lineaclient_new: (a: number, b: number, c: number, d: number) => [number, number, number];
+  readonly lineaclient_sync: (a: number) => any;
+  readonly lineaclient_wait_synced: (a: number) => any;
+  readonly lineaclient_chain_id: (a: number) => number;
+  readonly lineaclient_get_block_number: (a: number) => any;
+  readonly lineaclient_get_balance: (a: number, b: any, c: any) => any;
+  readonly lineaclient_get_transaction_by_hash: (a: number, b: number, c: number) => any;
+  readonly lineaclient_get_transaction_by_block_hash_and_index: (a: number, b: any, c: any) => any;
+  readonly lineaclient_get_transaction_by_block_number_and_index: (a: number, b: any, c: any) => any;
+  readonly lineaclient_get_transaction_count: (a: number, b: any, c: any) => any;
+  readonly lineaclient_get_block_transaction_count_by_hash: (a: number, b: any) => any;
+  readonly lineaclient_get_block_transaction_count_by_number: (a: number, b: any) => any;
+  readonly lineaclient_get_block_by_number: (a: number, b: any, c: number) => any;
+  readonly lineaclient_get_block_by_hash: (a: number, b: number, c: number, d: number) => any;
+  readonly lineaclient_get_code: (a: number, b: any, c: any) => any;
+  readonly lineaclient_get_storage_at: (a: number, b: any, c: any, d: any) => any;
+  readonly lineaclient_get_proof: (a: number, b: any, c: any, d: any) => any;
+  readonly lineaclient_call: (a: number, b: any, c: any) => any;
+  readonly lineaclient_estimate_gas: (a: number, b: any, c: any) => any;
+  readonly lineaclient_create_access_list: (a: number, b: any, c: any) => any;
+  readonly lineaclient_gas_price: (a: number) => any;
+  readonly lineaclient_max_priority_fee_per_gas: (a: number) => any;
+  readonly lineaclient_send_raw_transaction: (a: number, b: number, c: number) => any;
+  readonly lineaclient_get_transaction_receipt: (a: number, b: any) => any;
+  readonly lineaclient_get_block_receipts: (a: number, b: any) => any;
+  readonly lineaclient_get_logs: (a: number, b: any) => any;
+  readonly lineaclient_get_filter_changes: (a: number, b: any) => any;
+  readonly lineaclient_get_filter_logs: (a: number, b: any) => any;
+  readonly lineaclient_uninstall_filter: (a: number, b: any) => any;
+  readonly lineaclient_new_filter: (a: number, b: any) => any;
+  readonly lineaclient_new_block_filter: (a: number) => any;
+  readonly lineaclient_new_pending_transaction_filter: (a: number) => any;
+  readonly lineaclient_client_version: (a: number) => any;
+  readonly lineaclient_subscribe: (a: number, b: any, c: number, d: number, e: any) => any;
+  readonly lineaclient_unsubscribe: (a: number, b: number, c: number) => [number, number, number];
   readonly __wbg_opstackclient_free: (a: number, b: number) => void;
   readonly opstackclient_new: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
   readonly opstackclient_sync: (a: number) => any;
@@ -163,7 +237,7 @@ export interface InitOutput {
   readonly __externref_table_dealloc: (a: number) => void;
   readonly closure277_externref_shim: (a: number, b: number, c: any) => void;
   readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h1a810c12566889eb: (a: number, b: number) => void;
-  readonly closure220_externref_shim: (a: number, b: number, c: any, d: any) => void;
+  readonly closure221_externref_shim: (a: number, b: number, c: any, d: any) => void;
   readonly __wbindgen_start: () => void;
 }
 

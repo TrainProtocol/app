@@ -25,10 +25,8 @@ export const getServerSideProps = async (ctx) => {
 
     if (!networkData) return
 
-    const version = process.env.NEXT_PUBLIC_API_VERSION
-
     const settings = {
-        networks: networkData.filter(n => version == 'sandbox' ? n.isTestnet : !n.isTestnet),
+        networks: networkData,
     }
 
     const themeData = await getThemeData(ctx.query)

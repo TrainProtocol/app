@@ -1,4 +1,4 @@
-import initWasm, { EthereumClient, OpStackClient } from "./index";
+import initWasm, { EthereumClient, OpStackClient, LineaClient } from "./index";
 
 export async function init() {
   await initWasm();
@@ -16,6 +16,8 @@ export class HeliosProvider {
     const executionRpc = config.executionRpc;
     const executionVerifiableApi = config.executionVerifiableApi;
 
+    if (!config.network) return
+
     if (kind === "ethereum") {
       const consensusRpc = config.consensusRpc;
       const checkpoint = config.checkpoint;
@@ -30,10 +32,12 @@ export class HeliosProvider {
         checkpoint,
         dbType
       );
-    } else if (kind === "opstack" && config.network) {
+    } else if (kind === "opstack") {
       const network = config.network;
-
       this.#client = new OpStackClient(executionRpc, executionVerifiableApi, network);
+    } else if (kind === "linea") {
+      const network = config.network;
+      this.#client = new LineaClient(executionRpc, network);
     } else {
       throw new Error("Invalid kind: must be 'ethereum' or 'opstack'");
     }

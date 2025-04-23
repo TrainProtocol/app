@@ -31,6 +31,7 @@ function WagmiComponent({ children }: Props) {
     const providers = useSyncProviders();
     const settings = useSettingsState();
     const isChain = (c: Chain | undefined): c is Chain => c != undefined
+
     const settingsChains = settings?.networks
         .sort((a, b) => (NetworkSettings.KnownSettings[a.name]?.ChainOrder || Number(a.chainId)) - (NetworkSettings.KnownSettings[b.name]?.ChainOrder || Number(b.chainId)))
         .filter(net => net.type == NetworkType.EVM
