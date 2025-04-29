@@ -30,7 +30,7 @@ export default function useSVM({ network }: { network: Network | undefined }): W
 
     const name = 'Solana'
     const id = 'solana'
-    const { disconnect, wallet: solanaWallet, select, wallets, signTransaction } = useWallet();
+    const { disconnect, wallet: solanaWallet, select, wallets, signTransaction, signMessage } = useWallet();
     const publicKey = solanaWallet?.adapter.publicKey
     const { networks } = useSettingsState()
     const { connect } = useConnectModal()
@@ -224,30 +224,36 @@ export default function useSVM({ network }: { network: Network | undefined }): W
 
         if (!program || !publicKey) return null
 
-        const transaction = await lockTransactionBuilder({ connection, program, walletPublicKey: publicKey, ...params })
+        const { lockCommit, lockId, timelock } = await lockTransactionBuilder({ connection, program, walletPublicKey: publicKey, ...params })
+        
+        const hexLockId = `0x${toHexString(lockId)}`
 
-        transaction?.lockCommit.partialSign()
-        const signature = transaction.lockCommit.serialize()
-        // const signature = signed && await connection.sendRawTransaction(signed.serialize());
-
-        if (signature) {
-
-            const apiClient = new LayerSwapApiClient()
-
-            try {
-                await apiClient.AddLockSig({
-                    signatureArray: signature,
-                    timelock: transaction.timelock,
-                }, id)
-            } catch (e) {
-                throw new Error("Failed to add lock")
-            }
-
-            return { hash: signature, result: `0x${toHexString(transaction.lockId)}` }
-
-        } else {
-            return null
+        if (!signMessage) {
+            throw new Error("Wallet does not support message signing!");
         }
+
+        try {
+
+            const signature = await signMessage(lockCommit)
+
+            if (signature) {
+                const sigBase64 = Buffer.from(signature).toString("base64");
+                const apiClient = new LayerSwapApiClient()
+
+                await apiClient.AddLockSig({
+                    signature: sigBase64,
+                    timelock: timelock,
+                }, params.id)
+
+                return { hash: sigBase64, result: hexLockId }
+
+            } else {
+                return null
+            }
+        } catch (e) {
+            throw new Error("Failed to add lock")
+        }
+
     }
 
     const refund = async (params: RefundParams) => {
