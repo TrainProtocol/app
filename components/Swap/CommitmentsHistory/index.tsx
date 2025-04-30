@@ -62,7 +62,7 @@ function CommittmentsHistory() {
 
             const commitFromApi = commitsFromApi[i]
             const source_network = networks.find(network => network.name === commitFromApi.sourceNetwork)
-            const source_asset = source_network?.tokens.find(token => token.symbol === commitFromApi.sourceAsset)
+            const source_asset = source_network?.tokens.find(token => token.symbol === 'commitFromApi.sourceAsset')
             const sourceAtomicContract = source_network?.contracts.find(contract => contract.type === (source_asset?.contract ? ContractType.HTLCTokenContractAddress : ContractType.HTLCNativeContractAddress))?.address
 
             const source_provider = source_network && getProvider(source_network, 'withdrawal')
@@ -75,7 +75,7 @@ function CommittmentsHistory() {
             })
 
             const destination_network = networks.find(network => network.name === commitFromApi.destinationNetwork)
-            const destination_asset = destination_network?.tokens.find(token => token.symbol === commitFromApi.destinationAsset)
+            const destination_asset = destination_network?.tokens.find(token => token.symbol === 'commitFromApi.destinationAsset')
             const destinationAtomicContract = destination_network?.contracts.find(contract => contract.type === (destination_asset?.contract ? ContractType.HTLCTokenContractAddress : ContractType.HTLCNativeContractAddress))?.address
             const destination_provider = destination_network && getProvider(destination_network, 'autofil')
             const destinationType = destination_asset?.contract ? 'erc20' : 'native'
@@ -207,13 +207,12 @@ function CommittmentsHistory() {
                                                             const {
                                                                 amount,
                                                                 sourceNetwork: srcChain,
-                                                                sourceAsset: srcAsset,
                                                                 destinationNetwork: dstChain
                                                             } = commit
 
                                                             const source_network = networks.find(network => network.name === srcChain)
                                                             const destination_network = networks.find(network => network.name === dstChain)
-                                                            const source_token = source_network?.tokens.find(token => token.symbol === srcAsset)
+                                                            const source_token = source_network?.tokens.find(token => token.symbol === 'srcAsset')
 
                                                             return <tr onClick={() => handleOpenCommitDetails(commit)} key={index}>
 

@@ -12,19 +12,18 @@ type AtomicSummaryProps = {
     source: Network,
     destination: Network;
     requestedAmount: number | undefined;
+    requestedAmountInUsd?: number | undefined;
     receiveAmount: number | undefined;
+    receiveAmountInUsd?: number | undefined;
     destinationAddress: string;
     fee?: number,
     sourceAccountAddress?: string,
 }
 
-const Summary: FC<AtomicSummaryProps> = ({ sourceAccountAddress, sourceCurrency, destinationCurrency, source: from, destination: to, requestedAmount, destinationAddress, receiveAmount }) => {
+const Summary: FC<AtomicSummaryProps> = ({ sourceAccountAddress, sourceCurrency, destinationCurrency, source: from, destination: to, requestedAmount, destinationAddress, receiveAmount, receiveAmountInUsd, requestedAmountInUsd }) => {
 
     const source = from
     const destination = to
-
-    const requestedAmountInUsd = requestedAmount && (sourceCurrency?.priceInUsd * requestedAmount).toFixed(2)
-    const receiveAmountInUsd = receiveAmount ? (destinationCurrency?.priceInUsd * receiveAmount).toFixed(2) : undefined
     const destAddress = destinationAddress
 
     return (
@@ -54,7 +53,7 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceAccountAddress, sourceCurrency,
                                 requestedAmount &&
                                 <p className="text-primary-text text-sm text-nowrap">{truncateDecimals(Number(requestedAmount), Math.min(sourceCurrency.decimals, 8))} {sourceCurrency.symbol}</p>
                             }
-                            <p className="text-secondary-text text-sm flex justify-end">${requestedAmountInUsd}</p>
+                            <p className="text-secondary-text text-sm flex justify-end">${requestedAmountInUsd && requestedAmountInUsd.toFixed(2)}</p>
                         </div>
                     </div>
                 </div>
@@ -74,7 +73,7 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceAccountAddress, sourceCurrency,
                             receiveAmount != undefined ?
                                 <div className="flex flex-col justify-end">
                                     <p className="text-primary-text text-sm text-nowrap">{truncateDecimals(receiveAmount, Math.min(destinationCurrency.decimals, 8))} {destinationCurrency.symbol}</p>
-                                    <p className="text-secondary-text text-sm flex justify-end">${receiveAmountInUsd}</p>
+                                    <p className="text-secondary-text text-sm flex justify-end">${receiveAmountInUsd && receiveAmountInUsd?.toFixed(2)}</p>
                                 </div>
                                 :
                                 <div className="flex flex-col justify-end">

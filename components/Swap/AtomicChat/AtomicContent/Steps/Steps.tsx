@@ -25,14 +25,14 @@ export const RequestStep: FC = () => {
     const title = commited ? "Details confirmed" : "Confirm the details"
     const description = (commited && source_network) ? <>Transaction details are confirmed</> : <>Review and confirm transfer details</>
 
-    const receiveAmountInUsd = amount && source_asset?.priceInUsd ? (gas * source_asset.priceInUsd).toFixed(6) : undefined
+    // const receiveAmountInUsd = amount && source_network?.nativeToken ? (gas * source_network.nativeToken.priceInUsd).toFixed(6) : undefined
 
-    const titleDetails = (commited || !gas) ? null : <div className="flex items-center gap-1">
-        <Fuel className="h-4 w-4" />
-        <p>
-            (${receiveAmountInUsd})
-        </p>
-    </div>
+    // const titleDetails = (commited || !gas) ? null : <div className="flex items-center gap-1">
+    //     <Fuel className="h-4 w-4" />
+    //     <p>
+    //         (${receiveAmountInUsd})
+    //     </p>
+    // </div>
 
     const completedTxLink = source_network && commitTxId && source_network?.transactionExplorerTemplate.replace('{0}', commitTxId)
 
@@ -40,7 +40,7 @@ export const RequestStep: FC = () => {
         step={1}
         title={title}
         description={description}
-        titleDetails={titleDetails}
+        // titleDetails={titleDetails}
         active={true}
         completed={commited}
         loading={commtting && !commited}

@@ -34,7 +34,8 @@ const MotionSummary: FC = () => {
 
     const wallet = provider?.activeWallet
     const receiveAmount = commitFromApi?.destinationAmount || fee?.quote?.receiveAmount
-
+    const receiveAmountInUsd = fee?.quote?.receiveAmountInUsd
+    const requestedAmountInUsd = fee?.quote?.sourceAmountInUsd
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
 
     return (
@@ -51,6 +52,8 @@ const MotionSummary: FC = () => {
                     sourceCurrency={source_token}
                     sourceAccountAddress={sourceDetails?.sender || wallet?.address}
                     receiveAmount={receiveAmount}
+                    requestedAmountInUsd={requestedAmountInUsd}
+                    receiveAmountInUsd={receiveAmountInUsd}
                 />
             }
             {

@@ -1,5 +1,5 @@
 import { useFormikContext } from "formik";
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef, useRef, useState } from "react";
 import { SwapFormValues } from "../DTOs/SwapFormValues";
 import NumericInput from "./NumericInput";
 import { useFee } from "../../context/feeContext";
@@ -7,7 +7,6 @@ import dynamic from "next/dynamic";
 import { useQueryState } from "../../context/query";
 import useSWRGas from "../../lib/gases/useSWRGas";
 import useSWRBalance from "../../lib/balances/useSWRBalance";
-import { Token } from "../../Models/Network";
 import { useAtomicState } from "../../context/atomicContext";
 
 const MinMax = dynamic(() => import("./dynamic/MinMax"), {
@@ -17,13 +16,12 @@ const MinMax = dynamic(() => import("./dynamic/MinMax"), {
 const AmountField = forwardRef(function AmountField(_, ref: any) {
 
     const { values, handleChange } = useFormikContext<SwapFormValues>();
-    const [requestedAmountInUsd, setRequestedAmountInUsd] = useState<string>();
     const { fromCurrency, from, to, amount, toCurrency } = values || {};
     const { minAllowedAmount, maxAllowedAmount: maxAmountFromApi, fee, isFeeLoading } = useFee()
     const { selectedSourceAccount } = useAtomicState()
     const [isFocused, setIsFocused] = useState(false);
     const sourceAddress = selectedSourceAccount?.address
-
+    const requestedAmountInUsd = fee?.quote?.sourceAmountInUsd
     const { balance, isBalanceLoading } = useSWRBalance(sourceAddress, from)
     const { gas, isGasLoading } = useSWRGas(sourceAddress, from, fromCurrency)
     const gasAmount = gas || 0;
@@ -59,18 +57,6 @@ const AmountField = forwardRef(function AmountField(_, ref: any) {
     const step = 1 / Math.pow(10, (fromCurrency && Math.min(fromCurrency?.decimals, 8)) || 1)
     const amountRef = useRef(ref)
 
-    const updateRequestedAmountInUsd = (requestedAmount: number, source_asset: Token | undefined) => {
-        if (source_asset?.priceInUsd && !isNaN(requestedAmount)) {
-            setRequestedAmountInUsd((source_asset?.priceInUsd * requestedAmount).toFixed(2));
-        } else {
-            setRequestedAmountInUsd(undefined);
-        }
-    };
-
-    useEffect(() => {
-        updateRequestedAmountInUsd(Number(amount), fromCurrency);
-    }, [amount])
-
     return (<>
         <p className="block font-semibold text-secondary-text text-xs mb-1 p-2">Amount</p>
         <div className="flex w-full justify-between bg-secondary-700 rounded-componentRoundness">
@@ -92,7 +78,7 @@ const AmountField = forwardRef(function AmountField(_, ref: any) {
                 >
                     {requestedAmountInUsd && Number(requestedAmountInUsd) > 0 && !isFocused ? (
                         <span className="absolute text-xs right-1 bottom-[16px]">
-                            (${requestedAmountInUsd})
+                            (${requestedAmountInUsd.toFixed(2)})
                         </span>
                     ) : null}
                 </NumericInput>

@@ -51,12 +51,13 @@ export type AddLockSig = {
 export type CommitFromApi = {
     commitId: string,
     sourceNetwork: string,
-    sourceAsset: string,
+    sourceToken: string,
+    sourceAmount: number,
+    sourceAddress: string,
     destinationNetwork: string,
-    destinationAsset: string,
-    destinationAddress: string,
-    liquidityProviderAddress: string,
+    destinationToken: string,
     destinationAmount: number,
+    destinationAddress: string,
     feeAmount: number,
     transactions: {
         type: CommitTransaction,
@@ -76,16 +77,13 @@ export type Quote = {
 }
 
 export type SwapQuote = {
-    sourceNetwork?: Network,
-    sourceToken?: Token,
-    destinationNetwork?: Network,
-    destinationToken?: Token,
-    receiveAmount: number,
-    minReceiveAmount: number,
-    totalFee: number,
-    totalFeeInUsd: number,
-    blockchainFee: number,
-    serviceFee: number,
-    avgCompletionTime: string,
-    refuelInSource?: number,
+    nativeContractAddressInSource: string
+    receiveAmount: number
+    receiveAmountInUsd: number
+    solverAddressInSource: string
+    sourceAmount: number
+    sourceAmountInUsd: number
+    tokenContractAddressInSource: string
+    totalFee: number
+    totalFeeInUsd: number
 }
