@@ -224,8 +224,8 @@ export default function useSVM({ network }: { network: Network | undefined }): W
 
         if (!program || !publicKey) return null
 
-        const { lockCommit, lockId, timelock } = await lockTransactionBuilder({ connection, program, walletPublicKey: publicKey, ...params })
-        
+        const { lockCommit, lockId, timelock } = await lockTransactionBuilder({ program, walletPublicKey: publicKey, ...params })
+
         const hexLockId = `0x${toHexString(lockId)}`
 
         if (!signMessage) {

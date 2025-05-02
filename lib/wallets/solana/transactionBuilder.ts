@@ -4,7 +4,6 @@ import { Network, Token } from "../../../Models/Network";
 import { CommitmentParams, CreatePreHTLCParams, LockParams } from "../phtlc";
 import { BN, Idl, Program } from "@coral-xyz/anchor";
 import { createHash } from "crypto";
-import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 
 export const transactionBuilder = async (network: Network, token: Token, walletPublicKey: PublicKey, recipientAddress?: string | undefined) => {
 
@@ -159,8 +158,8 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
 
 }
 
-export const lockTransactionBuilder = async (params: CommitmentParams & LockParams & { program: Program<Idl>, connection: Connection, walletPublicKey: PublicKey }) => {
-    const { walletPublicKey, id, connection, hashlock, program, sourceAsset } = params
+export const lockTransactionBuilder = async (params: CommitmentParams & LockParams & { program: Program<Idl>, walletPublicKey: PublicKey }) => {
+    const { walletPublicKey, id, hashlock, program, sourceAsset } = params
 
     if (!program) {
         throw Error("No program")
@@ -195,7 +194,6 @@ export const lockTransactionBuilder = async (params: CommitmentParams & LockPara
     const messageLength = Buffer.alloc(2);
     messageLength.writeUInt16LE(MSG.length, 0);
 
-
     const finalMessage = Buffer.concat([
         signingDomain,
         headerVersion,
@@ -206,9 +204,9 @@ export const lockTransactionBuilder = async (params: CommitmentParams & LockPara
         messageLength,
         MSG,
     ]);
+    const hexString = finalMessage.toString('hex');
 
-    const encodedMessage = bs58.encode(finalMessage);
-    const messageBytes   = new TextEncoder().encode(encodedMessage);    
-
-    return { lockCommit: messageBytes, lockId: hashlockBuffer, timelock: timelock }
+    const data = new TextEncoder().encode(hexString);
+    
+    return { lockCommit: data, lockId: hashlockBuffer, timelock: timelock }
 }
