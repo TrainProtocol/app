@@ -1,12 +1,14 @@
 import KnownInternalNames from "../../knownIds";
 import {
     useConnectors,
-    useFuel as useGlobalFuel
+    useFuel as useGlobalFuel,
+    useWallet
 } from '@fuels/react';
 import { Connector, useAccount } from "wagmi";
 import {
     FuelConnector,
     Predicate,
+    Provider,
     getPredicateRoot,
 } from '@fuel-ts/account';
 import { Address } from '@fuel-ts/address';
@@ -18,7 +20,10 @@ import { useConnectModal } from "../../../components/WalletModal";
 import { useEffect, useMemo } from "react";
 import { useWalletStore } from "../../../stores/walletStore";
 import { useSettingsState } from "../../../context/settings";
-
+import { CommitmentParams, CreatePreHTLCParams, RefundParams } from "../phtlc";
+import { DateTime } from "@fuel-ts/utils";
+import { Contract } from "@fuel-ts/program";
+import contractAbi from "../../abis/atomic/FUEL_PHTLC.json"
 
 export default function useFuel(): WalletProvider {
     const commonSupportedNetworks = [
@@ -31,6 +36,7 @@ export default function useFuel(): WalletProvider {
 
     const { address: evmAddress, connector: evmConnector } = useAccount()
     const { connectors } = useConnectors()
+    const { wallet } = useWallet()
     const { fuel } = useGlobalFuel()
     const { connect } = useConnectModal()
     const { networks } = useSettingsState()
@@ -43,7 +49,7 @@ export default function useFuel(): WalletProvider {
 
     const connectWallet = async () => {
         try {
-            return await connect(provider as unknown as WalletProvider)
+            return await connect(provider)
         }
         catch (e) {
             console.log(e)
@@ -128,6 +134,108 @@ export default function useFuel(): WalletProvider {
         await fuel.selectConnector(wallet.id)
     }
 
+    const createPreHTLC = async (params: CreatePreHTLCParams) => {
+        const createEmptyArray = (length: number, char: string) =>
+            Array.from({ length }, () => ''.padEnd(64, char));
+
+        const hopChains = createEmptyArray(5, ' ')
+        const hopAssets = createEmptyArray(5, ' ')
+        const hopAddresses = createEmptyArray(5, ' ')
+
+        const { destinationChain, destinationAsset, sourceAsset, lpAddress, address, amount, decimals, atomicContract, chainId, sourceChain } = params
+
+        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
+        const timeLockMS = Math.floor((Date.now() + LOCK_TIME) / 1000)
+        const timelock = DateTime.fromUnixSeconds(timeLockMS).toTai64();
+
+        const sourceNetwork = networks.find(n => n.name === sourceChain)
+
+        const provider = sourceNetwork && await Provider.create(sourceNetwork?.nodes[0].url);
+
+        if (!provider) throw new Error('Node url not found')
+        if (!wallet) throw new Error('Wallet not connected')
+
+        const contractAddress = Address.fromB256(atomicContract);
+        const contractInstance = new Contract(contractAddress, contractAbi, wallet);
+
+        const commitId = generateUint256Hex().toString()
+
+        const dstChain = destinationChain.padEnd(64, ' ');
+        const dstAsset = destinationAsset.padEnd(64, ' ');
+        const dstAddress = address.padEnd(64, ' ');
+        const srcAsset = sourceAsset.symbol.padEnd(64, ' ');
+        const srcReceiver = { bits: lpAddress };
+
+        const { transactionId, waitForResult } = await contractInstance.functions
+            .commit(hopChains, hopAssets, hopAddresses, dstChain, dstAsset, dstAddress, srcAsset, commitId, srcReceiver, timelock)
+            .callParams({
+                forward: [Number(amount), provider.getBaseAssetId()],
+            })
+            .call();
+
+        const { logs, value } = await waitForResult();
+
+        return { hash: value, commitId: commitId.toString() }
+    }
+
+    const claim = async () => {
+        // Implement the logic for claiming
+        throw new Error("claim is not implemented");
+    }
+
+    const refund = async (params: RefundParams) => {
+        const { id, contractAddress: contractAddressString } = params
+
+        const network = networks.find(n => n.name.toLowerCase().includes('fuel'))
+        const provider = network && await Provider.create(network?.nodes[0].url);
+        const contractAddress = Address.fromB256(contractAddressString);
+
+        if (!wallet) throw new Error('Wallet not connected')
+
+        const contractInstance = provider && new Contract(contractAddress, contractAbi, wallet);
+
+        if (!contractInstance) throw new Error('Contract instance not found')
+
+        const { transactionId, waitForResult } = await contractInstance.functions
+            .refund(id)
+            .call();
+
+        const { value } = await waitForResult();
+
+        return transactionId
+
+    }
+
+    const getDetails = async (params: CommitmentParams) => {
+        const { id, contractAddress: contractAddressString } = params
+
+        const network = networks.find(n => n.name.toLowerCase().includes('fuel'))
+        const provider = network && await Provider.create(network?.nodes[0].url);
+        const contractAddress = Address.fromB256(contractAddressString);
+        const contractInstance = provider && new Contract(contractAddress, contractAbi, provider);
+
+        if (!contractInstance) throw new Error('Contract instance not found')
+
+        const details = (await contractInstance.functions.get_htlc_details(id).get()).value
+
+
+        const resolvedDetails = {
+            ...details,
+            amount: details.amount.toString(),
+            sender: details.sender?.['bits'],
+            receiver: details.receiver?.['bits'],
+            timelock: DateTime.fromTai64(details.timelock).toUnixSeconds(),
+            secret: Number(details.secret),
+            hashlock: details.hashlock !== "0x0000000000000000000000000000000000000000000000000000000000000001" ? details.hashlock : undefined,
+        }
+
+        return resolvedDetails
+    }
+    const addLock = async () => {
+        // Implement the logic for adding a lock
+        throw new Error("addLock is not implemented");
+    }
+
     const connectedConnectors = useMemo(() => connectors.filter(w => w.connected), [connectors])
 
     useEffect(() => {
@@ -183,6 +291,11 @@ export default function useFuel(): WalletProvider {
         connectedWallets,
         name,
         id,
+        createPreHTLC,
+        claim,
+        refund,
+        getDetails,
+        addLock
     }
 
     return provider as unknown as WalletProvider
@@ -241,4 +354,24 @@ const resolveFuelWallet = ({ address, addresses, commonSupportedNetworks, connec
     }
 
     return w
+}
+
+function generateUint256Hex() {
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    // turn into a 64-char hex string
+    const hex = Array.from(bytes)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    return '0x' + hex;
+}
+
+function generateUint256() {
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    // pack into a BigInt
+    return bytes.reduce(
+        (acc, byte) => (acc << 8n) | BigInt(byte),
+        0n
+    );
 }

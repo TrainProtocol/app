@@ -7,7 +7,7 @@ import posthog from "posthog-js";
 import ButtonStatus from "./Status/ButtonStatus";
 import { NextRouter, useRouter } from "next/router";
 import { resolvePersistantQueryParams } from "../../../../helpers/querryHelper";
-import { ContractType, ManagedAccountType } from "../../../../Models/Network";
+import { ContractType, ManagedAccountType, NetworkType } from "../../../../Models/Network";
 
 export const UserCommitAction: FC = () => {
     const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, updateCommit } = useAtomicState();
@@ -19,9 +19,9 @@ export const UserCommitAction: FC = () => {
     //     hash: txId,
     //     chainId: Number(source_network?.chain_id),
     // });
-
-    const atomicContract = source_network?.contracts.find(c => source_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
+    const atomicContract = source_network?.contracts.find(c => (source_asset?.contract && source_network.type !== NetworkType.Fuel) ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
     const lpAddress = source_network?.managedAccounts.find(a => a.type === ManagedAccountType.LP)?.address
+
     const handleCommit = async () => {
         try {
             if (!amount) {
@@ -146,7 +146,7 @@ export const UserLockAction: FC = () => {
 
     const wallet = provider?.activeWallet
 
-    const atomicContract = source_network?.contracts.find(c => source_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
+    const atomicContract = source_network?.contracts.find(c => (source_asset?.contract && source_network.type !== NetworkType.Fuel) ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
 
     const handleLockAssets = async () => {
         try {
@@ -241,8 +241,8 @@ export const UserRefundAction: FC = () => {
 
     const wallet = source_provider?.activeWallet
 
-    const destinationAtomicContract = destination_network?.contracts.find(c => destination_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
-    const sourceAtomicContract = source_network?.contracts.find(c => source_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
+    const destinationAtomicContract = destination_network?.contracts.find(c => (destination_asset?.contract && destination_network.type !== NetworkType.Fuel) ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
+    const sourceAtomicContract = source_network?.contracts.find(c => (source_asset?.contract && source_network.type !== NetworkType.Fuel) ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
 
     const handleRefundAssets = async () => {
         try {

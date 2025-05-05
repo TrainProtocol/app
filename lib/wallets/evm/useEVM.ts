@@ -17,14 +17,12 @@ import { Chain, createPublicClient, http, PublicClient } from "viem"
 import resolveChain from "../../resolveChain"
 import { useMemo } from "react"
 import { getAccount, getConnections } from '@wagmi/core'
-import toast from "react-hot-toast"
 import { isMobile } from "../../isMobile"
 import convertSvgComponentToBase64 from "../../../components/utils/convertSvgComponentToBase64"
 import { LSConnector } from "../connectors/EthereumProvider"
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider"
 import { useConnectModal } from "../../../components/WalletModal"
 import { explicitInjectedproviderDetected } from "../connectors/getInjectedConnector"
-import { type ConnectorAlreadyConnectedError } from '@wagmi/core'
 import { useAtomicState } from "../../../context/atomicContext"
 
 type Props = {
