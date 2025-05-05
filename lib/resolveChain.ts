@@ -12,7 +12,7 @@ export default function resolveChain(network: Network) {
             new URL(network.transactionExplorerTemplate).origin
             : null
 
-    const evm_multicall_contract  = network.contracts.find(c => c.type === ContractType.EvmMultiCallContract)?.address || {}
+    const evm_multicall_contract = network.contracts.find(c => c.type === ContractType.EvmMultiCallContract)?.address || undefined
 
     if (!nativeCurrency) {
         SendErrorMessage("UI Settings error", `env: ${process.env.NEXT_PUBLIC_VERCEL_ENV} %0A url: ${process.env.NEXT_PUBLIC_VERCEL_URL} %0A message: could not find native currency for ${network.name} ${JSON.stringify(network)} %0A`)
@@ -50,7 +50,7 @@ export default function resolveChain(network: Network) {
                 multicall3: {
                     address: evm_multicall_contract as `0x${string}`
                 }
-            } : {}),
+            } : undefined),
         },
         ...opStackChainConfig,
     })
