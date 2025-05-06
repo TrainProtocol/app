@@ -167,16 +167,14 @@ export default function useFuel(): WalletProvider {
         const srcAsset = sourceAsset.symbol.padEnd(64, ' ');
         const srcReceiver = { bits: lpAddress };
 
-        const { transactionId, waitForResult } = await contractInstance.functions
+        const { transactionId } = await contractInstance.functions
             .commit(hopChains, hopAssets, hopAddresses, dstChain, dstAsset, dstAddress, srcAsset, commitId, srcReceiver, timelock)
             .callParams({
                 forward: [Number(amount), provider.getBaseAssetId()],
             })
             .call();
 
-        const { logs, value } = await waitForResult();
-
-        return { hash: value, commitId: commitId.toString() }
+        return { hash: transactionId, commitId: commitId.toString() }
     }
 
     const claim = async (params: ClaimParams) => {
