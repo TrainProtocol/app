@@ -20,10 +20,11 @@ import { useConnectModal } from "../../../components/WalletModal";
 import { useEffect, useMemo } from "react";
 import { useWalletStore } from "../../../stores/walletStore";
 import { useSettingsState } from "../../../context/settings";
-import { CommitmentParams, CreatePreHTLCParams, RefundParams } from "../phtlc";
-import { DateTime } from "@fuel-ts/utils";
+import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../phtlc";
+import { arrayify, DateTime, hexlify } from "@fuel-ts/utils";
 import { Contract } from "@fuel-ts/program";
 import contractAbi from "../../abis/atomic/FUEL_PHTLC.json"
+import { sha256 } from "@noble/hashes/sha256";
 
 export default function useFuel(): WalletProvider {
     const commonSupportedNetworks = [
@@ -178,9 +179,28 @@ export default function useFuel(): WalletProvider {
         return { hash: value, commitId: commitId.toString() }
     }
 
-    const claim = async () => {
-        // Implement the logic for claiming
-        throw new Error("claim is not implemented");
+    const claim = async (params: ClaimParams) => {
+        const { id, contractAddress: contractAddressString, secret } = params
+
+        const network = networks.find(n => n.name.toLowerCase().includes('fuel'))
+        const provider = network && await Provider.create(network?.nodes[0].url);
+        const contractAddress = Address.fromB256(contractAddressString);
+        const secretBigInt = BigInt(secret);
+        const idBigInt = BigInt(id);
+
+        if (!wallet) throw new Error('Wallet not connected')
+
+        const contractInstance = provider && new Contract(contractAddress, contractAbi, wallet);
+
+        if (!contractInstance) throw new Error('Contract instance not found')
+
+        const { transactionId, waitForResult } = await contractInstance.functions
+            .redeem(idBigInt, secretBigInt)
+            .call();
+
+        await waitForResult();
+
+        return transactionId
     }
 
     const refund = async (params: RefundParams) => {
@@ -200,7 +220,7 @@ export default function useFuel(): WalletProvider {
             .refund(id)
             .call();
 
-        const { value } = await waitForResult();
+        await waitForResult();
 
         return transactionId
 
@@ -231,9 +251,23 @@ export default function useFuel(): WalletProvider {
 
         return resolvedDetails
     }
-    const addLock = async () => {
-        // Implement the logic for adding a lock
-        throw new Error("addLock is not implemented");
+    const addLockSig = async (params: CommitmentParams & LockParams) => {
+        const { id, hashlock } = params
+
+        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
+        const timeLockMS = Math.floor((Date.now() + LOCK_TIME) / 1000)
+        const timelock = DateTime.fromUnixSeconds(timeLockMS).toTai64();
+
+        const timelockHex = '0x' + BigInt(timelock).toString(16).padStart(64, '0');
+
+        const msg = [id, hashlock, timelockHex];
+        const msgBytes = Uint8Array.from(msg.flatMap((hexStr) => Array.from(arrayify(hexStr))));
+
+        if (!wallet) throw new Error('Wallet not connected')
+
+        const msgHash = await wallet.signMessage(hexlify(sha256(msgBytes)));
+
+        return { hash: msgHash, result: msgHash }
     }
 
     const connectedConnectors = useMemo(() => connectors.filter(w => w.connected), [connectors])
@@ -295,7 +329,7 @@ export default function useFuel(): WalletProvider {
         claim,
         refund,
         getDetails,
-        addLock
+        addLock: addLockSig,
     }
 
     return provider as unknown as WalletProvider
