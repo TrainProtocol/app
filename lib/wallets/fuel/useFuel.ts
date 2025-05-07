@@ -167,10 +167,12 @@ export default function useFuel(): WalletProvider {
         const srcAsset = sourceAsset.symbol.padEnd(64, ' ');
         const srcReceiver = { bits: lpAddress };
 
+        const parsedAmount = Number(amount) * 10 ** decimals
+
         const { transactionId } = await contractInstance.functions
             .commit(hopChains, hopAssets, hopAddresses, dstChain, dstAsset, dstAddress, srcAsset, commitId, srcReceiver, timelock)
             .callParams({
-                forward: [Number(amount), provider.getBaseAssetId()],
+                forward: [parsedAmount, provider.getBaseAssetId()],
             })
             .call();
 
@@ -236,10 +238,9 @@ export default function useFuel(): WalletProvider {
 
         const details = (await contractInstance.functions.get_htlc_details(id).get()).value
 
-
         const resolvedDetails = {
             ...details,
-            amount: details.amount.toString(),
+            amount: Number(details.amount) / 10 ** details.decimals,
             sender: details.sender?.['bits'],
             receiver: details.receiver?.['bits'],
             timelock: DateTime.fromTai64(details.timelock).toUnixSeconds(),
