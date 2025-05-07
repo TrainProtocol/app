@@ -45,7 +45,6 @@ export default function useFuel(): WalletProvider {
     const wallets = useWalletStore((state) => state.connectedWallets)
     const addWallet = useWalletStore((state) => state.connectWallet)
     const removeWallet = useWalletStore((state) => state.disconnectWallet)
-
     const connectedWallets = wallets.filter(wallet => wallet.providerName === name)
 
     const connectWallet = async () => {
@@ -75,6 +74,7 @@ export default function useFuel(): WalletProvider {
             await fuelConnector?.connect()
 
             const addresses = (await fuelConnector?.accounts())?.map(a => Address.fromAddressOrString(a).toB256())
+            const chain = fuelConnector && (await fuelConnector.currentNetwork()).chainId
 
             if (addresses && fuelConnector) {
 
@@ -87,10 +87,12 @@ export default function useFuel(): WalletProvider {
                     connectWallet,
                     disconnectWallet,
                     name,
+                    chain,
                     commonSupportedNetworks,
                     networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.name))?.logo
                 })
 
+                removeWallet(name, fuelConnector.name)
                 addWallet(result)
                 await switchAccount(result)
                 return result
@@ -132,7 +134,27 @@ export default function useFuel(): WalletProvider {
     }
 
     const switchAccount = async (wallet: Wallet) => {
-        await fuel.selectConnector(wallet.id)
+        try {
+            const res = await fuel.selectConnector(wallet.id)
+
+            if (!res) throw new Error('Could not switch account')
+        } catch (e) {
+            console.log(e)
+        }
+    }
+
+    const switchChain = async (connector: Wallet, chainId: string | number) => {
+        try {
+            const fuelConnector = connectors.find(c => c.name === connector.id)
+
+            if (!fuelConnector) throw new Error('Connector not found')
+
+            const res = await fuelConnector.selectNetwork({ chainId: Number(chainId) })
+
+            if (!res) throw new Error('Could not switch chain')
+        } catch (e) {
+            console.log(e)
+        }
     }
 
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
@@ -276,6 +298,7 @@ export default function useFuel(): WalletProvider {
             for (const connector of connectedConnectors) {
                 try {
                     const addresses = (await connector.accounts()).map(a => Address.fromAddressOrString(a).toB256())
+                    const chain = (await connector.currentNetwork()).chainId
                     if (connector.connected && addresses.length > 0) {
                         const w = resolveFuelWallet({
                             address: addresses?.[0],
@@ -286,9 +309,11 @@ export default function useFuel(): WalletProvider {
                             connectWallet,
                             disconnectWallet,
                             name,
+                            chain,
                             commonSupportedNetworks: commonSupportedNetworks,
                             networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.name))?.logo
                         })
+                        removeWallet(name, connector.name)
                         addWallet(w)
                     }
 
@@ -299,7 +324,8 @@ export default function useFuel(): WalletProvider {
             }
 
         })()
-    }, [connectedConnectors])
+    }, [connectedConnectors, wallet])
+
 
     const availableWalletsForConnect: InternalConnector[] = connectors.map(c => {
 
@@ -317,6 +343,7 @@ export default function useFuel(): WalletProvider {
         connectConnector,
         disconnectWallets,
         switchAccount,
+        switchChain,
         availableWalletsForConnect,
         autofillSupportedNetworks: commonSupportedNetworks,
         withdrawalSupportedNetworks: commonSupportedNetworks,
@@ -345,9 +372,10 @@ type ResolveWalletProps = {
     name: string,
     commonSupportedNetworks: string[],
     networkIcon?: string,
+    chain?: number
 }
 
-const resolveFuelWallet = ({ address, addresses, commonSupportedNetworks, connectWallet, connector, disconnectWallet, evmAddress, evmConnector, name, networkIcon }: ResolveWalletProps) => {
+const resolveFuelWallet = ({ address, addresses, commonSupportedNetworks, connectWallet, connector, disconnectWallet, evmAddress, evmConnector, name, networkIcon, chain }: ResolveWalletProps) => {
     let fuelCurrentConnector: string | undefined = undefined
 
     let customConnectorname: string | undefined = undefined
@@ -375,6 +403,7 @@ const resolveFuelWallet = ({ address, addresses, commonSupportedNetworks, connec
         address: address,
         addresses: addresses,
         isActive: true,
+        chainId: chain,
         connect: connectWallet,
         disconnect: () => disconnectWallet(connector.name),
         displayName: `${fuelCurrentConnector || connector.name} - Fuel`,
@@ -397,14 +426,4 @@ function generateUint256Hex() {
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
     return '0x' + hex;
-}
-
-function generateUint256() {
-    const bytes = new Uint8Array(32);
-    crypto.getRandomValues(bytes);
-    // pack into a BigInt
-    return bytes.reduce(
-        (acc, byte) => (acc << 8n) | BigInt(byte),
-        0n
-    );
 }

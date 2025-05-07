@@ -198,6 +198,18 @@ export default function useEVM({ network }: Props): WalletProvider {
             throw new Error("Account not found")
     }
 
+    const switchChain = async (wallet: Wallet, chainId: string | number) => {
+        const connector = getConnections(config).find(c => c.connector.name === wallet.id)?.connector
+        if (!connector)
+            throw new Error("Connector not found")
+
+        if (connector?.switchChain) {
+            await connector.switchChain({ chainId: Number(chainId) });
+        } else {
+            throw new Error("Switch chain method is not available on the connector");
+        }
+    }
+
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
         const { destinationChain, destinationAsset, sourceAsset, lpAddress, address, amount, decimals, atomicContract, chainId } = params
 
@@ -505,6 +517,7 @@ export default function useEVM({ network }: Props): WalletProvider {
         connectConnector,
         disconnectWallets,
         switchAccount,
+        switchChain,
         connectedWallets: resolvedConnectors,
         //TODO: sometimes activeWallet is undefined, fix this
         activeWallet: resolvedConnectors.find(w => w.isActive) || resolvedConnectors[0],
