@@ -25,6 +25,7 @@ import { arrayify, DateTime, hexlify } from "@fuel-ts/utils";
 import { Contract } from "@fuel-ts/program";
 import contractAbi from "../../abis/atomic/FUEL_PHTLC.json"
 import { sha256 } from "@noble/hashes/sha256";
+import LayerSwapApiClient from "../../layerSwapApiClient";
 
 export default function useFuel(): WalletProvider {
     const commonSupportedNetworks = [
@@ -276,8 +277,8 @@ export default function useFuel(): WalletProvider {
         const { id, hashlock } = params
 
         const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
-        const timeLockMS = Math.floor((Date.now() + LOCK_TIME) / 1000)
-        const timelock = DateTime.fromUnixSeconds(timeLockMS).toTai64();
+        const timeLockS = Math.floor((Date.now() + LOCK_TIME) / 1000)
+        const timelock = DateTime.fromUnixSeconds(timeLockS).toTai64();
 
         const timelockHex = '0x' + BigInt(timelock).toString(16).padStart(64, '0');
 
@@ -287,6 +288,16 @@ export default function useFuel(): WalletProvider {
         if (!wallet) throw new Error('Wallet not connected')
 
         const msgHash = await wallet.signMessage(hexlify(sha256(msgBytes)));
+        const apiClient = new LayerSwapApiClient()
+
+        try {
+            await apiClient.AddLockSig({
+                signature: msgHash,
+                timelock: timeLockS,
+            }, id)
+        } catch (e) {
+            throw new Error("Failed to add lock")
+        }
 
         return { hash: msgHash, result: msgHash }
     }
