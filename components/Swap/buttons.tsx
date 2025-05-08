@@ -4,9 +4,9 @@ import useWallet from "../../hooks/useWallet";
 import { Network } from "../../Models/Network";
 import toast from "react-hot-toast";
 import SubmitButton, { SubmitButtonProps } from "../buttons/submitButton";
-import { useSwitchChain } from "wagmi";
 import ButtonStatus from "./AtomicChat/Actions/Status/ButtonStatus";
 import WalletMessage from "./messages/Message";
+import { useAtomicState } from "../../context/atomicContext";
 export type ActionData = {
     error: Error | null;
     isError: boolean;
@@ -64,26 +64,42 @@ export const ChangeNetworkMessage: FC<{ data: ActionData, network: string }> = (
 }
 type ChangeNetworkProps = {
     chainId: number | string,
-    network: string,
+    network: Network,
     defaultText: string
 }
 export const ChangeNetworkButton: FC<ChangeNetworkProps> = (props) => {
     const { chainId, network, defaultText } = props
-    const { switchChain, error, isPending, isError } = useSwitchChain();
-    //TODO implement change network for useWallet providers
+    const { provider } = useWallet(network, 'withdrawal')
+    const [error, setError] = useState<Error | null>(null)
+    const [isPending, setIsPending] = useState(false)
+
+    const { selectedSourceAccount } = useAtomicState()
+
     const clickHandler = useCallback(() => {
-        return switchChain({ chainId: Number(chainId) })
-    }, [switchChain, chainId])
+        try {
+            setIsPending(true)
+            if (!provider) throw new Error(`No provider from ${network?.name}`)
+            if (!provider.switchChain) throw new Error(`No switchChain from ${network?.name}`)
+            if (!selectedSourceAccount?.wallet) throw new Error(`No selectedSourceAccount from ${network?.name}`)
+
+            return provider.switchChain(selectedSourceAccount?.wallet, chainId)
+        } catch (e) {
+            setError(e)
+        } finally {
+            setIsPending(false)
+        }
+
+    }, [provider, chainId])
 
     return <>
         {
             <ChangeNetworkMessage
                 data={{
                     isPending: isPending,
-                    isError: isError,
+                    isError: !!error,
                     error
                 }}
-                network={network}
+                network={network.displayName}
             />
         }
         {
@@ -148,10 +164,10 @@ export const WalletActionButton: FC<LockButtonProps> = (props) => {
             network={network}
         />
     }
-    if (activeChain != networkChainId && !!network && (!!networkChainId && !isNaN(Number(networkChainId)))) {
+    if (activeChain && activeChain != networkChainId && !!network && (!!networkChainId && !isNaN(Number(networkChainId)))) {
         return <ChangeNetworkButton
             chainId={networkChainId}
-            network={network.displayName}
+            network={network}
             defaultText="Change network"
         />
     }

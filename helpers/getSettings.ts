@@ -9,7 +9,7 @@ export async function getServerSideProps(context) {
     );
 
     const apiClient = new LayerSwapApiClient()
-debugger
+
     const { data: networkData } = await apiClient.GetLSNetworksAsync()
     const { data: sourceRoutes } = await apiClient.GetLSNetworksAsync()
     const { data: destinationRoutes } = await apiClient.GetLSNetworksAsync()

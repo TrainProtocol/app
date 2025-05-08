@@ -17,7 +17,7 @@ async function initWorker(initConfigs) {
     try {
         await init();
         const ethCheckpoint = initConfigs.network?.toLowerCase().includes('ethereum') && await fetch(initConfigs.hostname + '/api/getCheckpoint').then(res => res.json());
-        debugger
+
         const configs = [
             {
                 name: 'ethereum',

@@ -17,14 +17,12 @@ import { Chain, createPublicClient, http, PublicClient } from "viem"
 import resolveChain from "../../resolveChain"
 import { useMemo } from "react"
 import { getAccount, getConnections } from '@wagmi/core'
-import toast from "react-hot-toast"
 import { isMobile } from "../../isMobile"
 import convertSvgComponentToBase64 from "../../../components/utils/convertSvgComponentToBase64"
 import { LSConnector } from "../connectors/EthereumProvider"
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider"
 import { useConnectModal } from "../../../components/WalletModal"
 import { explicitInjectedproviderDetected } from "../connectors/getInjectedConnector"
-import { type ConnectorAlreadyConnectedError } from '@wagmi/core'
 import { useAtomicState } from "../../../context/atomicContext"
 
 type Props = {
@@ -198,6 +196,18 @@ export default function useEVM({ network }: Props): WalletProvider {
         const account = accounts.find(a => a.toLowerCase() === address.toLowerCase())
         if (!account)
             throw new Error("Account not found")
+    }
+
+    const switchChain = async (wallet: Wallet, chainId: string | number) => {
+        const connector = getConnections(config).find(c => c.connector.name === wallet.id)?.connector
+        if (!connector)
+            throw new Error("Connector not found")
+
+        if (connector?.switchChain) {
+            await connector.switchChain({ chainId: Number(chainId) });
+        } else {
+            throw new Error("Switch chain method is not available on the connector");
+        }
     }
 
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
@@ -507,6 +517,7 @@ export default function useEVM({ network }: Props): WalletProvider {
         connectConnector,
         disconnectWallets,
         switchAccount,
+        switchChain,
         connectedWallets: resolvedConnectors,
         //TODO: sometimes activeWallet is undefined, fix this
         activeWallet: resolvedConnectors.find(w => w.isActive) || resolvedConnectors[0],
