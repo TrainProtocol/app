@@ -43,6 +43,9 @@ export default function useFuel(): WalletProvider {
     const { connect } = useConnectModal()
     const { networks } = useSettingsState()
 
+    const network = networks.find(n => n.name.toLowerCase().includes('fuel'))
+    const fuelProvider = network && new Provider(network?.nodes[0].url);
+
     const wallets = useWalletStore((state) => state.connectedWallets)
     const addWallet = useWalletStore((state) => state.connectWallet)
     const removeWallet = useWalletStore((state) => state.disconnectWallet)
@@ -166,21 +169,16 @@ export default function useFuel(): WalletProvider {
         const hopAssets = createEmptyArray(5, ' ')
         const hopAddresses = createEmptyArray(5, ' ')
 
-        const { destinationChain, destinationAsset, sourceAsset, lpAddress, address, amount, decimals, atomicContract, chainId, sourceChain } = params
+        const { destinationChain, destinationAsset, sourceAsset, lpAddress, address, amount, decimals, atomicContract } = params
 
         const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
         const timeLockMS = Math.floor((Date.now() + LOCK_TIME) / 1000)
         const timelock = DateTime.fromUnixSeconds(timeLockMS).toTai64();
 
-        const sourceNetwork = networks.find(n => n.name === sourceChain)
-
-        const provider = sourceNetwork && await Provider.create(sourceNetwork?.nodes[0].url);
-
-        if (!provider) throw new Error('Node url not found')
+        if (!fuelProvider) throw new Error('Node url not found')
         if (!wallet) throw new Error('Wallet not connected')
 
-        const contractAddress = Address.fromB256(atomicContract);
-        const contractInstance = new Contract(contractAddress, contractAbi, wallet);
+        const contractInstance = new Contract(atomicContract, contractAbi, wallet);
 
         const commitId = generateUint256Hex().toString()
 
@@ -195,7 +193,7 @@ export default function useFuel(): WalletProvider {
         const { transactionId } = await contractInstance.functions
             .commit(hopChains, hopAssets, hopAddresses, dstChain, dstAsset, dstAddress, srcAsset, commitId, srcReceiver, timelock)
             .callParams({
-                forward: [parsedAmount, provider.getBaseAssetId()],
+                forward: [parsedAmount, await fuelProvider.getBaseAssetId()],
             })
             .call();
 
@@ -205,15 +203,12 @@ export default function useFuel(): WalletProvider {
     const claim = async (params: ClaimParams) => {
         const { id, contractAddress: contractAddressString, secret } = params
 
-        const network = networks.find(n => n.name.toLowerCase().includes('fuel'))
-        const provider = network && await Provider.create(network?.nodes[0].url);
-        const contractAddress = Address.fromB256(contractAddressString);
         const secretBigInt = BigInt(secret);
         const idBigInt = BigInt(id);
 
         if (!wallet) throw new Error('Wallet not connected')
 
-        const contractInstance = provider && new Contract(contractAddress, contractAbi, wallet);
+        const contractInstance = new Contract(contractAddressString, contractAbi, wallet);
 
         if (!contractInstance) throw new Error('Contract instance not found')
 
@@ -229,13 +224,9 @@ export default function useFuel(): WalletProvider {
     const refund = async (params: RefundParams) => {
         const { id, contractAddress: contractAddressString } = params
 
-        const network = networks.find(n => n.name.toLowerCase().includes('fuel'))
-        const provider = network && await Provider.create(network?.nodes[0].url);
-        const contractAddress = Address.fromB256(contractAddressString);
-
         if (!wallet) throw new Error('Wallet not connected')
 
-        const contractInstance = provider && new Contract(contractAddress, contractAbi, wallet);
+        const contractInstance = new Contract(contractAddressString, contractAbi, wallet);
 
         if (!contractInstance) throw new Error('Contract instance not found')
 
@@ -252,10 +243,7 @@ export default function useFuel(): WalletProvider {
     const getDetails = async (params: CommitmentParams) => {
         const { id, contractAddress: contractAddressString } = params
 
-        const network = networks.find(n => n.name.toLowerCase().includes('fuel'))
-        const provider = network && await Provider.create(network?.nodes[0].url);
-        const contractAddress = Address.fromB256(contractAddressString);
-        const contractInstance = provider && new Contract(contractAddress, contractAbi, provider);
+        const contractInstance = fuelProvider && new Contract(contractAddressString, contractAbi, fuelProvider);
 
         if (!contractInstance) throw new Error('Contract instance not found')
 
@@ -369,7 +357,7 @@ export default function useFuel(): WalletProvider {
         addLock: addLockSig,
     }
 
-    return provider as unknown as WalletProvider
+    return provider
 }
 
 type ResolveWalletProps = {
