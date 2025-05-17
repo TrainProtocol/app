@@ -6,7 +6,6 @@ import { UserRefundAction, UserLockAction, UserCommitAction } from "./UserAction
 import TransactionMessages from "../../messages/TransactionMessages";
 import { Commit } from "../../../../Models/PHTLC";
 import { AnimatePresence, motion } from "framer-motion";
-import ReactPortal from "../../../Common/ReactPortal";
 import ButtonStatus from "./Status/ButtonStatus";
 import WalletMessage from "../../messages/Message";
 

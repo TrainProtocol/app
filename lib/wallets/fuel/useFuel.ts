@@ -21,11 +21,11 @@ import { useEffect, useMemo } from "react";
 import { useWalletStore } from "../../../stores/walletStore";
 import { useSettingsState } from "../../../context/settings";
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../phtlc";
-import { arrayify, DateTime, hexlify } from "@fuel-ts/utils";
+import { concat, DateTime } from "@fuel-ts/utils";
 import { Contract } from "@fuel-ts/program";
 import contractAbi from "../../abis/atomic/FUEL_PHTLC.json"
-import { sha256 } from "@noble/hashes/sha256";
 import LayerSwapApiClient from "../../layerSwapApiClient";
+import { B256Coder, BigNumberCoder, bn, sha256 } from 'fuels';
 
 export default function useFuel(): WalletProvider {
     const commonSupportedNetworks = [
@@ -50,6 +50,8 @@ export default function useFuel(): WalletProvider {
     const addWallet = useWalletStore((state) => state.connectWallet)
     const removeWallet = useWalletStore((state) => state.disconnectWallet)
     const connectedWallets = wallets.filter(wallet => wallet.providerName === name)
+
+
 
     const connectWallet = async () => {
         try {
@@ -268,26 +270,28 @@ export default function useFuel(): WalletProvider {
         const timeLockS = Math.floor((Date.now() + LOCK_TIME) / 1000)
         const timelock = DateTime.fromUnixSeconds(timeLockS).toTai64();
 
-        const timelockHex = '0x' + BigInt(timelock).toString(16).padStart(64, '0');
+        const idBytes = new BigNumberCoder('u256').encode(bn(id));
+        const hashlockBytes = new B256Coder().encode(hashlock);
+        const timelockBytes = new BigNumberCoder('u64').encode(bn(timelock));
 
-        const msg = [id, hashlock, timelockHex];
-        const msgBytes = Uint8Array.from(msg.flatMap((hexStr) => Array.from(arrayify(hexStr))));
+        const rawData = concat([idBytes, hashlockBytes, timelockBytes]);
+        const message = sha256(rawData);
 
         if (!wallet) throw new Error('Wallet not connected')
 
-        const msgHash = await wallet.signMessage(hexlify(sha256(msgBytes)));
+        const signature = await wallet.signMessage(message);
         const apiClient = new LayerSwapApiClient()
 
         try {
             await apiClient.AddLockSig({
-                signature: msgHash,
+                signature: signature,
                 timelock: timeLockS,
             }, id)
         } catch (e) {
             throw new Error("Failed to add lock")
         }
 
-        return { hash: msgHash, result: msgHash }
+        return { hash: signature, result: signature }
     }
 
     const connectedConnectors = useMemo(() => connectors.filter(w => w.connected), [connectors])
