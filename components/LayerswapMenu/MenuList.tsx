@@ -1,11 +1,10 @@
-import { BookOpen, Map, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info } from "lucide-react";
+import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info } from "lucide-react";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
 import { useIntercom } from "react-use-intercom";
 import ChatIcon from "../Icons/ChatIcon";
 import inIframe from "../utils/inIframe";
 import GitHubLogo from "../Icons/GitHubLogo";
-import SubstackLogo from "../Icons/SubstackLogo";
 import TwitterLogo from "../Icons/TwitterLogo";
 import Link from "next/link";
 import Popover from "../Modal/popover";
@@ -146,18 +145,6 @@ const navigation = {
             href: 'https://github.com/TrainProtocol/app',
             icon: (props) => GitHubLogo(props),
             className: 'plausible-event-name=GitHub'
-        },
-        {
-            name: 'Substack',
-            href: 'https://layerswap.substack.com/',
-            icon: (props) => SubstackLogo(props),
-            className: 'plausible-event-name=Substack'
-        },
-        {
-            name: 'Roadmap',
-            href: 'https://layerswap.ducalis.io/roadmap/summary/',
-            icon: (props) => <Map {...props}></Map>,
-            className: 'plausible-event-name=Roadmap'
         },
     ]
 }
