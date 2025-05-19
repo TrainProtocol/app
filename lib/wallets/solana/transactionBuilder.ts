@@ -3,6 +3,7 @@ import { createAssociatedTokenAccountInstruction, createTransferInstruction, get
 import { Network, Token } from "../../../Models/Network";
 import { CommitmentParams, CreatePreHTLCParams, LockParams } from "../phtlc";
 import { BN, Idl, Program } from "@coral-xyz/anchor";
+import { createHash } from "crypto";
 
 export const transactionBuilder = async (network: Network, token: Token, walletPublicKey: PublicKey, recipientAddress?: string | undefined) => {
 
@@ -114,9 +115,6 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
         if (!walletPublicKey) {
             throw Error("Wallet not connected")
         }
-        if (isNaN(Number(chainId))) {
-            throw Error("Invalid source chain")
-        }
         if (!lpAddress) {
             throw Error("No LP address")
         }
@@ -150,7 +148,7 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
     }
     catch (error) {
 
-        if (error.simulationResponse.err === 'AccountNotFound') {
+        if (error?.simulationResponse?.err === 'AccountNotFound') {
             throw new Error('Not enough SOL balance')
         }
 
@@ -160,8 +158,8 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
 
 }
 
-export const lockTransactionBuilder = async (params: CommitmentParams & LockParams & { program: Program<Idl>, connection: Connection, walletPublicKey: PublicKey }) => {
-    const { walletPublicKey, id, connection, hashlock, program, sourceAsset } = params
+export const lockTransactionBuilder = async (params: CommitmentParams & LockParams & { program: Program<Idl>, walletPublicKey: PublicKey }) => {
+    const { walletPublicKey, id, hashlock, program, sourceAsset } = params
 
     if (!program) {
         throw Error("No program")
@@ -173,45 +171,42 @@ export const lockTransactionBuilder = async (params: CommitmentParams & LockPara
         throw Error("No Wallet public key")
     }
 
-    const LOCK_TIME = 1000 * 60 * 15 // 15 minutes
-    const timeLockMS = Date.now() + LOCK_TIME
-    const timeLock = Math.floor(timeLockMS / 1000)
-    const TIMELOCK = new BN(timeLock);
+    const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
+    const timelockMs = Date.now() + LOCK_TIME
+    const timelock = Math.floor(timelockMs / 1000)
+    const bnTimelock = new BN(timelock);
 
     const commitIdBuffer = Buffer.from(id.replace('0x', ''), 'hex');
     const hashlockBuffer = Buffer.from(hashlock.replace('0x', ''), 'hex');
 
-    let [htlc]: any = id && PublicKey.findProgramAddressSync(
-        [commitIdBuffer],
-        program.programId
-    );
-    let [htlcTokenAccount]: any = id && PublicKey.findProgramAddressSync(
-        [Buffer.from("htlc_token_account"), commitIdBuffer],
-        program.programId
-    );
+    const TIMELOCK_LE = Buffer.alloc(8);
+    TIMELOCK_LE.writeBigUInt64LE(BigInt(bnTimelock.toString()));
+    const MSG = createHash("sha256").update(commitIdBuffer).update(hashlockBuffer).update(Buffer.from(TIMELOCK_LE)).digest();
 
-    const lockTx = await program.methods.addLock(commitIdBuffer, hashlockBuffer, TIMELOCK)
-        .accountsPartial({
-            sender: walletPublicKey,
-            htlc,
-        })
-        .transaction();
+    const signingDomain = Buffer.from("\xffsolana offchain", "ascii")
+    const headerVersion = Buffer.from([0]);
+    const applicationDomain = Buffer.alloc(32);
+    applicationDomain.write("Train");
+    const messageFormat = Buffer.from([0]);
+    const signerCount = Buffer.from([1]);
+    const signerPublicKey = walletPublicKey.toBytes();
 
-    let addLock = new Transaction();
-    addLock.add(lockTx);
+    const messageLength = Buffer.alloc(2);
+    messageLength.writeUInt16LE(MSG.length, 0);
 
-    const nonce = await connection.getNonce(walletPublicKey)
+    const finalMessage = Buffer.concat([
+        signingDomain,
+        headerVersion,
+        applicationDomain,
+        messageFormat,
+        signerCount,
+        signerPublicKey,
+        messageLength,
+        MSG,
+    ]);
+    const hexString = finalMessage.toString('hex');
 
-    if (!nonce) throw new Error('Failed to get nonce')
-
-    addLock.nonceInfo = {
-        nonce: nonce?.nonce,
-        nonceInstruction: SystemProgram.nonceAdvance({
-            noncePubkey: nonce?.authorizedPubkey,
-            authorizedPubkey: walletPublicKey
-        })
-    }
-    addLock.feePayer = walletPublicKey;
-
-    return { lockCommit: addLock, lockId: hashlockBuffer, timelock: timeLock }
+    const data = new TextEncoder().encode(hexString);
+    
+    return { lockCommit: data, lockId: hashlockBuffer, timelock: timelock }
 }

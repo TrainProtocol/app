@@ -19,9 +19,9 @@ export async function getServerSideProps(context) {
     const version = process.env.NEXT_PUBLIC_API_VERSION
     
     const settings = {
-        networks: networkData.filter(n => version == 'sandbox' ? n.isTestnet : !n.isTestnet),
-        sourceRoutes: sourceRoutes?.filter(n => version == 'sandbox' ? n.isTestnet : !n.isTestnet) || [],
-        destinationRoutes: destinationRoutes?.filter(n => version == 'sandbox' ? n.isTestnet : !n.isTestnet) || []
+        networks: networkData,
+        sourceRoutes: sourceRoutes || [],
+        destinationRoutes: destinationRoutes || []
     }
 
     const themeData = await getThemeData(context.query)

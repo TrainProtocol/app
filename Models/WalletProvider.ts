@@ -46,6 +46,7 @@ export type WalletProvider = {
     connectWallet: () => Promise<Wallet | undefined>,
     connectConnector?: (props?: { connector: InternalConnector }) => Promise<Wallet | undefined> | undefined
     switchAccount?: (connector: Wallet, address: string) => Promise<void>
+    switchChain?: (connector: Wallet, chainId: string | number) => Promise<void>
     availableWalletsForConnect?: InternalConnector[],
     connectedWallets: Wallet[] | undefined,
     activeWallet: Wallet | undefined,

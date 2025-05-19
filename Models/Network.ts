@@ -60,6 +60,5 @@ export class Token {
     contract: string | null | undefined;
     decimals: number;
     precision: number;
-    priceInUsd: number;
     listingDate: string;
 }

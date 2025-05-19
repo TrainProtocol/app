@@ -1,12 +1,14 @@
 import KnownInternalNames from "../../knownIds";
 import {
     useConnectors,
-    useFuel as useGlobalFuel
+    useFuel as useGlobalFuel,
+    useWallet
 } from '@fuels/react';
 import { Connector, useAccount } from "wagmi";
 import {
     FuelConnector,
     Predicate,
+    Provider,
     getPredicateRoot,
 } from '@fuel-ts/account';
 import { Address } from '@fuel-ts/address';
@@ -18,7 +20,12 @@ import { useConnectModal } from "../../../components/WalletModal";
 import { useEffect, useMemo } from "react";
 import { useWalletStore } from "../../../stores/walletStore";
 import { useSettingsState } from "../../../context/settings";
-
+import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../phtlc";
+import { concat, DateTime } from "@fuel-ts/utils";
+import { Contract } from "@fuel-ts/program";
+import contractAbi from "../../abis/atomic/FUEL_PHTLC.json"
+import LayerSwapApiClient from "../../layerSwapApiClient";
+import { B256Coder, BigNumberCoder, bn, sha256 } from 'fuels';
 
 export default function useFuel(): WalletProvider {
     const commonSupportedNetworks = [
@@ -31,19 +38,24 @@ export default function useFuel(): WalletProvider {
 
     const { address: evmAddress, connector: evmConnector } = useAccount()
     const { connectors } = useConnectors()
+    const { wallet } = useWallet()
     const { fuel } = useGlobalFuel()
     const { connect } = useConnectModal()
     const { networks } = useSettingsState()
 
+    const network = networks.find(n => n.name.toLowerCase().includes('fuel'))
+    const fuelProvider = network && new Provider(network?.nodes[0].url);
+
     const wallets = useWalletStore((state) => state.connectedWallets)
     const addWallet = useWalletStore((state) => state.connectWallet)
     const removeWallet = useWalletStore((state) => state.disconnectWallet)
-
     const connectedWallets = wallets.filter(wallet => wallet.providerName === name)
+
+
 
     const connectWallet = async () => {
         try {
-            return await connect(provider as unknown as WalletProvider)
+            return await connect(provider)
         }
         catch (e) {
             console.log(e)
@@ -68,6 +80,7 @@ export default function useFuel(): WalletProvider {
             await fuelConnector?.connect()
 
             const addresses = (await fuelConnector?.accounts())?.map(a => Address.fromAddressOrString(a).toB256())
+            const chain = fuelConnector && (await fuelConnector.currentNetwork()).chainId
 
             if (addresses && fuelConnector) {
 
@@ -80,10 +93,12 @@ export default function useFuel(): WalletProvider {
                     connectWallet,
                     disconnectWallet,
                     name,
+                    chain,
                     commonSupportedNetworks,
                     networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.name))?.logo
                 })
 
+                removeWallet(name, fuelConnector.name)
                 addWallet(result)
                 await switchAccount(result)
                 return result
@@ -125,7 +140,158 @@ export default function useFuel(): WalletProvider {
     }
 
     const switchAccount = async (wallet: Wallet) => {
-        await fuel.selectConnector(wallet.id)
+        try {
+            const res = await fuel.selectConnector(wallet.id)
+
+            if (!res) throw new Error('Could not switch account')
+        } catch (e) {
+            console.log(e)
+        }
+    }
+
+    const switchChain = async (connector: Wallet, chainId: string | number) => {
+        try {
+            const fuelConnector = connectors.find(c => c.name === connector.id)
+
+            if (!fuelConnector) throw new Error('Connector not found')
+
+            const res = await fuelConnector.selectNetwork({ chainId: Number(chainId) })
+
+            if (!res) throw new Error('Could not switch chain')
+        } catch (e) {
+            console.log(e)
+        }
+    }
+
+    const createPreHTLC = async (params: CreatePreHTLCParams) => {
+        const createEmptyArray = (length: number, char: string) =>
+            Array.from({ length }, () => ''.padEnd(64, char));
+
+        const hopChains = createEmptyArray(5, ' ')
+        const hopAssets = createEmptyArray(5, ' ')
+        const hopAddresses = createEmptyArray(5, ' ')
+
+        const { destinationChain, destinationAsset, sourceAsset, lpAddress, address, amount, decimals, atomicContract } = params
+
+        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
+        const timeLockMS = Math.floor((Date.now() + LOCK_TIME) / 1000)
+        const timelock = DateTime.fromUnixSeconds(timeLockMS).toTai64();
+
+        if (!fuelProvider) throw new Error('Node url not found')
+        if (!wallet) throw new Error('Wallet not connected')
+
+        const contractInstance = new Contract(atomicContract, contractAbi, wallet);
+
+        const commitId = generateUint256Hex().toString()
+
+        const dstChain = destinationChain.padEnd(64, ' ');
+        const dstAsset = destinationAsset.padEnd(64, ' ');
+        const dstAddress = address.padEnd(64, ' ');
+        const srcAsset = sourceAsset.symbol.padEnd(64, ' ');
+        const srcReceiver = { bits: lpAddress };
+
+        const parsedAmount = Number(amount) * 10 ** decimals
+
+        const { transactionId } = await contractInstance.functions
+            .commit(hopChains, hopAssets, hopAddresses, dstChain, dstAsset, dstAddress, srcAsset, commitId, srcReceiver, timelock)
+            .callParams({
+                forward: [parsedAmount, await fuelProvider.getBaseAssetId()],
+            })
+            .call();
+
+        return { hash: transactionId, commitId: commitId.toString() }
+    }
+
+    const claim = async (params: ClaimParams) => {
+        const { id, contractAddress: contractAddressString, secret } = params
+
+        const secretBigInt = BigInt(secret);
+        const idBigInt = BigInt(id);
+
+        if (!wallet) throw new Error('Wallet not connected')
+
+        const contractInstance = new Contract(contractAddressString, contractAbi, wallet);
+
+        if (!contractInstance) throw new Error('Contract instance not found')
+
+        const { transactionId, waitForResult } = await contractInstance.functions
+            .redeem(idBigInt, secretBigInt)
+            .call();
+
+        await waitForResult();
+
+        return transactionId
+    }
+
+    const refund = async (params: RefundParams) => {
+        const { id, contractAddress: contractAddressString } = params
+
+        if (!wallet) throw new Error('Wallet not connected')
+
+        const contractInstance = new Contract(contractAddressString, contractAbi, wallet);
+
+        if (!contractInstance) throw new Error('Contract instance not found')
+
+        const { transactionId, waitForResult } = await contractInstance.functions
+            .refund(id)
+            .call();
+
+        await waitForResult();
+
+        return transactionId
+
+    }
+
+    const getDetails = async (params: CommitmentParams) => {
+        const { id, contractAddress: contractAddressString } = params
+
+        const contractInstance = fuelProvider && new Contract(contractAddressString, contractAbi, fuelProvider);
+
+        if (!contractInstance) throw new Error('Contract instance not found')
+
+        const details = (await contractInstance.functions.get_htlc_details(id).get()).value
+
+        const resolvedDetails = {
+            ...details,
+            amount: Number(details.amount) / 10 ** details.decimals,
+            sender: details.sender?.['bits'],
+            receiver: details.receiver?.['bits'],
+            timelock: DateTime.fromTai64(details.timelock).toUnixSeconds(),
+            secret: Number(details.secret),
+            hashlock: details.hashlock !== "0x0000000000000000000000000000000000000000000000000000000000000001" ? details.hashlock : undefined,
+        }
+
+        return resolvedDetails
+    }
+    const addLockSig = async (params: CommitmentParams & LockParams) => {
+        const { id, hashlock } = params
+
+        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
+        const timeLockS = Math.floor((Date.now() + LOCK_TIME) / 1000)
+        const timelock = DateTime.fromUnixSeconds(timeLockS).toTai64();
+
+        const idBytes = new BigNumberCoder('u256').encode(bn(id));
+        const hashlockBytes = new B256Coder().encode(hashlock);
+        const timelockBytes = new BigNumberCoder('u64').encode(bn(timelock));
+
+        const rawData = concat([idBytes, hashlockBytes, timelockBytes]);
+        const message = sha256(rawData);
+
+        if (!wallet) throw new Error('Wallet not connected')
+
+        const signature = await wallet.signMessage(message);
+        const apiClient = new LayerSwapApiClient()
+
+        try {
+            await apiClient.AddLockSig({
+                signature: signature,
+                timelock: timeLockS,
+            }, id)
+        } catch (e) {
+            throw new Error("Failed to add lock")
+        }
+
+        return { hash: signature, result: signature }
     }
 
     const connectedConnectors = useMemo(() => connectors.filter(w => w.connected), [connectors])
@@ -135,6 +301,7 @@ export default function useFuel(): WalletProvider {
             for (const connector of connectedConnectors) {
                 try {
                     const addresses = (await connector.accounts()).map(a => Address.fromAddressOrString(a).toB256())
+                    const chain = (await connector.currentNetwork()).chainId
                     if (connector.connected && addresses.length > 0) {
                         const w = resolveFuelWallet({
                             address: addresses?.[0],
@@ -145,9 +312,11 @@ export default function useFuel(): WalletProvider {
                             connectWallet,
                             disconnectWallet,
                             name,
+                            chain,
                             commonSupportedNetworks: commonSupportedNetworks,
                             networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.name))?.logo
                         })
+                        removeWallet(name, connector.name)
                         addWallet(w)
                     }
 
@@ -158,7 +327,8 @@ export default function useFuel(): WalletProvider {
             }
 
         })()
-    }, [connectedConnectors])
+    }, [connectedConnectors, wallet])
+
 
     const availableWalletsForConnect: InternalConnector[] = connectors.map(c => {
 
@@ -176,6 +346,7 @@ export default function useFuel(): WalletProvider {
         connectConnector,
         disconnectWallets,
         switchAccount,
+        switchChain,
         availableWalletsForConnect,
         autofillSupportedNetworks: commonSupportedNetworks,
         withdrawalSupportedNetworks: commonSupportedNetworks,
@@ -183,9 +354,14 @@ export default function useFuel(): WalletProvider {
         connectedWallets,
         name,
         id,
+        createPreHTLC,
+        claim,
+        refund,
+        getDetails,
+        addLock: addLockSig,
     }
 
-    return provider as unknown as WalletProvider
+    return provider
 }
 
 type ResolveWalletProps = {
@@ -199,9 +375,10 @@ type ResolveWalletProps = {
     name: string,
     commonSupportedNetworks: string[],
     networkIcon?: string,
+    chain?: number
 }
 
-const resolveFuelWallet = ({ address, addresses, commonSupportedNetworks, connectWallet, connector, disconnectWallet, evmAddress, evmConnector, name, networkIcon }: ResolveWalletProps) => {
+const resolveFuelWallet = ({ address, addresses, commonSupportedNetworks, connectWallet, connector, disconnectWallet, evmAddress, evmConnector, name, networkIcon, chain }: ResolveWalletProps) => {
     let fuelCurrentConnector: string | undefined = undefined
 
     let customConnectorname: string | undefined = undefined
@@ -229,6 +406,7 @@ const resolveFuelWallet = ({ address, addresses, commonSupportedNetworks, connec
         address: address,
         addresses: addresses,
         isActive: true,
+        chainId: chain,
         connect: connectWallet,
         disconnect: () => disconnectWallet(connector.name),
         displayName: `${fuelCurrentConnector || connector.name} - Fuel`,
@@ -241,4 +419,14 @@ const resolveFuelWallet = ({ address, addresses, commonSupportedNetworks, connec
     }
 
     return w
+}
+
+function generateUint256Hex() {
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    // turn into a 64-char hex string
+    const hex = Array.from(bytes)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    return '0x' + hex;
 }

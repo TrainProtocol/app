@@ -16,26 +16,51 @@ self.onmessage = (e) => {
 async function initWorker(initConfigs) {
     try {
         await init();
-        const ethCheckpoint = await fetch(initConfigs.hostname + '/api/getCheckpoint').then(res => res.json());
-        const ethereumConfig = {
-            executionRpc: `${initConfigs.version == 'sandbox' ? 'https://eth-sepolia.g.alchemy.com/v2/' : 'https://eth-mainnet.g.alchemy.com/v2/'}${initConfigs.alchemyKey}`,
-            consensusRpc: initConfigs.version == 'sandbox' ? initConfigs.hostname + '/api/consensusRpc' : undefined,
-            checkpoint: ethCheckpoint?.finality?.finalized?.root || initConfigs.version == 'sandbox' ? '0x527a8a4949bc2128d73fa4e2a022aa56881b2053ba83c900013a66eb7c93343e' : '0xf5a73de5020ab47bb6648dee250e60d6f031516327f4b858bc7f3e3ecad84c40',
-            dbType: "localstorage",
-            network: initConfigs.version == 'sandbox' ? 'sepolia' : undefined
-        };
-        const opstackConfig = {
-            executionRpc: `https://opt-mainnet.g.alchemy.com/v2/${initConfigs.alchemyKey}`,
-            network: "op-mainnet",
-        };
-        const baseConfig = {
-            executionRpc: `https://base-mainnet.g.alchemy.com/v2/${initConfigs.alchemyKey}`,
-            network: "base",
-        };
-        const networkName = initConfigs.network?.toLowerCase().includes('ethereum') ? "ethereum" : 'opstack';
-        const providerConfig = networkName === 'opstack' ? (initConfigs.network.toLowerCase().includes('base') ? baseConfig : opstackConfig) : ethereumConfig;
-        const heliosProvider = new HeliosProvider(providerConfig, networkName);
+        const ethCheckpoint = initConfigs.network?.toLowerCase().includes('ethereum') && await fetch(initConfigs.hostname + '/api/getCheckpoint').then(res => res.json());
+
+        const configs = [
+            {
+                name: 'ethereum',
+                cnfg: {
+                    executionRpc: `${initConfigs.version == 'sandbox' ? 'https://eth-sepolia.g.alchemy.com/v2/' : 'https://eth-mainnet.g.alchemy.com/v2/'}${initConfigs.alchemyKey}`,
+                    consensusRpc: initConfigs.version == 'sandbox' ? initConfigs.hostname + '/api/consensusRpc' : undefined,
+                    checkpoint: ethCheckpoint?.finality?.finalized?.root || initConfigs.version == 'sandbox' ? '0x527a8a4949bc2128d73fa4e2a022aa56881b2053ba83c900013a66eb7c93343e' : '0xf5a73de5020ab47bb6648dee250e60d6f031516327f4b858bc7f3e3ecad84c40',
+                    dbType: "localstorage",
+                    network: initConfigs.version == 'sandbox' ? 'sepolia' : undefined,
+                },
+                kind: 'ethereum'
+            },
+            {
+                name: 'optimism',
+                cnfg: {
+                    executionRpc: `https://opt-mainnet.g.alchemy.com/v2/${initConfigs.alchemyKey}`,
+                    network: "op-mainnet",
+                },
+                kind: 'opstack'
+            },
+            {
+                name: 'base',
+                cnfg: {
+                    executionRpc: `https://base-mainnet.g.alchemy.com/v2/${initConfigs.alchemyKey}`,
+                    network: "base",
+                },
+                kind: 'opstack'
+            },
+            {
+                name: 'linea',
+                cnfg: {
+                    executionRpc: `https://linea-mainnet.g.alchemy.com/v2/${key}`,
+                    network: "mainnet",
+                },
+                kind: 'linea'
+            }
+        ]
+
+        const networkConfig = configs.find(config => initConfigs.network?.toLowerCase().includes(config.name));
+
+        const heliosProvider = new HeliosProvider(networkConfig.cnfg, networkConfig.kind);
         await heliosProvider.sync();
+        self.heliosProvider = heliosProvider;
         self.web3Provider = new ethers.providers.Web3Provider(heliosProvider);
         self.postMessage({ type: 'init', data: { initialized: true } });
     }
@@ -50,6 +75,7 @@ async function getCommit(commitConfigs) {
         async function getCommitDetails(provider) {
             if (provider) {
                 try {
+                    await self.heliosProvider.waitSynced();
                     const contract = new ethers.Contract(contractAddress, abi, provider);
                     const res = await contract.getHTLCDetails(commitId);
                     return res;

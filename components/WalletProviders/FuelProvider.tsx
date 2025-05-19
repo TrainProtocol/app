@@ -47,7 +47,7 @@ const FuelProviderWrapper = ({
     }
 
     return (
-        <FuelProvider uiConfig={{ suggestBridge: false }} theme={'dark'} fuelConfig={fuelConfig}>
+        <FuelProvider uiConfig={{ suggestBridge: false }} theme={'dark'} fuelConfig={fuelConfig} networks={[{chainId: Number(network?.chainId)}]}>
             {children}
         </FuelProvider>
     );

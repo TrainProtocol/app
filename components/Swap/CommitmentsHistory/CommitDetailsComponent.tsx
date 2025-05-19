@@ -24,14 +24,12 @@ const CommitDetails: FC<Props> = ({ commit }) => {
         destinationAddress: destination_address,
         sourceNetwork: srcNetwork,
         destinationNetwork: dstNetwork,
-        sourceAsset: srcAsset,
-        destinationAsset: dstAsset
     } = commit
 
     const source_network = networks.find(n => n.name === srcNetwork)
     const destination_network = networks.find(n => n.name === dstNetwork)
-    const source_asset = source_network?.tokens.find(t => t.symbol === srcAsset)
-    const destination_asset = destination_network?.tokens.find(t => t.symbol === dstAsset)
+    const source_asset = source_network?.tokens.find(t => t.symbol === 'srcAsset')
+    const destination_asset = destination_network?.tokens.find(t => t.symbol === 'dstAsset')
 
     return (
         <>
