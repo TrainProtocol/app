@@ -6,7 +6,7 @@ import useTON from "../lib/wallets/ton/useTON";
 import { Wallet, WalletProvider } from "../Models/WalletProvider";
 import { useMemo } from "react";
 import { useSettingsState } from "../context/settings";
-// import useFuel from "../lib/wallets/fuel/useFuel";
+import useFuel from "../lib/wallets/fuel/useFuel";
 
 export type WalletPurpose = "autofil" | "withdrawal" | "asSource"
 
@@ -18,7 +18,7 @@ export default function useWallet(network?: Network | undefined, purpose?: Walle
         useStarknet(),
         useSVM({ network }),
         useTON(),
-        // useFuel()
+        useFuel()
     ].filter(provider => networks.some(obj => provider?.autofillSupportedNetworks?.includes(obj.name) || provider?.withdrawalSupportedNetworks?.includes(obj.name) || provider?.asSourceSupportedNetworks?.includes(obj.name)))
 
     const provider = network && resolveProvider(network, walletProviders, purpose)
