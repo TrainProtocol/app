@@ -34,8 +34,8 @@ const MotionSummary: FC = () => {
 
     const wallet = provider?.activeWallet
     const receiveAmount = commitFromApi?.destinationAmount || fee?.quote?.receiveAmount
-    const receiveAmountInUsd = fee?.quote?.receiveAmountInUsd
-    const requestedAmountInUsd = fee?.quote?.sourceAmountInUsd
+    const receiveAmountInUsd = commitFromApi?.destinationAmountInUsd || fee?.quote?.receiveAmountInUsd
+    const requestedAmountInUsd = commitFromApi?.sourceAmountInUsd || fee?.quote?.sourceAmountInUsd
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
 
     return (

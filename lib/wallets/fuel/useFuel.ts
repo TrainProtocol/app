@@ -251,6 +251,8 @@ export default function useFuel(): WalletProvider {
 
         const details = (await contractInstance.functions.get_htlc_details(id).get()).value
 
+        if (!details) return undefined
+
         const resolvedDetails = {
             ...details,
             amount: Number(details.amount) / 10 ** details.decimals,
