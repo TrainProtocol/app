@@ -99,7 +99,7 @@ export default function Layout({ children, settings, themeData }: Props) {
   return (<>
 
     <Head>
-      <title>TRAIN | Permissionless and trustless asset bridging protocol</title>
+      <title>TRAIN I The First Truly Trustless Cross-Chain Bridge</title>
       <link rel="icon" type="image/png" href="favicon/favicon-96x96.png" sizes="96x96" />
       <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
       <link rel="shortcut icon" href="/favicon/favicon.ico" />
@@ -109,13 +109,13 @@ export default function Layout({ children, settings, themeData }: Props) {
       <link rel="canonical" href="https://app.train.tech/" />
       <meta name="msapplication-TileColor" content="#ffffff" />
       <meta name="theme-color" content={`rgb(${themeData.secondary?.[900]})`} />
-      <meta name="description" content="Trustless, permissionless cross-chain bridging protocol" />
+      <meta name="description" content="Trustless bridging & swapping of crypto assets between blockchains. Transfer any amount to any network secured by a battle-tested system." />
 
       {/* Facebook Meta Tags */}
       <meta property="og:url" content={`https://app.train.tech/`} />
       <meta property="og:type" content="website" />
       <meta property="og:title" content="TRAIN Protocol" />
-      <meta property="og:description" content="Trustless, permissionless cross-chain bridging protocol" />
+      <meta property="og:description" content="Trustless bridging & swapping of crypto assets between blockchains. Transfer any amount to any network secured by a battle-tested system." />
       <meta property="og:image" content={`https://app.train.tech/opengraph.jpg?v=2`} />
 
       {/* Twitter Meta Tags */}
@@ -123,7 +123,7 @@ export default function Layout({ children, settings, themeData }: Props) {
       <meta property="twitter:domain" content="app.train.tech" />
       <meta property="twitter:url" content={`https://app.train.tech/`} />
       <meta name="twitter:title" content="TRAIN Protocol" />
-      <meta name="twitter:description" content="Trustless, permissionless cross-chain bridging protocol" />
+      <meta name="twitter:description" content="Trustless bridging & swapping of crypto assets between blockchains. Transfer any amount to any network secured by a battle-tested system." />
       <meta name="twitter:image" content={`https://app.train.tech/opengraphtw.jpg`} />
     </Head>
     {
