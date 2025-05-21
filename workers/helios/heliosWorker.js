@@ -49,15 +49,13 @@ async function initWorker(initConfigs) {
             {
                 name: 'linea',
                 cnfg: {
-                    executionRpc: `https://linea-mainnet.g.alchemy.com/v2/${key}`,
+                    executionRpc: `https://linea-mainnet.g.alchemy.com/v2/${initConfigs.alchemyKey}`,
                     network: "mainnet",
                 },
                 kind: 'linea'
             }
-        ]
-
+        ];
         const networkConfig = configs.find(config => initConfigs.network?.toLowerCase().includes(config.name));
-
         const heliosProvider = new HeliosProvider(networkConfig.cnfg, networkConfig.kind);
         await heliosProvider.sync();
         self.heliosProvider = heliosProvider;

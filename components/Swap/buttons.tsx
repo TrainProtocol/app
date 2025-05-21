@@ -75,14 +75,14 @@ export const ChangeNetworkButton: FC<ChangeNetworkProps> = (props) => {
 
     const { selectedSourceAccount } = useAtomicState()
 
-    const clickHandler = useCallback(() => {
+    const clickHandler = useCallback(async () => {
         try {
             setIsPending(true)
             if (!provider) throw new Error(`No provider from ${network?.name}`)
             if (!provider.switchChain) throw new Error(`No switchChain from ${network?.name}`)
             if (!selectedSourceAccount?.wallet) throw new Error(`No selectedSourceAccount from ${network?.name}`)
 
-            return provider.switchChain(selectedSourceAccount?.wallet, chainId)
+            return await provider.switchChain(selectedSourceAccount?.wallet, chainId)
         } catch (e) {
             setError(e)
         } finally {
@@ -92,16 +92,14 @@ export const ChangeNetworkButton: FC<ChangeNetworkProps> = (props) => {
     }, [provider, chainId])
 
     return <>
-        {
-            <ChangeNetworkMessage
-                data={{
-                    isPending: isPending,
-                    isError: !!error,
-                    error
-                }}
-                network={network.displayName}
-            />
-        }
+        <ChangeNetworkMessage
+            data={{
+                isPending: isPending,
+                isError: !!error,
+                error
+            }}
+            network={network.displayName}
+        />
         {
             !isPending &&
             <ButtonWrapper

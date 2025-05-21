@@ -53,10 +53,12 @@ export type CommitFromApi = {
     sourceNetwork: string,
     sourceToken: string,
     sourceAmount: number,
+    sourceAmountInUsd: number,
     sourceAddress: string,
     destinationNetwork: string,
     destinationToken: string,
     destinationAmount: number,
+    destinationAmountInUsd: number,
     destinationAddress: string,
     feeAmount: number,
     transactions: {
