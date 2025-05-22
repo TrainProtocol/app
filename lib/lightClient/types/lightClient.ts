@@ -1,5 +1,5 @@
 import { Network, Token } from "../../../Models/Network";
-import { Commit } from "../../../Models/PHTLC";
+import { Commit } from "../../../Models/phtlc/PHTLC";
 
 export default abstract class _LightClient {
     abstract supportsNetwork: (network: Network) => boolean

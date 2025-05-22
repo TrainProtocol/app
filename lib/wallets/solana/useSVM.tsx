@@ -3,9 +3,8 @@ import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon"
 import { ContractType, ManagedAccountType, Network, NetworkType } from "../../../Models/Network"
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider"
 import { useMemo } from "react"
-import { useConnectModal } from "../../../components/WalletModal"
 import { AnchorWallet, useAnchorWallet, useConnection, useWallet } from "@solana/wallet-adapter-react"
-import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../phtlc"
+import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../../../Models/phtlc"
 import { AnchorHtlc } from "./anchorHTLC"
 import { AnchorProvider, Program, setProvider } from '@coral-xyz/anchor'
 import { PublicKey } from "@solana/web3.js"
@@ -13,27 +12,20 @@ import { useSettingsState } from "../../../context/settings"
 import { useCallback } from "react"
 import { lockTransactionBuilder, phtlcTransactionBuilder } from "./transactionBuilder"
 import LayerSwapApiClient from "../../layerSwapApiClient"
-import { Adapter } from "@solana/wallet-adapter-base"
 
 const solanaNames = [KnownInternalNames.Networks.SolanaMainnet, KnownInternalNames.Networks.SolanaDevnet, KnownInternalNames.Networks.SolanaTestnet]
 
-export default function useSVM({ network }: { network: Network | undefined }): WalletProvider {
-
-    network = network?.type === NetworkType.Solana ? network : undefined
-
+export default function useSVM(): WalletProvider {
+    const { networks } = useSettingsState()
+    const network = networks.find(n => solanaNames.some(name => n.name === name))
     const commonSupportedNetworks = [
-        KnownInternalNames.Networks.SolanaMainnet,
-        KnownInternalNames.Networks.SolanaDevnet,
-        KnownInternalNames.Networks.EclipseTestnet,
-        KnownInternalNames.Networks.EclipseMainnet
+        ...networks.filter(network => network.type === NetworkType.Solana).map(l => l.name)
     ]
 
     const name = 'Solana'
     const id = 'solana'
     const { disconnect, wallet: solanaWallet, select, wallets, signTransaction, signMessage } = useWallet();
     const publicKey = solanaWallet?.adapter.publicKey
-    const { networks } = useSettingsState()
-    const { connect } = useConnectModal()
 
     const connectedWallet = wallets.find(w => w.adapter.connected === true)
     const connectedAddress = connectedWallet?.adapter.publicKey?.toBase58()
@@ -50,10 +42,6 @@ export default function useSVM({ network }: { network: Network | undefined }): W
 
     const connectedWallets = useMemo(() => {
 
-        if (network?.name.toLowerCase().startsWith('eclipse') && !(connectedAdapterName?.toLowerCase() === "backpack" || connectedAdapterName?.toLowerCase() === "nightly")) {
-            return undefined
-        }
-
         const wallet: Wallet | undefined = (connectedAddress && connectedAdapterName) ? {
             id: connectedAdapterName,
             address: connectedAddress,
@@ -61,10 +49,8 @@ export default function useSVM({ network }: { network: Network | undefined }): W
             providerName: name,
             icon: resolveWalletConnectorIcon({ connector: String(connectedAdapterName), address: connectedAddress, iconUrl: connectedWallet?.adapter.icon }),
             disconnect,
-            connect: () => connectWallet(),
             isActive: true,
             addresses: [connectedAddress],
-            isNotAvailable: isNotAvailable(connectedWallet?.adapter, network),
             asSourceSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
             autofillSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
             withdrawalSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
@@ -75,19 +61,11 @@ export default function useSVM({ network }: { network: Network | undefined }): W
             return [wallet]
         }
 
-    }, [network, connectedAddress, connectedAdapterName])
+    }, [connectedAddress, connectedAdapterName])
 
-    const connectWallet = async () => {
-        try {
-            return await connect(provider)
-        }
-        catch (e) {
-            console.log(e)
-        }
-    }
 
-    const connectConnector = async ({ connector }: { connector: InternalConnector }) => {
-        const solanaConnector = wallets.find(w => w.adapter.name === connector.name)
+    const connectWallet = async ({ connector }: { connector: InternalConnector }) => {
+        const solanaConnector = wallets.find(w => w.adapter.name.includes(connector.name))
         if (!solanaConnector) throw new Error('Connector not found')
         if (connectedWallet) await solanaConnector.adapter.disconnect()
         select(solanaConnector.adapter.name)
@@ -102,10 +80,8 @@ export default function useSVM({ network }: { network: Network | undefined }): W
             providerName: name,
             icon: resolveWalletConnectorIcon({ connector: String(newConnectedWallet?.adapter.name), address: connectedAddress, iconUrl: newConnectedWallet?.adapter.icon }),
             disconnect,
-            connect: () => connectWallet(),
             isActive: true,
             addresses: [connectedAddress],
-            isNotAvailable: isNotAvailable(solanaConnector.adapter, network),
             asSourceSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
             autofillSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
             withdrawalSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
@@ -124,18 +100,14 @@ export default function useSVM({ network }: { network: Network | undefined }): W
         }
     }
 
-
-    const filterConnectors = wallet => !isNotAvailable(wallet.adapter, network)
-    const filteredWallets = wallets.filter(filterConnectors)
-
     const availableWalletsForConnect = useMemo(() => {
         const connectors: InternalConnector[] = [];
 
-        for (const wallet of filteredWallets) {
+        for (const wallet of wallets) {
 
             const internalConnector: InternalConnector = {
-                name: wallet.adapter.name,
-                id: wallet.adapter.name,
+                name: wallet.adapter.name.trim(),
+                id: wallet.adapter.name.trim(),
                 icon: wallet.adapter.icon,
                 type: wallet.readyState === 'Installed' ? 'injected' : 'other',
                 installUrl: (wallet.readyState === 'Installed' || wallet.readyState === 'Loadable') ? undefined : wallet.adapter?.url,
@@ -145,7 +117,7 @@ export default function useSVM({ network }: { network: Network | undefined }): W
         }
 
         return connectors;
-    }, [filteredWallets]);
+    }, [wallets]);
 
     const createPreHTLC = useCallback(async (params: CreatePreHTLCParams): Promise<{ hash: string; commitId: string; } | null | undefined> => {
         if (!program || !publicKey || !network) return null
@@ -308,7 +280,7 @@ export default function useSVM({ network }: { network: Network | undefined }): W
             program.programId
         );
 
-        await program.methods.redeem(idBuffer, secretBuffer, htlcBump).
+        const hash = await program.methods.redeem(idBuffer, secretBuffer, htlcBump).
             accountsPartial({
                 userSigning: publicKey,
                 htlc: htlc,
@@ -318,14 +290,16 @@ export default function useSVM({ network }: { network: Network | undefined }): W
                 srcReceiverTokenAccount: senderTokenAddress,
             })
             .rpc();
+
+        return hash
     }
 
     const provider = {
         connectedWallets: connectedWallets,
         activeWallet: connectedWallets?.[0],
         connectWallet,
-        connectConnector,
         disconnectWallets: disconnectWallet,
+        isNotAvailableCondition: isNotAvailable,
         availableWalletsForConnect,
         withdrawalSupportedNetworks: commonSupportedNetworks,
         autofillSupportedNetworks: commonSupportedNetworks,
@@ -351,10 +325,10 @@ function toHexString(byteArray) {
     }).join('')
 }
 
-const isNotAvailable = (connector: Adapter | undefined, network: Network | undefined) => {
+const isNotAvailable = (connector: string | undefined, network: string | undefined) => {
     if (!network) return false
     if (!connector) return true
-    return resolveSupportedNetworks([network.name], connector.name).length === 0
+    return resolveSupportedNetworks([network], connector).length === 0
 }
 
 const networkSupport = {

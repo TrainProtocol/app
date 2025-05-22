@@ -164,7 +164,6 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
                         <ConnectWalletButton
                             provider={provider}
                             onConnect={onConnect}
-                            destination={destination}
                         />
                     }
 

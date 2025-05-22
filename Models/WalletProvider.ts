@@ -1,7 +1,7 @@
 import { AccountInterface } from 'starknet';
 import { StarknetWindowObject } from 'starknetkit';
-import { ClaimParams, CommitmentParams, CreatePreHTLCParams, GetCommitsParams, LockParams, RefundParams } from '../lib/wallets/phtlc';
-import { Commit } from './PHTLC';
+import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from './phtlc';
+import { Commit } from './phtlc/PHTLC';
 
 export type InternalConnector = {
     name: string,
@@ -17,6 +17,7 @@ export type InternalConnector = {
 
 export type Wallet = {
     id: string;
+    internalId?: string;
     displayName?: string;
     isActive: boolean;
     address: string | `0x${string}`;
@@ -43,10 +44,11 @@ export type Wallet = {
 
 export type WalletProvider = {
     hideFromList?: boolean,
-    connectWallet: () => Promise<Wallet | undefined>,
-    connectConnector?: (props?: { connector: InternalConnector }) => Promise<Wallet | undefined> | undefined
-    switchAccount?: (connector: Wallet, address: string) => Promise<void>
+    connectWallet: (props?: { connector?: InternalConnector }) => Promise<Wallet | undefined> | undefined,
+    disconnectWallets?: () => Promise<void> | undefined | void,
+    switchAccount?: (connector: Wallet, address: string) => Promise<void>,
     switchChain?: (connector: Wallet, chainId: string | number) => Promise<void>
+    isNotAvailableCondition?: (connector: string, network: string) => boolean,
     availableWalletsForConnect?: InternalConnector[],
     connectedWallets: Wallet[] | undefined,
     activeWallet: Wallet | undefined,
@@ -58,7 +60,7 @@ export type WalletProvider = {
     providerIcon?: string,
 
     createPreHTLC: (args: CreatePreHTLCParams) => Promise<{ hash: string, commitId: string } | null | undefined>,
-    claim: (args: ClaimParams) => Promise<string> | undefined | void,
+    claim: (args: ClaimParams) => Promise<string | undefined> | undefined | void,
     refund: (args: RefundParams) => Promise<any> | undefined | void,
     getDetails: (args: CommitmentParams) => Promise<Commit | null>,
     secureGetDetails?: (args: CommitmentParams) => Promise<Commit | null>,

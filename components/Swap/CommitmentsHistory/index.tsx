@@ -1,7 +1,7 @@
 import { useRouter } from "next/router"
 import { FC, ReactNode, useCallback, useEffect, useState } from "react"
 import { ArrowRight, ChevronRight, Scroll } from 'lucide-react';
-import { Commit } from "../../../Models/PHTLC";
+import { Commit } from "../../../Models/phtlc/PHTLC";
 import { resolvePersistantQueryParams } from "../../../helpers/querryHelper";
 import HeaderWithMenu from "../../HeaderWithMenu";
 import { classNames } from "../../utils/classNames";

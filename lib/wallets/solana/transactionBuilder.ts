@@ -1,7 +1,7 @@
 import { Connection, PublicKey, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { createAssociatedTokenAccountInstruction, createTransferInstruction, getAccount, getAssociatedTokenAddress } from '@solana/spl-token';
 import { Network, Token } from "../../../Models/Network";
-import { CommitmentParams, CreatePreHTLCParams, LockParams } from "../phtlc";
+import { CommitmentParams, CreatePreHTLCParams, LockParams } from "../../../Models/phtlc";
 import { BN, Idl, Program } from "@coral-xyz/anchor";
 import { createHash } from "crypto";
 

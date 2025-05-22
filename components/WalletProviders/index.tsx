@@ -5,6 +5,9 @@ import { ThemeData } from "../../Models/Theme"
 import Wagmi from "./Wagmi";
 import StarknetProvider from "./StarknetProvider";
 import { ImtblPassportProvider } from "./ImtblPassportProvider";
+import FuelProviderWrapper from "./FuelProvider";
+import { WalletModalProvider } from "../WalletModal";
+import { WalletProvidersProvider } from "../../context/walletHookProviders";
 
 const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], basePath: string, themeData: ThemeData, appName: string | undefined }> = ({ children, basePath, themeData, appName }) => {
     return (
@@ -13,7 +16,13 @@ const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], basePath: st
                 <StarknetProvider>
                     <Wagmi>
                         <ImtblPassportProvider>
-                            {children}
+                            <FuelProviderWrapper>
+                                <WalletModalProvider>
+                                    <WalletProvidersProvider>
+                                        {children}
+                                    </WalletProvidersProvider>
+                                </WalletModalProvider>
+                            </FuelProviderWrapper>
                         </ImtblPassportProvider>
                     </Wagmi>
                 </StarknetProvider>

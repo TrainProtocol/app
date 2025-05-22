@@ -2,7 +2,7 @@ import { Dispatch, FC, SetStateAction, useEffect, useMemo, useRef, useState } fr
 import useWallet from "../../hooks/useWallet";
 import { useConnectModal, WalletModalConnector } from ".";
 import { InternalConnector, Wallet, WalletProvider } from "../../Models/WalletProvider";
-import { Check, CircleX, Link2Off, RotateCw, Search, SlidersHorizontal, XCircle } from "lucide-react";
+import { CircleX, Link2Off, RotateCw, Search, SlidersHorizontal, XCircle } from "lucide-react";
 import { resolveWalletConnectorIcon } from "../../lib/wallets/utils/resolveWalletIcon";
 import { QRCodeSVG } from "qrcode.react";
 import CopyButton from "../buttons/copyButton";
@@ -10,11 +10,11 @@ import clsx from "clsx";
 import useWindowDimensions from "../../hooks/useWindowDimensions";
 import Connector from "./Connector";
 import { removeDuplicatesWithKey } from "./utils";
-import VaulDrawer from "../Modal/vaulModal";
 import Image from "next/image";
 import { usePersistedState } from "../../hooks/usePersistedState";
 import { Popover, PopoverContent, PopoverTrigger } from "../shadcn/popover";
 import { Checkbox } from "../shadcn/checkbox";
+import VaulDrawer from "../Modal/vaulModal";
 import TrainLogoSymbol from "../Icons/TrainLogoSymbol";
 
 const ConnectorsLsit: FC<{ onFinish: (result: Wallet | undefined) => void }> = ({ onFinish }) => {
@@ -55,7 +55,7 @@ const ConnectorsLsit: FC<{ onFinish: (result: Wallet | undefined) => void }> = (
             setSelectedConnector(connector)
             if (connector.installUrl) return
 
-            const result = provider?.connectConnector && await provider.connectConnector({ connector })
+            const result = provider?.connectWallet && await provider.connectWallet({ connector })
 
             if (result && connector && provider) {
                 setRecentConnectors((prev) => [...(prev?.filter(v => v.providerName !== provider.name) || []), { providerName: provider.name, connectorName: connector.name }])
@@ -245,7 +245,7 @@ const LoadingConnect: FC<{ onRetry: () => void, selectedConnector: WalletModalCo
                     <div className="flex-col flex items-center">
                         <div className="grid grid-cols-3 items-center gap-2">
                             <div className="p-3 bg-secondary-700 rounded-lg z-10">
-                                <TrainLogoSymbol className="w-11 h-11" />
+                                <TrainLogoSymbol className="w-11 h-auto" />
                             </div>
                             {
                                 connectionError ?

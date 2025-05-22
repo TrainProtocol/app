@@ -20,7 +20,7 @@ import { useConnectModal } from "../../../components/WalletModal";
 import { useEffect, useMemo } from "react";
 import { useWalletStore } from "../../../stores/walletStore";
 import { useSettingsState } from "../../../context/settings";
-import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../phtlc";
+import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../../../Models/phtlc";
 import { concat, DateTime } from "@fuel-ts/utils";
 import { Contract } from "@fuel-ts/program";
 import contractAbi from "../../abis/atomic/FUEL_PHTLC.json"
@@ -40,7 +40,6 @@ export default function useFuel(): WalletProvider {
     const { connectors } = useConnectors()
     const { wallet } = useWallet()
     const { fuel } = useGlobalFuel()
-    const { connect } = useConnectModal()
     const { networks } = useSettingsState()
 
     const network = networks.find(n => n.name.toLowerCase().includes('fuel'))
@@ -51,54 +50,31 @@ export default function useFuel(): WalletProvider {
     const removeWallet = useWalletStore((state) => state.disconnectWallet)
     const connectedWallets = wallets.filter(wallet => wallet.providerName === name)
 
-
-
-    const connectWallet = async () => {
-        try {
-            return await connect(provider)
-        }
-        catch (e) {
-            console.log(e)
-        }
-    }
-
-    const connectConnector = async ({ connector }: { connector: InternalConnector }) => {
+    const connectWallet = async ({ connector }: { connector: InternalConnector }) => {
         try {
 
             const fuelConnector = connectors.find(w => w.name === connector.name)
-
-            if (!fuelConnector?.installed) {
-                const installLink = fuelConnector?.metadata.install.link
-                if (installLink) {
-                    window.open(installLink, "_blank");
-                    return
-                }
-            }
 
             BAKO_STATE.state.last_req = undefined
             BAKO_STATE.period_durtion = 120_000
             await fuelConnector?.connect()
 
             const addresses = (await fuelConnector?.accounts())?.map(a => Address.fromAddressOrString(a).toB256())
-            const chain = fuelConnector && (await fuelConnector.currentNetwork()).chainId
 
             if (addresses && fuelConnector) {
 
-                const result = resolveFuelWallet({
+                const result = await resolveFuelWallet({
                     address: addresses[0],
                     addresses: addresses,
                     connector: fuelConnector,
                     evmAddress,
                     evmConnector,
-                    connectWallet,
                     disconnectWallet,
                     name,
-                    chain,
                     commonSupportedNetworks,
                     networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.name))?.logo
                 })
 
-                removeWallet(name, fuelConnector.name)
                 addWallet(result)
                 await switchAccount(result)
                 return result
@@ -107,6 +83,7 @@ export default function useFuel(): WalletProvider {
         }
         catch (e) {
             console.log(e)
+            throw new Error(e)
         }
     }
 
@@ -303,49 +280,41 @@ export default function useFuel(): WalletProvider {
             for (const connector of connectedConnectors) {
                 try {
                     const addresses = (await connector.accounts()).map(a => Address.fromAddressOrString(a).toB256())
-                    const chain = (await connector.currentNetwork()).chainId
                     if (connector.connected && addresses.length > 0) {
-                        const w = resolveFuelWallet({
+                        const w = await resolveFuelWallet({
                             address: addresses?.[0],
                             addresses,
                             connector,
                             evmAddress,
                             evmConnector,
-                            connectWallet,
                             disconnectWallet,
                             name,
-                            chain,
                             commonSupportedNetworks: commonSupportedNetworks,
                             networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.name))?.logo
                         })
-                        removeWallet(name, connector.name)
                         addWallet(w)
                     }
 
                 } catch (e) {
                     console.log(e)
                 }
-
             }
-
         })()
-    }, [connectedConnectors, wallet])
+    }, [connectedConnectors])
 
 
     const availableWalletsForConnect: InternalConnector[] = connectors.map(c => {
-
-        const name = c.installed ? c.name : `Install ${c.name}`
-
+        const isInstalled = c.installed && !c['dAppWindow']
         return {
-            name: name,
+            name: c.name,
             id: c.name,
-            type: c.installed ? 'injected' : 'other',
+            type: isInstalled ? 'injected' : 'other',
+            installUrl: c.installed ? undefined : c.metadata.install.link,
         }
     })
 
     const provider = {
         connectWallet,
-        connectConnector,
         disconnectWallets,
         switchAccount,
         switchChain,
@@ -372,15 +341,13 @@ type ResolveWalletProps = {
     connector: FuelConnector,
     evmAddress: `0x${string}` | undefined,
     evmConnector: Connector | undefined,
-    connectWallet: () => Promise<Wallet | undefined>,
     disconnectWallet: (connectorName: string) => Promise<void>,
     name: string,
     commonSupportedNetworks: string[],
     networkIcon?: string,
-    chain?: number
 }
 
-const resolveFuelWallet = ({ address, addresses, commonSupportedNetworks, connectWallet, connector, disconnectWallet, evmAddress, evmConnector, name, networkIcon, chain }: ResolveWalletProps) => {
+const resolveFuelWallet = async ({ address, addresses, commonSupportedNetworks, connector, disconnectWallet, evmAddress, evmConnector, name, networkIcon }: ResolveWalletProps) => {
     let fuelCurrentConnector: string | undefined = undefined
 
     let customConnectorname: string | undefined = undefined
@@ -402,14 +369,15 @@ const resolveFuelWallet = ({ address, addresses, commonSupportedNetworks, connec
             customConnectorname = evmConnector.name
         }
     }
+    const network = await connector.currentNetwork()
+    const chainId = network.chainId || network.url.toLowerCase().includes('testnet') ? 0 : 9889
 
     const w: Wallet = {
         id: connector.name,
         address: address,
         addresses: addresses,
         isActive: true,
-        chainId: chain,
-        connect: connectWallet,
+        chainId: chainId,
         disconnect: () => disconnectWallet(connector.name),
         displayName: `${fuelCurrentConnector || connector.name} - Fuel`,
         providerName: name,
@@ -422,7 +390,6 @@ const resolveFuelWallet = ({ address, addresses, commonSupportedNetworks, connec
 
     return w
 }
-
 function generateUint256Hex() {
     const bytes = new Uint8Array(32);
     crypto.getRandomValues(bytes);

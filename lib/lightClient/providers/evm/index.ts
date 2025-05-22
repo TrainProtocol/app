@@ -2,7 +2,7 @@ import formatAmount from "../../../formatAmount"
 import _LightClient from "../../types/lightClient"
 import EVMERC20_PHTLC from '../../../abis/atomic/EVMERC20_PHTLC.json'
 import EVM_PHTLC from '../../../abis/atomic/EVM_PHTLC.json'
-import { Commit } from "../../../../Models/PHTLC"
+import { Commit } from "../../../../Models/phtlc/PHTLC"
 import KnownInternalNames from "../../../knownIds"
 import { Network, Token } from "../../../../Models/Network"
 import { hexToBigInt } from "viem"

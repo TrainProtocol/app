@@ -1,5 +1,5 @@
-import { Token } from "../../../Models/Network";
-import { Commit } from "../../../Models/PHTLC";
+import { Token } from "../Network";
+import { Commit } from "./PHTLC";
 
 export type CreatePreHTLCParams = {
     destinationChain: string,

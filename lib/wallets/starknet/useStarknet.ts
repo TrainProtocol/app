@@ -1,21 +1,19 @@
 import { useWalletStore } from "../../../stores/walletStore"
 import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
-import toast from "react-hot-toast";
 import { cairo, Call, constants, Contract, RpcProvider, shortString, TypedData, TypedDataRevision, typedData } from "starknet";
 import PHTLCAbi from "../../../lib/abis/atomic/STARKNET_PHTLC.json"
 import ETHABbi from "../../../lib/abis/STARKNET_ETH.json"
-import { ClaimParams, CommitmentParams, CreatePreHTLCParams, GetCommitsParams, LockParams, RefundParams } from "../phtlc";
+import { ClaimParams, CommitmentParams, CreatePreHTLCParams, GetCommitsParams, LockParams, RefundParams } from "../../../Models/phtlc";
 import { ethers } from "ethers";
-import { Commit } from "../../../Models/PHTLC";
 import { toHex } from "viem";
 import formatAmount from "../../formatAmount";
 import { useSettingsState } from "../../../context/settings";
 import { useConnect, useDisconnect } from "@starknet-react/core";
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider";
-import { useConnectModal } from "../../../components/WalletModal";
 import { useMemo } from "react";
 import LayerSwapApiClient from "../../layerSwapApiClient";
+import { Commit } from "../../../Models/phtlc/PHTLC";
 
 const starknetNames = [KnownInternalNames.Networks.StarkNetGoerli, KnownInternalNames.Networks.StarkNetMainnet, KnownInternalNames.Networks.StarkNetSepolia]
 export default function useStarknet(): WalletProvider {
@@ -53,18 +51,7 @@ export default function useStarknet(): WalletProvider {
 
     }, [wallets])
 
-    const { connect } = useConnectModal()
-
-    const connectWallet = async () => {
-        try {
-            return await connect(provider)
-        }
-        catch (e) {
-            console.log(e)
-        }
-    }
-
-    const connectConnector = async ({ connector }) => {
+    const connectWallet = async ({ connector }) => {
         try {
             const starknetConnector = connectors.find(c => c.id === connector.id)
 
@@ -101,7 +88,6 @@ export default function useStarknet(): WalletProvider {
                         // wallet: account
                     },
                     isActive: true,
-                    connect: () => connectWallet(),
                     disconnect: () => disconnectWallets(),
                     withdrawalSupportedNetworks,
                     autofillSupportedNetworks: commonSupportedNetworks,
@@ -400,7 +386,7 @@ export default function useStarknet(): WalletProvider {
 
     const provider = {
         connectWallet,
-        connectConnector,
+        disconnectWallets,
         connectedWallets: starknetWallet ? [starknetWallet] : undefined,
         activeWallet: starknetWallet,
         withdrawalSupportedNetworks,

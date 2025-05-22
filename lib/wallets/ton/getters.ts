@@ -1,10 +1,10 @@
-import { CommitmentParams } from "../phtlc";
+import { CommitmentParams } from "../../../Models/phtlc";
 import { Address } from "@ton/ton"
 import tonClient from "./client";
 import { hexToBigInt, toHex } from "viem";
 import { TupleBuilder } from "@ton/core"
 import { Network } from "../../../Models/Network";
-import { Commit } from "../../../Models/PHTLC";
+import { Commit } from "../../../Models/phtlc/PHTLC";
 
 
 export const getTONDetails = async (params: CommitmentParams & { network: Network | undefined }) => {

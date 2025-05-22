@@ -1,6 +1,6 @@
 import formatAmount from "../../../formatAmount"
 import _LightClient from "../../types/lightClient"
-import { Commit } from "../../../../Models/PHTLC"
+import { Commit } from "../../../../Models/phtlc/PHTLC"
 import KnownInternalNames from "../../../knownIds"
 import { Network, Token } from "../../../../Models/Network"
 import PHTLCAbi from "../../../../lib/abis/atomic/STARKNET_PHTLC.json"
