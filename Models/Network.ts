@@ -51,7 +51,7 @@ export enum ContractType {
 }
 
 export enum ManagedAccountType {
-    LP = 'LP',
+    Primary = 'Primary',
 }
 
 export class Token {

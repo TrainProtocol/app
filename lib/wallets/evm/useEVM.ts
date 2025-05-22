@@ -595,6 +595,7 @@ const ResolveWallet = (props: ResolveWalletProps): Wallet | undefined => {
         id: connector.name,
         internalId: connector.id,
         isActive: accountIsActive,
+        chainId: connection?.chainId,
         address,
         addresses: addresses || [address],
         displayName: walletname,

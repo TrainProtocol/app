@@ -20,7 +20,7 @@ export const UserCommitAction: FC = () => {
     //     chainId: Number(source_network?.chain_id),
     // });
     const atomicContract = source_network?.contracts.find(c => (source_asset?.contract && source_network.type !== NetworkType.Fuel) ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
-    const lpAddress = source_network?.managedAccounts.find(a => a.type === ManagedAccountType.LP)?.address
+    const lpAddress = source_network?.managedAccounts.find(a => a.type === ManagedAccountType.Primary)?.address
 
     const handleCommit = async () => {
         try {

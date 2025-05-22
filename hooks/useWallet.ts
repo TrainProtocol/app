@@ -44,10 +44,13 @@ const resolveProvider = (network: Network | undefined, walletProviders: WalletPr
     switch (purpose) {
         case "withdrawal":
             provider = walletProviders.find(provider => provider.withdrawalSupportedNetworks?.includes(network.name))
+            break;
         case "autofil":
             provider = walletProviders.find(provider => provider.autofillSupportedNetworks?.includes(network.name))
+            break;
         case "asSource":
             provider = walletProviders.find(provider => provider.asSourceSupportedNetworks?.includes(network.name))
+            break;
     }
 
     if (provider?.isNotAvailableCondition) {

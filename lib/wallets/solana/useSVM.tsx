@@ -147,7 +147,7 @@ export default function useSVM(): WalletProvider {
 
     const getDetails = async (params: CommitmentParams) => {
 
-        const lpAddress = network?.managedAccounts.find(c => c.type === ManagedAccountType.LP)?.address
+        const lpAddress = network?.managedAccounts.find(c => c.type === ManagedAccountType.Primary)?.address
 
         if (!lpAddress) throw new Error("No LP address")
 
