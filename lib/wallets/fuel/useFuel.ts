@@ -7,6 +7,7 @@ import {
 import { Connector, useAccount } from "wagmi";
 import {
     FuelConnector,
+    FuelConnectorEventTypes,
     Predicate,
     Provider,
     getPredicateRoot,
@@ -16,7 +17,6 @@ import shortenAddress from "../../../components/utils/ShortenAddress";
 import { BAKO_STATE } from "./Basko";
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider";
-import { useConnectModal } from "../../../components/WalletModal";
 import { useEffect, useMemo } from "react";
 import { useWalletStore } from "../../../stores/walletStore";
 import { useSettingsState } from "../../../context/settings";
@@ -277,31 +277,51 @@ export default function useFuel(): WalletProvider {
 
     useEffect(() => {
         (async () => {
-            for (const connector of connectedConnectors) {
-                try {
-                    const addresses = (await connector.accounts()).map(a => Address.fromAddressOrString(a).toB256())
-                    if (connector.connected && addresses.length > 0) {
-                        const w = await resolveFuelWallet({
-                            address: addresses?.[0],
-                            addresses,
-                            connector,
-                            evmAddress,
-                            evmConnector,
-                            disconnectWallet,
-                            name,
-                            commonSupportedNetworks: commonSupportedNetworks,
-                            networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.name))?.logo
-                        })
-                        addWallet(w)
-                    }
-
-                } catch (e) {
-                    console.log(e)
-                }
-            }
+            resolveWallet()
         })()
     }, [connectedConnectors])
 
+    const resolveWallet = async () => {
+        for (const connector of connectedConnectors) {
+            try {
+                const addresses = (await connector.accounts()).map(a => Address.fromAddressOrString(a).toB256())
+                if (connector.connected && addresses.length > 0) {
+                    const w = await resolveFuelWallet({
+                        address: addresses?.[0],
+                        addresses,
+                        connector,
+                        evmAddress,
+                        evmConnector,
+                        disconnectWallet,
+                        name,
+                        commonSupportedNetworks: commonSupportedNetworks,
+                        networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.name))?.logo
+                    })
+                    addWallet(w)
+                }
+
+            } catch (e) {
+                console.log(e)
+            }
+        }
+    };
+
+    useEffect(() => {
+        const disposers = connectors.map((c) => {
+            const handler = async () => {
+                await resolveWallet()
+            };
+
+            c.on(FuelConnectorEventTypes.currentNetwork, handler);
+            return { connector: c, handler };
+        });
+
+        return () => {
+            disposers.forEach(({ connector, handler }) => {
+                connector.off(FuelConnectorEventTypes.currentNetwork, handler);
+            });
+        };
+    }, [connectors]);
 
     const availableWalletsForConnect: InternalConnector[] = connectors.map(c => {
         const isInstalled = c.installed && !c['dAppWindow']
@@ -370,7 +390,11 @@ const resolveFuelWallet = async ({ address, addresses, commonSupportedNetworks, 
         }
     }
     const network = await connector.currentNetwork()
-    const chainId = network.chainId || network.url.toLowerCase().includes('testnet') ? 0 : 9889
+    const chainId = network.chainId
+
+    if (chainId == undefined || chainId === null) {
+        throw new Error('Chain ID not found')
+    }
 
     const w: Wallet = {
         id: connector.name,
