@@ -33,21 +33,19 @@ const Component: FC = () => {
     const source_addsress = selectedSourceAccount?.address
 
     useEffect(() => {
-        if (!source_addsress && defaultWallet && values.depositMethod !== 'deposit_address') {
+        if (!source_addsress && defaultWallet) {
             setSelectedSourceAccount({
                 wallet: defaultWallet,
                 address: defaultWallet.address
             })
         }
-    }, [defaultWallet?.address, source_addsress, values.depositMethod, destination_address])
+    }, [defaultWallet?.address, source_addsress, destination_address])
 
     useEffect(() => {
-        if (values.depositMethod === 'deposit_address' || !defaultWallet?.address || (selectedSourceAccount && !availableWallets.some(w => w?.addresses?.some(a => a === selectedSourceAccount.address)))) {
+        if (!defaultWallet?.address || (selectedSourceAccount && !availableWallets.some(w => w?.addresses?.some(a => a === selectedSourceAccount.address)))) {
             setSelectedSourceAccount(undefined)
         }
-    }, [values.depositMethod, defaultWallet?.address, availableWallets.length])
-
-
+    }, [defaultWallet?.address, availableWallets.length])
 
     const handleWalletChange = () => {
         setOpenModal(true)
@@ -72,38 +70,24 @@ const Component: FC = () => {
         return <></>
 
     return <>
-        {
-            values.depositMethod === 'deposit_address' ?
-                <div className="flex items-center space-x-2 text-sm leading-4">
-                    <div onClick={handleWalletChange} className="rounded-md bg-secondary-500 flex space-x-1 items-center py-0.5 pl-2 pr-1 cursor-pointer">
-                        <div className="text-secondary-text">
-                            Manual Transfer
+        <div className="rounded-lg bg-secondary-800 pl-2 flex items-center space-x-2 text-sm leading-4">
+            {
+                selectedWallet && selectedSourceAccount?.address && <>
+                    <div><Balance values={values} direction="from" /></div>
+                    <div onClick={handleWalletChange} className="rounded-lg bg-secondary-500 flex space-x-1 items-center py-0.5 pl-2 pr-1 cursor-pointer">
+                        <div className="inline-flex items-center relative p-0.5">
+                            <selectedWallet.icon className="w-5 h-5" />
+                        </div>
+                        <div className="text-primary-text">
+                            {shortenAddress(selectedSourceAccount.address)}
                         </div>
                         <div className="w-5 h-5 items-center flex">
                             <ChevronDown className="h-4 w-4" aria-hidden="true" />
                         </div>
                     </div>
-                </div>
-                :
-                <div className="rounded-lg bg-secondary-800 pl-2 flex items-center space-x-2 text-sm leading-4">
-                    {
-                        selectedWallet && selectedSourceAccount?.address && <>
-                            <div><Balance values={values} direction="from" /></div>
-                            <div onClick={handleWalletChange} className="rounded-lg bg-secondary-500 flex space-x-1 items-center py-0.5 pl-2 pr-1 cursor-pointer">
-                                <div className="inline-flex items-center relative p-0.5">
-                                    <selectedWallet.icon className="w-5 h-5" />
-                                </div>
-                                <div className="text-primary-text">
-                                    {shortenAddress(selectedSourceAccount.address)}
-                                </div>
-                                <div className="w-5 h-5 items-center flex">
-                                    <ChevronDown className="h-4 w-4" aria-hidden="true" />
-                                </div>
-                            </div>
-                        </>
-                    }
-                </div>
-        }
+                </>
+            }
+        </div>
         <VaulDrawer
             show={openModal}
             setShow={setOpenModal}

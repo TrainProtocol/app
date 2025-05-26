@@ -66,8 +66,6 @@ export default function Layout({ children, settings, themeData }: Props) {
   const query: QueryParams = {
     ...router.query,
     lockNetwork: router.query.lockNetwork === 'true',
-    lockExchange: router.query.lockExchange === 'true',
-    hideRefuel: router.query.hideRefuel === 'true',
     hideAddress: router.query.hideAddress === 'true',
     hideFrom: router.query.hideFrom === 'true',
     hideTo: router.query.hideTo === 'true',
@@ -77,7 +75,6 @@ export default function Layout({ children, settings, themeData }: Props) {
     lockFromAsset: router.query.lockFromAsset === 'true',
     lockToAsset: router.query.lockToAsset === 'true',
     hideLogo: router.query.hideLogo === 'true',
-    hideDepositMethod: router.query.hideDepositMethod === 'true'
   };
 
   function logErrorToService(error, info) {
@@ -96,15 +93,17 @@ export default function Layout({ children, settings, themeData }: Props) {
 
   const basePath = router?.basePath ?? ""
 
+  const title = "TRAIN | Secure Cross-Chain Swaps"
+
   return (<>
 
     <Head>
-      <title>TRAIN I The First Truly Trustless Cross-Chain Bridge</title>
+      <title>{title}</title>
       <link rel="icon" type="image/png" href="favicon/favicon-96x96.png" sizes="96x96" />
       <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
       <link rel="shortcut icon" href="/favicon/favicon.ico" />
       <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
-      <meta name="apple-mobile-web-app-title" content="TRAIN Protocol" />
+      <meta name="apple-mobile-web-app-title" content={title} />
       <link rel="manifest" href={`/favicon/site.webmanifest`} />
       <link rel="canonical" href="https://app.train.tech/" />
       <meta name="msapplication-TileColor" content="#ffffff" />
@@ -114,7 +113,7 @@ export default function Layout({ children, settings, themeData }: Props) {
       {/* Facebook Meta Tags */}
       <meta property="og:url" content={`https://app.train.tech/`} />
       <meta property="og:type" content="website" />
-      <meta property="og:title" content="TRAIN Protocol" />
+      <meta property="og:title" content={title} />
       <meta property="og:description" content="Trustless bridging & swapping of crypto assets between blockchains. Transfer any amount to any network secured by a battle-tested system." />
       <meta property="og:image" content={`https://app.train.tech/opengraph.jpg?v=2`} />
 
@@ -122,7 +121,7 @@ export default function Layout({ children, settings, themeData }: Props) {
       <meta name="twitter:card" content="summary_large_image" />
       <meta property="twitter:domain" content="app.train.tech" />
       <meta property="twitter:url" content={`https://app.train.tech/`} />
-      <meta name="twitter:title" content="TRAIN Protocol" />
+      <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content="Trustless bridging & swapping of crypto assets between blockchains. Transfer any amount to any network secured by a battle-tested system." />
       <meta name="twitter:image" content={`https://app.train.tech/opengraphtw.jpg`} />
     </Head>

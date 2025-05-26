@@ -17,6 +17,9 @@ import WizardItem from "../../Wizard/WizardItem";
 import Wizard from "../../Wizard/Wizard";
 import { AtomicSteps } from "../../../Models/Wizard";
 import { useFormWizardaUpdate, useFormWizardState } from "../../../context/formWizardProvider";
+import { generateSwapInitialValues } from "../../../lib/generateSwapInitialValues";
+import { useSettingsState } from "../../../context/settings";
+import { resolvePersistantQueryParams } from "../../../helpers/querryHelper";
 
 const AtomicPage = dynamicWithRetries(() => import("../AtomicChat"),
     <div className="w-full h-[450px]">
@@ -40,6 +43,7 @@ export default function Form() {
     const { minAllowedAmount, maxAllowedAmount, updatePolling: pollFee } = useFee()
     const { getProvider } = useWallet()
     const { atomicQuery, setAtomicQuery } = useAtomicState()
+    const settings = useSettingsState()
 
     const {
         commitId
@@ -95,8 +99,7 @@ export default function Form() {
         }
     }, [query, router, getProvider])
 
-    // const initialValues: SwapFormValues = swapResponse ? generateSwapInitialValuesFromSwap(swapResponse, settings)
-    //     : generateSwapInitialValues(settings, query)
+    const initialValues: SwapFormValues = generateSwapInitialValues(settings, query)
 
     useEffect(() => {
         formikRef.current?.validateForm();
@@ -121,7 +124,7 @@ export default function Form() {
 
         <Formik
             innerRef={formikRef}
-            initialValues={{}}
+            initialValues={initialValues}
             validateOnMount={true}
             validate={MainStepValidation({ minAllowedAmount, maxAllowedAmount })}
             onSubmit={handleSubmit}
@@ -150,9 +153,15 @@ const setAtomicPath = ({
     const basePath = router?.basePath || ""
     var atomicURL = window.location.protocol + "//"
         + window.location.host + `${basePath}/swap`;
+    const params = resolvePersistantQueryParams(router.query)
     const atomicParams = new URLSearchParams({ ...atomicQuery })
     if (atomicParams) {
         atomicURL += `?${atomicParams}`
+        if (params && Object.keys(params).length) {
+            const search = new URLSearchParams(params as any);
+            if (search)
+                atomicURL += `&${search}`
+        }
     }
     window.history.pushState({ ...window.history.state, as: atomicURL, url: atomicURL }, '', atomicURL);
 }
@@ -162,7 +171,14 @@ const removeSwapPath = (router: NextRouter) => {
     let homeURL = window.location.protocol + "//"
         + window.location.host + basePath
 
-    window.history.replaceState({ ...window.history.state, as: homeURL, url: homeURL }, '', homeURL);
+    const params = resolvePersistantQueryParams(router.query)
+    if (params && Object.keys(params).length) {
+        const search = new URLSearchParams(params as any);
+        if (search)
+            homeURL += `?${search}`
+    }
+
+    window.history.replaceState({ ...window.history.state, as: router.asPath, url: homeURL }, '', homeURL);
 }
 
 const PendingSwap = ({ onClick }: { onClick: () => void }) => {

@@ -222,29 +222,6 @@ export const DocInFrameSceleton = () => {
   </div>
 }
 
-export const ExchangesComponentSceleton = () => {
-
-  return <>
-    {[...Array(12)]?.map((item, index) =>
-      <div
-        key={index}
-        className="animate-pulse bg-secondary-700 select-none rounded-lg py-5 px-3">
-        <div className="flex justify-between space-x-4 md:space-x-16 px-3">
-          <div className="flex space-x-2">
-            <div className="rounded-md bg-slate-700 h-8 w-8"></div>
-            <div className="grid grid-cols-5">
-              <div className="h-2 w-20 bg-slate-700 rounded col-span-3"></div>
-            </div>
-          </div>
-
-          <div className="rounded bg-slate-700 h-8 w-20 place-self-end py-3 px-4"></div>
-        </div>
-      </div>
-    )}
-  </>
-
-}
-
 export const RewardsComponentSceleton = () => {
   return (
     <div className="space-y-5">
