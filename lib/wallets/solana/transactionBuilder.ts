@@ -101,7 +101,7 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
             [Buffer.from("htlc_token_account"), commitId],
             program.programId
         );
-        let [htlc, htlcBump] = commitId && PublicKey.findProgramAddressSync(
+        let [htlc] = commitId && PublicKey.findProgramAddressSync(
             [commitId],
             program.programId
         );
@@ -125,7 +125,7 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
         const tokenContract = new PublicKey(sourceAsset.contract);
 
         const commitTx = await program.methods
-            .commit(commitId, hopChains, hopAssets, hopAddresses, destinationChain, destinationAsset, destination_address, sourceAsset.symbol, lpAddressPublicKey, bnTimelock, bnAmount, htlcBump)
+            .commit(commitId, hopChains, hopAssets, hopAddresses, destinationChain, destinationAsset, destination_address, sourceAsset.symbol, lpAddressPublicKey, bnTimelock, bnAmount)
             .accountsPartial({
                 sender: walletPublicKey,
                 htlc: htlc,
