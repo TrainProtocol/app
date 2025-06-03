@@ -207,6 +207,6 @@ export const lockTransactionBuilder = async (params: CommitmentParams & LockPara
     const hexString = finalMessage.toString('hex');
 
     const data = new TextEncoder().encode(hexString);
-    
+
     return { lockCommit: data, lockId: hashlockBuffer, timelock: timelock }
 }
