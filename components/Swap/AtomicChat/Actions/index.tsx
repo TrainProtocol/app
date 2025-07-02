@@ -55,7 +55,7 @@ export const Actions: FC = () => {
 }
 
 const Error: FC = () => {
-    const { error, updateCommit, isTimelockExpired } = useAtomicState()
+    const { error, updateCommit } = useAtomicState()
 
     return <>
         <AnimatePresence>
