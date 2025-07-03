@@ -8,10 +8,12 @@ import ButtonStatus from "./Status/ButtonStatus";
 import { NextRouter, useRouter } from "next/router";
 import { resolvePersistantQueryParams } from "../../../../helpers/querryHelper";
 import { ContractType, ManagedAccountType, NetworkType } from "../../../../Models/Network";
+import { useFee } from "../../../../context/feeContext";
 
 export const UserCommitAction: FC = () => {
     const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, updateCommit } = useAtomicState();
     const { provider } = useWallet(source_network, 'withdrawal')
+    const { fee } = useFee()
     const wallet = provider?.activeWallet
 
     // const txId = router.query.txId as `0x${string}`
@@ -20,7 +22,7 @@ export const UserCommitAction: FC = () => {
     //     chainId: Number(source_network?.chain_id),
     // });
     const atomicContract = source_network?.contracts.find(c => (source_asset?.contract && source_network.type !== NetworkType.Fuel) ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
-    const lpAddress = source_network?.managedAccounts.find(a => a.type === ManagedAccountType.Primary)?.address
+    const lpAddress = fee?.quote?.solverAddressInSource
 
     const handleCommit = async () => {
         try {
