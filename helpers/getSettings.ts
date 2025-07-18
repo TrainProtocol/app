@@ -13,7 +13,7 @@ export async function getServerSideProps(context) {
     const networks = await apiClient.GetLSNetworksAsync()
     const routes = await apiClient.GetRoutesAsync();
 
-    if (!networks) return
+    if (!networks.length) return
 
     const networksWithLogos = networks.map(network => {
         return {
