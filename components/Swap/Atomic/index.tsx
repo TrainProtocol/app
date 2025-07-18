@@ -37,7 +37,7 @@ export default function Form() {
     const { currentStepName } = useFormWizardState()
     const query = useQueryState()
 
-    const { minAllowedAmount, maxAllowedAmount, updatePolling: pollFee } = useFee()
+    const { updatePolling: pollFee } = useFee()
     const { getProvider } = useWallet()
     const { atomicQuery, setAtomicQuery } = useAtomicState()
 
@@ -98,9 +98,9 @@ export default function Form() {
     // const initialValues: SwapFormValues = swapResponse ? generateSwapInitialValuesFromSwap(swapResponse, settings)
     //     : generateSwapInitialValues(settings, query)
 
-    useEffect(() => {
-        formikRef.current?.validateForm();
-    }, [minAllowedAmount, maxAllowedAmount]);
+    // useEffect(() => {
+    //     formikRef.current?.validateForm();
+    // }, [minAllowedAmount, maxAllowedAmount]);
 
     const handleWizardRouting = useCallback((step: AtomicSteps, move?: 'back' | 'forward') => {
         pollFee(move === 'back')
@@ -123,7 +123,7 @@ export default function Form() {
             innerRef={formikRef}
             initialValues={{}}
             validateOnMount={true}
-            validate={MainStepValidation({ minAllowedAmount, maxAllowedAmount })}
+            validate={MainStepValidation()}
             onSubmit={handleSubmit}
         >
             <Wizard wizardId={"atomicSteps"}>

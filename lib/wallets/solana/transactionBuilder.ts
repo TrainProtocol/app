@@ -8,7 +8,7 @@ import { createHash } from "crypto";
 export const transactionBuilder = async (network: Network, token: Token, walletPublicKey: PublicKey, recipientAddress?: string | undefined) => {
 
     const connection = new Connection(
-        `${network.nodes[0].url}`,
+        `${network.rpcUrl}`,
         "confirmed"
     );
     const recipientPublicKey = new PublicKey(recipientAddress || new Array(32).fill(0));

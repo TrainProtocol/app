@@ -1,16 +1,16 @@
 import { FC, useEffect, useState } from "react";
-import { ContractType, Network, Token } from "../../../../Models/Network";
+import { Network, Token } from "../../../../Models/Network";
 import { useAtomicState } from "../../../../context/atomicContext";
 import useWallet from "../../../../hooks/useWallet";
 import { WalletProvider } from "../../../../Models/WalletProvider";
 import ButtonStatus from "./Status/ButtonStatus";
 
 export const LpLockingAssets: FC = () => {
-    const { destination_network, commitId, updateCommit, destination_asset } = useAtomicState()
+    const { destination_network, commitId, updateCommit, destination_asset, commitFromApi } = useAtomicState()
     const { provider } = useWallet(destination_network, 'autofil')
     const [loading, setLoading] = useState(false)
 
-    const atomicContract = destination_network?.contracts.find(c => destination_asset?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
+    const atomicContract = commitFromApi?.destinationContractAddress
 
     const getDetails = async ({ provider, network, commitId, asset }: { provider: WalletProvider, network: Network, commitId: string, asset: Token }) => {
         if (!atomicContract) throw Error("No atomic contract")

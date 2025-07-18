@@ -24,7 +24,7 @@ import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundP
 import { concat, DateTime } from "@fuel-ts/utils";
 import { Contract } from "@fuel-ts/program";
 import contractAbi from "../../abis/atomic/FUEL_PHTLC.json"
-import LayerSwapApiClient from "../../layerSwapApiClient";
+import LayerSwapApiClient from "../../trainApiClient";
 import { B256Coder, BigNumberCoder, bn, sha256 } from 'fuels';
 
 export default function useFuel(): WalletProvider {
@@ -43,7 +43,7 @@ export default function useFuel(): WalletProvider {
     const { networks } = useSettingsState()
 
     const network = networks.find(n => n.name.toLowerCase().includes('fuel'))
-    const fuelProvider = network && new Provider(network?.nodes[0].url);
+    const fuelProvider = network && new Provider(network?.rpcUrl);
 
     const wallets = useWalletStore((state) => state.connectedWallets)
     const addWallet = useWalletStore((state) => state.connectWallet)

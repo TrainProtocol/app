@@ -5,7 +5,7 @@ import SignatureIcon from "../../../../Icons/SignatureIcon";
 import { useAtomicState } from "../../../../../context/atomicContext";
 import shortenAddress from "../../../../utils/ShortenAddress";
 import Link from "next/link";
-import { CommitTransaction } from "../../../../../lib/layerSwapApiClient";
+import { CommitTransaction } from "../../../../../lib/trainApiClient";
 
 const Details: FC = () => {
     return (

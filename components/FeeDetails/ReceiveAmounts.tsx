@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Token } from "../../Models/Network";
-import { Quote } from "../../lib/layerSwapApiClient";
+import { Quote } from "../../lib/trainApiClient";
 
 type WillReceiveProps = {
     destination_token: Token | undefined;
@@ -9,10 +9,13 @@ type WillReceiveProps = {
     isFeeLoading: boolean;
 }
 export const ReceiveAmounts: FC<WillReceiveProps> = ({ source_token, destination_token, fee, isFeeLoading }) => {
-    const receive_amount = fee?.quote?.receiveAmount
+
+    // const receiveAmountInUsd = fee?.quote?.receiveAmountInUsd ? fee?.quote.receiveAmountInUsd.toFixed(2) : undefined
+
+    const receive_amount_in_base_units = fee?.quote?.receiveAmount
+    const receive_amount = (receive_amount_in_base_units && destination_token) ? (Number(receive_amount_in_base_units) / Math.pow(10, destination_token?.decimals)) : null;
     const parsedReceiveAmount = parseFloat(receive_amount?.toFixed(destination_token?.decimals) || "")
 
-    const receiveAmountInUsd = fee?.quote?.receiveAmountInUsd ? fee?.quote.receiveAmountInUsd.toFixed(2) : undefined
 
     return <div className="w-full h-full">
         <div className="flex items-center justify-between w-full">
@@ -33,12 +36,12 @@ export const ReceiveAmounts: FC<WillReceiveProps> = ({ source_token, destination
                                         <span>
                                             {destination_token?.symbol}
                                         </span>
-                                        {
+                                        {/* {
                                             receiveAmountInUsd !== undefined && Number(receiveAmountInUsd) > 0 &&
                                             <span className="text-secondary-text text-xs font-medium ml-1 block md:inline-block">
                                                 (${receiveAmountInUsd})
                                             </span>
-                                        }
+                                        } */}
                                     </p>
                                 </div>
                             </div>

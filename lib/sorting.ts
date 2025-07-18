@@ -5,7 +5,7 @@ import NetworkSettings from "./NetworkSettings";
 
 export const SortAscending = (x: { order: number }, y: { order: number }) => x.order - y.order;
 
-export function ResolveNetworkOrder(network: Network, direction: SwapDirection, is_new: boolean) {
+export function ResolveNetworkOrder(network: Network, direction: SwapDirection) {
 
 
     let orderProp: keyof NetworkSettings = direction == 'from' ? 'OrderInSource' : 'OrderInDestination';
@@ -14,9 +14,9 @@ export function ResolveNetworkOrder(network: Network, direction: SwapDirection, 
     // const is_active = network.tokens?.some(r => r.status === 'active')
     // const is_inactive = network.tokens?.every(r => r.status === 'inactive')
 
-    return initial_order + resolveConditionWeight(is_new, 2);
+    return initial_order + resolveConditionWeight(false, 2);
 }
-export function ResolveCurrencyOrder(currency: Token, is_new: boolean) {
+export function ResolveCurrencyOrder(currency: Token) {
 
     const initial_order = resolveInitialWeightedOrder(CurrencySettings.KnownSettings[currency.symbol]?.Order, 1)
     // const is_active = currency.status === 'active'

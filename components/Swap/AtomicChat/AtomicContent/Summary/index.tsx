@@ -11,13 +11,11 @@ const MotionSummary: FC = () => {
 
     const { networks } = useSettingsState()
     const { fee, valuesChanger } = useFee()
-    const { sourceDetails, atomicQuery, commitStatus, commitFromApi } = useAtomicState()
+    const { sourceDetails, atomicQuery, commitStatus, commitFromApi, source_asset: source_token, destination_asset: destination_token } = useAtomicState()
     const { source, destination, amount, address, source_asset, destination_asset } = atomicQuery;
 
     const source_network = networks.find(n => n.name.toUpperCase() === source?.toUpperCase())
     const destination_network = networks.find(n => n.name.toUpperCase() === destination?.toUpperCase())
-    const source_token = source_network?.tokens.find(t => t.symbol === source_asset)
-    const destination_token = destination_network?.tokens.find(t => t.symbol === destination_asset)
 
     const { provider } = useWallet(source_network, 'withdrawal')
 
@@ -33,9 +31,13 @@ const MotionSummary: FC = () => {
     }, [amount, source_network, destination, source_token, destination_token])
 
     const wallet = provider?.activeWallet
-    const receiveAmount = commitFromApi?.destinationAmount || fee?.quote?.receiveAmount
-    const receiveAmountInUsd = commitFromApi?.destinationAmountInUsd || fee?.quote?.receiveAmountInUsd
-    const requestedAmountInUsd = commitFromApi?.sourceAmountInUsd || fee?.quote?.sourceAmountInUsd
+
+    const receive_amount_in_base_units = fee?.quote?.receiveAmount
+    const receive_amount = (receive_amount_in_base_units && source_token) ? (Number(receive_amount_in_base_units) / Math.pow(10, source_asset?.decimals)) : undefined;
+
+    const receiveAmount = commitFromApi?.destinationAmount || receive_amount
+    // const receiveAmountInUsd = commitFromApi?.destinationAmountInUsd || fee?.quote?.receiveAmountInUsd
+    // const requestedAmountInUsd = commitFromApi?.sourceAmountInUsd || fee?.quote?.sourceAmountInUsd
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
 
     return (
@@ -52,8 +54,8 @@ const MotionSummary: FC = () => {
                     sourceCurrency={source_token}
                     sourceAccountAddress={sourceDetails?.sender || wallet?.address}
                     receiveAmount={receiveAmount}
-                    requestedAmountInUsd={requestedAmountInUsd}
-                    receiveAmountInUsd={receiveAmountInUsd}
+                // requestedAmountInUsd={requestedAmountInUsd}
+                // receiveAmountInUsd={receiveAmountInUsd}
                 />
             }
             {

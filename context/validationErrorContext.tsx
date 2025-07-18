@@ -29,7 +29,7 @@ export const ValidationProvider: React.FC<{ children: ReactNode }> = ({ children
     const {
         values,
     } = useFormikContext<SwapFormValues>();
-    const { destinationRoutes: allDestinations, sourceRoutes: allSources } = useSettingsState()
+    const { routes } = useSettingsState()
 
     const { to, from, fromCurrency, toCurrency } = values;
     const query = useQueryState();

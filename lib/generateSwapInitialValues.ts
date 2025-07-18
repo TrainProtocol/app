@@ -5,7 +5,7 @@ import { LayerSwapAppSettings } from "../Models/LayerSwapAppSettings";
 
 export function generateSwapInitialValues(settings: LayerSwapAppSettings, queryParams: QueryParams): SwapFormValues {
     const { destAddress, amount, fromAsset, toAsset, from, to, lockFromAsset, lockToAsset, depositMethod } = queryParams
-    const {  sourceRoutes, destinationRoutes } = settings || {}
+    const { routes } = settings || {}
 
     const lockedSourceCurrency = lockFromAsset ?
         sourceRoutes.find(l => l.name === to)
@@ -65,7 +65,7 @@ export function generateSwapInitialValuesFromSwap(swapResponse: any, settings: L
         destination_token,
     } = swap
 
-    const { sourceRoutes, destinationRoutes } = settings || {}
+    const { routes } = settings || {}
 
     const from = sourceRoutes.find(l => l.name === source_network.name);
     const to = destinationRoutes.find(l => l.name === destination_network.name);

@@ -12,7 +12,7 @@ import { useSettingsState } from "../../../context/settings";
 import { useConnect, useDisconnect } from "@starknet-react/core";
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider";
 import { useMemo } from "react";
-import LayerSwapApiClient from "../../layerSwapApiClient";
+import LayerSwapApiClient from "../../trainApiClient";
 import { Commit } from "../../../Models/phtlc/PHTLC";
 
 const starknetNames = [KnownInternalNames.Networks.StarkNetGoerli, KnownInternalNames.Networks.StarkNetMainnet, KnownInternalNames.Networks.StarkNetSepolia]
@@ -40,7 +40,7 @@ export default function useStarknet(): WalletProvider {
 
     const isMainnet = networks?.some(network => network.name === KnownInternalNames.Networks.StarkNetMainnet)
     const network = networks?.find(network => starknetNames.some(name => name === network.name))
-    const nodeUrl = network?.nodes[0].url
+    const nodeUrl = network?.rpcUrl
 
     const starknetWallet = useMemo(() => {
         const wallet = wallets.find(wallet => wallet.providerName === name)
@@ -253,12 +253,12 @@ export default function useStarknet(): WalletProvider {
             throw new Error("No result")
         }
 
-        const networkToken = networks.find(network => chainId && Number(network.chainId) == Number(chainId))?.tokens.find(token => token.symbol === "ETH")//shortString.decodeShortString(ethers.utils.hexlify(result.srcAsset as BigNumberish)))
+        // const networkToken = networks.find(network => chainId && Number(network.chainId) == Number(chainId))?.tokens.find(token => token.symbol === "ETH")//shortString.decodeShortString(ethers.utils.hexlify(result.srcAsset as BigNumberish)))
 
         const parsedResult: Commit = {
             ...result,
             sender: toHex(result.sender),
-            amount: formatAmount(result.amount, networkToken?.decimals),
+            amount: formatAmount(result.amount, 18), //networkToken?.decimals
             hashlock: result.hashlock && toHex(result.hashlock, { size: 32 }),
             claimed: Number(result.claimed),
             secret: BigInt(result.secret),

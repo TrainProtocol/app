@@ -9,14 +9,15 @@ const DetailedEstimates: FC = () => {
     const { fromCurrency } = values;
     const { fee, isFeeLoading } = useFee()
 
-    const fee_amount = fee?.quote?.totalFee
+    const fee_amount_in_base_units = fee?.quote?.totalFee
+    const fee_amount = (fee_amount_in_base_units && fromCurrency) ? (Number(fee_amount_in_base_units) / Math.pow(10, fromCurrency?.decimals)) : null;
 
     const parsedFee = (fee?.quote && fromCurrency) && parseFloat(Number(fee_amount).toFixed(Math.min(fromCurrency?.decimals, 8)))
     const currencyName = fromCurrency?.symbol || " "
-    const feeAmountInUsd = fee?.quote?.totalFeeInUsd
+    // const feeAmountInUsd = fee?.quote?.totalFeeInUsd
 
     const displayFee = fromCurrency && parsedFee?.toFixed(Math.min(fromCurrency?.decimals, 8))
-    const displayFeeInUsd = feeAmountInUsd ? (feeAmountInUsd < 0.01 ? '<$0.01' : `$${feeAmountInUsd?.toFixed(2)}`) : undefined
+    // const displayFeeInUsd = feeAmountInUsd ? (feeAmountInUsd < 0.01 ? '<$0.01' : `$${feeAmountInUsd?.toFixed(2)}`) : undefined
 
     return <div className="flex flex-col w-full gap-2">
         <div className="flex justify-between w-full items-center">
@@ -31,11 +32,11 @@ const DetailedEstimates: FC = () => {
                         <div>
                             <span>{displayFee || '-'} </span>
                             <span>{parsedFee ? currencyName : ''}</span>
-                            {displayFeeInUsd !== undefined && (
+                            {/* {displayFeeInUsd !== undefined && (
                                 <span className="text-xs ml-1 font-medium">
                                     ({displayFeeInUsd})
                                 </span>
-                            )}
+                            )} */}
                         </div>
                     )}
                 </div>

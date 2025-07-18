@@ -39,8 +39,8 @@ function WagmiComponent({ children }: Props) {
         .sort((a, b) => (NetworkSettings.KnownSettings[a.name]?.ChainOrder || Number(a.chainId)) - (NetworkSettings.KnownSettings[b.name]?.ChainOrder || Number(b.chainId)))
         .filter(net => net.type == NetworkType.EVM
             && !isNaN(Number(net.chainId))
-            && net.nodes.length > 0
-            && net.nativeToken)
+            && net.rpcUrl
+            && net.nativeTokenSymbol)
         .map(resolveChain).filter(isChain) as Chain[]
 
     const transports = {}
@@ -48,7 +48,7 @@ function WagmiComponent({ children }: Props) {
     settingsChains.forEach(chain => {
         transports[chain.id] = chain.rpcUrls.default.http[0] ? http(chain.rpcUrls.default.http[0]) : http()
     })
-
+    
     const config = createConfig({
         connectors: [
             coinbaseWallet({
@@ -70,7 +70,7 @@ function WagmiComponent({ children }: Props) {
     return (
         <WagmiProvider config={config} >
             <QueryClientProvider client={queryClient}>
-                    {children}
+                {children}
             </QueryClientProvider>
         </WagmiProvider >
     )

@@ -1,4 +1,4 @@
-import LayerSwapApiClient from '../lib/layerSwapApiClient';
+import LayerSwapApiClient from '../lib/trainApiClient';
 import Layout from '../components/layout';
 import { InferGetServerSidePropsType } from 'next';
 import React from 'react';
@@ -6,6 +6,7 @@ import { TimerProvider } from '../context/timerContext';
 import { getThemeData } from '../helpers/settingsHelper';
 import AtmoicSteps from '../components/Swap/AtomicChat'
 import { FeeProvider } from '../context/feeContext';
+import { getServerSideProps } from '../helpers/getSettings';
 
 const AtomicPage = ({ settings, themeData }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
     return (<>
@@ -17,26 +18,6 @@ const AtomicPage = ({ settings, themeData }: InferGetServerSidePropsType<typeof 
             </TimerProvider>
         </Layout>
     </>)
-}
-
-export const getServerSideProps = async (ctx) => {
-    const apiClient = new LayerSwapApiClient()
-    const { data: networkData } = await apiClient.GetLSNetworksAsync()
-
-    if (!networkData) return
-
-    const settings = {
-        networks: networkData,
-    }
-
-    const themeData = await getThemeData(ctx.query)
-
-    return {
-        props: {
-            settings,
-            themeData,
-        }
-    }
 }
 
 export default AtomicPage

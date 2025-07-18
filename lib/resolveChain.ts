@@ -6,13 +6,13 @@ import { chainConfig } from 'viem/op-stack'
 
 export default function resolveChain(network: Network) {
 
-    const nativeCurrency = network.nativeToken;
+    const nativeCurrency = network.nativeTokenSymbol;
     const blockExplorersBaseURL =
         network.transactionExplorerTemplate ?
             new URL(network.transactionExplorerTemplate).origin
             : null
 
-    const evm_multicall_contract = network.contracts.find(c => c.type === ContractType.EvmMultiCallContract)?.address || undefined
+    const evm_multicall_contract = network.contracts?.find(c => c.type === ContractType.EvmMultiCallContract)?.address || undefined
 
     if (!nativeCurrency) {
         SendErrorMessage("UI Settings error", `env: ${process.env.NEXT_PUBLIC_VERCEL_ENV} %0A url: ${process.env.NEXT_PUBLIC_VERCEL_URL} %0A message: could not find native currency for ${network.name} ${JSON.stringify(network)} %0A`)
@@ -25,16 +25,16 @@ export default function resolveChain(network: Network) {
         id: Number(network.chainId),
         name: network.displayName,
         nativeCurrency: {
-            name: nativeCurrency.symbol,
-            symbol: nativeCurrency.symbol,
-            decimals: nativeCurrency.decimals
+            name: nativeCurrency,
+            symbol: nativeCurrency,
+            decimals: network.nativeTokenDecimals
         },
         rpcUrls: {
             default: {
-                http: [network.nodes[0].url],
+                http: [network.rpcUrl],
             },
             public: {
-                http: [network.nodes[0].url],
+                http: [network.rpcUrl],
             },
         },
         ...(blockExplorersBaseURL ? {

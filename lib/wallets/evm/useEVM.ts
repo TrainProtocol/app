@@ -12,7 +12,7 @@ import PHTLCAbi from "../../../lib/abis/atomic/EVM_PHTLC.json"
 import ERC20PHTLCAbi from "../../../lib/abis/atomic/EVMERC20_PHTLC.json"
 import IMTBLZKERC20 from "../../../lib/abis/IMTBLZKERC20.json"
 import formatAmount from "../../formatAmount"
-import LayerSwapApiClient from "../../layerSwapApiClient"
+import LayerSwapApiClient from "../../trainApiClient"
 import { Chain, createPublicClient, http, PublicClient } from "viem"
 import resolveChain from "../../resolveChain"
 import { useMemo } from "react"
@@ -305,13 +305,13 @@ export default function useEVM(): WalletProvider {
             chainId: Number(chainId),
         })
 
-        const networkToken = networks.find(network => chainId && network.chainId == chainId)?.tokens.find(token => token.symbol === result.srcAsset)
+        // const networkToken = networks.find(network => chainId && network.chainId == chainId)?.tokens.find(token => token.symbol === result.srcAsset)
 
         const parsedResult = {
             ...result,
             secret: (result.secret as any) != 1 ? BigInt(result.secret!) : undefined,
             hashlock: (result.hashlock == "0x0100000000000000000000000000000000000000000000000000000000000000" || result.hashlock == "0x0000000000000000000000000000000000000000000000000000000000000000") ? null : result.hashlock,
-            amount: formatAmount(Number(result.amount), networkToken?.decimals),
+            amount: formatAmount(Number(result.amount), 18), //networkToken?.decimals
             timelock: Number(result.timelock)
         }
 
@@ -326,7 +326,7 @@ export default function useEVM(): WalletProvider {
         const abi = type === 'erc20' ? ERC20PHTLCAbi : PHTLCAbi
 
         const network = networks.find(n => n.chainId === chainId)
-        const nodeUrls = network?.nodes
+        const nodeUrls = [network?.rpcUrl]
         if (!network?.chainId) throw new Error("No network found")
         if (!nodeUrls) throw new Error("No node urls found")
 
@@ -344,7 +344,7 @@ export default function useEVM(): WalletProvider {
 
         // Create an array of PublicClients for each RPC endpoint
         const clients = nodeUrls.map((node) =>
-            createPublicClient({ transport: http(node.url), chain })
+            createPublicClient({ transport: http(node), chain })
         )
 
         // Fetch all results in parallel

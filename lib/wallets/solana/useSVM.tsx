@@ -1,6 +1,6 @@
 import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon"
-import { ContractType, ManagedAccountType, Network, NetworkType } from "../../../Models/Network"
+import { ContractType, NetworkType } from "../../../Models/Network"
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider"
 import { useMemo } from "react"
 import { AnchorWallet, useAnchorWallet, useConnection, useWallet } from "@solana/wallet-adapter-react"
@@ -11,7 +11,7 @@ import { PublicKey } from "@solana/web3.js"
 import { useSettingsState } from "../../../context/settings"
 import { useCallback } from "react"
 import { lockTransactionBuilder, phtlcTransactionBuilder } from "./transactionBuilder"
-import LayerSwapApiClient from "../../layerSwapApiClient"
+import LayerSwapApiClient from "../../trainApiClient"
 
 const solanaNames = [KnownInternalNames.Networks.SolanaMainnet, KnownInternalNames.Networks.SolanaDevnet, KnownInternalNames.Networks.SolanaTestnet]
 
@@ -37,7 +37,7 @@ export default function useSVM(): WalletProvider {
     const anchorProvider = anchorWallet && new AnchorProvider(connection, anchorWallet);
     if (anchorProvider) setProvider(anchorProvider);
 
-    const htlc_token_account = network?.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress)?.address
+    const htlc_token_account = network?.contracts?.find(c => c.type === ContractType.HTLCTokenContractAddress)?.address
     const program = (anchorProvider && htlc_token_account) ? new Program(AnchorHtlc(htlc_token_account), anchorProvider) : null;
 
     const connectedWallets = useMemo(() => {
@@ -147,7 +147,7 @@ export default function useSVM(): WalletProvider {
 
     const getDetails = async (params: CommitmentParams) => {
 
-        const lpAddress = network?.managedAccounts.find(c => c.type === ManagedAccountType.Primary)?.address
+        const lpAddress = 'Solana Address'
 
         if (!lpAddress) throw new Error("No LP address")
 
