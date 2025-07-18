@@ -5,15 +5,12 @@ import { WalletActionButton } from "../../buttons";
 import { useRouter } from "next/router";
 
 export const RedeemAction: FC = () => {
-    const { destination_network, source_network, sourceDetails, destinationDetails, updateCommit, manualClaimRequested, destination_asset, source_asset, commitId, isManualClaimable, atomicQuery, setAtomicQuery, commitFromApi } = useAtomicState()
+    const { destination_network, source_network, sourceDetails, destinationDetails, updateCommit, manualClaimRequested, destination_asset, source_asset, commitId, isManualClaimable, atomicQuery, setAtomicQuery, destAtomicContract, srcAtomicContract } = useAtomicState()
     const { getProvider } = useWallet()
     const router = useRouter()
     const source_provider = source_network && getProvider(source_network, 'withdrawal')
     const destination_provider = destination_network && getProvider(destination_network, 'autofil')
     const destination_wallet = destination_provider?.activeWallet
-
-    const destination_contract = commitFromApi?.destinationContractAddress
-    const source_contract = commitFromApi?.sourceContractAddress
 
     useEffect(() => {
         let commitHandler: any = undefined;
@@ -27,7 +24,7 @@ export const RedeemAction: FC = () => {
                         type: destination_asset?.contract ? 'erc20' : 'native',
                         chainId: destination_network.chainId,
                         id: commitId,
-                        contractAddress: destination_contract as `0x${string}`,
+                        contractAddress: destAtomicContract as `0x${string}`,
                     })
                     if (data) updateCommit('destinationDetails', data)
                     if (data?.claimed == 3) {
@@ -51,7 +48,7 @@ export const RedeemAction: FC = () => {
                         type: source_asset?.contract ? 'erc20' : 'native',
                         chainId: source_network.chainId,
                         id: commitId,
-                        contractAddress: source_contract as `0x${string}`,
+                        contractAddress: srcAtomicContract as `0x${string}`,
                     })
                     if (data) updateCommit('sourceDetails', data)
                     if (data?.claimed == 3) {
@@ -80,7 +77,7 @@ export const RedeemAction: FC = () => {
                 id: commitId,
                 secret: sourceDetails?.secret,
                 chainId: destination_network.chainId,
-                contractAddress: destination_contract as `0x${string}`,
+                contractAddress: destAtomicContract as `0x${string}`,
                 sourceAsset: destination_asset,
             })
 

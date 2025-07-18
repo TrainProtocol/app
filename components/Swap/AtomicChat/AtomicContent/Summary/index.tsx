@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect } from "react";
 import { useAtomicState, CommitStatus } from "../../../../../context/atomicContext";
 import { useFee } from "../../../../../context/feeContext";
 import { useSettingsState } from "../../../../../context/settings";

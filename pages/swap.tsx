@@ -5,20 +5,19 @@ import { TimerProvider } from '../context/timerContext';
 import AtmoicSteps from '../components/Swap/AtomicChat'
 import { FeeProvider } from '../context/feeContext';
 import { getServerSideProps } from '../helpers/getSettings';
-import { PulsatingCirclesProvider } from '../context/PulsatingCirclesContext';
 
 const AtomicPage = ({ settings, themeData }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
     return (<>
         <Layout settings={settings} themeData={themeData}>
             <TimerProvider>
                 <FeeProvider>
-                    <PulsatingCirclesProvider>
-                        <AtmoicSteps type='widget' />
-                    </PulsatingCirclesProvider>
+                    <AtmoicSteps type='widget' />
                 </FeeProvider>
             </TimerProvider>
         </Layout>
     </>)
 }
+
+export { getServerSideProps };
 
 export default AtomicPage

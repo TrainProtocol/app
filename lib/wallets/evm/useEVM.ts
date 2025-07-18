@@ -296,7 +296,7 @@ export default function useEVM(): WalletProvider {
     const getDetails = async (params: CommitmentParams): Promise<Commit> => {
         const { chainId, id, contractAddress, type } = params
         const abi = type === 'erc20' ? ERC20PHTLCAbi : PHTLCAbi
-
+debugger
         const result: any = await readContract(config, {
             abi: abi,
             address: contractAddress,

@@ -36,6 +36,8 @@ type DataContextType = CommitState & {
     atomicQuery?: any,
     destRedeemTx?: string,
     verifyingByLightClient: boolean,
+    srcAtomicContract?: string,
+    destAtomicContract?: string,
     setVerifyingByLightClient: (value: boolean) => void;
     onCommit: (commitId: string, txId: string) => void;
     updateCommit: (field: keyof CommitState, value: any) => void;
@@ -81,6 +83,8 @@ export function AtomicProvider({ children }) {
     const commitTxId = atomicQuery?.txId as string
     const claimTxId = atomicQuery?.claimTxId as string
     const solverName = atomicQuery?.solver as string;
+    const srcAtomicContractFromQuery = atomicQuery?.srcContract as string
+    const destAtomicContractfromQuery = atomicQuery?.destContract as string
 
     const [commitStates, setCommitStates] = useState<CommitStatesDict>({});
     const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
@@ -124,7 +128,8 @@ export function AtomicProvider({ children }) {
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
     const isManualClaimable = !!(assetsLocked && sourceDetails?.claimed == 3 && destinationDetails?.claimed != 3 && (sourceDetails.claimTime && (Date.now() - sourceDetails.claimTime > 30000)))
 
-    const destAtomicContract = commitFromApi?.destinationContractAddress
+    const destAtomicContract = commitFromApi?.destinationContractAddress || srcAtomicContractFromQuery
+    const srcAtomicContract = commitFromApi?.sourceContractAddress || destAtomicContractfromQuery
 
     const fetcher = (args) => fetch(args).then(res => res.json())
     const url = process.env.NEXT_PUBLIC_TRAIN_API
@@ -249,6 +254,8 @@ export function AtomicProvider({ children }) {
             destRedeemTx: destinationRedeemTx,
             verifyingByLightClient,
             destinationDetailsByLightClient,
+            srcAtomicContract,
+            destAtomicContract,
             setVerifyingByLightClient,
             updateCommit,
             setAtomicQuery,

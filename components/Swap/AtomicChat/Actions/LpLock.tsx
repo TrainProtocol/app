@@ -6,14 +6,12 @@ import { WalletProvider } from "../../../../Models/WalletProvider";
 import ButtonStatus from "./Status/ButtonStatus";
 
 export const LpLockingAssets: FC = () => {
-    const { destination_network, commitId, updateCommit, destination_asset, commitFromApi } = useAtomicState()
+    const { destination_network, commitId, updateCommit, destination_asset, commitFromApi, destAtomicContract } = useAtomicState()
     const { provider } = useWallet(destination_network, 'autofil')
     const [loading, setLoading] = useState(false)
 
-    const atomicContract = commitFromApi?.destinationContractAddress
-
     const getDetails = async ({ provider, network, commitId, asset }: { provider: WalletProvider, network: Network, commitId: string, asset: Token }) => {
-        if (!atomicContract) throw Error("No atomic contract")
+        if (!destAtomicContract) throw Error("No atomic contract")
 
         let lockHandler: any = undefined
         lockHandler = setInterval(async () => {
@@ -23,7 +21,7 @@ export const LpLockingAssets: FC = () => {
                         type: asset?.contract ? 'erc20' : 'native',
                         chainId: network.chainId,
                         id: commitId,
-                        contractAddress: atomicContract as `0x${string}`,
+                        contractAddress: destAtomicContract as `0x${string}`,
                     })
 
                     if (destiantionDetails?.hashlock) {
@@ -42,7 +40,7 @@ export const LpLockingAssets: FC = () => {
                 type: asset?.contract ? 'erc20' : 'native',
                 chainId: network.chainId,
                 id: commitId,
-                contractAddress: atomicContract as `0x${string}`,
+                contractAddress: destAtomicContract as `0x${string}`,
             })
 
             if (destiantionDetails?.hashlock) {
@@ -65,7 +63,7 @@ export const LpLockingAssets: FC = () => {
                 getDetails({ provider, network: destination_network, commitId, asset: destination_asset })
             }
         })()
-    }, [provider, destination_network, commitId, loading, atomicContract])
+    }, [provider, destination_network, commitId, loading, destAtomicContract])
 
 
     return <ButtonStatus

@@ -142,13 +142,11 @@ export const UserCommitAction: FC = () => {
 
 
 export const UserLockAction: FC = () => {
-    const { source_network, commitId, sourceDetails, updateCommit, userLocked, source_asset, destinationDetails, commitFromApi } = useAtomicState()
+    const { source_network, commitId, sourceDetails, updateCommit, userLocked, source_asset, destinationDetails, commitFromApi, srcAtomicContract } = useAtomicState()
 
     const { provider } = useWallet(source_network, 'withdrawal')
 
     const wallet = provider?.activeWallet
-
-    const atomicContract = commitFromApi?.sourceContractAddress
 
     const handleLockAssets = async () => {
         try {
@@ -156,7 +154,7 @@ export const UserLockAction: FC = () => {
                 throw new Error("No source provider")
             if (!destinationDetails?.hashlock)
                 throw new Error("No destination hashlock")
-            if (!atomicContract)
+            if (!srcAtomicContract)
                 throw new Error("No atomic contract")
             if (!source_network)
                 throw new Error("No source network")
@@ -166,7 +164,7 @@ export const UserLockAction: FC = () => {
                 chainId: source_network?.chainId,
                 id: commitId as string,
                 hashlock: destinationDetails?.hashlock,
-                contractAddress: atomicContract as `0x${string}`,
+                contractAddress: srcAtomicContract as `0x${string}`,
                 lockData: destinationDetails,
                 sourceAsset: source_asset,
             })
@@ -174,7 +172,7 @@ export const UserLockAction: FC = () => {
             posthog.capture("Lock", {
                 commitId: commitId,
                 hashlock: destinationDetails?.hashlock,
-                contractAddress: atomicContract,
+                contractAddress: srcAtomicContract,
                 lockData: destinationDetails,
                 chainId: source_network?.chainId,
             })
@@ -190,7 +188,7 @@ export const UserLockAction: FC = () => {
 
     useEffect(() => {
         let commitHandler: any = undefined
-        if (!sourceDetails?.hashlock && atomicContract) {
+        if (!sourceDetails?.hashlock && srcAtomicContract) {
             (async () => {
                 commitHandler = setInterval(async () => {
                     if (!provider)
@@ -202,7 +200,7 @@ export const UserLockAction: FC = () => {
                         type: source_asset?.contract ? 'erc20' : 'native',
                         chainId: source_network.chainId,
                         id: commitId as string,
-                        contractAddress: atomicContract as `0x${string}`,
+                        contractAddress: srcAtomicContract as `0x${string}`,
                     })
                     if (data?.hashlock) {
                         updateCommit('sourceDetails', data)
@@ -238,7 +236,7 @@ export const UserLockAction: FC = () => {
 }
 
 export const UserRefundAction: FC = () => {
-    const { source_network, commitId, sourceDetails, source_asset, destination_network, destination_asset, updateCommit, setAtomicQuery, atomicQuery, commitFromApi } = useAtomicState()
+    const { source_network, commitId, sourceDetails, source_asset, destination_network, destination_asset, updateCommit, setAtomicQuery, atomicQuery, commitFromApi, destAtomicContract, srcAtomicContract } = useAtomicState()
     const { provider: source_provider } = useWallet(source_network, 'withdrawal')
     const { provider: destination_provider } = useWallet(destination_network, 'withdrawal')
 
@@ -247,23 +245,20 @@ export const UserRefundAction: FC = () => {
 
     const wallet = source_provider?.activeWallet
 
-    const destinationAtomicContract = commitFromApi?.destinationContractAddress
-    const sourceAtomicContract = commitFromApi?.sourceContractAddress
-
     const handleRefundAssets = async () => {
         try {
             if (!source_network) throw new Error("No source network")
             if (!commitId) throw new Error("No commitment details")
             if (!sourceDetails) throw new Error("No commitment")
             if (!source_asset) throw new Error("No source asset")
-            if (!sourceAtomicContract) throw new Error("No atomic contract")
+            if (!srcAtomicContract) throw new Error("No atomic contract")
 
             const res = await source_provider?.refund({
                 type: source_asset?.contract ? 'erc20' : 'native',
                 id: commitId,
                 hashlock: sourceDetails?.hashlock,
                 chainId: source_network.chainId,
-                contractAddress: sourceAtomicContract as `0x${string}`,
+                contractAddress: srcAtomicContract as `0x${string}`,
                 sourceAsset: source_asset,
             })
 
@@ -272,7 +267,7 @@ export const UserRefundAction: FC = () => {
                 commit: sourceDetails,
                 hashlock: sourceDetails?.hashlock,
                 chainId: source_network.chainId,
-                contractAddress: sourceAtomicContract
+                contractAddress: srcAtomicContract
             })
 
             if (res) {
@@ -301,7 +296,7 @@ export const UserRefundAction: FC = () => {
             commitHandler = setInterval(async () => {
                 if (!source_provider)
                     throw new Error("No source provider")
-                if (!sourceAtomicContract)
+                if (!srcAtomicContract)
                     throw new Error("No atomic contract")
                 if(!source_network)
                     throw new Error("No source network")
@@ -310,7 +305,7 @@ export const UserRefundAction: FC = () => {
                     type: source_asset?.contract ? 'erc20' : 'native',
                     chainId: source_network.chainId,
                     id: commitId as string,
-                    contractAddress: sourceAtomicContract as `0x${string}`,
+                    contractAddress: srcAtomicContract as `0x${string}`,
                 })
                 if (data?.claimed == 2) {
                     updateCommit('sourceDetails', data)
@@ -327,7 +322,7 @@ export const UserRefundAction: FC = () => {
             lockHandler = setInterval(async () => {
                 if (!commitId)
                     throw Error("No commitId")
-                if (!destinationAtomicContract)
+                if (!destAtomicContract)
                     throw Error("No atomic contract")
                 if (!destination_network)
                     throw Error("No destination network")
@@ -336,7 +331,7 @@ export const UserRefundAction: FC = () => {
                     type: destination_asset?.contract ? 'erc20' : 'native',
                     chainId: destination_network.chainId,
                     id: commitId,
-                    contractAddress: destinationAtomicContract as `0x${string}`,
+                    contractAddress: destAtomicContract as `0x${string}`,
                 })
 
                 if (data) updateCommit('destinationDetails', data)

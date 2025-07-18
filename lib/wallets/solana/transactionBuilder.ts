@@ -78,7 +78,7 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
 
     const { destinationChain, destinationAsset, sourceAsset, lpAddress, address: destination_address, amount, atomicContract, chainId, program, walletPublicKey, connection, network } = params
 
-    if (!sourceAsset.contract || !network.nativeToken) return null
+    if (!sourceAsset.contract) return null
 
     const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
     const timeLockMS = Date.now() + LOCK_TIME

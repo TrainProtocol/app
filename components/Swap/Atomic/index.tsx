@@ -77,7 +77,9 @@ export default function Form() {
                 destination: values.to?.name!,
                 source_asset: values.fromCurrency.symbol,
                 destination_asset: values.toCurrency.symbol,
-                solver: fee?.quote?.solverName
+                solver: fee?.quote?.solverName,
+                srcContract: fee?.quote?.sourceContractAddress,
+                destContract: fee?.quote?.destinationContractAddress,
             }
 
             setAtomicQuery(atomicValues)
