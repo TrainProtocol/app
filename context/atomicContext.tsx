@@ -80,6 +80,7 @@ export function AtomicProvider({ children }) {
     const refundTxId = atomicQuery?.refundTxId as string
     const commitTxId = atomicQuery?.txId as string
     const claimTxId = atomicQuery?.claimTxId as string
+    const solverName = atomicQuery?.solver as string;
 
     const [commitStates, setCommitStates] = useState<CommitStatesDict>({});
     const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
@@ -127,7 +128,7 @@ export function AtomicProvider({ children }) {
 
     const fetcher = (args) => fetch(args).then(res => res.json())
     const url = process.env.NEXT_PUBLIC_TRAIN_API
-    const { data } = useSWR<ApiResponse<CommitFromApi>>((commitId && !destinationRedeemTx) ? `${url}/api/swaps/${commitId}` : null, fetcher, { refreshInterval: 5000 })
+    const { data } = useSWR<ApiResponse<CommitFromApi>>((commitId && !destinationRedeemTx) ? `${url}/api/${solverName}/swaps/${commitId}` : null, fetcher, { refreshInterval: 5000 })
 
     const commitStatus = useMemo(() => statusResolver({ commitFromApi, sourceDetails, destinationDetails, timelockExpired: isTimelockExpired, userLocked }), [commitFromApi, sourceDetails, destinationDetails, isTimelockExpired, userLocked, refundTxId])
 

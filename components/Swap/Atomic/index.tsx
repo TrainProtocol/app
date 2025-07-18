@@ -1,5 +1,5 @@
 import { Formik, FormikProps } from "formik";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import React from "react";
 import MainStepValidation from "../../../lib/mainStepValidator";
@@ -37,7 +37,7 @@ export default function Form() {
     const { currentStepName } = useFormWizardState()
     const query = useQueryState()
 
-    const { updatePolling: pollFee } = useFee()
+    const { updatePolling: pollFee, fee } = useFee()
     const { getProvider } = useWallet()
     const { atomicQuery, setAtomicQuery } = useAtomicState()
 
@@ -69,23 +69,20 @@ export default function Form() {
             if (!destination_provider) {
                 throw new Error("No destination_provider")
             }
-            setAtomicQuery({
+
+            const atomicValues = {
                 amount: values.amount,
                 address: values.destination_address,
                 source: values.from?.name!,
                 destination: values.to?.name!,
                 source_asset: values.fromCurrency.symbol,
                 destination_asset: values.toCurrency.symbol,
-            })
+                solver: fee?.quote?.solverName
+            }
+
+            setAtomicQuery(atomicValues)
             setAtomicPath({
-                atomicQuery: {
-                    amount: values.amount,
-                    address: values.destination_address,
-                    source: values.from?.name!,
-                    destination: values.to?.name!,
-                    source_asset: values.fromCurrency.symbol,
-                    destination_asset: values.toCurrency.symbol,
-                },
+                atomicQuery: atomicValues,
                 router
             })
             goToStep(AtomicSteps.Swap)
