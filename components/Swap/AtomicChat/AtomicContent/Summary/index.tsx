@@ -6,6 +6,7 @@ import useWallet from "../../../../../hooks/useWallet";
 import Summary from "./Summary";
 import Details from "./Details";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../../../shadcn/accordion";
+import formatAmount from "../../../../../lib/formatAmount";
 
 const MotionSummary: FC = () => {
 
@@ -35,7 +36,7 @@ const MotionSummary: FC = () => {
     const receive_amount_in_base_units = fee?.quote?.receiveAmount
     const receive_amount = (receive_amount_in_base_units && source_token) ? (Number(receive_amount_in_base_units) / Math.pow(10, source_asset?.decimals)) : undefined;
 
-    const receiveAmount = commitFromApi?.destinationAmount || receive_amount
+    const receiveAmount = formatAmount(commitFromApi?.destinationAmount, source_token?.decimals) || receive_amount
     // const receiveAmountInUsd = commitFromApi?.destinationAmountInUsd || fee?.quote?.receiveAmountInUsd
     // const requestedAmountInUsd = commitFromApi?.sourceAmountInUsd || fee?.quote?.sourceAmountInUsd
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
