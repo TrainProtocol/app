@@ -128,8 +128,8 @@ export function AtomicProvider({ children }) {
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
     const isManualClaimable = !!(assetsLocked && sourceDetails?.claimed == 3 && destinationDetails?.claimed != 3 && (sourceDetails.claimTime && (Date.now() - sourceDetails.claimTime > 30000)))
 
-    const destAtomicContract = commitFromApi?.destinationContractAddress || srcAtomicContractFromQuery
-    const srcAtomicContract = commitFromApi?.sourceContractAddress || destAtomicContractfromQuery
+    const destAtomicContract = commitFromApi?.destinationContractAddress || destAtomicContractfromQuery
+    const srcAtomicContract = commitFromApi?.sourceContractAddress || srcAtomicContractFromQuery
 
     const fetcher = (args) => fetch(args).then(res => res.json())
     const url = process.env.NEXT_PUBLIC_TRAIN_API
