@@ -215,7 +215,10 @@ export default function useSVM(): WalletProvider {
                 await apiClient.AddLockSig({
                     signature: sigBase64,
                     timelock: timelock,
-                }, params.id)
+                },
+                    params.id,
+                    params.solver
+                )
 
                 return { hash: sigBase64, result: hexLockId }
 

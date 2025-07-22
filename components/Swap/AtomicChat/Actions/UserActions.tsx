@@ -142,7 +142,7 @@ export const UserCommitAction: FC = () => {
 
 
 export const UserLockAction: FC = () => {
-    const { source_network, commitId, sourceDetails, updateCommit, userLocked, source_asset, destinationDetails, commitFromApi, srcAtomicContract } = useAtomicState()
+    const { source_network, commitId, sourceDetails, updateCommit, userLocked, source_asset, destinationDetails, commitFromApi, srcAtomicContract, solver } = useAtomicState()
 
     const { provider } = useWallet(source_network, 'withdrawal')
 
@@ -158,6 +158,8 @@ export const UserLockAction: FC = () => {
                 throw new Error("No atomic contract")
             if (!source_network)
                 throw new Error("No source network")
+            if (!solver)
+                throw new Error("No solver")
 
             await provider.addLock({
                 type: source_asset?.contract ? 'erc20' : 'native',
@@ -167,6 +169,7 @@ export const UserLockAction: FC = () => {
                 contractAddress: srcAtomicContract as `0x${string}`,
                 lockData: destinationDetails,
                 sourceAsset: source_asset,
+                solver: solver
             })
 
             posthog.capture("Lock", {

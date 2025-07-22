@@ -243,7 +243,7 @@ export default function useFuel(): WalletProvider {
         return resolvedDetails
     }
     const addLockSig = async (params: CommitmentParams & LockParams) => {
-        const { id, hashlock } = params
+        const { id, hashlock, solver } = params
 
         const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
         const timeLockS = Math.floor((Date.now() + LOCK_TIME) / 1000)
@@ -265,7 +265,10 @@ export default function useFuel(): WalletProvider {
             await apiClient.AddLockSig({
                 signature: signature,
                 timelock: timeLockS,
-            }, id)
+            },
+                id,
+                solver
+            )
         } catch (e) {
             throw new Error("Failed to add lock")
         }

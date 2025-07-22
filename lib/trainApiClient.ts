@@ -26,8 +26,8 @@ export default class LayerSwapApiClient {
         return await this.UnauthenticatedRequest<ApiResponse<CommitFromApi[]>>("GET", `/swaps?${addressesQuery}&page=${page ? page : 1}`);
     }
 
-    async AddLockSig(params: AddLockSig, commit_id: string): Promise<ApiResponse<{}>> {
-        return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/swaps/${commit_id}/addLockSig`, params);
+    async AddLockSig(params: AddLockSig, commit_id: string, solver: string): Promise<ApiResponse<{}>> {
+        return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/${solver}/swaps/${commit_id}/addLockSig`, params);
     }
 
     private async UnauthenticatedRequest<T>(method: Method, endpoint: string, data?: any, header?: {}): Promise<T> {

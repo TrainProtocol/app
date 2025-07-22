@@ -31,6 +31,7 @@ export type LockParams = {
     contractAddress: `0x${string}`,
     lockDataResolver?: (data: any[]) => Commit,
     sourceAsset?: Token,
+    solver: string,
 }
 
 export type RefundParams = {

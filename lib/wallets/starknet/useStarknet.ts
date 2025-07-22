@@ -294,7 +294,7 @@ export default function useStarknet(): WalletProvider {
     }
 
     const addLockSig = async (params: CommitmentParams & LockParams) => {
-        const { id, hashlock } = params;
+        const { id, hashlock, solver } = params;
         if (!starknetWallet?.metadata?.starknetAccount) {
             throw new Error('Wallet not connected')
         }
@@ -351,7 +351,10 @@ export default function useStarknet(): WalletProvider {
             await apiClient.AddLockSig({
                 signatureArray: signature,
                 timelock: timeLock,
-            }, id)
+            }, 
+            id,
+            solver
+        )
         } catch (e) {
             throw new Error("Failed to add lock")
         }

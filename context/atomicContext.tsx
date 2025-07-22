@@ -58,6 +58,7 @@ interface CommitState {
     isManualClaimable?: boolean;
     manualClaimRequested?: boolean,
     claimTxId?: string | null;
+    solver: string,
 }
 
 type CommitStatesDict = Record<string, CommitState>;
@@ -240,6 +241,7 @@ export function AtomicProvider({ children }) {
             commitId: commitId as string,
             commitTxId: commitTxId as string,
             claimTxId: claimTxId as string,
+            solver: solverName,
             sourceDetails,
             destinationDetails,
             userLocked,

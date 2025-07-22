@@ -373,7 +373,7 @@ export default function useEVM(): WalletProvider {
     }
 
     const addLock = async (params: CommitmentParams & LockParams) => {
-        const { chainId, id, hashlock, contractAddress } = params
+        const { chainId, id, hashlock, contractAddress, solver } = params
 
         const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
         const timeLockMS = Date.now() + LOCK_TIME
@@ -419,7 +419,10 @@ export default function useEVM(): WalletProvider {
                 r: sig.r,
                 s: sig.s,
                 timelock: timeLock,
-            }, id)
+            },
+                id,
+                solver
+            )
         } catch (e) {
             throw new Error("Failed to add lock")
         }
