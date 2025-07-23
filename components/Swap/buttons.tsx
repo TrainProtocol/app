@@ -7,6 +7,7 @@ import SubmitButton, { SubmitButtonProps } from "../buttons/submitButton";
 import ButtonStatus from "./AtomicChat/Actions/Status/ButtonStatus";
 import WalletMessage from "./messages/Message";
 import { useAtomicState } from "../../context/atomicContext";
+import { useConnectModal } from "../WalletModal";
 export type ActionData = {
     error: Error | null;
     isError: boolean;
@@ -23,13 +24,14 @@ export const ConnectWalletButton: FC<ConnectProps> = (props) => {
     const { network, defaultText } = props
 
     const { provider } = useWallet(network, 'withdrawal')
+    const { connect } = useConnectModal()
 
     const clickHandler = useCallback(async () => {
         try {
 
             if (!provider) throw new Error(`No provider from ${network?.name}`)
 
-            await provider.connectWallet()
+            await connect(provider)
         }
         catch (e) {
             toast.error(e.message)

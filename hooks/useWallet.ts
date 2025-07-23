@@ -1,36 +1,28 @@
+import { useWalletProviders } from "../context/walletHookProviders";
 import { Network } from "../Models/Network"
-import useEVM from "../lib/wallets/evm/useEVM";
-import useSVM from "../lib/wallets/solana/useSVM";
-import useStarknet from "../lib/wallets/starknet/useStarknet";
-import useTON from "../lib/wallets/ton/useTON";
 import { Wallet, WalletProvider } from "../Models/WalletProvider";
 import { useMemo } from "react";
-import { useSettingsState } from "../context/settings";
-import useFuel from "../lib/wallets/fuel/useFuel";
 
 export type WalletPurpose = "autofil" | "withdrawal" | "asSource"
 
 export default function useWallet(network?: Network | undefined, purpose?: WalletPurpose) {
-    const { networks } = useSettingsState()
-
-    const walletProviders: WalletProvider[] = [
-        useEVM({ network }),
-        useStarknet(),
-        useSVM({ network }),
-        useTON(),
-        useFuel()
-    ].filter(provider => networks.some(obj => provider?.autofillSupportedNetworks?.includes(obj.name) || provider?.withdrawalSupportedNetworks?.includes(obj.name) || provider?.asSourceSupportedNetworks?.includes(obj.name)))
+    const walletProviders = useWalletProviders()
 
     const provider = network && resolveProvider(network, walletProviders, purpose)
 
     const wallets = useMemo(() => {
         let connectedWallets: Wallet[] = [];
-        walletProviders.forEach((wallet) => {
-            const w = wallet.connectedWallets;
+        walletProviders.forEach((provider) => {
+            const w = provider.connectedWallets?.map(wallet => {
+                return {
+                    ...wallet,
+                    isNotAvailable: (provider.isNotAvailableCondition && network?.name && wallet.internalId) ? provider.isNotAvailableCondition(wallet.internalId, network?.name) : false,
+                }
+            });
             connectedWallets = w ? [...connectedWallets, ...w] : [...connectedWallets];
         });
         return connectedWallets;
-    }, [walletProviders]);
+    }, [walletProviders, network]);
 
     const getProvider = (network: Network, purpose: WalletPurpose) => {
         return network && resolveProvider(network, walletProviders, purpose)
@@ -46,12 +38,40 @@ export default function useWallet(network?: Network | undefined, purpose?: Walle
 
 const resolveProvider = (network: Network | undefined, walletProviders: WalletProvider[], purpose?: WalletPurpose) => {
     if (!purpose || !network) return
+
+    let provider: WalletProvider | undefined = undefined
+
     switch (purpose) {
         case "withdrawal":
-            return walletProviders.find(provider => provider.withdrawalSupportedNetworks?.includes(network.name))
+            provider = walletProviders.find(provider => provider.withdrawalSupportedNetworks?.includes(network.name))
+            break;
         case "autofil":
-            return walletProviders.find(provider => provider.autofillSupportedNetworks?.includes(network.name))
+            provider = walletProviders.find(provider => provider.autofillSupportedNetworks?.includes(network.name))
+            break;
         case "asSource":
-            return walletProviders.find(provider => provider.asSourceSupportedNetworks?.includes(network.name))
+            provider = walletProviders.find(provider => provider.asSourceSupportedNetworks?.includes(network.name))
+            break;
     }
+
+    if (provider?.isNotAvailableCondition) {
+
+        const resolvedProvider = {
+            ...provider,
+            connectedWallets: provider.connectedWallets?.map(wallet => {
+                return {
+                    ...wallet,
+                    isNotAvailable: (provider.isNotAvailableCondition && network?.name && wallet.internalId) ? provider.isNotAvailableCondition(wallet.internalId, network?.name) : false,
+                }
+            }),
+            activeWallet: provider.activeWallet ? {
+                ...provider.activeWallet,
+                isNotAvailable: (network?.name) ? provider.isNotAvailableCondition(provider.activeWallet.id, network?.name) : false,
+            } : undefined,
+            availableWalletsForConnect: provider.availableWalletsForConnect?.filter(connector => (provider.isNotAvailableCondition && network?.name) ? !provider.isNotAvailableCondition(connector.id, network?.name) : true)
+        }
+        return resolvedProvider
+        
+    }
+
+    return provider
 }

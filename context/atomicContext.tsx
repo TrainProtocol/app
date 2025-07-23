@@ -1,7 +1,7 @@
 import { Context, createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router';
 import { useSettingsState } from './settings';
-import { Commit } from '../Models/PHTLC';
+import { Commit } from '../Models/phtlc/PHTLC';
 import { ContractType, Network, Token } from '../Models/Network';
 import useSWR from 'swr';
 import { ApiResponse } from '../Models/ApiResponse';

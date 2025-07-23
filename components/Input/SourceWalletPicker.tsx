@@ -121,7 +121,7 @@ export const FormSourceWalletButton: FC = () => {
     const walletNetwork = values.from
 
     const { provider } = useWallet(walletNetwork, 'withdrawal')
-    const { cancel } = useConnectModal()
+    const { cancel, connect } = useConnectModal()
 
     const handleWalletChange = () => {
         setOpenModal(true)
@@ -143,8 +143,8 @@ export const FormSourceWalletButton: FC = () => {
         setOpenModal(false)
     }
 
-    const connect = async () => {
-        const result = await provider?.connectWallet()
+    const handleConnect = async () => {
+        const result = await connect(provider)
         if (result) {
             handleSelectWallet(result, result.address)
         }
@@ -152,7 +152,7 @@ export const FormSourceWalletButton: FC = () => {
     const availableWallets = provider?.connectedWallets?.filter(w => !w.isNotAvailable) || []
     if (!availableWallets.length && walletNetwork) {
         return <>
-            <Connect connectFn={connect} />
+            <Connect connectFn={handleConnect} />
         </>
 
     }

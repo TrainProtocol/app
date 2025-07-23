@@ -1,5 +1,5 @@
 import { retryWithExponentialBackoff } from "../../retry";
-import { CreatePreHTLCParams } from "../phtlc";
+import { CreatePreHTLCParams } from "../../../Models/phtlc";
 import tonClient from "./client";
 import { JettonMaster, Address, Builder, Dictionary, DictionaryValue, beginCell, Slice, Cell, toNano } from "@ton/ton"
 import { fromHex } from "viem";

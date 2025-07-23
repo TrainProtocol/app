@@ -1,8 +1,7 @@
 import KnownInternalNames from "../../knownIds";
-import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../phtlc";
+import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../../../Models/phtlc";
 import { Address, beginCell, Cell, toNano } from "@ton/ton"
 import { commitTransactionBuilder } from "./transactionBuilder";
-import { Commit } from "../../../Models/PHTLC";
 import { hexToBigInt } from "viem";
 import { useSettingsState } from "../../../context/settings";
 import { retryUntilFecth } from "../../retry";
@@ -10,20 +9,21 @@ import { getTONDetails } from "./getters";
 import { ConnectedWallet, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react"
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider";
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
-import { useConnectModal } from "../../../components/WalletModal";
+import { Commit } from "../../../Models/phtlc/PHTLC";
 
 export default function useTON(): WalletProvider {
+    const { networks } = useSettingsState()
+
     const commonSupportedNetworks = [
         KnownInternalNames.Networks.TONMainnet,
         KnownInternalNames.Networks.TONTestnet
     ]
-    const [tonConnectUI] = useTonConnectUI();
-    const tonWallet = useTonWallet();
-    const { networks } = useSettingsState()
-    const { connect } = useConnectModal()
 
     const name = 'TON'
     const id = 'ton'
+
+    const tonWallet = useTonWallet();
+    const [tonConnectUI] = useTonConnectUI();
 
     const address = tonWallet?.account && Address.parse(tonWallet.account.address).toString({ bounceable: false })
     const iconUrl = tonWallet?.["imageUrl"] as string
@@ -53,21 +53,12 @@ export default function useTON(): WalletProvider {
     }
 
     const connectWallet = async () => {
-        try {
-            return await connect(provider)
-        }
-        catch (e) {
-            console.log(e)
-        }
-    }
-
-    const connectConnector = async () => {
 
         if (tonWallet) {
             await disconnectWallets()
         }
 
-        function connectAndWaitForStatusChange() {
+        function connectAndWaitForStatusChange(): Promise<ConnectedWallet> {
             return new Promise((resolve, reject) => {
                 try {
                     // Initiate the connection
@@ -296,7 +287,6 @@ export default function useTON(): WalletProvider {
     const provider = {
         connectWallet,
         disconnectWallets,
-        connectConnector,
         availableWalletsForConnect,
         activeAccountAddress: wallet?.address,
         connectedWallets: getWallet(),

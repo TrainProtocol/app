@@ -1,9 +1,5 @@
 import { Context, createContext, useCallback, useContext, useEffect, useState } from 'react'
-import { ChevronLeft } from 'lucide-react';
-import IconButton from '../buttons/iconButton';
-import VaulDrawer from '../Modal/vaulModal';
 import { InternalConnector, Wallet, WalletProvider } from '../../Models/WalletProvider';
-import ConnectorsList from './ConnectorsList';
 
 export type WalletModalConnector = InternalConnector & {
     qr?: ({
@@ -25,6 +21,10 @@ type ConnectModalContextType = {
     isWalletModalOpen?: boolean;
     selectedConnector: WalletModalConnector | undefined;
     setSelectedConnector: (value: WalletModalConnector | undefined) => void;
+    goBack: () => void;
+    onFinish: (connectedWallet?: Wallet | undefined) => void;
+    setOpen: (value: boolean) => void;
+    open: boolean;
 };
 
 const ConnectModalContext = createContext<ConnectModalContextType | null>(null);
@@ -79,31 +79,8 @@ export function WalletModalProvider({ children }) {
     }, [open])
 
     return (
-        <ConnectModalContext.Provider value={{ connect, cancel, selectedProvider, setSelectedProvider, selectedConnector, setSelectedConnector, isWalletModalOpen }}>
+        <ConnectModalContext.Provider value={{ connect, cancel, selectedProvider, setSelectedProvider, selectedConnector, setSelectedConnector, isWalletModalOpen, goBack, onFinish, setOpen, open }}>
             {children}
-            <VaulDrawer
-                show={open}
-                setShow={setOpen}
-                onClose={onFinish}
-                modalId={"connectNewWallet"}
-                header={
-                    <div className="flex items-center gap-1">
-                        {
-                            selectedConnector &&
-                            <div className='-ml-2'>
-                                <IconButton onClick={goBack} icon={
-                                    <ChevronLeft className="h-6 w-6" />
-                                }>
-                                </IconButton>
-                            </div>
-                        }
-                        <p>Connect wallet</p>
-                    </div>
-                }>
-                <VaulDrawer.Snap id='item-1'>
-                    <ConnectorsList onFinish={onFinish} />
-                </VaulDrawer.Snap>
-            </VaulDrawer>
         </ConnectModalContext.Provider>
     )
 }

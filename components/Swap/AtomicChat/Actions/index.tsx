@@ -4,10 +4,10 @@ import { LpLockingAssets } from "./LpLock";
 import { RedeemAction } from "./Redeem";
 import { UserRefundAction, UserLockAction, UserCommitAction } from "./UserActions";
 import TransactionMessages from "../../messages/TransactionMessages";
-import { Commit } from "../../../../Models/PHTLC";
 import { AnimatePresence, motion } from "framer-motion";
 import ButtonStatus from "./Status/ButtonStatus";
 import WalletMessage from "../../messages/Message";
+import { Commit } from "../../../../Models/phtlc/PHTLC";
 
 const ResolveAction: FC<{ sourceDetails: Commit | undefined, commitStatus: CommitStatus, error: string | undefined }> = ({ commitStatus, sourceDetails, error }) => {
 

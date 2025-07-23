@@ -1,7 +1,7 @@
 import { Connection, PublicKey, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { createAssociatedTokenAccountInstruction, createTransferInstruction, getAccount, getAssociatedTokenAddress } from '@solana/spl-token';
 import { Network, Token } from "../../../Models/Network";
-import { CommitmentParams, CreatePreHTLCParams, LockParams } from "../phtlc";
+import { CommitmentParams, CreatePreHTLCParams, LockParams } from "../../../Models/phtlc";
 import { BN, Idl, Program } from "@coral-xyz/anchor";
 import { createHash } from "crypto";
 
@@ -101,7 +101,7 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
             [Buffer.from("htlc_token_account"), commitId],
             program.programId
         );
-        let [htlc, htlcBump] = commitId && PublicKey.findProgramAddressSync(
+        let [htlc] = commitId && PublicKey.findProgramAddressSync(
             [commitId],
             program.programId
         );
@@ -125,7 +125,7 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
         const tokenContract = new PublicKey(sourceAsset.contract);
 
         const commitTx = await program.methods
-            .commit(commitId, hopChains, hopAssets, hopAddresses, destinationChain, destinationAsset, destination_address, sourceAsset.symbol, lpAddressPublicKey, bnTimelock, bnAmount, htlcBump)
+            .commit(commitId, hopChains, hopAssets, hopAddresses, destinationChain, destinationAsset, destination_address, sourceAsset.symbol, lpAddressPublicKey, bnTimelock, bnAmount)
             .accountsPartial({
                 sender: walletPublicKey,
                 htlc: htlc,
@@ -207,6 +207,6 @@ export const lockTransactionBuilder = async (params: CommitmentParams & LockPara
     const hexString = finalMessage.toString('hex');
 
     const data = new TextEncoder().encode(hexString);
-    
+
     return { lockCommit: data, lockId: hashlockBuffer, timelock: timelock }
 }
