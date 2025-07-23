@@ -1,11 +1,11 @@
 import { ParsedUrlQuery } from "querystring";
-import { PersistantQueryParams } from "../Models/QueryParams";
+import { QueryParams } from "../Models/QueryParams";
 
 
 export const resolvePersistantQueryParams = (query: ParsedUrlQuery): ParsedUrlQuery | null => {
     if (!query)
         return null
-    const persiatantParams = new PersistantQueryParams()
+    const persiatantParams = new QueryParams()
     const res: ParsedUrlQuery = {}
     Object.keys(persiatantParams).forEach(key => {
         if (query[key] !== undefined) {

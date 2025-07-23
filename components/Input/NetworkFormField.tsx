@@ -20,7 +20,6 @@ import SourceWalletPicker from "./SourceWalletPicker";
 import DestinationWalletPicker from "./DestinationWalletPicker";
 import dynamic from "next/dynamic";
 import { Partner } from "../../Models/Partner";
-import { PlusIcon } from "lucide-react";
 
 type Props = {
     direction: SwapDirection,
@@ -153,7 +152,6 @@ function groupByType(values: ISelectMenuItem[]) {
     });
 
     groups.sort((a, b) => {
-        // Sort put networks first then exchanges
         return (GROUP_ORDERS[a.name] || GROUP_ORDERS.Other) - (GROUP_ORDERS[b.name] || GROUP_ORDERS.Other);
     });
 
@@ -170,7 +168,7 @@ function GenerateMenuItems(routes: Network[] | undefined, direction: SwapDirecti
         const isAvailable = !lock &&
             (
                 // r.tokens?.some(r => r.status === 'active' || r.status === 'not_found') ||
-                !query.lockAsset && !query.lockFromAsset && !query.lockToAsset && !query.lockFrom && !query.lockTo && !query.lockNetwork && !query.lockExchange
+                !query.lockAsset && !query.lockFromAsset && !query.lockToAsset && !query.lockFrom && !query.lockTo && !query.lockNetwork
                 // && r.tokens?.some(r => r.status !== 'inactive')
             );
 
@@ -178,7 +176,7 @@ function GenerateMenuItems(routes: Network[] | undefined, direction: SwapDirecti
         const routeNotFound = isAvailable
         // && !r.tokens?.some(r => r.status === 'active');
 
-        const res: SelectMenuItem<Network> & { isExchange: boolean } = {
+        const res: SelectMenuItem<Network> = {
             baseObject: r,
             id: r.name,
             name: r.displayName,
@@ -186,7 +184,6 @@ function GenerateMenuItems(routes: Network[] | undefined, direction: SwapDirecti
             imgSrc: r.logo,
             isAvailable: isAvailable,
             group: getGroupName(r, 'network', isAvailable && !routeNotFound),
-            isExchange: false,
             badge,
             leftIcon: <RouteIcon direction={direction} isAvailable={true} routeNotFound={false} type="network" />,
         }

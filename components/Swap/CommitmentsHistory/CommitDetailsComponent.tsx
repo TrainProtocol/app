@@ -67,7 +67,7 @@ const CommitDetails: FC<Props> = ({ commit }) => {
                                         {
                                             <Image
                                                 src={source_network.logo}
-                                                alt="Exchange Logo"
+                                                alt="From Network Logo"
                                                 height="60"
                                                 width="60"
                                                 layout="responsive"
@@ -89,7 +89,7 @@ const CommitDetails: FC<Props> = ({ commit }) => {
                                         {
                                             <Image
                                                 src={destination_network.logo}
-                                                alt="Exchange Logo"
+                                                alt="To Network Logo"
                                                 height="60"
                                                 width="60"
                                                 layout="responsive"
