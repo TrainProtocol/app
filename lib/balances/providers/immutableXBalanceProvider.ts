@@ -1,3 +1,4 @@
+import axios from "axios";
 import { Network } from "../../../Models/Network";
 import formatAmount from "../../formatAmount";
 import KnownInternalNames from "../../knownIds";
@@ -8,7 +9,6 @@ export class ImmutableXBalanceProvider {
     }
 
     fetchBalance = async (address: string, network: Network) => {
-        const axios = (await import("axios")).default
 
         if (!network?.tokens) return
 

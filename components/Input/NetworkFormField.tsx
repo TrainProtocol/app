@@ -27,7 +27,7 @@ type Props = {
     className?: string,
     partner?: Partner
 }
-const Address = dynamic(() => import("../Input/Address"), {
+const Address = dynamic(() => import("./Address/index.tsx").then(mod => mod.default), {
     loading: () => <></>,
 });
 

@@ -5,9 +5,10 @@ import SwapButton from "../buttons/swapButton";
 import { FormikErrors } from "formik";
 import { SwapFormValues } from "../DTOs/SwapFormValues";
 
-const Address = dynamic(() => import("../Input/Address"), {
-    loading: () => <></>,
-});
+const Address = dynamic(
+    () => import("../Input/Address/index.tsx").then((mod) => mod.default),
+    { loading: () => <></> }
+);
 
 const FormButton = ({
     shouldConnectWallet,

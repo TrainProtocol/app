@@ -28,9 +28,8 @@ export class EVMGasProvider implements Provider {
             if (network.contracts.some(c => c.type === ContractType.ZksPaymasterContract)) return 0
 
             const { createPublicClient, http } = await import("viem")
-            const resolveNetworkChain = (await import("../../resolveChain")).default
             const publicClient = createPublicClient({
-                chain: resolveNetworkChain(network),
+                chain: resolveChain(network),
                 transport: http(network.nodes[0].url),
             })
             const atomicContract = network.contracts.find(c => token.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address as `0x${string}`
@@ -381,6 +380,7 @@ import {
     getContract,
     BlockTag,
 } from 'viem'
+import resolveChain from "../../resolveChain";
 
 /**
  * Options to query a specific block

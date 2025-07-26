@@ -21,7 +21,8 @@ import { generateSwapInitialValues } from "../../../lib/generateSwapInitialValue
 import { useSettingsState } from "../../../context/settings";
 import { resolvePersistantQueryParams } from "../../../helpers/querryHelper";
 
-const AtomicPage = dynamicWithRetries(() => import("../AtomicChat"),
+const AtomicPage = dynamicWithRetries(
+    () => import("../AtomicChat/index.tsx") as unknown as Promise<{ default: React.ComponentType<any> }>,
     <div className="w-full h-[450px]">
         <div className="animate-pulse flex space-x-4">
             <div className="flex-1 space-y-6 py-1">

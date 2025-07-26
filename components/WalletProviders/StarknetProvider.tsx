@@ -2,6 +2,8 @@ import { FC, ReactNode, useEffect, useState } from "react";
 import { mainnet, sepolia } from "@starknet-react/chains"
 import { Connector, ConnectorNotConnectedError, UserNotConnectedError, StarknetConfig, publicProvider } from '@starknet-react/core';
 import { RpcMessage, RequestFnCall, RpcTypeToMessageMap } from "starknet-types-07";
+import { InjectedConnector, WebWalletConnector } from "../../lib/@starknetkit/connectors";
+import { ArgentMobileConnector } from "../../lib/@starknetkit/connectors/argent/argentMobile";
 
 const WALLETCONNECT_PROJECT_ID = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '28168903b2d30c75e5f7f2d71902581b';
 
@@ -67,9 +69,6 @@ const StarknetProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const [connectors, setConnectors] = useState<any[]>([])
 
     const resolveConnectors = async () => {
-        const InjectedConnector = (await import('../../node_modules/starknetkit/dist/injectedConnector')).InjectedConnector
-        const ArgentMobileConnector = (await import('../../node_modules/starknetkit/dist/argentMobile')).ArgentMobileConnector
-        const WebWalletConnector = (await import('../../node_modules/starknetkit/dist/webwalletConnector')).WebWalletConnector
 
         const isSafari =
             typeof window !== "undefined"

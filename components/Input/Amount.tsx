@@ -9,7 +9,7 @@ import useSWRGas from "../../lib/gases/useSWRGas";
 import useSWRBalance from "../../lib/balances/useSWRBalance";
 import { useAtomicState } from "../../context/atomicContext";
 
-const MinMax = dynamic(() => import("./dynamic/MinMax"), {
+const MinMax = dynamic(() => import("./dynamic/MinMax.tsx").then(mod => mod.default), {
     loading: () => <></>,
 });
 

@@ -24,9 +24,10 @@ import useWallet from "../../../hooks/useWallet";
 import FormButton from "../FormButton";
 import { useAtomicState } from "../../../context/atomicContext";
 
-const ReserveGasNote = dynamic(() => import("../../ReserveGasNote"), {
-    loading: () => <></>,
-});
+const ReserveGasNote = dynamic(
+    () => import("../../ReserveGasNote.tsx").then((mod) => mod.default),
+    { loading: () => <></> }
+);
 
 const SwapForm: FC = () => {
     const {
