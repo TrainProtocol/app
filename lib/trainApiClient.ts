@@ -88,6 +88,7 @@ export type SwapQuote = {
     totalFee: string,
     receiveAmount: string,
     destinationSolverAddress: string,
+    sourceSolverAddress: string,
     sourceContractAddress: string,
     destinationContractAddress: string
 }

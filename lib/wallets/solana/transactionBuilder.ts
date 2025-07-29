@@ -76,7 +76,7 @@ export const transactionBuilder = async (network: Network, token: Token, walletP
 
 export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { program: Program<Idl>, connection: Connection, walletPublicKey: PublicKey, network: Network }) => {
 
-    const { destinationChain, destinationAsset, sourceAsset, lpAddress, address: destination_address, amount, atomicContract, chainId, program, walletPublicKey, connection, network } = params
+    const { destinationChain, destinationAsset, sourceAsset, srcLpAddress: lpAddress, address: destination_address, amount, atomicContract, chainId, program, walletPublicKey, connection, network } = params
 
     if (!sourceAsset.contract) return null
 

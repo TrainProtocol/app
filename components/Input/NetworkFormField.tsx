@@ -188,7 +188,9 @@ function GenerateMenuItems(routes: Network[] | undefined, direction: SwapDirecti
             leftIcon: <RouteIcon direction={direction} isAvailable={true} routeNotFound={false} type="network" />,
         }
         return res;
-    }).sort(SortAscending) || [];
+    })
+        .sort(SortAscending)
+        .filter((route, index, self) => index === self.findIndex(r => r.name === route.name)) || [];
 
     return mappedLayers
 }

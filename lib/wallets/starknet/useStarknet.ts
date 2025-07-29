@@ -131,7 +131,7 @@ export default function useStarknet(): WalletProvider {
 
 
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
-        const { destinationChain, destinationAsset, sourceAsset, lpAddress, address, tokenContractAddress, amount, decimals, atomicContract: atomicAddress } = params
+        const { destinationChain, destinationAsset, sourceAsset, srcLpAddress: lpAddress, address, tokenContractAddress, amount, decimals, atomicContract: atomicAddress } = params
 
         if (!starknetWallet?.metadata?.starknetAccount) {
             throw new Error('Wallet not connected')
@@ -351,10 +351,10 @@ export default function useStarknet(): WalletProvider {
             await apiClient.AddLockSig({
                 signatureArray: signature,
                 timelock: timeLock,
-            }, 
-            id,
-            solver
-        )
+            },
+                id,
+                solver
+            )
         } catch (e) {
             throw new Error("Failed to add lock")
         }

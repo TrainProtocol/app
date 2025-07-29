@@ -148,7 +148,7 @@ export default function useFuel(): WalletProvider {
         const hopAssets = createEmptyArray(5, ' ')
         const hopAddresses = createEmptyArray(5, ' ')
 
-        const { destinationChain, destinationAsset, sourceAsset, lpAddress, address, amount, decimals, atomicContract } = params
+        const { destinationChain, destinationAsset, sourceAsset, srcLpAddress, address, amount, decimals, atomicContract } = params
 
         const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
         const timeLockMS = Math.floor((Date.now() + LOCK_TIME) / 1000)
@@ -157,7 +157,8 @@ export default function useFuel(): WalletProvider {
         if (!fuelProvider) throw new Error('Node url not found')
         if (!wallet) throw new Error('Wallet not connected')
 
-        const contractInstance = new Contract(atomicContract, contractAbi, wallet);
+        const contractAddress = new Address(atomicContract);
+        const contractInstance = new Contract(contractAddress, contractAbi, wallet);
 
         const commitId = generateUint256Hex().toString()
 
@@ -165,7 +166,7 @@ export default function useFuel(): WalletProvider {
         const dstAsset = destinationAsset.padEnd(64, ' ');
         const dstAddress = address.padEnd(64, ' ');
         const srcAsset = sourceAsset.symbol.padEnd(64, ' ');
-        const srcReceiver = { bits: lpAddress };
+        const srcReceiver = { bits: srcLpAddress };
 
         const parsedAmount = Number(amount) * 10 ** decimals
 

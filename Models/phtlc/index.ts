@@ -8,7 +8,8 @@ export type CreatePreHTLCParams = {
     decimals: number,
     destinationAsset: string,
     sourceAsset: Token;
-    lpAddress: string;
+    destLpAddress: string;
+    srcLpAddress: string;
     atomicContract: string;
     address: string;
     tokenContractAddress?: string | undefined | null;

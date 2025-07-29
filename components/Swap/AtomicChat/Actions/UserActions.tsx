@@ -19,7 +19,8 @@ export const UserCommitAction: FC = () => {
     //     chainId: Number(source_network?.chain_id),
     // });
     const atomicContract = fee?.quote?.sourceContractAddress
-    const lpAddress = fee?.quote?.destinationSolverAddress
+    const destLpAddress = fee?.quote?.destinationSolverAddress
+    const srcLpAddress = fee?.quote?.sourceSolverAddress
 
     const handleCommit = async () => {
         try {
@@ -47,7 +48,7 @@ export const UserCommitAction: FC = () => {
             if (!atomicContract) {
                 throw new Error("No atomic contract")
             }
-            if (!lpAddress) {
+            if (!destLpAddress || !srcLpAddress) {
                 throw new Error("No lp address")
             }
 
@@ -58,7 +59,8 @@ export const UserCommitAction: FC = () => {
                 sourceChain: source_network.name,
                 destinationAsset: destination_asset.symbol,
                 sourceAsset: source_asset,
-                lpAddress,
+                destLpAddress,
+                srcLpAddress,
                 tokenContractAddress: source_asset.contract as `0x${string}`,
                 decimals: source_asset.decimals,
                 atomicContract: atomicContract,
@@ -196,7 +198,7 @@ export const UserLockAction: FC = () => {
                 commitHandler = setInterval(async () => {
                     if (!provider)
                         throw new Error("No source provider")
-                    if(!source_network)
+                    if (!source_network)
                         throw new Error("No source network")
 
                     const data = await provider.getDetails({
@@ -301,7 +303,7 @@ export const UserRefundAction: FC = () => {
                     throw new Error("No source provider")
                 if (!srcAtomicContract)
                     throw new Error("No atomic contract")
-                if(!source_network)
+                if (!source_network)
                     throw new Error("No source network")
 
                 const data = await source_provider.getDetails({

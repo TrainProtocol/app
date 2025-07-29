@@ -201,7 +201,7 @@ export default function useEVM(): WalletProvider {
     }
 
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
-        const { destinationChain, destinationAsset, sourceAsset, lpAddress, address, amount, decimals, atomicContract, chainId } = params
+        const { destinationChain, destinationAsset, sourceAsset, srcLpAddress: lpAddress, address, amount, decimals, atomicContract, chainId } = params
 
         const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
         const timeLockMS = Date.now() + LOCK_TIME
