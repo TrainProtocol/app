@@ -7,11 +7,17 @@ import { useMemo } from "react";
 import { Commit } from "../../../Models/phtlc/PHTLC";
 import { useAccount } from "../../@nemi-fi/wallet-sdk/src/exports/react";
 import { sdk } from "./configs";
-import { addLockTransactionBuilder, aztecContractInstance, commitTransactionBuilder } from "./transactionBuilder";
+import { addLockTransactionBuilder, commitTransactionBuilder } from "./transactionBuilder";
+import { AztecAddress } from "@aztec/aztec.js";
+import { TrainContractArtifact } from "./Train";
+import { combineHighLow, highLowToHexString } from "./utils";
+import { Contract } from "../../@nemi-fi/wallet-sdk/src/exports/eip1193"
+import formatAmount from "../../formatAmount";
 
 export default function useAztec(): WalletProvider {
     const commonSupportedNetworks = [
         KnownInternalNames.Networks.AztecTestnet,
+        KnownInternalNames.Networks.StarkNetMainnet,
     ]
 
     const { networks } = useSettingsState()
@@ -98,22 +104,29 @@ export default function useAztec(): WalletProvider {
     }
 
     const getDetails = async (params: CommitmentParams): Promise<Commit> => {
-        const { id, contractAddress } = params;
-
+        let { id, contractAddress } = params;
+        contractAddress = '0x07f2f253b6f221be99da24de16651f9481df4e31d67420a1f8a86d2b444e8107'
+        console.log(account)
         if (!account) throw new Error("No account connected");
-
-        const atomicContract = await aztecContractInstance(
-            contractAddress,
+        const aztecAtomicContract = AztecAddress.fromString(contractAddress);
+        const atomicContract = await Contract.at(
+            aztecAtomicContract,
+            TrainContractArtifact,
             account,
-            id,
         );
 
-        const commitRaw = await atomicContract.methods
+        const commitRaw: any = await atomicContract.methods
             .get_htlc_public(id)
             .simulate();
-
-        const commit: any = {
-
+        debugger
+        const commit: Commit = {
+            amount: formatAmount(Number(commitRaw.amount), 18),
+            claimed: Number(commitRaw.claimed),
+            timelock: Number(commitRaw.timelock),
+            srcReceiver: commitRaw.src_receiver,
+            hashlock: highLowToHexString({ high: commitRaw.hashlock_high, low: commitRaw.hashlock_low }),
+            secret: combineHighLow({ high: commitRaw.secret_high, low: commitRaw.secret_low }),
+            ownership: highLowToHexString({ high: commitRaw.ownership_high, low: commitRaw.ownership_low })
         }
 
         return commit
@@ -137,10 +150,11 @@ export default function useAztec(): WalletProvider {
         if (!account) throw new Error("No account connected");
         if (!contractAddress) throw new Error("Missing required parameters");
 
-        const atomicContract = await aztecContractInstance(
-            contractAddress,
-            account,
-            id,
+        const aztecAtomicContract = AztecAddress.fromString(contractAddress);
+        const atomicContract = await Contract.at(
+            aztecAtomicContract,
+            TrainContractArtifact,
+            account
         );
 
         const refundTx = await atomicContract.methods
@@ -158,10 +172,11 @@ export default function useAztec(): WalletProvider {
         if (!account) throw new Error("No account connected");
         if (!contractAddress) throw new Error("Missing required parameters");
 
-        const atomicContract = await aztecContractInstance(
-            contractAddress,
+        const aztecAtomicContract = AztecAddress.fromString(contractAddress);
+        const atomicContract = await Contract.at(
+            aztecAtomicContract,
+            TrainContractArtifact,
             account,
-            id,
         );
 
         const ownershipKey = ""

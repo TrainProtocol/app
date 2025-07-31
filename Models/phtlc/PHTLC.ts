@@ -1,5 +1,5 @@
 export type Commit = {
-    sender: string,
+    sender?: string,
     srcReceiver: string,
     timelock: number,
     amount: number,
@@ -7,4 +7,5 @@ export type Commit = {
     hashlock: string | undefined,
     secret: bigint | undefined,
     claimed: number,
+    ownership?: string
 }

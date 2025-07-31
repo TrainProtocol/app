@@ -18,9 +18,9 @@ import { Commit } from "../../../Models/phtlc/PHTLC";
 const starknetNames = [KnownInternalNames.Networks.StarkNetGoerli, KnownInternalNames.Networks.StarkNetMainnet, KnownInternalNames.Networks.StarkNetSepolia]
 export default function useStarknet(): WalletProvider {
     const commonSupportedNetworks = [
-        KnownInternalNames.Networks.StarkNetMainnet,
-        KnownInternalNames.Networks.StarkNetGoerli,
-        KnownInternalNames.Networks.StarkNetSepolia
+        // KnownInternalNames.Networks.StarkNetMainnet,
+        // KnownInternalNames.Networks.StarkNetGoerli,
+        // KnownInternalNames.Networks.StarkNetSepolia
     ]
 
     const withdrawalSupportedNetworks = [

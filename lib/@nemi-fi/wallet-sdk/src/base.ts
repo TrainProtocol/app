@@ -20,6 +20,7 @@ import type { Account } from "./exports/index";
 import { InjectedConnector, requestEip6963Providers } from "./injected";
 import type { Eip1193Provider, RpcRequestMap } from "./types";
 import { getAvmChain, resolveAztecNode } from "./utils";
+import { Eip1193Account } from "./exports/eip1193";
 
 export class AztecWalletSdk {
   readonly #aztecNode: () => Promise<AztecNode>;
@@ -102,6 +103,12 @@ export class AztecWalletSdk {
    */
   getAccount() {
     return get(this.#account);
+  }
+
+  async getEip1193Account(): Promise<Eip1193Account | undefined> {
+    const account = this.getAccount();
+    if (!account) return undefined
+    return await this.#toAccount(account?.address.toString());
   }
 
   async connect(providerUuid: string) {

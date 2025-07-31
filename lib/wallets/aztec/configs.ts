@@ -1,6 +1,8 @@
 import { AztecWalletSdk, obsidion } from "../../@nemi-fi/wallet-sdk/src/exports";
 
+export const aztecNodeUrl = "https://node.testnet.azguardwallet.io";
+
 export const sdk = new AztecWalletSdk({
-    aztecNode: "https://full-node.alpha-testnet.aztec.network",
+    aztecNode: aztecNodeUrl,
     connectors: [obsidion()],
 });
