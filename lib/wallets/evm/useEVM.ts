@@ -26,6 +26,7 @@ import { explicitInjectedproviderDetected } from "../connectors/getInjectedConne
 import { useAtomicState } from "../../../context/atomicContext"
 import sleep from "../utils/sleep"
 import walletsData from "./walletsData.json"
+import { calculateEpochTimelock } from "../utils/calculateTimelock"
 
 const ethereumNames = [KnownInternalNames.Networks.EthereumMainnet, KnownInternalNames.Networks.EthereumSepolia]
 const immutableZKEvm = [KnownInternalNames.Networks.ImmutableZkEVMMainnet, KnownInternalNames.Networks.ImmutableZkEVMTestnet]
@@ -203,9 +204,7 @@ export default function useEVM(): WalletProvider {
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
         const { destinationChain, destinationAsset, sourceAsset, lpAddress, address, amount, decimals, atomicContract, chainId } = params
 
-        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
-        const timeLockMS = Date.now() + LOCK_TIME
-        const timeLock = Math.floor(timeLockMS / 1000)
+        const timelock = calculateEpochTimelock(20);
 
         if (!account?.address) {
             throw Error("Wallet not connected")
@@ -247,7 +246,7 @@ export default function useEVM(): WalletProvider {
                 sourceAsset.symbol,
                 id,
                 lpAddress,
-                timeLock,
+                timelock,
             ],
             chainId: Number(chainId),
         }
@@ -375,9 +374,7 @@ export default function useEVM(): WalletProvider {
     const addLock = async (params: CommitmentParams & LockParams) => {
         const { chainId, id, hashlock, contractAddress } = params
 
-        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
-        const timeLockMS = Date.now() + LOCK_TIME
-        const timeLock = Math.floor(timeLockMS / 1000)
+        const timelock = calculateEpochTimelock(20);
 
         const apiClient = new LayerSwapApiClient()
 
@@ -398,8 +395,8 @@ export default function useEVM(): WalletProvider {
 
         const message = {
             Id: id,
-            hashlock: hashlock,
-            timelock: timeLock,
+            hashlock,
+            timelock,
         };
 
         if (!account?.address) throw new Error("Wallet not connected")
@@ -418,7 +415,7 @@ export default function useEVM(): WalletProvider {
                 v: sig.v.toString(),
                 r: sig.r,
                 s: sig.s,
-                timelock: timeLock,
+                timelock,
             }, id)
         } catch (e) {
             throw new Error("Failed to add lock")

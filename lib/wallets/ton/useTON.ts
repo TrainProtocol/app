@@ -10,6 +10,7 @@ import { ConnectedWallet, useTonConnectUI, useTonWallet } from "@tonconnect/ui-r
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider";
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
 import { Commit } from "../../../Models/phtlc/PHTLC";
+import { calculateEpochTimelock } from "../utils/calculateTimelock";
 
 export default function useTON(): WalletProvider {
     const { networks } = useSettingsState()
@@ -189,9 +190,7 @@ export default function useTON(): WalletProvider {
     const addLock = async (params: CommitmentParams & LockParams) => {
         const { id, hashlock, contractAddress } = params
 
-        const LOCK_TIME = 1000 * 60 * 15 // 15 minutes
-        const timeLockMS = Date.now() + LOCK_TIME
-        const timelock = BigInt(Math.floor(timeLockMS / 1000))
+        const timelock = BigInt(calculateEpochTimelock(20))
 
         const body = beginCell()
             .storeUint(1558004185, 32)

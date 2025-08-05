@@ -7,7 +7,8 @@ import { useMemo } from "react";
 import { Commit } from "../../../Models/phtlc/PHTLC";
 import { useAccount } from "../../@nemi-fi/wallet-sdk/src/exports/react";
 import { sdk } from "./configs";
-import { addLockTransactionBuilder, commitTransactionBuilder } from "./transactionBuilder";
+import { addLockTransactionBuilder, claimTransactionBuilder, commitTransactionBuilder, refundTransactionBuilder } from "./transactionBuilder";
+import { getAztecSecret } from "./secretUtils";
 import { AztecAddress } from "@aztec/aztec.js";
 import { TrainContractArtifact } from "./Train";
 import { combineHighLow, highLowToHexString } from "./utils";
@@ -17,7 +18,7 @@ import formatAmount from "../../formatAmount";
 export default function useAztec(): WalletProvider {
     const commonSupportedNetworks = [
         KnownInternalNames.Networks.AztecTestnet,
-        KnownInternalNames.Networks.StarkNetMainnet,
+        // KnownInternalNames.Networks.StarkNetMainnet,
     ]
 
     const { networks } = useSettingsState()
@@ -106,7 +107,6 @@ export default function useAztec(): WalletProvider {
     const getDetails = async (params: CommitmentParams): Promise<Commit> => {
         let { id, contractAddress } = params;
         contractAddress = '0x07f2f253b6f221be99da24de16651f9481df4e31d67420a1f8a86d2b444e8107'
-        console.log(account)
         if (!account) throw new Error("No account connected");
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
         const atomicContract = await Contract.at(
@@ -118,7 +118,7 @@ export default function useAztec(): WalletProvider {
         const commitRaw: any = await atomicContract.methods
             .get_htlc_public(id)
             .simulate();
-        debugger
+
         const commit: Commit = {
             amount: formatAmount(Number(commitRaw.amount), 18),
             claimed: Number(commitRaw.claimed),
@@ -145,49 +145,32 @@ export default function useAztec(): WalletProvider {
     }
 
     const refund = async (params: RefundParams) => {
-        const { id, contractAddress } = params;
-
         if (!account) throw new Error("No account connected");
-        if (!contractAddress) throw new Error("Missing required parameters");
 
-        const aztecAtomicContract = AztecAddress.fromString(contractAddress);
-        const atomicContract = await Contract.at(
-            aztecAtomicContract,
-            TrainContractArtifact,
-            account
-        );
+        const refundTx = await refundTransactionBuilder({
+            senderWallet: account,
+            ...params
+        })
 
-        const refundTx = await atomicContract.methods
-            .refund_private(id)
-            .send()
-            .wait({ timeout: 120000 });
-
-        return refundTx.txHash.toString();
+        return refundTx;
     }
 
     const claim = async (params: ClaimParams) => {
-
-        const { id, contractAddress, secret } = params;
-
         if (!account) throw new Error("No account connected");
-        if (!contractAddress) throw new Error("Missing required parameters");
 
-        const aztecAtomicContract = AztecAddress.fromString(contractAddress);
-        const atomicContract = await Contract.at(
-            aztecAtomicContract,
-            TrainContractArtifact,
-            account,
-        );
+        // Get the stored Aztec secret for this swap
+        const aztecSecret = await getAztecSecret(params.id);
+        if (!aztecSecret) {
+            throw new Error("No Aztec secret found for this swap");
+        }
 
-        const ownershipKey = ""
+        const claimTx = await claimTransactionBuilder({
+            senderWallet: account,
+            ownershipKey: aztecSecret.secret,
+            ...params
+        })
 
-        const claimTx = await atomicContract.methods
-            .redeem_private(id, secret, ownershipKey)
-            .send()
-            .wait({ timeout: 120000 });
-
-        return claimTx.txHash.toString();
-
+        return claimTx;
     }
 
     const availableWalletsForConnect: InternalConnector[] = useMemo(() => {

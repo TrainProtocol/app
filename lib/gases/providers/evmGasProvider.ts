@@ -150,9 +150,7 @@ abstract class getEVMGas {
 
     protected async estimateNativeGasLimit(contractMethod?: 'commit' | 'addLock') {
 
-        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
-        const timeLockMS = Date.now() + LOCK_TIME
-        const timeLock = Math.floor(timeLockMS / 1000)
+        const timelock = calculateEpochTimelock(20);
 
         const contract = getContract({
             address: this.destination,
@@ -179,7 +177,7 @@ abstract class getEVMGas {
                 "ETH",
                 id,
                 "0x2fc617e933a52713247ce25730f6695920b3befe",
-                timeLock
+                timelock
             ], {
                 account: this.account,
                 value: ethers.utils.parseUnits(0.00005.toString(), 18).toBigInt()
@@ -197,7 +195,7 @@ abstract class getEVMGas {
                 "ETH",
                 id,
                 "0x2fc617e933a52713247ce25730f6695920b3befe",
-                timeLock
+                timelock
             ], {
                 account: this.account,
                 value: ethers.utils.parseUnits(0.00005.toString(), 18).toBigInt()
@@ -210,9 +208,7 @@ abstract class getEVMGas {
 
     protected async estimateERC20GasLimit(contractMethod?: 'commit' | 'addLock') {
 
-        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
-        const timeLockMS = Date.now() + LOCK_TIME
-        const timeLock = Math.floor(timeLockMS / 1000)
+        const timelock = calculateEpochTimelock(20);
 
         const contract = getContract({
             address: this.destination,
@@ -239,7 +235,7 @@ abstract class getEVMGas {
                 "ETH",
                 id,
                 "0x2fc617e933a52713247ce25730f6695920b3befe",
-                timeLock
+                timelock
             ], {
                 account: this.account,
                 value: ethers.utils.parseUnits(0.00005.toString(), 18).toBigInt()
@@ -257,7 +253,7 @@ abstract class getEVMGas {
                 "ETH",
                 id,
                 "0x2fc617e933a52713247ce25730f6695920b3befe",
-                timeLock
+                timelock
             ], {
                 account: this.account,
                 value: ethers.utils.parseUnits(0.00005.toString(), 18).toBigInt()
@@ -381,6 +377,7 @@ import {
     BlockTag,
 } from 'viem'
 import resolveChain from "../../resolveChain";
+import { calculateEpochTimelock } from "../../wallets/utils/calculateTimelock";
 
 /**
  * Options to query a specific block

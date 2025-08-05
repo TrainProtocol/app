@@ -4,9 +4,11 @@ import { useAtomicState } from "../../../../context/atomicContext";
 import { WalletActionButton } from "../../buttons";
 import { ContractType } from "../../../../Models/Network";
 import { useRouter } from "next/router";
+import KnownInternalNames from "../../../../lib/knownIds";
 
 export const RedeemAction: FC = () => {
     const { destination_network, source_network, sourceDetails, destinationDetails, updateCommit, manualClaimRequested, destination_asset, source_asset, commitId, isManualClaimable, atomicQuery, setAtomicQuery } = useAtomicState()
+    const isAztecDestination = destination_network?.name === KnownInternalNames.Networks.AztecTestnet;
     const { getProvider } = useWallet()
     const router = useRouter()
     const source_provider = source_network && getProvider(source_network, 'withdrawal')
@@ -117,7 +119,7 @@ export const RedeemAction: FC = () => {
                                 networkChainId={Number(destination_network?.chainId)}
                                 onClick={handleClaimAssets}
                             >
-                                Claim Manually
+                                {isAztecDestination ? 'Claim' : 'Claim Manually'}
                             </WalletActionButton>
                     )
                     : null
