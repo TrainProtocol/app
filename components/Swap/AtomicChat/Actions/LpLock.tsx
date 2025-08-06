@@ -12,7 +12,7 @@ export const LpLockingAssets: FC = () => {
 
     const getDetails = async ({ provider, network, commitId, asset }: { provider: WalletProvider, network: Network, commitId: string, asset: Token }) => {
         if (!destAtomicContract) throw Error("No atomic contract")
-
+        console.log('destAtomicContract', destAtomicContract)
         let lockHandler: any = undefined
         lockHandler = setInterval(async () => {
             if (provider.secureGetDetails) {

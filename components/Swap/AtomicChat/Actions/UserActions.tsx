@@ -8,7 +8,7 @@ import { useRouter } from "next/router";
 import { useFee } from "../../../../context/feeContext";
 
 export const UserCommitAction: FC = () => {
-    const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, updateCommit } = useAtomicState();
+    const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, updateCommit, srcAtomicContract } = useAtomicState();
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
     const { fee } = useFee()
@@ -18,7 +18,7 @@ export const UserCommitAction: FC = () => {
     //     hash: txId,
     //     chainId: Number(source_network?.chain_id),
     // });
-    const atomicContract = fee?.quote?.sourceContractAddress
+    const atomicContract = srcAtomicContract 
     const destLpAddress = fee?.quote?.destinationSolverAddress
     const srcLpAddress = fee?.quote?.sourceSolverAddress
 

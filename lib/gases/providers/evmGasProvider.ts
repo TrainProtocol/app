@@ -52,7 +52,7 @@ export class EVMGasProvider implements Provider {
             return gas
         }
         catch (e) {
-            console.log(e)
+            console.error(e)
         }
 
     }
