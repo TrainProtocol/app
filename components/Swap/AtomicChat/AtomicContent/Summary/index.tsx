@@ -36,7 +36,7 @@ const MotionSummary: FC = () => {
     const receive_amount_in_base_units = fee?.quote?.receiveAmount
     const receive_amount = (receive_amount_in_base_units && source_token) ? (Number(receive_amount_in_base_units) / Math.pow(10, source_asset?.decimals)) : undefined;
 
-    const receiveAmount = formatAmount(commitFromApi?.destinationAmount || fee?.quote?.receiveAmount, source_token?.decimals) || receive_amount
+    const receiveAmount = formatAmount(commitFromApi?.destinationAmount || fee?.quote?.receiveAmount, destination_token?.decimals) || receive_amount
     // const receiveAmountInUsd = commitFromApi?.destinationAmountInUsd || fee?.quote?.receiveAmountInUsd
     // const requestedAmountInUsd = commitFromApi?.sourceAmountInUsd || fee?.quote?.sourceAmountInUsd
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
