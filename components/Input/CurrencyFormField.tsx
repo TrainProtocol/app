@@ -184,19 +184,24 @@ function GenerateCurrencyMenuItems(
             {formatted_balance_amount}
         </p>
 
+        const logo = `https://raw.githubusercontent.com/TrainProtocol/icons/main/tokens/${c.symbol.toLowerCase()}.png`
+
         const res: SelectMenuItem<Token> = {
             baseObject: c,
             id: c.symbol,
             name: displayName || "-",
             order: ResolveCurrencyOrder(c),
-            imgSrc: c.logo,
+            imgSrc: logo,
             isAvailable: currencyIsAvailable,
             details,
             leftIcon: <RouteIcon direction={direction} isAvailable={currencyIsAvailable} routeNotFound={!!routeNotFound} type="token" />
         };
 
         return res
-    }).sort(SortAscending);
+    })
+        .sort(SortAscending)
+        .filter((route, index, self) => index === self.findIndex(r => r.name === route.name)) || [];
+
 }
 
 export default CurrencyFormField
