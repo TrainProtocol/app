@@ -36,14 +36,14 @@ const MotionSummary: FC = () => {
     const receive_amount_in_base_units = fee?.quote?.receiveAmount
     const receive_amount = (receive_amount_in_base_units && source_token) ? (Number(receive_amount_in_base_units) / Math.pow(10, source_asset?.decimals)) : undefined;
 
-    const receiveAmount = formatAmount(commitFromApi?.destinationAmount, source_token?.decimals) || receive_amount
+    const receiveAmount = formatAmount(commitFromApi?.destinationAmount || fee?.quote?.receiveAmount, source_token?.decimals) || receive_amount
     // const receiveAmountInUsd = commitFromApi?.destinationAmountInUsd || fee?.quote?.receiveAmountInUsd
     // const requestedAmountInUsd = commitFromApi?.sourceAmountInUsd || fee?.quote?.sourceAmountInUsd
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
 
     return (
         <div
-            className='bg-secondary-800 rounded-componentRoundness p-3 w-full relative z-10 space-y-5 border border-transparent transition-all'>
+            className='bg-secondary-800 rounded-2xl p-3 w-full relative z-10 space-y-5 border border-transparent transition-all'>
             {
                 destination_network && source_network && destination_token && source_token &&
                 <Summary

@@ -16,7 +16,7 @@ const DetailedEstimates: FC = () => {
     const currencyName = fromCurrency?.symbol || " "
     // const feeAmountInUsd = fee?.quote?.totalFeeInUsd
 
-    const displayFee = fromCurrency && parsedFee?.toFixed(Math.min(fromCurrency?.decimals, 8))
+    const displayFee = parsedFee == 0 ? 'Free' : (fromCurrency && parsedFee?.toFixed(Math.min(fromCurrency?.decimals, 8)))
     // const displayFeeInUsd = feeAmountInUsd ? (feeAmountInUsd < 0.01 ? '<$0.01' : `$${feeAmountInUsd?.toFixed(2)}`) : undefined
 
     return <div className="flex flex-col w-full gap-2">

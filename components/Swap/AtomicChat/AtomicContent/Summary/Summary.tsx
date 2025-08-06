@@ -53,7 +53,7 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceAccountAddress, sourceCurrency,
                                 requestedAmount &&
                                 <p className="text-primary-text text-sm text-nowrap">{truncateDecimals(Number(requestedAmount), Math.min(sourceCurrency.decimals, 8))} {sourceCurrency.symbol}</p>
                             }
-                            <p className="text-secondary-text text-sm flex justify-end items-center">{requestedAmountInUsd ? <span>${requestedAmountInUsd.toFixed(2)}</span> : <span className="ml-1 h-[10px] w-10 animate-pulse rounded bg-gray-500" />}</p>
+                            {/* <p className="text-secondary-text text-sm flex justify-end items-center">{requestedAmountInUsd ? <span>${requestedAmountInUsd.toFixed(2)}</span> : <span className="ml-1 h-[10px] w-10 animate-pulse rounded bg-gray-500" />}</p> */}
                         </div>
                     </div>
                 </div>
@@ -73,7 +73,7 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceAccountAddress, sourceCurrency,
                             receiveAmount != undefined ?
                                 <div className="flex flex-col justify-end">
                                     <p className="text-primary-text text-sm text-nowrap">{truncateDecimals(receiveAmount, Math.min(destinationCurrency.decimals, 8))} {destinationCurrency.symbol}</p>
-                                    <p className="text-secondary-text text-sm flex justify-end">${receiveAmountInUsd && receiveAmountInUsd?.toFixed(2)}</p>
+                                    {/* <p className="text-secondary-text text-sm flex justify-end">${receiveAmountInUsd && receiveAmountInUsd?.toFixed(2)}</p> */}
                                 </div>
                                 :
                                 <div className="flex flex-col justify-end">
