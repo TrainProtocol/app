@@ -42,7 +42,7 @@ export default function useFuel(): WalletProvider {
     const { fuel } = useGlobalFuel()
     const { networks } = useSettingsState()
 
-    const network = networks.find(n => n.name.includes(KnownInternalNames.Networks.FuelMainnet))
+    const network = networks.find(n => n.name.toLowerCase().includes('fuel'))
     const fuelProvider = network && new Provider(network?.rpcUrl);
 
     const wallets = useWalletStore((state) => state.connectedWallets)
@@ -224,7 +224,7 @@ export default function useFuel(): WalletProvider {
         const { id, contractAddress: contractAddressString } = params
 
         const contractInstance = fuelProvider && new Contract(contractAddressString, contractAbi, fuelProvider);
-console.log('contractInstance', contractInstance, contractAddressString)
+
         if (!contractInstance) throw new Error('Contract instance not found')
 
         const details = (await contractInstance.functions.get_htlc_details(id).get()).value
