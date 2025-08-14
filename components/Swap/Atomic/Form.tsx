@@ -195,6 +195,8 @@ const SwapForm: FC = () => {
             </ResizablePanel>
             <Widget.Footer>
                 <FormButton
+                    quote={fee?.quote}
+                    isQuoteLoading={isFeeLoading}
                     shouldConnectWallet={shouldConnectWallet}
                     values={values}
                     isValid={isValid && fee?.quote !== undefined}
