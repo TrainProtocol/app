@@ -7,7 +7,7 @@ import { LoopringGasProvider } from "./providers/loopringGasProvider";
 import { SolanaGasProvider } from "./providers/solanaGasProvider";
 import { StarknetGasProvider } from "./providers/starknetGasProvider";
 import { TonGasProvider } from "./providers/tonGasProvider";
-import { ZkSyncGasProvider } from "./providers/zkSyncGasProvider";
+// import { ZkSyncGasProvider } from "./providers/zkSyncGasProvider";
 
 export class GasResolver {
     private providers = [
@@ -16,7 +16,7 @@ export class GasResolver {
         new FuelGasProvider(),
         new LoopringGasProvider(),
         new SolanaGasProvider(),
-        new ZkSyncGasProvider()
+        // new ZkSyncGasProvider()
     ];
 
     getGas({ address, network, token, recipientAddress, contractMethod }: GasProps) {

@@ -24,7 +24,7 @@ import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundP
 import { concat, DateTime } from "@fuel-ts/utils";
 import { Contract } from "@fuel-ts/program";
 import contractAbi from "../../abis/atomic/FUEL_PHTLC.json"
-import LayerSwapApiClient from "../../layerSwapApiClient";
+import LayerSwapApiClient from "../../trainApiClient";
 import { B256Coder, BigNumberCoder, bn, sha256 } from 'fuels';
 
 export default function useFuel(): WalletProvider {
@@ -43,7 +43,7 @@ export default function useFuel(): WalletProvider {
     const { networks } = useSettingsState()
 
     const network = networks.find(n => n.name.toLowerCase().includes('fuel'))
-    const fuelProvider = network && new Provider(network?.nodes[0].url);
+    const fuelProvider = network && new Provider(network?.rpcUrl);
 
     const wallets = useWalletStore((state) => state.connectedWallets)
     const addWallet = useWalletStore((state) => state.connectWallet)
@@ -148,7 +148,7 @@ export default function useFuel(): WalletProvider {
         const hopAssets = createEmptyArray(5, ' ')
         const hopAddresses = createEmptyArray(5, ' ')
 
-        const { destinationChain, destinationAsset, sourceAsset, lpAddress, address, amount, decimals, atomicContract } = params
+        const { destinationChain, destinationAsset, sourceAsset, srcLpAddress, address, amount, decimals, atomicContract } = params
 
         const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
         const timeLockMS = Math.floor((Date.now() + LOCK_TIME) / 1000)
@@ -157,7 +157,8 @@ export default function useFuel(): WalletProvider {
         if (!fuelProvider) throw new Error('Node url not found')
         if (!wallet) throw new Error('Wallet not connected')
 
-        const contractInstance = new Contract(atomicContract, contractAbi, wallet);
+        const contractAddress = new Address(atomicContract);
+        const contractInstance = new Contract(contractAddress, contractAbi, wallet);
 
         const commitId = generateUint256Hex().toString()
 
@@ -165,7 +166,7 @@ export default function useFuel(): WalletProvider {
         const dstAsset = destinationAsset.padEnd(64, ' ');
         const dstAddress = address.padEnd(64, ' ');
         const srcAsset = sourceAsset.symbol.padEnd(64, ' ');
-        const srcReceiver = { bits: lpAddress };
+        const srcReceiver = { bits: srcLpAddress };
 
         const parsedAmount = Number(amount) * 10 ** decimals
 
@@ -243,7 +244,7 @@ export default function useFuel(): WalletProvider {
         return resolvedDetails
     }
     const addLockSig = async (params: CommitmentParams & LockParams) => {
-        const { id, hashlock } = params
+        const { id, hashlock, solver } = params
 
         const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
         const timeLockS = Math.floor((Date.now() + LOCK_TIME) / 1000)
@@ -265,7 +266,10 @@ export default function useFuel(): WalletProvider {
             await apiClient.AddLockSig({
                 signature: signature,
                 timelock: timeLockS,
-            }, id)
+            },
+                id,
+                solver
+            )
         } catch (e) {
             throw new Error("Failed to add lock")
         }

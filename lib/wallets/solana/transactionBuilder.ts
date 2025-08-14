@@ -8,7 +8,7 @@ import { createHash } from "crypto";
 export const transactionBuilder = async (network: Network, token: Token, walletPublicKey: PublicKey, recipientAddress?: string | undefined) => {
 
     const connection = new Connection(
-        `${network.nodes[0].url}`,
+        `${network.rpcUrl}`,
         "confirmed"
     );
     const recipientPublicKey = new PublicKey(recipientAddress || new Array(32).fill(0));
@@ -76,9 +76,9 @@ export const transactionBuilder = async (network: Network, token: Token, walletP
 
 export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { program: Program<Idl>, connection: Connection, walletPublicKey: PublicKey, network: Network }) => {
 
-    const { destinationChain, destinationAsset, sourceAsset, lpAddress, address: destination_address, amount, atomicContract, chainId, program, walletPublicKey, connection, network } = params
+    const { destinationChain, destinationAsset, sourceAsset, srcLpAddress: lpAddress, address: destination_address, amount, atomicContract, chainId, program, walletPublicKey, connection, network } = params
 
-    if (!sourceAsset.contract || !network.nativeToken) return null
+    if (!sourceAsset.contract) return null
 
     const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
     const timeLockMS = Date.now() + LOCK_TIME

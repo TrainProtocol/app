@@ -10,7 +10,7 @@ const useSWRBalance = (address: string | undefined, network: Network | undefined
     }, { refreshInterval: 60000 })
     
     return {
-        balance: data,
+        balance: data as any,
         isBalanceLoading: isLoading,
         isError: error,
         mutate

@@ -5,7 +5,7 @@ import { Commit } from '../Models/phtlc/PHTLC';
 import { ContractType, Network, Token } from '../Models/Network';
 import useSWR from 'swr';
 import { ApiResponse } from '../Models/ApiResponse';
-import { CommitFromApi, CommitTransaction } from '../lib/layerSwapApiClient';
+import { CommitFromApi, CommitTransaction } from '../lib/trainApiClient';
 import LightClient from '../lib/lightClient';
 import { Wallet } from '../Models/WalletProvider';
 
@@ -36,6 +36,8 @@ type DataContextType = CommitState & {
     atomicQuery?: any,
     destRedeemTx?: string,
     verifyingByLightClient: boolean,
+    srcAtomicContract?: string,
+    destAtomicContract?: string,
     setVerifyingByLightClient: (value: boolean) => void;
     onCommit: (commitId: string, txId: string) => void;
     updateCommit: (field: keyof CommitState, value: any) => void;
@@ -56,13 +58,14 @@ interface CommitState {
     isManualClaimable?: boolean;
     manualClaimRequested?: boolean,
     claimTxId?: string | null;
+    solver: string,
 }
 
 type CommitStatesDict = Record<string, CommitState>;
 
 export function AtomicProvider({ children }) {
     const router = useRouter()
-    const { networks } = useSettingsState()
+    const { networks, routes } = useSettingsState()
 
     const [selectedSourceAccount, setSelectedSourceAccount] = useState<{ wallet: Wallet, address: string } | undefined>()
     const [atomicQuery, setAtomicQuery] = useState(router.query)
@@ -80,6 +83,9 @@ export function AtomicProvider({ children }) {
     const refundTxId = atomicQuery?.refundTxId as string
     const commitTxId = atomicQuery?.txId as string
     const claimTxId = atomicQuery?.claimTxId as string
+    const solverName = atomicQuery?.solver as string;
+    const srcAtomicContractFromQuery = atomicQuery?.srcContract as string
+    const destAtomicContractfromQuery = atomicQuery?.destContract as string
 
     const [commitStates, setCommitStates] = useState<CommitStatesDict>({});
     const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
@@ -116,18 +122,19 @@ export function AtomicProvider({ children }) {
 
     const source_network = networks.find(n => n.name.toUpperCase() === (source as string)?.toUpperCase())
     const destination_network = networks.find(n => n.name.toUpperCase() === (destination as string)?.toUpperCase())
-    const source_token = source_network?.tokens.find(t => t.symbol === source_asset)
-    const destination_token = destination_network?.tokens.find(t => t.symbol === destination_asset)
+    const source_token = routes.find(n => n.source.network.name.toUpperCase() === (source as string)?.toUpperCase() && n.source.token.symbol === source_asset)?.source.token
+    const destination_token = routes.find(n => n.destination.network.name.toUpperCase() === (destination as string)?.toUpperCase() && n.destination.token.symbol === destination_asset)?.destination.token
 
     const userLockTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
     const isManualClaimable = !!(assetsLocked && sourceDetails?.claimed == 3 && destinationDetails?.claimed != 3 && (sourceDetails.claimTime && (Date.now() - sourceDetails.claimTime > 30000)))
 
-    const destAtomicContract = destination_network?.contracts.find(c => destination_token?.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address
+    const destAtomicContract = commitFromApi?.destinationContractAddress || destAtomicContractfromQuery
+    const srcAtomicContract = commitFromApi?.sourceContractAddress || srcAtomicContractFromQuery
 
     const fetcher = (args) => fetch(args).then(res => res.json())
     const url = process.env.NEXT_PUBLIC_TRAIN_API
-    const { data } = useSWR<ApiResponse<CommitFromApi>>((commitId && !destinationRedeemTx) ? `${url}/api/swaps/${commitId}` : null, fetcher, { refreshInterval: 5000 })
+    const { data } = useSWR<ApiResponse<CommitFromApi>>((commitId && !destinationRedeemTx) ? `${url}/api/${solverName}/swaps/${commitId}` : null, fetcher, { refreshInterval: 5000 })
 
     const commitStatus = useMemo(() => statusResolver({ commitFromApi, sourceDetails, destinationDetails, timelockExpired: isTimelockExpired, userLocked }), [commitFromApi, sourceDetails, destinationDetails, isTimelockExpired, userLocked, refundTxId])
 
@@ -164,7 +171,7 @@ export function AtomicProvider({ children }) {
                         atomicContract: destAtomicContract
                     })
                     if (data) {
-                        updateCommit('destinationDetailsByLightClient', {data})
+                        updateCommit('destinationDetailsByLightClient', { data })
                         return
                     }
                 }
@@ -234,6 +241,7 @@ export function AtomicProvider({ children }) {
             commitId: commitId as string,
             commitTxId: commitTxId as string,
             claimTxId: claimTxId as string,
+            solver: solverName,
             sourceDetails,
             destinationDetails,
             userLocked,
@@ -248,6 +256,8 @@ export function AtomicProvider({ children }) {
             destRedeemTx: destinationRedeemTx,
             verifyingByLightClient,
             destinationDetailsByLightClient,
+            srcAtomicContract,
+            destAtomicContract,
             setVerifyingByLightClient,
             updateCommit,
             setAtomicQuery,

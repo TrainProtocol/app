@@ -3,7 +3,7 @@ import { FC, useCallback, useEffect } from "react";
 import SwapButton from "../../buttons/swapButton";
 import React from "react";
 import NetworkFormField from "../../Input/NetworkFormField";
-import LayerSwapApiClient from "../../../lib/layerSwapApiClient";
+import LayerSwapApiClient from "../../../lib/trainApiClient";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import useSWR from "swr";
 import { ApiResponse } from "../../../Models/ApiResponse";
@@ -24,9 +24,9 @@ import useWallet from "../../../hooks/useWallet";
 import FormButton from "../FormButton";
 import { useAtomicState } from "../../../context/atomicContext";
 
-const ReserveGasNote = dynamic(() => import("../../ReserveGasNote"), {
-    loading: () => <></>,
-});
+// const ReserveGasNote = dynamic(() => import("../../ReserveGasNote"), {
+//     loading: () => <></>,
+// });
 
 const SwapForm: FC = () => {
     const {
@@ -42,7 +42,7 @@ const SwapForm: FC = () => {
     } = values
     const { selectedSourceAccount, setSelectedSourceAccount } = useAtomicState()
     const { providers, wallets } = useWallet()
-    const { minAllowedAmount, valuesChanger } = useFee()
+    const { valuesChanger } = useFee()
 
     const layerswapApiClient = new LayerSwapApiClient()
     const query = useQueryState();
@@ -54,90 +54,91 @@ const SwapForm: FC = () => {
         valuesChanger(values)
     }, [values])
 
-    useEffect(() => {
-        if (values.refuel && minAllowedAmount && (Number(values.amount) < minAllowedAmount)) {
-            setFieldValue('amount', minAllowedAmount)
-        }
-    }, [values.refuel, destination, minAllowedAmount])
+    // useEffect(() => {
+    //     if (values.refuel && minAllowedAmount && (Number(values.amount) < minAllowedAmount)) {
+    //         setFieldValue('amount', minAllowedAmount)
+    //     }
+    // }, [values.refuel, destination, minAllowedAmount])
 
     const [animate, cycle] = useCycle(
         { rotate: 0 },
         { rotate: 180 }
     );
 
-    const sourceRoutesEndpoint = (source || destination) ? resolveRoutesURLForSelectedToken({ direction: 'from', network: source?.name, token: fromCurrency?.symbol, includes: { unavailable: true, unmatched: true } }) : null
-    const destinationRoutesEndpoint = (source || destination) ? resolveRoutesURLForSelectedToken({ direction: 'to', network: destination?.name, token: toCurrency?.symbol, includes: { unavailable: true, unmatched: true } }) : null
+    // const sourceRoutesEndpoint = (source || destination) ? resolveRoutesURLForSelectedToken({ direction: 'from', network: source?.name, token: fromCurrency?.symbol, includes: { unavailable: true, unmatched: true } }) : null
+    // const destinationRoutesEndpoint = (source || destination) ? resolveRoutesURLForSelectedToken({ direction: 'to', network: destination?.name, token: toCurrency?.symbol, includes: { unavailable: true, unmatched: true } }) : null
 
-    const { data: sourceRoutesRes, isLoading: sourceLoading } = useSWR<ApiResponse<Network[]>>(sourceRoutesEndpoint, layerswapApiClient.fetcher, { keepPreviousData: true })
-    const { data: destinationRoutesRes, isLoading: destinationLoading } = useSWR<ApiResponse<Network[]>>(destinationRoutesEndpoint, layerswapApiClient.fetcher, { keepPreviousData: true })
-    const sourceRoutes = sourceRoutesRes?.data
-    const destinationRoutes = destinationRoutesRes?.data
-    const sourceCanBeSwapped = !source ? true : (destinationRoutes?.some(l => l.name === source?.name && l.tokens.some(t => t.symbol === fromCurrency?.symbol
-        // && t.status === 'active'
-    )) ?? false)
-    const destinationCanBeSwapped = !destination ? true : (sourceRoutes?.some(l => l.name === destination?.name && l.tokens.some(t => t.symbol === toCurrency?.symbol
-        // && t.status === 'active'
-    )) ?? false)
+    // const { data: sourceRoutesRes, isLoading: sourceLoading } = useSWR<ApiResponse<Network[]>>(sourceRoutesEndpoint, layerswapApiClient.fetcher, { keepPreviousData: true })
+    // const { data: destinationRoutesRes, isLoading: destinationLoading } = useSWR<ApiResponse<Network[]>>(destinationRoutesEndpoint, layerswapApiClient.fetcher, { keepPreviousData: true })
+    // const sourceRoutes = sourceRoutesRes?.data
+    // const destinationRoutes = destinationRoutesRes?.data
+    // const sourceCanBeSwapped = !source ? true : (destinationRoutes?.some(l => l.name === source?.name && l.tokens.some(t => t.symbol === fromCurrency?.symbol
+    //     // && t.status === 'active'
+    // )) ?? false)
+    // const destinationCanBeSwapped = !destination ? true : (sourceRoutes?.some(l => l.name === destination?.name && l.tokens.some(t => t.symbol === toCurrency?.symbol
+    //     // && t.status === 'active'
+    // )) ?? false)
 
-    if (query.lockTo || query.lockFrom || query.hideTo || query.hideFrom) {
-        valuesSwapperDisabled = true;
-    }
-    if (!sourceCanBeSwapped || !destinationCanBeSwapped) {
-        valuesSwapperDisabled = true;
-    } else if (!source && !destination) {
-        valuesSwapperDisabled = true;
-    }
+    // if (query.lockTo || query.lockFrom || query.hideTo || query.hideFrom) {
+    //     valuesSwapperDisabled = true;
+    // }
+    // if (!sourceCanBeSwapped || !destinationCanBeSwapped) {
+    //     valuesSwapperDisabled = true;
+    // } else if (!source && !destination) {
+    //     valuesSwapperDisabled = true;
+    // }
 
-    const valuesSwapper = useCallback(() => {
+    // const valuesSwapper = useCallback(() => {
 
-        const newFrom = sourceRoutes?.find(l => l.name === destination?.name)
-        const newTo = destinationRoutes?.find(l => l.name === source?.name)
-        const newFromToken = newFrom?.tokens.find(t => t.symbol === toCurrency?.symbol)
-        const newToToken = newTo?.tokens.find(t => t.symbol === fromCurrency?.symbol)
+    //     const newFrom = sourceRoutes?.find(l => l.name === destination?.name)
+    //     const newTo = destinationRoutes?.find(l => l.name === source?.name)
+    //     const newFromToken = newFrom?.tokens.find(t => t.symbol === toCurrency?.symbol)
+    //     const newToToken = newTo?.tokens.find(t => t.symbol === fromCurrency?.symbol)
 
-        const destinationProvider = destination
-            ? providers.find(p => p.autofillSupportedNetworks?.includes(destination?.name) && p.connectedWallets?.some(w => !w.isNotAvailable && w.addresses.some(a => a.toLowerCase() === values.destination_address?.toLowerCase())))
-            : undefined
+    //     const destinationProvider = destination
+    //         ? providers.find(p => p.autofillSupportedNetworks?.includes(destination?.name) && p.connectedWallets?.some(w => !w.isNotAvailable && w.addresses.some(a => a.toLowerCase() === values.destination_address?.toLowerCase())))
+    //         : undefined
 
-        const newDestinationProvider = newTo ? providers.find(p => p.autofillSupportedNetworks?.includes(newTo.name) && p.connectedWallets?.some(w => !w.isNotAvailable && w.addresses.some(a => a.toLowerCase() === selectedSourceAccount?.address.toLowerCase())))
-            : undefined
-        const oldDestinationWallet = newDestinationProvider?.connectedWallets?.find(w => w.autofillSupportedNetworks?.some(n => n.toLowerCase() === newTo?.name.toLowerCase()) && w.addresses.some(a => a.toLowerCase() === values.destination_address?.toLowerCase()))
-        const oldDestinationWalletIsNotCompatible = destinationProvider && (destinationProvider?.name !== newDestinationProvider?.name || !(newTo && oldDestinationWallet?.autofillSupportedNetworks?.some(n => n.toLowerCase() === newTo?.name.toLowerCase())))
-        const destinationWalletIsAvailable = newTo ? newDestinationProvider?.connectedWallets?.some(w => w.autofillSupportedNetworks?.some(n => n.toLowerCase() === newTo.name.toLowerCase()) && w.addresses.some(a => a.toLowerCase() === selectedSourceAccount?.address.toLowerCase())) : undefined
-        const oldSourceWalletIsNotCompatible = destinationProvider && (selectedSourceAccount?.wallet.providerName !== destinationProvider?.name || !(newFrom && selectedSourceAccount?.wallet.withdrawalSupportedNetworks?.some(n => n.toLowerCase() === newFrom.name.toLowerCase())))
+    //     const newDestinationProvider = newTo ? providers.find(p => p.autofillSupportedNetworks?.includes(newTo.name) && p.connectedWallets?.some(w => !w.isNotAvailable && w.addresses.some(a => a.toLowerCase() === selectedSourceAccount?.address.toLowerCase())))
+    //         : undefined
+    //     const oldDestinationWallet = newDestinationProvider?.connectedWallets?.find(w => w.autofillSupportedNetworks?.some(n => n.toLowerCase() === newTo?.name.toLowerCase()) && w.addresses.some(a => a.toLowerCase() === values.destination_address?.toLowerCase()))
+    //     const oldDestinationWalletIsNotCompatible = destinationProvider && (destinationProvider?.name !== newDestinationProvider?.name || !(newTo && oldDestinationWallet?.autofillSupportedNetworks?.some(n => n.toLowerCase() === newTo?.name.toLowerCase())))
+    //     const destinationWalletIsAvailable = newTo ? newDestinationProvider?.connectedWallets?.some(w => w.autofillSupportedNetworks?.some(n => n.toLowerCase() === newTo.name.toLowerCase()) && w.addresses.some(a => a.toLowerCase() === selectedSourceAccount?.address.toLowerCase())) : undefined
+    //     const oldSourceWalletIsNotCompatible = destinationProvider && (selectedSourceAccount?.wallet.providerName !== destinationProvider?.name || !(newFrom && selectedSourceAccount?.wallet.withdrawalSupportedNetworks?.some(n => n.toLowerCase() === newFrom.name.toLowerCase())))
 
-        const changeDestinationAddress = newTo && (oldDestinationWalletIsNotCompatible || oldSourceWalletIsNotCompatible) && destinationWalletIsAvailable
+    //     const changeDestinationAddress = newTo && (oldDestinationWalletIsNotCompatible || oldSourceWalletIsNotCompatible) && destinationWalletIsAvailable
 
-        const newVales: SwapFormValues = {
-            ...values,
-            from: newFrom,
-            to: newTo,
-            fromCurrency: newFromToken,
-            toCurrency: newToToken,
-            destination_address: values.destination_address,
-        }
+    //     const newVales: SwapFormValues = {
+    //         ...values,
+    //         from: newFrom,
+    //         to: newTo,
+    //         fromCurrency: newFromToken,
+    //         toCurrency: newToToken,
+    //         destination_address: values.destination_address,
+    //         depositMethod: undefined
+    //     }
 
-        if (changeDestinationAddress) {
-            newVales.destination_address = selectedSourceAccount?.address
-        }
+    //     if (changeDestinationAddress) {
+    //         newVales.destination_address = selectedSourceAccount?.address
+    //     }
 
-        setValues(newVales, true);
+    //     setValues(newVales, true);
 
-        const changeSourceAddress = newFrom && destinationProvider && (oldSourceWalletIsNotCompatible || changeDestinationAddress)
-        if (changeSourceAddress && values.destination_address) {
-            const sourceAvailableWallet = destinationProvider?.connectedWallets?.find(w => w.withdrawalSupportedNetworks?.some(n => n.toLowerCase() === newFrom.name.toLowerCase()) && w.addresses.some(a => a.toLowerCase() === values.destination_address?.toLowerCase()))
-            if (sourceAvailableWallet) {
-                setSelectedSourceAccount({
-                    wallet: sourceAvailableWallet,
-                    address: values.destination_address
-                })
-            }
-            else {
-                setSelectedSourceAccount(undefined)
-            }
+    //     const changeSourceAddress = newFrom && values.depositMethod === 'wallet' && destinationProvider && (oldSourceWalletIsNotCompatible || changeDestinationAddress)
+    //     if (changeSourceAddress && values.destination_address) {
+    //         const sourceAvailableWallet = destinationProvider?.connectedWallets?.find(w => w.withdrawalSupportedNetworks?.some(n => n.toLowerCase() === newFrom.name.toLowerCase()) && w.addresses.some(a => a.toLowerCase() === values.destination_address?.toLowerCase()))
+    //         if (sourceAvailableWallet) {
+    //             setSelectedSourceAccount({
+    //                 wallet: sourceAvailableWallet,
+    //                 address: values.destination_address
+    //             })
+    //         }
+    //         else {
+    //             setSelectedSourceAccount(undefined)
+    //         }
 
-        }
-    }, [values, sourceRoutes, destinationRoutes, sourceCanBeSwapped, selectedSourceAccount])
+    //     }
+    // }, [values, sourceRoutes, destinationRoutes, sourceCanBeSwapped, selectedSourceAccount])
 
     const handleReserveGas = useCallback((walletBalance: Balance, networkGas: number) => {
         if (walletBalance && networkGas)
@@ -156,7 +157,7 @@ const SwapForm: FC = () => {
                         {!(query?.hideFrom && values?.from) && <div className="flex flex-col w-full">
                             <NetworkFormField direction="from" label="From" className="rounded-t-componentRoundness pt-2.5" />
                         </div>}
-                        {!query?.hideFrom && !query?.hideTo &&
+                        {/* {!query?.hideFrom && !query?.hideTo &&
                             <button
                                 type="button"
                                 aria-label="Reverse the source and destination"
@@ -174,7 +175,7 @@ const SwapForm: FC = () => {
                                         <ArrowUpDown className={classNames(valuesSwapperDisabled && 'opacity-50', "w-7 h-auto p-1 bg-secondary-900 border-2 border-secondary-500 rounded-lg disabled:opacity-30")} />
                                     }
                                 </motion.div>
-                            </button>}
+                            </button>} */}
                         {!(query?.hideTo && values?.to) && <div className="flex flex-col w-full">
                             <NetworkFormField direction="to" label="To" className="rounded-b-componentRoundness" />
                         </div>}
@@ -184,10 +185,10 @@ const SwapForm: FC = () => {
                     </div>
                     <div className="w-full">
                         <FeeDetailsComponent values={values} />
-                        {
+                        {/* {
                             values.amount &&
                             <ReserveGasNote onSubmit={(walletBalance, networkGas) => handleReserveGas(walletBalance, networkGas)} />
-                        }
+                        } */}
                     </div>
                 </Widget.Content>
             </ResizablePanel>

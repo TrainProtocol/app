@@ -8,7 +8,7 @@ export const commitTransactionBuilder = async (params: CreatePreHTLCParams & { w
 
     const {
         wallet,
-        lpAddress,
+        srcLpAddress: lpAddress,
         atomicContract,
         sourceAsset,
         destinationChain,

@@ -1,4 +1,4 @@
-import LayerSwapApiClient from "../lib/layerSwapApiClient";
+import LayerSwapApiClient from "../lib/trainApiClient";
 import { getThemeData } from "./settingsHelper";
 
 export async function getServerSideProps(context) {
@@ -10,18 +10,20 @@ export async function getServerSideProps(context) {
 
     const apiClient = new LayerSwapApiClient()
 
-    const { data: networkData } = await apiClient.GetLSNetworksAsync()
-    const { data: sourceRoutes } = await apiClient.GetLSNetworksAsync()
-    const { data: destinationRoutes } = await apiClient.GetLSNetworksAsync()
+    const networks = await apiClient.GetLSNetworksAsync()
+    const routes = await apiClient.GetRoutesAsync();
 
-    if (!networkData) return
+    if (!networks.length) return
 
-    const version = process.env.NEXT_PUBLIC_API_VERSION
-    
+    const networksWithLogos = networks.map(network => {
+        return {
+            ...network,
+            logo: network.logo || `https://raw.githubusercontent.com/TrainProtocol/icons/main/networks/${network.name.toLowerCase().split('_')[0]}.png`,
+        }
+    })
     const settings = {
-        networks: networkData,
-        sourceRoutes: sourceRoutes || [],
-        destinationRoutes: destinationRoutes || []
+        networks: networksWithLogos,
+        routes
     }
 
     const themeData = await getThemeData(context.query)

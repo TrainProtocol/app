@@ -1,5 +1,5 @@
 import axios from "axios";
-import LayerSwapApiClient from "./layerSwapApiClient";
+import LayerSwapApiClient from "./trainApiClient";
 
 export const InitializeUnauthInstance = (baseURL?: string) => {
 

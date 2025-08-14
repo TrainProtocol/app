@@ -1,17 +1,17 @@
 import { createContext, useState, useContext, useEffect } from 'react'
 import { SwapFormValues } from '../components/DTOs/SwapFormValues';
-import LayerSwapApiClient, { Quote, SwapQuote } from '../lib/layerSwapApiClient';
+import LayerSwapApiClient, { Quote, SwapQuote } from '../lib/trainApiClient';
 import useSWR from 'swr';
 import { ApiResponse } from '../Models/ApiResponse';
 
 const FeeStateContext = createContext<ContextType | null>(null);
 
 type ContextType = {
-    minAllowedAmount: number | undefined,
-    maxAllowedAmount: number | undefined,
+    // minAllowedAmount: number | undefined,
+    // maxAllowedAmount: number | undefined,
     fee: Quote | undefined,
     mutateFee: () => void,
-    mutateLimits: () => void,
+    // mutateLimits: () => void,
     valuesChanger: (values: SwapFormValues) => void,
     isFeeLoading: boolean,
     updatePolling: (value: boolean) => void
@@ -32,7 +32,8 @@ export function FeeProvider({ children }) {
 
     useEffect(() => {
         const handler = setTimeout(() => {
-            setDebouncedAmount(amount);
+            const fee_amount_in_base_units = (amount && fromCurrency?.decimals) ? (Number(amount) * Math.pow(10, fromCurrency?.decimals)) : undefined;
+            if (fee_amount_in_base_units) setDebouncedAmount(fee_amount_in_base_units.toString());
         }, 500);
 
         return () => {
@@ -42,20 +43,20 @@ export function FeeProvider({ children }) {
 
     const apiClient = new LayerSwapApiClient()
 
-    const { data: amountRange, mutate: mutateLimits } = useSWR<ApiResponse<{
-        minAmount: number
-        minAmountInUsd: number
-        maxAmount: number
-        maxAmountInUsd: number
-    }>>((from && fromCurrency && to && toCurrency && !commitId) ?
-        `/limits?SourceNetwork=${from?.name}&SourceToken=${fromCurrency?.symbol}&DestinationNetwork=${to?.name}&DestinationToken=${toCurrency?.symbol}` : null, apiClient.fetcher, {
-        refreshInterval: poll ? 20000 : 0,
-    })
+    // const { data: amountRange, mutate: mutateLimits } = useSWR<ApiResponse<{
+    //     minAmount: number
+    //     minAmountInUsd: number
+    //     maxAmount: number
+    //     maxAmountInUsd: number
+    // }>>((from && fromCurrency && to && toCurrency && !commitId) ?
+    //     `/limits?SourceNetwork=${from?.name}&SourceToken=${fromCurrency?.symbol}&DestinationNetwork=${to?.name}&DestinationToken=${toCurrency?.symbol}` : null, apiClient.fetcher, {
+    //     refreshInterval: poll ? 20000 : 0,
+    // })
 
-    const isAmountInRange = (amountRange?.data && debouncedAmount) && (Number(debouncedAmount) >= amountRange?.data?.minAmount && Number(debouncedAmount) <= amountRange?.data?.maxAmount)
+    // const isAmountInRange = (amountRange?.data && debouncedAmount) && (Number(debouncedAmount) >= amountRange?.data?.minAmount && Number(debouncedAmount) <= amountRange?.data?.maxAmount)
 
-    const { data: lsFee, mutate: mutateFee, isLoading: isFeeLoading } = useSWR<ApiResponse<SwapQuote>>((from && fromCurrency && to && toCurrency && debouncedAmount && isAmountInRange && !commitId) ?
-        `/quote?SourceNetwork=${from?.name}&SourceToken=${fromCurrency?.symbol}&DestinationNetwork=${to?.name}&DestinationToken=${toCurrency?.symbol}&Amount=${debouncedAmount}` : null, apiClient.fetcher, {
+    const { data: lsFee, mutate: mutateFee, isLoading: isFeeLoading } = useSWR<ApiResponse<SwapQuote>>((from && fromCurrency && to && toCurrency && debouncedAmount && !commitId) ?
+        `/quote?sourceNetwork=${from?.name}&sourceToken=${fromCurrency?.symbol}&destinationNetwork=${to?.name}&destinationToken=${toCurrency?.symbol}&amount=${debouncedAmount}` : null, apiClient.fetcher, {
         refreshInterval: poll ? 42000 : 0,
     })
     useEffect(() => {
@@ -67,13 +68,13 @@ export function FeeProvider({ children }) {
 
     return (
         <FeeStateContext.Provider value={{
-            minAllowedAmount: amountRange?.data?.minAmount,
-            maxAllowedAmount: amountRange?.data?.maxAmount,
+            // minAllowedAmount: amountRange?.data?.minAmount,
+            // maxAllowedAmount: amountRange?.data?.maxAmount,
             fee: {
                 quote: lsFee?.data
             },
             mutateFee,
-            mutateLimits,
+            // mutateLimits,
             valuesChanger,
             isFeeLoading,
             updatePolling

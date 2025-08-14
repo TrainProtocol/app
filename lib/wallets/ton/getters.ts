@@ -36,15 +36,15 @@ export const getTONDetails = async (params: CommitmentParams & { network: Networ
     const srcAsset = details[3].beginParse().loadStringTail()
     const sender = details[4].beginParse().loadAddress().toString()
 
-    const token = network?.tokens.find(t => t.symbol === srcAsset)
-    const amount = Number(details[9]) / Math.pow(10, token?.decimals || 8)
+    // const token = network?.tokens.find(t => t.symbol === srcAsset)
+    // const amount = Number(details[9]) / Math.pow(10, token?.decimals || 8)
     const hashlock = (Number(details[8]) != 0) ? toHex(details[8]) : undefined
 
     const parsedResult: Commit = {
         sender,
         srcReceiver: details[6].beginParse().loadAddress().toString(),
         timelock: Number(details[10]),
-        amount,
+        amount: Number(details[9]),
         hashlock,
         id,
         secret: BigInt(details[7]),

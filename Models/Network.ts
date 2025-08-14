@@ -17,29 +17,31 @@ export class Network {
     chainId: string | null;
     transactionExplorerTemplate: string;
     accountExplorerTemplate: string;
-    tokens: Token[]
-    nativeToken: Token;
+    nativeTokenSymbol: string;
+    nativeTokenDecimals: number;
     type: NetworkType;
-    listingDate: string;
-    isTestnet: boolean
-    nodes: [
-        {
-            type: string
-            url: string,
-        }
-    ]
-    contracts: [
+    rpcUrl: string
+    contracts?: [
         {
             type: ContractType,
             address: string
         }
     ]
-    managedAccounts: [
-        {
-            type: ManagedAccountType
-            address: string,
-        }
-    ]
+}
+
+
+export type RouteNetwork = {
+    token: Token,
+    network: {
+        name: string,
+        chainId: string,
+        type: NetworkType
+    }
+}
+
+export type Route = {
+    source: RouteNetwork,
+    destination: RouteNetwork
 }
 
 export enum ContractType {
@@ -50,15 +52,9 @@ export enum ContractType {
     ZksPaymasterContract = 'ZksPaymasterContract',
 }
 
-export enum ManagedAccountType {
-    LP = 'LP',
-}
-
 export class Token {
     symbol: string;
     logo: string;
     contract: string | null | undefined;
     decimals: number;
-    precision: number;
-    listingDate: string;
 }
