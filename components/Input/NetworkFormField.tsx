@@ -11,10 +11,9 @@ import { useQueryState } from "../../context/query";
 import CurrencyFormField from "./CurrencyFormField";
 import useSWR from 'swr'
 import { ApiResponse } from "../../Models/ApiResponse";
-import LayerSwapApiClient from "../../lib/layerSwapApiClient";
-import { Network } from "../../Models/Network";
+import LayerSwapApiClient from "../../lib/trainApiClient";
+import { Network, Route, RouteNetwork } from "../../Models/Network";
 import { QueryParams } from "../../Models/QueryParams";
-import { resolveNetworkRoutesURL } from "../../helpers/routes";
 import RouteIcon from "./RouteIcon";
 import SourceWalletPicker from "./SourceWalletPicker";
 import DestinationWalletPicker from "./DestinationWalletPicker";
@@ -45,7 +44,7 @@ const getGroupName = (value: Network, type: 'network', canShowInPopular?: boolea
     }
 }
 
-const NetworkFormField = forwardRef(function NetworkFormField({ direction, label, className, partner }: Props, ref: any) {
+const NetworkFormField = forwardRef(function NetworkFormField({ direction, label, className }: Props, ref: any) {
     const {
         values,
         setFieldValue,
@@ -56,35 +55,38 @@ const NetworkFormField = forwardRef(function NetworkFormField({ direction, label
     const query = useQueryState()
     const { lockFrom, lockTo } = query
 
-    const { destinationRoutes, sourceRoutes } = useSettingsState();
+    const { routes: allRoutes, networks } = useSettingsState();
     let placeholder = "";
     let searchHint = "";
     let menuItems: (SelectMenuItem<Network>)[];
 
-    const networkRoutesURL = resolveNetworkRoutesURL(direction, values)
     const apiClient = new LayerSwapApiClient()
+
+    const resolvedRoutes = allRoutes.map(r => direction == 'from' ? r.source : r.destination)
 
     const {
         data: routes,
         isLoading,
-        error
-    } = useSWR<ApiResponse<Network[]>>(networkRoutesURL, apiClient.fetcher, { keepPreviousData: true, dedupingInterval: 10000 })
+    } = useSWR<ApiResponse<Route[]>>('/routes', apiClient.fetcher, { keepPreviousData: true, dedupingInterval: 10000 })
 
-    const [routesData, setRoutesData] = useState<Network[] | undefined>(direction === 'from' ? sourceRoutes : destinationRoutes)
+    const [routesData, setRoutesData] = useState<RouteNetwork[] | undefined>(resolvedRoutes)
 
     useEffect(() => {
-        if (!isLoading && routes?.data) setRoutesData(routes.data)
+        const directionRoute = routes?.data?.map(r => direction == 'from' ? r.source : r.destination)
+        if (!isLoading && routes?.data) setRoutesData(directionRoute)
     }, [routes])
+
+    const routeNetworks = routesData?.map(rd => networks.find(n => n.name == rd.network.name)!)
 
     if (direction === "from") {
         placeholder = "Source";
         searchHint = "Swap from";
-        menuItems = GenerateMenuItems(routesData, direction, !!(from && lockFrom), query);
+        menuItems = GenerateMenuItems(routeNetworks, direction, !!(from && lockFrom), query);
     }
     else {
         placeholder = "Destination";
         searchHint = "Swap to";
-        menuItems = GenerateMenuItems(routesData, direction, !!(to && lockTo), query);
+        menuItems = GenerateMenuItems(routeNetworks, direction, !!(to && lockTo), query);
     }
 
     const value = menuItems.find(x => x.id == (direction === "from" ? from : to)?.name);
@@ -94,7 +96,9 @@ const NetworkFormField = forwardRef(function NetworkFormField({ direction, label
             return
         setFieldValue(name, item.baseObject, true)
         const currency = name == "from" ? fromCurrency : toCurrency
-        const assetSubstitute = (item.baseObject as Network)?.tokens?.find(a => a.symbol === currency?.symbol)
+        const routesData = (direction == 'from' ? from : to) && routes?.data?.filter(r => (direction === 'from' ? r.source.network.name : r.destination.network.name) === (direction === 'from' ? from?.name : to?.name))
+        const fromCurrencies = routesData?.map(r => r.source.token);
+        const assetSubstitute = fromCurrencies?.find(a => a.symbol === currency?.symbol)
         if (assetSubstitute) {
             setFieldValue(`${name}Currency`, assetSubstitute, true)
         }
@@ -160,11 +164,6 @@ function groupByType(values: ISelectMenuItem[]) {
 
 function GenerateMenuItems(routes: Network[] | undefined, direction: SwapDirection, lock: boolean, query: QueryParams): (SelectMenuItem<Network>)[] {
     const mappedLayers = routes?.map(r => {
-        const isNewlyListed = r?.tokens?.every(t => new Date(t?.listingDate)?.getTime() >= new Date().getTime() - ONE_WEEK);
-        const badge = isNewlyListed ? (
-            <span className="bg-secondary-50 px-1 rounded text-xs flex items-center">New</span>
-        ) : undefined;
-
         const isAvailable = !lock &&
             (
                 // r.tokens?.some(r => r.status === 'active' || r.status === 'not_found') ||
@@ -172,7 +171,7 @@ function GenerateMenuItems(routes: Network[] | undefined, direction: SwapDirecti
                 // && r.tokens?.some(r => r.status !== 'inactive')
             );
 
-        const order = ResolveNetworkOrder(r, direction, isNewlyListed)
+        const order = ResolveNetworkOrder(r, direction)
         const routeNotFound = isAvailable
         // && !r.tokens?.some(r => r.status === 'active');
 
@@ -184,11 +183,12 @@ function GenerateMenuItems(routes: Network[] | undefined, direction: SwapDirecti
             imgSrc: r.logo,
             isAvailable: isAvailable,
             group: getGroupName(r, 'network', isAvailable && !routeNotFound),
-            badge,
             leftIcon: <RouteIcon direction={direction} isAvailable={true} routeNotFound={false} type="network" />,
         }
         return res;
-    }).sort(SortAscending) || [];
+    })
+        .sort(SortAscending)
+        .filter((route, index, self) => index === self.findIndex(r => r.name === route.name)) || [];
 
     return mappedLayers
 }

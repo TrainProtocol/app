@@ -1,6 +1,6 @@
 import { FC, useEffect } from "react";
 import { CommitStatus, useAtomicState } from "../../../../../context/atomicContext";
-import { CommitTransaction } from "../../../../../lib/layerSwapApiClient";
+import { CommitTransaction } from "../../../../../lib/trainApiClient";
 import LockIcon from "../../../../Icons/LockIcon";
 import Step, { TxLink } from "./Step";
 import { Clock, Fuel, Info, Loader2 } from "lucide-react";

@@ -12,7 +12,7 @@ import { ethers } from "ethers";
 
 export class EVMGasProvider implements Provider {
     supportsNetwork(network: Network): boolean {
-        return network.type == NetworkType.EVM && !!network.nativeToken
+        return network.type == NetworkType.EVM && !!network.nativeTokenSymbol
     }
 
     getGas = async ({ address, network, token, recipientAddress = '0x2fc617e933a52713247ce25730f6695920b3befe', contractMethod }: GasProps) => {
@@ -25,17 +25,15 @@ export class EVMGasProvider implements Provider {
 
         try {
 
-            if (network.contracts.some(c => c.type === ContractType.ZksPaymasterContract)) return 0
-
             const { createPublicClient, http } = await import("viem")
             const resolveNetworkChain = (await import("../../resolveChain")).default
             const publicClient = createPublicClient({
                 chain: resolveNetworkChain(network),
-                transport: http(network.nodes[0].url),
+                transport: http(network.rpcUrl),
             })
-            const atomicContract = network.contracts.find(c => token.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address as `0x${string}`
+            const atomicContract = network.contracts?.find(c => token.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address as `0x${string}`
 
-            const getGas = network?.contracts.some(c => c.type === ContractType.GasPriceOracleContract) ? getOptimismGas : getEthereumGas
+            const getGas = network?.contracts?.some(c => c.type === ContractType.GasPriceOracleContract) ? getOptimismGas : getEthereumGas
 
             const gasProvider = new getGas(
                 {
@@ -45,7 +43,7 @@ export class EVMGasProvider implements Provider {
                     from: network,
                     currency: token,
                     destination: atomicContract,
-                    nativeToken: network.nativeToken
+                    nativeTokenDecimals: network.nativeTokenDecimals
                 }
             )
 
@@ -54,7 +52,7 @@ export class EVMGasProvider implements Provider {
             return gas
         }
         catch (e) {
-            console.log(e)
+            console.error(e)
         }
 
     }
@@ -69,7 +67,7 @@ abstract class getEVMGas {
     protected from: Network
     protected currency: Token
     protected destination: `0x${string}`
-    protected nativeToken: Token
+    protected nativeTokenDecimals: number
     constructor(
         {
             publicClient,
@@ -78,7 +76,7 @@ abstract class getEVMGas {
             from,
             currency,
             destination,
-            nativeToken,
+            nativeTokenDecimals,
         }: {
             publicClient: PublicClient,
             chainId: number,
@@ -86,7 +84,7 @@ abstract class getEVMGas {
             from: Network,
             currency: Token,
             destination: `0x${string}`,
-            nativeToken: Token,
+            nativeTokenDecimals: number,
         }
     ) {
         this.publicClient = publicClient
@@ -95,7 +93,7 @@ abstract class getEVMGas {
         this.from = from
         this.currency = currency
         this.destination = destination
-        this.nativeToken = nativeToken
+        this.nativeTokenDecimals = nativeTokenDecimals
     }
 
     abstract resolveGas(contractMethod?: 'commit' | 'addLock'): Promise<number | undefined>
@@ -294,7 +292,7 @@ class getEthereumGas extends getEVMGas {
 
         const totalGas = multiplier * estimatedGasLimit
 
-        const formattedGas = formatAmount(totalGas, this.nativeToken?.decimals)
+        const formattedGas = formatAmount(totalGas, this.nativeTokenDecimals)
 
         return formattedGas
     }
@@ -317,7 +315,7 @@ export default class getOptimismGas extends getEVMGas {
 
         let totalGas = (multiplier * estimatedGasLimit) + await this.GetOpL1Fee()
 
-        const formattedGas = formatAmount(totalGas, this.nativeToken?.decimals)
+        const formattedGas = formatAmount(totalGas, this.nativeTokenDecimals)
         return formattedGas
     }
 
@@ -357,7 +355,7 @@ export default class getOptimismGas extends getEVMGas {
             }) as TransactionSerializedEIP1559
         }
 
-        const oracleContract = this.from.contracts.find(c => c.type === ContractType.GasPriceOracleContract)!.address as `0x${string}`
+        const oracleContract = this.from.contracts?.find(c => c.type === ContractType.GasPriceOracleContract)!.address as `0x${string}`
 
         if (!oracleContract) throw new Error("No oracle contract")
 

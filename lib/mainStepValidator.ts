@@ -2,7 +2,7 @@ import { FormikErrors } from "formik";
 import { SwapFormValues } from "../components/DTOs/SwapFormValues";
 import { isValidAddress } from "./address/validator";
 
-export default function MainStepValidation({ maxAllowedAmount, minAllowedAmount }: { minAllowedAmount: number | undefined, maxAllowedAmount: number | undefined }): ((values: SwapFormValues) => FormikErrors<SwapFormValues>) {
+export default function MainStepValidation(): ((values: SwapFormValues) => FormikErrors<SwapFormValues>) {
     return (values: SwapFormValues) => {
         let errors: FormikErrors<SwapFormValues> = {};
         let amount = values.amount ? Number(values.amount) : undefined;
@@ -28,15 +28,12 @@ export default function MainStepValidation({ maxAllowedAmount, minAllowedAmount 
         if (amount && amount < 0) {
             errors.amount = "Can't be negative";
         }
-        if (!minAllowedAmount || !maxAllowedAmount) {
-            errors.amount = 'Route unavailable';
-        }
-        if (maxAllowedAmount != undefined && (amount && amount > maxAllowedAmount)) {
-            errors.amount = `Max amount is ${maxAllowedAmount}`;
-        }
-        if (minAllowedAmount != undefined && (amount && amount < minAllowedAmount)) {
-            errors.amount = `Min amount is ${minAllowedAmount}`;
-        }
+        // if (maxAllowedAmount != undefined && (amount && amount > maxAllowedAmount)) {
+        //     errors.amount = `Max amount is ${maxAllowedAmount}`;
+        // }
+        // if (minAllowedAmount != undefined && (amount && amount < minAllowedAmount)) {
+        //     errors.amount = `Min amount is ${minAllowedAmount}`;
+        // }
         if (values.to) {
             if (values.destination_address && !isValidAddress(values.destination_address, values.to)) {
                 errors.destination_address = `Enter a valid ${values.to?.displayName} address`;

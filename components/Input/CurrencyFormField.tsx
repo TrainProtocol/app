@@ -6,8 +6,8 @@ import PopoverSelectWrapper from "../Select/Popover/PopoverSelectWrapper";
 import { ResolveCurrencyOrder, SortAscending } from "../../lib/sorting";
 import { truncateDecimals } from "../utils/RoundDecimals";
 import { useQueryState } from "../../context/query";
-import { Network, Token } from "../../Models/Network";
-import LayerSwapApiClient from "../../lib/layerSwapApiClient";
+import { Network, Route, Token } from "../../Models/Network";
+import LayerSwapApiClient from "../../lib/trainApiClient";
 import useSWR from "swr";
 import { ApiResponse } from "../../Models/ApiResponse";
 import { Balance } from "../../Models/Balance";
@@ -34,16 +34,19 @@ const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
 
     const { balance } = useSWRBalance(address, direction === 'from' ? from : to)
 
-    const networkRoutesURL = resolveNetworkRoutesURL(direction, values)
-
     const apiClient = new LayerSwapApiClient()
     const {
         data: routes,
         isLoading,
         error
-    } = useSWR<ApiResponse<Network[]>>(networkRoutesURL, apiClient.fetcher, { keepPreviousData: true, dedupingInterval: 10000 })
+    } = useSWR<Route[]>('/routes', apiClient.fetcher, { keepPreviousData: true, dedupingInterval: 10000 })
 
-    const currencies = direction === 'from' ? routes?.data?.find(r => r.name === from?.name)?.tokens : routes?.data?.find(r => r.name === to?.name)?.tokens;
+    const routesData = (direction == 'from' ? from : to) && routes?.filter(r => (direction === 'from' ? r.source.network.name : r.destination.network.name) === (direction === 'from' ? from?.name : to?.name))
+
+    const fromCurrencies = routesData?.map(r => r.source.token);
+    const toCurrencies = routesData?.map(r => r.destination.token);
+    const currencies = direction === 'from' ? fromCurrencies : toCurrencies;
+
     const currencyMenuItems = GenerateCurrencyMenuItems(
         currencies!,
         values,
@@ -71,7 +74,7 @@ const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
 
         const selected_currency = currencyMenuItems?.find(c =>
             c.baseObject?.symbol?.toUpperCase() === fromCurrency?.symbol?.toUpperCase())
-        if (selected_currency && routes?.data?.find(r => r.name === to?.name)?.tokens?.some(r => r.symbol === selected_currency.name 
+        if (selected_currency && toCurrencies?.some(r => r.symbol === selected_currency.name
             // && r.status === 'active'
         )) {
             setFieldValue(name, selected_currency.baseObject, true)
@@ -100,9 +103,8 @@ const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
             c.baseObject?.symbol?.toUpperCase() === toCurrency?.symbol?.toUpperCase())
 
         if (selected_currency
-            && routes?.data
-                ?.find(r => r.name === from?.name)?.tokens
-                ?.some(r => r.symbol === selected_currency.name 
+            && fromCurrencies
+                ?.some(r => r.symbol === selected_currency.name
                     // && r.status === 'active'
                 )) {
             setFieldValue(name, selected_currency.baseObject, true)
@@ -114,7 +116,7 @@ const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
 
     useEffect(() => {
         if (name === "toCurrency" && toCurrency && !isLoading && routes) {
-            const value = routes.data?.find(r => r.name === to?.name)?.tokens?.find(r => r.symbol === toCurrency?.symbol)
+            const value = toCurrencies?.find(r => r.symbol === toCurrency?.symbol)
             if (!value) return
 
             setFieldValue(name, value)
@@ -123,7 +125,7 @@ const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
 
     useEffect(() => {
         if (name === "fromCurrency" && fromCurrency && !isLoading && routes) {
-            const value = routes.data?.find(r => r.name === from?.name)?.tokens?.find(r => r.symbol === fromCurrency?.symbol)
+            const value = fromCurrencies?.find(r => r.symbol === fromCurrency?.symbol)
             if (!value) return
 
             setFieldValue(name, value)
@@ -164,42 +166,42 @@ function GenerateCurrencyMenuItems(
         const currency = c
         const displayName = currency.symbol;
         const balance = balances?.find(b => b?.token === c?.symbol && (direction === 'from' ? from : to)?.name === b.network)
-        const formatted_balance_amount = balance ? Number(truncateDecimals(balance?.amount,Math.min(c.decimals, 8))) : ''
-        const isNewlyListed = new Date(c?.listingDate)?.getTime() >= new Date().getTime() - ONE_WEEK;
+        const formatted_balance_amount = balance ? Number(truncateDecimals(balance?.amount, Math.min(c.decimals, 8))) : ''
 
         const currencyIsAvailable = (
             // currency?.status === "active" && 
             error?.code !== LSAPIKnownErrorCode.ROUTE_NOT_FOUND_ERROR) ||
-            !((direction === 'from' ? query?.lockFromAsset : query?.lockToAsset) || query?.lockAsset 
-            // || currency.status === 'inactive'
-        )
+            !((direction === 'from' ? query?.lockFromAsset : query?.lockToAsset) || query?.lockAsset
+                // || currency.status === 'inactive'
+            )
 
         const routeNotFound = (
             // currency?.status !== "active" || 
             error?.code === LSAPIKnownErrorCode.ROUTE_NOT_FOUND_ERROR);
 
-        const badge = isNewlyListed ? (
-            <span className="bg-secondary-50 px-1 rounded text-xs flex items-center">New</span>
-        ) : undefined;
 
         const details = <p className="text-primary-text-muted">
             {formatted_balance_amount}
         </p>
 
+        const logo = `https://raw.githubusercontent.com/TrainProtocol/icons/main/tokens/${c.symbol.toLowerCase()}.png`
+
         const res: SelectMenuItem<Token> = {
             baseObject: c,
             id: c.symbol,
             name: displayName || "-",
-            order: ResolveCurrencyOrder(c, isNewlyListed),
-            imgSrc: c.logo,
+            order: ResolveCurrencyOrder(c),
+            imgSrc: logo,
             isAvailable: currencyIsAvailable,
-            badge,
             details,
             leftIcon: <RouteIcon direction={direction} isAvailable={currencyIsAvailable} routeNotFound={!!routeNotFound} type="token" />
         };
 
         return res
-    }).sort(SortAscending);
+    })
+        .sort(SortAscending)
+        .filter((route, index, self) => index === self.findIndex(r => r.name === route.name)) || [];
+
 }
 
 export default CurrencyFormField

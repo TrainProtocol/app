@@ -2,7 +2,7 @@ import AppSettings from "./AppSettings";
 import { InitializeUnauthInstance } from "./axiosInterceptor"
 import { AxiosInstance, Method } from "axios";
 import { ApiResponse, EmptyApiResponse } from "../Models/ApiResponse";
-import { Network, Token } from "../Models/Network";
+import { Network, Route } from "../Models/Network";
 
 export default class LayerSwapApiClient {
     static apiBaseEndpoint?: string = AppSettings.LayerswapApiUri;
@@ -11,10 +11,14 @@ export default class LayerSwapApiClient {
         this._unauthInterceptor = InitializeUnauthInstance(LayerSwapApiClient.apiBaseEndpoint)
     }
 
-    fetcher = (url: string) => this.UnauthenticatedRequest<ApiResponse<any>>("GET", url)
+    fetcher = (url: string) => this.UnauthenticatedRequest<any>("GET", url)
 
-    async GetLSNetworksAsync(): Promise<ApiResponse<Network[]>> {
-        return await this.UnauthenticatedRequest<ApiResponse<Network[]>>("GET", `/networks`);
+    async GetLSNetworksAsync(): Promise<Network[]> {
+        return await this.UnauthenticatedRequest<Network[]>("GET", `/networks`);
+    }
+
+    async GetRoutesAsync(): Promise<Route[]> {
+        return await this.UnauthenticatedRequest<Route[]>("GET", `/routes`);
     }
 
     async GetSwapsAsync(addresses: string[], page?: number): Promise<ApiResponse<CommitFromApi[]>> {
@@ -22,12 +26,11 @@ export default class LayerSwapApiClient {
         return await this.UnauthenticatedRequest<ApiResponse<CommitFromApi[]>>("GET", `/swaps?${addressesQuery}&page=${page ? page : 1}`);
     }
 
-    async AddLockSig(params: AddLockSig, commit_id: string): Promise<ApiResponse<{}>> {
-        return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/swaps/${commit_id}/addLockSig`, params);
+    async AddLockSig(params: AddLockSig, commit_id: string, solver: string): Promise<ApiResponse<{}>> {
+        return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/${solver}/swaps/${commit_id}/addLockSig`, params);
     }
 
-
-    private async UnauthenticatedRequest<T extends EmptyApiResponse>(method: Method, endpoint: string, data?: any, header?: {}): Promise<T> {
+    private async UnauthenticatedRequest<T>(method: Method, endpoint: string, data?: any, header?: {}): Promise<T> {
         let uri = LayerSwapApiClient.apiBaseEndpoint + "/api" + endpoint;
         return await this._unauthInterceptor(uri, { method: method, data: data, headers: { 'Access-Control-Allow-Origin': '*', ...(header ? header : {}) } })
             .then(res => {
@@ -61,6 +64,8 @@ export type CommitFromApi = {
     destinationAmountInUsd: number,
     destinationAddress: string,
     feeAmount: number,
+    sourceContractAddress: string,
+    destinationContractAddress: string,
     transactions: {
         type: CommitTransaction,
         hash: string,
@@ -79,13 +84,11 @@ export type Quote = {
 }
 
 export type SwapQuote = {
-    nativeContractAddressInSource: string
-    receiveAmount: number
-    receiveAmountInUsd: number
-    solverAddressInSource: string
-    sourceAmount: number
-    sourceAmountInUsd: number
-    tokenContractAddressInSource: string
-    totalFee: number
-    totalFeeInUsd: number
+    solverName: string,
+    totalFee: string,
+    receiveAmount: string,
+    destinationSolverAddress: string,
+    sourceSolverAddress: string,
+    sourceContractAddress: string,
+    destinationContractAddress: string
 }
