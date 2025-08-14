@@ -106,7 +106,7 @@ export default function useAztec(): WalletProvider {
 
     const getDetails = async (params: CommitmentParams): Promise<Commit> => {
         let { id, contractAddress } = params;
-        contractAddress = '0x07f2f253b6f221be99da24de16651f9481df4e31d67420a1f8a86d2b444e8107'
+        // contractAddress = '0x07f2f253b6f221be99da24de16651f9481df4e31d67420a1f8a86d2b444e8107'
         if (!account) throw new Error("No account connected");
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
         const atomicContract = await Contract.at(

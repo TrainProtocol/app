@@ -16,10 +16,10 @@ import { calculateEpochTimelock } from '../utils/calculateTimelock';
 const TrainContractArtifact = TrainContract.artifact;
 
 export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { senderWallet: Account }) => {
-    let { tokenContractAddress, lpAddress, atomicContract, sourceAsset, senderWallet, address, destinationChain, destinationAsset, amount } = props;
+    let { tokenContractAddress, srcLpAddress: lpAddress, atomicContract, sourceAsset, senderWallet, address, destinationChain, destinationAsset, amount } = props;
 
-    atomicContract = '0x07f2f253b6f221be99da24de16651f9481df4e31d67420a1f8a86d2b444e8107';
-    tokenContractAddress = '0x16083d0891f6d8d3fea6cca7faa8c72da7a88dab141fce18d4e917281c55c952';
+    // atomicContract = '0x07f2f253b6f221be99da24de16651f9481df4e31d67420a1f8a86d2b444e8107';
+    // tokenContractAddress = '0x16083d0891f6d8d3fea6cca7faa8c72da7a88dab141fce18d4e917281c55c952';
 
     if (!tokenContractAddress || !lpAddress || !atomicContract || !sourceAsset || !senderWallet) throw new Error("Missing required parameters");
 
@@ -73,7 +73,7 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
             .methods.transfer_to_public(
                 senderWallet.getAddress(),
                 contractAddress,
-                amount,
+                parsedAmount,
                 randomness,
             );
 

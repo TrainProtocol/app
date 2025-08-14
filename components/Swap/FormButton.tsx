@@ -16,6 +16,8 @@ const Address = dynamic(
 );
 
 const FormButton = ({
+    quote,
+    isQuoteLoading,
     shouldConnectWallet,
     values,
     isValid,
@@ -24,16 +26,28 @@ const FormButton = ({
     actionDisplayName,
     shouldConnectDestinationWallet
 }) => {
+
+    if (values.from && values.to && values.fromCurrency && values.toCurrency && values.amount && !quote && !isQuoteLoading) {
+        return <SwapButton
+            className="plausible-event-name=Swap+initiated"
+            type="submit"
+            isDisabled={true}
+            isSubmitting={isSubmitting}
+        >
+            Can't get quote
+        </SwapButton>
+    }
+
     if (shouldConnectDestinationWallet) {
         return <FormDestinationWalletButton />;
     }
-    
+
     if (shouldConnectWallet) {
         return <FormSourceWalletButton />;
     }
 
     const isAztecDestination = values?.to?.name === KnownInternalNames.Networks.AztecTestnet;
-    
+
     if (values?.to && !values?.destination_address && !isAztecDestination) {
         return (
             <div className="flex items-center col-span-6">
@@ -91,11 +105,11 @@ export const FormDestinationWalletButton: FC = () => {
     };
 
     const availableWallets = provider?.connectedWallets?.filter(w => !w.isNotAvailable) || [];
-    
+
     if (!availableWallets.length && destinationNetwork) {
         return (
             <div className="border border-primary disabled:border-primary-900 items-center space-x-1 disabled:text-opacity-40 disabled:bg-primary-900 disabled:cursor-not-allowed relative w-full flex justify-center font-semibold rounded-componentRoundness transform hover:brightness-125 transition duration-200 ease-in-out bg-primary text-primary-actionButtonText py-3 px-2 md:px-3 plausible-event-name=Connect+Destination+Wallet"
-                 onClick={handleConnect}>
+                onClick={handleConnect}>
                 <div className="flex justify-center space-x-2">
                     <span className="order-first absolute left-0 inset-y-0 flex items-center pl-3">
                         <PlusIcon className="stroke-1" />
