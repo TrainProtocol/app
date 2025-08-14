@@ -146,7 +146,7 @@ export default function useSVM(): WalletProvider {
     }, [program, connection, signTransaction, publicKey, network])
 
     const getDetails = async (params: CommitmentParams) => {
-
+        //TODO: fix solana address
         const lpAddress = 'Solana Address'
 
         if (!lpAddress) throw new Error("No LP address")

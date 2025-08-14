@@ -4,8 +4,8 @@ import { isValidAddress } from "./address/validator";
 import { LayerSwapAppSettings } from "../Models/LayerSwapAppSettings";
 
 export function generateSwapInitialValues(settings: LayerSwapAppSettings, queryParams: QueryParams): SwapFormValues {
-    const { destAddress, amount, fromAsset, toAsset, from, to, lockFromAsset, lockToAsset, depositMethod } = queryParams
-    const { routes } = settings || {}
+    // const { destAddress, amount, fromAsset, toAsset, from, to, lockFromAsset, lockToAsset, depositMethod } = queryParams
+    // const { routes } = settings || {}
 
     // const lockedSourceCurrency = lockFromAsset ?
     //     sourceRoutes.find(l => l.name === to)

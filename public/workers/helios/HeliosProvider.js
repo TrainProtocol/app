@@ -25,8 +25,6 @@ export class HeliosProvider {
         _HeliosProvider_eventEmitter.set(this, void 0);
         const executionRpc = config.executionRpc;
         const executionVerifiableApi = config.executionVerifiableApi;
-        if (!config.network)
-            return;
         if (kind === "ethereum") {
             const consensusRpc = config.consensusRpc;
             const checkpoint = config.checkpoint;
@@ -35,10 +33,14 @@ export class HeliosProvider {
             __classPrivateFieldSet(this, _HeliosProvider_client, new EthereumClient(executionRpc, executionVerifiableApi, consensusRpc, network, checkpoint, dbType), "f");
         }
         else if (kind === "opstack") {
+            if (!config.network)
+                return;
             const network = config.network;
             __classPrivateFieldSet(this, _HeliosProvider_client, new OpStackClient(executionRpc, executionVerifiableApi, network), "f");
         }
         else if (kind === "linea") {
+            if (!config.network)
+                return;
             const network = config.network;
             __classPrivateFieldSet(this, _HeliosProvider_client, new LineaClient(executionRpc, network), "f");
         }
