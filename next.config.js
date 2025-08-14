@@ -55,6 +55,29 @@ module.exports = (phase, { defaultConfig }) => {
         type: 'javascript/auto',
         use: 'file-loader',
       });
+      
+      // Reduce file watchers for Vercel deployment
+      config.watchOptions = {
+        ignored: ['**/node_modules/**', '**/.git/**'],
+        aggregateTimeout: 300,
+        poll: false,
+      };
+      
+      // Optimize chunks to reduce file handles
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+            },
+          },
+        },
+      };
+      
       return config;
     },
     productionBrowserSourceMaps: true,
