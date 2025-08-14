@@ -1,7 +1,5 @@
 import { ReactNode, useCallback, useEffect, useState } from "react"
 import { useInterval } from "../../../hooks/useInterval"
-import { Tooltip, TooltipContent, TooltipTrigger } from "../../shadcn/tooltip"
-import { Popover, PopoverContent, PopoverTrigger } from "../../shadcn/popover"
 import { HelpCircle } from "lucide-react"
 import useWindowDimensions from "../../../hooks/useWindowDimensions"
 import MobileTooltip from "../../Modal/mobileTooltip"
@@ -9,8 +7,6 @@ import MobileTooltip from "../../Modal/mobileTooltip"
 const TimelockTimer = ({ timelock, children }: { timelock: number, children?: ReactNode }) => {
     const [secondsRemaining, setSecondsRemaining] = useState<number>()
     const [started, setStarted] = useState(false)
-
-    const { isMobile } = useWindowDimensions()
 
     const start = (seconds: number) => {
         setSecondsRemaining(seconds)

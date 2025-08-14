@@ -1,5 +1,5 @@
 
-export class PersistantQueryParams {
+export class QueryParams {
     from?: string = "";
     to?: string = "";
     lockFrom?: boolean = false;
@@ -11,36 +11,22 @@ export class PersistantQueryParams {
     fromAsset?: string = "";
     toAsset?: string = "";
     destAddress?: string = "";
-    hideRefuel?: boolean = false;
     hideAddress?: boolean = false;
     hideFrom?: boolean = false;
     hideTo?: boolean = false;
-    amount?: string = "";
-    externalId?: string = ""
-    signature?: string = "";
-    timestamp?: string = "";
-    apiKey?: string = "";
+    transferAmount?: string = "";
     balances?: string = "";
     account?: string = "";
     actionButtonText?: string = "";
     theme?: string = "";
     appName?: string = "";
-    depositMethod?: string = "";
-    hideDepositMethod?: boolean = false;
     hideLogo?: boolean = false
 
     // Obsolate
-    sourceExchangeName?: string = "";
     destNetwork?: string = "";
     lockNetwork?: boolean = false;
-    lockExchange?: boolean = false;
     addressSource?: string = "";
     asset?: string = "";
     lockAsset?: boolean = false;
 
-}
-
-
-export class QueryParams extends PersistantQueryParams {
-    coinbase_redirect?: string = "";
 }

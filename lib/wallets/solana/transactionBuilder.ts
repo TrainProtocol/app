@@ -4,6 +4,7 @@ import { Network, Token } from "../../../Models/Network";
 import { CommitmentParams, CreatePreHTLCParams, LockParams } from "../../../Models/phtlc";
 import { BN, Idl, Program } from "@coral-xyz/anchor";
 import { createHash } from "crypto";
+import { calculateEpochTimelock } from "../utils/calculateTimelock";
 
 export const transactionBuilder = async (network: Network, token: Token, walletPublicKey: PublicKey, recipientAddress?: string | undefined) => {
 
@@ -80,10 +81,7 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
 
     if (!sourceAsset.contract) return null
 
-    const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
-    const timeLockMS = Date.now() + LOCK_TIME
-    const timeLock = Math.floor(timeLockMS / 1000)
-    const bnTimelock = new BN(timeLock);
+    const bnTimelock = new BN(calculateEpochTimelock(20));
 
     const lpAddressPublicKey = new PublicKey(lpAddress);
 
@@ -171,9 +169,7 @@ export const lockTransactionBuilder = async (params: CommitmentParams & LockPara
         throw Error("No Wallet public key")
     }
 
-    const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
-    const timelockMs = Date.now() + LOCK_TIME
-    const timelock = Math.floor(timelockMs / 1000)
+    const timelock = calculateEpochTimelock(20);
     const bnTimelock = new BN(timelock);
 
     const commitIdBuffer = Buffer.from(id.replace('0x', ''), 'hex');
@@ -208,5 +204,5 @@ export const lockTransactionBuilder = async (params: CommitmentParams & LockPara
 
     const data = new TextEncoder().encode(hexString);
 
-    return { lockCommit: data, lockId: hashlockBuffer, timelock: timelock }
+    return { lockCommit: data, lockId: hashlockBuffer, timelock }
 }

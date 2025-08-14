@@ -8,7 +8,6 @@ export type SwapFormValues = {
   refuel?: boolean;
   from?: Network;
   to?: Network;
-  depositMethod?: 'wallet' | 'deposit_address',
 }
 
 

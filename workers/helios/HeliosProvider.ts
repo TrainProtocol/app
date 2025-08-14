@@ -16,8 +16,6 @@ export class HeliosProvider {
     const executionRpc = config.executionRpc;
     const executionVerifiableApi = config.executionVerifiableApi;
 
-    if (!config.network) return
-
     if (kind === "ethereum") {
       const consensusRpc = config.consensusRpc;
       const checkpoint = config.checkpoint;
@@ -33,9 +31,13 @@ export class HeliosProvider {
         dbType
       );
     } else if (kind === "opstack") {
+      if (!config.network) return
+
       const network = config.network;
       this.#client = new OpStackClient(executionRpc, executionVerifiableApi, network);
     } else if (kind === "linea") {
+      if (!config.network) return
+
       const network = config.network;
       this.#client = new LineaClient(executionRpc, network);
     } else {

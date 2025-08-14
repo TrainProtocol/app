@@ -19,7 +19,6 @@ import { AsyncModalProvider } from "../context/asyncModal";
 import WalletsProviders from "./WalletProviders";
 import { PulsatingCirclesProvider } from "../context/PulsatingCirclesContext";
 import { AtomicProvider } from "../context/atomicContext";
-// import { datadogRum } from '@datadog/browser-rum';
 
 type Props = {
   children: JSX.Element | JSX.Element[];
@@ -66,8 +65,6 @@ export default function Layout({ children, settings, themeData }: Props) {
   const query: QueryParams = {
     ...router.query,
     lockNetwork: router.query.lockNetwork === 'true',
-    lockExchange: router.query.lockExchange === 'true',
-    hideRefuel: router.query.hideRefuel === 'true',
     hideAddress: router.query.hideAddress === 'true',
     hideFrom: router.query.hideFrom === 'true',
     hideTo: router.query.hideTo === 'true',
@@ -77,7 +74,6 @@ export default function Layout({ children, settings, themeData }: Props) {
     lockFromAsset: router.query.lockFromAsset === 'true',
     lockToAsset: router.query.lockToAsset === 'true',
     hideLogo: router.query.hideLogo === 'true',
-    hideDepositMethod: router.query.hideDepositMethod === 'true'
   };
 
   function logErrorToService(error, info) {
@@ -111,13 +107,13 @@ export default function Layout({ children, settings, themeData }: Props) {
       <link rel="canonical" href="https://app.train.tech/" />
       <meta name="msapplication-TileColor" content="#ffffff" />
       <meta name="theme-color" content={`rgb(${themeData.secondary?.[900]})`} />
-      <meta name="description" content="Trustless bridging & swapping of crypto assets between blockchains. Transfer any amount to any network secured by a battle-tested system." />
+      <meta name="description" content="Trust-minimized bridging & swapping of crypto assets between blockchains. Transfer any amount to any network secured by a battle-tested system." />
 
       {/* Facebook Meta Tags */}
       <meta property="og:url" content={`https://app.train.tech/`} />
       <meta property="og:type" content="website" />
       <meta property="og:title" content={title} />
-      <meta property="og:description" content="Trustless bridging & swapping of crypto assets between blockchains. Transfer any amount to any network secured by a battle-tested system." />
+      <meta property="og:description" content="Trust-minimized bridging & swapping of crypto assets between blockchains. Transfer any amount to any network secured by a battle-tested system." />
       <meta property="og:image" content={`https://app.train.tech/opengraph.jpg?v=2`} />
 
       {/* Twitter Meta Tags */}
@@ -125,7 +121,7 @@ export default function Layout({ children, settings, themeData }: Props) {
       <meta property="twitter:domain" content="app.train.tech" />
       <meta property="twitter:url" content={`https://app.train.tech/`} />
       <meta name="twitter:title" content={title} />
-      <meta name="twitter:description" content="Trustless bridging & swapping of crypto assets between blockchains. Transfer any amount to any network secured by a battle-tested system." />
+      <meta name="twitter:description" content="Trust-minimized bridging & swapping of crypto assets between blockchains. Transfer any amount to any network secured by a battle-tested system." />
       <meta name="twitter:image" content={`https://app.train.tech/opengraphtw.jpg`} />
     </Head>
     {

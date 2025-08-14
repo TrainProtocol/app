@@ -1,6 +1,5 @@
-import { Form, FormikErrors, useFormikContext } from "formik";
+import { Form, useFormikContext } from "formik";
 import { FC, useCallback, useEffect } from "react";
-import SwapButton from "../../buttons/swapButton";
 import React from "react";
 import NetworkFormField from "../../Input/NetworkFormField";
 import LayerSwapApiClient from "../../../lib/trainApiClient";
@@ -23,6 +22,7 @@ import { resolveRoutesURLForSelectedToken } from "../../../helpers/routes";
 import useWallet from "../../../hooks/useWallet";
 import FormButton from "../FormButton";
 import { useAtomicState } from "../../../context/atomicContext";
+import { hasRequiredDestinationWallet } from "../../../lib/wallets/utils/destinationWalletUtils";
 
 // const ReserveGasNote = dynamic(() => import("../../ReserveGasNote"), {
 //     loading: () => <></>,
@@ -147,7 +147,11 @@ const SwapForm: FC = () => {
 
 
     const sourceWalletNetwork = values.from
-    const shouldConnectWallet = (sourceWalletNetwork && !selectedSourceAccount) || (!values.from && !wallets.length)
+
+    const shouldConnectWallet = (sourceWalletNetwork && !selectedSourceAccount) ||
+        (!values.from && !wallets.length);
+
+    const shouldConnectDestinationWallet = !hasRequiredDestinationWallet(destination, providers);
 
     return <>
         <Form className={`h-full ${(isSubmitting) ? 'pointer-events-none' : 'pointer-events-auto'}`} >
@@ -195,6 +199,7 @@ const SwapForm: FC = () => {
             <Widget.Footer>
                 <FormButton
                     shouldConnectWallet={shouldConnectWallet}
+                    shouldConnectDestinationWallet={shouldConnectDestinationWallet}
                     values={values}
                     isValid={isValid}
                     errors={errors}

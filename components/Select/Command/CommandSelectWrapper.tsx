@@ -16,7 +16,6 @@ type CommandSelectWrapperProps = {
     isLoading: boolean;
     modalHeight?: LeafletHeight;
     valueDetails?: React.ReactNode;
-    exchangeDetails?: React.ReactNode;
     modalContent?: React.ReactNode;
     direction?: string;
     header?: string;
