@@ -73,7 +73,8 @@ const NetworkFormField = forwardRef(function NetworkFormField({ direction, label
 
     useEffect(() => {
         const directionRoute = routes?.data?.map(r => direction == 'from' ? r.source : r.destination)
-        if (!isLoading && routes?.data) setRoutesData(directionRoute)
+        const filteredRoutes = directionRoute?.filter(r => networks.some(n => n.name == r.network.name))
+        if (!isLoading && routes?.data) setRoutesData(filteredRoutes)
     }, [routes])
 
     const routeNetworks = routesData?.map(rd => networks.find(n => n.name == rd.network.name)!)
