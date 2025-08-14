@@ -47,6 +47,7 @@ const SwapForm: FC = () => {
     const layerswapApiClient = new LayerSwapApiClient()
     const query = useQueryState();
     let valuesSwapperDisabled = false;
+    const { fee, isFeeLoading } = useFee()
 
     const actionDisplayName = query?.actionButtonText || "Swap now"
 
@@ -196,9 +197,9 @@ const SwapForm: FC = () => {
                 <FormButton
                     shouldConnectWallet={shouldConnectWallet}
                     values={values}
-                    isValid={isValid}
+                    isValid={isValid && fee?.quote !== undefined}
                     errors={errors}
-                    isSubmitting={isSubmitting}
+                    isSubmitting={isSubmitting || isFeeLoading}
                     actionDisplayName={actionDisplayName}
                 />
             </Widget.Footer>
