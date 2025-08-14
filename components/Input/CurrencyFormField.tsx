@@ -47,14 +47,14 @@ const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
     const toCurrencies = routesData?.map(r => r.destination.token);
     const currencies = direction === 'from' ? fromCurrencies : toCurrencies;
 
-    const currencyMenuItems = GenerateCurrencyMenuItems(
-        currencies!,
+    const currencyMenuItems = currencies ? GenerateCurrencyMenuItems(
+        currencies,
         values,
         direction,
         balance || [],
         query,
         error
-    )
+    ) : []
     const currencyAsset = direction === 'from' ? fromCurrency?.symbol : toCurrency?.symbol;
     const value = currencyMenuItems?.find(x => x.id == currencyAsset);
 
