@@ -16,10 +16,6 @@ module.exports = (phase, { defaultConfig }) => {
    * @type {import('next').NextConfig}
    */
   const nextConfig = {
-    experimental: {
-      esmExternals: 'loose',
-      serverComponentsExternalPackages: ['@aztec/aztec.js', '@solana/web3.js', 'viem', 'starknet'],
-    },
     i18n: {
       locales: ["en"],
       defaultLocale: "en",
@@ -59,22 +55,10 @@ module.exports = (phase, { defaultConfig }) => {
         type: 'javascript/auto',
         use: 'file-loader',
       });
-      
-      // Externalize heavy packages to reduce file handles
-      config.externals = {
-        ...config.externals,
-        '@noble/hashes': '@noble/hashes',
-        '@noble/curves': '@noble/curves',
-        '@noble/secp256k1': '@noble/secp256k1',
-      };
-      
-      // Reduce concurrent module resolution
-      config.resolve.concurrency = 10;
-      
       return config;
     },
     productionBrowserSourceMaps: true,
-    transpilePackages: ['@imtbl/sdk', '@fuels/connectors', '@fuels/react', "@radix-ui/react-dismissable-layer"],
+    transpilePackages: ['@coral-xyz/anchor', '@solana/web3.js', '@imtbl/sdk', '@fuels/connectors', '@fuels/react', "@radix-ui/react-dismissable-layer"],
   }
   if (process.env.APP_BASE_PATH) {
     nextConfig.basePath = process.env.APP_BASE_PATH

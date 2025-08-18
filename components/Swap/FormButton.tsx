@@ -94,7 +94,7 @@ export const FormDestinationWalletButton: FC = () => {
     } = useFormikContext<SwapFormValues>();
 
     const destinationNetwork = values.to;
-    const { provider } = useWallet(destinationNetwork, 'autofil');
+    const { provider } = useWallet(destinationNetwork, 'withdrawal');
     const { connect } = useConnectModal();
 
     const handleConnect = async () => {

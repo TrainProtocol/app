@@ -60,6 +60,9 @@ export function isValidAddress(address?: string, network?: { name: string } | nu
 
         return address.length === 64 && hexRegex.test(address);
     }
+    else if (network?.name.toLowerCase().includes("aztec")) {
+        return true
+    }
     else {
         return isValidEtherAddress(address);
     }

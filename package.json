@@ -17,7 +17,6 @@
     "@aztec/constants": "^1.1.2",
     "@aztec/entrypoints": "^1.1.2",
     "@aztec/foundation": "^1.1.2",
-    "@aztec/noir-contracts.js": "^1.1.2",
     "@aztec/noir-protocol-circuits-types": "^1.1.2",
     "@aztec/protocol-contracts": "^1.1.2",
     "@aztec/stdlib": "^1.1.2",

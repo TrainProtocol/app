@@ -10,10 +10,10 @@ export const LpLockingAssets: FC = () => {
     const { provider } = useWallet(destination_network, 'autofil')
     const [loading, setLoading] = useState(false)
 
-    const getDetails = async ({ provider, network, commitId, asset }: { provider: WalletProvider, network: Network, commitId: string, asset: Token }) => {
+    const getDetails = async ({ provider, network, commitId, asset, destAtomicContract }: { provider: WalletProvider, network: Network, commitId: string, asset: Token, destAtomicContract: string }) => {
         if (!destAtomicContract) throw Error("No atomic contract")
-        console.log('destAtomicContract', destAtomicContract)
-        let lockHandler: any = undefined
+
+            let lockHandler: any = undefined
         lockHandler = setInterval(async () => {
             if (provider.secureGetDetails) {
                 try {
@@ -56,11 +56,13 @@ export const LpLockingAssets: FC = () => {
 
     }
 
+    
     useEffect(() => {
         (async () => {
-            if (provider && destination_network && commitId && destination_asset && !loading) {
+            if (provider && destination_network && commitId && destination_asset && !loading && destAtomicContract) {
                 setLoading(true)
-                getDetails({ provider, network: destination_network, commitId, asset: destination_asset })
+                console.log('klir', destAtomicContract)
+                getDetails({ provider, network: destination_network, commitId, asset: destination_asset, destAtomicContract })
             }
         })()
     }, [provider, destination_network, commitId, loading, destAtomicContract])

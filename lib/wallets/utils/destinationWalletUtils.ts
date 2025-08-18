@@ -24,7 +24,7 @@ export const hasRequiredDestinationWallet = (network: Network | undefined, provi
     }
     
     const destinationProvider = network 
-        ? providers.find(p => p.autofillSupportedNetworks?.includes(network.name)) 
+        ? providers.find(p => p.withdrawalSupportedNetworks?.includes(network.name)) 
         : undefined;
     
     return destinationProvider?.connectedWallets && destinationProvider.connectedWallets.length > 0;

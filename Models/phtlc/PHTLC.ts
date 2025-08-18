@@ -1,6 +1,6 @@
 export type Commit = {
     sender?: string,
-    srcReceiver: string,
+    srcReceiver?: string,
     timelock: number,
     amount: number,
     id?: string | undefined,

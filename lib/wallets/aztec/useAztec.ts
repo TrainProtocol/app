@@ -7,18 +7,13 @@ import { useMemo } from "react";
 import { Commit } from "../../../Models/phtlc/PHTLC";
 import { useAccount } from "../../@nemi-fi/wallet-sdk/src/exports/react";
 import { sdk } from "./configs";
-import { addLockTransactionBuilder, claimTransactionBuilder, commitTransactionBuilder, refundTransactionBuilder } from "./transactionBuilder";
 import { getAztecSecret } from "./secretUtils";
-import { AztecAddress } from "@aztec/aztec.js";
 import { TrainContractArtifact } from "./Train";
-import { combineHighLow, highLowToHexString } from "./utils";
-import { Contract } from "../../@nemi-fi/wallet-sdk/src/exports/eip1193"
+import { combineHighLow, highLowToHexString, trimTo30Bytes } from "./utils";
 import formatAmount from "../../formatAmount";
-
 export default function useAztec(): WalletProvider {
     const commonSupportedNetworks = [
         KnownInternalNames.Networks.AztecTestnet,
-        // KnownInternalNames.Networks.StarkNetMainnet,
     ]
 
     const { networks } = useSettingsState()
@@ -41,7 +36,6 @@ export default function useAztec(): WalletProvider {
             icon: resolveWalletConnectorIcon({ connector: name, address: account.address.toString(), iconUrl: "" }),
             disconnect: () => disconnectWallets(),
             withdrawalSupportedNetworks: commonSupportedNetworks,
-            autofillSupportedNetworks: commonSupportedNetworks,
             asSourceSupportedNetworks: commonSupportedNetworks,
             networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.name))?.logo
         }
@@ -67,7 +61,6 @@ export default function useAztec(): WalletProvider {
                     icon: resolveWalletConnectorIcon({ connector: name, address: connectedAddress, iconUrl: availableWalletsForConnect.find(c => c.id === internalConnector.id)?.icon }),
                     disconnect: () => disconnectWallets(),
                     withdrawalSupportedNetworks: commonSupportedNetworks,
-                    autofillSupportedNetworks: commonSupportedNetworks,
                     asSourceSupportedNetworks: commonSupportedNetworks,
                     networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.name))?.logo
                 }
@@ -95,6 +88,7 @@ export default function useAztec(): WalletProvider {
 
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
         if (!account) throw new Error("No account connected");
+        const { commitTransactionBuilder } = await import('./transactionBuilder.ts')
 
         const tx = await commitTransactionBuilder({
             senderWallet: account,
@@ -106,8 +100,10 @@ export default function useAztec(): WalletProvider {
 
     const getDetails = async (params: CommitmentParams): Promise<Commit> => {
         let { id, contractAddress } = params;
-        // contractAddress = '0x07f2f253b6f221be99da24de16651f9481df4e31d67420a1f8a86d2b444e8107'
+        const id30Bytes = trimTo30Bytes(id);
         if (!account) throw new Error("No account connected");
+        const { AztecAddress } = await import("@aztec/aztec.js");
+        const { Contract } = await import('../../@nemi-fi/wallet-sdk/src/exports/eip1193.ts')
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
         const atomicContract = await Contract.at(
             aztecAtomicContract,
@@ -116,17 +112,23 @@ export default function useAztec(): WalletProvider {
         );
 
         const commitRaw: any = await atomicContract.methods
-            .get_htlc_public(id)
+            .get_htlc_public(id30Bytes)
             .simulate();
 
+        const hashlock = highLowToHexString({ high: commitRaw.hashlock_high, low: commitRaw.hashlock_low });
+
+        if (!Number(commitRaw.timelock)) {
+            throw new Error("No result")
+        }
+
         const commit: Commit = {
-            amount: formatAmount(Number(commitRaw.amount), 18),
+            amount: formatAmount(Number(commitRaw.amount), 8),
             claimed: Number(commitRaw.claimed),
             timelock: Number(commitRaw.timelock),
-            srcReceiver: commitRaw.src_receiver,
-            hashlock: highLowToHexString({ high: commitRaw.hashlock_high, low: commitRaw.hashlock_low }),
+            // srcReceiver: commitRaw.src_receiver,
+            hashlock: hashlock == "0x00000000000000000000000000000000" ? undefined : hashlock,
             secret: combineHighLow({ high: commitRaw.secret_high, low: commitRaw.secret_low }),
-            ownership: highLowToHexString({ high: commitRaw.ownership_high, low: commitRaw.ownership_low })
+            ownership: commitRaw.ownership_high ? highLowToHexString({ high: commitRaw.ownership_high, low: commitRaw.ownership_low }) : undefined
         }
 
         return commit
@@ -135,6 +137,8 @@ export default function useAztec(): WalletProvider {
 
     const addLock = async (params: CommitmentParams & LockParams) => {
         if (!account) throw new Error("No account connected");
+
+        const { addLockTransactionBuilder } = await import('./transactionBuilder.ts')
 
         const tx = await addLockTransactionBuilder({
             senderWallet: account,
@@ -147,6 +151,8 @@ export default function useAztec(): WalletProvider {
     const refund = async (params: RefundParams) => {
         if (!account) throw new Error("No account connected");
 
+        const { refundTransactionBuilder } = await import('./transactionBuilder.ts')
+
         const refundTx = await refundTransactionBuilder({
             senderWallet: account,
             ...params
@@ -157,6 +163,7 @@ export default function useAztec(): WalletProvider {
 
     const claim = async (params: ClaimParams) => {
         if (!account) throw new Error("No account connected");
+        const { claimTransactionBuilder } = await import('./transactionBuilder.ts')
 
         // Get the stored Aztec secret for this swap
         const aztecSecret = await getAztecSecret(params.id);
@@ -189,7 +196,6 @@ export default function useAztec(): WalletProvider {
         connectedWallets: aztecWallet ? [aztecWallet] : undefined,
         activeWallet: aztecWallet,
         withdrawalSupportedNetworks: commonSupportedNetworks,
-        autofillSupportedNetworks: commonSupportedNetworks,
         asSourceSupportedNetworks: commonSupportedNetworks,
         name,
         id,

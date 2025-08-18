@@ -3,28 +3,23 @@ import {
     encodeArguments,
     FunctionType,
 } from '@aztec/aztec.js';
-import {
-    TokenContractArtifact,
-} from "@aztec/noir-contracts.js/Token";
 import { TrainContract } from "./Train";
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../../../Models/phtlc";
 import { Account } from "../../@nemi-fi/wallet-sdk/src/exports";
 import { Contract } from "../../@nemi-fi/wallet-sdk/src/exports/eip1193"
-import { generateId, getFunctionAbi, getSelector } from './utils';
+import { generateId, getFunctionAbi, getSelector, padTo32Bytes } from './utils';
 import { calculateEpochTimelock } from '../utils/calculateTimelock';
+import { TokenContractArtifact } from '../../@aztec/Token';
 
 const TrainContractArtifact = TrainContract.artifact;
 
 export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { senderWallet: Account }) => {
     let { tokenContractAddress, srcLpAddress: lpAddress, atomicContract, sourceAsset, senderWallet, address, destinationChain, destinationAsset, amount } = props;
 
-    // atomicContract = '0x07f2f253b6f221be99da24de16651f9481df4e31d67420a1f8a86d2b444e8107';
-    // tokenContractAddress = '0x16083d0891f6d8d3fea6cca7faa8c72da7a88dab141fce18d4e917281c55c952';
-
     if (!tokenContractAddress || !lpAddress || !atomicContract || !sourceAsset || !senderWallet) throw new Error("Missing required parameters");
 
     const id = generateId();
-    const timelock = calculateEpochTimelock(20);
+    const timelock = calculateEpochTimelock(40);
     const parsedAmount = Math.pow(10, sourceAsset.decimals) * Number(amount);
 
     try {
@@ -109,7 +104,7 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
             throw new Error("Transaction failed or timed out");
         }
 
-        return { hash: commitTx?.txHash.toString(), commitId: id.toString() };
+        return { hash: commitTx?.txHash.toString(), commitId: padTo32Bytes(id.toString()) };
 
     } catch (error) {
         console.error("Error building commit transaction:", error);

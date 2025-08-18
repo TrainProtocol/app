@@ -142,17 +142,14 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
             inputReference?.current?.focus()
         }
     }, [canFocus])
-
-
     // Auto-generate secret and hash for Aztec destination (Aztec-specific logic)
     useEffect(() => {
-        const isAztecDestination = destination?.name === KnownInternalNames.Networks.AztecTestnet;
+        const isAztecDestination = destination?.name.toLowerCase().includes("aztec");
 
         if (isAztecDestination && !values.destination_address) {
             const processAztecSecret = async () => {
                 try {
                     const aztecSecret = generateAztecSecret();
-
                     // Use the hash as the destination address for Aztec
                     setFieldValue('destination_address', aztecSecret.secretHash);
 
@@ -172,7 +169,7 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
             // Clear destination address when switching away from Aztec
             setFieldValue('destination_address', '');
         }
-    }, [destination, setFieldValue])
+    }, [destination, values.destination_address])
 
     return (<>
         <AddressButton

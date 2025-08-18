@@ -1,7 +1,6 @@
 import { ContractArtifact, FunctionAbi, FunctionSelector, getAllFunctionAbis } from "@aztec/stdlib/abi";
 
 export const getSelector = async (name: string, artifact: ContractArtifact): Promise<FunctionSelector> => {
-    debugger
     const f = artifact.functions.find(f => f.name === name);
     if (!f) throw new Error(`Function ${name} not found`);
     return await FunctionSelector.fromNameAndParameters(f.name, f.parameters);
@@ -43,4 +42,36 @@ export function combineHighLow({ high, low }: { high: bigint, low: bigint }): bi
     const SHIFT = 64n;
     const MASK = (1n << SHIFT) - 1n;  // ensures low is within 64 bits
     return (high << SHIFT) | (low & MASK);
+}
+
+export function padTo32Bytes(hex30: string): string {
+    // Remove 0x prefix if present
+    let clean = hex30.startsWith("0x") ? hex30.slice(2) : hex30;
+
+    // Ensure it's 60 hex characters (30 bytes)
+    if (clean.length !== 60) {
+        throw new Error("Input must be exactly 30 bytes (60 hex chars)");
+    }
+
+    // Pad with leading zeros to make 64 hex chars (32 bytes)
+    const padded = clean.padStart(64, "0");
+
+    // Return with 0x prefix
+    return "0x" + padded;
+}
+
+export function trimTo30Bytes(hex32: string): string {
+    // Remove 0x prefix if present
+    let clean = hex32.startsWith("0x") ? hex32.slice(2) : hex32;
+
+    // Ensure it's exactly 64 hex chars (32 bytes)
+    if (clean.length !== 64) {
+        throw new Error("Input must be exactly 32 bytes (64 hex chars)");
+    }
+
+    // Remove first 4 hex chars (2 bytes) to get 60 hex chars (30 bytes)
+    const trimmed = clean.slice(4);
+
+    // Return with 0x prefix
+    return "0x" + trimmed;
 }

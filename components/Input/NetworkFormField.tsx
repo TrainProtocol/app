@@ -118,7 +118,12 @@ const NetworkFormField = forwardRef(function NetworkFormField({ direction, label
                     : <>
                         <span>
                             <Address>{
-                                ({ destination, disabled, addressItem, connectedWallet, partner }) => <DestinationWalletPicker destination={destination} disabled={disabled} addressItem={addressItem} connectedWallet={connectedWallet} partner={partner} />
+                                ({ destination, disabled, addressItem, connectedWallet, partner }) => {
+                                    if(destination?.name.toLowerCase().includes("aztec")) { 
+                                        return <></>
+                                    }
+                                    return <DestinationWalletPicker destination={destination} disabled={disabled} addressItem={addressItem} connectedWallet={connectedWallet} partner={partner} />
+                                }
                             }</Address>
                         </span>
                     </>

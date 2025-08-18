@@ -31,14 +31,13 @@ export const WalletProvidersProvider: React.FC<React.PropsWithChildren> = ({ chi
             evm, starknet, svm, ton, fuel, aztec
         ];
 
-        return allProviders
-        // return allProviders.filter(provider =>
-        //     networks.some(net =>
-        //         provider.autofillSupportedNetworks?.includes(net.name) ||
-        //         provider.withdrawalSupportedNetworks?.includes(net.name) ||
-        //         provider.asSourceSupportedNetworks?.includes(net.name)
-        //     )
-        // );
+        return allProviders.filter(provider =>
+            networks.some(net =>
+                provider.autofillSupportedNetworks?.includes(net.name) ||
+                provider.withdrawalSupportedNetworks?.includes(net.name) ||
+                provider.asSourceSupportedNetworks?.includes(net.name)
+            )
+        );
     }, [networks, evm, starknet, svm, ton, fuel, aztec]);
 
     return (

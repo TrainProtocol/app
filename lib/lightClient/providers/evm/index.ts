@@ -16,7 +16,7 @@ export default class EVMLightClient extends _LightClient {
         KnownInternalNames.Networks.EthereumSepolia,
         KnownInternalNames.Networks.OptimismMainnet,
         KnownInternalNames.Networks.BaseMainnet,
-        // KnownInternalNames.Networks.OptimismSepolia
+        KnownInternalNames.Networks.OptimismSepolia
     ]
 
     supportsNetwork = (network: Network): boolean => {
