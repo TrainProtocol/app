@@ -143,33 +143,33 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
         }
     }, [canFocus])
     // Auto-generate secret and hash for Aztec destination (Aztec-specific logic)
-    useEffect(() => {
-        const isAztecDestination = destination?.name.toLowerCase().includes("aztec");
+    // useEffect(() => {
+    //     const isAztecDestination = destination?.name.toLowerCase().includes("aztec");
 
-        if (isAztecDestination && !values.destination_address) {
-            const processAztecSecret = async () => {
-                try {
-                    const aztecSecret = generateAztecSecret();
-                    // Use the hash as the destination address for Aztec
-                    setFieldValue('destination_address', aztecSecret.secretHash);
+    //     if (isAztecDestination && !values.destination_address) {
+    //         const processAztecSecret = async () => {
+    //             try {
+    //                 const aztecSecret = generateAztecSecret();
+    //                 // Use the hash as the destination address for Aztec
+    //                 setFieldValue('destination_address', aztecSecret.secretHash);
 
-                    // Store the secret for later use (we'll need the swap ID here when available)
-                    // For now, we'll use a temporary identifier based on the current timestamp
-                    const tempSwapId = `temp_${Date.now()}`;
-                    await storeAztecSecret(tempSwapId, aztecSecret);
+    //                 // Store the secret for later use (we'll need the swap ID here when available)
+    //                 // For now, we'll use a temporary identifier based on the current timestamp
+    //                 const tempSwapId = `temp_${Date.now()}`;
+    //                 await storeAztecSecret(tempSwapId, aztecSecret);
 
-                    // TODO: Replace tempSwapId with actual swap ID when swap is created
-                } catch (error) {
-                    console.error('Failed to generate and store Aztec secret:', error);
-                }
-            };
+    //                 // TODO: Replace tempSwapId with actual swap ID when swap is created
+    //             } catch (error) {
+    //                 console.error('Failed to generate and store Aztec secret:', error);
+    //             }
+    //         };
 
-            processAztecSecret();
-        } else if (!isAztecDestination && values.destination_address) {
-            // Clear destination address when switching away from Aztec
-            setFieldValue('destination_address', '');
-        }
-    }, [destination, values.destination_address])
+    //         processAztecSecret();
+    //     } else if (!isAztecDestination && values.destination_address) {
+    //         // Clear destination address when switching away from Aztec
+    //         setFieldValue('destination_address', '');
+    //     }
+    // }, [destination, values.destination_address])
 
     return (<>
         <AddressButton

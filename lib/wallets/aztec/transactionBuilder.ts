@@ -50,6 +50,7 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
             timelock,
             tokenContractAddress,
             parsedAmount,
+            sourceAsset.symbol,
             destinationChain,
             destinationAsset,
             address,

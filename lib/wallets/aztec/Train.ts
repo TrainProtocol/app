@@ -140,35 +140,36 @@ export class TrainContract extends ContractBase {
       hashlock: (bigint | number)[],
       timelock: bigint | number,
     ) => ContractFunctionInteraction) &
-    Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, 'selector'>;
 
-    /** commit_private_user(Id: field, src_receiver: struct, timelock: integer, token: struct, amount: integer, dst_chain: string, dst_asset: string, dst_address: string, randomness: field) */
+    /** commit_private_user(Id: field, src_receiver: struct, timelock: integer, token: struct, amount: integer, src_asset: string, dst_chain: string, dst_asset: string, dst_address: string, randomness: field) */
     commit_private_user: ((
       Id: FieldLike,
       src_receiver: AztecAddressLike,
       timelock: bigint | number,
       token: AztecAddressLike,
       amount: bigint | number,
+      src_asset: string,
       dst_chain: string,
       dst_asset: string,
       dst_address: string,
       randomness: FieldLike,
     ) => ContractFunctionInteraction) &
-    Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, 'selector'>;
 
     /** constructor() */
     constructor: (() => ContractFunctionInteraction) &
-    Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, 'selector'>;
 
     /** get_htlc_public(key: field) */
     get_htlc_public: ((key: FieldLike) => ContractFunctionInteraction) &
-    Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, 'selector'>;
 
     /** is_contract_initialized(Id: field) */
     is_contract_initialized: ((Id: FieldLike) => ContractFunctionInteraction) &
-    Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, 'selector'>;
 
-    /** lock_private_solver(Id: field, hashlock: array, amount: integer, ownership_hash: array, timelock: integer, token: struct, randomness: field, dst_chain: string, dst_asset: string, dst_address: string) */
+    /** lock_private_solver(Id: field, hashlock: array, amount: integer, ownership_hash: array, timelock: integer, token: struct, randomness: field, src_asset: string, dst_chain: string, dst_asset: string, dst_address: string) */
     lock_private_solver: ((
       Id: FieldLike,
       hashlock: (bigint | number)[],
@@ -177,11 +178,12 @@ export class TrainContract extends ContractBase {
       timelock: bigint | number,
       token: AztecAddressLike,
       randomness: FieldLike,
+      src_asset: string,
       dst_chain: string,
       dst_asset: string,
       dst_address: string,
     ) => ContractFunctionInteraction) &
-    Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, 'selector'>;
 
     /** process_message(message_ciphertext: struct, message_context: struct) */
     process_message: ((
@@ -193,11 +195,11 @@ export class TrainContract extends ContractBase {
         recipient: AztecAddressLike;
       },
     ) => ContractFunctionInteraction) &
-    Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, 'selector'>;
 
     /** public_dispatch(selector: field) */
     public_dispatch: ((selector: FieldLike) => ContractFunctionInteraction) &
-    Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, 'selector'>;
 
     /** redeem_private(Id: field, secret: array, ownership_key: array) */
     redeem_private: ((
@@ -205,14 +207,14 @@ export class TrainContract extends ContractBase {
       secret: (bigint | number)[],
       ownership_key: (bigint | number)[],
     ) => ContractFunctionInteraction) &
-    Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, 'selector'>;
 
     /** refund_private(Id: field) */
     refund_private: ((Id: FieldLike) => ContractFunctionInteraction) &
-    Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, 'selector'>;
 
     /** sync_private_state() */
     sync_private_state: (() => ContractFunctionInteraction) &
-    Pick<ContractMethod, 'selector'>;
+      Pick<ContractMethod, 'selector'>;
   };
 }

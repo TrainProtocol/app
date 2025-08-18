@@ -3,10 +3,10 @@ import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundP
 import { useSettingsState } from "../../../context/settings";
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider";
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Commit } from "../../../Models/phtlc/PHTLC";
-import { useAccount } from "../../@nemi-fi/wallet-sdk/src/exports/react";
-import { sdk } from "./configs";
+// import { useAccount } from "../../@nemi-fi/wallet-sdk/src/exports/react";
+import { useAztecSDK } from "../../../hooks/useAztecSDK";
 import { getAztecSecret } from "./secretUtils";
 import { TrainContractArtifact } from "./Train";
 import { combineHighLow, highLowToHexString, trimTo30Bytes } from "./utils";
@@ -21,10 +21,11 @@ export default function useAztec(): WalletProvider {
     const name = 'Aztec'
     const id = 'aztec'
 
-    const account = useAccount(sdk)
+    const { sdk, isLoading: sdkLoading, isReady } = useAztecSDK();
+    const account = useAccount(sdk);
 
     const aztecWallet = useMemo(() => {
-        if (!sdk || !account) return undefined;
+        if (!sdk || !account || !isReady) return undefined;
 
         return {
             id: 'Azguard',
@@ -39,12 +40,14 @@ export default function useAztec(): WalletProvider {
             asSourceSupportedNetworks: commonSupportedNetworks,
             networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.name))?.logo
         }
-    }, [account])
+    }, [account, sdk, isReady])
 
     const connectWallet = async ({ connector: internalConnector }: { connector: InternalConnector }) => {
+        if (!sdk || !isReady) {
+            throw new Error("Aztec SDK is not ready");
+        }
 
         try {
-
             await sdk.connect(internalConnector.id);
 
             const account = sdk.getAccount();
@@ -181,12 +184,13 @@ export default function useAztec(): WalletProvider {
     }
 
     const availableWalletsForConnect: InternalConnector[] = useMemo(() => {
+        if (!sdk || !isReady) return [];
         return sdk.connectors.map(connector => ({
             id: connector.name.toLowerCase(),
             name: connector.name,
             icon: connector.icon,
         }))
-    }, [sdk.connectors])
+    }, [sdk, isReady])
 
     const provider = {
         connectWallet,
@@ -208,4 +212,18 @@ export default function useAztec(): WalletProvider {
     }
 
     return provider
+}
+
+function useAccount(wallet: any) {
+    const [account, setAccount] = useState<any>(undefined);
+
+    useEffect(() => {
+        if (!wallet) return
+        const unsubscribe = wallet.accountObservable.subscribe((account) => {
+            setAccount(account);
+        });
+        return () => unsubscribe();
+    }, [wallet]);
+
+    return account;
 }
