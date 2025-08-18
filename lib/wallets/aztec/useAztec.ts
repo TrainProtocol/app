@@ -8,7 +8,6 @@ import { Commit } from "../../../Models/phtlc/PHTLC";
 // import { useAccount } from "../../@nemi-fi/wallet-sdk/src/exports/react";
 import { useAztecSDK } from "../../../hooks/useAztecSDK";
 import { getAztecSecret } from "./secretUtils";
-import { TrainContractArtifact } from "./Train";
 import { combineHighLow, highLowToHexString, trimTo30Bytes } from "./utils";
 import formatAmount from "../../formatAmount";
 export default function useAztec(): WalletProvider {
@@ -21,7 +20,7 @@ export default function useAztec(): WalletProvider {
     const name = 'Aztec'
     const id = 'aztec'
 
-    const { sdk, isLoading: sdkLoading, isReady } = useAztecSDK();
+    const { sdk, isReady } = useAztecSDK();
     const account = useAccount(sdk);
 
     const aztecWallet = useMemo(() => {
@@ -107,6 +106,7 @@ export default function useAztec(): WalletProvider {
         if (!account) throw new Error("No account connected");
         const { AztecAddress } = await import("@aztec/aztec.js");
         const { Contract } = await import('../../@nemi-fi/wallet-sdk/src/exports/eip1193.ts')
+        const { TrainContractArtifact } = await import('./Train.ts')
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
         const atomicContract = await Contract.at(
             aztecAtomicContract,
