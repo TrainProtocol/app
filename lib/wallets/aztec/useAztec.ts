@@ -5,11 +5,10 @@ import { InternalConnector, Wallet, WalletProvider } from "../../../Models/Walle
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
 import { useEffect, useMemo, useState } from "react";
 import { Commit } from "../../../Models/phtlc/PHTLC";
-// import { useAccount } from "../../@nemi-fi/wallet-sdk/src/exports/react";
-import { useAztecSDK } from "../../../hooks/useAztecSDK";
 import { getAztecSecret } from "./secretUtils";
 import { combineHighLow, highLowToHexString, trimTo30Bytes } from "./utils";
 import formatAmount from "../../formatAmount";
+import { sdk } from "./configs";
 export default function useAztec(): WalletProvider {
     const commonSupportedNetworks = [
         KnownInternalNames.Networks.AztecTestnet,
@@ -20,11 +19,11 @@ export default function useAztec(): WalletProvider {
     const name = 'Aztec'
     const id = 'aztec'
 
-    const { sdk, isReady } = useAztecSDK();
+    // const { sdk, isReady } = useAztecSDK();
     const account = useAccount(sdk);
 
     const aztecWallet = useMemo(() => {
-        if (!sdk || !account || !isReady) return undefined;
+        if (!sdk || !account) return undefined;
 
         return {
             id: 'Azguard',
@@ -39,10 +38,10 @@ export default function useAztec(): WalletProvider {
             asSourceSupportedNetworks: commonSupportedNetworks,
             networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.name))?.logo
         }
-    }, [account, sdk, isReady])
+    }, [account, sdk])
 
     const connectWallet = async ({ connector: internalConnector }: { connector: InternalConnector }) => {
-        if (!sdk || !isReady) {
+        if (!sdk) {
             throw new Error("Aztec SDK is not ready");
         }
 
@@ -184,13 +183,13 @@ export default function useAztec(): WalletProvider {
     }
 
     const availableWalletsForConnect: InternalConnector[] = useMemo(() => {
-        if (!sdk || !isReady) return [];
+        if (!sdk) return [];
         return sdk.connectors.map(connector => ({
             id: connector.name.toLowerCase(),
             name: connector.name,
             icon: connector.icon,
         }))
-    }, [sdk, isReady])
+    }, [sdk])
 
     const provider = {
         connectWallet,

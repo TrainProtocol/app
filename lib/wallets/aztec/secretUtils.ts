@@ -62,16 +62,17 @@ async function deriveKey(salt: string): Promise<Buffer> {
     const encoder = new TextEncoder();
     const keyMaterial = await window.crypto.subtle.importKey(
       'raw',
-      encoder.encode(baseKey),
+      new Uint8Array(encoder.encode(baseKey)),
       { name: 'PBKDF2' },
       false,
       ['deriveBits']
     );
     
+    const saltBuffer = encoder.encode(salt);
     const derivedBits = await window.crypto.subtle.deriveBits(
       {
         name: 'PBKDF2',
-        salt: encoder.encode(salt),
+        salt: new Uint8Array(saltBuffer),
         iterations: 10000,
         hash: 'SHA-256'
       },
@@ -109,9 +110,8 @@ async function encryptData(data: string, salt: string): Promise<{ encrypted: str
 /**
  * Decrypt data using AES-256-GCM with derived key
  */
-async function decryptData(encryptedData: string, ivHex: string, tagHex: string, salt: string): Promise<string> {
+async function decryptData(encryptedData: string, _ivHex: string, tagHex: string, salt: string): Promise<string> {
   const key = await deriveKey(salt);
-  const iv = Buffer.from(ivHex, 'hex');
   const tag = Buffer.from(tagHex, 'hex');
   
   const decipher = crypto.createDecipher('aes-256-gcm', key);

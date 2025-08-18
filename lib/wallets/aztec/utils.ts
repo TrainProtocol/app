@@ -75,3 +75,26 @@ export function trimTo30Bytes(hex32: string): string {
     // Return with 0x prefix
     return "0x" + trimmed;
 }
+
+export function hexToUint8Array(hexString: string): Uint8Array {
+    // Remove 0x prefix if present
+    let hex = hexString.startsWith('0x') ? hexString.slice(2) : hexString;
+
+    // Ensure even length by padding with leading zero if necessary
+    if (hex.length % 2 !== 0) {
+        hex = '0' + hex;
+    }
+
+    // Validate hex string
+    if (!/^[0-9a-fA-F]*$/.test(hex)) {
+        throw new Error('Invalid hex string');
+    }
+
+    // Convert to Uint8Array
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < hex.length; i += 2) {
+        bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+    }
+
+    return bytes;
+}

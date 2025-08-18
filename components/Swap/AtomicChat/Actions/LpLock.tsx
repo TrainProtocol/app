@@ -61,7 +61,6 @@ export const LpLockingAssets: FC = () => {
         (async () => {
             if (provider && destination_network && commitId && destination_asset && !loading && destAtomicContract) {
                 setLoading(true)
-                console.log('klir', destAtomicContract)
                 getDetails({ provider, network: destination_network, commitId, asset: destination_asset, destAtomicContract })
             }
         })()

@@ -7,7 +7,7 @@ import { TrainContract } from "./Train";
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../../../Models/phtlc";
 import { Account } from "../../@nemi-fi/wallet-sdk/src/exports";
 import { Contract } from "../../@nemi-fi/wallet-sdk/src/exports/eip1193"
-import { generateId, getFunctionAbi, getSelector, padTo32Bytes } from './utils';
+import { generateId, getFunctionAbi, getSelector, hexToUint8Array, padTo32Bytes } from './utils';
 import { calculateEpochTimelock } from '../utils/calculateTimelock';
 import { TokenContractArtifact } from '../../@aztec/Token';
 
@@ -123,35 +123,41 @@ export const addLockTransactionBuilder = async (params: CommitmentParams & LockP
         throw new Error("Missing required parameters");
     }
 
-    const uint8ArrayHashlock = new TextEncoder().encode(hashlock);
+    // const uint8ArrayHashlock = new TextEncoder().encode(hashlock);
 
-    try {
+    try { 
 
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
 
-        const commitArgs = [
-            id,
-            uint8ArrayHashlock,
-            timelock,
-        ]
+        const atomicContract = await Contract.at(
+            aztecAtomicContract,
+            TrainContractArtifact,
+            senderWallet,
+        );
 
-        const encodedArguments = encodeArguments(getFunctionAbi(TrainContractArtifact, "add_lock_private_user"), commitArgs)
+        const hashlockBytes = hexToUint8Array(hashlock);
 
-        const tx = senderWallet.sendTransaction({
-            calls: [
-                {
-                    to: aztecAtomicContract,
-                    name: "add_lock_private_user",
-                    args: encodedArguments,
-                    selector: await getSelector("add_lock_private_user", TrainContractArtifact),
-                    type: FunctionType.PRIVATE,
-                    isStatic: false,
-                    returnTypes: [],
-                }
-            ],
-        })
+        const addLockTx = await atomicContract.methods
+            .add_lock_private_user(BigInt(id), hashlockBytes, timelock)
+            .send()
+            .wait({ timeout: 120000 });
 
-        const addLockTx = await tx?.wait({ timeout: 120000 });
+
+        // const tx = senderWallet.sendTransaction({
+        //     calls: [
+        //         {
+        //             to: aztecAtomicContract,
+        //             name: "add_lock_private_user",
+        //             args: encodedArguments,
+        //             selector: await getSelector("add_lock_private_user", TrainContractArtifact),
+        //             type: FunctionType.PRIVATE,
+        //             isStatic: false,
+        //             returnTypes: [],
+        //         }
+        //     ],
+        // })
+
+        // const addLockTx = await tx?.wait({ timeout: 120000 });
 
         return { lockCommit: addLockTx.txHash.toString(), lockId: hashlock, timelock }
 
