@@ -3,12 +3,13 @@ import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundP
 import { useSettingsState } from "../../../context/settings";
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider";
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Commit } from "../../../Models/phtlc/PHTLC";
 import { getAztecSecret } from "./secretUtils";
 import { combineHighLow, highLowToHexString, trimTo30Bytes } from "./utils";
 import formatAmount from "../../formatAmount";
 import { sdk } from "./configs";
+import { useAccount } from "../../@nemi-fi/wallet-sdk/src/exports/react";
 export default function useAztec(): WalletProvider {
     const commonSupportedNetworks = [
         KnownInternalNames.Networks.AztecTestnet,
@@ -19,7 +20,6 @@ export default function useAztec(): WalletProvider {
     const name = 'Aztec'
     const id = 'aztec'
 
-    // const { sdk, isReady } = useAztecSDK();
     const account = useAccount(sdk);
 
     const aztecWallet = useMemo(() => {
@@ -189,7 +189,7 @@ export default function useAztec(): WalletProvider {
             name: connector.name,
             icon: connector.icon,
         }))
-    }, [sdk])
+    }, [sdk.connectors])
 
     const provider = {
         connectWallet,
@@ -211,18 +211,4 @@ export default function useAztec(): WalletProvider {
     }
 
     return provider
-}
-
-function useAccount(wallet: any) {
-    const [account, setAccount] = useState<any>(undefined);
-
-    useEffect(() => {
-        if (!wallet) return
-        const unsubscribe = wallet.accountObservable.subscribe((account) => {
-            setAccount(account);
-        });
-        return () => unsubscribe();
-    }, [wallet]);
-
-    return account;
 }
