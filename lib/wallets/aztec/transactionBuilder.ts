@@ -117,7 +117,7 @@ export const addLockTransactionBuilder = async (params: CommitmentParams & LockP
 
     const { id, senderWallet, contractAddress, hashlock } = params;
 
-    const timelock = calculateEpochTimelock(20);
+    const timelock = calculateEpochTimelock(40);
 
     if (!senderWallet || !contractAddress || !hashlock) {
         throw new Error("Missing required parameters");
