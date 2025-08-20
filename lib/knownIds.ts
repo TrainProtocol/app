@@ -190,6 +190,8 @@ export default class KnownInternalNames {
         
         public static readonly SophonSepolia: string = "SOPHON_SEPOLIA"
 
+        public static readonly AztecTestnet: string = "AZTEC_TESTNET"
+
     }
 
     static Currencies = class {

@@ -14,7 +14,7 @@ import dynamic from "next/dynamic";
 import { MenuStep } from "../../Models/Wizard";
 import useWindowDimensions from "../../hooks/useWindowDimensions";
 
-const WalletsMenu = dynamic(() => import("../Wallet/ConnectedWallets").then((comp) => comp.WalletsMenu), {
+const WalletsMenu = dynamic(() => import("../Wallet/ConnectedWallets.tsx").then((comp) => comp.WalletsMenu), {
     loading: () => <></>
 })
 

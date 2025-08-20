@@ -60,12 +60,16 @@ const Step: FC<StepProps> = ({ step, title, description, active, completed, load
         </div>
         <div className="mr-2 flex items-center gap-1">
             {
-                step === 1 && timelock && !isTimelocKExpired &&
-                <TimelockTimer timelock={timelock}><span className="bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-4 text-xs cursor-default">Refund</span></TimelockTimer>
+                (step === 1 && timelock && !isTimelocKExpired) ?
+                    <TimelockTimer timelock={timelock}><span className="bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-4 text-xs cursor-default">Refund</span></TimelockTimer>
+                    :
+                    null
             }
             {
-                completedTxLink && completed &&
-                <TxLink txLink={completedTxLink} />
+                (completedTxLink && completed) ?
+                    <TxLink txLink={completedTxLink} />
+                    :
+                    null
             }
         </div>
     </div>

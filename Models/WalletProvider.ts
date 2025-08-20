@@ -1,7 +1,7 @@
 import { AccountInterface } from 'starknet';
-import { StarknetWindowObject } from 'starknetkit';
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from './phtlc';
 import { Commit } from './phtlc/PHTLC';
+import { StarknetWindowObject } from '../lib/@starknetkit/connectors/argent/argentMobile/modal';
 
 export type InternalConnector = {
     name: string,

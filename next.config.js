@@ -42,7 +42,6 @@ module.exports = (phase, { defaultConfig }) => {
           protocol: 'https',
           hostname: 'raw.githubusercontent.com',
         },
-        
       ]
     },
     compiler: {

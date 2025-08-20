@@ -21,6 +21,7 @@ export class Network {
     nativeTokenDecimals: number;
     type: NetworkType;
     rpcUrl: string
+    isTestnet?: boolean
     contracts?: [
         {
             type: ContractType,

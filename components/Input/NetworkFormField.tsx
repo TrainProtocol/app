@@ -26,7 +26,7 @@ type Props = {
     className?: string,
     partner?: Partner
 }
-const Address = dynamic(() => import("../Input/Address"), {
+const Address = dynamic(() => import("./Address/index.tsx").then(mod => mod.default), {
     loading: () => <></>,
 });
 
@@ -73,7 +73,8 @@ const NetworkFormField = forwardRef(function NetworkFormField({ direction, label
 
     useEffect(() => {
         const directionRoute = routes?.data?.map(r => direction == 'from' ? r.source : r.destination)
-        if (!isLoading && routes?.data) setRoutesData(directionRoute)
+        const filteredRoutes = directionRoute?.filter(r => networks.some(n => n.name == r.network.name))
+        if (!isLoading && routes?.data) setRoutesData(filteredRoutes)
     }, [routes])
 
     const routeNetworks = routesData?.map(rd => networks.find(n => n.name == rd.network.name)!)
@@ -117,7 +118,12 @@ const NetworkFormField = forwardRef(function NetworkFormField({ direction, label
                     : <>
                         <span>
                             <Address>{
-                                ({ destination, disabled, addressItem, connectedWallet, partner }) => <DestinationWalletPicker destination={destination} disabled={disabled} addressItem={addressItem} connectedWallet={connectedWallet} partner={partner} />
+                                ({ destination, disabled, addressItem, connectedWallet, partner }) => {
+                                    if(destination?.name.toLowerCase().includes("aztec")) { 
+                                        return <></>
+                                    }
+                                    return <DestinationWalletPicker destination={destination} disabled={disabled} addressItem={addressItem} connectedWallet={connectedWallet} partner={partner} />
+                                }
                             }</Address>
                         </span>
                     </>

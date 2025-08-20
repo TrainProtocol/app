@@ -19,7 +19,6 @@ import { AsyncModalProvider } from "../context/asyncModal";
 import WalletsProviders from "./WalletProviders";
 import { PulsatingCirclesProvider } from "../context/PulsatingCirclesContext";
 import { AtomicProvider } from "../context/atomicContext";
-// import { datadogRum } from '@datadog/browser-rum';
 
 type Props = {
   children: JSX.Element | JSX.Element[];

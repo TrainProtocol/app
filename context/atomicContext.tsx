@@ -127,12 +127,15 @@ export function AtomicProvider({ children }) {
 
     const userLockTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
-    const isManualClaimable = !!(assetsLocked && sourceDetails?.claimed == 3 && destinationDetails?.claimed != 3 && (sourceDetails.claimTime && (Date.now() - sourceDetails.claimTime > 30000)))
+
+    const isAztecDestination = destination_network?.name === 'AztecTestnet';
+    const isManualClaimable = !!(assetsLocked && sourceDetails?.claimed == 3 && destinationDetails?.claimed != 3 && 
+        (isAztecDestination || (sourceDetails.claimTime && (Date.now() - sourceDetails.claimTime > 30000))))
 
     const destAtomicContract = commitFromApi?.destinationContractAddress || destAtomicContractfromQuery
     const srcAtomicContract = commitFromApi?.sourceContractAddress || srcAtomicContractFromQuery
 
-    const fetcher = (args) => fetch(args).then(res => res.json())
+    const fetcher = (args: string) => fetch(args).then(res => res.json())
     const url = process.env.NEXT_PUBLIC_TRAIN_API
     const { data } = useSWR<ApiResponse<CommitFromApi>>((commitId && !destinationRedeemTx) ? `${url}/api/${solverName}/swaps/${commitId}` : null, fetcher, { refreshInterval: 5000 })
 

@@ -15,15 +15,20 @@ export async function getServerSideProps(context) {
 
     if (!networks.length) return
 
-    const networksWithLogos = networks.map(network => {
+    const isTestnet = process.env.NEXT_PUBLIC_API_VERSION == 'sandbox'
+
+    const networksWithLogos = networks.filter(n => isTestnet ? n.isTestnet : !n.isTestnet).map(network => {
         return {
             ...network,
             logo: network.logo || `https://raw.githubusercontent.com/TrainProtocol/icons/main/networks/${network.name.toLowerCase().split('_')[0]}.png`,
         }
     })
+
+    const filteredRoutes = routes.filter(r => networksWithLogos.some(n => n.name == r.source.network.name) && networksWithLogos.some(n => n.name == r.destination.network.name))
+
     const settings = {
         networks: networksWithLogos,
-        routes
+        routes: filteredRoutes
     }
 
     const themeData = await getThemeData(context.query)

@@ -66,7 +66,11 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceAccountAddress, sourceCurrency,
                             <Image src={destination.logo} alt={destination.displayName} width={44} height={44} className="rounded-lg" />
                             <div className="group/addressItem text-secondary-text text-ellipsis overflow-hidden">
                                 <p className="truncate text-primary-text">{destination?.displayName}</p>
-                                <ExtendedAddress address={addressFormat(destAddress, to)} network={to} />
+                                {
+                                    !destination.name.toLowerCase().includes("aztec") ?
+                                        <ExtendedAddress address={addressFormat(destAddress, to)} network={to} />
+                                        : null
+                                }
                             </div>
                         </div>
                         {
