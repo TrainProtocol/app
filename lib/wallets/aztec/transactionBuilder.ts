@@ -123,8 +123,6 @@ export const addLockTransactionBuilder = async (params: CommitmentParams & LockP
         throw new Error("Missing required parameters");
     }
 
-    // const uint8ArrayHashlock = new TextEncoder().encode(hashlock);
-
     try { 
 
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
@@ -142,22 +140,6 @@ export const addLockTransactionBuilder = async (params: CommitmentParams & LockP
             .send()
             .wait({ timeout: 120000 });
 
-
-        // const tx = senderWallet.sendTransaction({
-        //     calls: [
-        //         {
-        //             to: aztecAtomicContract,
-        //             name: "add_lock_private_user",
-        //             args: encodedArguments,
-        //             selector: await getSelector("add_lock_private_user", TrainContractArtifact),
-        //             type: FunctionType.PRIVATE,
-        //             isStatic: false,
-        //             returnTypes: [],
-        //         }
-        //     ],
-        // })
-
-        // const addLockTx = await tx?.wait({ timeout: 120000 });
 
         return { lockCommit: addLockTx.txHash.toString(), lockId: hashlock, timelock }
 
