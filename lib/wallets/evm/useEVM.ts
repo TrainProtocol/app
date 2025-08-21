@@ -233,7 +233,7 @@ export default function useEVM(): WalletProvider {
                 .join('');
 
             // pad with 2 extra bytes (4 hex chars)
-            return hex + '0000';
+            return '0000' + hex;
         }
 
         const id = `0x${generateBytes32Hex()}`;
