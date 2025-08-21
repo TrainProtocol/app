@@ -204,7 +204,7 @@ export default function useEVM(): WalletProvider {
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
         const { destinationChain, destinationAsset, sourceAsset, srcLpAddress: lpAddress, address, amount, decimals, atomicContract, chainId } = params
 
-        const timelock = calculateEpochTimelock(20);
+        const timelock = calculateEpochTimelock(40);
 
         if (!account?.address) {
             throw Error("Wallet not connected")
@@ -224,9 +224,16 @@ export default function useEVM(): WalletProvider {
         const abi = sourceAsset.contract ? ERC20PHTLCAbi : PHTLCAbi
 
         function generateBytes32Hex() {
-            const bytes = new Uint8Array(32); // 32 bytes = 64 hex characters
+            const bytes = new Uint8Array(30);
             crypto.getRandomValues(bytes);
-            return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+
+            // convert to hex
+            let hex = Array.from(bytes)
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+
+            // pad with 2 extra bytes (4 hex chars)
+            return hex + '0000';
         }
 
         const id = `0x${generateBytes32Hex()}`;
