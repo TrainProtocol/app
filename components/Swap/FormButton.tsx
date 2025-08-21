@@ -10,6 +10,8 @@ const Address = dynamic(() => import("../Input/Address"), {
 });
 
 const FormButton = ({
+    quote,
+    isQuoteLoading,
     shouldConnectWallet,
     values,
     isValid,
@@ -17,6 +19,17 @@ const FormButton = ({
     isSubmitting,
     actionDisplayName
 }) => {
+    if (values.from && values.to && values.fromCurrency && values.toCurrency && values.amount && !quote && !isQuoteLoading) {
+        return <SwapButton
+            className="plausible-event-name=Swap+initiated"
+            type="submit"
+            isDisabled={true}
+            isSubmitting={isSubmitting}
+        >
+            Can't get quote
+        </SwapButton>
+    }
+
     if (shouldConnectWallet) {
         return <FormSourceWalletButton />;
     }
