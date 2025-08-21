@@ -121,13 +121,13 @@ export default function useAztec(): WalletProvider {
         if (!Number(commitRaw.timelock)) {
             throw new Error("No result")
         }
-        debugger
+
         const commit: Commit = {
             amount: formatAmount(Number(commitRaw.amount), 8),
             claimed: Number(commitRaw.claimed),
             timelock: Number(commitRaw.timelock),
             // srcReceiver: commitRaw.src_receiver,
-            hashlock: hashlock == "0x00000000000000000000000000000000" ? undefined : hashlock,
+            hashlock: (hashlock == "0x00000000000000000000000000000000" || hashlock == '0x0000000000000000000000000000000000000000000000000000000000000000') ? undefined : hashlock,
             secret: combineHighLow({ high: commitRaw.secret_high, low: commitRaw.secret_low }),
             ownership: commitRaw.ownership_high ? highLowToHexValidated(commitRaw.ownership_high, commitRaw.ownership_low) : undefined
         }
