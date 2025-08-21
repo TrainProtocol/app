@@ -6,7 +6,7 @@ import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
 import { useMemo } from "react";
 import { Commit } from "../../../Models/phtlc/PHTLC";
 import { getAztecSecret } from "./secretUtils";
-import { combineHighLow, highLowToHexString, trimTo30Bytes } from "./utils";
+import { combineHighLow, highLowToHexValidated, hexToHighLowValidated, trimTo30Bytes } from "./utils";
 import formatAmount from "../../formatAmount";
 import { sdk } from "./configs";
 import { useAccount } from "../../@nemi-fi/wallet-sdk/src/exports/react";
@@ -117,12 +117,11 @@ export default function useAztec(): WalletProvider {
             .get_htlc_public(id30Bytes)
             .simulate();
 
-        const hashlock = highLowToHexString({ high: commitRaw.hashlock_high, low: commitRaw.hashlock_low });
-
+        const hashlock = highLowToHexValidated(commitRaw.hashlock_high, commitRaw.hashlock_low);
         if (!Number(commitRaw.timelock)) {
             throw new Error("No result")
         }
-
+        debugger
         const commit: Commit = {
             amount: formatAmount(Number(commitRaw.amount), 8),
             claimed: Number(commitRaw.claimed),
@@ -130,7 +129,7 @@ export default function useAztec(): WalletProvider {
             // srcReceiver: commitRaw.src_receiver,
             hashlock: hashlock == "0x00000000000000000000000000000000" ? undefined : hashlock,
             secret: combineHighLow({ high: commitRaw.secret_high, low: commitRaw.secret_low }),
-            ownership: commitRaw.ownership_high ? highLowToHexString({ high: commitRaw.ownership_high, low: commitRaw.ownership_low }) : undefined
+            ownership: commitRaw.ownership_high ? highLowToHexValidated(commitRaw.ownership_high, commitRaw.ownership_low) : undefined
         }
 
         return commit

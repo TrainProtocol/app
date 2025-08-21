@@ -7,7 +7,7 @@ import { TrainContract } from "./Train";
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../../../Models/phtlc";
 import { Account } from "../../@nemi-fi/wallet-sdk/src/exports";
 import { Contract } from "../../@nemi-fi/wallet-sdk/src/exports/eip1193"
-import { generateId, getFunctionAbi, getSelector, hexToUint8Array, padTo32Bytes } from './utils';
+import { generateId, getFunctionAbi, getSelector, hexToHighLowValidated, hexToUint8Array, padTo32Bytes } from './utils';
 import { calculateEpochTimelock } from '../utils/calculateTimelock';
 import { TokenContractArtifact } from '../../@aztec/Token';
 
@@ -123,7 +123,7 @@ export const addLockTransactionBuilder = async (params: CommitmentParams & LockP
         throw new Error("Missing required parameters");
     }
 
-    try { 
+    try {
 
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
 
@@ -133,10 +133,11 @@ export const addLockTransactionBuilder = async (params: CommitmentParams & LockP
             senderWallet,
         );
 
-        const hashlockBytes = hexToUint8Array(hashlock);
+
+        const { high, low } = hexToHighLowValidated(hashlock)
 
         const addLockTx = await atomicContract.methods
-            .add_lock_private_user(BigInt(id), hashlockBytes, timelock)
+            .add_lock_private_user(BigInt(id), high, low, timelock)
             .send()
             .wait({ timeout: 120000 });
 
@@ -189,6 +190,9 @@ export const claimTransactionBuilder = async (params: ClaimParams & { senderWall
     if (!id || !contractAddress || !secret || !senderWallet) {
         throw new Error("Missing required parameters");
     }
+
+    // const { high: secretHigh, low: secretLow } = hexToHighLowValidated(secret);
+
 
     try {
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);

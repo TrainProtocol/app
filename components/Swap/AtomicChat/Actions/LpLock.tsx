@@ -7,13 +7,13 @@ import ButtonStatus from "./Status/ButtonStatus";
 
 export const LpLockingAssets: FC = () => {
     const { destination_network, commitId, updateCommit, destination_asset, commitFromApi, destAtomicContract } = useAtomicState()
-    const { provider } = useWallet(destination_network, 'autofil')
+    const { provider } = useWallet(destination_network, 'withdrawal')
     const [loading, setLoading] = useState(false)
 
     const getDetails = async ({ provider, network, commitId, asset, destAtomicContract }: { provider: WalletProvider, network: Network, commitId: string, asset: Token, destAtomicContract: string }) => {
         if (!destAtomicContract) throw Error("No atomic contract")
 
-            let lockHandler: any = undefined
+        let lockHandler: any = undefined
         lockHandler = setInterval(async () => {
             if (provider.secureGetDetails) {
                 try {
@@ -56,7 +56,7 @@ export const LpLockingAssets: FC = () => {
 
     }
 
-    
+
     useEffect(() => {
         (async () => {
             if (provider && destination_network && commitId && destination_asset && !loading && destAtomicContract) {

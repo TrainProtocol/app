@@ -1,4 +1,5 @@
 import { ContractArtifact, FunctionAbi, FunctionSelector, getAllFunctionAbis } from "@aztec/stdlib/abi";
+import { toHex } from "viem";
 
 export const getSelector = async (name: string, artifact: ContractArtifact): Promise<FunctionSelector> => {
     const f = artifact.functions.find(f => f.name === name);
@@ -28,16 +29,55 @@ export function generateId() {
     return id;
 }
 
-export function highLowToHexString({ high, low }: { high: bigint, low: bigint }): string {
-    const PART_HEX_LEN = 16; // 64 bits = 16 hex chars
+export function highLowToHexValidated(high: bigint, low: bigint): string {
+    const MAX_128_BIT = (1n << 128n) - 1n;
 
-    // toString(16) → hex without leading zeros
-    const highHex = high.toString(16).padStart(PART_HEX_LEN, '0');
-    const lowHex = low.toString(16).padStart(PART_HEX_LEN, '0');
+    if (high < 0n || high > MAX_128_BIT) {
+        throw new Error(`High value out of range. Must be 0 <= high <= ${MAX_128_BIT}`);
+    }
 
-    return `0x${highHex}${lowHex}`;
+    if (low < 0n || low > MAX_128_BIT) {
+        throw new Error(`Low value out of range. Must be 0 <= low <= ${MAX_128_BIT}`);
+    }
+
+    // Combine: high << 128 + low
+    const combined = (high << 128n) + low;
+
+    // Convert to hex and pad to 64 characters
+    const hexString = toHex(combined, { size: 32 });
+
+    return hexString;
+
 }
+export function hexToHighLowValidated(hex: string): { high: bigint; low: bigint } {
+    // Remove 0x prefix if present
+    const cleanHex = hex.startsWith('0x') || hex.startsWith('0X')
+        ? hex.slice(2)
+        : hex;
 
+    // Validate hex string
+    if (!/^[0-9a-fA-F]*$/.test(cleanHex)) {
+        throw new Error('Invalid hex string: contains non-hexadecimal characters');
+    }
+
+    // Check length (256 bits = 64 hex chars max)
+    if (cleanHex.length > 64) {
+        throw new Error('Hex string too long: exceeds 256 bits');
+    }
+
+    // Pad to 64 characters
+    const paddedHex = cleanHex.padStart(64, '0');
+
+    // Convert to bigint
+    const combined = BigInt('0x' + paddedHex);
+
+    // Extract high and low parts
+    const high = combined >> BigInt(128);
+    const mask = (BigInt(1) << BigInt(128)) - BigInt(1);
+    const low = combined & mask;
+
+    return { high, low };
+}
 export function combineHighLow({ high, low }: { high: bigint, low: bigint }): bigint {
     const SHIFT = 64n;
     const MASK = (1n << SHIFT) - 1n;  // ensures low is within 64 bits
