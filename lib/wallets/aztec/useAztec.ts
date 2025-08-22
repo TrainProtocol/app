@@ -6,7 +6,7 @@ import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
 import { useMemo } from "react";
 import { Commit } from "../../../Models/phtlc/PHTLC";
 import { getAztecSecret } from "./secretUtils";
-import { combineHighLow, highLowToHexValidated, hexToHighLowValidated, trimTo30Bytes } from "./utils";
+import { combineHighLow, highLowToHexValidated, trimTo30Bytes } from "./utils";
 import formatAmount from "../../formatAmount";
 import { sdk } from "./configs";
 import { useAccount } from "../../@nemi-fi/wallet-sdk/src/exports/react";
