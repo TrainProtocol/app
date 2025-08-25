@@ -7,7 +7,7 @@ import { TrainContract } from "./Train";
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../../../Models/phtlc";
 import { Account } from "../../@nemi-fi/wallet-sdk/src/exports";
 import { Contract } from "../../@nemi-fi/wallet-sdk/src/exports/eip1193"
-import { generateId, getFunctionAbi, getSelector, hexToHighLowValidated, padTo32Bytes } from './utils';
+import { bigintToHighLow, generateId, getFunctionAbi, getSelector, hexToHighLowValidated, padTo32Bytes } from './utils';
 import { calculateEpochTimelock } from '../utils/calculateTimelock';
 import { TokenContractArtifact } from '../../@aztec/Token';
 
@@ -184,19 +184,19 @@ export const refundTransactionBuilder = async (params: RefundParams & { senderWa
     }
 }
 
-export const claimTransactionBuilder = async (params: ClaimParams & { senderWallet: Account, ownershipKey?: string }) => {
-    const { id, contractAddress, secret, senderWallet, ownershipKey = "" } = params;
+export const claimTransactionBuilder = async (params: ClaimParams & { senderWallet: Account, ownershipKey: string }) => {
+    const { id, contractAddress, secret, senderWallet, ownershipKey } = params;
 
-    if (!id || !contractAddress || !secret || !senderWallet) {
+    if (!id || !contractAddress || !secret || !senderWallet || !ownershipKey) {
         throw new Error("Missing required parameters");
     }
 
-    // const { high: secretHigh, low: secretLow } = hexToHighLowValidated(secret);
-
+    const { high: secretHigh, low: secretLow } = bigintToHighLow(BigInt(secret));
+    const { high: ownershipHigh, low: ownershipLow } = hexToHighLowValidated(ownershipKey);
 
     try {
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
-        const encodedArguments = encodeArguments(getFunctionAbi(TrainContractArtifact, "redeem_private"), [id, secret, ownershipKey])
+        const encodedArguments = encodeArguments(getFunctionAbi(TrainContractArtifact, "redeem_private"), [id, secretHigh, secretLow, ownershipHigh, ownershipLow])
         const tx = senderWallet.sendTransaction({
             calls: [
                 {

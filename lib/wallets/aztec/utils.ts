@@ -138,3 +138,16 @@ export function hexToUint8Array(hexString: string): Uint8Array {
 
     return bytes;
 }
+
+export function bigintToHighLow(value: bigint): { high: number; low: number } {
+  // Mask for getting the lower 32 bits
+  const LOW_MASK = 0xFFFFFFFFn;
+  
+  // Get the low 32 bits
+  const low = Number(value & LOW_MASK);
+  
+  // Get the high 32 bits by shifting right 32 positions
+  const high = Number(value >> 32n);
+  
+  return { high, low };
+}
