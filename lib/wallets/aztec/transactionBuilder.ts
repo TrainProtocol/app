@@ -7,7 +7,7 @@ import { TrainContract } from "./Train";
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../../../Models/phtlc";
 import { Account } from "../../@nemi-fi/wallet-sdk/src/exports";
 import { Contract } from "../../@nemi-fi/wallet-sdk/src/exports/eip1193"
-import { generateId, getFunctionAbi, getSelector, hexToHighLowValidated, hexToUint8Array, padTo32Bytes } from './utils';
+import { generateId, getFunctionAbi, getSelector, hexToHighLowValidated, padTo32Bytes } from './utils';
 import { calculateEpochTimelock } from '../utils/calculateTimelock';
 import { TokenContractArtifact } from '../../@aztec/Token';
 
@@ -62,7 +62,7 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
         const asset = await Contract.at(
             tokenAddress,
             TokenContractArtifact,
-            senderWallet,
+            senderWallet
         );
         const transfer = asset
             .withAccount(senderWallet)

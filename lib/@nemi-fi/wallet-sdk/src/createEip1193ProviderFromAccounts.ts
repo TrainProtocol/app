@@ -17,7 +17,7 @@ import {
   type ABIParameter,
   type FunctionAbi,
 } from "@aztec/stdlib/abi";
-import { GasSettings } from "@aztec/stdlib/gas";
+import { Gas, GasFees, GasSettings } from "@aztec/stdlib/gas";
 import type { TxSimulationResult } from "@aztec/stdlib/tx";
 import { Hex } from "ox";
 import { assert } from "ts-essentials";
@@ -231,15 +231,26 @@ export function createEip1193ProviderFromAccounts(
   return provider;
 }
 
+const gasSettings = GasSettings.from({
+  gasLimits: Gas.from({ l2Gas: 10_000_000, daGas: 10_000_000 }),
+  teardownGasLimits: Gas.from({ l2Gas: 10_000_000, daGas: 10_000_000 }),
+  maxFeesPerGas: GasFees.from({
+    feePerDaGas: 10_000_000n,
+    feePerL2Gas: 10_000_000n,
+  }),
+  maxPriorityFeesPerGas: GasFees.from({
+    feePerDaGas: 10_000_000n,
+    feePerL2Gas: 10_000_000n,
+  }),
+});
+
 async function getDefaultFee(
   account: Wallet,
   paymentMethod: FeePaymentMethod | undefined,
 ) {
   paymentMethod ??= new FeeJuicePaymentMethod(account.getAddress());
   return {
-    gasSettings: GasSettings.default({
-      maxFeesPerGas: (await account.getCurrentBaseFees()).mul(2n), // TODO: find a better fee strategy
-    }),
+    gasSettings: gasSettings,
     paymentMethod,
   };
 }
