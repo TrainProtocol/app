@@ -128,9 +128,9 @@ export function AtomicProvider({ children }) {
     const userLockTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
 
-    const isAztecDestination = destination_network?.name === 'AztecTestnet';
-    const isManualClaimable = !!(assetsLocked && sourceDetails?.claimed == 3 && destinationDetails?.claimed != 3 &&
-        (isAztecDestination || (sourceDetails.claimTime && (Date.now() - sourceDetails.claimTime > 30000))))
+    const isAztecDestination = destination_network?.name.toLowerCase().includes('aztec');
+    const isManualClaimable = (!!(assetsLocked && sourceDetails?.claimed == 3 && destinationDetails?.claimed != 3 &&
+        (sourceDetails.claimTime && (Date.now() - sourceDetails.claimTime > 30000)))) || isAztecDestination
 
     const destAtomicContract = commitFromApi?.destinationContractAddress || destAtomicContractfromQuery
     const srcAtomicContract = commitFromApi?.sourceContractAddress || srcAtomicContractFromQuery
