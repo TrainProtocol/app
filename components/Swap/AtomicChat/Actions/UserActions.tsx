@@ -13,11 +13,6 @@ export const UserCommitAction: FC = () => {
     const wallet = provider?.activeWallet
     const { fee } = useFee()
 
-    // const txId = router.query.txId as `0x${string}`
-    // const { status } = useWaitForTransactionReceipt({
-    //     hash: txId,
-    //     chainId: Number(source_network?.chain_id),
-    // });
     const atomicContract = srcAtomicContract 
     const destLpAddress = fee?.quote?.destinationSolverAddress
     const srcLpAddress = fee?.quote?.sourceSolverAddress
@@ -84,13 +79,6 @@ export const UserCommitAction: FC = () => {
             updateCommit('error', { message: e.details || e.message })
         }
     }
-
-    // useEffect(() => {
-    //     if (status === 'error') {
-    //         onCommit(undefined as any, undefined as any)
-    //         setError('Transaction failed')
-    //     }
-    // }, [status])
 
     useEffect(() => {
         let commitHandler: any = undefined

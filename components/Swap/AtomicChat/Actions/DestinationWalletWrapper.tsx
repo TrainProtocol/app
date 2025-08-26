@@ -15,7 +15,7 @@ interface DestinationWalletWrapperProps {
  */
 const DestinationWalletWrapper: FC<DestinationWalletWrapperProps> = ({ children }) => {
     const { destination_network, source_network } = useAtomicState();
-    const { providers, provider: destProvider } = useWallet(destination_network, 'autofil');
+    const { providers, provider: destProvider } = useWallet(destination_network, 'withdrawal');
     const { provider: sourceProvider } = useWallet(source_network, 'withdrawal');
     const { connect } = useConnectModal();
 

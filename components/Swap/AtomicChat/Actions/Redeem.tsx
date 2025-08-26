@@ -11,7 +11,7 @@ export const RedeemAction: FC = () => {
     const { getProvider } = useWallet()
     const router = useRouter()
     const source_provider = source_network && getProvider(source_network, 'withdrawal')
-    const destination_provider = destination_network && getProvider(destination_network, 'autofil')
+    const destination_provider = destination_network && getProvider(destination_network, 'withdrawal')
     const destination_wallet = destination_provider?.activeWallet
 
     useEffect(() => {
