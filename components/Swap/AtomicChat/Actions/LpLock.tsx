@@ -50,7 +50,7 @@ export const LpLockingAssets: FC = () => {
                 await pollForDetails()
             } catch (error) {
                 console.log(error)
-                throw error
+                await pollForDetails()
             }
         }
 
