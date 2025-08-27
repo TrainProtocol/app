@@ -167,7 +167,7 @@ export default function useAztec(): WalletProvider {
         const { claimTransactionBuilder } = await import('./transactionBuilder.ts')
 
         // Get the stored Aztec secret for this swap
-        const aztecSecret = await getAztecSecret(params.id);
+        const aztecSecret = params.destinationAddress && await getAztecSecret(params.destinationAddress);
         if (!aztecSecret) {
             throw new Error("No Aztec secret found for this swap");
         }

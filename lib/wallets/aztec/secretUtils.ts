@@ -173,9 +173,8 @@ export async function storeAztecSecret(swapId: string, secretData: AztecSecretDa
       iv,
       salt
     };
-    
     // Store encrypted data in localStorage
-    const storageKey = `aztec_secret_${swapId}`;
+    const storageKey = `aztec_secret_${storedData.secretHash}`;
     localStorage.setItem(storageKey, JSON.stringify(storedData));
     
     // Also cache in memory for performance

@@ -13,49 +13,49 @@ export const LpLockingAssets: FC = () => {
     const getDetails = async ({ provider, network, commitId, asset, destAtomicContract }: { provider: WalletProvider, network: Network, commitId: string, asset: Token, destAtomicContract: string }) => {
         if (!destAtomicContract) throw Error("No atomic contract")
 
-        let lockHandler: any = undefined
-        lockHandler = setInterval(async () => {
-            if (provider.secureGetDetails) {
-                try {
-                    const destiantionDetails = await provider.secureGetDetails({
-                        type: asset?.contract ? 'erc20' : 'native',
-                        chainId: network.chainId,
-                        id: commitId,
-                        contractAddress: destAtomicContract as `0x${string}`,
-                    })
+        const pollForDetails = async (): Promise<void> => {
+            try {
+                if (provider.secureGetDetails) {
+                    try {
+                        const destiantionDetails = await provider.secureGetDetails({
+                            type: asset?.contract ? 'erc20' : 'native',
+                            chainId: network.chainId,
+                            id: commitId,
+                            contractAddress: destAtomicContract as `0x${string}`,
+                        })
 
-                    if (destiantionDetails?.hashlock) {
-                        updateCommit('destinationDetails', destiantionDetails)
-                        clearInterval(lockHandler)
+                        if (destiantionDetails?.hashlock) {
+                            updateCommit('destinationDetails', destiantionDetails)
+                            return
+                        }
                     }
+                    catch (e) {
+                        console.log(e)
+                    }
+                }
+
+                const destiantionDetails = await provider.getDetails({
+                    type: asset?.contract ? 'erc20' : 'native',
+                    chainId: network.chainId,
+                    id: commitId,
+                    contractAddress: destAtomicContract as `0x${string}`,
+                })
+
+                if (destiantionDetails?.hashlock) {
+                    updateCommit('destinationDetails', destiantionDetails)
                     return
                 }
-                catch (e) {
-                    clearInterval(lockHandler)
-                    console.log(e)
-                }
+
+                await new Promise(resolve => setTimeout(resolve, 6000))
+                await pollForDetails()
+            } catch (error) {
+                console.log(error)
+                throw error
             }
+        }
 
-            const destiantionDetails = await provider.getDetails({
-                type: asset?.contract ? 'erc20' : 'native',
-                chainId: network.chainId,
-                id: commitId,
-                contractAddress: destAtomicContract as `0x${string}`,
-            })
-
-            if (destiantionDetails?.hashlock) {
-                updateCommit('destinationDetails', destiantionDetails)
-                clearInterval(lockHandler)
-            }
-
-        }, 5000)
-
-        return () => {
-            lockHandler && clearInterval(lockHandler);
-        };
-
+        await pollForDetails()
     }
-
 
     useEffect(() => {
         (async () => {

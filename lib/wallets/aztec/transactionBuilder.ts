@@ -7,9 +7,10 @@ import { TrainContract } from "./Train";
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../../../Models/phtlc";
 import { Account } from "../../@nemi-fi/wallet-sdk/src/exports";
 import { Contract } from "../../@nemi-fi/wallet-sdk/src/exports/eip1193"
-import { bigintToHighLow, generateId, getFunctionAbi, getSelector, hexToHighLowValidated, padTo32Bytes } from './utils';
+import { generateId, getFunctionAbi, getSelector, hexToHighLowValidated, padTo32Bytes } from './utils';
 import { calculateEpochTimelock } from '../utils/calculateTimelock';
 import { TokenContractArtifact } from '../../@aztec/Token';
+import { toHex } from 'viem';
 
 const TrainContractArtifact = TrainContract.artifact;
 
@@ -191,28 +192,26 @@ export const claimTransactionBuilder = async (params: ClaimParams & { senderWall
         throw new Error("Missing required parameters");
     }
 
-    const { high: secretHigh, low: secretLow } = bigintToHighLow(BigInt(secret));
+    const { high: secretHigh, low: secretLow } = hexToHighLowValidated(toHex(secret));
     const { high: ownershipHigh, low: ownershipLow } = hexToHighLowValidated(ownershipKey);
-
+    debugger
     try {
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
-        const encodedArguments = encodeArguments(getFunctionAbi(TrainContractArtifact, "redeem_private"), [id, secretHigh, secretLow, ownershipHigh, ownershipLow])
-        const tx = senderWallet.sendTransaction({
-            calls: [
-                {
-                    to: aztecAtomicContract,
-                    name: "redeem_private",
-                    args: encodedArguments,
-                    selector: await getSelector("redeem_private", TrainContractArtifact),
-                    type: FunctionType.PRIVATE,
-                    isStatic: false,
-                    returnTypes: [],
-                }
-            ],
-        })
+        // const encodedArguments = encodeArguments(getFunctionAbi(TrainContractArtifact, "redeem_private"), [id, secretHigh, secretLow, ownershipHigh, ownershipLow])
 
-        const claimTx = await tx?.wait({ timeout: 120000 });
-        return claimTx.txHash.toString();
+        const atomicContract = await Contract.at(
+            aztecAtomicContract,
+            TrainContractArtifact,
+            senderWallet,
+        );
+
+        const tx = await atomicContract.methods
+            .add_lock_private_user(BigInt(id), secretHigh, secretLow, ownershipHigh, ownershipLow)
+            .send()
+            .wait({ timeout: 120000 });
+
+
+        return tx.txHash.toString();
 
     } catch (error) {
         console.error("Error building claim transaction:", error);

@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import KnownInternalNames from "../../../../lib/knownIds";
 
 export const RedeemAction: FC = () => {
-    const { destination_network, source_network, sourceDetails, destinationDetails, updateCommit, manualClaimRequested, destination_asset, source_asset, commitId, isManualClaimable, atomicQuery, setAtomicQuery, destAtomicContract, srcAtomicContract } = useAtomicState()
+    const { destination_network, source_network, sourceDetails, destinationDetails, updateCommit, manualClaimRequested, destination_asset, source_asset, commitId, isManualClaimable, atomicQuery, setAtomicQuery, destAtomicContract, srcAtomicContract, address } = useAtomicState()
     const isAztecDestination = destination_network?.name === KnownInternalNames.Networks.AztecTestnet;
     const { getProvider } = useWallet()
     const router = useRouter()
@@ -81,6 +81,7 @@ export const RedeemAction: FC = () => {
                 chainId: destination_network.chainId,
                 contractAddress: destAtomicContract as `0x${string}`,
                 sourceAsset: destination_asset,
+                destinationAddress: address
             })
 
             setAtomicQuery({ ...atomicQuery, claimTxId: claimTx })

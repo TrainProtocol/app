@@ -139,15 +139,15 @@ export function hexToUint8Array(hexString: string): Uint8Array {
     return bytes;
 }
 
-export function bigintToHighLow(value: bigint): { high: number; low: number } {
-  // Mask for getting the lower 32 bits
-  const LOW_MASK = 0xFFFFFFFFn;
+export function bigIntToHighLow(value: bigint): { high: number; low: number } {
+  // Ensure we're working with a positive value for bit operations
+  const absValue = value < 0n ? -value : value;
   
-  // Get the low 32 bits
-  const low = Number(value & LOW_MASK);
+  // Extract low 32 bits using bitwise AND with 0xFFFFFFFF
+  const low = Number(absValue & 0xFFFFFFFFn);
   
-  // Get the high 32 bits by shifting right 32 positions
-  const high = Number(value >> 32n);
+  // Extract high 32 bits by right-shifting 32 positions
+  const high = Number((absValue >> 32n) & 0xFFFFFFFFn);
   
   return { high, low };
 }
