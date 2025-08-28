@@ -232,16 +232,10 @@ export function createEip1193ProviderFromAccounts(
 }
 
 const gasSettings = GasSettings.from({
-  gasLimits: Gas.from({ l2Gas: 10_000_000, daGas: 10_000_000 }),
-  teardownGasLimits: Gas.from({ l2Gas: 10_000_000, daGas: 10_000_000 }),
-  maxFeesPerGas: GasFees.from({
-    feePerDaGas: 10_000_000n,
-    feePerL2Gas: 10_000_000n,
-  }),
-  maxPriorityFeesPerGas: GasFees.from({
-    feePerDaGas: 10_000_000n,
-    feePerL2Gas: 10_000_000n,
-  }),
+  gasLimits: Gas.random(),
+  maxFeesPerGas: GasFees.random(),
+  maxPriorityFeesPerGas: GasFees.random(),
+  teardownGasLimits: Gas.random()
 });
 
 async function getDefaultFee(

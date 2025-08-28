@@ -151,3 +151,11 @@ export function bigIntToHighLow(value: bigint): { high: number; low: number } {
   
   return { high, low };
 }
+
+export function hexToU128Limbs(hex: string): [bigint, bigint] {
+  const bytes = hex.replace('0x', '').match(/.{2}/g)!.map(b => parseInt(b, 16));
+  let high = BigInt(0), low = BigInt(0);
+  for (let i = 0; i < 16; i++) high = (high << BigInt(8)) + BigInt(bytes[i]);
+  for (let i = 16; i < 32; i++) low = (low << BigInt(8)) + BigInt(bytes[i]);
+  return [high, low];
+}

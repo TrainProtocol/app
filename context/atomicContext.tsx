@@ -15,6 +15,7 @@ export enum CommitStatus {
     LpLockDetected = 'lpLockDetected',
     UserLocked = 'userLocked',
     AssetsLocked = 'assetsLocked',
+    ManualClaimNeeded = 'manualClaimNeeded',
     RedeemCompleted = 'redeemCompleted',
     TimelockExpired = 'timelockExpired',
     Refunded = 'refunded',
@@ -139,7 +140,7 @@ export function AtomicProvider({ children }) {
     const url = process.env.NEXT_PUBLIC_TRAIN_API
     const { data } = useSWR<ApiResponse<CommitFromApi>>((commitId && !destinationRedeemTx) ? `${url}/api/${solverName}/swaps/${commitId}` : null, fetcher, { refreshInterval: 5000 })
 
-    const commitStatus = useMemo(() => statusResolver({ commitFromApi, sourceDetails, destinationDetails, timelockExpired: isTimelockExpired, userLocked }), [commitFromApi, sourceDetails, destinationDetails, isTimelockExpired, userLocked, refundTxId])
+    const commitStatus = useMemo(() => statusResolver({ commitFromApi, sourceDetails, destinationDetails, timelockExpired: isTimelockExpired, userLocked, destinationNetwork: destination_network }), [commitFromApi, sourceDetails, destinationDetails, isTimelockExpired, userLocked, refundTxId, destination_network])
 
     useEffect(() => {
         if (data?.data) {
@@ -271,16 +272,18 @@ export function AtomicProvider({ children }) {
     )
 }
 
-const statusResolver = ({ commitFromApi, sourceDetails, destinationDetails, timelockExpired, userLocked }: { commitFromApi: CommitFromApi | undefined, sourceDetails: Commit | undefined, destinationDetails: Commit | undefined, timelockExpired: boolean, userLocked: boolean }) => {
+const statusResolver = ({ commitFromApi, sourceDetails, destinationDetails, timelockExpired, userLocked, destinationNetwork }: { commitFromApi: CommitFromApi | undefined, sourceDetails: Commit | undefined, destinationDetails: Commit | undefined, timelockExpired: boolean, userLocked: boolean, destinationNetwork: Network | undefined }) => {
     const userLockTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
 
     const commited = sourceDetails ? true : false;
     const lpLockDetected = destinationDetails?.hashlock ? true : false;
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
     const redeemCompleted = (destinationDetails?.claimed == 3 ? true : false);
+    const manualClaimNeeded = (destinationNetwork?.name.toLowerCase().includes("aztec") && assetsLocked && !redeemCompleted);
 
     if (redeemCompleted) return CommitStatus.RedeemCompleted
-    else if (timelockExpired) return CommitStatus.TimelockExpired
+    else if (timelockExpired && !sourceDetails?.secret) return CommitStatus.TimelockExpired
+    else if (manualClaimNeeded) return CommitStatus.ManualClaimNeeded
     else if (assetsLocked) return CommitStatus.AssetsLocked
     else if (userLocked) return CommitStatus.UserLocked
     else if (lpLockDetected) return CommitStatus.LpLockDetected
