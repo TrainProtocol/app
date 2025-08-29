@@ -186,24 +186,19 @@ export const refundTransactionBuilder = async (params: RefundParams & { senderWa
 }
 
 export const claimTransactionBuilder = async (params: ClaimParams & { senderWallet: Account, ownershipKey: string }) => {
-    const { id, contractAddress, secret, senderWallet, ownershipKey } = params;
+    const { id, contractAddress, secret, senderWallet, ownershipKey, destinationAsset } = params;
 
-    if (!id || !contractAddress || !secret || !senderWallet || !ownershipKey) {
+    if (!id || !contractAddress || !secret || !senderWallet || !ownershipKey || !destinationAsset?.contract) {
         throw new Error("Missing required parameters");
     }
+
+    const aztecTokenAddress = AztecAddress.fromString(destinationAsset.contract);
 
     const [secretHigh, secretLow] = hexToU128Limbs(toHex(secret));
     const [ownershipHigh, ownershipLow] = hexToU128Limbs(ownershipKey);
 
-debugger
     try {
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
-
-        // const atomicContract = await Contract.at(
-        //     aztecAtomicContract,
-        //     TrainContractArtifact,
-        //     senderWallet,
-        // );
 
         const redeemArgs = [
             id,
@@ -212,7 +207,6 @@ debugger
             ownershipHigh,
             ownershipLow
         ]
-
 
         const encodedArguments = encodeArguments(getFunctionAbi(TrainContractArtifact, "redeem_private"), redeemArgs)
         const tx = senderWallet.sendTransaction({
@@ -227,15 +221,21 @@ debugger
                     returnTypes: [],
                 }
             ],
+            registerContracts: [
+                {
+                    address: aztecAtomicContract,
+                    account: senderWallet,
+                    artifact: TrainContractArtifact,
+                },
+                {
+                    address: aztecTokenAddress,
+                    account: senderWallet,
+                    artifact: TokenContractArtifact,
+                }
+            ],
         })
 
         await tx.wait({ timeout: 120000 })
-
-        // const tx = await atomicContract.methods
-        //     .redeem_private(id, secretHigh, secretLow, ownershipHigh, ownershipLow)
-        //     .send()
-        //     .wait({ timeout: 120000 });
-
 
         return (await tx.getTxHash()).hash.toString();
 

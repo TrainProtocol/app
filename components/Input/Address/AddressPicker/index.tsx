@@ -155,9 +155,7 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
                     setFieldValue('destination_address', aztecSecret.secretHash);
 
                     // Store the secret for later use (we'll need the swap ID here when available)
-                    // For now, we'll use a temporary identifier based on the current timestamp
-                    const tempSwapId = `temp_${Date.now()}`;
-                    await storeAztecSecret(tempSwapId, aztecSecret);
+                    storeAztecSecret(aztecSecret.secretHash, aztecSecret);
 
                     // TODO: Replace tempSwapId with actual swap ID when swap is created
                 } catch (error) {

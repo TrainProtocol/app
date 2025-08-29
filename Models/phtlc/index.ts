@@ -52,6 +52,7 @@ export type ClaimParams = {
     secret: string | bigint,
     sourceAsset: Token,
     destinationAddress?: string
+    destinationAsset?: Token
 }
 
 export type GetCommitsParams = {
