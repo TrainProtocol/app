@@ -20,7 +20,7 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
     if (!tokenContractAddress || !lpAddress || !atomicContract || !sourceAsset || !senderWallet) throw new Error("Missing required parameters");
 
     const id = generateId();
-    const timelock = calculateEpochTimelock(20);
+    const timelock = calculateEpochTimelock(40);
     const parsedAmount = Math.pow(10, sourceAsset.decimals) * Number(amount);
 
     try {
