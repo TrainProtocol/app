@@ -27,7 +27,15 @@ export default class LayerSwapApiClient {
     }
 
     async AddLockSig(params: AddLockSig, commit_id: string, solver: string): Promise<ApiResponse<{}>> {
-        return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/${solver}/swaps/${commit_id}/addLockSig`, params);
+        return await this._unauthInterceptor(`https://e0ccd3b92d10.ngrok-free.app/api/${solver}/swaps/${commit_id}/addLockSig`, { method: "POST", data: params })
+            .then(res => {
+                return res?.data;
+            })
+            .catch(async reason => {
+                return Promise.reject(reason);
+            });
+
+        // return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/${solver}/swaps/${commit_id}/addLockSig`, params);
     }
 
     private async UnauthenticatedRequest<T>(method: Method, endpoint: string, data?: any, header?: {}): Promise<T> {
