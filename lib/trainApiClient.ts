@@ -27,7 +27,7 @@ export default class LayerSwapApiClient {
     }
 
     async AddLockSig(params: AddLockSig, commit_id: string, solver: string): Promise<ApiResponse<{}>> {
-        return await this._unauthInterceptor(`https://e0ccd3b92d10.ngrok-free.app/api/${solver}/swaps/${commit_id}/addLockSig`, { method: "POST", data: params })
+        return await this._unauthInterceptor(`https://5efde4c6e9e2.ngrok-free.app/api/v1/swaps/${commit_id}/addLockSig`, { method: "POST", data: params })
             .then(res => {
                 return res?.data;
             })
