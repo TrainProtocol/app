@@ -2,7 +2,7 @@ import { Context, createContext, useContext, useEffect, useMemo, useState } from
 import { useRouter } from 'next/router';
 import { useSettingsState } from './settings';
 import { Commit } from '../Models/phtlc/PHTLC';
-import { ContractType, Network, Token } from '../Models/Network';
+import { Network, Token } from '../Models/Network';
 import useSWR from 'swr';
 import { ApiResponse } from '../Models/ApiResponse';
 import { CommitFromApi, CommitTransaction } from '../lib/trainApiClient';
