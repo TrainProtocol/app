@@ -5,12 +5,12 @@ import {
 } from '@aztec/aztec.js';
 import { TrainContract } from "./Train";
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../../../Models/phtlc";
-import { Account } from "../../@nemi-fi/wallet-sdk/src/exports";
-import { Contract } from "../../@nemi-fi/wallet-sdk/src/exports/eip1193"
+import { Account } from "@nemi-fi/wallet-sdk";
+import { Contract } from "@nemi-fi/wallet-sdk/eip1193"
 import { generateId, getFunctionAbi, getSelector, hexToHighLowValidated, hexToU128Limbs, padTo32Bytes } from './utils';
 import { calculateEpochTimelock } from '../utils/calculateTimelock';
-import { TokenContractArtifact } from '../../@aztec/Token';
 import { toHex } from 'viem';
+import { TokenContractArtifact } from '../../@aztec/Token';
 
 const TrainContractArtifact = TrainContract.artifact;
 

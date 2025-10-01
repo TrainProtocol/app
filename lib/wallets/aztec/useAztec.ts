@@ -9,7 +9,7 @@ import { getAztecSecret } from "./secretUtils";
 import { combineHighLow, highLowToHexValidated, trimTo30Bytes } from "./utils";
 import formatAmount from "../../formatAmount";
 import { sdk } from "./configs";
-import { useAccount } from "../../@nemi-fi/wallet-sdk/src/exports/react";
+import { useAccount } from "@nemi-fi/wallet-sdk/react";
 export default function useAztec(): WalletProvider {
     const commonSupportedNetworks = [
         KnownInternalNames.Networks.AztecTestnet,
@@ -104,7 +104,7 @@ export default function useAztec(): WalletProvider {
         const id30Bytes = trimTo30Bytes(id);
         if (!account) throw new Error("No account connected");
         const { AztecAddress } = await import("@aztec/aztec.js");
-        const { Contract } = await import('../../@nemi-fi/wallet-sdk/src/exports/eip1193.ts')
+        const { Contract } = await import('@nemi-fi/wallet-sdk/eip1193')
         const { TrainContractArtifact } = await import('./Train.ts')
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
         const atomicContract = await Contract.at(
