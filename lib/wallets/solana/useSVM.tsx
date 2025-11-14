@@ -120,6 +120,9 @@ export default function useSVM(): WalletProvider {
     }, [wallets]);
 
     const createPreHTLC = useCallback(async (params: CreatePreHTLCParams): Promise<{ hash: string; commitId: string; } | null | undefined> => {
+        const { atomicContract } = params
+        const program = (anchorProvider && atomicContract) ? new Program(AnchorHtlc(atomicContract), anchorProvider) : null;
+
         if (!program || !publicKey || !network) return null
 
         const transaction = await phtlcTransactionBuilder({ connection, program, walletPublicKey: publicKey, network, ...params })
