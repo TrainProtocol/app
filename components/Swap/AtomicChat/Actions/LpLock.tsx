@@ -6,7 +6,7 @@ import { WalletProvider } from "../../../../Models/WalletProvider";
 import ButtonStatus from "./Status/ButtonStatus";
 
 export const LpLockingAssets: FC = () => {
-    const { destination_network, commitId, updateCommit, destination_asset, commitFromApi, destAtomicContract } = useAtomicState()
+    const { destination_network, commitId, updateCommit, destination_asset, destAtomicContract } = useAtomicState()
     const { provider } = useWallet(destination_network, 'withdrawal')
     const [loading, setLoading] = useState(false)
 

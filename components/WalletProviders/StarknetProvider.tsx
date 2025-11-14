@@ -1,9 +1,13 @@
 import { FC, ReactNode, useEffect, useState } from "react";
 import { mainnet, sepolia } from "@starknet-react/chains"
 import { Connector, ConnectorNotConnectedError, UserNotConnectedError, StarknetConfig, publicProvider } from '@starknet-react/core';
-import { RpcMessage, RequestFnCall, RpcTypeToMessageMap } from "starknet-types-07";
-import { InjectedConnector, WebWalletConnector } from "../../lib/@starknetkit/connectors";
-import { ArgentMobileConnector } from "../../lib/@starknetkit/connectors/argent/argentMobile";
+//@ts-ignore
+import { ArgentMobileConnector } from "starknetkit/argentMobile";
+// @ts-ignore
+import { InjectedConnector } from "starknetkit/injected"
+// @ts-ignore
+import { WebWalletConnector } from "starknetkit/webwallet"
+import { RpcMessage, RequestFnCall, RpcTypeToMessageMap } from "@starknet-io/types-js";
 
 const WALLETCONNECT_PROJECT_ID = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '28168903b2d30c75e5f7f2d71902581b';
 

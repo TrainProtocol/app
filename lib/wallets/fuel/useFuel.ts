@@ -12,7 +12,7 @@ import {
     Provider,
     getPredicateRoot,
 } from '@fuel-ts/account';
-import { Address } from '@fuel-ts/address';
+import { Address, AssetId } from '@fuel-ts/address';
 import shortenAddress from "../../../components/utils/ShortenAddress";
 import { BAKO_STATE } from "./Basko";
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
@@ -168,12 +168,14 @@ export default function useFuel(): WalletProvider {
         const srcAsset = sourceAsset.symbol.padEnd(64, ' ');
         const srcReceiver = { bits: srcLpAddress };
 
-        const parsedAmount = Number(amount) * 10 ** decimals
+        const parsedAmount = Number(amount) * 10 ** sourceAsset.decimals
+
+        const assetId: string | undefined = sourceAsset.contract ? new Address(sourceAsset.contract).toAssetId().bits : await fuelProvider.getBaseAssetId();
 
         const { transactionId } = await contractInstance.functions
             .commit(hopChains, hopAssets, hopAddresses, dstChain, dstAsset, dstAddress, srcAsset, commitId, srcReceiver, timelock)
             .callParams({
-                forward: [parsedAmount, await fuelProvider.getBaseAssetId()],
+                forward: [parsedAmount, assetId],
             })
             .call();
 
