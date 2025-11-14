@@ -1,7 +1,7 @@
 import { useWalletStore } from "../../../stores/walletStore"
 import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
-import { cairo, Call, constants, Contract, RpcProvider, shortString, TypedData, TypedDataRevision, typedData } from "starknet";
+import { cairo, Call, constants, Contract, RpcProvider, shortString, TypedData, TypedDataRevision } from "starknet";
 import PHTLCAbi from "../../../lib/abis/atomic/STARKNET_PHTLC.json"
 import ETHABbi from "../../../lib/abis/STARKNET_ETH.json"
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, GetCommitsParams, LockParams, RefundParams } from "../../../Models/phtlc";
@@ -144,9 +144,11 @@ export default function useStarknet(): WalletProvider {
             const parsedAmount = ethers.utils.parseUnits(amount.toString(), decimals).toString()
 
             const erc20Contract = new Contract(
-                ETHABbi,
-                tokenContractAddress,
-                starknetWallet.metadata?.starknetAccount,
+                {
+                    abi: ETHABbi,
+                    address: tokenContractAddress,
+                    providerOrAccount: starknetWallet.metadata?.starknetAccount,
+                }
             )
             const increaseAllowanceCall: Call = erc20Contract.populate("increaseAllowance", [atomicAddress, parsedAmount])
 
@@ -170,9 +172,11 @@ export default function useStarknet(): WalletProvider {
                 tokenContractAddress,
             ]
             const atomicContract = new Contract(
-                PHTLCAbi,
-                atomicAddress,
-                starknetWallet.metadata?.starknetAccount,
+                {
+                    abi: PHTLCAbi,
+                    address: atomicAddress,
+                    providerOrAccount: starknetWallet.metadata?.starknetAccount,
+                }
             )
 
             const committmentCall: Call = atomicContract.populate("commit", args)
@@ -200,9 +204,11 @@ export default function useStarknet(): WalletProvider {
         }
 
         const atomicContract = new Contract(
-            PHTLCAbi,
-            atomicAddress,
-            starknetWallet.metadata?.starknetAccount,
+            {
+                abi: PHTLCAbi,
+                address: atomicAddress,
+                providerOrAccount: starknetWallet.metadata?.starknetAccount,
+            }
         )
 
         const refundCall: Call = atomicContract.populate('refund', [id])
@@ -222,9 +228,11 @@ export default function useStarknet(): WalletProvider {
         }
 
         const atomicContract = new Contract(
-            PHTLCAbi,
-            atomicAddress,
-            starknetWallet.metadata?.starknetAccount,
+            {
+                abi: PHTLCAbi,
+                address: atomicAddress,
+                providerOrAccount: starknetWallet.metadata?.starknetAccount,
+            }
         )
 
         const claimCall: Call = atomicContract.populate('redeem', [id, secret])
@@ -239,34 +247,44 @@ export default function useStarknet(): WalletProvider {
 
     const getDetails = async (params: CommitmentParams): Promise<Commit> => {
         const { id, chainId, contractAddress } = params
+        try {
 
-        const atomicContract = new Contract(
-            PHTLCAbi,
-            contractAddress,
-            new RpcProvider({
-                nodeUrl: nodeUrl,
-            })
-        )
-        const result = await atomicContract.functions.getHTLCDetails(id)
+            const atomicContract = new Contract(
+                {
+                    abi: PHTLCAbi,
+                    address: contractAddress,
+                    providerOrAccount: new RpcProvider({
+                        nodeUrl: 'https://starknet-sepolia-rpc.publicnode.com' //nodeUrl,
+                    }),
+                }
+            )
 
-        if (!result) {
-            throw new Error("No result")
+            const result = await atomicContract.functions.getHTLCDetails(id)
+
+            if (!result) {
+                throw new Error("No result")
+            }
+
+            // const networkToken = networks.find(network => chainId && Number(network.chainId) == Number(chainId))?.tokens.find(token => token.symbol === "ETH")//shortString.decodeShortString(ethers.utils.hexlify(result.srcAsset as BigNumberish)))
+
+            const parsedResult: Commit = {
+                ...result,
+                sender: toHex(result.sender),
+                amount: formatAmount(result.amount, 18), //networkToken?.decimals
+                hashlock: result.hashlock && toHex(result.hashlock, { size: 32 }),
+                claimed: Number(result.claimed),
+                secret: BigInt(result.secret),
+                timelock: Number(result.timelock),
+            }
+
+            return parsedResult
         }
-
-        // const networkToken = networks.find(network => chainId && Number(network.chainId) == Number(chainId))?.tokens.find(token => token.symbol === "ETH")//shortString.decodeShortString(ethers.utils.hexlify(result.srcAsset as BigNumberish)))
-
-        const parsedResult: Commit = {
-            ...result,
-            sender: toHex(result.sender),
-            amount: formatAmount(result.amount, 18), //networkToken?.decimals
-            hashlock: result.hashlock && toHex(result.hashlock, { size: 32 }),
-            claimed: Number(result.claimed),
-            secret: BigInt(result.secret),
-            timelock: Number(result.timelock),
+        catch (e) {
+            console.log(e)
+            throw new Error(e)
         }
-
-        return parsedResult
     }
+
 
     const addLock = async (params: CommitmentParams & LockParams) => {
         const { id, hashlock, contractAddress } = params
@@ -282,9 +300,11 @@ export default function useStarknet(): WalletProvider {
             timeLock
         ]
         const atomicContract = new Contract(
-            PHTLCAbi,
-            contractAddress,
-            starknetWallet.metadata?.starknetAccount,
+            {
+                abi: PHTLCAbi,
+                address: contractAddress,
+                providerOrAccount: starknetWallet.metadata?.starknetAccount,
+            }
         )
 
         const committmentCall: Call = atomicContract.populate("addLock", args)
@@ -367,11 +387,13 @@ export default function useStarknet(): WalletProvider {
         const { contractAddress } = params
 
         const atomicContract = new Contract(
-            PHTLCAbi,
-            contractAddress,
-            new RpcProvider({
-                nodeUrl: nodeUrl,
-            })
+            {
+                abi: PHTLCAbi,
+                address: contractAddress,
+                providerOrAccount: new RpcProvider({
+                    nodeUrl: nodeUrl,
+                }),
+            }
         )
 
         if (!starknetWallet?.address) {
