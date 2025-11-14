@@ -150,7 +150,8 @@ export default function useSVM(): WalletProvider {
 
     const getDetails = async (params: CommitmentParams) => {
         //TODO: fix solana address
-        const lpAddress = 'Solana Address'
+        const lpAddress = '4hLwFR5JpxztsYMyy574mcWsfYc9sbfeAx5FKMYfw8vB'
+        const {contractAddress} = params
 
         if (!lpAddress) throw new Error("No LP address")
 
@@ -159,7 +160,7 @@ export default function useSVM(): WalletProvider {
 
         const lpAnchorWallet = { publicKey: new PublicKey(lpAddress) }
         const provider = new AnchorProvider(connection, lpAnchorWallet as AnchorWallet);
-        const lpProgram = (provider && htlc_token_account) ? new Program(AnchorHtlc(htlc_token_account), provider) : null;
+        const lpProgram = (provider && contractAddress) ? new Program(AnchorHtlc(contractAddress), provider) : null;
 
         if (!lpProgram) {
             throw new Error("Could not initiate a program")
