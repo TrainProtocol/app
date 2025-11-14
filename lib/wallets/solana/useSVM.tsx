@@ -37,9 +37,6 @@ export default function useSVM(): WalletProvider {
     const anchorProvider = anchorWallet && new AnchorProvider(connection, anchorWallet);
     if (anchorProvider) setProvider(anchorProvider);
 
-    const htlc_token_account = network?.contracts?.find(c => c.type === ContractType.HTLCTokenContractAddress)?.address
-    const program = (anchorProvider && htlc_token_account) ? new Program(AnchorHtlc(htlc_token_account), anchorProvider) : null;
-
     const connectedWallets = useMemo(() => {
 
         const wallet: Wallet | undefined = (connectedAddress && connectedAdapterName) ? {
@@ -146,7 +143,7 @@ export default function useSVM(): WalletProvider {
             return { hash: signature, commitId: `0x${toHexString(transaction.commitId)}` }
         }
 
-    }, [program, connection, signTransaction, publicKey, network])
+    }, [connection, signTransaction, publicKey, network])
 
     const getDetails = async (params: CommitmentParams) => {
         //TODO: fix solana address
@@ -198,6 +195,9 @@ export default function useSVM(): WalletProvider {
 
     const addLock = async (params: CommitmentParams & LockParams) => {
 
+        const {contractAddress} = params
+        const program = (anchorProvider && contractAddress) ? new Program(AnchorHtlc(contractAddress), anchorProvider) : null;
+
         if (!program || !publicKey) return null
 
         const { lockCommit, lockId, timelock } = await lockTransactionBuilder({ program, walletPublicKey: publicKey, ...params })
@@ -236,7 +236,8 @@ export default function useSVM(): WalletProvider {
     }
 
     const refund = async (params: RefundParams) => {
-        const { id, sourceAsset } = params
+        const { id, sourceAsset, contractAddress } = params
+        const program = (anchorProvider && contractAddress) ? new Program(AnchorHtlc(contractAddress), anchorProvider) : null;
 
         if (!program || !sourceAsset?.contract || !publicKey) return null
 
@@ -250,7 +251,7 @@ export default function useSVM(): WalletProvider {
             [idBuffer],
             program.programId
         );
-        let [htlcTokenAccount, bump3] = idBuffer && PublicKey.findProgramAddressSync(
+        let [htlcTokenAccount, _] = idBuffer && PublicKey.findProgramAddressSync(
             [Buffer.from("htlc_token_account"), idBuffer],
             program.programId
         );
@@ -268,7 +269,8 @@ export default function useSVM(): WalletProvider {
     }
 
     const claim = async (params: ClaimParams) => {
-        const { sourceAsset, id, secret } = params
+        const { sourceAsset, id, secret, contractAddress } = params
+        const program = (anchorProvider && contractAddress) ? new Program(AnchorHtlc(contractAddress), anchorProvider) : null;
 
         if (!program || !sourceAsset?.contract || !publicKey) return
 
@@ -282,7 +284,7 @@ export default function useSVM(): WalletProvider {
             [idBuffer],
             program.programId
         );
-        let [htlcTokenAccount, bump3] = idBuffer && PublicKey.findProgramAddressSync(
+        let [htlcTokenAccount, _] = idBuffer && PublicKey.findProgramAddressSync(
             [Buffer.from("htlc_token_account"), idBuffer],
             program.programId
         );
