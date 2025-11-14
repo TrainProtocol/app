@@ -1,4 +1,4 @@
-import { ContractArtifact, FunctionAbi, FunctionSelector, getAllFunctionAbis } from "@aztec/stdlib/abi";
+import { ContractArtifact, FunctionAbi, FunctionSelector, getAllFunctionAbis } from "@aztec/aztec.js/abi";
 import { toHex } from "viem";
 
 export const getSelector = async (name: string, artifact: ContractArtifact): Promise<FunctionSelector> => {
@@ -114,42 +114,6 @@ export function trimTo30Bytes(hex32: string): string {
 
     // Return with 0x prefix
     return "0x" + trimmed;
-}
-
-export function hexToUint8Array(hexString: string): Uint8Array {
-    // Remove 0x prefix if present
-    let hex = hexString.startsWith('0x') ? hexString.slice(2) : hexString;
-
-    // Ensure even length by padding with leading zero if necessary
-    if (hex.length % 2 !== 0) {
-        hex = '0' + hex;
-    }
-
-    // Validate hex string
-    if (!/^[0-9a-fA-F]*$/.test(hex)) {
-        throw new Error('Invalid hex string');
-    }
-
-    // Convert to Uint8Array
-    const bytes = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < hex.length; i += 2) {
-        bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
-    }
-
-    return bytes;
-}
-
-export function bigIntToHighLow(value: bigint): { high: number; low: number } {
-  // Ensure we're working with a positive value for bit operations
-  const absValue = value < 0n ? -value : value;
-  
-  // Extract low 32 bits using bitwise AND with 0xFFFFFFFF
-  const low = Number(absValue & 0xFFFFFFFFn);
-  
-  // Extract high 32 bits by right-shifting 32 positions
-  const high = Number((absValue >> 32n) & 0xFFFFFFFFn);
-  
-  return { high, low };
 }
 
 export function hexToU128Limbs(hex: string): [bigint, bigint] {

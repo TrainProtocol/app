@@ -1,20 +1,18 @@
-import {
-    AztecAddress,
-    encodeArguments,
-    FunctionType,
-} from '@aztec/aztec.js';
+import { AztecAddress } from '@aztec/aztec.js/addresses';
+import { Wallet } from '@aztec/aztec.js/wallet';
 import { TrainContract } from "./Train";
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../../../Models/phtlc";
-import { Account } from "@nemi-fi/wallet-sdk";
-import { Contract } from "@nemi-fi/wallet-sdk/eip1193"
 import { generateId, getFunctionAbi, getSelector, hexToHighLowValidated, hexToU128Limbs, padTo32Bytes } from './utils';
 import { calculateEpochTimelock } from '../utils/calculateTimelock';
 import { toHex } from 'viem';
-import { TokenContractArtifact } from '../../@aztec/Token';
+import { TokenContract, TokenContractArtifact } from '@aztec/noir-contracts.js/Token';
+import { Fr } from '@aztec/aztec.js/fields';
+import { CallIntent } from '@aztec/aztec.js/authorization';
+import { ContractArtifact, encodeArguments, FunctionType } from '@aztec/aztec.js/abi';
 
-const TrainContractArtifact = TrainContract.artifact;
+const TrainContractArtifact = TrainContract.artifact as ContractArtifact;
 
-export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { senderWallet: Account }) => {
+export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { senderWallet: Wallet }) => {
     let { tokenContractAddress, srcLpAddress: lpAddress, atomicContract, sourceAsset, senderWallet, address, destinationChain, destinationAsset, amount } = props;
 
     if (!tokenContractAddress || !lpAddress || !atomicContract || !sourceAsset || !senderWallet) throw new Error("Missing required parameters");
@@ -24,20 +22,22 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
     const parsedAmount = Math.pow(10, sourceAsset.decimals) * Number(amount);
 
     try {
+        // Get the sender address from wallet
+        const accounts = await senderWallet.getAccounts();
+        const senderAddress = accounts[0].item;
 
         const contractAddress = AztecAddress.fromString(atomicContract);
         const tokenAddress = AztecAddress.fromString(tokenContractAddress);
 
-        const aztecAtomicContract = AztecAddress.fromString(atomicContract);
-        const contract = await Contract.at(
-            aztecAtomicContract,
-            TrainContractArtifact,
+        // Use standard TrainContract.at() instead of custom Contract
+        const contract = await TrainContract.at(
+            contractAddress,
             senderWallet,
         );
 
         const is_contract_initialized = await contract.methods
-            .is_contract_initialized(id)
-            .simulate();
+            .is_contract_initialized(Fr.fromString(id))
+            .simulate({ from: senderAddress });
 
         if (is_contract_initialized) {
             throw new Error(`Contract with ID ${id} is already initialized.`);
@@ -58,55 +58,82 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
             randomness
         ]
 
-        const encodedArguments = encodeArguments(getFunctionAbi(TrainContractArtifact, "commit_private_user"), commitArgs)
-
-        const asset = await Contract.at(
+        const asset = await TokenContract.at(
             tokenAddress,
-            TokenContractArtifact,
             senderWallet
         );
-        const transfer = asset
-            .withAccount(senderWallet)
-            .methods.transfer_to_public(
-                senderWallet.getAddress(),
-                contractAddress,
-                parsedAmount,
-                randomness,
-            );
 
-        const tx = senderWallet.sendTransaction({
-            calls: [
-                {
-                    to: contractAddress,
-                    name: "commit_private_user",
-                    args: encodedArguments,
-                    selector: await getSelector("commit_private_user", TrainContractArtifact),
-                    type: FunctionType.PRIVATE,
-                    isStatic: false,
-                    returnTypes: [],
-                }
-            ],
-            registerContracts: [
-                {
-                    address: contractAddress,
-                    account: senderWallet,
-                    artifact: TrainContractArtifact,
-                },
-                {
-                    address: tokenAddress,
-                    account: senderWallet,
-                    artifact: TokenContractArtifact,
-                }
-            ],
-            authWitnesses: [{ caller: contractAddress, action: transfer }]
-        })
+        const intentCallSelector = await getSelector("transfer_to_public", TokenContractArtifact);
+        const intentCallArgs = [senderAddress, contractAddress, parsedAmount, randomness];
+        const encodedIntentCallArgs = encodeArguments(getFunctionAbi(TokenContractArtifact, "transfer_to_public"), intentCallArgs)
 
-        const commitTx = await tx?.wait({ timeout: 120000 });
-        if (!commitTx) {
+        const intent: CallIntent = {
+            caller: contractAddress,
+            call: {
+                to: tokenAddress,
+                name: "transfer_to_public",
+                args: encodedIntentCallArgs,
+                selector: intentCallSelector,
+                hideMsgSender: true,
+                type: FunctionType.PUBLIC,
+                isStatic: false,
+                returnTypes: [],
+            },
+        };
+
+        const witness = await senderWallet.createAuthWit(senderAddress, intent);
+
+        const txCallSelector = await getSelector("commit_private_user", TrainContractArtifact);
+        const encodedArguments = encodeArguments(getFunctionAbi(TrainContractArtifact, "commit_private_user"), commitArgs)
+
+        const tx = await senderWallet.batch([
+            {
+                name: "registerContract",
+                args: [
+                    contract,
+                    TrainContractArtifact,
+                    undefined
+                ]
+            },
+            {
+                name: "registerContract",
+                args: [
+                    asset,
+                    TokenContractArtifact,
+                    undefined
+                ]
+            },
+            {
+                name: "sendTx",
+                args: [
+                    {
+                        calls: [
+                            {
+                                to: contractAddress,
+                                name: "commit_private_user",
+                                args: encodedArguments as any,
+                                selector: txCallSelector as any,
+                                type: FunctionType.PRIVATE,
+                                isStatic: false,
+                                returnTypes: [],
+                                hideMsgSender: true,
+                            }
+                        ],
+                        authWitnesses: [witness],
+                        capsules: [],
+                        extraHashedArgs: []
+                    },
+                    { from: senderAddress }
+                ]
+            }
+        ])
+
+
+        if (!tx) {
             throw new Error("Transaction failed or timed out");
         }
 
-        return { hash: commitTx?.txHash.toString(), commitId: padTo32Bytes(id.toString()) };
+        return { hash: tx[2].result.hash.toString(), commitId: padTo32Bytes(id.toString()) };
 
     } catch (error) {
         console.error("Error building commit transaction:", error);
@@ -114,7 +141,7 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
     }
 }
 
-export const addLockTransactionBuilder = async (params: CommitmentParams & LockParams & { senderWallet: Account }) => {
+export const addLockTransactionBuilder = async (params: CommitmentParams & LockParams & { senderWallet: Wallet }) => {
 
     const { id, senderWallet, contractAddress, hashlock } = params;
 
@@ -124,24 +151,25 @@ export const addLockTransactionBuilder = async (params: CommitmentParams & LockP
         throw new Error("Missing required parameters");
     }
 
-    try {
+    const accounts = await senderWallet.getAccounts();
+    const senderAddress = accounts[0].item;
 
+    try {
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
 
-        const atomicContract = await Contract.at(
+        // Use standard TrainContract.at() instead of custom Contract
+        const atomicContract = await TrainContract.at(
             aztecAtomicContract,
-            TrainContractArtifact,
             senderWallet,
         );
 
-
         const { high, low } = hexToHighLowValidated(hashlock)
 
+        // Use standard contract method .send() and .wait()
         const addLockTx = await atomicContract.methods
             .add_lock_private_user(BigInt(id), high, low, timelock)
-            .send()
+            .send({ from: senderAddress })
             .wait({ timeout: 120000 });
-
 
         return { lockCommit: addLockTx.txHash.toString(), lockId: hashlock, timelock }
 
@@ -151,7 +179,7 @@ export const addLockTransactionBuilder = async (params: CommitmentParams & LockP
     }
 }
 
-export const refundTransactionBuilder = async (params: RefundParams & { senderWallet: Account }) => {
+export const refundTransactionBuilder = async (params: RefundParams & { senderWallet: Wallet }) => {
 
     const { id, contractAddress, senderWallet } = params;
 
@@ -162,7 +190,12 @@ export const refundTransactionBuilder = async (params: RefundParams & { senderWa
     try {
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
         const encodedArguments = encodeArguments(getFunctionAbi(TrainContractArtifact, "refund_private"), [id])
-        const tx = senderWallet.sendTransaction({
+
+        const accounts = await senderWallet.getAccounts();
+        const senderAddress = accounts[0].item;
+
+        // Use wallet.createTx() for custom transaction structure
+        const refundTx = await senderWallet.sendTx({
             calls: [
                 {
                     to: aztecAtomicContract,
@@ -170,14 +203,17 @@ export const refundTransactionBuilder = async (params: RefundParams & { senderWa
                     args: encodedArguments,
                     selector: await getSelector("refund_private", TrainContractArtifact),
                     type: FunctionType.PRIVATE,
+                    hideMsgSender: true,
                     isStatic: false,
                     returnTypes: [],
                 }
             ],
-        })
+            authWitnesses: [],
+            capsules: [],
+            extraHashedArgs: [],
+        }, { from: senderAddress });
 
-        const refundTx = await tx?.wait({ timeout: 120000 });
-        return refundTx.txHash.toString();
+        return refundTx.hash.toString();
 
     } catch (error) {
         console.error("Error building refund transaction:", error);
@@ -185,7 +221,7 @@ export const refundTransactionBuilder = async (params: RefundParams & { senderWa
     }
 }
 
-export const claimTransactionBuilder = async (params: ClaimParams & { senderWallet: Account, ownershipKey: string }) => {
+export const claimTransactionBuilder = async (params: ClaimParams & { senderWallet: Wallet, ownershipKey: string }) => {
     const { id, contractAddress, secret, senderWallet, ownershipKey, destinationAsset } = params;
 
     if (!id || !contractAddress || !secret || !senderWallet || !ownershipKey || !destinationAsset?.contract) {
@@ -194,11 +230,24 @@ export const claimTransactionBuilder = async (params: ClaimParams & { senderWall
 
     const aztecTokenAddress = AztecAddress.fromString(destinationAsset.contract);
 
+    const accounts = await senderWallet.getAccounts();
+    const senderAddress = accounts[0].item;
+
     const [secretHigh, secretLow] = hexToU128Limbs(toHex(secret));
     const [ownershipHigh, ownershipLow] = hexToU128Limbs(ownershipKey);
 
     try {
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
+        const contract = await TrainContract.at(
+            aztecAtomicContract,
+            senderWallet,
+        );
+
+        const asset = await TokenContract.at(
+            aztecTokenAddress,
+            senderWallet
+        );
+
 
         const redeemArgs = [
             id,
@@ -209,39 +258,53 @@ export const claimTransactionBuilder = async (params: ClaimParams & { senderWall
         ]
 
         const encodedArguments = encodeArguments(getFunctionAbi(TrainContractArtifact, "redeem_private"), redeemArgs)
-        const tx = senderWallet.sendTransaction({
-            calls: [
-                {
-                    to: aztecAtomicContract,
-                    name: "redeem_private",
-                    args: encodedArguments,
-                    selector: await getSelector("redeem_private", TrainContractArtifact),
-                    type: FunctionType.PRIVATE,
-                    isStatic: false,
-                    returnTypes: [],
-                }
-            ],
-            registerContracts: [
-                {
-                    address: aztecAtomicContract,
-                    account: senderWallet,
-                    artifact: TrainContractArtifact,
-                },
-                {
-                    address: aztecTokenAddress,
-                    account: senderWallet,
-                    artifact: TokenContractArtifact,
-                }
-            ],
-        })
 
-        await tx.wait({ timeout: 120000 })
+        const tx = await senderWallet.batch([
+            {
+                name: "registerContract",
+                args: [
+                    contract,
+                    TrainContractArtifact,
+                    undefined
+                ]
+            },
+            {
+                name: "registerContract",
+                args: [
+                    asset,
+                    TokenContractArtifact,
+                    undefined
+                ]
+            },
+            {
+                name: "sendTx",
+                args: [
+                    {
+                        calls: [
+                            {
+                                to: aztecAtomicContract,
+                                name: "redeem_private",
+                                args: encodedArguments,
+                                selector: await getSelector("redeem_private", TrainContractArtifact),
+                                type: FunctionType.PRIVATE,
+                                isStatic: false,
+                                returnTypes: [],
+                                hideMsgSender: true,
+                            }
+                        ],
+                        authWitnesses: [],
+                        capsules: [],
+                        extraHashedArgs: []
+                    },
+                    { from: senderAddress }
+                ]
+            }
+        ])
 
-        return (await tx.getTxHash()).hash.toString();
+        return tx[2].result.hash.toString();
 
     } catch (error) {
         console.error("Error building claim transaction:", error);
         throw error;
     }
-
 }
