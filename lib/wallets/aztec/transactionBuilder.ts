@@ -25,14 +25,12 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
     const parsedAmount = Math.pow(10, sourceAsset.decimals) * Number(amount);
 
     try {
-        // Get the sender address from wallet
         const accounts = await senderWallet.getAccounts();
         const senderAddress = accounts[0].item;
 
         const contractAddress = AztecAddress.fromString(atomicContract);
         const tokenAddress = AztecAddress.fromString('0x04593cd209ec9cce4c2bf3af9003c262fbda9157d75788f47e45a14db57fac3b');
 
-        // Use standard TrainContract.at() instead of custom Contract
         const node: AztecNode = createAztecNodeClient(aztecNodeUrl);
         const trainInstance = await node.getContract(contractAddress);
 
@@ -56,24 +54,6 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
 
         const randomness = Fr.random();
 
-        const commitArgs = [
-            id,
-            lpAddress,
-            timelock,
-            tokenContractAddress,
-            parsedAmount,
-            sourceAsset.symbol,
-            destinationChain,
-            destinationAsset,
-            address,
-            randomness
-        ]
-
-        const asset = await TokenContract.at(
-            tokenAddress,
-            senderWallet
-        );
-
         const intentCallSelector = await getSelector("transfer_to_public", TokenContractArtifact);
         const intentCallArgs = [senderAddress, contractAddress, parsedAmount, randomness];
         const encodedIntentCallArgs = encodeArguments(getFunctionAbi(TokenContractArtifact, "transfer_to_public"), intentCallArgs)
@@ -94,51 +74,6 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
 
         const witness = await senderWallet.createAuthWit(senderAddress, intent);
 
-        const txCallSelector = await getSelector("commit_private_user", TrainContractArtifact);
-        const encodedArguments = encodeArguments(getFunctionAbi(TrainContractArtifact, "commit_private_user"), commitArgs)
-
-        // const tx = await senderWallet.batch([
-        //     // {
-        //     //     name: "registerContract",
-        //     //     args: [
-        //     //         contractInstance,
-        //     //         TrainContractArtifact,
-        //     //         undefined
-        //     //     ]
-        //     // },
-        //     // {
-        //     //     name: "registerContract",
-        //     //     args: [
-        //     //         asset,
-        //     //         TokenContractArtifact,
-        //     //         undefined
-        //     //     ]
-        //     // },
-        //     {
-        //         name: "sendTx",
-        //         args: [
-        //             {
-        //                 calls: [
-        //                     {
-        //                         to: contractAddress,
-        //                         name: "commit_private_user",
-        //                         args: encodedArguments as any,
-        //                         selector: txCallSelector as any,
-        //                         type: FunctionType.PRIVATE,
-        //                         isStatic: false,
-        //                         returnTypes: [],
-        //                         hideMsgSender: true,
-        //                     }
-        //                 ],
-        //                 authWitnesses: [witness],
-        //                 capsules: [],
-        //                 extraHashedArgs: []
-        //             },
-        //             { from: senderAddress }
-        //         ]
-        //     }
-        // ])
-
         const feeOptions = {
             paymentMethod: new SponsoredFeePaymentMethod(AztecAddress.fromString('0x280e5686a148059543f4d0968f9a18cd4992520fcd887444b8689bf2726a1f97')),
         };
@@ -158,34 +93,13 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
             )
             .send({
                 from: senderAddress,
-                authWitnesses: [witness],
-                fee: feeOptions
+                authWitnesses: [{
+                    requestHash: witness.requestHash,
+                    witness: witness.witness,
+                } as any],
+                fee: feeOptions,
             })
             .wait({ timeout: 120000 });
-
-
-        // const txReceipt = await asset.methods
-        //     .transfer(AztecAddress.fromString('0x04030b28dc89132e12478f78e55c4fd4c1454b62fe54dd4a3e749867b58b6d70'), parsedAmount)
-        //     .send({ from: senderAddress, fee: feeOptions })
-        //     .wait({ timeout: 120000 });
-
-        // const test = await senderWallet.sendTx({
-        //     calls: [
-        //         {
-        //             to: contractAddress,
-        //             name: "commit_private_user",
-        //             args: encodedArguments,
-        //             selector: txCallSelector,
-        //             type: FunctionType.PRIVATE,
-        //             isStatic: false,
-        //             returnTypes: [],
-        //             hideMsgSender: true,
-        //         }
-        //     ],
-        //     authWitnesses: [witness],
-        //     capsules: [],
-        //     extraHashedArgs: []
-        // }, { from: senderAddress });
 
         if (!tx) {
             throw new Error("Transaction failed or timed out");
