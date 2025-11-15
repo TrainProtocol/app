@@ -1,4 +1,4 @@
-import { HeliosProvider, init } from "./HeliosProvider.js";
+import * as helios from './lib.mjs';
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.esm.min.js";
 self.onmessage = (e) => {
     switch (e.data.type) {
@@ -15,7 +15,6 @@ self.onmessage = (e) => {
 };
 async function initWorker(initConfigs) {
     try {
-        await init();
         const ethCheckpoint = initConfigs.network?.toLowerCase().includes('ethereum') && await fetch(initConfigs.hostname + '/api/getCheckpoint').then(res => res.json());
         const configs = [
             {
@@ -55,8 +54,7 @@ async function initWorker(initConfigs) {
             }
         ];
         const networkConfig = configs.find(config => initConfigs.network?.toLowerCase().includes(config.name));
-        const heliosProvider = new HeliosProvider(networkConfig.cnfg, networkConfig.kind);
-        await heliosProvider.sync();
+        const heliosProvider = await helios.createHeliosProvider(networkConfig.cnfg, networkConfig.kind);
         self.heliosProvider = heliosProvider;
         self.web3Provider = new ethers.providers.Web3Provider(heliosProvider);
         self.postMessage({ type: 'init', data: { initialized: true } });
@@ -72,6 +70,8 @@ async function getCommit(commitConfigs) {
         async function getCommitDetails(provider) {
             if (provider) {
                 try {
+        debugger
+
                     await self.heliosProvider.waitSynced();
                     const contract = new ethers.Contract(contractAddress, abi, provider);
                     const res = await contract.getHTLCDetails(commitId);
