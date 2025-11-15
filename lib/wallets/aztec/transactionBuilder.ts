@@ -140,34 +140,34 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
         // ])
 
         const feeOptions = {
-            paymentMethod: new SponsoredFeePaymentMethod(senderAddress),
+            paymentMethod: new SponsoredFeePaymentMethod(AztecAddress.fromString('0x280e5686a148059543f4d0968f9a18cd4992520fcd887444b8689bf2726a1f97')),
         };
 
-        // const tx = await contract.methods
-        //     .commit_private_user(
-        //         Fr.fromString(id),
-        //         AztecAddress.fromString(lpAddress),
-        //         timelock,
-        //         tokenAddress,
-        //         parsedAmount,
-        //         sourceAsset.symbol,
-        //         destinationChain,
-        //         destinationAsset,
-        //         address,
-        //         randomness
-        //     )
-        //     .send({
-        //         from: senderAddress,
-        //         authWitnesses: [],
-        //         fee: feeOptions
-        //     })
-        //     .wait({ timeout: 120000 });
-
-
-        const txReceipt = await asset.methods
-            .transfer(AztecAddress.fromString('0x04030b28dc89132e12478f78e55c4fd4c1454b62fe54dd4a3e749867b58b6d70'), parsedAmount)
-            .send({ from: senderAddress, fee: feeOptions })
+        const tx = await contract.methods
+            .commit_private_user(
+                Fr.fromString(id),
+                AztecAddress.fromString(lpAddress),
+                timelock,
+                tokenAddress,
+                parsedAmount,
+                sourceAsset.symbol,
+                destinationChain,
+                destinationAsset,
+                address,
+                randomness
+            )
+            .send({
+                from: senderAddress,
+                authWitnesses: [witness],
+                fee: feeOptions
+            })
             .wait({ timeout: 120000 });
+
+
+        // const txReceipt = await asset.methods
+        //     .transfer(AztecAddress.fromString('0x04030b28dc89132e12478f78e55c4fd4c1454b62fe54dd4a3e749867b58b6d70'), parsedAmount)
+        //     .send({ from: senderAddress, fee: feeOptions })
+        //     .wait({ timeout: 120000 });
 
         // const test = await senderWallet.sendTx({
         //     calls: [
@@ -187,11 +187,11 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
         //     extraHashedArgs: []
         // }, { from: senderAddress });
 
-        // if (!tx) {
-        //     throw new Error("Transaction failed or timed out");
-        // }
+        if (!tx) {
+            throw new Error("Transaction failed or timed out");
+        }
 
-        // return { hash: tx.txHash.toString(), commitId: padTo32Bytes(id.toString()) };
+        return { hash: tx.txHash.toString(), commitId: padTo32Bytes(id.toString()) };
 
     } catch (error) {
         console.error("Error building commit transaction:", error);
