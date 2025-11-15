@@ -97,7 +97,7 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
         }
         const commitId = Buffer.from(generateBytes32Hex(), 'hex')
 
-        let [htlcTokenAccount, b] = commitId && PublicKey.findProgramAddressSync(
+        let [htlcTokenAccount, _] = commitId && PublicKey.findProgramAddressSync(
             [Buffer.from("htlc_token_account"), commitId],
             program.programId
         );
