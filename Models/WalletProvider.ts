@@ -1,7 +1,6 @@
 import { AccountInterface } from 'starknet';
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from './phtlc';
 import { Commit } from './phtlc/PHTLC';
-import { StarknetWindowObject } from '../lib/@starknetkit/connectors/argent/argentMobile/modal';
 
 export type InternalConnector = {
     name: string,
@@ -26,7 +25,7 @@ export type Wallet = {
     icon: (props: any) => React.JSX.Element;
     metadata?: {
         starknetAccount?: AccountInterface,
-        wallet?: StarknetWindowObject,
+        wallet?: any,
         l1Address?: string,
         deepLink?: string
     }

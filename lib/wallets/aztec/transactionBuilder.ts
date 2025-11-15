@@ -15,6 +15,10 @@ import { aztecNodeUrl } from './configs';
 
 const TrainContractArtifact = TrainContract.artifact;
 
+const feeOptions = {
+    paymentMethod: new SponsoredFeePaymentMethod(AztecAddress.fromString('0x280e5686a148059543f4d0968f9a18cd4992520fcd887444b8689bf2726a1f97')),
+};
+
 export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { senderWallet: Wallet }) => {
     let { tokenContractAddress, srcLpAddress: lpAddress, atomicContract, sourceAsset, senderWallet, address, destinationChain, destinationAsset, amount } = props;
 
@@ -73,10 +77,6 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
         };
 
         const witness = await senderWallet.createAuthWit(senderAddress, intent);
-
-        const feeOptions = {
-            paymentMethod: new SponsoredFeePaymentMethod(AztecAddress.fromString('0x280e5686a148059543f4d0968f9a18cd4992520fcd887444b8689bf2726a1f97')),
-        };
 
         const tx = await contract.methods
             .commit_private_user(
@@ -140,7 +140,7 @@ export const addLockTransactionBuilder = async (params: CommitmentParams & LockP
         // Use standard contract method .send() and .wait()
         const addLockTx = await atomicContract.methods
             .add_lock_private_user(BigInt(id), high, low, timelock)
-            .send({ from: senderAddress })
+            .send({ from: senderAddress, fee: feeOptions })
             .wait({ timeout: 120000 });
 
         return { lockCommit: addLockTx.txHash.toString(), lockId: hashlock, timelock }
@@ -161,31 +161,25 @@ export const refundTransactionBuilder = async (params: RefundParams & { senderWa
 
     try {
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
-        const encodedArguments = encodeArguments(getFunctionAbi(TrainContractArtifact, "refund_private"), [id])
-
         const accounts = await senderWallet.getAccounts();
         const senderAddress = accounts[0].item;
 
-        // Use wallet.createTx() for custom transaction structure
-        const refundTx = await senderWallet.sendTx({
-            calls: [
-                {
-                    to: aztecAtomicContract,
-                    name: "refund_private",
-                    args: encodedArguments,
-                    selector: await getSelector("refund_private", TrainContractArtifact),
-                    type: FunctionType.PRIVATE,
-                    hideMsgSender: true,
-                    isStatic: false,
-                    returnTypes: [],
-                }
-            ],
-            authWitnesses: [],
-            capsules: [],
-            extraHashedArgs: [],
-        }, { from: senderAddress });
+        const contract = await TrainContract.at(
+            aztecAtomicContract,
+            senderWallet,
+        );
 
-        return refundTx.hash.toString();
+        const tx = await contract.methods
+            .refund_private(
+                Fr.fromString(id),
+            )
+            .send({
+                from: senderAddress,
+                fee: feeOptions,
+            })
+            .wait({ timeout: 120000 });
+
+        return tx.txHash.toString();
 
     } catch (error) {
         console.error("Error building refund transaction:", error);
