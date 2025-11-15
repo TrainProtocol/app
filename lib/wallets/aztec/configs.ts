@@ -9,7 +9,7 @@ const getAztecWallet = async () => {
     return AztecWallet;
 };
 
-export const aztecNodeUrl = "https://node.testnet.azguardwallet.io";
+export const aztecNodeUrl = "https://devnet.aztec-labs.com";
 
 // Dapp metadata for AzguardWallet connection
 export const dappMetadata = {

@@ -8,9 +8,12 @@ import { toHex } from 'viem';
 import { TokenContract, TokenContractArtifact } from '@aztec/noir-contracts.js/Token';
 import { Fr } from '@aztec/aztec.js/fields';
 import { CallIntent } from '@aztec/aztec.js/authorization';
-import { ContractArtifact, encodeArguments, FunctionType } from '@aztec/aztec.js/abi';
+import { encodeArguments, FunctionType } from '@aztec/aztec.js/abi';
+import { AztecNode, createAztecNodeClient } from '@aztec/aztec.js/node';
+import { SponsoredFeePaymentMethod } from '@aztec/aztec.js/fee';
+import { aztecNodeUrl } from './configs';
 
-const TrainContractArtifact = TrainContract.artifact as ContractArtifact;
+const TrainContractArtifact = TrainContract.artifact;
 
 export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { senderWallet: Wallet }) => {
     let { tokenContractAddress, srcLpAddress: lpAddress, atomicContract, sourceAsset, senderWallet, address, destinationChain, destinationAsset, amount } = props;
@@ -27,9 +30,17 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
         const senderAddress = accounts[0].item;
 
         const contractAddress = AztecAddress.fromString(atomicContract);
-        const tokenAddress = AztecAddress.fromString(tokenContractAddress);
+        const tokenAddress = AztecAddress.fromString('0x04593cd209ec9cce4c2bf3af9003c262fbda9157d75788f47e45a14db57fac3b');
 
         // Use standard TrainContract.at() instead of custom Contract
+        const node: AztecNode = createAztecNodeClient(aztecNodeUrl);
+        const trainInstance = await node.getContract(contractAddress);
+
+        if (!trainInstance) {
+            throw new Error("Train contract not found");
+        }
+
+        await senderWallet.registerContract(trainInstance, TrainContract.artifact);
         const contract = await TrainContract.at(
             contractAddress,
             senderWallet,
@@ -43,7 +54,7 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
             throw new Error(`Contract with ID ${id} is already initialized.`);
         }
 
-        const randomness = generateId();
+        const randomness = Fr.random();
 
         const commitArgs = [
             id,
@@ -86,54 +97,101 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
         const txCallSelector = await getSelector("commit_private_user", TrainContractArtifact);
         const encodedArguments = encodeArguments(getFunctionAbi(TrainContractArtifact, "commit_private_user"), commitArgs)
 
-        const tx = await senderWallet.batch([
-            {
-                name: "registerContract",
-                args: [
-                    contract,
-                    TrainContractArtifact,
-                    undefined
-                ]
-            },
-            {
-                name: "registerContract",
-                args: [
-                    asset,
-                    TokenContractArtifact,
-                    undefined
-                ]
-            },
-            {
-                name: "sendTx",
-                args: [
-                    {
-                        calls: [
-                            {
-                                to: contractAddress,
-                                name: "commit_private_user",
-                                args: encodedArguments as any,
-                                selector: txCallSelector as any,
-                                type: FunctionType.PRIVATE,
-                                isStatic: false,
-                                returnTypes: [],
-                                hideMsgSender: true,
-                            }
-                        ],
-                        authWitnesses: [witness],
-                        capsules: [],
-                        extraHashedArgs: []
-                    },
-                    { from: senderAddress }
-                ]
-            }
-        ])
+        // const tx = await senderWallet.batch([
+        //     // {
+        //     //     name: "registerContract",
+        //     //     args: [
+        //     //         contractInstance,
+        //     //         TrainContractArtifact,
+        //     //         undefined
+        //     //     ]
+        //     // },
+        //     // {
+        //     //     name: "registerContract",
+        //     //     args: [
+        //     //         asset,
+        //     //         TokenContractArtifact,
+        //     //         undefined
+        //     //     ]
+        //     // },
+        //     {
+        //         name: "sendTx",
+        //         args: [
+        //             {
+        //                 calls: [
+        //                     {
+        //                         to: contractAddress,
+        //                         name: "commit_private_user",
+        //                         args: encodedArguments as any,
+        //                         selector: txCallSelector as any,
+        //                         type: FunctionType.PRIVATE,
+        //                         isStatic: false,
+        //                         returnTypes: [],
+        //                         hideMsgSender: true,
+        //                     }
+        //                 ],
+        //                 authWitnesses: [witness],
+        //                 capsules: [],
+        //                 extraHashedArgs: []
+        //             },
+        //             { from: senderAddress }
+        //         ]
+        //     }
+        // ])
+
+        const feeOptions = {
+            paymentMethod: new SponsoredFeePaymentMethod(senderAddress),
+        };
+
+        // const tx = await contract.methods
+        //     .commit_private_user(
+        //         Fr.fromString(id),
+        //         AztecAddress.fromString(lpAddress),
+        //         timelock,
+        //         tokenAddress,
+        //         parsedAmount,
+        //         sourceAsset.symbol,
+        //         destinationChain,
+        //         destinationAsset,
+        //         address,
+        //         randomness
+        //     )
+        //     .send({
+        //         from: senderAddress,
+        //         authWitnesses: [],
+        //         fee: feeOptions
+        //     })
+        //     .wait({ timeout: 120000 });
 
 
-        if (!tx) {
-            throw new Error("Transaction failed or timed out");
-        }
+        const txReceipt = await asset.methods
+            .transfer(AztecAddress.fromString('0x04030b28dc89132e12478f78e55c4fd4c1454b62fe54dd4a3e749867b58b6d70'), parsedAmount)
+            .send({ from: senderAddress, fee: feeOptions })
+            .wait({ timeout: 120000 });
 
-        return { hash: tx[2].result.hash.toString(), commitId: padTo32Bytes(id.toString()) };
+        // const test = await senderWallet.sendTx({
+        //     calls: [
+        //         {
+        //             to: contractAddress,
+        //             name: "commit_private_user",
+        //             args: encodedArguments,
+        //             selector: txCallSelector,
+        //             type: FunctionType.PRIVATE,
+        //             isStatic: false,
+        //             returnTypes: [],
+        //             hideMsgSender: true,
+        //         }
+        //     ],
+        //     authWitnesses: [witness],
+        //     capsules: [],
+        //     extraHashedArgs: []
+        // }, { from: senderAddress });
+
+        // if (!tx) {
+        //     throw new Error("Transaction failed or timed out");
+        // }
+
+        // return { hash: tx.txHash.toString(), commitId: padTo32Bytes(id.toString()) };
 
     } catch (error) {
         console.error("Error building commit transaction:", error);
