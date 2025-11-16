@@ -117,7 +117,23 @@ export function trimTo30Bytes(hex32: string): string {
 }
 
 export function hexToU128Limbs(hex: string): [bigint, bigint] {
-  const bytes = hex.replace('0x', '').match(/.{2}/g)!.map(b => parseInt(b, 16));
+  // Remove 0x prefix if present
+  let cleanHex = hex.replace(/^0x/i, '');
+  
+  // Pad to ensure even number of hex characters, then pad to 64 chars (32 bytes)
+  if (cleanHex.length % 2 !== 0) {
+    cleanHex = '0' + cleanHex;
+  }
+  cleanHex = cleanHex.padStart(64, '0');
+  
+  // Parse hex pairs into bytes
+  const bytes = cleanHex.match(/.{2}/g)!.map(b => parseInt(b, 16));
+  
+  // Ensure we have exactly 32 bytes
+  if (bytes.length !== 32) {
+    throw new Error(`Expected 32 bytes, got ${bytes.length}`);
+  }
+  
   let high = BigInt(0), low = BigInt(0);
   for (let i = 0; i < 16; i++) high = (high << BigInt(8)) + BigInt(bytes[i]);
   for (let i = 16; i < 32; i++) low = (low << BigInt(8)) + BigInt(bytes[i]);
