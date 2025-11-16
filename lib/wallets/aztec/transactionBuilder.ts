@@ -93,10 +93,7 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
             )
             .send({
                 from: senderAddress,
-                authWitnesses: [{
-                    requestHash: witness.requestHash,
-                    witness: witness.witness,
-                } as any],
+                authWitnesses: [witness],
                 fee: feeOptions,
             })
             .wait({ timeout: 120000 });
