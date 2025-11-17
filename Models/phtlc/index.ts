@@ -20,7 +20,7 @@ export type CommitmentParams = {
     type: 'erc20' | 'native';
     id: string,
     chainId: string | null,
-    contractAddress: `0x${string}`
+    contractAddress: string
 }
 
 export type LockParams = {
@@ -29,7 +29,7 @@ export type LockParams = {
     lockData?: Commit,
     hashlock: string,
     chainId: string | null,
-    contractAddress: `0x${string}`,
+    contractAddress: string,
     lockDataResolver?: (data: any[]) => Commit,
     sourceAsset?: Token,
     solver: string,
@@ -38,7 +38,7 @@ export type LockParams = {
 export type RefundParams = {
     type: 'erc20' | 'native';
     chainId: string | null,
-    contractAddress: `0x${string}`,
+    contractAddress: string,
     id: string,
     hashlock?: string | undefined,
     sourceAsset: Token,
@@ -47,7 +47,7 @@ export type RefundParams = {
 export type ClaimParams = {
     type: 'erc20' | 'native';
     chainId: string | null,
-    contractAddress: `0x${string}`,
+    contractAddress: string,
     id: string,
     secret: string | bigint,
     sourceAsset: Token,
@@ -57,6 +57,6 @@ export type ClaimParams = {
 
 export type GetCommitsParams = {
     type: 'erc20' | 'native';
-    contractAddress: `0x${string}`,
+    contractAddress: string,
     chainId: string,
 }

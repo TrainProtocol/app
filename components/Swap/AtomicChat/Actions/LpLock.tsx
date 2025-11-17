@@ -4,6 +4,7 @@ import { useAtomicState } from "../../../../context/atomicContext";
 import useWallet from "../../../../hooks/useWallet";
 import { WalletProvider } from "../../../../Models/WalletProvider";
 import ButtonStatus from "./Status/ButtonStatus";
+import sleep from "../../../../lib/wallets/utils/sleep";
 
 export const LpLockingAssets: FC = () => {
     const { destination_network, commitId, updateCommit, destination_asset, destAtomicContract } = useAtomicState()
@@ -46,9 +47,10 @@ export const LpLockingAssets: FC = () => {
                     return
                 }
 
-                await new Promise(resolve => setTimeout(resolve, 6000))
+                await sleep(3000)
                 await pollForDetails()
             } catch (error) {
+                await sleep(3000)
                 console.log(error)
                 await pollForDetails()
             }

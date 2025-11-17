@@ -6,6 +6,7 @@ import posthog from "posthog-js";
 import ButtonStatus from "./Status/ButtonStatus";
 import { useRouter } from "next/router";
 import { useFee } from "../../../../context/feeContext";
+import sleep from "../../../../lib/wallets/utils/sleep";
 
 export const UserCommitAction: FC = () => {
     const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, updateCommit, srcAtomicContract } = useAtomicState();
@@ -81,29 +82,47 @@ export const UserCommitAction: FC = () => {
     }
 
     useEffect(() => {
-        let commitHandler: any = undefined
-        if (source_network && commitId) {
-            (async () => {
-                commitHandler = setInterval(async () => {
-                    if (!provider)
-                        throw new Error("No source provider")
+        if (!source_network || !commitId || !atomicContract) return
 
-                    const data = await provider.getDetails({
-                        type: source_asset?.contract ? 'erc20' : 'native',
-                        chainId: source_network.chainId,
-                        id: commitId,
-                        contractAddress: atomicContract as `0x${string}`,
-                    })
-                    if (data && data.sender != '0x0000000000000000000000000000000000000000') {
-                        updateCommit('sourceDetails', data)
-                        clearInterval(commitHandler)
-                    }
-                }, 5000)
-            })()
+        let cancelled = false
+
+        const pollForDetails = async (): Promise<void> => {
+            if (cancelled) return
+
+            try {
+                if (!provider) {
+                    throw new Error("No source provider")
+                }
+
+                const data = await provider.getDetails({
+                    type: source_asset?.contract ? 'erc20' : 'native',
+                    chainId: source_network.chainId,
+                    id: commitId,
+                    contractAddress: atomicContract,
+                })
+
+                if (cancelled) return
+
+                if (data && data.sender != '0x0000000000000000000000000000000000000000') {
+                    updateCommit('sourceDetails', data)
+                    cancelled = true
+                    return
+                }
+
+                await sleep(3000)
+                if (!cancelled) {
+                    await pollForDetails()
+                }
+            } catch (error) {
+                console.log(error)
+                await sleep(3000)
+                if (!cancelled) {
+                    await pollForDetails()
+                }
+            }
         }
-        return () => {
-            clearInterval(commitHandler)
-        }
+
+        pollForDetails()
     }, [source_network, commitId])
 
     if (!source_network) return <></>
@@ -180,29 +199,50 @@ export const UserLockAction: FC = () => {
     }
 
     useEffect(() => {
-        let commitHandler: any = undefined
-        if (!sourceDetails?.hashlock && srcAtomicContract) {
-            (async () => {
-                commitHandler = setInterval(async () => {
-                    if (!provider)
-                        throw new Error("No source provider")
-                    if (!source_network)
-                        throw new Error("No source network")
+        if (sourceDetails?.hashlock || !srcAtomicContract) return
 
-                    const data = await provider.getDetails({
-                        type: source_asset?.contract ? 'erc20' : 'native',
-                        chainId: source_network.chainId,
-                        id: commitId as string,
-                        contractAddress: srcAtomicContract as `0x${string}`,
-                    })
-                    if (data?.hashlock) {
-                        updateCommit('sourceDetails', data)
-                        clearInterval(commitHandler)
-                    }
-                }, 5000)
-            })()
+        let cancelled = false
+
+        const pollForDetails = async (): Promise<void> => {
+            if (cancelled) return
+
+            try {
+                if (!provider) {
+                    throw new Error("No source provider")
+                }
+                if (!source_network) {
+                    throw new Error("No source network")
+                }
+
+                const data = await provider.getDetails({
+                    type: source_asset?.contract ? 'erc20' : 'native',
+                    chainId: source_network.chainId,
+                    id: commitId as string,
+                    contractAddress: srcAtomicContract as `0x${string}`,
+                })
+
+                if (cancelled) return
+
+                if (data?.hashlock) {
+                    updateCommit('sourceDetails', data)
+                    cancelled = true
+                    return
+                }
+
+                await sleep(3000)
+                if (!cancelled) {
+                    await pollForDetails()
+                }
+            } catch (error) {
+                console.log(error)
+                await sleep(3000)
+                if (!cancelled) {
+                    await pollForDetails()
+                }
+            }
         }
-        return () => clearInterval(commitHandler)
+
+        pollForDetails()
     }, [provider])
 
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
@@ -284,15 +324,21 @@ export const UserRefundAction: FC = () => {
     }
 
     useEffect(() => {
-        let commitHandler: any = undefined;
-        (async () => {
-            commitHandler = setInterval(async () => {
-                if (!source_provider)
+        let cancelled = false
+
+        const pollForDetails = async (): Promise<void> => {
+            if (cancelled) return
+
+            try {
+                if (!source_provider) {
                     throw new Error("No source provider")
-                if (!srcAtomicContract)
+                }
+                if (!srcAtomicContract) {
                     throw new Error("No atomic contract")
-                if (!source_network)
+                }
+                if (!source_network) {
                     throw new Error("No source network")
+                }
 
                 const data = await source_provider.getDetails({
                     type: source_asset?.contract ? 'erc20' : 'native',
@@ -300,25 +346,49 @@ export const UserRefundAction: FC = () => {
                     id: commitId as string,
                     contractAddress: srcAtomicContract as `0x${string}`,
                 })
+
+                if (cancelled) return
+
                 if (data?.claimed == 2) {
                     updateCommit('sourceDetails', data)
-                    clearInterval(commitHandler)
+                    cancelled = true
+                    return
                 }
-            }, 5000)
-        })()
-        return () => clearInterval(commitHandler)
+
+                await sleep(3000)
+                if (!cancelled) {
+                    await pollForDetails()
+                }
+            } catch (error) {
+                console.log(error)
+                await sleep(3000)
+                if (!cancelled) {
+                    await pollForDetails()
+                }
+            }
+        }
+
+        pollForDetails()
     }, [source_provider])
 
     useEffect(() => {
-        let lockHandler: any = undefined
-        if (destination_provider) {
-            lockHandler = setInterval(async () => {
-                if (!commitId)
+        if (!destination_provider) return
+
+        let cancelled = false
+
+        const pollForDetails = async (): Promise<void> => {
+            if (cancelled) return
+
+            try {
+                if (!commitId) {
                     throw Error("No commitId")
-                if (!destAtomicContract)
+                }
+                if (!destAtomicContract) {
                     throw Error("No atomic contract")
-                if (!destination_network)
+                }
+                if (!destination_network) {
                     throw Error("No destination network")
+                }
 
                 const data = await destination_provider.getDetails({
                     type: destination_asset?.contract ? 'erc20' : 'native',
@@ -327,15 +397,28 @@ export const UserRefundAction: FC = () => {
                     contractAddress: destAtomicContract as `0x${string}`,
                 })
 
+                if (cancelled) return
+
                 if (data) updateCommit('destinationDetails', data)
                 if (data?.claimed == 2) {
-                    clearInterval(lockHandler)
+                    cancelled = true
+                    return
                 }
-            }, 5000)
+
+                await sleep(3000)
+                if (!cancelled) {
+                    await pollForDetails()
+                }
+            } catch (error) {
+                console.log(error)
+                await sleep(3000)
+                if (!cancelled) {
+                    await pollForDetails()
+                }
+            }
         }
-        return () => {
-            lockHandler && clearInterval(lockHandler);
-        };
+
+        pollForDetails()
     }, [source_provider])
 
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
