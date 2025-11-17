@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import ButtonStatus from "./Status/ButtonStatus";
 import WalletMessage from "../../messages/Message";
 import { Commit } from "../../../../Models/phtlc/PHTLC";
+import DestinationWalletWrapper from "./DestinationWalletWrapper";
 
 const ResolveAction: FC<{ sourceDetails: Commit | undefined, commitStatus: CommitStatus, error: string | undefined }> = ({ commitStatus, sourceDetails, error }) => {
 
@@ -27,7 +28,7 @@ const ResolveAction: FC<{ sourceDetails: Commit | undefined, commitStatus: Commi
             return <UserRefundAction />
         }
     }
-    if (commitStatus === CommitStatus.AssetsLocked) {
+    if (commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.ManualClaimNeeded) {
         return <RedeemAction />
     }
     if (commitStatus === CommitStatus.LpLockDetected || commitStatus === CommitStatus.UserLocked) {
@@ -45,11 +46,13 @@ export const Actions: FC = () => {
     return (
         <>
             <Error />
-            <ResolveAction
-                commitStatus={commitStatus}
-                sourceDetails={sourceDetails}
-                error={error?.message}
-            />
+            <DestinationWalletWrapper>
+                <ResolveAction
+                    commitStatus={commitStatus}
+                    sourceDetails={sourceDetails}
+                    error={error?.message}
+                />
+            </DestinationWalletWrapper>
         </>
     )
 }

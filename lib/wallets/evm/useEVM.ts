@@ -26,6 +26,7 @@ import { explicitInjectedproviderDetected } from "../connectors/getInjectedConne
 import { useAtomicState } from "../../../context/atomicContext"
 import sleep from "../utils/sleep"
 import walletsData from "./walletsData.json"
+import { calculateEpochTimelock } from "../utils/calculateTimelock"
 
 const ethereumNames = [KnownInternalNames.Networks.EthereumMainnet, KnownInternalNames.Networks.EthereumSepolia]
 const immutableZKEvm = [KnownInternalNames.Networks.ImmutableZkEVMMainnet, KnownInternalNames.Networks.ImmutableZkEVMTestnet]
@@ -203,9 +204,7 @@ export default function useEVM(): WalletProvider {
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
         const { destinationChain, destinationAsset, sourceAsset, srcLpAddress: lpAddress, address, amount, decimals, atomicContract, chainId } = params
 
-        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
-        const timeLockMS = Date.now() + LOCK_TIME
-        const timeLock = Math.floor(timeLockMS / 1000)
+        const timelock = calculateEpochTimelock(40);
 
         if (!account?.address) {
             throw Error("Wallet not connected")
@@ -225,9 +224,16 @@ export default function useEVM(): WalletProvider {
         const abi = sourceAsset.contract ? ERC20PHTLCAbi : PHTLCAbi
 
         function generateBytes32Hex() {
-            const bytes = new Uint8Array(32); // 32 bytes = 64 hex characters
+            const bytes = new Uint8Array(30);
             crypto.getRandomValues(bytes);
-            return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+
+            // convert to hex
+            let hex = Array.from(bytes)
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+
+            // pad with 2 extra bytes (4 hex chars)
+            return '0000' + hex;
         }
 
         const id = `0x${generateBytes32Hex()}`;
@@ -247,7 +253,7 @@ export default function useEVM(): WalletProvider {
                 sourceAsset.symbol,
                 id,
                 lpAddress,
-                timeLock,
+                timelock,
             ],
             chainId: Number(chainId),
         }
@@ -299,7 +305,7 @@ export default function useEVM(): WalletProvider {
 
         const result: any = await readContract(config, {
             abi: abi,
-            address: contractAddress,
+            address: contractAddress as `0x${string}`,
             functionName: 'getHTLCDetails',
             args: [id],
             chainId: Number(chainId),
@@ -335,7 +341,7 @@ export default function useEVM(): WalletProvider {
         async function getDetailsFetch(client: PublicClient): Promise<Commit> {
             const result: any = await client.readContract({
                 abi: abi,
-                address: contractAddress,
+                address: contractAddress as `0x${string}`,
                 functionName: 'getHTLCDetails',
                 args: [id],
             })
@@ -375,9 +381,7 @@ export default function useEVM(): WalletProvider {
     const addLock = async (params: CommitmentParams & LockParams) => {
         const { chainId, id, hashlock, contractAddress, solver } = params
 
-        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
-        const timeLockMS = Date.now() + LOCK_TIME
-        const timeLock = Math.floor(timeLockMS / 1000)
+        const timelock = calculateEpochTimelock(20);
 
         const apiClient = new LayerSwapApiClient()
 
@@ -398,8 +402,8 @@ export default function useEVM(): WalletProvider {
 
         const message = {
             Id: id,
-            hashlock: hashlock,
-            timelock: timeLock,
+            hashlock,
+            timelock,
         };
 
         if (!account?.address) throw new Error("Wallet not connected")
@@ -418,7 +422,7 @@ export default function useEVM(): WalletProvider {
                 v: sig.v.toString(),
                 r: sig.r,
                 s: sig.s,
-                timelock: timeLock,
+                timelock,
             },
                 id,
                 solver
@@ -436,7 +440,7 @@ export default function useEVM(): WalletProvider {
 
         const { request } = await simulateContract(config, {
             abi: abi,
-            address: contractAddress,
+            address: contractAddress as `0x${string}`,
             functionName: 'refund',
             args: [id],
             chainId: Number(chainId),
@@ -460,7 +464,7 @@ export default function useEVM(): WalletProvider {
         const { request } = await simulateContract(config, {
             account: evmAccount.address as `0x${string}`,
             abi: abi,
-            address: contractAddress,
+            address: contractAddress as `0x${string}`,
             functionName: 'redeem',
             args: [id, bigIntSecret],
             chainId: Number(chainId),
@@ -484,7 +488,7 @@ export default function useEVM(): WalletProvider {
         }
         const result = await readContract(config, {
             abi: abi,
-            address: contractAddress,
+            address: contractAddress as `0x${string}`,
             functionName: 'getContracts',
             args: [account.address],
             chainId: Number(chainId),

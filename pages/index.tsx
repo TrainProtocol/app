@@ -3,8 +3,6 @@ import { InferGetServerSidePropsType } from 'next'
 import Swap from '../components/swapComponent'
 import { getServerSideProps } from '../helpers/getSettings'
 import { SWRConfig } from 'swr'
-import LayerSwapApiClient from '../lib/trainApiClient'
-import { resolveRoutesURLForSelectedToken } from '../helpers/routes'
 
 export default function Home({ settings, themeData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 
@@ -18,7 +16,7 @@ export default function Home({ settings, themeData }: InferGetServerSidePropsTyp
         <Swap />
       </Layout>
     </SWRConfig>
-  )
+  ) 
 }
 
 export { getServerSideProps };

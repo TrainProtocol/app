@@ -11,6 +11,7 @@ import useTON from "../lib/wallets/ton/useTON";
 import useFuel from "../lib/wallets/fuel/useFuel";
 import useSVM from "../lib/wallets/solana/useSVM";
 import VaulDrawer from "../components/Modal/vaulModal";
+import useAztec from "../lib/wallets/aztec/useAztec";
 
 const WalletProvidersContext = createContext<WalletProvider[]>([]);
 
@@ -23,10 +24,11 @@ export const WalletProvidersProvider: React.FC<React.PropsWithChildren> = ({ chi
     const svm = useSVM();
     const ton = useTON();
     const fuel = useFuel();
+    const aztec = useAztec()
 
     const providers = useMemo(() => {
         const allProviders: WalletProvider[] = [
-            evm, starknet, svm, ton, fuel
+            evm, starknet, svm, ton, fuel, aztec
         ];
 
         return allProviders.filter(provider =>
@@ -36,7 +38,7 @@ export const WalletProvidersProvider: React.FC<React.PropsWithChildren> = ({ chi
                 provider.asSourceSupportedNetworks?.includes(net.name)
             )
         );
-    }, [networks, evm, starknet, svm, ton, fuel]);
+    }, [networks, evm, starknet, svm, ton, fuel, aztec]);
 
     return (
         <WalletProvidersContext.Provider value={providers}>

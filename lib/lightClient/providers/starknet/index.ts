@@ -117,7 +117,7 @@ export default class StarknetLightClient extends _LightClient {
 
                         const parsedResult: Commit = {
                             ...result,
-                            sender: toHex(result.sender),
+                            sender: toHex(result.sender as any),
                             amount: formatAmount(result.amount, token.decimals),
                             hashlock: result.hashlock && toHex(result.hashlock, { size: 32 }),
                             claimed: Number(result.claimed),

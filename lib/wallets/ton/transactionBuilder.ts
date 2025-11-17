@@ -3,6 +3,7 @@ import { CreatePreHTLCParams } from "../../../Models/phtlc";
 import tonClient from "./client";
 import { JettonMaster, Address, Builder, Dictionary, DictionaryValue, beginCell, Slice, Cell, toNano } from "@ton/ton"
 import { fromHex } from "viem";
+import { calculateEpochTimelock } from "../utils/calculateTimelock";
 
 export const commitTransactionBuilder = async (params: CreatePreHTLCParams & { wallet: { address: string, publicKey: string } }) => {
 
@@ -36,9 +37,7 @@ export const commitTransactionBuilder = async (params: CreatePreHTLCParams & { w
         [0n, { $$type: 'StringImpl', data: "0xF6517026847B4c166AAA176fe0C5baD1A245778D" }]
     ]);
 
-    const LOCK_TIME = 1000 * 60 * 15 // 15 minutes
-    const timeLockMS = Date.now() + LOCK_TIME
-    const timelock = BigInt(Math.floor(timeLockMS / 1000))
+    const timelock = BigInt(calculateEpochTimelock(20));
 
     const senderPublicKey = fromHex(`0x${wallet.publicKey}`, 'bigint')
     const srcReceiver: Address = Address.parse(lpAddress);

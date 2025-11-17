@@ -3,13 +3,15 @@ import useWallet from "../../../../hooks/useWallet";
 import { useAtomicState } from "../../../../context/atomicContext";
 import { WalletActionButton } from "../../buttons";
 import { useRouter } from "next/router";
+import KnownInternalNames from "../../../../lib/knownIds";
 
 export const RedeemAction: FC = () => {
-    const { destination_network, source_network, sourceDetails, destinationDetails, updateCommit, manualClaimRequested, destination_asset, source_asset, commitId, isManualClaimable, atomicQuery, setAtomicQuery, destAtomicContract, srcAtomicContract } = useAtomicState()
+    const { destination_network, source_network, sourceDetails, destinationDetails, updateCommit, manualClaimRequested, destination_asset, source_asset, commitId, isManualClaimable, atomicQuery, setAtomicQuery, destAtomicContract, srcAtomicContract, address } = useAtomicState()
+    const isAztecDestination = destination_network?.name === KnownInternalNames.Networks.AztecTestnet;
     const { getProvider } = useWallet()
     const router = useRouter()
     const source_provider = source_network && getProvider(source_network, 'withdrawal')
-    const destination_provider = destination_network && getProvider(destination_network, 'autofil')
+    const destination_provider = destination_network && getProvider(destination_network, 'withdrawal')
     const destination_wallet = destination_provider?.activeWallet
 
     useEffect(() => {
@@ -79,6 +81,8 @@ export const RedeemAction: FC = () => {
                 chainId: destination_network.chainId,
                 contractAddress: destAtomicContract as `0x${string}`,
                 sourceAsset: destination_asset,
+                destinationAddress: address,
+                destinationAsset: destination_asset
             })
 
             setAtomicQuery({ ...atomicQuery, claimTxId: claimTx })
@@ -113,7 +117,7 @@ export const RedeemAction: FC = () => {
                                 networkChainId={Number(destination_network?.chainId)}
                                 onClick={handleClaimAssets}
                             >
-                                Claim Manually
+                                {isAztecDestination ? 'Claim' : 'Claim Manually'}
                             </WalletActionButton>
                     )
                     : null

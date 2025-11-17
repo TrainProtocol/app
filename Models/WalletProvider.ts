@@ -1,5 +1,4 @@
 import { AccountInterface } from 'starknet';
-import { StarknetWindowObject } from 'starknetkit';
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from './phtlc';
 import { Commit } from './phtlc/PHTLC';
 
@@ -26,7 +25,7 @@ export type Wallet = {
     icon: (props: any) => React.JSX.Element;
     metadata?: {
         starknetAccount?: AccountInterface,
-        wallet?: StarknetWindowObject,
+        wallet?: any,
         l1Address?: string,
         deepLink?: string
     }

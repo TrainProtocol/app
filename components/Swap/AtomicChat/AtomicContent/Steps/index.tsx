@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { CancelAndRefund, LpLockingAssets, RequestStep, SignAndConfirmStep, TimelockExpired } from "./Steps";
+import { CancelAndRefund, LpLockingAssets, ManualClaim, RequestStep, SignAndConfirmStep, TimelockExpired } from "./Steps";
 
 const Steps: FC = () => {
     return <div className="space-y-2">
@@ -8,6 +8,7 @@ const Steps: FC = () => {
         <CancelAndRefund />
         <LpLockingAssets />
         <SignAndConfirmStep />
+        <ManualClaim />
     </div>
 }
 

@@ -14,6 +14,7 @@ import { InternalConnector, Wallet, WalletProvider } from "../../../Models/Walle
 import { useMemo } from "react";
 import LayerSwapApiClient from "../../trainApiClient";
 import { Commit } from "../../../Models/phtlc/PHTLC";
+import { calculateEpochTimelock } from "../utils/calculateTimelock";
 
 const starknetNames = [KnownInternalNames.Networks.StarkNetGoerli, KnownInternalNames.Networks.StarkNetMainnet, KnownInternalNames.Networks.StarkNetSepolia]
 export default function useStarknet(): WalletProvider {
@@ -158,8 +159,7 @@ export default function useStarknet(): WalletProvider {
                 return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
             }
             const id = `0x${generateBytes32Hex()}`
-            const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
-            const timeLock = Math.floor((Date.now() + LOCK_TIME) / 1000)
+            const timelock = calculateEpochTimelock(20);
             const args = [
                 BigInt(id),
                 parsedAmount,
@@ -168,7 +168,7 @@ export default function useStarknet(): WalletProvider {
                 address,
                 sourceAsset.symbol,
                 lpAddress,
-                timeLock,
+                timelock,
                 tokenContractAddress,
             ]
             const atomicContract = new Contract(
@@ -288,8 +288,7 @@ export default function useStarknet(): WalletProvider {
 
     const addLock = async (params: CommitmentParams & LockParams) => {
         const { id, hashlock, contractAddress } = params
-        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
-        const timeLock = Math.floor((Date.now() + LOCK_TIME) / 1000)
+        const timelock = calculateEpochTimelock(20)
 
         if (!starknetWallet?.metadata?.starknetAccount) {
             throw new Error('Wallet not connected')
@@ -297,7 +296,7 @@ export default function useStarknet(): WalletProvider {
         const args = [
             id,
             hashlock,
-            timeLock
+            timelock
         ]
         const atomicContract = new Contract(
             {
@@ -318,12 +317,10 @@ export default function useStarknet(): WalletProvider {
         if (!starknetWallet?.metadata?.starknetAccount) {
             throw new Error('Wallet not connected')
         }
-        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
-        const timeLock = Math.floor((Date.now() + LOCK_TIME) / 1000)
-
+        const timelock = calculateEpochTimelock(20);
         const u256Id = cairo.uint256(id);
         const u256Hashlock = cairo.uint256(hashlock);
-        const u256TimeLock = cairo.uint256(timeLock);
+        const u256TimeLock = cairo.uint256(timelock);
 
         const addlockData: TypedData = {
             domain: {
@@ -370,7 +367,7 @@ export default function useStarknet(): WalletProvider {
         try {
             await apiClient.AddLockSig({
                 signatureArray: signature,
-                timelock: timeLock,
+                timelock,
             },
                 id,
                 solver
