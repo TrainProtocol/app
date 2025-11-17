@@ -159,7 +159,7 @@ const RpcConfigurationView: FC = () => {
                         </div>
                     )}
 
-                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                    <div className="space-y-2 overflow-y-auto">
                         {filteredNetworks.length === 0 ? (
                             <div className="text-center py-8 text-secondary-text">
                                 No networks with RPC support available
