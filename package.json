@@ -5,7 +5,7 @@
   "scripts": {
     "debug": "next dev",
     "dev": "next dev",
-    "build": "next build && if test \"$NEXT_PUBLIC_VERCEL_ENV\" = \"production\"; then  datadog-ci sourcemaps upload .next/static/chunks/ --service=layerswapuiapp --release-version=$NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA --minified-path-prefix=https://layerswap.io/app/_next/static/chunks/; fi",
+    "build": "next build",
     "start": "next start",
     "analyze": "cross-env ANALYZE=true next build",
     "lint": "next lint",
@@ -63,8 +63,6 @@
     "@ton/ton": "^13.11.1",
     "@tonconnect/ui-react": "^2.0.0-beta.4",
     "@uidotdev/usehooks": "^2.4.1",
-    "@walletconnect/signer-connection": "^2.21.5",
-    "@walletconnect/universal-provider": "^2.21.5",
     "axios": "^0.21.4",
     "blake2b": "^2.1.4",
     "bn.js": "^5.2.0",
@@ -123,7 +121,9 @@
   "resolutions": {
     "rpc-websockets": "7.11.0",
     "@solana/web3.js": "1.66.0",
-    "@radix-ui/react-dismissable-layer": "1.1.1"
+    "@radix-ui/react-dismissable-layer": "1.1.1",
+    "@walletconnect/universal-provider": "2.21.8",
+    "@walletconnect/ethereum-provider": "2.21.8"
   },
   "engines": {
     "node": ">=20.9.0"
