@@ -11,7 +11,6 @@ import { CallIntent } from '@aztec/aztec.js/authorization';
 import { encodeArguments, FunctionType } from '@aztec/aztec.js/abi';
 import { AztecNode, createAztecNodeClient } from '@aztec/aztec.js/node';
 import { SponsoredFeePaymentMethod } from '@aztec/aztec.js/fee';
-import { aztecNodeUrl } from './configs';
 
 // const TrainContractArtifact = TrainContract.artifact;
 
@@ -19,8 +18,8 @@ const feeOptions = {
     paymentMethod: new SponsoredFeePaymentMethod(AztecAddress.fromString('0x280e5686a148059543f4d0968f9a18cd4992520fcd887444b8689bf2726a1f97')),
 };
 
-export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { senderWallet: Wallet }) => {
-    let { tokenContractAddress, srcLpAddress: lpAddress, atomicContract, sourceAsset, senderWallet, address, destinationChain, destinationAsset, amount } = props;
+export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { senderWallet: Wallet, aztecNodeUrl: string }) => {
+    let { tokenContractAddress, srcLpAddress: lpAddress, atomicContract, sourceAsset, senderWallet, address, destinationChain, destinationAsset, amount, aztecNodeUrl } = props;
 
     if (!tokenContractAddress || !lpAddress || !atomicContract || !sourceAsset || !senderWallet) throw new Error("Missing required parameters");
 
@@ -184,13 +183,13 @@ export const refundTransactionBuilder = async (params: RefundParams & { senderWa
     }
 }
 
-export const claimTransactionBuilder = async (params: ClaimParams & { senderWallet: Wallet, ownershipKey: string }) => {
-    const { id, contractAddress, secret, senderWallet, ownershipKey, destinationAsset } = params;
+export const claimTransactionBuilder = async (params: ClaimParams & { senderWallet: Wallet, ownershipKey: string, aztecNodeUrl: string }) => {
+    const { id, contractAddress, secret, senderWallet, ownershipKey, destinationAsset, aztecNodeUrl } = params;
 
     if (!id || !contractAddress || !secret || !senderWallet || !ownershipKey || !destinationAsset?.contract) {
         throw new Error("Missing required parameters");
     }
-debugger
+
     const aztecTokenAddress = AztecAddress.fromString(destinationAsset.contract);
 
     const accounts = await senderWallet.getAccounts();

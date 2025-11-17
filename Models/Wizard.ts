@@ -57,7 +57,8 @@ export enum AuthStep {
 export enum MenuStep {
     Menu = "Menu",
     Transactions = "Transactions",
-    TransactionDetails = "Transaction Details"
+    TransactionDetails = "Transaction Details",
+    RpcConfiguration = "RPC Configuration"
 }
 
 export enum AtomicSteps {

@@ -20,6 +20,7 @@ import { InternalConnector, Wallet, WalletProvider } from "../../../Models/Walle
 import { useEffect, useMemo } from "react";
 import { useWalletStore } from "../../../stores/walletStore";
 import { useSettingsState } from "../../../context/settings";
+import { useRpcConfigStore } from "../../../stores/rpcConfigStore";
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../../../Models/phtlc";
 import { concat, DateTime } from "@fuel-ts/utils";
 import { Contract } from "@fuel-ts/program";
@@ -41,9 +42,11 @@ export default function useFuel(): WalletProvider {
     const { wallet } = useWallet()
     const { fuel } = useGlobalFuel()
     const { networks } = useSettingsState()
+    const { getEffectiveRpcUrl } = useRpcConfigStore()
 
     const network = networks.find(n => n.name.toLowerCase().includes('fuel'))
-    const fuelProvider = network && new Provider(network?.rpcUrl);
+    const effectiveRpcUrl = network ? getEffectiveRpcUrl(network) : undefined
+    const fuelProvider = effectiveRpcUrl && new Provider(effectiveRpcUrl);
 
     const wallets = useWalletStore((state) => state.connectedWallets)
     const addWallet = useWalletStore((state) => state.connectWallet)

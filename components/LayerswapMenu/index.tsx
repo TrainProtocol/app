@@ -9,6 +9,8 @@ import WizardItem from "../Wizard/WizardItem";
 import { NextRouter, useRouter } from "next/router";
 import { resolvePersistantQueryParams } from "../../helpers/querryHelper";
 import Modal from "../Modal/modal";
+import RpcConfigurationView from "../Settings/RpcConfigurationView";
+import clsx from "clsx";
 
 const Comp = () => {
     const router = useRouter();
@@ -27,11 +29,13 @@ const Comp = () => {
     }
     const goBackToMenuStep = () => { goToStep(MenuStep.Menu, "back"); clearMenuPath(router) }
 
-    const handleGoToStep = (step: MenuStep, path: string) => {
+    const handleGoToStep = (step: MenuStep, path?: string) => {
         goToStep(step)
-        setMenuPath(path, router)
+        if (path) {
+            setMenuPath(path, router)
+        }
     }
-
+    console.log(currentStepName)
     return <>
         <div className="text-secondary-text cursor-pointer relative">
             <IconButton onClick={() => setOpenTopModal(true)} icon={
@@ -57,9 +61,16 @@ const Comp = () => {
                     </div>
                 }
             >
-                <Wizard wizardId='menuWizard' >
+                <Wizard wizardId='menuWizard'
+                    className={clsx("h-full", {
+                        '!pb-0': currentStepName !== MenuStep.Menu
+                    })}
+                >
                     <WizardItem StepName={MenuStep.Menu} inModal>
                         <MenuList goToStep={handleGoToStep} />
+                    </WizardItem>
+                    <WizardItem className="h-full" StepName={MenuStep.RpcConfiguration} GoBack={goBackToMenuStep} inModal>
+                        <RpcConfigurationView />
                     </WizardItem>
                     {/* <WizardItem StepName={MenuStep.Transactions} GoBack={goBackToMenuStep} className="h-full" inModal>
                         <HistoryList onNewTransferClick={() => handleModalOpenStateChange(false)} />

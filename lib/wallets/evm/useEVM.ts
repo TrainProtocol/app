@@ -4,6 +4,7 @@ import { useSettingsState } from "../../../context/settings"
 import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon, resolveWalletConnectorIndex } from "../utils/resolveWalletIcon"
 import { evmConnectorNameResolver } from "./KnownEVMConnectors"
+import { useRpcConfigStore } from "../../../stores/rpcConfigStore"
 import { CreatePreHTLCParams, CommitmentParams, LockParams, GetCommitsParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
 import { writeContract, simulateContract, readContract, waitForTransactionReceipt, signTypedData, CreateConnectorFn } from '@wagmi/core'
 import { ethers } from "ethers"
@@ -36,6 +37,7 @@ export default function useEVM(): WalletProvider {
     const id = 'evm'
     const { networks } = useSettingsState()
     const config = useConfig()
+    const { getEffectiveRpcUrl } = useRpcConfigStore()
 
     const evmAccount = useAccount()
 
@@ -332,11 +334,14 @@ export default function useEVM(): WalletProvider {
         const abi = type === 'erc20' ? ERC20PHTLCAbi : PHTLCAbi
 
         const network = networks.find(n => n.chainId === chainId)
-        const nodeUrls = [network?.rpcUrl]
-        if (!network?.chainId) throw new Error("No network found")
+        if (!network) throw new Error("No network found")
+
+        // Get effective RPC URL (custom if configured, otherwise default)
+        const effectiveRpcUrl = getEffectiveRpcUrl(network)
+        const nodeUrls = [effectiveRpcUrl]
         if (!nodeUrls) throw new Error("No node urls found")
 
-        const chain = resolveChain(network) as Chain
+        const chain = resolveChain(network, effectiveRpcUrl) as Chain
 
         async function getDetailsFetch(client: PublicClient): Promise<Commit> {
             const result: any = await client.readContract({

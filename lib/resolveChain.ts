@@ -4,7 +4,7 @@ import NetworkSettings from "./NetworkSettings";
 import { SendErrorMessage } from "./telegram";
 import { chainConfig } from 'viem/op-stack'
 
-export default function resolveChain(network: Network) {
+export default function resolveChain(network: Network, customRpcUrl?: string) {
 
     const nativeCurrency = network.nativeTokenSymbol;
     const blockExplorersBaseURL =
@@ -21,6 +21,9 @@ export default function resolveChain(network: Network) {
 
     const opStackChainConfig = Number(network.chainId) == 10 ? chainConfig : {}
 
+    // Use custom RPC URL if provided, otherwise use the network's default RPC
+    const rpcUrl = customRpcUrl || network.rpcUrl;
+
     const res = defineChain({
         id: Number(network.chainId),
         name: network.displayName,
@@ -31,10 +34,10 @@ export default function resolveChain(network: Network) {
         },
         rpcUrls: {
             default: {
-                http: [network.rpcUrl],
+                http: [rpcUrl],
             },
             public: {
-                http: [network.rpcUrl],
+                http: [rpcUrl],
             },
         },
         ...(blockExplorersBaseURL ? {

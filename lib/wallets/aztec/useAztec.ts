@@ -12,6 +12,7 @@ import { TrainContract } from "./Train";
 import { useAzguardWallet } from "./useAzguardWallet";
 import { AztecAddress } from "@aztec/aztec.js/addresses";
 import { Fr } from "@aztec/aztec.js/fields";
+import { useAztecNodeUrl } from "./configs";
 
 export default function useAztec(): WalletProvider {
     const commonSupportedNetworks = [
@@ -19,6 +20,8 @@ export default function useAztec(): WalletProvider {
     ]
 
     const { networks } = useSettingsState()
+
+    const aztecNodeUrl = useAztecNodeUrl();
 
     const name = 'Aztec'
     const id = 'aztec'
@@ -86,6 +89,7 @@ export default function useAztec(): WalletProvider {
 
         const tx = await commitTransactionBuilder({
             senderWallet: aztecWalletInstance,
+            aztecNodeUrl,
             ...params
         })
 
@@ -167,6 +171,7 @@ export default function useAztec(): WalletProvider {
         const claimTx = await claimTransactionBuilder({
             senderWallet: aztecWalletInstance,
             ownershipKey: aztecSecret.secret,
+            aztecNodeUrl,
             ...params
         })
 

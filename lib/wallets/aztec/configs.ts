@@ -1,3 +1,8 @@
+import { useRpcConfigStore } from "../../../stores/rpcConfigStore";
+import { useSettingsState } from "../../../context/settings";
+import { NetworkType } from "../../../Models/Network";
+import KnownInternalNames from "../../knownIds";
+
 // Dynamic import to prevent SSR issues
 let AztecWallet: typeof import("@azguardwallet/aztec-wallet").AztecWallet | null = null;
 
@@ -9,7 +14,28 @@ const getAztecWallet = async () => {
     return AztecWallet;
 };
 
-export const aztecNodeUrl = "https://devnet.aztec-labs.com";
+// Default Aztec node URL
+const DEFAULT_AZTEC_NODE_URL = "https://devnet.aztec-labs.com";
+
+// Function to get the effective Aztec node URL (custom or default)
+
+export const useAztecNodeUrl = () => {
+    if (typeof window === 'undefined') {
+        return DEFAULT_AZTEC_NODE_URL;
+    }
+    const { networks } = useSettingsState();
+    const { getEffectiveRpcUrl } = useRpcConfigStore();
+    const aztecNetwork = networks?.find(
+        n => n.name === KnownInternalNames.Networks.AztecTestnet ||
+             n.name.toLowerCase().includes('aztec')
+    );
+
+    if (aztecNetwork) {
+        return getEffectiveRpcUrl(aztecNetwork);
+    }
+
+    return DEFAULT_AZTEC_NODE_URL;
+}
 
 // Dapp metadata for AzguardWallet connection
 export const dappMetadata = {

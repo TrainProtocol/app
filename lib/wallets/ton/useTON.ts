@@ -11,9 +11,12 @@ import { InternalConnector, Wallet, WalletProvider } from "../../../Models/Walle
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
 import { Commit } from "../../../Models/phtlc/PHTLC";
 import { calculateEpochTimelock } from "../utils/calculateTimelock";
+import { useRpcConfigStore } from "../../../stores/rpcConfigStore";
+import { NetworkType } from "../../../Models/Network";
 
 export default function useTON(): WalletProvider {
     const { networks } = useSettingsState()
+    const { getEffectiveRpcUrl } = useRpcConfigStore()
 
     const commonSupportedNetworks = [
         KnownInternalNames.Networks.TONMainnet,
@@ -25,6 +28,13 @@ export default function useTON(): WalletProvider {
 
     const tonWallet = useTonWallet();
     const [tonConnectUI] = useTonConnectUI();
+
+    // Get TON network configuration
+    const tonNetwork = networks?.find(n =>
+        n.type === NetworkType.TON &&
+        commonSupportedNetworks.some(name => name === n.name)
+    );
+    const tonApiUrl = tonNetwork ? getEffectiveRpcUrl(tonNetwork) : 'https://testnet.toncenter.com';
 
     const address = tonWallet?.account && Address.parse(tonWallet.account.address).toString({ bounceable: false })
     const iconUrl = tonWallet?.["imageUrl"] as string
@@ -144,7 +154,7 @@ export default function useTON(): WalletProvider {
         const getCommitId = async () => {
 
             await new Promise((resolve) => setTimeout(resolve, 3000))
-            const events: Events = await fetch(`https://testnet.toncenter.com/api/v3/events?msg_hash=${messageHash}`).then(res => res.json())
+            const events: Events = await fetch(`${tonApiUrl}/api/v3/events?msg_hash=${messageHash}`).then(res => res.json())
 
             if (events?.events.length > 0) {
 
