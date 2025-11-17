@@ -305,7 +305,7 @@ export default function useEVM(): WalletProvider {
 
         const result: any = await readContract(config, {
             abi: abi,
-            address: contractAddress,
+            address: contractAddress as `0x${string}`,
             functionName: 'getHTLCDetails',
             args: [id],
             chainId: Number(chainId),
@@ -341,7 +341,7 @@ export default function useEVM(): WalletProvider {
         async function getDetailsFetch(client: PublicClient): Promise<Commit> {
             const result: any = await client.readContract({
                 abi: abi,
-                address: contractAddress,
+                address: contractAddress as `0x${string}`,
                 functionName: 'getHTLCDetails',
                 args: [id],
             })
@@ -440,7 +440,7 @@ export default function useEVM(): WalletProvider {
 
         const { request } = await simulateContract(config, {
             abi: abi,
-            address: contractAddress,
+            address: contractAddress as `0x${string}`,
             functionName: 'refund',
             args: [id],
             chainId: Number(chainId),
@@ -464,7 +464,7 @@ export default function useEVM(): WalletProvider {
         const { request } = await simulateContract(config, {
             account: evmAccount.address as `0x${string}`,
             abi: abi,
-            address: contractAddress,
+            address: contractAddress as `0x${string}`,
             functionName: 'redeem',
             args: [id, bigIntSecret],
             chainId: Number(chainId),
@@ -488,7 +488,7 @@ export default function useEVM(): WalletProvider {
         }
         const result = await readContract(config, {
             abi: abi,
-            address: contractAddress,
+            address: contractAddress as `0x${string}`,
             functionName: 'getContracts',
             args: [account.address],
             chainId: Number(chainId),
