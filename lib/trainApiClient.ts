@@ -2,7 +2,7 @@ import AppSettings from "./AppSettings";
 import { InitializeUnauthInstance } from "./axiosInterceptor"
 import { AxiosInstance, Method } from "axios";
 import { ApiResponse, EmptyApiResponse } from "../Models/ApiResponse";
-import { Network, Route } from "../Models/Network";
+import { Network, NetworkType, Route, Token } from "../Models/Network";
 
 export default class LayerSwapApiClient {
     static apiBaseEndpoint?: string = AppSettings.LayerswapApiUri;
@@ -53,19 +53,37 @@ export type AddLockSig = {
 
 export type CommitFromApi = {
     commitId: string,
-    sourceNetwork: string,
-    sourceToken: string,
     sourceAmount: number,
     sourceAmountInUsd: number,
     sourceAddress: string,
-    destinationNetwork: string,
-    destinationToken: string,
     destinationAmount: number,
     destinationAmountInUsd: number,
     destinationAddress: string,
     feeAmount: number,
     sourceContractAddress: string,
     destinationContractAddress: string,
+    destination: {
+        network: {
+            chainId: string,
+            displayName: string,
+            feePercentageIncrease: number,
+            feeType: string,
+            htlcNativeContractAddress: string,
+            htlcTokenContractAddress:string,
+            name:string,
+            type: NetworkType,
+            nativeToken: {
+                contract: string,
+                decimals: number,
+                symbol: string
+            }
+        },
+        token: {
+            symbol: string,
+            contract: string,
+            decimals: number
+        },
+    }
     transactions: {
         type: CommitTransaction,
         hash: string,
