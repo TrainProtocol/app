@@ -45,10 +45,10 @@ const Wizard: FC<Props> = ({ children, wizardId, className }) => {
             <HeaderWithMenu goBack={goBack} />
          }
          <div className={noToolBar ? 'relative w-full h-full' : `relative px-6 `}>
-            <div className="flex items-start" ref={wrapper}>
+            <div className="flex items-start h-full" ref={wrapper}>
                <AnimatePresence initial={false} custom={{ direction: moving === "forward" ? 1 : -1, width: wrapperWidth }}>
-                  <div className={`flex flex-nowrap grow`}>
-                     <div className={`w-full pb-6 flex flex-col justify-between space-y-5 text-secondary-text h-full ${className}`}>
+                  <div className={`flex flex-nowrap grow h-full`}>
+                     <div className={`w-full pb-6 flex flex-col justify-between space-y-5 text-secondary-text !h-full ${className}`}>
                         {children}
                      </div>
                   </div>

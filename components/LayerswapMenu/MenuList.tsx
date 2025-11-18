@@ -1,4 +1,4 @@
-import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info } from "lucide-react";
+import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info, Settings2 } from "lucide-react";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
 import { useIntercom } from "react-use-intercom";
@@ -18,7 +18,7 @@ const WalletsMenu = dynamic(() => import("../Wallet/ConnectedWallets.tsx").then(
     loading: () => <></>
 })
 
-const MenuList: FC<{ goToStep: (step: MenuStep, path: string) => void }> = ({ goToStep }) => {
+const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ goToStep }) => {
     const router = useRouter();
     const { boot, show, update } = useIntercom()
     const [embedded, setEmbedded] = useState<boolean>()
@@ -37,17 +37,22 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path: string) => void }> = ({ go
 
             <WalletsMenu />
 
-            {
-                router.pathname != '/' &&
-                <Menu.Group>
-                    <>
 
+            <Menu.Group>
+                <>
+                    {
+                        router.pathname != '/' &&
                         <Menu.Item pathname='/' icon={<Home className="h-5 w-5" />} >
                             Home
                         </Menu.Item>
+                    }
 
-                    </>
-                    {/* <>
+                    <Menu.Item onClick={() => goToStep(MenuStep.RPCConfiguration)} icon={<Settings2 className="h-5 w-5" />} >
+                        RPC Configuration
+                    </Menu.Item>
+
+                </>
+                {/* <>
                     {router.pathname != '/transactions' &&
                         <Menu.Item onClick={() => goToStep(MenuStep.Transactions, "/transactions")} icon={<ScrollText className="h-5 w-5" />} >
                             Transactions
@@ -55,8 +60,7 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path: string) => void }> = ({ go
                     }
                 </>
               */}
-                </Menu.Group>
-            }
+            </Menu.Group>
             <Menu.Group>
                 <Menu.Item onClick={() => {
                     boot();

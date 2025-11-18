@@ -11,7 +11,7 @@ const SecondaryButton: FC<ButtonHTMLAttributes<HTMLButtonElement> & SecondaryBut
 
     const size = props.size || 'md'
 
-    let defaultStyle = `rounded-md duration-200 break-keep transition bg-secondary-500 hover:bg-secondary-400 border border-secondary-400 hover:border-primary/80 font-semibold text-primary-buttonTextColor shadow-sm cursor-pointer ${props.className} `
+    let defaultStyle = `rounded-xl duration-200 break-keep transition bg-secondary-500 hover:bg-secondary-400 border border-secondary-400 hover:border-primary/80 font-semibold text-primary-buttonTextColor shadow-sm cursor-pointer ${props.className} `
 
     switch (size) {
         case 'xs':
@@ -27,7 +27,7 @@ const SecondaryButton: FC<ButtonHTMLAttributes<HTMLButtonElement> & SecondaryBut
             defaultStyle += " px-3 py-2 text-sm";
             break;
         case 'xl':
-            defaultStyle += " px-3.5 py-2.5 text-sm";
+            defaultStyle += " px-3.5 py-3 text-sm";
             break;
     }
 

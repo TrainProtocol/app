@@ -15,6 +15,7 @@ import { useMemo } from "react";
 import LayerSwapApiClient from "../../trainApiClient";
 import { Commit } from "../../../Models/phtlc/PHTLC";
 import { calculateEpochTimelock } from "../utils/calculateTimelock";
+import { useRpcConfigStore } from "../../../stores/rpcConfigStore";
 
 const starknetNames = [KnownInternalNames.Networks.StarkNetGoerli, KnownInternalNames.Networks.StarkNetMainnet, KnownInternalNames.Networks.StarkNetSepolia]
 export default function useStarknet(): WalletProvider {
@@ -31,6 +32,7 @@ export default function useStarknet(): WalletProvider {
     const name = 'Starknet'
     const id = 'starknet'
     const { networks } = useSettingsState()
+    const { getEffectiveRpcUrl } = useRpcConfigStore()
 
     const { connectors } = useConnect();
     const { disconnectAsync } = useDisconnect()
@@ -41,7 +43,7 @@ export default function useStarknet(): WalletProvider {
 
     const isMainnet = networks?.some(network => network.name === KnownInternalNames.Networks.StarkNetMainnet)
     const network = networks?.find(network => starknetNames.some(name => name === network.name))
-    const nodeUrl = network?.rpcUrl
+    const nodeUrl = network ? getEffectiveRpcUrl(network) : undefined
 
     const starknetWallet = useMemo(() => {
         const wallet = wallets.find(wallet => wallet.providerName === name)
