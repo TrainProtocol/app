@@ -9,10 +9,10 @@ import { getAztecSecret } from "./secretUtils";
 import { combineHighLow, highLowToHexValidated, trimTo30Bytes } from "./utils";
 import formatAmount from "../../formatAmount";
 import { TrainContract } from "./Train";
-import { useAzguardWallet } from "./useAzguardWallet";
 import { AztecAddress } from "@aztec/aztec.js/addresses";
 import { Fr } from "@aztec/aztec.js/fields";
 import { useAztecNodeUrl } from "./configs";
+import { useAztecWalletContext } from "./AztecWalletProvider";
 
 export default function useAztec(): WalletProvider {
     const commonSupportedNetworks = [
@@ -26,10 +26,10 @@ export default function useAztec(): WalletProvider {
     const name = 'Aztec'
     const id = 'aztec'
 
-    const { wallet: aztecWalletInstance, connected, accountAddress, connect, disconnect } = useAzguardWallet();
+    const { wallet, connected, accountAddress, connect, disconnect, isInstalled } = useAztecWalletContext();
 
     const aztecWallet = useMemo(() => {
-        if (!aztecWalletInstance || !connected || !accountAddress) return undefined;
+        if (!wallet || !connected || !accountAddress) return undefined;
 
         return {
             id: 'Azguard',
@@ -44,7 +44,7 @@ export default function useAztec(): WalletProvider {
             asSourceSupportedNetworks: commonSupportedNetworks,
             networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.name))?.logo
         }
-    }, [aztecWalletInstance, connected, accountAddress, networks])
+    }, [wallet, connected, accountAddress, networks])
 
     const connectWallet = async ({ connector: internalConnector }: { connector: InternalConnector }) => {
         try {
@@ -84,11 +84,11 @@ export default function useAztec(): WalletProvider {
     }
 
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
-        if (!aztecWalletInstance) throw new Error("No wallet connected");
+        if (!wallet) throw new Error("No wallet connected");
         const { commitTransactionBuilder } = await import('./transactionBuilder.ts')
 
         const tx = await commitTransactionBuilder({
-            senderWallet: aztecWalletInstance,
+            senderWallet: wallet,
             aztecNodeUrl,
             ...params
         })
@@ -100,12 +100,12 @@ export default function useAztec(): WalletProvider {
         let { id, contractAddress } = params;
         const id30Bytes = trimTo30Bytes(id);
 
-        if (!aztecWalletInstance || !accountAddress) throw new Error("No wallet connected");
+        if (!wallet || !accountAddress) throw new Error("No wallet connected");
 
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
         const atomicContract = await TrainContract.at(
             aztecAtomicContract,
-            aztecWalletInstance,
+            wallet,
         );
 
         const userAztecAddress = AztecAddress.fromString(accountAddress);
@@ -133,12 +133,12 @@ export default function useAztec(): WalletProvider {
     }
 
     const addLock = async (params: CommitmentParams & LockParams) => {
-        if (!aztecWalletInstance) throw new Error("No wallet connected");
+        if (!wallet) throw new Error("No wallet connected");
 
         const { addLockTransactionBuilder } = await import('./transactionBuilder.ts')
 
         const tx = await addLockTransactionBuilder({
-            senderWallet: aztecWalletInstance,
+            senderWallet: wallet,
             ...params
         })
 
@@ -146,12 +146,12 @@ export default function useAztec(): WalletProvider {
     }
 
     const refund = async (params: RefundParams) => {
-        if (!aztecWalletInstance) throw new Error("No wallet connected");
+        if (!wallet) throw new Error("No wallet connected");
 
         const { refundTransactionBuilder } = await import('./transactionBuilder.ts')
 
         const refundTx = await refundTransactionBuilder({
-            senderWallet: aztecWalletInstance,
+            senderWallet: wallet,
             ...params
         })
 
@@ -159,7 +159,7 @@ export default function useAztec(): WalletProvider {
     }
 
     const claim = async (params: ClaimParams) => {
-        if (!aztecWalletInstance) throw new Error("No wallet connected");
+        if (!wallet) throw new Error("No wallet connected");
         const { claimTransactionBuilder } = await import('./transactionBuilder.ts')
 
         // Get the stored Aztec secret for this swap
@@ -169,7 +169,7 @@ export default function useAztec(): WalletProvider {
         }
 
         const claimTx = await claimTransactionBuilder({
-            senderWallet: aztecWalletInstance,
+            senderWallet: wallet,
             ownershipKey: aztecSecret.secret,
             aztecNodeUrl,
             ...params
@@ -183,9 +183,10 @@ export default function useAztec(): WalletProvider {
         return [{
             id: 'azguard',
             name: 'Azguard',
-            icon: AzguardIconBase64
+            icon: AzguardIconBase64,
+            installUrl: !isInstalled ? "https://chromewebstore.google.com/detail/azguard-wallet/pliilpflcmabdiapdeihifihkbdfnbmn" : undefined
         }]
-    }, [])
+    }, [isInstalled])
 
     const provider = {
         connectWallet,

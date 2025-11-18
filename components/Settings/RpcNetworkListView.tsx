@@ -4,6 +4,7 @@ import { useSettingsState } from "../../context/settings"
 import { Network } from "../../Models/Network"
 import { useRpcConfigStore } from "../../stores/rpcConfigStore"
 import LightClient from "../../lib/lightClient"
+import Image from 'next/image'
 
 interface RpcNetworkListViewProps {
     onNetworkSelect: (network: Network) => void
@@ -69,9 +70,13 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
                                 className="w-full flex items-center justify-between p-3 rounded-xl bg-secondary-700 hover:bg-secondary-600 cursor-pointer transition-colors"
                             >
                                 <div className="flex items-center space-x-3 overflow-hidden">
-                                    <img
+                                    <Image
                                         src={network.logo}
                                         alt={network.displayName}
+                                        height="40"
+                                        width="40"
+                                        loading="eager"
+                                        fetchPriority='high'
                                         className="w-8 h-8 rounded-full"
                                     />
                                     <div className="flex flex-col text-left">

@@ -6,8 +6,8 @@ import { validateRpcUrl } from "../../lib/validators/rpcValidator"
 import SecondaryButton from "../buttons/secondaryButton"
 import SubmitButton from "../buttons/submitButton"
 import { toast } from "react-hot-toast"
-import KnownInternalNames from "../../lib/knownIds"
 import LightClient from "../../lib/lightClient"
+import Image from 'next/image'
 
 interface NetworkRpcEditViewProps {
     network: Network
@@ -22,7 +22,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
     const [validatedUrls, setValidatedUrls] = useState<Record<number, boolean>>({})
 
     const hasLightClient = new LightClient().supportsNetwork(network)
-    
+
     useEffect(() => {
         // Load existing URLs or start with one empty field
         const existingConfig = rpcConfigs[network.name]
@@ -155,9 +155,13 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
             <div className="flex flex-col gap-2">
                 {/* Network Info */}
                 <div className="flex items-center space-x-3">
-                    <img
+                    <Image
                         src={network.logo}
                         alt={network.displayName}
+                        height="40"
+                        width="40"
+                        loading="eager"
+                        fetchPriority='high'
                         className="w-10 h-10 rounded-full"
                     />
                     <div className="flex-1">
@@ -213,10 +217,10 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                                     onChange={(e) => handleUrlChange(index, e.target.value)}
                                     placeholder="https://your-rpc-endpoint.com"
                                     className={`w-full px-3 py-2 pr-10 bg-secondary-900 border rounded-lg text-primary-text placeholder-secondary-text focus:outline-none focus:ring-2 ${validationErrors[index]
-                                            ? "border-red-500 focus:ring-red-500"
-                                            : validatedUrls[index]
-                                                ? "border-green-500 focus:ring-green-500"
-                                                : "border-secondary-600 focus:ring-primary"
+                                        ? "border-red-500 focus:ring-red-500"
+                                        : validatedUrls[index]
+                                            ? "border-green-500 focus:ring-green-500"
+                                            : "border-secondary-600 focus:ring-primary"
                                         }`}
                                 />
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-10">
