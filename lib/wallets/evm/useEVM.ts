@@ -37,7 +37,7 @@ export default function useEVM(): WalletProvider {
     const id = 'evm'
     const { networks } = useSettingsState()
     const config = useConfig()
-    const { getEffectiveRpcUrl } = useRpcConfigStore()
+    const { getEffectiveRpcUrls } = useRpcConfigStore()
 
     const evmAccount = useAccount()
 
@@ -337,11 +337,10 @@ export default function useEVM(): WalletProvider {
         if (!network) throw new Error("No network found")
 
         // Get effective RPC URL (custom if configured, otherwise default)
-        const effectiveRpcUrl = getEffectiveRpcUrl(network)
-        const nodeUrls = [effectiveRpcUrl]
+        const nodeUrls = getEffectiveRpcUrls(network)
         if (!nodeUrls) throw new Error("No node urls found")
 
-        const chain = resolveChain(network, effectiveRpcUrl) as Chain
+        const chain = resolveChain(network, nodeUrls[0]) as Chain
 
         async function getDetailsFetch(client: PublicClient): Promise<Commit> {
             const result: any = await client.readContract({

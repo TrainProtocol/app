@@ -58,7 +58,8 @@ export enum MenuStep {
     Menu = "Menu",
     Transactions = "Transactions",
     TransactionDetails = "Transaction Details",
-    RpcConfiguration = "RPC Configuration"
+    RPCConfiguration = "RPC Configuration",
+    NetworkRPCEdit = "Network RPC Edit"
 }
 
 export enum AtomicSteps {

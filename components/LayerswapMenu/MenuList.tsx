@@ -47,8 +47,8 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
                         </Menu.Item>
                     }
 
-                    <Menu.Item onClick={() => goToStep(MenuStep.RpcConfiguration)} icon={<Settings2 className="h-5 w-5" />} >
-                        Rpc Configuration
+                    <Menu.Item onClick={() => goToStep(MenuStep.RPCConfiguration)} icon={<Settings2 className="h-5 w-5" />} >
+                        RPC Configuration
                     </Menu.Item>
 
                 </>
