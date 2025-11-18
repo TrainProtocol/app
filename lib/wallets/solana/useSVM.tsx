@@ -13,6 +13,7 @@ import { useCallback } from "react"
 import { lockTransactionBuilder, phtlcTransactionBuilder } from "./transactionBuilder"
 import LayerSwapApiClient from "../../trainApiClient"
 import { NativeAnchorHtlc } from "./nativeAnchorHTLC"
+import { toHex } from "viem"
 
 const solanaNames = [KnownInternalNames.Networks.SolanaMainnet, KnownInternalNames.Networks.SolanaDevnet, KnownInternalNames.Networks.SolanaTestnet]
 
@@ -162,7 +163,7 @@ export default function useSVM(): WalletProvider {
             throw new Error("Could not initiate a program")
         }
 
-        let [htlc] = idBuffer && PublicKey.findProgramAddressSync(
+        let [htlc, _] = idBuffer && PublicKey.findProgramAddressSync(
             [idBuffer],
             lpProgram.programId
         );
@@ -187,8 +188,8 @@ export default function useSVM(): WalletProvider {
                 sender: new PublicKey(result.sender).toString(),
                 srcReceiver: new PublicKey(result.srcReceiver).toString(),
                 secret: result.secret,
-                tokenContract: new PublicKey(result.tokenContract).toString(),
-                tokenWallet: new PublicKey(result.tokenWallet).toString(),
+                tokenContract: result.tokenContract ? new PublicKey(result.tokenContract).toString() : undefined,
+                tokenWallet: result.tokenWallet ? new PublicKey(result.tokenWallet).toString() : undefined,
             }
 
             return parsedResult
@@ -293,7 +294,7 @@ export default function useSVM(): WalletProvider {
         if (!program || !publicKey) return
 
         const idBuffer = Buffer.from(id.replace('0x', ''), 'hex');
-        const secretBuffer = Buffer.from(secret.toString().replace('0x', ''), 'hex');
+        const secretBuffer = Buffer.from(toHex(secret).toString().replace('0x', ''), 'hex');
 
         let [htlc, htlcBump] = idBuffer && PublicKey.findProgramAddressSync(
             [idBuffer],
@@ -321,13 +322,13 @@ export default function useSVM(): WalletProvider {
                     srcReceiverTokenAccount: senderTokenAddress,
                 })
                 .rpc();
-        } 
+        }
         else {
-            return await program.methods.redeem(idBuffer, secretBuffer, htlcBump).
+            return await program.methods.redeem(idBuffer, secretBuffer).
                 accountsPartial({
                     userSigning: publicKey,
                     htlc: htlc,
-                    sender: publicKey,
+                    sender: lpAddress,
                     srcReceiver: publicKey,
                 })
                 .rpc();

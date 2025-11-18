@@ -59,7 +59,7 @@ export const RedeemAction: FC = () => {
                 chainId: destination_network.chainId,
                 contractAddress: destAtomicContract as `0x${string}`,
                 sourceAsset: destination_asset,
-                destLpAddress: '',
+                destLpAddress: commitFromApi?.destinationSolverAddress || '',
                 destinationAddress: address,
                 destinationAsset: destination_asset
             })

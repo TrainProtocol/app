@@ -8,27 +8,6 @@ export const NativeAnchorHtlc = (address: string): Idl => ({
       "spec": "0.1.0",
       "description": "Created with Anchor"
     },
-    "docs": [
-      "@title Pre Hashed Timelock Contracts (PHTLCs) on Solana.",
-      "",
-      "This contract provides a way to create and keep PHTLCs for Solana.",
-      "",
-      "Protocol:",
-      "",
-      "1) commit(src_receiver, timelock, amount) - a",
-      "sender calls this to create a new HTLC",
-      "for a given amount. A [u8; 32] Id is returned.",
-      "2) lock(src_receiver, hashlock, timelock, amount) - a",
-      "sender calls this to create a new HTLC",
-      "for a given amount. A [u8; 32] Id is returned.",
-      "3) addLock(Id, hashlock, timelock) - the sender calls this function",
-      "to add the hashlock to HTLC.",
-      "4) redeem(Id, secret) - once the src_receiver knows the secret of",
-      "the hashlock hash they can claim the sol with this function",
-      "5) refund(Id) - after timelock has expired and if the src_receiver did not",
-      "redeem the sol the sender / creator of the HTLC can get their sol",
-      "back with this function."
-    ],
     "instructions": [
       {
         "name": "add_lock",
@@ -51,10 +30,6 @@ export const NativeAnchorHtlc = (address: string): Idl => ({
         "accounts": [
           {
             "name": "sender",
-            "signer": true
-          },
-          {
-            "name": "payer",
             "writable": true,
             "signer": true
           },
@@ -101,6 +76,100 @@ export const NativeAnchorHtlc = (address: string): Idl => ({
           {
             "name": "timelock",
             "type": "u64"
+          }
+        ],
+        "returns": {
+          "array": [
+            "u8",
+            32
+          ]
+        }
+      },
+      {
+        "name": "add_lock_sig",
+        "docs": [
+          "@dev Called by the solver to add hashlock to the HTLC",
+          "",
+          "@param Id of the HTLC.",
+          "@param hashlock to be added."
+        ],
+        "discriminator": [
+          145,
+          171,
+          87,
+          95,
+          168,
+          39,
+          158,
+          180
+        ],
+        "accounts": [
+          {
+            "name": "payer",
+            "writable": true,
+            "signer": true
+          },
+          {
+            "name": "htlc",
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "arg",
+                  "path": "Id"
+                }
+              ]
+            }
+          },
+          {
+            "name": "ix_sysvar",
+            "docs": [
+              "the supplied Sysvar could be anything else.",
+              "The Instruction Sysvar has not been implemented",
+              "in the Anchor framework yet, so this is the safe approach."
+            ],
+            "address": "Sysvar1nstructions1111111111111111111111111"
+          },
+          {
+            "name": "system_program",
+            "address": "11111111111111111111111111111111"
+          },
+          {
+            "name": "rent",
+            "address": "SysvarRent111111111111111111111111111111111"
+          }
+        ],
+        "args": [
+          {
+            "name": "Id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "hashlock",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "timelock",
+            "type": "u64"
+          },
+          {
+            "name": "signature",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
           }
         ],
         "returns": {
@@ -212,10 +281,6 @@ export const NativeAnchorHtlc = (address: string): Idl => ({
           {
             "name": "amount",
             "type": "u64"
-          },
-          {
-            "name": "commit_bump",
-            "type": "u8"
           }
         ],
         "returns": {
@@ -269,46 +334,6 @@ export const NativeAnchorHtlc = (address: string): Idl => ({
           "defined": {
             "name": "HTLC"
           }
-        }
-      },
-      {
-        "name": "get_commit_id",
-        "docs": [
-          "@dev Called by the Sender to get the commitId from the given parameters."
-        ],
-        "discriminator": [
-          9,
-          198,
-          196,
-          84,
-          37,
-          226,
-          163,
-          166
-        ],
-        "accounts": [
-          {
-            "name": "sender"
-          },
-          {
-            "name": "receiver"
-          }
-        ],
-        "args": [
-          {
-            "name": "amount",
-            "type": "u64"
-          },
-          {
-            "name": "timelock",
-            "type": "u64"
-          }
-        ],
-        "returns": {
-          "array": [
-            "u8",
-            32
-          ]
         }
       },
       {
@@ -405,10 +430,6 @@ export const NativeAnchorHtlc = (address: string): Idl => ({
           {
             "name": "src_receiver",
             "type": "pubkey"
-          },
-          {
-            "name": "lock_bump",
-            "type": "u8"
           }
         ],
         "returns": {
@@ -417,6 +438,74 @@ export const NativeAnchorHtlc = (address: string): Idl => ({
             32
           ]
         }
+      },
+      {
+        "name": "lock_reward",
+        "docs": [
+          "@dev Solver / Payer sets the reward for claiming the funds.",
+          "@param reward the amount of the reward token.",
+          "@param reward_timelock After this time the rewards can be claimed."
+        ],
+        "discriminator": [
+          66,
+          69,
+          228,
+          16,
+          76,
+          50,
+          65,
+          157
+        ],
+        "accounts": [
+          {
+            "name": "sender",
+            "writable": true,
+            "signer": true,
+            "relations": [
+              "htlc"
+            ]
+          },
+          {
+            "name": "htlc",
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "arg",
+                  "path": "Id"
+                }
+              ]
+            }
+          },
+          {
+            "name": "system_program",
+            "address": "11111111111111111111111111111111"
+          },
+          {
+            "name": "rent",
+            "address": "SysvarRent111111111111111111111111111111111"
+          }
+        ],
+        "args": [
+          {
+            "name": "Id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "reward_timelock",
+            "type": "u64"
+          },
+          {
+            "name": "reward",
+            "type": "u64"
+          }
+        ],
+        "returns": "bool"
       },
       {
         "name": "redeem",
@@ -444,6 +533,20 @@ export const NativeAnchorHtlc = (address: string): Idl => ({
             "signer": true
           },
           {
+            "name": "sender",
+            "writable": true,
+            "relations": [
+              "htlc"
+            ]
+          },
+          {
+            "name": "src_receiver",
+            "writable": true,
+            "relations": [
+              "htlc"
+            ]
+          },
+          {
             "name": "htlc",
             "writable": true,
             "pda": {
@@ -454,13 +557,6 @@ export const NativeAnchorHtlc = (address: string): Idl => ({
                 }
               ]
             }
-          },
-          {
-            "name": "src_receiver",
-            "writable": true,
-            "relations": [
-              "htlc"
-            ]
           },
           {
             "name": "system_program",
@@ -577,8 +673,8 @@ export const NativeAnchorHtlc = (address: string): Idl => ({
     "errors": [
       {
         "code": 6000,
-        "name": "NotFutureTimeLock",
-        "msg": "Not Future TimeLock."
+        "name": "InvalidTimeLock",
+        "msg": "Invalid TimeLock."
       },
       {
         "code": 6001,
@@ -587,28 +683,28 @@ export const NativeAnchorHtlc = (address: string): Idl => ({
       },
       {
         "code": 6002,
+        "name": "InvalidRewardTimeLock",
+        "msg": "Invalid Reward TimeLock."
+      },
+      {
+        "code": 6003,
         "name": "HashlockNotSet",
         "msg": "Hashlock Is Not Set."
       },
       {
-        "code": 6003,
+        "code": 6004,
         "name": "HashlockNoMatch",
         "msg": "Does Not Match the Hashlock."
       },
       {
-        "code": 6004,
+        "code": 6005,
         "name": "HashlockAlreadySet",
         "msg": "Hashlock Already Set."
       },
       {
-        "code": 6005,
-        "name": "AlreadyRedeemed",
-        "msg": "Funds Are Alredy Redeemed."
-      },
-      {
         "code": 6006,
-        "name": "AlreadyRefunded",
-        "msg": "Funds Are Alredy Refunded."
+        "name": "AlreadyClaimed",
+        "msg": "Funds Are Alredy Claimed."
       },
       {
         "code": 6007,
@@ -634,6 +730,16 @@ export const NativeAnchorHtlc = (address: string): Idl => ({
         "code": 6011,
         "name": "NotReciever",
         "msg": "Not The Reciever."
+      },
+      {
+        "code": 6012,
+        "name": "SigVerificationFailed",
+        "msg": "Signature verification failed."
+      },
+      {
+        "code": 6013,
+        "name": "RewardAlreadyExists",
+        "msg": "Reward Already Exists."
       }
     ],
     "types": [
@@ -689,16 +795,20 @@ export const NativeAnchorHtlc = (address: string): Idl => ({
               "type": "u64"
             },
             {
+              "name": "reward",
+              "type": "u64"
+            },
+            {
               "name": "timelock",
               "type": "u64"
             },
             {
-              "name": "redeemed",
-              "type": "bool"
+              "name": "reward_timelock",
+              "type": "u64"
             },
             {
-              "name": "refunded",
-              "type": "bool"
+              "name": "claimed",
+              "type": "u8"
             }
           ]
         }
