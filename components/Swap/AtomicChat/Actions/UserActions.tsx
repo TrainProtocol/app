@@ -6,7 +6,9 @@ import posthog from "posthog-js";
 import ButtonStatus from "./Status/ButtonStatus";
 import { useRouter } from "next/router";
 import { useFee } from "../../../../context/feeContext";
-import sleep from "../../../../lib/wallets/utils/sleep";
+import useCommitDetailsPolling from "../../../../hooks/htlc/useCommitDetailsPolling";
+import useLockDetailsPolling from "../../../../hooks/htlc/useLockDetailsPolling";
+import useRefundStatusPolling from "../../../../hooks/htlc/useRefundStatusPolling";
 
 export const UserCommitAction: FC = () => {
     const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, updateCommit, srcAtomicContract } = useAtomicState();
@@ -81,49 +83,16 @@ export const UserCommitAction: FC = () => {
         }
     }
 
-    useEffect(() => {
-        if (!source_network || !commitId || !atomicContract) return
-
-        let cancelled = false
-
-        const pollForDetails = async (): Promise<void> => {
-            if (cancelled) return
-
-            try {
-                if (!provider) {
-                    throw new Error("No source provider")
-                }
-
-                const data = await provider.getDetails({
-                    type: source_asset?.contract ? 'erc20' : 'native',
-                    chainId: source_network.chainId,
-                    id: commitId,
-                    contractAddress: atomicContract,
-                })
-
-                if (cancelled) return
-
-                if (data && data.sender != '0x0000000000000000000000000000000000000000') {
-                    updateCommit('sourceDetails', data)
-                    cancelled = true
-                    return
-                }
-
-                await sleep(3000)
-                if (!cancelled) {
-                    await pollForDetails()
-                }
-            } catch (error) {
-                console.log(error)
-                await sleep(3000)
-                if (!cancelled) {
-                    await pollForDetails()
-                }
-            }
+    // Poll for commit details using SWR
+    useCommitDetailsPolling({
+        network: source_network,
+        commitId: commitId,
+        contractAddress: atomicContract,
+        sourceAsset: source_asset,
+        onDetailsFound: (details) => {
+            updateCommit('sourceDetails', details)
         }
-
-        pollForDetails()
-    }, [source_network, commitId])
+    })
 
     if (!source_network) return <></>
 
@@ -198,52 +167,17 @@ export const UserLockAction: FC = () => {
         }
     }
 
-    useEffect(() => {
-        if (sourceDetails?.hashlock || !srcAtomicContract) return
-
-        let cancelled = false
-
-        const pollForDetails = async (): Promise<void> => {
-            if (cancelled) return
-
-            try {
-                if (!provider) {
-                    throw new Error("No source provider")
-                }
-                if (!source_network) {
-                    throw new Error("No source network")
-                }
-
-                const data = await provider.getDetails({
-                    type: source_asset?.contract ? 'erc20' : 'native',
-                    chainId: source_network.chainId,
-                    id: commitId as string,
-                    contractAddress: srcAtomicContract as `0x${string}`,
-                })
-
-                if (cancelled) return
-
-                if (data?.hashlock) {
-                    updateCommit('sourceDetails', data)
-                    cancelled = true
-                    return
-                }
-
-                await sleep(3000)
-                if (!cancelled) {
-                    await pollForDetails()
-                }
-            } catch (error) {
-                console.log(error)
-                await sleep(3000)
-                if (!cancelled) {
-                    await pollForDetails()
-                }
-            }
+    // Poll for lock details (hashlock) using SWR
+    useLockDetailsPolling({
+        network: source_network,
+        commitId: commitId,
+        contractAddress: srcAtomicContract,
+        sourceAsset: source_asset,
+        hasHashlock: !!sourceDetails?.hashlock,
+        onDetailsFound: (details) => {
+            updateCommit('sourceDetails', details)
         }
-
-        pollForDetails()
-    }, [provider])
+    })
 
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
         {
@@ -323,103 +257,27 @@ export const UserRefundAction: FC = () => {
         }
     }
 
-    useEffect(() => {
-        let cancelled = false
-
-        const pollForDetails = async (): Promise<void> => {
-            if (cancelled) return
-
-            try {
-                if (!source_provider) {
-                    throw new Error("No source provider")
-                }
-                if (!srcAtomicContract) {
-                    throw new Error("No atomic contract")
-                }
-                if (!source_network) {
-                    throw new Error("No source network")
-                }
-
-                const data = await source_provider.getDetails({
-                    type: source_asset?.contract ? 'erc20' : 'native',
-                    chainId: source_network.chainId,
-                    id: commitId as string,
-                    contractAddress: srcAtomicContract as `0x${string}`,
-                })
-
-                if (cancelled) return
-
-                if (data?.claimed == 2) {
-                    updateCommit('sourceDetails', data)
-                    cancelled = true
-                    return
-                }
-
-                await sleep(3000)
-                if (!cancelled) {
-                    await pollForDetails()
-                }
-            } catch (error) {
-                console.log(error)
-                await sleep(3000)
-                if (!cancelled) {
-                    await pollForDetails()
-                }
-            }
+    // Poll for source chain refund status using SWR
+    useRefundStatusPolling({
+        network: source_network,
+        commitId: commitId,
+        contractAddress: srcAtomicContract,
+        asset: source_asset,
+        onStatusUpdate: (details) => {
+            updateCommit('sourceDetails', details)
         }
+    })
 
-        pollForDetails()
-    }, [source_provider])
-
-    useEffect(() => {
-        if (!destination_provider) return
-
-        let cancelled = false
-
-        const pollForDetails = async (): Promise<void> => {
-            if (cancelled) return
-
-            try {
-                if (!commitId) {
-                    throw Error("No commitId")
-                }
-                if (!destAtomicContract) {
-                    throw Error("No atomic contract")
-                }
-                if (!destination_network) {
-                    throw Error("No destination network")
-                }
-
-                const data = await destination_provider.getDetails({
-                    type: destination_asset?.contract ? 'erc20' : 'native',
-                    chainId: destination_network.chainId,
-                    id: commitId,
-                    contractAddress: destAtomicContract as `0x${string}`,
-                })
-
-                if (cancelled) return
-
-                if (data) updateCommit('destinationDetails', data)
-                if (data?.claimed == 2) {
-                    cancelled = true
-                    return
-                }
-
-                await sleep(3000)
-                if (!cancelled) {
-                    await pollForDetails()
-                }
-            } catch (error) {
-                console.log(error)
-                await sleep(3000)
-                if (!cancelled) {
-                    await pollForDetails()
-                }
-            }
+    // Poll for destination chain status using SWR
+    useRefundStatusPolling({
+        network: destination_network,
+        commitId: commitId,
+        contractAddress: destAtomicContract,
+        asset: destination_asset,
+        onStatusUpdate: (details) => {
+            updateCommit('destinationDetails', details)
         }
-
-        pollForDetails()
-    }, [source_provider])
+    })
 
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
         {

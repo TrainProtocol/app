@@ -1,9 +1,10 @@
-import { FC, useEffect } from "react"
+import { FC } from "react"
 import useWallet from "../../../../hooks/useWallet";
 import { useAtomicState } from "../../../../context/atomicContext";
 import { WalletActionButton } from "../../buttons";
 import { useRouter } from "next/router";
 import KnownInternalNames from "../../../../lib/knownIds";
+import useRedeemStatusPolling from "../../../../hooks/htlc/useRedeemStatusPolling";
 
 export const RedeemAction: FC = () => {
     const { destination_network, source_network, sourceDetails, destinationDetails, updateCommit, manualClaimRequested, destination_asset, source_asset, commitId, isManualClaimable, atomicQuery, setAtomicQuery, destAtomicContract, srcAtomicContract, address, commitFromApi } = useAtomicState()
@@ -14,57 +15,35 @@ export const RedeemAction: FC = () => {
     const destination_provider = destination_network && getProvider(destination_network, 'withdrawal')
     const destination_wallet = destination_provider?.activeWallet
 
-    useEffect(() => {
-        let commitHandler: any = undefined;
-        if (commitId) {
-            (async () => {
-                commitHandler = setInterval(async () => {
-                    if (!destination_provider)
-                        throw new Error("No destination provider")
-
-                    const data = await destination_provider.getDetails({
-                        type: destination_asset?.contract ? 'erc20' : 'native',
-                        chainId: destination_network.chainId,
-                        id: commitId,
-                        contractAddress: destAtomicContract as `0x${string}`,
-                    })
-                    if (data) updateCommit('destinationDetails', data)
-                    if (data?.claimed == 3) {
-                        clearInterval(commitHandler)
-                    }
-                }, 5000)
-            })()
+    // Poll for destination chain redeem/claim status using SWR
+    useRedeemStatusPolling({
+        network: destination_network,
+        commitId: commitId,
+        contractAddress: destAtomicContract,
+        asset: destination_asset,
+        onStatusUpdate: (details) => {
+            updateCommit('destinationDetails', details)
         }
-        return () => clearInterval(commitHandler)
-    }, [destination_network, sourceDetails])
+    })
 
-    useEffect(() => {
-        let commitHandler: any = undefined;
-        if (commitId) {
-            (async () => {
-                commitHandler = setInterval(async () => {
-                    if (!source_provider)
-                        throw new Error("No source provider")
-
-                    const data = await source_provider.getDetails({
-                        type: source_asset?.contract ? 'erc20' : 'native',
-                        chainId: source_network.chainId,
-                        id: commitId,
-                        contractAddress: srcAtomicContract as `0x${string}`,
-                    })
-                    if (data) updateCommit('sourceDetails', data)
-                    if (data?.claimed == 3) {
-                        clearInterval(commitHandler)
-                        updateCommit('sourceDetails', {
-                            ...data,
-                            claimTime: !sourceDetails?.claimTime ? Date.now() : sourceDetails?.claimTime
-                        })
-                    }
-                }, 5000)
-            })()
+    // Poll for source chain redeem/claim status using SWR
+    useRedeemStatusPolling({
+        network: source_network,
+        commitId: commitId,
+        contractAddress: srcAtomicContract,
+        asset: source_asset,
+        onStatusUpdate: (details) => {
+            // Record claim time when claim is detected
+            if (details?.claimed === 3) {
+                updateCommit('sourceDetails', {
+                    ...details,
+                    claimTime: !sourceDetails?.claimTime ? Date.now() : sourceDetails?.claimTime
+                })
+            } else {
+                updateCommit('sourceDetails', details)
+            }
         }
-        return () => clearInterval(commitHandler)
-    }, [source_network, destinationDetails])
+    })
 
     const handleClaimAssets = async () => {
         try {
