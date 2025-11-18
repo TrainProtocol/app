@@ -323,22 +323,16 @@ export const UserRefundAction: FC = () => {
         }
     }
 
-    useEffect(() => {
-        let cancelled = false
-
-        const pollForDetails = async (): Promise<void> => {
-            if (cancelled) return
-
-            try {
-                if (!source_provider) {
+     useEffect(() => {
+        let commitHandler: any = undefined;
+        (async () => {
+            commitHandler = setInterval(async () => {
+                if (!source_provider)
                     throw new Error("No source provider")
-                }
-                if (!srcAtomicContract) {
+                if (!srcAtomicContract)
                     throw new Error("No atomic contract")
-                }
-                if (!source_network) {
+                if (!source_network)
                     throw new Error("No source network")
-                }
 
                 const data = await source_provider.getDetails({
                     type: source_asset?.contract ? 'erc20' : 'native',
@@ -347,48 +341,28 @@ export const UserRefundAction: FC = () => {
                     contractAddress: srcAtomicContract as `0x${string}`,
                 })
 
-                if (cancelled) return
-
                 if (data?.claimed == 2) {
                     updateCommit('sourceDetails', data)
-                    cancelled = true
-                    return
+                    clearInterval(commitHandler)
                 }
-
-                await sleep(3000)
-                if (!cancelled) {
-                    await pollForDetails()
-                }
-            } catch (error) {
-                console.log(error)
-                await sleep(3000)
-                if (!cancelled) {
-                    await pollForDetails()
-                }
-            }
-        }
-
-        pollForDetails()
+            }, 5000)
+        })()
+        return () => clearInterval(commitHandler)
     }, [source_provider])
 
     useEffect(() => {
-        if (!destination_provider) return
-
-        let cancelled = false
-
-        const pollForDetails = async (): Promise<void> => {
-            if (cancelled) return
-
-            try {
-                if (!commitId) {
+        let lockHandler: any = undefined
+        if (destination_provider) {
+            lockHandler = setInterval(async () => {
+                if (!commitId)
                     throw Error("No commitId")
-                }
-                if (!destAtomicContract) {
+                if (!destAtomicContract)
+
                     throw Error("No atomic contract")
-                }
-                if (!destination_network) {
+                if (!destination_network)
+
                     throw Error("No destination network")
-                }
+
 
                 const data = await destination_provider.getDetails({
                     type: destination_asset?.contract ? 'erc20' : 'native',
@@ -397,28 +371,15 @@ export const UserRefundAction: FC = () => {
                     contractAddress: destAtomicContract as `0x${string}`,
                 })
 
-                if (cancelled) return
-
                 if (data) updateCommit('destinationDetails', data)
                 if (data?.claimed == 2) {
-                    cancelled = true
-                    return
+                    clearInterval(lockHandler)
                 }
-
-                await sleep(3000)
-                if (!cancelled) {
-                    await pollForDetails()
-                }
-            } catch (error) {
-                console.log(error)
-                await sleep(3000)
-                if (!cancelled) {
-                    await pollForDetails()
-                }
-            }
+            }, 5000)
         }
-
-        pollForDetails()
+        return () => {
+            lockHandler && clearInterval(lockHandler);
+        };
     }, [source_provider])
 
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
