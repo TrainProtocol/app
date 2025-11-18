@@ -1,6 +1,6 @@
 import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon"
-import { ContractType, NetworkType } from "../../../Models/Network"
+import { NetworkType } from "../../../Models/Network"
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider"
 import { useMemo } from "react"
 import { AnchorWallet, useAnchorWallet, useConnection, useWallet } from "@solana/wallet-adapter-react"
@@ -146,16 +146,15 @@ export default function useSVM(): WalletProvider {
     }, [connection, signTransaction, publicKey, network])
 
     const getDetails = async (params: CommitmentParams) => {
-        //TODO: fix solana address
-        const lpAddress = '4hLwFR5JpxztsYMyy574mcWsfYc9sbfeAx5FKMYfw8vB'
-        const {contractAddress} = params
+        const solanaAddress = '4hLwFR5JpxztsYMyy574mcWsfYc9sbfeAx5FKMYfw8vB'
+        const { contractAddress } = params
 
-        if (!lpAddress) throw new Error("No LP address")
+        if (!solanaAddress) throw new Error("No LP address")
 
         const { id } = params
         const idBuffer = Buffer.from(id.replace('0x', ''), 'hex');
 
-        const lpAnchorWallet = { publicKey: new PublicKey(lpAddress) }
+        const lpAnchorWallet = { publicKey: new PublicKey(solanaAddress) }
         const provider = new AnchorProvider(connection, lpAnchorWallet as AnchorWallet);
         const lpProgram = (provider && contractAddress) ? new Program(AnchorHtlc(contractAddress), provider) : null;
 
@@ -195,7 +194,7 @@ export default function useSVM(): WalletProvider {
 
     const addLock = async (params: CommitmentParams & LockParams) => {
 
-        const {contractAddress} = params
+        const { contractAddress } = params
         const program = (anchorProvider && contractAddress) ? new Program(AnchorHtlc(contractAddress), anchorProvider) : null;
 
         if (!program || !publicKey) return null
@@ -242,8 +241,6 @@ export default function useSVM(): WalletProvider {
         if (!program || !sourceAsset?.contract || !publicKey) return null
 
         const getAssociatedTokenAddress = (await import('@solana/spl-token')).getAssociatedTokenAddress;
-        const senderTokenAddress = await getAssociatedTokenAddress(new PublicKey(sourceAsset.contract), publicKey);
-        const tokenContract = new PublicKey(sourceAsset.contract);
 
         const idBuffer = Buffer.from(id.replace('0x', ''), 'hex');
 
@@ -251,56 +248,80 @@ export default function useSVM(): WalletProvider {
             [idBuffer],
             program.programId
         );
-        let [htlcTokenAccount, _] = idBuffer && PublicKey.findProgramAddressSync(
-            [Buffer.from("htlc_token_account"), idBuffer],
-            program.programId
-        );
 
-        const result = await program.methods.refund(Array.from(idBuffer), Number(htlcBump)).accountsPartial({
-            userSigning: publicKey,
-            htlc,
-            htlcTokenAccount,
-            sender: publicKey,
-            tokenContract: tokenContract,
-            senderTokenAccount: senderTokenAddress,
-        }).rpc();
+        if (sourceAsset.contract) {
+            let [htlcTokenAccount, _] = idBuffer && PublicKey.findProgramAddressSync(
+                [Buffer.from("htlc_token_account"), idBuffer],
+                program.programId
+            );
 
-        return result
+            const senderTokenAddress = await getAssociatedTokenAddress(new PublicKey(sourceAsset.contract), publicKey);
+            const tokenContract = new PublicKey(sourceAsset.contract);
+
+            return await program.methods.refund(Array.from(idBuffer), Number(htlcBump)).accountsPartial({
+                userSigning: publicKey,
+                htlc,
+                htlcTokenAccount,
+                sender: publicKey,
+                tokenContract: tokenContract,
+                senderTokenAccount: senderTokenAddress,
+            }).rpc();
+        } else {
+            return await program.methods.refund(Array.from(idBuffer), Number(htlcBump)).accountsPartial({
+                userSigning: publicKey,
+                htlc,
+                sender: publicKey,
+            }).rpc();
+        }
     }
 
     const claim = async (params: ClaimParams) => {
-        const { sourceAsset, id, secret, contractAddress } = params
+        const { sourceAsset, id, secret, contractAddress, destLpAddress } = params
         const program = (anchorProvider && contractAddress) ? new Program(AnchorHtlc(contractAddress), anchorProvider) : null;
+
+        const lpAddress = new PublicKey(destLpAddress);
 
         if (!program || !sourceAsset?.contract || !publicKey) return
 
         const tokenContract = new PublicKey(sourceAsset.contract);
         const idBuffer = Buffer.from(id.replace('0x', ''), 'hex');
         const secretBuffer = Buffer.from(secret.toString().replace('0x', ''), 'hex');
-        const getAssociatedTokenAddress = (await import('@solana/spl-token')).getAssociatedTokenAddress;
-        const senderTokenAddress = await getAssociatedTokenAddress(new PublicKey(sourceAsset.contract), publicKey);
 
         let [htlc, htlcBump] = idBuffer && PublicKey.findProgramAddressSync(
             [idBuffer],
             program.programId
         );
-        let [htlcTokenAccount, _] = idBuffer && PublicKey.findProgramAddressSync(
-            [Buffer.from("htlc_token_account"), idBuffer],
-            program.programId
-        );
 
-        const hash = await program.methods.redeem(idBuffer, secretBuffer, htlcBump).
-            accountsPartial({
-                userSigning: publicKey,
-                htlc: htlc,
-                htlcTokenAccount: htlcTokenAccount,
-                sender: publicKey,
-                tokenContract: tokenContract,
-                srcReceiverTokenAccount: senderTokenAddress,
-            })
-            .rpc();
+        if (sourceAsset.contract) {
+            let [htlcTokenAccount, _] = idBuffer && PublicKey.findProgramAddressSync(
+                [Buffer.from("htlc_token_account"), idBuffer],
+                program.programId
+            );
 
-        return hash
+            const getAssociatedTokenAddress = (await import('@solana/spl-token')).getAssociatedTokenAddress;
+            const senderTokenAddress = await getAssociatedTokenAddress(new PublicKey(sourceAsset.contract), lpAddress);
+
+            return await program.methods.redeem(idBuffer, secretBuffer, htlcBump).
+                accountsPartial({
+                    userSigning: publicKey,
+                    htlc: htlc,
+                    htlcTokenAccount: htlcTokenAccount,
+                    sender: lpAddress,
+                    tokenContract: tokenContract,
+                    srcReceiverTokenAccount: senderTokenAddress,
+                })
+                .rpc();
+        } 
+        else {
+            return await program.methods.redeem(idBuffer, secretBuffer, htlcBump).
+                accountsPartial({
+                    userSigning: publicKey,
+                    htlc: htlc,
+                    sender: publicKey,
+                    srcReceiver: publicKey,
+                })
+                .rpc();
+        }
     }
 
     const provider = {

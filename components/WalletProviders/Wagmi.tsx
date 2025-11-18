@@ -9,7 +9,7 @@ import { useRpcConfigStore } from "../../stores/rpcConfigStore";
 import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createConfig } from 'wagmi';
-import { Chain, http } from 'viem';
+import { Chain, http, fallback } from 'viem';
 import { argent } from '../../lib/wallets/connectors/argent';
 import { rainbow } from '../../lib/wallets/connectors/rainbow';
 import { metaMask } from '../../lib/wallets/connectors/metamask';
@@ -35,7 +35,7 @@ const okx_inited = okxWallet({ projectId: WALLETCONNECT_PROJECT_ID, showQrModal:
 
 function WagmiComponent({ children }: Props) {
     const settings = useSettingsState();
-    const { getEffectiveRpcUrl } = useRpcConfigStore();
+    const { getEffectiveRpcUrl, getEffectiveRpcUrls, isUsingCustomRpc } = useRpcConfigStore();
     const isChain = (c: Chain | undefined): c is Chain => c != undefined
 
     // Map networks to chains with custom RPC if configured
@@ -55,7 +55,29 @@ function WagmiComponent({ children }: Props) {
     const transports = {}
 
     settingsChains.forEach(chain => {
-        transports[chain.id] = chain.rpcUrls.default.http[0] ? http(chain.rpcUrls.default.http[0]) : http()
+        // Find the original network to get all custom RPC URLs
+        const network = settings?.networks?.find(n => Number(n.chainId) === chain.id)
+
+        if (network && isUsingCustomRpc(network.name)) {
+            // Get all custom RPC URLs for fallback support
+            const customUrls = getEffectiveRpcUrls(network)
+
+            if (customUrls.length > 1) {
+                // Use fallback transport with multiple URLs
+                transports[chain.id] = fallback(
+                    customUrls.map(url => http(url))
+                )
+            } else if (customUrls.length === 1) {
+                // Single custom URL
+                transports[chain.id] = http(customUrls[0])
+            } else {
+                // Fallback to default
+                transports[chain.id] = chain.rpcUrls.default.http[0] ? http(chain.rpcUrls.default.http[0]) : http()
+            }
+        } else {
+            // Use default RPC URL
+            transports[chain.id] = chain.rpcUrls.default.http[0] ? http(chain.rpcUrls.default.http[0]) : http()
+        }
     })
     
     const config = createConfig({

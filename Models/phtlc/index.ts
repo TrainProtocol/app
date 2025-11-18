@@ -51,6 +51,7 @@ export type ClaimParams = {
     id: string,
     secret: string | bigint,
     sourceAsset: Token,
+    destLpAddress: string,
     destinationAddress?: string
     destinationAsset?: Token
 }
