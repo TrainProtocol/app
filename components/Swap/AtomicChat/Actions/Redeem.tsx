@@ -5,14 +5,13 @@ import { WalletActionButton } from "../../buttons";
 import { useRouter } from "next/router";
 import KnownInternalNames from "../../../../lib/knownIds";
 import useRedeemStatusPolling from "../../../../hooks/htlc/useRedeemStatusPolling";
+import ButtonStatus from "./Status/ButtonStatus";
 
 export const RedeemAction: FC = () => {
     const { destination_network, source_network, sourceDetails, destinationDetails, updateCommit, manualClaimRequested, destination_asset, source_asset, commitId, isManualClaimable, atomicQuery, setAtomicQuery, destAtomicContract, srcAtomicContract, address, commitFromApi } = useAtomicState()
     const isAztecDestination = destination_network?.name === KnownInternalNames.Networks.AztecTestnet;
-    const { getProvider } = useWallet()
     const router = useRouter()
-    const source_provider = source_network && getProvider(source_network, 'withdrawal')
-    const destination_provider = destination_network && getProvider(destination_network, 'withdrawal')
+    const { provider: destination_provider } = useWallet(destination_network, 'withdrawal')
     const destination_wallet = destination_provider?.activeWallet
 
     // Poll for destination chain redeem/claim status using SWR
@@ -90,7 +89,9 @@ export const RedeemAction: FC = () => {
                     ? (
                         manualClaimRequested
                             ? null
-                            : <WalletActionButton
+                            : 
+                            sourceDetails?.secret?
+                            <WalletActionButton
                                 activeChain={destination_wallet?.chainId}
                                 isConnected={!!destination_wallet}
                                 network={destination_network!}
@@ -99,6 +100,13 @@ export const RedeemAction: FC = () => {
                             >
                                 {isAztecDestination ? 'Claim' : 'Claim Manually'}
                             </WalletActionButton>
+                            :
+                            <ButtonStatus
+                                isDisabled={true}
+                                isLoading={true}
+                            >
+                                Claim
+                            </ButtonStatus>
                     )
                     : null
             }
