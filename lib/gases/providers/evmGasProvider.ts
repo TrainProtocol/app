@@ -26,9 +26,8 @@ export class EVMGasProvider implements Provider {
         try {
 
             const { createPublicClient, http } = await import("viem")
-            const resolveNetworkChain = (await import("../../resolveChain")).default
             const publicClient = createPublicClient({
-                chain: resolveNetworkChain(network),
+                chain: resolveChain(network),
                 transport: http(network.rpcUrl),
             })
             const atomicContract = network.contracts?.find(c => token.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address as `0x${string}`
@@ -149,9 +148,7 @@ abstract class getEVMGas {
 
     protected async estimateNativeGasLimit(contractMethod?: 'commit' | 'addLock') {
 
-        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
-        const timeLockMS = Date.now() + LOCK_TIME
-        const timeLock = Math.floor(timeLockMS / 1000)
+        const timelock = calculateEpochTimelock(20);
 
         const contract = getContract({
             address: this.destination,
@@ -178,7 +175,7 @@ abstract class getEVMGas {
                 "ETH",
                 id,
                 "0x2fc617e933a52713247ce25730f6695920b3befe",
-                timeLock
+                timelock
             ], {
                 account: this.account,
                 value: ethers.utils.parseUnits(0.00005.toString(), 18).toBigInt()
@@ -196,7 +193,7 @@ abstract class getEVMGas {
                 "ETH",
                 id,
                 "0x2fc617e933a52713247ce25730f6695920b3befe",
-                timeLock
+                timelock
             ], {
                 account: this.account,
                 value: ethers.utils.parseUnits(0.00005.toString(), 18).toBigInt()
@@ -209,9 +206,7 @@ abstract class getEVMGas {
 
     protected async estimateERC20GasLimit(contractMethod?: 'commit' | 'addLock') {
 
-        const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
-        const timeLockMS = Date.now() + LOCK_TIME
-        const timeLock = Math.floor(timeLockMS / 1000)
+        const timelock = calculateEpochTimelock(20);
 
         const contract = getContract({
             address: this.destination,
@@ -238,7 +233,7 @@ abstract class getEVMGas {
                 "ETH",
                 id,
                 "0x2fc617e933a52713247ce25730f6695920b3befe",
-                timeLock
+                timelock
             ], {
                 account: this.account,
                 value: ethers.utils.parseUnits(0.00005.toString(), 18).toBigInt()
@@ -256,7 +251,7 @@ abstract class getEVMGas {
                 "ETH",
                 id,
                 "0x2fc617e933a52713247ce25730f6695920b3befe",
-                timeLock
+                timelock
             ], {
                 account: this.account,
                 value: ethers.utils.parseUnits(0.00005.toString(), 18).toBigInt()
@@ -379,6 +374,8 @@ import {
     getContract,
     BlockTag,
 } from 'viem'
+import resolveChain from "../../resolveChain";
+import { calculateEpochTimelock } from "../../wallets/utils/calculateTimelock";
 
 /**
  * Options to query a specific block

@@ -12,12 +12,31 @@ import {
 import { ReactNode, useMemo } from "react";
 import { CoinbaseWalletAdapter } from "@solana/wallet-adapter-coinbase";
 import AppSettings from "../../lib/AppSettings";
+import { useSettingsState } from "../../context/settings";
+import { NetworkType } from "../../Models/Network";
+import { useRpcConfigStore } from "../../stores/rpcConfigStore";
 
 const WALLETCONNECT_PROJECT_ID = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '28168903b2d30c75e5f7f2d71902581b';
 
 function SolanaProvider({ children }: { children: ReactNode }) {
+    const settings = useSettingsState();
+    const { getEffectiveRpcUrl } = useRpcConfigStore();
     const solNetwork = AppSettings.ApiVersion === 'sandbox' ? WalletAdapterNetwork.Devnet : WalletAdapterNetwork.Mainnet;
-    const endpoint = useMemo(() => clusterApiUrl(solNetwork), [solNetwork]);
+
+    // Find Solana network in settings
+    const solanaNetwork = settings?.networks?.find(
+        n => n.type === NetworkType.Solana &&
+        ((solNetwork === WalletAdapterNetwork.Mainnet && !n.isTestnet) ||
+         (solNetwork === WalletAdapterNetwork.Devnet && n.isTestnet))
+    );
+
+    // Use custom RPC if configured, otherwise use default
+    const endpoint = useMemo(() => {
+        if (solanaNetwork) {
+            return getEffectiveRpcUrl(solanaNetwork);
+        }
+        return clusterApiUrl(solNetwork);
+    }, [solNetwork, solanaNetwork, getEffectiveRpcUrl]);
     const wallets = useMemo(
         () => [
             new PhantomWalletAdapter(),

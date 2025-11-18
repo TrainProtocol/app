@@ -295,3 +295,24 @@ export const CancelAndRefund: FC = () => {
 
     )
 }
+
+export const ManualClaim: FC = () => {
+    const { commitStatus, destination_network, sourceDetails, destinationDetails, manualClaimRequested } = useAtomicState()
+
+    const title = "Manual Private Claim"
+    const description = 'Please claim manually to privately recieve assets'
+
+    const isAztecDestination = destination_network?.name.toLowerCase().includes('aztec');
+
+    return (
+        isAztecDestination && commitStatus !== CommitStatus.TimelockExpired &&
+        <Step
+            step={3}
+            title={title}
+            description={description}
+            active={!!sourceDetails?.secret}
+            completed={destinationDetails?.claimed === 3}
+            loading={manualClaimRequested}
+        />
+    )
+}

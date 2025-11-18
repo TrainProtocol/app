@@ -20,8 +20,10 @@ import { useFormWizardaUpdate, useFormWizardState } from "../../../context/formW
 import { generateSwapInitialValues } from "../../../lib/generateSwapInitialValues";
 import { useSettingsState } from "../../../context/settings";
 import { resolvePersistantQueryParams } from "../../../helpers/querryHelper";
+import toast from "react-hot-toast";
 
-const AtomicPage = dynamicWithRetries(() => import("../AtomicChat"),
+const AtomicPage = dynamicWithRetries(
+    () => import("../AtomicChat/index.tsx") as unknown as Promise<{ default: React.ComponentType<any> }>,
     <div className="w-full h-[450px]">
         <div className="animate-pulse flex space-x-4">
             <div className="flex-1 space-y-6 py-1">
@@ -65,7 +67,7 @@ export default function Form() {
             }
 
             const source_provider = values.from && getProvider(values.from, 'withdrawal')
-            const destination_provider = values.from && getProvider(values.from, 'autofil')
+            const destination_provider = values.to && getProvider(values.to, 'withdrawal')
 
             if (!source_provider) {
                 throw new Error("No source_provider")
@@ -95,6 +97,7 @@ export default function Form() {
         }
         catch (error) {
             console.log(error)
+            toast.error(error)
         }
     }, [query, router, getProvider])
 

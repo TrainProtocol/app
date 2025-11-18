@@ -4,7 +4,6 @@ import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
 import useWallet from "../../hooks/useWallet";
 import shortenAddress from "../utils/ShortenAddress";
 import { ChevronDown } from "lucide-react";
-import Balance from "./dynamic/Balance";
 import VaulDrawer from "../Modal/vaulModal";
 import { Wallet } from "../../Models/WalletProvider";
 import WalletIcon from "../Icons/WalletIcon";

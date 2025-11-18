@@ -27,6 +27,7 @@ const WizardItem: FC<Props> = (({ StepName, children, GoBack, PositionPercent, f
 
     return currentStepName === StepName ?
         <motion.div
+            className='h-full'
             whileInView="done"
             key={currentStepName as string}
             variants={variants}

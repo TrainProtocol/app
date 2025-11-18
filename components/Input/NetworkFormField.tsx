@@ -4,6 +4,8 @@ import { useSettingsState } from "../../context/settings";
 import { SwapDirection, SwapFormValues } from "../DTOs/SwapFormValues";
 import { ISelectMenuItem, SelectMenuItem } from "../Select/Shared/Props/selectMenuItem";
 import CommandSelectWrapper from "../Select/Command/CommandSelectWrapper";
+import { useRpcConfigStore } from "../../stores/rpcConfigStore";
+import { Settings2 } from "lucide-react";
 import { ResolveNetworkOrder, SortAscending } from "../../lib/sorting"
 import NetworkSettings from "../../lib/NetworkSettings";
 import { SelectMenuItemGroup } from "../Select/Command/commandSelect";
@@ -26,7 +28,7 @@ type Props = {
     className?: string,
     partner?: Partner
 }
-const Address = dynamic(() => import("../Input/Address"), {
+const Address = dynamic(() => import("./Address/index.tsx").then(mod => mod.default), {
     loading: () => <></>,
 });
 
@@ -118,7 +120,12 @@ const NetworkFormField = forwardRef(function NetworkFormField({ direction, label
                     : <>
                         <span>
                             <Address>{
-                                ({ destination, disabled, addressItem, connectedWallet, partner }) => <DestinationWalletPicker destination={destination} disabled={disabled} addressItem={addressItem} connectedWallet={connectedWallet} partner={partner} />
+                                ({ destination, disabled, addressItem, connectedWallet, partner }) => {
+                                    if(destination?.name.toLowerCase().includes("aztec")) { 
+                                        return <></>
+                                    }
+                                    return <DestinationWalletPicker destination={destination} disabled={disabled} addressItem={addressItem} connectedWallet={connectedWallet} partner={partner} />
+                                }
                             }</Address>
                         </span>
                     </>
@@ -164,6 +171,8 @@ function groupByType(values: ISelectMenuItem[]) {
 }
 
 function GenerateMenuItems(routes: Network[] | undefined, direction: SwapDirection, lock: boolean, query: QueryParams): (SelectMenuItem<Network>)[] {
+    const { isUsingCustomRpc } = useRpcConfigStore();
+
     const mappedLayers = routes?.map(r => {
         const isAvailable = !lock &&
             (
@@ -176,6 +185,8 @@ function GenerateMenuItems(routes: Network[] | undefined, direction: SwapDirecti
         const routeNotFound = isAvailable
         // && !r.tokens?.some(r => r.status === 'active');
 
+        const hasCustomRpc = isUsingCustomRpc(r.name);
+
         const res: SelectMenuItem<Network> = {
             baseObject: r,
             id: r.name,
@@ -185,6 +196,11 @@ function GenerateMenuItems(routes: Network[] | undefined, direction: SwapDirecti
             isAvailable: isAvailable,
             group: getGroupName(r, 'network', isAvailable && !routeNotFound),
             leftIcon: <RouteIcon direction={direction} isAvailable={true} routeNotFound={false} type="network" />,
+            badge: hasCustomRpc ? (
+                <div className="flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded">
+                    <span>Custom RPC</span>
+                </div>
+            ) : undefined,
         }
         return res;
     })

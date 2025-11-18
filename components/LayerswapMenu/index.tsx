@@ -9,6 +9,10 @@ import WizardItem from "../Wizard/WizardItem";
 import { NextRouter, useRouter } from "next/router";
 import { resolvePersistantQueryParams } from "../../helpers/querryHelper";
 import Modal from "../Modal/modal";
+import RpcNetworkListView from "../Settings/RpcNetworkListView";
+import NetworkRpcEditView from "../Settings/NetworkRpcEditView";
+import { Network } from "../../Models/Network";
+import clsx from "clsx";
 
 const Comp = () => {
     const router = useRouter();
@@ -17,19 +21,34 @@ const Comp = () => {
     const { goToStep } = useFormWizardaUpdate()
 
     const [openTopModal, setOpenTopModal] = useState(false);
+    const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
 
     const handleModalOpenStateChange = (value: boolean) => {
         setOpenTopModal(value)
         if (value === false) {
             goToStep(MenuStep.Menu)
-            // clearMenuPath(router)
+            setSelectedNetwork(null)
         }
     }
-    const goBackToMenuStep = () => { goToStep(MenuStep.Menu, "back"); clearMenuPath(router) }
 
-    const handleGoToStep = (step: MenuStep, path: string) => {
+    const goBackToMenuStep = () => { goToStep(MenuStep.Menu, "back"); clearMenuPath(router) }
+    const goBackToRpcConfiguration = () => { goToStep(MenuStep.RPCConfiguration, "back") }
+
+    const handleGoToStep = (step: MenuStep, path?: string) => {
         goToStep(step)
-        setMenuPath(path, router)
+        if (path) {
+            setMenuPath(path, router)
+        }
+    }
+
+    const handleNetworkSelect = (network: Network) => {
+        setSelectedNetwork(network)
+        goToStep(MenuStep.NetworkRPCEdit)
+    }
+
+    const handleNetworkSave = () => {
+        setSelectedNetwork(null)
+        goToStep(MenuStep.RPCConfiguration, "back")
     }
 
     return <>
@@ -57,9 +76,26 @@ const Comp = () => {
                     </div>
                 }
             >
-                <Wizard wizardId='menuWizard' >
+                <Wizard wizardId='menuWizard'
+                    className={clsx("h-full", {
+                        '!pb-0': currentStepName !== MenuStep.Menu
+                    })}
+                >
                     <WizardItem StepName={MenuStep.Menu} inModal>
                         <MenuList goToStep={handleGoToStep} />
+                    </WizardItem>
+                    <WizardItem className="h-full" StepName={MenuStep.RPCConfiguration} GoBack={goBackToMenuStep} inModal>
+                        <RpcNetworkListView onNetworkSelect={handleNetworkSelect} />
+                    </WizardItem>
+                    <WizardItem className="h-full" StepName={MenuStep.NetworkRPCEdit} GoBack={goBackToRpcConfiguration} inModal>
+                        {selectedNetwork ? (
+                            <NetworkRpcEditView
+                                network={selectedNetwork}
+                                onSave={handleNetworkSave}
+                            />
+                        ) : (
+                            <div>Loading...</div>
+                        )}
                     </WizardItem>
                     {/* <WizardItem StepName={MenuStep.Transactions} GoBack={goBackToMenuStep} className="h-full" inModal>
                         <HistoryList onNewTransferClick={() => handleModalOpenStateChange(false)} />

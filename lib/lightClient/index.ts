@@ -8,6 +8,10 @@ export default class LightClient {
         // new StarknetLightClient()
     ]
 
+    supportsNetwork = (network: Network) => {
+        return this.providers.some(p => p.supportsNetwork(network));
+    }
+
     initProvider = async ({ network }: { network: Network }) => {
         const provider = this.providers.find(p => p.supportsNetwork(network));
 

@@ -5,6 +5,7 @@ import { NetworkType } from "../../Models/Network";
 import resolveChain from "../../lib/resolveChain";
 import React from "react";
 import NetworkSettings from "../../lib/NetworkSettings";
+import { useRpcConfigStore } from "../../stores/rpcConfigStore";
 import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createConfig } from 'wagmi';
@@ -34,14 +35,22 @@ const okx_inited = okxWallet({ projectId: WALLETCONNECT_PROJECT_ID, showQrModal:
 
 function WagmiComponent({ children }: Props) {
     const settings = useSettingsState();
+    const { getEffectiveRpcUrl } = useRpcConfigStore();
     const isChain = (c: Chain | undefined): c is Chain => c != undefined
+
+    // Map networks to chains with custom RPC if configured
     const settingsChains = settings?.networks
         .sort((a, b) => (NetworkSettings.KnownSettings[a.name]?.ChainOrder || Number(a.chainId)) - (NetworkSettings.KnownSettings[b.name]?.ChainOrder || Number(b.chainId)))
         .filter(net => net.type == NetworkType.EVM
             && !isNaN(Number(net.chainId))
             && net.rpcUrl
             && net.nativeTokenSymbol)
-        .map(resolveChain).filter(isChain) as Chain[]
+        .map(network => {
+            // Get the effective RPC URL (custom if configured, otherwise default)
+            const effectiveRpcUrl = getEffectiveRpcUrl(network);
+            return resolveChain(network, effectiveRpcUrl);
+        })
+        .filter(isChain) as Chain[]
 
     const transports = {}
 
