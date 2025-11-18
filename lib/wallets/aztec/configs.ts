@@ -47,25 +47,3 @@ export const dappMetadata = {
 
 // Chain configuration - using devnet for testnet
 export const aztecChain = "devnet";
-
-// Store wallet instance for reuse
-let walletInstance: Awaited<ReturnType<typeof import("@azguardwallet/aztec-wallet").AztecWallet.connect>> | null = null;
-
-export const getWalletInstance = async () => {
-    if (typeof window === 'undefined') {
-        throw new Error("Aztec wallet can only be used on the client side");
-    }
-    
-    if (!walletInstance) {
-        const Wallet = await getAztecWallet();
-        if (!Wallet) {
-            throw new Error("Failed to load AztecWallet");
-        }
-        walletInstance = await Wallet.connect(dappMetadata, aztecChain);
-    }
-    return walletInstance;
-};
-
-export const clearWalletInstance = () => {
-    walletInstance = null;
-};

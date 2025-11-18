@@ -1,6 +1,6 @@
 import { Idl } from "@coral-xyz/anchor"
 
-export const AnchorHtlc = (address: string): Idl => ({
+export const TokenAnchorHtlc = (address: string): Idl => ({
   "address": address,
   "metadata": {
     "name": "anchor_htlc",

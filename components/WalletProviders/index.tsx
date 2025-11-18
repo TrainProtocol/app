@@ -8,6 +8,7 @@ import { ImtblPassportProvider } from "./ImtblPassportProvider";
 import FuelProviderWrapper from "./FuelProvider";
 import { WalletModalProvider } from "../WalletModal";
 import { WalletProvidersProvider } from "../../context/walletHookProviders";
+import { AztecWalletProvider } from "../../lib/wallets/aztec/AztecWalletProvider";
 
 const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], basePath: string, themeData: ThemeData, appName: string | undefined }> = ({ children, basePath, themeData, appName }) => {
     return (
@@ -18,9 +19,11 @@ const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], basePath: st
                         <ImtblPassportProvider>
                             <FuelProviderWrapper>
                                 <WalletModalProvider>
-                                    <WalletProvidersProvider>
-                                        {children}
-                                    </WalletProvidersProvider>
+                                    <AztecWalletProvider>
+                                        <WalletProvidersProvider>
+                                            {children}
+                                        </WalletProvidersProvider>
+                                    </AztecWalletProvider>
                                 </WalletModalProvider>
                             </FuelProviderWrapper>
                         </ImtblPassportProvider>

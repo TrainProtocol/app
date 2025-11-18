@@ -5,13 +5,14 @@ import { InternalConnector, Wallet, WalletProvider } from "../../../Models/Walle
 import { useMemo } from "react"
 import { AnchorWallet, useAnchorWallet, useConnection, useWallet } from "@solana/wallet-adapter-react"
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../../../Models/phtlc"
-import { AnchorHtlc } from "./anchorHTLC"
+import { TokenAnchorHtlc } from "./tokenAnchorHTLC"
 import { AnchorProvider, Program, setProvider } from '@coral-xyz/anchor'
 import { PublicKey } from "@solana/web3.js"
 import { useSettingsState } from "../../../context/settings"
 import { useCallback } from "react"
 import { lockTransactionBuilder, phtlcTransactionBuilder } from "./transactionBuilder"
 import LayerSwapApiClient from "../../trainApiClient"
+import { NativeAnchorHtlc } from "./nativeAnchorHTLC"
 
 const solanaNames = [KnownInternalNames.Networks.SolanaMainnet, KnownInternalNames.Networks.SolanaDevnet, KnownInternalNames.Networks.SolanaTestnet]
 
@@ -117,8 +118,8 @@ export default function useSVM(): WalletProvider {
     }, [wallets]);
 
     const createPreHTLC = useCallback(async (params: CreatePreHTLCParams): Promise<{ hash: string; commitId: string; } | null | undefined> => {
-        const { atomicContract } = params
-        const program = (anchorProvider && atomicContract) ? new Program(AnchorHtlc(atomicContract), anchorProvider) : null;
+        const { atomicContract, sourceAsset } = params
+        const program = (anchorProvider && atomicContract) ? new Program(sourceAsset.contract ? TokenAnchorHtlc(atomicContract) : NativeAnchorHtlc(atomicContract), anchorProvider) : null;
 
         if (!program || !publicKey || !network) return null
 
@@ -147,16 +148,15 @@ export default function useSVM(): WalletProvider {
 
     const getDetails = async (params: CommitmentParams) => {
         const solanaAddress = '4hLwFR5JpxztsYMyy574mcWsfYc9sbfeAx5FKMYfw8vB'
-        const { contractAddress } = params
+        const { contractAddress, id, type } = params
 
         if (!solanaAddress) throw new Error("No LP address")
 
-        const { id } = params
         const idBuffer = Buffer.from(id.replace('0x', ''), 'hex');
 
         const lpAnchorWallet = { publicKey: new PublicKey(solanaAddress) }
         const provider = new AnchorProvider(connection, lpAnchorWallet as AnchorWallet);
-        const lpProgram = (provider && contractAddress) ? new Program(AnchorHtlc(contractAddress), provider) : null;
+        const lpProgram = (provider && contractAddress) ? new Program(type === 'erc20' ? TokenAnchorHtlc(contractAddress) : NativeAnchorHtlc(contractAddress), provider) : null;
 
         if (!lpProgram) {
             throw new Error("Could not initiate a program")
@@ -166,6 +166,13 @@ export default function useSVM(): WalletProvider {
             [idBuffer],
             lpProgram.programId
         );
+
+        // Check if the HTLC account exists before calling getDetails
+        const accountInfo = await connection.getAccountInfo(htlc);
+        if (!accountInfo) {
+            // Account doesn't exist yet, return null
+            return null;
+        }
 
         try {
             const result = await lpProgram?.methods.getDetails(Array.from(idBuffer)).accountsPartial({ htlc }).view();
@@ -187,15 +194,17 @@ export default function useSVM(): WalletProvider {
             return parsedResult
         }
         catch (e) {
-            console.log(e)
-            throw new Error("No result")
+            console.error('Error fetching HTLC details:', e)
+            // If account exists but getDetails fails, return null instead of throwing
+            // This allows the polling mechanism to retry later
+            return null
         }
     }
 
     const addLock = async (params: CommitmentParams & LockParams) => {
 
         const { contractAddress } = params
-        const program = (anchorProvider && contractAddress) ? new Program(AnchorHtlc(contractAddress), anchorProvider) : null;
+        const program = (anchorProvider && contractAddress) ? new Program(TokenAnchorHtlc(contractAddress), anchorProvider) : null;
 
         if (!program || !publicKey) return null
 
@@ -236,7 +245,7 @@ export default function useSVM(): WalletProvider {
 
     const refund = async (params: RefundParams) => {
         const { id, sourceAsset, contractAddress } = params
-        const program = (anchorProvider && contractAddress) ? new Program(AnchorHtlc(contractAddress), anchorProvider) : null;
+        const program = (anchorProvider && contractAddress) ? new Program(sourceAsset.contract ? TokenAnchorHtlc(contractAddress) : NativeAnchorHtlc(contractAddress), anchorProvider) : null;
 
         if (!program || !sourceAsset?.contract || !publicKey) return null
 
@@ -277,13 +286,12 @@ export default function useSVM(): WalletProvider {
 
     const claim = async (params: ClaimParams) => {
         const { sourceAsset, id, secret, contractAddress, destLpAddress } = params
-        const program = (anchorProvider && contractAddress) ? new Program(AnchorHtlc(contractAddress), anchorProvider) : null;
+        const program = (anchorProvider && contractAddress) ? new Program(sourceAsset.contract ? TokenAnchorHtlc(contractAddress) : NativeAnchorHtlc(contractAddress), anchorProvider) : null;
 
         const lpAddress = new PublicKey(destLpAddress);
 
-        if (!program || !sourceAsset?.contract || !publicKey) return
+        if (!program || !publicKey) return
 
-        const tokenContract = new PublicKey(sourceAsset.contract);
         const idBuffer = Buffer.from(id.replace('0x', ''), 'hex');
         const secretBuffer = Buffer.from(secret.toString().replace('0x', ''), 'hex');
 
@@ -293,6 +301,8 @@ export default function useSVM(): WalletProvider {
         );
 
         if (sourceAsset.contract) {
+            const tokenContract = new PublicKey(sourceAsset.contract);
+
             let [htlcTokenAccount, _] = idBuffer && PublicKey.findProgramAddressSync(
                 [Buffer.from("htlc_token_account"), idBuffer],
                 program.programId
