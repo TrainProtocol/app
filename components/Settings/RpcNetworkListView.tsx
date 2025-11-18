@@ -1,8 +1,9 @@
 import { FC, useState } from "react"
-import { Settings2, Search } from "lucide-react"
+import { Settings2, Search, Zap } from "lucide-react"
 import { useSettingsState } from "../../context/settings"
 import { Network } from "../../Models/Network"
 import { useRpcConfigStore } from "../../stores/rpcConfigStore"
+import LightClient from "../../lib/lightClient"
 
 interface RpcNetworkListViewProps {
     onNetworkSelect: (network: Network) => void
@@ -12,6 +13,10 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
     const settings = useSettingsState()
     const { rpcConfigs, isUsingCustomRpc } = useRpcConfigStore()
     const [searchQuery, setSearchQuery] = useState<string>('')
+
+    const hasLightClient = (network: Network): boolean => {
+        return new LightClient().supportsNetwork(network)
+    }
 
     // Filter for all networks with RPC URLs
     const networksWithRpc = settings?.networks?.filter(
@@ -70,9 +75,17 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
                                         className="w-8 h-8 rounded-full"
                                     />
                                     <div className="flex flex-col text-left">
-                                        <span className="font-medium text-primary-text">
-                                            {network.displayName}
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-medium text-primary-text">
+                                                {network.displayName}
+                                            </span>
+                                            {hasLightClient(network) && (
+                                                <span className="flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-blue-900/20 text-blue-400 rounded">
+                                                    <Zap className="w-3 h-3" />
+                                                    Light Client
+                                                </span>
+                                            )}
+                                        </div>
                                         <span className="text-xs text-secondary-text">
                                             <span className="flex items-center gap-1">
                                                 <span>{isCustom ? `Custom (${config?.customRpcUrls?.length || 1}):` : 'Default:'}</span>

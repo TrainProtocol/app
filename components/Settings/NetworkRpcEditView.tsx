@@ -1,11 +1,13 @@
 import { FC, useState, useEffect } from "react"
-import { CheckCircle, AlertCircle, Save, RotateCcw, Loader, Plus, Trash2 } from "lucide-react"
+import { CheckCircle, AlertCircle, Save, RotateCcw, Loader, Plus, Trash2, Zap } from "lucide-react"
 import { Network } from "../../Models/Network"
 import { useRpcConfigStore } from "../../stores/rpcConfigStore"
 import { validateRpcUrl } from "../../lib/validators/rpcValidator"
 import SecondaryButton from "../buttons/secondaryButton"
 import SubmitButton from "../buttons/submitButton"
 import { toast } from "react-hot-toast"
+import KnownInternalNames from "../../lib/knownIds"
+import LightClient from "../../lib/lightClient"
 
 interface NetworkRpcEditViewProps {
     network: Network
@@ -19,6 +21,8 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
     const [validationErrors, setValidationErrors] = useState<Record<number, string>>({})
     const [validatedUrls, setValidatedUrls] = useState<Record<number, boolean>>({})
 
+    const hasLightClient = new LightClient().supportsNetwork(network)
+    
     useEffect(() => {
         // Load existing URLs or start with one empty field
         const existingConfig = rpcConfigs[network.name]
@@ -156,8 +160,16 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                         alt={network.displayName}
                         className="w-10 h-10 rounded-full"
                     />
-                    <div>
-                        <div className="font-semibold text-primary-text">{network.displayName}</div>
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                            <div className="font-semibold text-primary-text">{network.displayName}</div>
+                            {hasLightClient && (
+                                <span className="flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-blue-900/20 text-blue-400 rounded">
+                                    <Zap className="w-3 h-3" />
+                                    Light Client
+                                </span>
+                            )}
+                        </div>
                         <div className="text-xs text-secondary-text">Chain ID: {network.chainId}</div>
                     </div>
                 </div>
