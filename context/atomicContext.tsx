@@ -166,6 +166,8 @@ export function AtomicProvider({ children }) {
     useEffect(() => {
         (async () => {
             if (destination_network && destination_token && commitId && destination_asset && lightClient && !sourceDetails?.hashlock && destAtomicContract) {
+                if(!lightClient.supportsNetwork(destination_network)) return
+
                 try {
                     setVerifyingByLightClient(true)
                     const data = await lightClient.getHashlock({
