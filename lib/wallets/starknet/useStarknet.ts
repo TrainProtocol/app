@@ -41,8 +41,8 @@ export default function useStarknet(): WalletProvider {
     const addWallet = useWalletStore((state) => state.connectWallet)
     const removeWallet = useWalletStore((state) => state.disconnectWallet)
 
-    const isMainnet = networks?.some(network => network.name === KnownInternalNames.Networks.StarkNetMainnet)
-    const network = networks?.find(network => starknetNames.some(name => name === network.name))
+    const isMainnet = process.env.NEXT_PUBLIC_API_VERSION === 'sandbox' ? false : true
+    const network = isMainnet ? networks?.find(network => network.name === KnownInternalNames.Networks.StarkNetMainnet) : networks?.find(network => network.name === KnownInternalNames.Networks.StarkNetSepolia)
     const nodeUrl = network ? getEffectiveRpcUrl(network) : undefined
 
     const starknetWallet = useMemo(() => {
