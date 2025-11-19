@@ -62,8 +62,16 @@ export type CommitFromApi = {
     feeAmount: number,
     sourceContractAddress: string,
     destinationContractAddress: string,
-    sourceSolverAddress:string,
-    destinationSolverAddress:string,
+    sourceWallet: {
+        address: string,
+        name: string,
+        networkType: NetworkType,
+    }
+    destinationWallet: {
+        address: string,
+        name: string,
+        networkType: NetworkType,
+    }
     destination: {
         network: {
             chainId: string,
