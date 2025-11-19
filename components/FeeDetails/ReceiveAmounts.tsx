@@ -1,6 +1,7 @@
 import { FC } from "react";
 import { Token } from "../../Models/Network";
 import { Quote } from "../../lib/trainApiClient";
+import { truncateDecimals } from "../utils/RoundDecimals";
 
 type WillReceiveProps = {
     destination_token: Token | undefined;
@@ -14,7 +15,7 @@ export const ReceiveAmounts: FC<WillReceiveProps> = ({ source_token, destination
 
     const receive_amount_in_base_units = fee?.quote?.receiveAmount
     const receive_amount = (receive_amount_in_base_units && destination_token) ? (Number(receive_amount_in_base_units) / Math.pow(10, destination_token?.decimals)) : null;
-    const parsedReceiveAmount = parseFloat(receive_amount?.toFixed(destination_token?.decimals) || "")
+    const parsedReceiveAmount = truncateDecimals(receive_amount ?? 0, destination_token?.decimals);
 
 
     return <div className="w-full h-full">
@@ -27,7 +28,7 @@ export const ReceiveAmounts: FC<WillReceiveProps> = ({ source_token, destination
             ) :
                 <div className="text-sm md:text-base flex flex-col items-end">
                     {
-                        source_token && destination_token && parsedReceiveAmount > 0 ?
+                        source_token && destination_token && Number(parsedReceiveAmount) > 0 ?
                             <div className="font-semibold md:font-bold text-right leading-8">
                                 <div className="flex items-center justify-end">
                                     <p>
