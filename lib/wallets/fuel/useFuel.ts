@@ -167,7 +167,7 @@ export default function useFuel(): WalletProvider {
 
         const dstChain = destinationChain.padEnd(64, ' ');
         const dstAsset = destinationAsset.padEnd(64, ' ');
-        const dstAddress = address.padEnd(64, ' ');
+        const dstAddress = (address.startsWith('0x') && address.length > 64 ? address.slice(2) : address).padEnd(64, ' ');
         const srcAsset = sourceAsset.symbol.padEnd(64, ' ');
         const srcReceiver = { bits: srcLpAddress };
 
