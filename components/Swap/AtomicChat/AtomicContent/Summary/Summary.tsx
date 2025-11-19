@@ -13,7 +13,7 @@ type AtomicSummaryProps = {
     destination: Network;
     requestedAmount: number | undefined;
     requestedAmountInUsd?: number | undefined;
-    receiveAmount: number | undefined;
+    receiveAmount: string | undefined;
     receiveAmountInUsd?: number | undefined;
     destinationAddress: string;
     fee?: number,
@@ -76,7 +76,7 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceAccountAddress, sourceCurrency,
                         {
                             receiveAmount != undefined ?
                                 <div className="flex flex-col justify-end">
-                                    <p className="text-primary-text text-sm text-nowrap">{truncateDecimals(receiveAmount, Math.min(destinationCurrency.decimals, 8))} {destinationCurrency.symbol}</p>
+                                    <p className="text-primary-text text-sm text-nowrap">{truncateDecimals(Number(receiveAmount), destinationCurrency.decimals)} {destinationCurrency.symbol}</p>
                                     {/* <p className="text-secondary-text text-sm flex justify-end">${receiveAmountInUsd && receiveAmountInUsd?.toFixed(2)}</p> */}
                                 </div>
                                 :
