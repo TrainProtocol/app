@@ -3,10 +3,9 @@ import { CommitStatus, useAtomicState } from "../../../../../context/atomicConte
 import { CommitTransaction } from "../../../../../lib/trainApiClient";
 import LockIcon from "../../../../Icons/LockIcon";
 import Step, { TxLink } from "./Step";
-import { Clock, Fuel, Info, Loader2 } from "lucide-react";
+import { Clock, Fuel, Info } from "lucide-react";
 import CheckedIcon from "../../../../Icons/CheckedIcon";
 import XCircle from "../../../../Icons/CircleX";
-import useSWRGas from "../../../../../lib/gases/useSWRGas";
 import { usePulsatingCircles } from "../../../../../context/PulsatingCirclesContext";
 import LoaderIcon from "../../../../Icons/LoaderIcon";
 import MobileTooltip from "../../../../Modal/mobileTooltip";
@@ -14,13 +13,8 @@ import MobileTooltip from "../../../../Modal/mobileTooltip";
 export const RequestStep: FC = () => {
     const { sourceDetails, commitId, commitTxId, source_network, commitFromApi, isTimelockExpired, source_asset, amount, selectedSourceAccount } = useAtomicState()
 
-
-    const { gas } = useSWRGas(selectedSourceAccount, source_network, source_asset, 'commit')
-
-    const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
-
     const commtting = (commitId && !sourceDetails) ? true : false;
-    const commited = (sourceDetails || lpLockTx) ? true : false;
+    const commited = sourceDetails ? true : false;
 
     const title = commited ? "Details confirmed" : "Confirm the details"
     const description = (commited && source_network) ? <>Transaction details are confirmed</> : <>Review and confirm transfer details</>
