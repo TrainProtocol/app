@@ -38,7 +38,7 @@ const useCommitDetailsPolling = ({
 
     // Check if we found valid commit details and trigger callback
     useEffect(() => {
-        if (details && details.sender && details.sender !== '0x0000000000000000000000000000000000000000') {
+        if (details) {
             if (onDetailsFound) {
                 onDetailsFound(details)
             }
