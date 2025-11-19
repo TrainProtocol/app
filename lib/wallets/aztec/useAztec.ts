@@ -13,6 +13,7 @@ import { AztecAddress } from "@aztec/aztec.js/addresses";
 import { Fr } from "@aztec/aztec.js/fields";
 import { useAztecNodeUrl } from "./configs";
 import { useAztecWalletContext } from "./AztecWalletProvider";
+import { AztecNode, createAztecNodeClient } from "@aztec/aztec.js/node";
 
 export default function useAztec(): WalletProvider {
     const commonSupportedNetworks = [
@@ -103,12 +104,23 @@ export default function useAztec(): WalletProvider {
         if (!wallet || !accountAddress) throw new Error("No wallet connected");
 
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
+
+        const node: AztecNode = createAztecNodeClient(aztecNodeUrl);
+        const trainInstance = await node.getContract(aztecAtomicContract);
+
+        if (!trainInstance) {
+            throw new Error("Train contract not found");
+        }
+
+        await wallet.registerContract(trainInstance, TrainContract.artifact);
+
         const atomicContract = await TrainContract.at(
             aztecAtomicContract,
             wallet,
         );
 
         const userAztecAddress = AztecAddress.fromString(accountAddress);
+
 
         const commitRaw: any = await atomicContract.methods
             .get_htlc_public(Fr.fromString(id30Bytes))
