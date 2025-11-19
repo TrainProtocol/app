@@ -12,10 +12,11 @@ const jetBrainsMono = JetBrains_Mono({
 })
 
 export default function Navbar() {
-
+    const isTestnet = process.env.NEXT_PUBLIC_API_VERSION == 'sandbox'
     const navigation = [
         { name: 'app', href: '/', current: true },
         { name: 'home', href: 'https://www.train.tech/', current: false, target: '_blank' },
+        { name: isTestnet ? 'mainnet' : 'testnet', href: isTestnet ? 'https://app.train.tech/' : 'https://testnet.train.tech/', current: false, target: '_blank' }
     ]
 
     return (

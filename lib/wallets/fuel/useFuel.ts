@@ -242,7 +242,7 @@ export default function useFuel(): WalletProvider {
             sender: details.sender?.['bits'],
             receiver: details.receiver?.['bits'],
             timelock: DateTime.fromTai64(details.timelock).toUnixSeconds(),
-            secret: Number(details.secret),
+            secret: details.secret && details.secret != 1 ? Number(details.secret) : undefined,
             hashlock: details.hashlock !== "0x0000000000000000000000000000000000000000000000000000000000000001" ? details.hashlock : undefined,
         }
 

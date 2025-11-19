@@ -218,6 +218,7 @@ export const claimTransactionBuilder = async (params: ClaimParams & { senderWall
         }
 
         await senderWallet.registerContract(trainInstance, TrainContract.artifact);
+        await senderWallet.registerSender(aztecAtomicContract);
         await senderWallet.registerContract(tokenInstance, TokenContractArtifact);
 
         const contract = await TrainContract.at(
