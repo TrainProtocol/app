@@ -319,6 +319,7 @@ export default function useEVM(): WalletProvider {
             ...result,
             secret: (result.secret as any) != 1 ? BigInt(result.secret!) : undefined,
             hashlock: (result.hashlock == "0x0100000000000000000000000000000000000000000000000000000000000000" || result.hashlock == "0x0000000000000000000000000000000000000000000000000000000000000000") ? null : result.hashlock,
+            sender: result.sender !== "0x0000000000000000000000000000000000000000" ? result.sender : undefined,
             amount: formatAmount(Number(result.amount), 18), //networkToken?.decimals
             timelock: Number(result.timelock)
         }

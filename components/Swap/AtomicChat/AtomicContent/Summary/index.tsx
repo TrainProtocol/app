@@ -6,7 +6,7 @@ import useWallet from "../../../../../hooks/useWallet";
 import Summary from "./Summary";
 import Details from "./Details";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../../../shadcn/accordion";
-import formatAmount from "../../../../../lib/formatAmount";
+import { formatUnits } from "fuels";
 
 const MotionSummary: FC = () => {
 
@@ -36,7 +36,7 @@ const MotionSummary: FC = () => {
     const receive_amount_in_base_units = fee?.quote?.receiveAmount
     const receive_amount = (receive_amount_in_base_units && source_token) ? (Number(receive_amount_in_base_units) / Math.pow(10, source_asset?.decimals)) : undefined;
 
-    const receiveAmount = formatAmount(commitFromApi?.destinationAmount || fee?.quote?.receiveAmount, destination_token?.decimals) || receive_amount
+    const receiveAmount = commitFromApi?.destinationAmount ? formatUnits(commitFromApi?.destinationAmount, destination_token?.decimals) : fee?.quote?.receiveAmount ? formatUnits(fee?.quote?.receiveAmount, destination_token?.decimals) : undefined
     // const receiveAmountInUsd = commitFromApi?.destinationAmountInUsd || fee?.quote?.receiveAmountInUsd
     // const requestedAmountInUsd = commitFromApi?.sourceAmountInUsd || fee?.quote?.sourceAmountInUsd
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
