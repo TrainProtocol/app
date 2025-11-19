@@ -46,7 +46,7 @@ export default function useAztec(): WalletProvider {
         }
     }, [wallet, connected, accountAddress, networks])
 
-    const connectWallet = async ({ connector: internalConnector }: { connector: InternalConnector }) => {
+    const connectWallet = async () => {
         try {
             // AzguardWallet.connect() handles the connection UI
             // The connector parameter is not used since AzguardWallet is a single wallet
