@@ -1,8 +1,9 @@
-import { createContext, useState, useContext, useEffect } from 'react'
+import { createContext, useState, useContext, useEffect, useMemo } from 'react'
 import { SwapFormValues } from '../components/DTOs/SwapFormValues';
 import LayerSwapApiClient, { Quote, SwapQuote } from '../lib/trainApiClient';
 import useSWR from 'swr';
 import { ApiResponse } from '../Models/ApiResponse';
+import { parseUnits } from 'viem';
 
 const FeeStateContext = createContext<ContextType | null>(null);
 
@@ -29,17 +30,19 @@ export function FeeProvider({ children }) {
     const valuesChanger = (values: SwapFormValues) => {
         setValues(values)
     }
+    const convertedAmount = useMemo(() => {
+        return (amount && fromCurrency?.decimals) ? parseUnits(amount, fromCurrency?.decimals) : undefined;
+    }, [amount, fromCurrency])
 
     useEffect(() => {
         const handler = setTimeout(() => {
-            const fee_amount_in_base_units = (amount && fromCurrency?.decimals) ? (Number(amount) * Math.pow(10, fromCurrency?.decimals)) : undefined;
-            if (fee_amount_in_base_units) setDebouncedAmount(fee_amount_in_base_units.toString());
+            if (convertedAmount) setDebouncedAmount(convertedAmount.toString());
         }, 500);
 
         return () => {
             clearTimeout(handler);
         };
-    }, [amount, 1000]);
+    }, [convertedAmount]);
 
     const apiClient = new LayerSwapApiClient()
 
@@ -54,7 +57,6 @@ export function FeeProvider({ children }) {
     // })
 
     // const isAmountInRange = (amountRange?.data && debouncedAmount) && (Number(debouncedAmount) >= amountRange?.data?.minAmount && Number(debouncedAmount) <= amountRange?.data?.maxAmount)
-
     const { data: lsFee, mutate: mutateFee, isLoading: isFeeLoading } = useSWR<ApiResponse<SwapQuote>>((from && fromCurrency && to && toCurrency && debouncedAmount && !commitId) ?
         `/quote?sourceNetwork=${from?.name}&sourceToken=${fromCurrency?.symbol}&destinationNetwork=${to?.name}&destinationToken=${toCurrency?.symbol}&amount=${debouncedAmount}` : null, apiClient.fetcher, {
         refreshInterval: poll ? 42000 : 0,
