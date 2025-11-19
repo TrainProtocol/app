@@ -11,6 +11,7 @@ import Router from "next/router";
 import { useEffect } from "react";
 import { PostHogProvider } from 'posthog-js/react'
 import posthog from 'posthog-js'
+import { Analytics } from '@vercel/analytics/next';
 
 const progress = new ProgressBar({
   size: 2,
@@ -63,6 +64,7 @@ function App({ Component, pageProps }) {
           <Component key={router.asPath} {...pageProps} />
         </IntercomProvider>
       </SWRConfig>
+      <Analytics />
     </PostHogProvider>
   )
 }
