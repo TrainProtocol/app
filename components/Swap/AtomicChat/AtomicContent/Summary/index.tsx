@@ -40,7 +40,6 @@ const MotionSummary: FC = () => {
     // const receiveAmountInUsd = commitFromApi?.destinationAmountInUsd || fee?.quote?.receiveAmountInUsd
     // const requestedAmountInUsd = commitFromApi?.sourceAmountInUsd || fee?.quote?.sourceAmountInUsd
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
-
     return (
         <div
             className='bg-secondary-800 rounded-2xl p-3 w-full relative z-10 space-y-5 border border-transparent transition-all'>
@@ -53,7 +52,7 @@ const MotionSummary: FC = () => {
                     destinationCurrency={destination_token}
                     requestedAmount={amount}
                     sourceCurrency={source_token}
-                    sourceAccountAddress={sourceDetails?.sender || wallet?.address}
+                    sourceAccountAddress={sourceDetails?.sender && sourceDetails?.amount !== 0 ? sourceDetails?.sender : wallet?.address}
                     receiveAmount={receiveAmount}
                 // requestedAmountInUsd={requestedAmountInUsd}
                 // receiveAmountInUsd={receiveAmountInUsd}
