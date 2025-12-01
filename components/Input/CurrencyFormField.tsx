@@ -6,15 +6,13 @@ import PopoverSelectWrapper from "../Select/Popover/PopoverSelectWrapper";
 import { ResolveCurrencyOrder, SortAscending } from "../../lib/sorting";
 import { truncateDecimals } from "../utils/RoundDecimals";
 import { useQueryState } from "../../context/query";
-import { Network, Route, Token } from "../../Models/Network";
+import { Route, Token } from "../../Models/Network";
 import LayerSwapApiClient from "../../lib/trainApiClient";
 import useSWR from "swr";
 import { ApiResponse } from "../../Models/ApiResponse";
 import { Balance } from "../../Models/Balance";
 import { QueryParams } from "../../Models/QueryParams";
 import { ApiError, LSAPIKnownErrorCode } from "../../Models/ApiError";
-import { resolveNetworkRoutesURL } from "../../helpers/routes";
-import { ONE_WEEK } from "./NetworkFormField";
 import RouteIcon from "./RouteIcon";
 import useSWRBalance from "../../lib/balances/useSWRBalance";
 import { useAtomicState } from "../../context/atomicContext";
@@ -39,9 +37,10 @@ const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
         data: routes,
         isLoading,
         error
-    } = useSWR<Route[]>('/routes', apiClient.fetcher, { keepPreviousData: true, dedupingInterval: 10000 })
+    } = useSWR<Route[] | ApiResponse<Route[]>>('/routes', apiClient.fetcher, { keepPreviousData: true, dedupingInterval: 10000 })
 
-    const routesData = (direction == 'from' ? from : to) && routes?.filter(r => (direction === 'from' ? r.source.network.name : r.destination.network.name) === (direction === 'from' ? from?.name : to?.name))
+    const routesArray = Array.isArray(routes) ? routes : routes?.data
+    const routesData = (direction == 'from' ? from : to) && routesArray?.filter(r => (direction === 'from' ? r.source.network.name : r.destination.network.name) === (direction === 'from' ? from?.name : to?.name))
 
     const fromCurrencies = routesData?.map(r => r.source.token);
     const toCurrencies = routesData?.map(r => r.destination.token);
