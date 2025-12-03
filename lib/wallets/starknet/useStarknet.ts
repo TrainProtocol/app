@@ -16,6 +16,8 @@ import LayerSwapApiClient from "../../trainApiClient";
 import { Commit } from "../../../Models/phtlc/PHTLC";
 import { calculateEpochTimelock } from "../utils/calculateTimelock";
 import { useRpcConfigStore } from "../../../stores/rpcConfigStore";
+import { hkdf } from "@noble/hashes/hkdf";
+import { sha256 } from "@noble/hashes/sha256";
 
 const starknetNames = [KnownInternalNames.Networks.StarkNetGoerli, KnownInternalNames.Networks.StarkNetMainnet, KnownInternalNames.Networks.StarkNetSepolia]
 export default function useStarknet(): WalletProvider {
@@ -44,6 +46,76 @@ export default function useStarknet(): WalletProvider {
     const isMainnet = networks?.some(network => network.name === KnownInternalNames.Networks.StarkNetMainnet)
     const network = networks?.find(network => starknetNames.some(name => name === network.name))
     const nodeUrl = network ? getEffectiveRpcUrl(network) : undefined
+
+    const resolveChainId = process.env.NEXT_PUBLIC_API_VERSION === 'sandbox' ? constants.StarknetChainId.SN_SEPOLIA : constants.StarknetChainId.SN_MAIN;
+    const hkdfInfo = Buffer.from('starknet-signature-key-derivation', 'utf8');
+    const keyLength = 32; // 256 bits
+    const normalizeHex = (value: string) => value.length % 2 === 0 ? value : `0${value}`;
+    const deriveKeyMaterial = (ikm: Uint8Array, salt: Uint8Array) => hkdf(sha256, ikm, salt, hkdfInfo, keyLength);
+    const chainIdHex = (() => {
+        if (typeof resolveChainId === 'string') {
+            return normalizeHex(resolveChainId.startsWith('0x') ? resolveChainId.slice(2) : resolveChainId);
+        }
+
+        return normalizeHex(BigInt(resolveChainId as unknown as string).toString(16));
+    })();
+
+    const getSignatureTypedData = (): TypedData => ({
+        domain: {
+            name: 'Train',
+            chainId: resolveChainId,
+            version: 'v1',
+            revision: TypedDataRevision.ACTIVE,
+        },
+        message: {
+            message: "I am using TRAIN",
+        },
+        primaryType: 'message',
+        types: {
+            message: [
+                {
+                    name: 'message',
+                    type: 'felt',
+                },
+            ],
+            StarknetDomain: [
+                {
+                    name: 'name',
+                    type: 'shortstring',
+                },
+                {
+                    name: 'chainId',
+                    type: 'shortstring',
+                },
+                {
+                    name: 'version',
+                    type: 'shortstring',
+                },
+            ],
+        },
+    });
+
+    const deriveInitialKeyBuffer = async () => {
+        if (!starknetWallet?.metadata?.starknetAccount) {
+            throw new Error('Wallet not connected');
+        }
+
+        const signature = await starknetWallet.metadata.starknetAccount.signMessage(getSignatureTypedData());
+        const rValue = typeof signature[0] === 'string' ? signature[0] : BigInt(signature[0]).toString(16);
+        const sValue = typeof signature[1] === 'string' ? signature[1] : BigInt(signature[1]).toString(16);
+
+        const rHex = normalizeHex(rValue.startsWith('0x') ? rValue.slice(2) : rValue);
+        const sHex = normalizeHex(sValue.startsWith('0x') ? sValue.slice(2) : sValue);
+        const inputMaterial = Buffer.from(rHex + sHex, 'hex');
+        const initialSalt = Buffer.from(chainIdHex, 'hex');
+        return Buffer.from(deriveKeyMaterial(inputMaterial, initialSalt));
+    };
+
+    const deriveKeyFromTimelock = (initialKey: Buffer, timelock: number) => {
+        const timelockSalt = Buffer.from(normalizeHex(timelock.toString(16)), 'hex');
+        const derivedKeyBuffer = Buffer.from(deriveKeyMaterial(initialKey, timelockSalt));
+        return derivedKeyBuffer;
+    };
 
     const starknetWallet = useMemo(() => {
         const wallet = wallets.find(wallet => wallet.providerName === name)
@@ -145,6 +217,11 @@ export default function useStarknet(): WalletProvider {
 
         try {
             const parsedAmount = ethers.utils.parseUnits(amount.toString(), decimals).toString()
+            const parsedAmountBigInt = BigInt(parsedAmount)
+            const rewardAmountBigInt = parsedAmountBigInt
+            const allowanceTotal = parsedAmountBigInt + rewardAmountBigInt
+            const parsedAmountUint = cairo.uint256(parsedAmountBigInt)
+            const rewardAmountUint = cairo.uint256(rewardAmountBigInt)
 
             const erc20Contract = new Contract(
                 {
@@ -153,7 +230,7 @@ export default function useStarknet(): WalletProvider {
                     providerOrAccount: starknetWallet.metadata?.starknetAccount,
                 }
             )
-            const increaseAllowanceCall: Call = erc20Contract.populate("increaseAllowance", [atomicAddress, parsedAmount])
+            const increaseAllowanceCall: Call = erc20Contract.populate("increaseAllowance", [atomicAddress, cairo.uint256(allowanceTotal)])
 
             function generateBytes32Hex() {
                 const bytes = new Uint8Array(32); // 32 bytes = 64 hex characters
@@ -161,16 +238,29 @@ export default function useStarknet(): WalletProvider {
                 return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
             }
             const id = `0x${generateBytes32Hex()}`
-            const timelock = calculateEpochTimelock(20);
+            const idUint = cairo.uint256(id)
+            const LOCK_TIME = 1000 * 60 * 80 // 80 minutes
+            const REWARD_TIME = 1000 * 60 * 70 // 70 minutes
+            const timeLock = Math.floor((Date.now() + LOCK_TIME) / 1000)
+            const rewardTimelock = Math.floor((Date.now() + REWARD_TIME) / 1000)
+            const rewardTimelockUint = cairo.uint256(rewardTimelock)
+            const timelockUint = cairo.uint256(timeLock)
+            const initialKeyBuffer = await deriveInitialKeyBuffer();
+            const derivedKeyBuffer = deriveKeyFromTimelock(initialKeyBuffer, timeLock);
+            const hashlock = '0x' + Buffer.from(sha256(derivedKeyBuffer)).toString('hex');
+            const hashlockUint = cairo.uint256(hashlock)
             const args = [
-                BigInt(id),
-                parsedAmount,
-                destinationChain,
-                destinationAsset,
-                address,
-                sourceAsset.symbol,
+                idUint,
+                hashlockUint,
+                rewardAmountUint,
+                rewardTimelockUint,
+                timelockUint,
                 lpAddress,
-                timelock,
+                sourceAsset.symbol,
+                destinationChain,
+                address,
+                destinationAsset,
+                parsedAmountUint,
                 tokenContractAddress,
             ]
             const atomicContract = new Contract(
@@ -181,13 +271,18 @@ export default function useStarknet(): WalletProvider {
                 }
             )
 
-            const committmentCall: Call = atomicContract.populate("commit", args)
+            const lockCall: Call = atomicContract.populate("lock", args)
 
-            const trx = (await starknetWallet?.metadata?.starknetAccount?.execute([increaseAllowanceCall, committmentCall]))
+            const trx = (await starknetWallet?.metadata?.starknetAccount?.execute([increaseAllowanceCall, lockCall]))
 
             await starknetWallet.metadata.starknetAccount.waitForTransaction(
                 trx.transaction_hash
             );
+            const recoveredInitialKeyBuffer = await deriveInitialKeyBuffer();
+            const recoveredDerivedKey = deriveKeyFromTimelock(initialKeyBuffer, timeLock);
+            const secret = '0x' + recoveredDerivedKey.toString('hex');
+            const claimCall: Call = atomicContract.populate('redeem', [id, secret])
+            const tr_redeem = (await starknetWallet?.metadata?.starknetAccount?.execute(claimCall))
 
             return { hash: trx.transaction_hash as `0x${string}`, commitId: id }
         }
