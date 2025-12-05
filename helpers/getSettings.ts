@@ -24,7 +24,7 @@ export async function getServerSideProps(context) {
         }
     })
 
-    const filteredRoutes = routes.filter(r => networksWithLogos.some(n => n.name == r.source.network.name) && networksWithLogos.some(n => n.name == r.destination.network.name))
+    const filteredRoutes = routes?.filter(r => networksWithLogos.some(n => n.name == r.source.network.name) && networksWithLogos.some(n => n.name == r.destination.network.name)) || []
 
     const settings = {
         networks: networksWithLogos,

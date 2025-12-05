@@ -1,8 +1,8 @@
 import AppSettings from "./AppSettings";
 import { InitializeUnauthInstance } from "./axiosInterceptor"
 import { AxiosInstance, Method } from "axios";
-import { ApiResponse, EmptyApiResponse } from "../Models/ApiResponse";
-import { Network, NetworkType, Route, Token } from "../Models/Network";
+import { ApiResponse } from "../Models/ApiResponse";
+import { Network, NetworkType, Route } from "../Models/Network";
 
 export default class LayerSwapApiClient {
     static apiBaseEndpoint?: string = AppSettings.LayerswapApiUri;

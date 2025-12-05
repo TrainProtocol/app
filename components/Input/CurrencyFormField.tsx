@@ -9,7 +9,6 @@ import { useQueryState } from "../../context/query";
 import { Route, Token } from "../../Models/Network";
 import LayerSwapApiClient from "../../lib/trainApiClient";
 import useSWR from "swr";
-import { ApiResponse } from "../../Models/ApiResponse";
 import { Balance } from "../../Models/Balance";
 import { QueryParams } from "../../Models/QueryParams";
 import { ApiError, LSAPIKnownErrorCode } from "../../Models/ApiError";
@@ -37,10 +36,9 @@ const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
         data: routes,
         isLoading,
         error
-    } = useSWR<Route[] | ApiResponse<Route[]>>('/routes', apiClient.fetcher, { keepPreviousData: true, dedupingInterval: 10000 })
+    } = useSWR<Route[]>('/routes', apiClient.fetcher, { keepPreviousData: true, dedupingInterval: 10000 })
 
-    const routesArray = Array.isArray(routes) ? routes : routes?.data
-    const routesData = (direction == 'from' ? from : to) && routesArray?.filter(r => (direction === 'from' ? r.source.network.name : r.destination.network.name) === (direction === 'from' ? from?.name : to?.name))
+    const routesData = (direction == 'from' ? from : to) && routes?.filter(r => (direction === 'from' ? r.source.network.name : r.destination.network.name) === (direction === 'from' ? from?.name : to?.name))
 
     const fromCurrencies = routesData?.map(r => r.source.token);
     const toCurrencies = routesData?.map(r => r.destination.token);
