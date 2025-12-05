@@ -4,50 +4,51 @@ import { isValidAddress } from "./address/validator";
 import { LayerSwapAppSettings } from "../Models/LayerSwapAppSettings";
 
 export function generateSwapInitialValues(settings: LayerSwapAppSettings, queryParams: QueryParams): SwapFormValues {
-    // const { destAddress, transferAmount, fromAsset, toAsset, from, to, lockFromAsset, lockToAsset } = queryParams
-    // const { sourceRoutes, destinationRoutes } = settings || {}
+    const { destAddress, transferAmount, fromAsset, toAsset, from, to, lockFromAsset, lockToAsset } = queryParams
+    const { routes } = settings || {}
 
-    // const lockedSourceCurrency = lockFromAsset ?
-    //     sourceRoutes.find(l => l.name === to)
-    //         ?.tokens?.find(c => c?.symbol?.toUpperCase() === fromAsset?.toUpperCase())
-    //     : undefined
-    // const lockedDestinationCurrency = lockToAsset ?
-    //     destinationRoutes.find(l => l.name === to)
-    //         ?.tokens?.find(c => c?.symbol?.toUpperCase() === toAsset?.toUpperCase())
-    //     : undefined
+    const sourceRoutes = routes?.map(route => route.source) || []
+    const destinationRoutes = routes?.map(route => route.destination) || []
 
-    // const sourceNetwork = sourceRoutes.find(l => l.name.toUpperCase() === from?.toUpperCase())
-    // const destinationNetwork = destinationRoutes.find(l => l.name.toUpperCase() === to?.toUpperCase())
+    const lockedSourceCurrency = lockFromAsset ?
+        sourceRoutes.find(l => l.network.name === to)?.token
+        : undefined
+    const lockedDestinationCurrency = lockToAsset ?
+        destinationRoutes.find(l => l.network.name === to)?.token
+        : undefined
 
-    // const initialSource = sourceNetwork ?? undefined
-    // const initialDestination = destinationNetwork ?? undefined
+    const sourceNetwork = sourceRoutes.find(l => l.network.name.toUpperCase() === from?.toUpperCase())
+    const destinationNetwork = destinationRoutes.find(l => l.network.name.toUpperCase() === to?.toUpperCase())
 
-    // const filteredSourceCurrencies = lockedSourceCurrency ?
-    //     [lockedSourceCurrency]
-    //     : sourceNetwork?.tokens
+    const initialSource = settings.networks.find(n => n.name === sourceNetwork?.network.name) ?? undefined
+    const initialDestination = settings.networks.find(n => n.name === destinationNetwork?.network.name) ?? undefined
 
-    // const filteredDestinationCurrencies = lockedDestinationCurrency ?
-    //     [lockedDestinationCurrency]
-    //     : destinationNetwork?.tokens
+    const filteredSourceCurrencies = lockedSourceCurrency ?
+        [lockedSourceCurrency]
+        : (sourceNetwork ? sourceRoutes.filter(r => r.network.name === sourceNetwork.network.name).map(r => r.token) : [])
 
-    // let initialAddress =
-    //     destAddress && initialDestination && isValidAddress(destAddress, destinationNetwork) ? destAddress : "";
+    const filteredDestinationCurrencies = lockedDestinationCurrency ?
+        [lockedDestinationCurrency]
+        : (destinationNetwork ? destinationRoutes.filter(r => r.network.name === destinationNetwork.network.name).map(r => r.token) : [])
 
-    // let initialSourceCurrency = filteredSourceCurrencies?.find(c => c.symbol?.toUpperCase() == fromAsset?.toUpperCase())
+    let initialAddress =
+        destAddress && initialDestination && isValidAddress(destAddress, initialDestination) ? destAddress : "";
 
-    // let initialDestinationCurrency = filteredDestinationCurrencies?.find(c => c.symbol?.toUpperCase() == toAsset?.toUpperCase())
+    let initialSourceCurrency = filteredSourceCurrencies?.find(c => c.symbol?.toUpperCase() == fromAsset?.toUpperCase())
 
-    // let initialAmount =
-    //     (lockedDestinationCurrency && transferAmount) || (initialDestinationCurrency ? transferAmount : '')
+    let initialDestinationCurrency = filteredDestinationCurrencies?.find(c => c.symbol?.toUpperCase() == toAsset?.toUpperCase())
 
-    // const result: SwapFormValues = {
-    //     from: initialSource,
-    //     to: initialDestination,
-    //     amount: initialAmount,
-    //     fromCurrency: initialSourceCurrency,
-    //     toCurrency: initialDestinationCurrency,
-    //     destination_address: initialAddress ? initialAddress : '',
-    // }
+    let initialAmount =
+        (lockedDestinationCurrency && transferAmount) || (initialDestinationCurrency ? transferAmount : '')
 
-    return {}
+    const result: SwapFormValues = {
+        from: initialSource,
+        to: initialDestination,
+        amount: initialAmount,
+        fromCurrency: initialSourceCurrency,
+        toCurrency: initialDestinationCurrency,
+        destination_address: initialAddress ? initialAddress : '',
+    }
+
+    return result
 }
