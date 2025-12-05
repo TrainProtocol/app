@@ -9,14 +9,14 @@ export default function Home({ settings, themeData }: InferGetServerSidePropsTyp
   return (
     <SWRConfig value={{
       fallback: {
-        ['/routes']: { data: settings.routes, error: null },
+        ['/routes']: settings.routes,
       }
     }}>
       <Layout settings={settings} themeData={themeData}>
         <Swap />
       </Layout>
     </SWRConfig>
-  ) 
+  )
 }
 
 export { getServerSideProps };
