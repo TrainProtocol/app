@@ -92,7 +92,8 @@ export default function Layout({ children, settings, themeData }: Props) {
 
   const basePath = router?.basePath ?? ""
 
-  const title = "TRAIN | Secure Cross-Chain Swaps"
+  const title = "TRAIN I The First Scalable Cross-Chain Bridge"
+  const description = "The trustless and permissionless way of cross-chain asset bridging & swapping. Move assets across blockchains without third parties, secured by a battle-tested system."
 
   return (<>
 
@@ -107,13 +108,13 @@ export default function Layout({ children, settings, themeData }: Props) {
       <link rel="canonical" href="https://app.train.tech/" />
       <meta name="msapplication-TileColor" content="#ffffff" />
       <meta name="theme-color" content={`rgb(${themeData.secondary?.[900]})`} />
-      <meta name="description" content="Trustless bridging & swapping of crypto assets between blockchains." />
+      <meta name="description" content={description} />
 
       {/* Facebook Meta Tags */}
       <meta property="og:url" content={`https://app.train.tech/`} />
       <meta property="og:type" content="website" />
       <meta property="og:title" content={title} />
-      <meta property="og:description" content="Trustless bridging & swapping of crypto assets between blockchains." />
+      <meta property="og:description" content={description} />
       <meta property="og:image" content={`https://app.train.tech/opengraph.jpg?v=2`} />
 
       {/* Twitter Meta Tags */}
@@ -121,7 +122,7 @@ export default function Layout({ children, settings, themeData }: Props) {
       <meta property="twitter:domain" content="app.train.tech" />
       <meta property="twitter:url" content={`https://app.train.tech/`} />
       <meta name="twitter:title" content={title} />
-      <meta name="twitter:description" content="Trustless bridging & swapping of crypto assets between blockchains." />
+      <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={`https://app.train.tech/opengraphtw.jpg`} />
     </Head>
     {
