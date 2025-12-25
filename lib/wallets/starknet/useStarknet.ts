@@ -18,6 +18,7 @@ import { calculateEpochTimelock } from "../utils/calculateTimelock";
 import { useRpcConfigStore } from "../../../stores/rpcConfigStore";
 import { hkdf } from "@noble/hashes/hkdf";
 import { sha256 } from "@noble/hashes/sha256";
+import { startRegistration, base64URLStringToBuffer, bufferToBase64URLString } from '@simplewebauthn/browser';
 
 const starknetNames = [KnownInternalNames.Networks.StarkNetGoerli, KnownInternalNames.Networks.StarkNetMainnet, KnownInternalNames.Networks.StarkNetSepolia]
 export default function useStarknet(): WalletProvider {
@@ -60,6 +61,122 @@ export default function useStarknet(): WalletProvider {
         return normalizeHex(BigInt(resolveChainId as unknown as string).toString(16));
     })();
 
+    const PASSKEY_STORAGE_KEY = `train:starknet:passkeyCredentialId:${chainIdHex}`;
+
+    const getStoredPasskeyCredentialId = () => {
+        if (typeof window === 'undefined') return null;
+        return window.localStorage.getItem(PASSKEY_STORAGE_KEY);
+    };
+
+    const storePasskeyCredentialId = (credId: string) => {
+        if (typeof window === 'undefined') return;
+        window.localStorage.setItem(PASSKEY_STORAGE_KEY, credId);
+    };
+
+    const getPasskeyPrfSalt = () => {
+        // 32-byte salt for the PRF input, deterministic per chain.
+        // (PRF output stays secret in the authenticator; salt just scopes it)
+        const input = Buffer.concat([
+            Buffer.from('train-passkey-prf-salt-v1:', 'utf8'),
+            Buffer.from(chainIdHex, 'hex'),
+        ]);
+        return new Uint8Array(sha256(input));
+    };
+
+    const ensurePasskeyRegistered = async (): Promise<string> => {
+        const existing = getStoredPasskeyCredentialId();
+        if (existing) return existing;
+
+        if (typeof window === 'undefined') throw new Error('Passkey registration must run in a browser');
+        if (!window.isSecureContext) throw new Error('Passkeys require HTTPS (secure context)');
+
+        // Create a discoverable (resident) credential.
+        const challengeBytes = new Uint8Array(32);
+        window.crypto.getRandomValues(challengeBytes);
+
+        const userIdBytes = new Uint8Array(16);
+        window.crypto.getRandomValues(userIdBytes);
+        const u8ToArrayBuffer = (u8: Uint8Array) =>
+            u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength);
+
+        const challengeB64 = bufferToBase64URLString(u8ToArrayBuffer(challengeBytes) as any);
+        const userIdB64 = bufferToBase64URLString(u8ToArrayBuffer(userIdBytes) as any);
+        const optionsJSON = {
+            // SimpleWebAuthn expects base64url *strings* for optionsJSON.challenge
+            challenge: challengeB64,
+            rp: { name: 'Train', id: window.location.hostname },
+            user: {
+                // SimpleWebAuthn expects base64url *strings* for optionsJSON.user.id
+                id: userIdB64,
+                name: 'train-user',
+                displayName: 'Train user',
+            },
+            pubKeyCredParams: [{ type: 'public-key', alg: -7 }], // ES256
+            authenticatorSelection: {
+                authenticatorAttachment: 'platform',
+                residentKey: 'required',
+                userVerification: 'required',
+            },
+            attestation: 'none',
+            timeout: 60000,
+        } as const;
+
+        const attestation = await startRegistration({ optionsJSON } as any);
+
+        // Save credential id (base64url string)
+        storePasskeyCredentialId(attestation.id);
+        return attestation.id;
+    };
+
+    const deriveInitialKeyBufferWithPasskey = async () => {
+        if (typeof window === 'undefined') throw new Error('Passkey auth must run in a browser');
+        if (!window.isSecureContext) throw new Error('Passkeys require HTTPS (secure context)');
+
+        const credentialIdB64 = await ensurePasskeyRegistered();
+
+        // PRF works during authentication (navigator.credentials.get)
+        // and returns a stable secret per (credential, salt).  [oai_citation:1‡W3C GitHub](https://w3c.github.io/webauthn/?utm_source=chatgpt.com)
+        const challengeBytes = new Uint8Array(32);
+        window.crypto.getRandomValues(challengeBytes);
+
+        const prfSalt = getPasskeyPrfSalt();
+
+        const publicKey: PublicKeyCredentialRequestOptions = {
+            rpId: window.location.hostname,
+            challenge: challengeBytes,
+            userVerification: 'required',
+            allowCredentials: [
+                {
+                    type: 'public-key',
+                    id: base64URLStringToBuffer(credentialIdB64),
+                },
+            ],
+            // TS DOM libs may not include `prf` yet, so we cast.
+            extensions: {
+                prf: {
+                    evalByCredential: {
+                        [credentialIdB64]: { first: prfSalt },
+                    },
+                },
+            } as any,
+        };
+
+        const cred = (await navigator.credentials.get({ publicKey })) as PublicKeyCredential;
+
+        // Extension outputs are read via getClientExtensionResults().  [oai_citation:2‡MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/PublicKeyCredential/getClientExtensionResults?utm_source=chatgpt.com)
+        const ext: any = cred.getClientExtensionResults?.() ?? {};
+        const prfFirst: ArrayBuffer | undefined = ext?.prf?.results?.first;
+
+        if (!prfFirst) {
+            throw new Error('Passkey PRF extension not available in this browser/authenticator');
+        }
+
+        // PRF output is 32 bytes (spec).  [oai_citation:3‡W3C GitHub](https://w3c.github.io/webauthn/?utm_source=chatgpt.com)
+        const ikm = new Uint8Array(prfFirst);
+        const initialSalt = Buffer.from(chainIdHex, 'hex');
+
+        return Buffer.from(deriveKeyMaterial(ikm, initialSalt));
+    };
     const getSignatureTypedData = (): TypedData => ({
         domain: {
             name: 'Train',
@@ -246,6 +363,7 @@ export default function useStarknet(): WalletProvider {
             const rewardTimelockUint = cairo.uint256(rewardTimelock)
             const timelockUint = cairo.uint256(timeLock)
             const initialKeyBuffer = await deriveInitialKeyBuffer();
+            // const initialKeyBuffer = await deriveInitialKeyBufferWithPasskey();
             const derivedKeyBuffer = deriveKeyFromTimelock(initialKeyBuffer, timeLock);
             const hashlock = '0x' + Buffer.from(sha256(derivedKeyBuffer)).toString('hex');
             const hashlockUint = cairo.uint256(hashlock)
@@ -279,7 +397,8 @@ export default function useStarknet(): WalletProvider {
                 trx.transaction_hash
             );
             const recoveredInitialKeyBuffer = await deriveInitialKeyBuffer();
-            const recoveredDerivedKey = deriveKeyFromTimelock(initialKeyBuffer, timeLock);
+            // const recoveredInitialKeyBuffer = await deriveInitialKeyBufferWithPasskey();
+            const recoveredDerivedKey = deriveKeyFromTimelock(recoveredInitialKeyBuffer, timeLock);
             const secret = '0x' + recoveredDerivedKey.toString('hex');
             const claimCall: Call = atomicContract.populate('redeem', [id, secret])
             const tr_redeem = (await starknetWallet?.metadata?.starknetAccount?.execute(claimCall))
