@@ -79,7 +79,7 @@ const Error: FC = () => {
                             <button
                                 type="button"
                                 onClick={() => updateCommit('error', undefined)}
-                                className='relative w-full font-semibold rounded-componentRoundness transition duration-200 ease-in-out bg-secondary-400 border border-secondary-500 text-primary-text py-3 px-2 md:px-3'
+                                className='relative w-full font-semibold rounded-xl transition duration-200 ease-in-out bg-secondary-400 border border-secondary-500 text-primary-text py-3 px-2 md:px-3'
                             >
                                 {error.buttonText || 'Try again'}
                             </button>

@@ -10,7 +10,7 @@ type Props = {
 const ActionStatus: FC<Props> = ({ title, status }) => {
 
     return <div
-        className={clsx('flex text-center space-x-3.5 bg-secondary-700 p-3 rounded-componentRoundness', {
+        className={clsx('flex text-center space-x-3.5 bg-secondary-700 p-3 rounded-xl', {
             '!bg-accent !p-2 !pl-2.5': status === 'success',
         })}
     >

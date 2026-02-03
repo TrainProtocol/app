@@ -40,7 +40,7 @@ const CommandInput = React.forwardRef<
         className
       )} />
     <span className="absolute left-1 font-thin animate-none peer-placeholder-shown/draft:animate-blinking text-lg peer-focus/draft:invisible invisible peer-placeholder-shown/draft:visible">|</span>
-    <label htmlFor={props.id} className="absolute text-lg text-secondary-text duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown/draft:scale-100 peer-placeholder-shown/draft:translate-y-0 peer-placeholder-shown/draft:text-secondary-text-muted">
+    <label htmlFor={props.id} className="absolute text-lg text-secondary-text duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown/draft:scale-100 peer-placeholder-shown/draft:translate-y-0 peer-placeholder-shown/draft:text-secondary-text-tertiary">
       {props.placeholder}
     </label>
   </div>
@@ -126,7 +126,7 @@ const CommandShortcut = ({
   return (
     <span
       className={classNames(
-        "ml-auto text-xs tracking-widest text-secondary-text-muted",
+        "ml-auto text-xs tracking-widest text-secondary-text-tertiary",
         className
       )}
       {...props}

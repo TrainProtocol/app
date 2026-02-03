@@ -12,10 +12,8 @@ const ColorSchema: FC<Props> = ({ themeData }) => {
             {themeData &&
                 <style global jsx>{`
                     :root {
-                        --ls-colors-backdrop:${themeData.backdrop};
                         --ls-colors-logo: ${themeData.logo};
                         --ls-colors-primary: ${themeData.primary?.DEFAULT};
-                        --ls-colors-primary-50: ${themeData.primary?.[50]};
                         --ls-colors-primary-100: ${themeData.primary?.[100]};
                         --ls-colors-primary-200: ${themeData.primary?.[200]};
                         --ls-colors-primary-300: ${themeData.primary?.[300]};
@@ -25,21 +23,12 @@ const ColorSchema: FC<Props> = ({ themeData }) => {
                         --ls-colors-primary-700: ${themeData.primary?.[700]};
                         --ls-colors-primary-800: ${themeData.primary?.[800]};
                         --ls-colors-primary-900: ${themeData.primary?.[900]};
-                        
-                        --ls-colors-accent: ${themeData.accent.DEFAULT};
-                        --ls-colors-accent-hover: ${themeData.accent.hover};
 
-                        --ls-colors-actionButtonText: ${themeData.actionButtonText};
                         --ls-colors-buttonTextColor: ${themeData.buttonTextColor};
-                        --ls-colors-text-placeholder: ${themeData.placeholderText};
+                        --ls-colors-text-tertiary: ${themeData.tertiary};
                         --ls-colors-primary-text: ${themeData.primary?.text};
-                        --ls-colors-primary-text-muted: ${themeData.primary?.textMuted};
-                        --ls-colors-primary-logoColor: ${themeData.logo};
-                        --ls-border-radius-containerRoundness: ${themeData.containerRoundness};
-                        --ls-border-radius-componentRoundness: ${themeData.componentRoundness};
 
                         --ls-colors-secondary: ${themeData.secondary?.DEFAULT};
-                        --ls-colors-secondary-50: ${themeData.secondary?.[50]};
                         --ls-colors-secondary-100: ${themeData.secondary?.[100]};
                         --ls-colors-secondary-200: ${themeData.secondary?.[200]};
                         --ls-colors-secondary-300: ${themeData.secondary?.[300]};
@@ -49,8 +38,17 @@ const ColorSchema: FC<Props> = ({ themeData }) => {
                         --ls-colors-secondary-700: ${themeData.secondary?.[700]};
                         --ls-colors-secondary-800: ${themeData.secondary?.[800]};
                         --ls-colors-secondary-900: ${themeData.secondary?.[900]};
-                        --ls-colors-secondary-950: ${themeData.secondary?.[950]};
                         --ls-colors-secondary-text: ${themeData.secondary?.text};
+
+                        --ls-colors-warning-foreground: ${themeData.warning?.Foreground};
+                        --ls-colors-warning-background: ${themeData.warning?.Background};
+                        --ls-colors-error-foreground: ${themeData.error?.Foreground};
+                        --ls-colors-error-background: ${themeData.error?.Background};
+                        --ls-colors-success-foreground: ${themeData.success?.Foreground};
+                        --ls-colors-success-background: ${themeData.success?.Background};
+
+                        --ls-colors-accent: ${themeData.accent?.DEFAULT};
+                        --ls-colors-accent-hover: ${themeData.accent?.hover};
                     }
                     .headerLogo {
                         display: ${themeData.headerLogo};

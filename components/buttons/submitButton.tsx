@@ -1,7 +1,8 @@
-import { FC, MouseEventHandler } from "react";
+import { CSSProperties, FC, MouseEventHandler } from "react";
 import SpinIcon from "../Icons/spinIcon";
+import clsx from "clsx";
 
-type buttonStyle = 'outline' | 'filled';
+type buttonStyle = 'outline' | 'filled' | 'secondary';
 type buttonSize = 'small' | 'medium' | 'large';
 type text_align = 'center' | 'left'
 type button_align = 'left' | 'right'
@@ -18,39 +19,30 @@ export class SubmitButtonProps {
     button_align?: button_align = 'left';
     className?: string;
     children?: React.ReactNode;
+    style?: CSSProperties;
 }
 
-function constructClassNames(size: buttonSize, buttonStyle: buttonStyle) {
-    let defaultStyle = ' border border-primary disabled:border-primary-900 items-center space-x-1 disabled:text-opacity-40 disabled:bg-primary-900 disabled:cursor-not-allowed relative w-full flex justify-center font-semibold rounded-componentRoundness transform hover:brightness-75 transition duration-200 ease-in-out'
-    defaultStyle += buttonStyle == 'filled' ? " bg-primary text-primary-actionButtonText" : " text-primary";
+const SubmitButton: FC<SubmitButtonProps> = ({ isDisabled, isSubmitting, icon, children, type, onClick, buttonStyle = 'filled', size = 'medium', text_align = 'center', button_align = 'left', className, style }) => {
 
-    switch (size) {
-        case 'large':
-            defaultStyle += " py-4 px-4";
-            break;
-        case 'medium':
-            defaultStyle += " py-3 px-2 md:px-3";
-            break;
-        case 'small':
-            defaultStyle += " py-1.5 px-1.5";
-            break;
-    }
-
-    return defaultStyle;
-}
-
-const SubmitButton: FC<SubmitButtonProps> = ({ isDisabled, isSubmitting, icon, children, type, onClick, buttonStyle = 'filled', size = 'medium', text_align = 'center', button_align = 'left', className }) => {
     return (
         <button
             disabled={isDisabled || isSubmitting}
             type={type}
             onClick={onClick}
-            className={`${constructClassNames(size, buttonStyle)} ${className}`}
+            style={style}
+            className={clsx('navigation-focus-ring-text-bold-lg enabled:active:animate-press-down text-primary focus:outline-none focus:ring-0 items-center space-x-1 disabled:bg-primary-900 disabled:text-primary-buttonTextColor/50 disabled:cursor-not-allowed relative w-full flex justify-center font-medium rounded-xl transform hover:brightness-125 transition duration-200 ease-in-out', {
+                className,
+                'text-primary-buttonTextColor bg-primary-500': buttonStyle === 'filled',
+                'text-primary-text bg-secondary-300 hover:bg-secondary-400': buttonStyle === 'secondary',
+                'py-4 px-4': size === 'large',
+                'py-3 px-2 md:px-3': size === 'medium',
+                'py-2.5 px-2.5 text-sm': size === 'small',
+            })}
         >
             <span className={`${button_align === "right" ? 'order-last' : 'order-first'} ${text_align === 'center' ? "absolute left-0 inset-y-0 flex items-center pl-3" : "relative"}`}>
                 {(!isDisabled && !isSubmitting) && icon}
                 {isSubmitting ?
-                    <SpinIcon className="animate-reverse-spin h-5 w-5" />
+                    <SpinIcon className="animate-spin h-5 w-5" />
                     : null}
             </span>
             <span className={`grow ${text_align === 'left' ? 'text-left' : 'text-center'}`}>{children}</span>
@@ -68,7 +60,7 @@ type DoubleLineTextProps = {
 
 const text_styles = {
     'mltln-text-light': {
-        primary: 'text-primary-actionButtonText',
+        primary: 'text-primary',
         secondary: 'text-primary-100'
     },
     'mltln-text-dark': {

@@ -49,7 +49,7 @@ const SwapForm: FC = () => {
     let valuesSwapperDisabled = false;
     const { fee, isFeeLoading } = useFee()
 
-    const actionDisplayName = query?.actionButtonText || "Swap now"
+    const actionDisplayName = query?.buttonTextColor || "Swap now"
 
     useEffect(() => {
         valuesChanger(values)
@@ -160,7 +160,7 @@ const SwapForm: FC = () => {
                 <Widget.Content>
                     <div className='flex-col relative flex justify-between gap-1.5 w-full mb-3.5 leading-4 bg-secondary-700 rounded-xl'>
                         {!(query?.hideFrom && values?.from) && <div className="flex flex-col w-full">
-                            <NetworkFormField direction="from" label="From" className="rounded-t-componentRoundness pt-2.5" />
+                            <NetworkFormField direction="from" label="From" className="rounded-t-xl pt-2.5" />
                         </div>}
                         {/* {!query?.hideFrom && !query?.hideTo &&
                             <button
@@ -182,7 +182,7 @@ const SwapForm: FC = () => {
                                 </motion.div>
                             </button>} */}
                         {!(query?.hideTo && values?.to) && <div className="flex flex-col w-full">
-                            <NetworkFormField direction="to" label="To" className="rounded-b-componentRoundness" />
+                            <NetworkFormField direction="to" label="To" className="rounded-b-xl" />
                         </div>}
                     </div>
                     <div className="mb-6 leading-4">

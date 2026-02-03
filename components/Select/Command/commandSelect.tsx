@@ -61,7 +61,7 @@ export default function CommandSelect({ values, setValue, show, setShow, searchH
                                     <CommandGroup key={group.name} heading={group.name}>
                                         {group.items.map(item => {
                                             return (
-                                                <CommandItem className='!rounded-componentRoundness -mx-1' value={item.id} key={item.id} onSelect={() => handleSelectValue(item)}>
+                                                <CommandItem className='!rounded-xl -mx-1' value={item.id} key={item.id} onSelect={() => handleSelectValue(item)}>
                                                     <SelectItem item={item} />
                                                 </CommandItem>
                                             )

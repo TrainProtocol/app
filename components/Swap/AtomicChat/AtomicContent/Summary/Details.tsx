@@ -85,7 +85,7 @@ const Item: FC<{
                         <div className="text-sm text-secondary-text">{titleDetails}</div>
                     }
                 </div>
-                <div className="text-xs sm:text-sm font-normal text-primary-text-placeholder">{description}</div>
+                <div className="text-xs sm:text-sm font-normal text-primary-text-tertiary">{description}</div>
             </div>
         </div>
     )

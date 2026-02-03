@@ -177,7 +177,7 @@ function GenerateCurrencyMenuItems(
             error?.code === LSAPIKnownErrorCode.ROUTE_NOT_FOUND_ERROR);
 
 
-        const details = <p className="text-primary-text-muted">
+        const details = <p className="text-primary-text-tertiary">
             {formatted_balance_amount}
         </p>
 

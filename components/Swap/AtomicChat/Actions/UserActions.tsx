@@ -139,6 +139,9 @@ export const UserLockAction: FC = () => {
             if (!solver)
                 throw new Error("No solver")
 
+            if (!provider.addLock)
+                throw new Error("No add lock function")
+
             await provider.addLock({
                 type: source_asset?.contract ? 'erc20' : 'native',
                 chainId: source_network?.chainId,

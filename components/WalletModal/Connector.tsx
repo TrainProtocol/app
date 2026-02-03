@@ -1,17 +1,18 @@
-import { ButtonHTMLAttributes, DetailedHTMLProps, FC, useState } from "react";
+import { ButtonHTMLAttributes, DetailedHTMLProps, FC } from "react";
 import { WalletModalConnector } from ".";
 import { InternalConnector } from "../../Models/WalletProvider";
 import { Loader } from "lucide-react";
-import { resolveWalletConnectorIcon } from "../../lib/wallets/utils/resolveWalletIcon";
+import { resolveWalletConnectorIcon } from "@/lib/wallets/utils/resolveWalletIcon";
 
 type Connector = DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> & {
     connector: InternalConnector,
     connectingConnector?: WalletModalConnector
     isRecent?: boolean
     onClick: () => void
+    isProviderReady?: boolean
 }
 
-const Connector: FC<Connector> = ({ connector, connectingConnector, onClick, isRecent, ...props }) => {
+const Connector: FC<Connector> = ({ connector, connectingConnector, onClick, isRecent, isProviderReady = true, ...props }) => {
     const connectorName = connector?.name
     const connectorId = connector?.id
 
@@ -22,14 +23,16 @@ const Connector: FC<Connector> = ({ connector, connectingConnector, onClick, isR
         <>
             <button
                 type="button"
-                disabled={!!connectingConnector}
-                className="w-full h-fit flex items-center justify-between bg-secondary-700 hover:bg-secondary-500 transition-colors duration-200 rounded-xl p-3"
+                disabled={!!connectingConnector || !isProviderReady}
+                className="w-full h-fit flex items-center justify-between bg-secondary-500 hover:bg-secondary-400 transition-colors duration-200 rounded-xl p-3 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={onClick}
                 {...props}
             >
-                <div className="grid grid-cols-3 gap-3 items-center font-medium w-full">
-                    <Icon className="w-9 sm:w-11 h-auto p-0.5 rounded-[10px] bg-secondary-800" />
-                    <div className='flex flex-col items-start justify-center col-start-2 col-span-3 min-h-[40px]'>
+                <div className="flex gap-2.5 items-center font-medium w-full">
+                    <div className="w-11">
+                        <Icon className="w-11 h-auto p-0.5 rounded-[10px] bg-secondary-800" />
+                    </div>
+                    <div className='flex flex-col items-start justify-center col-start-2 col-span-3 min-h-[40px] truncate'>
 
                         <p className='text-base text-left truncate w-full'>{connectorName}</p>
                         {
@@ -38,7 +41,7 @@ const Connector: FC<Connector> = ({ connector, connectingConnector, onClick, isR
                         }
                         {
                             isRecent &&
-                            <p className='text-xs text-primary-text font-semibold bg-accent px-1 py-0.5 rounded-md'>Recent</p>
+                            <p className='text-xs text-primary-buttonTextColor font-semibold bg-primary-700 px-1 py-0.5 rounded-md'>Recent</p>
                         }
                     </div>
                     {

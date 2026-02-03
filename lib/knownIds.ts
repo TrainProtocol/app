@@ -1,40 +1,4 @@
 export default class KnownInternalNames {
-    static Exchanges = class {
-        public static readonly Coinbase: string = "COINBASE";
-
-        public static readonly Coinspot: string = "COINSPOT";
-
-        public static readonly Gateio: string = "GATEIO";
-
-        public static readonly Binance: string = "BINANCE";
-
-        public static readonly Kucoin: string = "KUCOIN";
-
-        public static readonly Huobi: string = "HUOBI";
-
-        public static readonly FtxUs: string = "FTXUS";
-
-        public static readonly FtxCom: string = "FTXCOM";
-
-        public static readonly Okex: string = "OKEX";
-
-        public static readonly Bitfinex: string = "BITFINEX";
-
-        public static readonly Kraken: string = "KRAKEN";
-
-        public static readonly Bittrex: string = "BITTREX";
-
-        public static readonly CryptoCom: string = "CRYPTOCOM";
-
-        public static readonly CryptoComApp: string = "CRYPTOCOMAPP";
-
-        public static readonly BinanceUS: string = "BINANCEUS";
-
-        public static readonly Blocktane: string = "BLOCKTANE";
-
-        public static readonly MexcGlobal: string = "MEXC";
-    }
-
     static Networks = class {
         public static readonly CronosMainnet: string = "CRONOS_MAINNET";
 
@@ -53,8 +17,6 @@ export default class KnownInternalNames {
         public static readonly ModMainnet: string = "MODE_MAINNET";
 
         public static readonly OptimismMainnet: string = "OPTIMISM_MAINNET";
-
-        public static readonly OptimismSepolia: string = "OPTIMISM_SEPOLIA";
 
         public static readonly OptimismGoerli: string = "OPTIMISM_GOERLI";
 
@@ -104,9 +66,9 @@ export default class KnownInternalNames {
 
         public static readonly ImmutableXSepolia: string = "IMMUTABLEX_SEPOLIA";
 
-        public static readonly ImmutableZkEVMMainnet: string = "IMMUTABLEZK_MAINNET";
+        public static readonly ImmutableZkEVM: string = "IMMUTABLEZK_MAINNET";
 
-        public static readonly ImmutableZkEVMTestnet: string = "IMMUTABLEZK_TESTNET";
+        public static readonly ImmutableZkTestnet: string = "IMMUTABLEZK_TESTNET";
 
         public static readonly AstarMainnet: string = "ASTAR_MAINNET";
 
@@ -125,6 +87,10 @@ export default class KnownInternalNames {
         public static readonly SolanaTestnet: string = "SOLANA_TESTNET";
 
         public static readonly SolanaDevnet: string = "SOLANA_DEVNET";
+
+        public static readonly SoonMainnet: string = "SOON_MAINNET";
+
+        public static readonly SoonTestnet: string = "SOON_TESTNET";
 
         public static readonly SorareStage: string = "SORARE_MAINNET";
 
@@ -178,6 +144,8 @@ export default class KnownInternalNames {
 
         public static readonly FuelDevnet: string = "FUEL_DEVNET"
 
+        public static readonly AztecTestnet: string = "AZTEC_TESTNET"
+
         public static readonly TronMainnet: string = "TRON_MAINNET"
 
         public static readonly TronTestnet: string = "TRON_TESTNET"
@@ -187,10 +155,77 @@ export default class KnownInternalNames {
         public static readonly EclipseMainnet: string = "ECLIPSE_MAINNET"
 
         public static readonly SophonMainnet: string = "SOPHON_MAINNET"
-        
+
         public static readonly SophonSepolia: string = "SOPHON_SEPOLIA"
 
-        public static readonly AztecTestnet: string = "AZTEC_TESTNET"
+        public static readonly RedStoneMainnet: string = "REDSTONE_MAINNET"
+
+        public static readonly SoneiumMainnet: string = "SONEIUM_MAINNET"
+
+        public static readonly RariMainnet: string = "RARI_MAINNET";
+
+        public static readonly LightlinkMainnet: string = "LIGHTLINK_MAINNET";
+
+        public static readonly ZetachainMainnet: string = "ZETACHAIN_MAINNET";
+
+        public static readonly AvaxMainnet: string = "AVAX_TESTNET";
+
+        public static readonly XaiMainnet: string = "XAI_MAINNET";
+
+        public static readonly UnichainMainnet: string = "UNICHAIN_MAINNET";
+
+        public static readonly XlayerMainnet: string = "XLAYER_MAINNET";
+
+        public static readonly FraxtalMainnet: string = "FRAXTAL_MAINNET";
+
+        public static readonly WorldchainMainnet: string = "WORLDCHAIN_MAINNET";
+
+        public static readonly AbstractMainnet: string = "ABSTRACT_MAINNET";
+
+        public static readonly CeloMainnet: string = "CELO_MAINNET";
+
+        public static readonly KromaMainnet: string = "KROMA_MAINNET";
+
+        public static readonly ShapeMainnet: string = "SHAPE_MAINNET";
+
+        public static readonly GnosisMainnet: string = "GNOSIS_MAINNET";
+
+        public static readonly TaikoMainnet: string = "TAIKO_MAINNET";
+
+        public static readonly InkMainnet: string = "INK_MAINNET";
+
+        public static readonly MintMainnet: string = "MINT_MAINNET";
+
+        public static readonly Ancient8Mainnet: string = "ANCIENT8_MAINNET";
+
+        public static readonly BobMainnet: string = "BOB_MAINNET";
+
+        public static readonly FuseMainnet: string = "FUSE_MAINNET";
+
+        public static readonly SonicMainnet: string = "SONIC_MAINNET";
+
+        public static readonly ZeroMainnet: string = "ZERO_MAINNET";
+
+        public static readonly ZircuitMainnet: string = "ZIRCUIT_MAINNET";
+
+        public static readonly SuperseedMainnet: string = "SUPERSEED_MAINNET";
+
+        public static readonly LiskMainnet: string = "LISK_MAINNET";
+
+        public static readonly MorphMainnet: string = "MORPH_MAINNET";
+
+        public static readonly SeiMainnet: string = "SEI_MAINNET";
+        
+        public static readonly GravityMainnet: string = "GRAVITY_MAINNET";
+        public static readonly BitcoinMainnet: string = "BITCOIN_MAINNET"
+
+        public static readonly BitcoinTestnet: string = "BITCOIN_TESTNET"
+
+        public static readonly HyperliquidMainnet: string = "HYPERLIQUID_MAINNET"
+
+        public static readonly HyperliquidTestnet: string = "HYPERLIQUID_TESTNET"
+
+        public static readonly MonadMainnet: string = "MONAD_MAINNET"
 
     }
 

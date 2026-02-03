@@ -102,12 +102,12 @@ const SolverStatus: FC = () => {
             </div>
         }
 
-        return <p className="text-sm text-primary-text-placeholder">
+        return <p className="text-sm text-primary-text-tertiary">
             Transaction is verified by RPCs
         </p>
     }
 
-    return <div className="text-sm text-primary-text-placeholder">Wait for the assets to be reserved for you at the destination</div>
+    return <div className="text-sm text-primary-text-tertiary">Wait for the assets to be reserved for you at the destination</div>
 }
 
 
@@ -225,7 +225,7 @@ export const TimelockExpired: FC = () => {
                     <XCircle className="h-5 w-5" />
                     <div className="text-primary-text text-base leading-5">{title}</div>
                 </div>
-                <div className="text-sm text-primary-text-placeholder">{description}</div>
+                <div className="text-sm text-primary-text-tertiary">{description}</div>
             </div>
         </div>
     )
@@ -279,7 +279,7 @@ export const CancelAndRefund: FC = () => {
                         <div className="text-primary-text text-base leading-5">Refund Completed</div>
                     }
                 </div>
-                <div className="text-sm text-primary-text-placeholder">{resolvedDescription}</div>
+                <div className="text-sm text-primary-text-tertiary">{resolvedDescription}</div>
             </div>
             {
                 completedTxLink && completed &&

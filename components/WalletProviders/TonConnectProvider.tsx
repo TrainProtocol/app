@@ -28,26 +28,26 @@ const TonConnectProvider = ({ children, basePath, themeData, appName }: { childr
                                 white: '#f1f1f1f1',
                             },
                             connectButton: {
-                                background: rgbToHex(themeData.primary?.[500]),
+                                background: rgbToHex(themeData?.primary?.[500] || ''),
                                 foreground: rgbToHex(themeData?.secondary?.[800] || ''),
                             },
-                            accent: rgbToHex(themeData.accent?.DEFAULT),
-                            telegramButton: rgbToHex(themeData.primary?.[500]),
+                            accent: rgbToHex(themeData?.accent?.DEFAULT || ''),
+                            telegramButton: rgbToHex(themeData?.primary?.[500] || ''),
                             icon: {
-                                primary: rgbToHex(themeData.primary?.[500]),
+                                primary: rgbToHex(themeData?.primary?.[500] || ''),
                                 secondary: rgbToHex(themeData?.secondary?.text || ''),
-                                tertiary: rgbToHex(themeData.secondary?.[400] || ''),
-                                success: rgbToHex(themeData.primary?.[500]),
+                                tertiary: rgbToHex(themeData?.secondary?.[400] || ''),
+                                success: rgbToHex(themeData?.primary?.[500] || ''),
                             },
                             background: {
-                                primary: rgbToHex(themeData.secondary?.[900] || ''),
-                                secondary: rgbToHex(themeData.secondary?.[800] || ''),
-                                segment: rgbToHex(themeData.secondary?.[200] || ''),
-                                tint: rgbToHex(themeData.secondary?.[700] || ''),
+                                primary: rgbToHex(themeData?.secondary?.[900] || ''),
+                                secondary: rgbToHex(themeData?.secondary?.[800] || ''),
+                                segment: rgbToHex(themeData?.secondary?.[200] || ''),
+                                tint: rgbToHex(themeData?.secondary?.[700] || ''),
                                 qr: '#f1f1f1f1',
                             },
                             text: {
-                                primary: rgbToHex(themeData.primary.text),
+                                primary: rgbToHex(themeData?.primary?.text || ''),
                                 secondary: rgbToHex(themeData?.secondary?.text || ''),
                             }
                         }
@@ -55,9 +55,6 @@ const TonConnectProvider = ({ children, basePath, themeData, appName }: { childr
                 }
             }
             manifestUrl={`https://app.train.tech/tonconnect-manifest.json`}
-            actionsConfiguration={{
-                twaReturnUrl: appName === '4233c46e96e44017afae91537841cb46' ? 'https://t.me/layerswap_bridge_bot/bridge' : undefined
-            }}
         >
             {children}
         </TonConnectUIProvider>

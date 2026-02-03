@@ -31,7 +31,7 @@ const Wizard: FC<Props> = ({ children, wizardId, className }) => {
 
    const width = positionPercent || 0
    return <>
-      <div id='widget' className={noToolBar ? `w-full h-full` : ` bg-secondary-900 md:shadow-card rounded-containerRoundness w-full sm:overflow-hidden relative ${AppSettings.ApiVersion === 'sandbox' && 'border-t-[2px] border-[#D95E1B]'}`}>
+      <div id='widget' className={noToolBar ? `w-full h-full` : ` bg-secondary-900 md:shadow-card rounded-3xl w-full sm:overflow-hidden relative ${AppSettings.ApiVersion === 'sandbox' && 'border-t-[2px] border-[#D95E1B]'}`}>
          <div className="relative z-20 pb-1 sm:pb-0">
             {
                AppSettings.ApiVersion === 'sandbox' && !noToolBar &&

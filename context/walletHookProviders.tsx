@@ -12,12 +12,16 @@ import useFuel from "../lib/wallets/fuel/useFuel";
 import useSVM from "../lib/wallets/solana/useSVM";
 import VaulDrawer from "../components/Modal/vaulModal";
 import useAztec from "../lib/wallets/aztec/useAztec";
+import useWindowDimensions from "@/hooks/useWindowDimensions";
+import { isMobile } from "@/lib/wallets/utils/isMobile";
 
 const WalletProvidersContext = createContext<WalletProvider[]>([]);
 
 export const WalletProvidersProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
     const { networks } = useSettingsState();
-    const { goBack, onFinish, open, setOpen, selectedConnector } = useConnectModal()
+    const isMobilePlatform = isMobile();
+    const { isMobile: isMobileSize } = useWindowDimensions()
+    const { goBack, onFinish, open, setOpen, selectedConnector, selectedMultiChainConnector } = useConnectModal()
 
     const evm = useEVM();
     const starknet = useStarknet();
@@ -30,15 +34,16 @@ export const WalletProvidersProvider: React.FC<React.PropsWithChildren> = ({ chi
         const allProviders: WalletProvider[] = [
             evm, starknet, svm, ton, fuel, aztec
         ];
+        const filteredProviders = allProviders.filter(provider => isMobilePlatform ? !provider.unsupportedPlatforms?.includes('mobile') : !provider.unsupportedPlatforms?.includes('desktop'));
 
-        return allProviders.filter(provider =>
+        return filteredProviders.filter(provider =>
             networks.some(net =>
                 provider.autofillSupportedNetworks?.includes(net.name) ||
                 provider.withdrawalSupportedNetworks?.includes(net.name) ||
                 provider.asSourceSupportedNetworks?.includes(net.name)
             )
         );
-    }, [networks, evm, starknet, svm, ton, fuel, aztec]);
+    }, [networks, evm, starknet, svm, ton, fuel, aztec, isMobilePlatform]);
 
     return (
         <WalletProvidersContext.Provider value={providers}>
@@ -51,18 +56,18 @@ export const WalletProvidersProvider: React.FC<React.PropsWithChildren> = ({ chi
                 header={
                     <div className="flex items-center gap-1">
                         {
-                            selectedConnector &&
-                            <div className='-ml-2'>
+                            (selectedConnector || selectedMultiChainConnector) &&
+                            <div className="sm:-ml-2 ml-0">
                                 <IconButton onClick={goBack} icon={
                                     <ChevronLeft className="h-6 w-6" />
                                 }>
                                 </IconButton>
                             </div>
                         }
-                        <p>Connect wallet</p>
+                        <p>{(selectedMultiChainConnector && !selectedConnector) ? "Select ecosystem" : "Connect wallet"}</p>
                     </div>
                 }>
-                <VaulDrawer.Snap id='item-1'>
+                <VaulDrawer.Snap openFullHeight={!isMobileSize} id='item-1' className="pb-4 sm:pb-0! sm:h-full">
                     <ConnectorsList onFinish={onFinish} />
                 </VaulDrawer.Snap>
             </VaulDrawer>

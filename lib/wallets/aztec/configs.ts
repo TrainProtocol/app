@@ -1,6 +1,5 @@
 import { useRpcConfigStore } from "../../../stores/rpcConfigStore";
 import { useSettingsState } from "../../../context/settings";
-import { NetworkType } from "../../../Models/Network";
 import KnownInternalNames from "../../knownIds";
 
 // Dynamic import to prevent SSR issues

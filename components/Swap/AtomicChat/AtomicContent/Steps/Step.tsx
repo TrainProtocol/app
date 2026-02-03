@@ -51,12 +51,12 @@ const Step: FC<StepProps> = ({ step, title, description, active, completed, load
                 </div>
                 {
                     titleDetails &&
-                    <div className="text-primary-text-placeholder text-sm">
+                    <div className="text-primary-text-tertiary text-sm">
                         {titleDetails}
                     </div>
                 }
             </div>
-            <div className="text-sm text-primary-text-placeholder">{description}</div>
+            <div className="text-sm text-primary-text-tertiary">{description}</div>
         </div>
         <div className="mr-2 flex items-center gap-1">
             {

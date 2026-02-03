@@ -59,7 +59,7 @@ const AmountField = forwardRef(function AmountField(_, ref: any) {
 
     return (<>
         <p className="block font-semibold text-secondary-text text-xs mb-1 p-2">Amount</p>
-        <div className="flex w-full justify-between bg-secondary-700 rounded-componentRoundness">
+        <div className="flex w-full justify-between bg-secondary-700 rounded-xl">
             <div className="relative w-full">
                 <NumericInput
                     placeholder={placeholder}

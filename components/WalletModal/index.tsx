@@ -9,6 +9,11 @@ export type WalletModalConnector = InternalConnector & {
         state: 'fetched',
         value: string
     });
+    showQrCode?: boolean
+}
+
+export type ModalWalletProvider = WalletProvider & {
+    isSelectedFromFilter?: boolean;
 }
 
 type SharedType = { provider?: WalletProvider, connectCallback: (value: Wallet | undefined) => void }
@@ -16,11 +21,13 @@ type SharedType = { provider?: WalletProvider, connectCallback: (value: Wallet |
 type ConnectModalContextType = {
     connect: ({ provider, connectCallback }: SharedType) => void;
     cancel: () => void;
-    selectedProvider: WalletProvider | undefined;
-    setSelectedProvider: (value: WalletProvider | undefined) => void;
+    selectedProvider: ModalWalletProvider | undefined;
+    setSelectedProvider: (value: ModalWalletProvider | undefined) => void;
     isWalletModalOpen?: boolean;
     selectedConnector: WalletModalConnector | undefined;
     setSelectedConnector: (value: WalletModalConnector | undefined) => void;
+    selectedMultiChainConnector: InternalConnector | undefined;
+    setSelectedMultiChainConnector: (value: InternalConnector | undefined) => void;
     goBack: () => void;
     onFinish: (connectedWallet?: Wallet | undefined) => void;
     setOpen: (value: boolean) => void;
@@ -32,8 +39,9 @@ const ConnectModalContext = createContext<ConnectModalContextType | null>(null);
 export function WalletModalProvider({ children }) {
     const [connectConfig, setConnectConfig] = useState<SharedType | undefined>(undefined);
 
-    const [selectedProvider, setSelectedProvider] = useState<WalletProvider | undefined>(undefined);
+    const [selectedProvider, setSelectedProvider] = useState<ModalWalletProvider | undefined>(undefined);
     const [selectedConnector, setSelectedConnector] = useState<WalletModalConnector | undefined>(undefined);
+    const [selectedMultiChainConnector, setSelectedMultiChainConnector] = useState<InternalConnector | undefined>(undefined)
     const [open, setOpen] = useState(false);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
 
@@ -66,20 +74,25 @@ export function WalletModalProvider({ children }) {
     const goBack = useCallback(() => {
         if (selectedConnector) {
             setSelectedConnector(undefined)
+            setSelectedMultiChainConnector(undefined)
+            return;
+        } else if (selectedMultiChainConnector) {
+            setSelectedMultiChainConnector(undefined)
             return;
         }
-    }, [setSelectedConnector, selectedConnector])
+    }, [setSelectedConnector, selectedMultiChainConnector, selectedConnector, selectedMultiChainConnector])
 
     useEffect(() => {
-        if (!open && selectedConnector) {
+        if (!open && (selectedConnector || selectedMultiChainConnector)) {
             setSelectedConnector(undefined)
+            setSelectedMultiChainConnector(undefined)
             setSelectedProvider(undefined)
         }
         setIsWalletModalOpen(open)
     }, [open])
 
     return (
-        <ConnectModalContext.Provider value={{ connect, cancel, selectedProvider, setSelectedProvider, selectedConnector, setSelectedConnector, isWalletModalOpen, goBack, onFinish, setOpen, open }}>
+        <ConnectModalContext.Provider value={{ connect, cancel, selectedProvider, setSelectedProvider, selectedConnector, setSelectedConnector, selectedMultiChainConnector, setSelectedMultiChainConnector, isWalletModalOpen, goBack, onFinish, setOpen, open }}>
             {children}
         </ConnectModalContext.Provider>
     )
@@ -89,7 +102,7 @@ export const useConnectModal = () => {
 
     const context = useContext<ConnectModalContextType>(ConnectModalContext as Context<ConnectModalContextType>);
 
-    if (context === undefined) {
+    if (!context) {
         throw new Error('useConnectModal must be used within a ConnectModalProvider');
     }
 

@@ -17,7 +17,7 @@ export class QueryParams {
     transferAmount?: string = "";
     balances?: string = "";
     account?: string = "";
-    actionButtonText?: string = "";
+    buttonTextColor?: string = "";
     theme?: string = "";
     appName?: string = "";
     hideLogo?: boolean = false

@@ -1,26 +1,30 @@
 
 export type ThemeData = {
-    backdrop?: string,
-    actionButtonText: string,
-    buttonTextColor: string,
-    logo: string,
-    placeholderText: string,
-    primary: ThemeColor,
+    buttonTextColor?: string,
+    logo?: string,
+    tertiary?: string,
+    primary?: ThemeColor,
     secondary?: ThemeColor,
+    headerLogo?: string,
+    footerLogo?: string,
+    footerLogoHeight?: string,
+    warning?: StatusColor,
+    error?: StatusColor,
+    success?: StatusColor,
+    header?: {
+        hideMenu?: boolean,
+        hideTabs?: boolean,
+        hideWallets?: boolean,
+    }
     accent: {
         DEFAULT: string,
         hover: string
     }
-    containerRoundness?: string,
-    componentRoundness?: string,
-    headerLogo?: string,
-    footerLogo?: string,
-    footerLogoHeight?: string,
 }
+
 
 export type ThemeColor = {
     DEFAULT: string;
-    50: string;
     100: string;
     200: string;
     300: string;
@@ -30,25 +34,22 @@ export type ThemeColor = {
     700: string;
     800: string;
     900: string;
-    950?: string;
+    950: string;
     text: string,
-    textMuted?: string,
-    textPlaceholder?: string,
+}
+
+export type StatusColor = {
+    Foreground: string;
+    Background: string;
 }
 
 export const THEME_COLORS: { [key: string]: ThemeData } = {
     "default": {
-        backdrop: "102, 102, 102",
-        placeholderText: '128, 128, 128',
-        actionButtonText: '0, 0, 0',
-        buttonTextColor: '217, 217, 217',
-        containerRoundness: '24px',
-        componentRoundness: '12px',
+        tertiary: '128, 128, 128',
+        buttonTextColor: '0, 0, 0',
         logo: '255, 255, 255',
-        footerLogo: 'none',
         primary: {
             DEFAULT: '255, 255, 255',
-            '50': '255, 255, 255',
             '100': '255, 255, 255',
             '200': '255, 255, 255',
             '300': '255, 255, 255',
@@ -60,8 +61,6 @@ export const THEME_COLORS: { [key: string]: ThemeData } = {
             '900': '143, 143, 143',
             '950': '129, 129, 129',
             'text': '230, 230, 230',
-            'textMuted': '128, 128, 128',
-            'textPlaceholder': '184, 184, 184',
         },
         accent: {
             DEFAULT: '39, 142, 246',
@@ -69,7 +68,6 @@ export const THEME_COLORS: { [key: string]: ThemeData } = {
         },
         secondary: {
             DEFAULT: '32, 59, 70',
-            '50': '101, 160, 185',
             '100': '87, 152, 178',
             '200': '70, 130, 154',
             '300': '58, 106, 126',
@@ -81,6 +79,18 @@ export const THEME_COLORS: { [key: string]: ThemeData } = {
             '900': '27, 27, 27',
             '950': '18, 18, 18',
             'text': '200, 200, 200',
-        }
+        },
+        warning: {
+            Foreground: '255, 201, 74',
+            Background: '47, 43, 29',
+        },
+        error: {
+            Foreground: '255, 97, 97',
+            Background: '46, 27, 27',
+        },
+        success: {
+            Foreground: '89, 224, 125',
+            Background: '14, 43, 22',
+        },
     },
 }
