@@ -2,12 +2,20 @@ import { FC } from "react";
 import { Widget } from "../../Widget/Index";
 import { Actions } from "./Actions";
 import AtomicContent from "./AtomicContent";
+import { useSecretDerivation } from "../../../context/secretDerivationContext";
 
 type ContainerProps = {
     type: "widget" | "contained",
 }
 
 const Commitment: FC<ContainerProps> = ({ type }) => {
+    const { isLoggedIn } = useSecretDerivation();
+
+    // Early return for safety (login already validated by FormButton)
+    if (!isLoggedIn) {
+        return null;
+    }
+
     return (
         <>
             <Widget.Content className="!py-0 z-0">

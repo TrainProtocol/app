@@ -1,10 +1,13 @@
 import { Address } from '@fuel-ts/address'
 import { concat, DateTime } from "@fuel-ts/utils"
 import { Contract } from "@fuel-ts/program"
-import { Account, B256Coder, BigNumberCoder, bn, Provider, sha256 } from 'fuels'
+import { Account, B256Coder, BigNumberCoder, bn, Provider } from 'fuels'
+import { sha256 } from "@noble/hashes/sha2.js"
 import { CreatePreHTLCParams, CommitmentParams, LockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
 import contractAbi from "../../abis/atomic/FUEL_PHTLC.json"
 import LayerSwapApiClient from "../../trainApiClient"
+import { useSecretDerivation } from "@/context/secretDerivationContext"
+import { secretToHashlock } from "@/lib/htlc/secretDerivation"
 
 function generateUint256Hex() {
     const bytes = new Uint8Array(32);
@@ -30,6 +33,7 @@ export interface AtomicFuelFunctions {
 
 export default function useAtomicFuel(params: UseAtomicFuelParams): AtomicFuelFunctions {
     const { wallet, fuelProvider } = params
+    const { deriveSecret } = useSecretDerivation()
 
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
         const createEmptyArray = (length: number, char: string) =>
@@ -48,6 +52,16 @@ export default function useAtomicFuel(params: UseAtomicFuelParams): AtomicFuelFu
         if (!fuelProvider) throw new Error('Node url not found')
         if (!wallet) throw new Error('Wallet not connected')
 
+        // Secret derivation for HTLC with hashlock
+        const chainId = params.chainId || 'fuel-mainnet';
+        const secret = await deriveSecret({
+            chainId,
+            wallet: { metadata: { wallet }, providerName: 'fuel' } as any,
+            timelock: timeLockMS
+        });
+        const hashlock = secretToHashlock(secret);
+
+        // Note: Add hashlock to contract call params when contract supports it
         const contractAddress = new Address(atomicContract);
         const contractInstance = new Contract(contractAddress, contractAbi, wallet);
 

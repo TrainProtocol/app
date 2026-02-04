@@ -5,10 +5,12 @@ import SwapButton from "../buttons/swapButton";
 import { FormikErrors } from "formik";
 import { SwapFormValues } from "../DTOs/SwapFormValues";
 import KnownInternalNames from "../../lib/knownIds";
-import { FC } from "react";
+import { FC, useState } from "react";
 import { useFormikContext } from "formik";
 import useWallet from "../../hooks/useWallet";
 import { useConnectModal } from "../WalletModal";
+import { useSecretDerivation } from "../../context/secretDerivationContext";
+import { LoginModal } from "../SecretDerivation";
 
 const Address = dynamic(
     () => import("../Input/Address/index.tsx").then((mod) => mod.default),
@@ -26,6 +28,29 @@ const FormButton = ({
     actionDisplayName,
     shouldConnectDestinationWallet
 }) => {
+    const { isLoggedIn } = useSecretDerivation();
+    const [loginOpen, setLoginOpen] = useState(false);
+
+    // Check derivation method first (before any other checks)
+    if (!isLoggedIn) {
+        return (
+            <>
+                <button
+                    type="button"
+                    onClick={() => setLoginOpen(true)}
+                    className="border border-primary items-center space-x-1 relative w-full flex justify-center font-semibold rounded-xl transform hover:brightness-125 transition duration-200 ease-in-out bg-primary text-primary-buttonTextColor py-3 px-2 md:px-3"
+                >
+                    <div className="flex justify-center space-x-2">
+                        <span className="grow text-center">Login to continue</span>
+                    </div>
+                </button>
+                <LoginModal
+                    isOpen={loginOpen}
+                    onClose={() => setLoginOpen(false)}
+                />
+            </>
+        );
+    }
 
     if (values.from && values.to && values.fromCurrency && values.toCurrency && values.amount && !quote && !isQuoteLoading) {
         return <SwapButton

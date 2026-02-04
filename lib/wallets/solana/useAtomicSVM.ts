@@ -8,6 +8,9 @@ import { lockTransactionBuilder, phtlcTransactionBuilder } from "./transactionBu
 import LayerSwapApiClient from "../../trainApiClient"
 import { toHex } from "viem"
 import { AnchorWallet } from "@solana/wallet-adapter-react"
+import { useSecretDerivation } from "@/context/secretDerivationContext"
+import { secretToHashlock } from "@/lib/htlc/secretDerivation"
+import { calculateEpochTimelock } from "../utils/calculateTimelock"
 
 function toHexString(byteArray: any) {
     return Array.from(byteArray, function (byte: any) {
@@ -34,6 +37,7 @@ export interface AtomicSVMFunctions {
 
 export default function useAtomicSVM(params: UseAtomicSVMParams): AtomicSVMFunctions {
     const { connection, signTransaction, signMessage, publicKey, network, anchorProvider } = params
+    const { deriveSecret } = useSecretDerivation()
 
     const createPreHTLC = async (params: CreatePreHTLCParams): Promise<{ hash: string; commitId: string; } | null | undefined> => {
         const { atomicContract, sourceAsset } = params
@@ -41,6 +45,18 @@ export default function useAtomicSVM(params: UseAtomicSVMParams): AtomicSVMFunct
 
         if (!program || !publicKey || !network) return null
 
+        // Secret derivation for HTLC with hashlock
+        const chainId = network.chainId || 'solana-mainnet';
+        const timelock = calculateEpochTimelock(40);
+        const solanaWallet = { signMessage };
+        const secret = await deriveSecret({
+            chainId,
+            wallet: { metadata: { wallet: solanaWallet }, providerName: 'solana' } as any,
+            timelock
+        });
+        const hashlock = secretToHashlock(secret);
+
+        // Note: Add hashlock to transaction params when contract supports it
         const transaction = await phtlcTransactionBuilder({ connection, program, walletPublicKey: publicKey, network, ...params })
 
         const signed = transaction?.initAndCommit && signTransaction && await signTransaction(transaction.initAndCommit);

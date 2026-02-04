@@ -1,7 +1,6 @@
 import { cairo, Call, constants, Contract, RpcProvider, shortString, TypedData, TypedDataRevision } from "starknet"
 import { ethers } from "ethers"
 import { toHex } from "viem"
-import { Network } from "../../../Models/Network"
 import { CreatePreHTLCParams, CommitmentParams, LockParams, RefundParams, ClaimParams, GetCommitsParams } from "../../../Models/phtlc"
 import { Commit } from "../../../Models/phtlc/PHTLC"
 import PHTLCAbi from "../../abis/atomic/STARKNET_PHTLC.json"
@@ -9,6 +8,8 @@ import ETHABbi from "../../abis/STARKNET_ETH.json"
 import formatAmount from "../../formatAmount"
 import LayerSwapApiClient from "../../trainApiClient"
 import { calculateEpochTimelock } from "../utils/calculateTimelock"
+import { useSecretDerivation } from "@/context/secretDerivationContext"
+import { secretToHashlock } from "@/lib/htlc/secretDerivation"
 
 export interface UseAtomicStarknetParams {
     starknetWallet: any
@@ -27,6 +28,7 @@ export interface AtomicStarknetFunctions {
 
 export default function useAtomicStarknet(params: UseAtomicStarknetParams): AtomicStarknetFunctions {
     const { starknetWallet, nodeUrl } = params
+    const { deriveSecret } = useSecretDerivation()
 
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
         const { destinationChain, destinationAsset, sourceAsset, srcLpAddress: lpAddress, address, tokenContractAddress, amount, decimals, atomicContract: atomicAddress } = params
@@ -57,6 +59,20 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Atom
             }
             const id = `0x${generateBytes32Hex()}`
             const timelock = calculateEpochTimelock(20);
+            
+            // Secret derivation for HTLC with hashlock
+            const chainId = process.env.NEXT_PUBLIC_API_VERSION === 'sandbox' 
+                ? constants.StarknetChainId.SN_SEPOLIA 
+                : constants.StarknetChainId.SN_MAIN;
+            const secret = await deriveSecret({
+                chainId,
+                wallet: starknetWallet,
+                timelock
+            });
+            const hashlock = secretToHashlock(secret);
+            
+            // Note: Add hashlock to args array when contract supports it
+            // For hashlock-based contracts, insert hashlock in the appropriate position
             const args = [
                 BigInt(id),
                 parsedAmount,

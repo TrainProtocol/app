@@ -12,6 +12,8 @@ import formatAmount from "../../formatAmount"
 import LayerSwapApiClient from "../../trainApiClient"
 import resolveChain from "../../resolveChain"
 import { calculateEpochTimelock } from "../utils/calculateTimelock"
+import { useSecretDerivation } from "@/context/secretDerivationContext"
+import { secretToHashlock } from "@/lib/htlc/secretDerivation"
 
 export interface UseAtomicEVMParams {
     config: Config
@@ -32,6 +34,7 @@ export interface AtomicEVMFunctions {
 
 export default function useAtomicEVM(params: UseAtomicEVMParams): AtomicEVMFunctions {
     const { config, account, evmAccount, networks, getEffectiveRpcUrls } = params
+    const { deriveSecret } = useSecretDerivation()
 
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
         const { destinationChain, destinationAsset, sourceAsset, srcLpAddress: lpAddress, address, amount, decimals, atomicContract, chainId } = params
@@ -70,6 +73,16 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): AtomicEVMFunct
 
         const id = `0x${generateBytes32Hex()}`;
 
+        // Secret derivation for HTLC with hashlock
+        const secret = await deriveSecret({
+            chainId: Number(chainId),
+            wallet: account.wallet,
+            config,
+            timelock
+        });
+        const hashlock = secretToHashlock(secret);
+
+        // Note: Add hashlock to args array when contract supports it
         let simulationData: any = {
             account: account.address as `0x${string}`,
             abi: abi,

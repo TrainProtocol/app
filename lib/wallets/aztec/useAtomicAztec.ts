@@ -7,6 +7,9 @@ import { getAztecSecret } from "./secretUtils"
 import { combineHighLow, highLowToHexValidated, trimTo30Bytes } from "./utils"
 import formatAmount from "../../formatAmount"
 import { TrainContract } from "./Train"
+import { useSecretDerivation } from "@/context/secretDerivationContext"
+import { secretToHashlock } from "@/lib/htlc/secretDerivation"
+import { calculateEpochTimelock } from "../utils/calculateTimelock"
 
 export interface UseAtomicAztecParams {
     wallet: any
@@ -24,11 +27,24 @@ export interface AtomicAztecFunctions {
 
 export default function useAtomicAztec(params: UseAtomicAztecParams): AtomicAztecFunctions {
     const { wallet, accountAddress, aztecNodeUrl } = params
+    const { deriveSecret } = useSecretDerivation()
 
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
         if (!wallet) throw new Error("No wallet connected");
+        
+        // Secret derivation for HTLC with hashlock
+        const chainId = params.chainId || 'aztec-mainnet';
+        const timelock = calculateEpochTimelock(40);
+        const secret = await deriveSecret({
+            chainId,
+            wallet: { metadata: { wallet }, providerName: 'aztec' } as any,
+            timelock
+        });
+        const hashlock = secretToHashlock(secret);
+
         const { commitTransactionBuilder } = await import('./transactionBuilder.ts')
 
+        // Note: Add hashlock to transaction params when contract supports it
         const tx = await commitTransactionBuilder({
             senderWallet: wallet,
             aztecNodeUrl,
