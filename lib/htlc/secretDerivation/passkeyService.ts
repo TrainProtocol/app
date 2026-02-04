@@ -72,9 +72,11 @@ export const checkPrfSupport = async (): Promise<boolean> => {
 };
 
 // Register a new passkey credential
-export const registerPasskey = async (): Promise<string> => {
-  const existing = getStoredCredentialId();
-  if (existing) return existing;
+export const registerPasskey = async (forceCreate?: boolean, displayName?: string): Promise<string> => {
+  if (!forceCreate) {
+    const existing = getStoredCredentialId();
+    if (existing) return existing;
+  }
 
   if (typeof window === 'undefined') {
     throw new Error('Passkey registration must run in a browser');
@@ -99,7 +101,7 @@ export const registerPasskey = async (): Promise<string> => {
     user: {
       id: userIdBytes,
       name: 'train-user',
-      displayName: 'Train user',
+      displayName: displayName?.trim() || 'Train user',
     },
     pubKeyCredParams: [{ type: 'public-key', alg: -7 }], // ES256
     authenticatorSelection: {
@@ -125,7 +127,9 @@ export const registerPasskey = async (): Promise<string> => {
 };
 
 // Derive initial key using passkey PRF (works without stored credential ID)
-export const deriveKeyWithPasskey = async (): Promise<{ key: Buffer; credentialId: string }> => {
+export const deriveKeyWithPasskey = async (options?: { createIfMissing?: boolean }): Promise<{ key: Buffer; credentialId: string }> => {
+  const createIfMissing = options?.createIfMissing !== false;
+
   if (typeof window === 'undefined') {
     throw new Error('Passkey auth must run in a browser');
   }
@@ -150,6 +154,9 @@ export const deriveKeyWithPasskey = async (): Promise<{ key: Buffer; credentialI
   let cred = (await navigator.credentials.get({ publicKey })) as PublicKeyCredential | null;
 
   if (!cred) {
+    if (!createIfMissing) {
+      throw new Error('No passkey found for this site. Create one instead.');
+    }
     await registerPasskey();
     cred = (await navigator.credentials.get({ publicKey })) as PublicKeyCredential | null;
     if (!cred) {

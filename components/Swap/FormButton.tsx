@@ -11,6 +11,7 @@ import useWallet from "../../hooks/useWallet";
 import { useConnectModal } from "../WalletModal";
 import { useSecretDerivation } from "../../context/secretDerivationContext";
 import { LoginModal } from "../SecretDerivation";
+import SubmitButton from "../buttons/submitButton";
 
 const Address = dynamic(
     () => import("../Input/Address/index.tsx").then((mod) => mod.default),
@@ -35,15 +36,12 @@ const FormButton = ({
     if (!isLoggedIn) {
         return (
             <>
-                <button
+                <SubmitButton
                     type="button"
                     onClick={() => setLoginOpen(true)}
-                    className="border border-primary items-center space-x-1 relative w-full flex justify-center font-semibold rounded-xl transform hover:brightness-125 transition duration-200 ease-in-out bg-primary text-primary-buttonTextColor py-3 px-2 md:px-3"
                 >
-                    <div className="flex justify-center space-x-2">
-                        <span className="grow text-center">Login to continue</span>
-                    </div>
-                </button>
+                    Login to continue
+                </SubmitButton>
                 <LoginModal
                     isOpen={loginOpen}
                     onClose={() => setLoginOpen(false)}

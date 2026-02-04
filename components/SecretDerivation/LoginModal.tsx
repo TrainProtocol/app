@@ -5,11 +5,12 @@ import toast from 'react-hot-toast';
 import VaulModal from '../Modal/vaulModal';
 import { useSecretDerivation } from '@/context/secretDerivationContext';
 import useEVM from '@/lib/wallets/evm/useEVM';
+import { PasskeyChoice } from './PasskeyChoice';
 import { Wallet } from '@/Models/WalletProvider';
 import ConnectorsList from '@/components/WalletModal/ConnectorsList';
 import { useConnectModal } from '@/components/WalletModal';
 
-type Step = 'pick' | 'wallet_select' | 'connect' | 'signing';
+type Step = 'pick' | 'passkey_choice' | 'wallet_select' | 'connect' | 'signing';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -25,9 +26,10 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const config = useConfig();
   const evmProvider = useEVM();
   const { setSelectedProvider, setSelectedConnector, setSelectedMultiChainConnector } = useConnectModal();
-  const { loginWithPasskey, loginWithWallet, isPasskeySupported, derivationMessage } = useSecretDerivation();
+  const { loginWithPasskey, loginWithNewPasskey, loginWithWallet, isPasskeySupported, derivationMessage } = useSecretDerivation();
   const [step, setStep] = useState<Step>('pick');
   const [isBusy, setIsBusy] = useState(false);
+  const [noPasskeyHint, setNoPasskeyHint] = useState(false);
 
   const connectedWallets = useMemo(
     () => evmProvider.connectedWallets?.filter(w => w.providerName?.toLowerCase() === 'evm') || [],
@@ -38,6 +40,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     if (isOpen) {
       setStep('pick');
       setIsBusy(false);
+      setNoPasskeyHint(false);
     }
   }, [isOpen]);
 
@@ -56,16 +59,33 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     onClose();
   };
 
-  const startPasskeyLogin = async () => {
+  const startUseExistingPasskey = async () => {
     setStep('signing');
     setIsBusy(true);
+    setNoPasskeyHint(false);
     try {
-      await loginWithPasskey();
+      await loginWithPasskey({ createIfMissing: false });
       toast.success('Logged in with passkey');
       closeAndReset();
     } catch (e: any) {
       toast.error(e?.message || 'Passkey login failed');
-      setStep('pick');
+      setNoPasskeyHint(true);
+      setStep('passkey_choice');
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const startCreateNewPasskey = async (label?: string) => {
+    setStep('signing');
+    setIsBusy(true);
+    try {
+      await loginWithNewPasskey(label);
+      toast.success('Logged in with passkey');
+      closeAndReset();
+    } catch (e: any) {
+      toast.error(e?.message || 'Passkey login failed');
+      setStep('passkey_choice');
     } finally {
       setIsBusy(false);
     }
@@ -94,7 +114,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     await startWalletLogin(wallet);
   };
 
-  const canGoBack = step === 'wallet_select' || step === 'connect';
+  const canGoBack = step === 'passkey_choice' || step === 'wallet_select' || step === 'connect';
 
   const handleBack = () => {
     if (step === 'connect') {
@@ -103,6 +123,11 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     }
     if (step === 'wallet_select') {
       setStep('pick');
+      return;
+    }
+    if (step === 'passkey_choice') {
+      setStep('pick');
+      setNoPasskeyHint(false);
     }
   };
 
@@ -138,10 +163,18 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
             <>
               <p className="text-sm text-secondary-text">Choose how to login.</p>
               <div className="flex flex-col gap-3">
-                <OptionItem onClick={() => isPasskeySupported && startPasskeyLogin()} icon={Fingerprint} title="Passkey" description="Face ID, Touch ID, or Windows Hello" />
+                <OptionItem onClick={() => isPasskeySupported && setStep('passkey_choice')} icon={Fingerprint} title="Passkey" description="Face ID, Touch ID, or Windows Hello" />
                 <OptionItem onClick={() => setStep('wallet_select')} icon={WalletIcon} title="Wallet (EVM)" description="Select or connect an EVM wallet" />
               </div>
             </>
+          )}
+
+          {step === 'passkey_choice' && (
+            <PasskeyChoice
+              onUseExisting={startUseExistingPasskey}
+              onCreateNew={startCreateNewPasskey}
+              noPasskeyHint={noPasskeyHint}
+            />
           )}
 
           {step === 'wallet_select' && (

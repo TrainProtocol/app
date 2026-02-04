@@ -6,6 +6,7 @@ import {
   DerivationMethod,
   checkPrfSupport,
   deriveKeyWithPasskey,
+  registerPasskey,
   deriveSecretFromTimelock
 } from '@/lib/htlc/secretDerivation';
 import { deriveKeyFromEvmSignature } from '@/lib/htlc/secretDerivation/walletSign/evm';
@@ -15,7 +16,8 @@ interface SecretDerivationContextValue {
   method: DerivationMethod | null;
   isLoggedIn: boolean;
   loginWallet: Wallet | null;
-  loginWithPasskey: () => Promise<void>;
+  loginWithPasskey: (options?: { createIfMissing?: boolean }) => Promise<void>;
+  loginWithNewPasskey: (label?: string) => Promise<void>;
   loginWithWallet: (config: any, wallet: Wallet) => Promise<void>;
   logout: () => void;
   isPasskeySupported: boolean;
@@ -69,9 +71,26 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
     });
   }, [setState]);
 
-  const loginWithPasskey = useCallback(async () => {
+  const loginWithPasskey = useCallback(async (options?: { createIfMissing?: boolean }) => {
     setState({ derivationStatus: 'signing', derivationMessage: 'Confirm with your passkey' });
     try {
+      const { key, credentialId } = await deriveKeyWithPasskey(options);
+      setState({
+        method: 'passkey',
+        isLoggedIn: true,
+        loginWallet: null,
+        storedDerivedKey: key,
+        passkeyCredentialId: credentialId,
+      });
+    } finally {
+      setState({ derivationStatus: 'idle', derivationMessage: '' });
+    }
+  }, [setState]);
+
+  const loginWithNewPasskey = useCallback(async (label?: string) => {
+    setState({ derivationStatus: 'signing', derivationMessage: 'Confirm with your passkey' });
+    try {
+      await registerPasskey(true, label);
       const { key, credentialId } = await deriveKeyWithPasskey();
       setState({
         method: 'passkey',
@@ -161,6 +180,7 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
     isLoggedIn,
     loginWallet,
     loginWithPasskey,
+    loginWithNewPasskey,
     loginWithWallet,
     logout,
     isPasskeySupported,
