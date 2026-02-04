@@ -140,9 +140,7 @@ export default function Form() {
         >
             <Wizard wizardId={"atomicSteps"}>
                 <WizardItem StepName={AtomicSteps.Form}>
-                    <div className="flex flex-col justify-between h-full">
-                        <SwapForm />
-                    </div>
+                    <SwapForm />
                 </WizardItem>
                 <WizardItem StepName={AtomicSteps.Swap} GoBack={() => handleWizardRouting(AtomicSteps.Form, 'back')}>
                     <AtomicPage type='contained' />

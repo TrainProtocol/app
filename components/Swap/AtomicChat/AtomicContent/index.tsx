@@ -157,7 +157,7 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
                 opacity: show ? 1 : 0,
                 height: show ? 'auto' : '172px',
             }}
-            className="flex flex-col gap-6 pt-10 pb-6 transition-all duration-500"
+            className="flex flex-col gap-6 pt-10 pb-4 transition-all duration-500"
         >
             {ResolvedIcon}
             <div className="text-center space-y-2">
