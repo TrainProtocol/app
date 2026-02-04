@@ -10,14 +10,68 @@ import useWindowDimensions from "@/hooks/useWindowDimensions"
 import { formatPasskeyIdForDisplay } from "@/lib/htlc/secretDerivation/passkeyService"
 import WalletIcon from "../Icons/WalletIcon"
 
+interface LoginWallet {
+    address: string
+    chainId?: string | number
+    providerName: string
+    displayName?: string
+}
+
+interface LoginDataCardProps {
+    method: 'passkey' | 'wallet_sign' | null
+    loginWallet: LoginWallet | null
+    passkeyDisplayId: string | null
+    onCopyAddress: () => void
+    className?: string
+}
+
+const LoginDataCard = ({
+    method,
+    loginWallet,
+    passkeyDisplayId,
+    onCopyAddress,
+    className = "flex items-center gap-3 p-3 bg-secondary-700 rounded-xl",
+}: LoginDataCardProps) => (
+    <div className={className}>
+        {method === 'passkey' ? (
+            <>
+                <div className="p-2.5 bg-secondary-500 rounded-lg shrink-0">
+                    <Fingerprint className="h-5 w-5 text-primary-text" strokeWidth={2} />
+                </div>
+                <div className="flex flex-col flex-1 min-w-0">
+                    <span className="text-primary-text font-semibold">Passkey</span>
+                    {passkeyDisplayId && (
+                        <span className="text-secondary-text text-sm truncate">{passkeyDisplayId}</span>
+                    )}
+                </div>
+            </>
+        ) : (
+            <>
+                <div className="p-2.5 bg-secondary-500 rounded-lg shrink-0">
+                    <WalletIcon className="h-5 w-5 text-primary-text" strokeWidth={2} />
+                </div>
+                <div className="flex flex-col flex-1 min-w-0">
+                    <span className="text-primary-text font-semibold">
+                        {loginWallet?.displayName || 'EVM Wallet'}
+                    </span>
+                    {loginWallet?.address && (
+                        <button
+                            type="button"
+                            onClick={onCopyAddress}
+                            className="text-secondary-text text-sm text-left hover:text-primary-text truncate"
+                        >
+                            {shortenAddress(loginWallet.address)}
+                        </button>
+                    )}
+                </div>
+            </>
+        )}
+    </div>
+)
+
 interface UserStatusContentProps {
     method: 'passkey' | 'wallet_sign' | null
-    loginWallet: {
-        address: string
-        chainId?: string | number
-        providerName: string
-        displayName?: string
-    } | null
+    loginWallet: LoginWallet | null
     logout: () => void
     onClose?: () => void
 }
@@ -37,47 +91,19 @@ const UserStatusContent = ({ method, loginWallet, logout, onClose }: UserStatusC
     }
 
     const storedPasskeyCredId = usePasskeyCredentialId()
-    const passkeyCredId = method === 'passkey' ? storedPasskeyCredId : null
-    const displayId = passkeyCredId ? formatPasskeyIdForDisplay(passkeyCredId) : null
+    const passkeyDisplayId = method === 'passkey' && storedPasskeyCredId
+        ? formatPasskeyIdForDisplay(storedPasskeyCredId)
+        : null
 
     return (
         <div className="flex flex-col gap-3">
             <p className="text-secondary-text text-sm font-medium">Connected with</p>
-            <div className="flex items-center gap-3 p-3 bg-secondary-700 rounded-xl">
-                {method === 'passkey' ? (
-                    <>
-                        <div className="p-2.5 bg-secondary-500 rounded-lg shrink-0">
-                            <Fingerprint className="h-5 w-5 text-primary-text" strokeWidth={2} />
-                        </div>
-                        <div className="flex flex-col flex-1 min-w-0">
-                            <span className="text-primary-text font-semibold">Passkey</span>
-                            {displayId && (
-                                <span className="text-secondary-text text-sm truncate">{displayId}</span>
-                            )}
-                        </div>
-                    </>
-                ) : (
-                    <>
-                        <div className="p-2.5 bg-secondary-500 rounded-lg shrink-0">
-                            <WalletIcon className="h-5 w-5 text-primary-text" strokeWidth={2} />
-                        </div>
-                        <div className="flex flex-col flex-1 min-w-0">
-                            <span className="text-primary-text font-semibold">
-                                {loginWallet?.displayName || 'EVM Wallet'}
-                            </span>
-                            {loginWallet?.address && (
-                                <button
-                                    type="button"
-                                    onClick={handleCopyAddress}
-                                    className="text-secondary-text text-sm text-left hover:text-primary-text truncate"
-                                >
-                                    {shortenAddress(loginWallet.address)}
-                                </button>
-                            )}
-                        </div>
-                    </>
-                )}
-            </div>
+            <LoginDataCard
+                method={method}
+                loginWallet={loginWallet}
+                passkeyDisplayId={passkeyDisplayId}
+                onCopyAddress={handleCopyAddress}
+            />
 
             {method === 'passkey' && (
                 <div className="rounded-xl bg-amber-900/40 border border-amber-700/50 px-3 py-2.5">
@@ -109,11 +135,15 @@ export const UserStatusHeader = () => {
     const [openDrawer, setOpenDrawer] = useState(false)
     const [openPopover, setOpenPopover] = useState(false)
     const { isMobile } = useWindowDimensions()
+    const storedPasskeyCredId = usePasskeyCredentialId()
+    const passkeyDisplayId = method === 'passkey' && storedPasskeyCredId
+        ? formatPasskeyIdForDisplay(storedPasskeyCredId)
+        : null
 
     if (!isLoggedIn) return null
 
     const pillLabel = method === 'passkey'
-        ? 'passkey'
+        ? "Passkey"
         : (loginWallet?.displayName || shortenAddress(loginWallet?.address ?? '') || 'Wallet')
 
     const pillContent = (
@@ -182,8 +212,16 @@ export const UserStatusHeader = () => {
 export const UserStatusMenu = () => {
     const { isLoggedIn, method, loginWallet, logout } = useSecretDerivationStore()
     const [openModal, setOpenModal] = useState(false)
+    const storedPasskeyCredId = usePasskeyCredentialId()
+    const passkeyDisplayId = method === 'passkey' && storedPasskeyCredId
+        ? formatPasskeyIdForDisplay(storedPasskeyCredId)
+        : null
 
     if (!isLoggedIn) return null
+
+    const menuLabel = method === 'passkey'
+        ? (passkeyDisplayId ? `Passkey · ${passkeyDisplayId}` : 'Passkey')
+        : `${loginWallet?.displayName || 'Wallet'}${loginWallet?.address ? ` · ${shortenAddress(loginWallet.address)}` : ''}`
 
     return (
         <>
@@ -192,31 +230,19 @@ export const UserStatusMenu = () => {
                 type="button"
                 className="py-3 px-4 bg-secondary-500 flex items-center w-full rounded-xl space-x-1 disabled:text-secondary-text/40 disabled:bg-primary-900 disabled:cursor-not-allowed relative font-semibold transform border border-secondary-500 hover:bg-secondary-400 transition duration-200 ease-in-out outline-hidden"
             >
-                <div className="flex gap-4 items-center text-primary-text w-full">
+                <div className="flex gap-4 items-center text-primary-text w-full min-w-0">
                     {method === 'passkey' ? (
-                        <>
-                            <div className="relative">
-                                <Fingerprint className="h-5 w-5" strokeWidth={2} />
-                                <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-green-500 rounded-full" />
-                            </div>
-                            <span>Logged in with Passkey</span>
-                        </>
+                        <div className="relative shrink-0">
+                            <Fingerprint className="h-5 w-5" strokeWidth={2} />
+                            <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-green-500 rounded-full" />
+                        </div>
                     ) : (
-                        <>
-                            <div className="relative">
-                                <WalletIcon className="h-5 w-5" strokeWidth={2} />
-                                <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-green-500 rounded-full" />
-                            </div>
-                            <span>
-                                {loginWallet?.displayName || 'Wallet'}{' '}
-                                {loginWallet?.address && (
-                                    <span className="text-secondary-text">
-                                        ({shortenAddress(loginWallet.address)})
-                                    </span>
-                                )}
-                            </span>
-                        </>
+                        <div className="relative shrink-0">
+                            <WalletIcon className="h-5 w-5" strokeWidth={2} />
+                            <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-green-500 rounded-full" />
+                        </div>
                     )}
+                    <span className="truncate">{menuLabel}</span>
                 </div>
             </button>
             <UserStatusDrawer
@@ -234,16 +260,11 @@ interface UserStatusDrawerProps {
     isOpen: boolean
     onClose: () => void
     method: 'passkey' | 'wallet_sign' | null
-    loginWallet: {
-        address: string
-        chainId?: string | number
-        providerName: string
-        displayName?: string
-    } | null
+    loginWallet: LoginWallet | null
     logout: () => void
 }
 
-/** Old drawer content for mobile: Login Status card + logout (no "Connected with" / warning) */
+/** Drawer content for mobile: same login data card as popover + logout */
 const UserStatusDrawerContent = ({ method, loginWallet, logout, onClose }: UserStatusContentProps) => {
     const handleLogout = () => {
         logout()
@@ -258,41 +279,19 @@ const UserStatusDrawerContent = ({ method, loginWallet, logout, onClose }: UserS
         }
     }
 
+    const storedPasskeyCredId = usePasskeyCredentialId()
+    const passkeyDisplayId = method === 'passkey' && storedPasskeyCredId
+        ? formatPasskeyIdForDisplay(storedPasskeyCredId)
+        : null
+
     return (
         <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-4 p-4 bg-secondary-700 rounded-xl">
-                {method === 'passkey' ? (
-                    <>
-                        <div className="p-3 bg-secondary-500 rounded-lg">
-                            <Fingerprint className="h-6 w-6 text-primary-text" strokeWidth={2} />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-primary-text font-semibold">Passkey</span>
-                            <span className="text-secondary-text text-sm">Face ID, Touch ID, or Security Key</span>
-                        </div>
-                    </>
-                ) : (
-                    <>
-                        <div className="p-3 bg-secondary-500 rounded-lg">
-                            <WalletIcon className="h-6 w-6 text-primary-text" strokeWidth={2} />
-                        </div>
-                        <div className="flex flex-col flex-1 min-w-0">
-                            <span className="text-primary-text font-semibold">
-                                {loginWallet?.displayName || 'EVM Wallet'}
-                            </span>
-                            {loginWallet?.address && (
-                                <button
-                                    type="button"
-                                    onClick={handleCopyAddress}
-                                    className="text-secondary-text text-sm text-left hover:text-primary-text truncate"
-                                >
-                                    {loginWallet.address}
-                                </button>
-                            )}
-                        </div>
-                    </>
-                )}
-            </div>
+            <LoginDataCard
+                method={method}
+                loginWallet={loginWallet}
+                passkeyDisplayId={passkeyDisplayId}
+                onCopyAddress={handleCopyAddress}
+            />
             <button
                 type="button"
                 onClick={handleLogout}
