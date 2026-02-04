@@ -10,6 +10,7 @@ interface SecretDerivationState {
   method: DerivationMethod | null;
   storedDerivedKey: Buffer | null;
   loginWallet: Wallet | null;
+  passkeyCredentialId: string | null;
 
   // Transient state (not persisted)
   isPasskeySupported: boolean;
@@ -29,6 +30,7 @@ export const useSecretDerivationStore = create<SecretDerivationState>()(
       method: null,
       storedDerivedKey: null,
       loginWallet: null,
+      passkeyCredentialId: null,
       isPasskeySupported: false,
       isReady: false,
       derivationStatus: 'idle',
@@ -42,6 +44,7 @@ export const useSecretDerivationStore = create<SecretDerivationState>()(
           loginWallet: null,
           method: null,
           storedDerivedKey: null,
+          passkeyCredentialId: null,
         });
       },
     }),
@@ -62,6 +65,7 @@ export const useSecretDerivationStore = create<SecretDerivationState>()(
               displayName: state.loginWallet.displayName,
             }
           : null,
+        passkeyCredentialId: state.passkeyCredentialId,
       }),
       // Handle rehydration - convert hex string back to Buffer
       merge: (persistedState: any, currentState) => {
@@ -81,6 +85,11 @@ export const useSecretDerivationStore = create<SecretDerivationState>()(
         // Restore loginWallet
         if (persistedState?.loginWallet) {
           merged.loginWallet = persistedState.loginWallet;
+        }
+
+        // Restore passkeyCredentialId
+        if (persistedState?.passkeyCredentialId != null) {
+          merged.passkeyCredentialId = persistedState.passkeyCredentialId;
         }
 
         return merged;
@@ -104,3 +113,6 @@ export const useDerivationStatus = () =>
     status: state.derivationStatus,
     message: state.derivationMessage,
   }));
+
+export const usePasskeyCredentialId = () =>
+  useSecretDerivationStore((state) => state.passkeyCredentialId);

@@ -72,12 +72,13 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
   const loginWithPasskey = useCallback(async () => {
     setState({ derivationStatus: 'signing', derivationMessage: 'Confirm with your passkey' });
     try {
-      const derivedKey = await deriveKeyWithPasskey();
+      const { key, credentialId } = await deriveKeyWithPasskey();
       setState({
         method: 'passkey',
         isLoggedIn: true,
         loginWallet: null,
-        storedDerivedKey: derivedKey,
+        storedDerivedKey: key,
+        passkeyCredentialId: credentialId,
       });
     } finally {
       setState({ derivationStatus: 'idle', derivationMessage: '' });
@@ -116,7 +117,9 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
 
     // Fallback: Re-authenticate if no stored key
     if (method === 'passkey') {
-      return await deriveKeyWithPasskey();
+      const { key, credentialId } = await deriveKeyWithPasskey();
+      setState({ storedDerivedKey: key, passkeyCredentialId: credentialId });
+      return key;
     }
 
     // Wallet sign method
@@ -134,7 +137,7 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
     }
 
     throw new Error(`Unsupported provider: ${providerName}`);
-  }, [method, storedDerivedKey]);
+  }, [method, storedDerivedKey, setState]);
 
   const deriveSecret = useCallback(async (params: DeriveSecretParams): Promise<string> => {
     setState({

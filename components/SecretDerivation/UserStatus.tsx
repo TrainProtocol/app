@@ -4,9 +4,10 @@ import toast from "react-hot-toast"
 import VaulDrawer from "../Modal/vaulModal"
 import { Popover, PopoverContent, PopoverTrigger } from "../shadcn/popover"
 import { useSecretDerivationStore } from "@/stores/secretDerivationStore"
+import { usePasskeyCredentialId } from "@/stores/secretDerivationStore"
 import shortenAddress from "../utils/ShortenAddress"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
-import { getStoredCredentialId, formatPasskeyIdForDisplay } from "@/lib/htlc/secretDerivation/passkeyService"
+import { formatPasskeyIdForDisplay } from "@/lib/htlc/secretDerivation/passkeyService"
 import WalletIcon from "../Icons/WalletIcon"
 
 interface UserStatusContentProps {
@@ -35,7 +36,8 @@ const UserStatusContent = ({ method, loginWallet, logout, onClose }: UserStatusC
         }
     }
 
-    const passkeyCredId = method === 'passkey' ? getStoredCredentialId() : null
+    const storedPasskeyCredId = usePasskeyCredentialId()
+    const passkeyCredId = method === 'passkey' ? storedPasskeyCredId : null
     const displayId = passkeyCredId ? formatPasskeyIdForDisplay(passkeyCredId) : null
 
     return (

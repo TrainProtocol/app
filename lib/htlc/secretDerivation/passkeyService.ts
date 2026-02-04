@@ -2,6 +2,7 @@
 
 import { sha256 } from "@noble/hashes/sha2.js";
 import { deriveKeyMaterial } from './keyDerivation';
+import { useSecretDerivationStore } from '@/stores/secretDerivationStore';
 
 // Native base64URL utilities (replacing @simplewebauthn/browser)
 const base64URLStringToBuffer = (base64url: string): ArrayBuffer => {
@@ -27,18 +28,16 @@ const bufferToBase64URLString = (buffer: ArrayBuffer): string => {
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 };
 
-const STORAGE_KEY = 'train:passkeyCredentialId';
 const IDENTITY_SALT = 'train-identity-v1';
 
-// Storage helpers
+/** Get stored passkey credential ID from the login store (for use outside React). */
 export const getStoredCredentialId = (): string | null => {
-  if (typeof window === 'undefined') return null;
-  return window.localStorage.getItem(STORAGE_KEY);
+  return useSecretDerivationStore.getState().passkeyCredentialId ?? null;
 };
 
+/** Store passkey credential ID in the login store (for use outside React). */
 export const storeCredentialId = (credId: string): void => {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(STORAGE_KEY, credId);
+  useSecretDerivationStore.setState({ passkeyCredentialId: credId });
 };
 
 /** Format credential ID for UI display: first 2 chars + ... + last 5 chars (e.g. id:4a...9GEP7T) */
@@ -121,13 +120,12 @@ export const registerPasskey = async (): Promise<string> => {
   // Convert credential ID to base64url string
   const credentialId = bufferToBase64URLString(credential.rawId);
 
-  // Save credential id
   storeCredentialId(credentialId);
   return credentialId;
 };
 
-// Derive initial key using passkey PRF
-export const deriveKeyWithPasskey = async (): Promise<Buffer> => {
+// Derive initial key using passkey PRF (works without stored credential ID)
+export const deriveKeyWithPasskey = async (): Promise<{ key: Buffer; credentialId: string }> => {
   if (typeof window === 'undefined') {
     throw new Error('Passkey auth must run in a browser');
   }
@@ -135,38 +133,32 @@ export const deriveKeyWithPasskey = async (): Promise<Buffer> => {
     throw new Error('Passkeys require HTTPS (secure context)');
   }
 
-  // Ensure we have a registered credential
-  const credentialIdB64 = await registerPasskey();
-
-  // Generate random challenge for this authentication
+  const prfSalt = getPasskeyPrfSalt();
   const challengeBytes = new Uint8Array(32);
   window.crypto.getRandomValues(challengeBytes);
-
-  const prfSalt = getPasskeyPrfSalt();
 
   const publicKey: PublicKeyCredentialRequestOptions = {
     rpId: window.location.hostname,
     challenge: challengeBytes,
     userVerification: 'required',
-    allowCredentials: [
-      {
-        type: 'public-key',
-        id: base64URLStringToBuffer(credentialIdB64),
-      },
-    ],
-    // PRF extension - TS types may not include this
+    // Omit allowCredentials so the browser offers all passkeys for this domain
     extensions: {
-      prf: {
-        evalByCredential: {
-          [credentialIdB64]: { first: prfSalt },
-        },
-      },
+      prf: { eval: { first: prfSalt } },
     } as any,
   };
 
-  const cred = (await navigator.credentials.get({ publicKey })) as PublicKeyCredential;
+  let cred = (await navigator.credentials.get({ publicKey })) as PublicKeyCredential | null;
 
-  // Get PRF output from extension results
+  if (!cred) {
+    await registerPasskey();
+    cred = (await navigator.credentials.get({ publicKey })) as PublicKeyCredential | null;
+    if (!cred) {
+      throw new Error('Passkey authentication was cancelled or no passkey is available');
+    }
+  }
+
+  const credentialId = bufferToBase64URLString(cred.rawId);
+
   const ext: any = cred.getClientExtensionResults?.() ?? {};
   const prfFirst: ArrayBuffer | undefined = ext?.prf?.results?.first;
 
@@ -174,9 +166,9 @@ export const deriveKeyWithPasskey = async (): Promise<Buffer> => {
     throw new Error('Passkey PRF extension not available in this browser/authenticator');
   }
 
-  // PRF output is 32 bytes per spec
   const ikm = new Uint8Array(prfFirst);
   const identitySalt = Buffer.from(IDENTITY_SALT, 'utf8');
+  const key = Buffer.from(deriveKeyMaterial(ikm, identitySalt));
 
-  return Buffer.from(deriveKeyMaterial(ikm, identitySalt));
+  return { key, credentialId };
 };
