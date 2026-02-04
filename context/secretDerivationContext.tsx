@@ -1,6 +1,6 @@
 // context/secretDerivationContext.tsx
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useCallback, ReactNode } from 'react';
 import { Wallet } from '@/Models/WalletProvider';
 import {
   DerivationMethod,
@@ -9,21 +9,7 @@ import {
   deriveSecretFromTimelock
 } from '@/lib/htlc/secretDerivation';
 import { deriveKeyFromEvmSignature } from '@/lib/htlc/secretDerivation/walletSign/evm';
-
-const LOGIN_STATE_KEY = 'train:loginState';
-
-export type DerivationStatus = 'idle' | 'signing';
-
-interface StoredLoginState {
-  method: DerivationMethod;
-  derivedKey: string; // Hex string of the derived key from login
-  loginWallet?: {
-    address: string;
-    chainId?: string | number;
-    providerName: string;
-    displayName?: string;
-  };
-}
+import { useSecretDerivationStore, DerivationStatus } from '@/stores/secretDerivationStore';
 
 interface SecretDerivationContextValue {
   method: DerivationMethod | null;
@@ -59,113 +45,62 @@ interface SecretDerivationProviderProps {
   children: ReactNode;
 }
 
-// LocalStorage helpers for login state persistence
-const saveLoginState = (method: DerivationMethod, derivedKey: Buffer, wallet?: Wallet) => {
-  if (typeof window === 'undefined') return;
-  const state: StoredLoginState = {
-    method,
-    derivedKey: derivedKey.toString('hex'),
-    ...(wallet && {
-      loginWallet: {
-        address: wallet.address,
-        chainId: wallet.chainId,
-        providerName: wallet.providerName,
-        displayName: wallet.displayName,
-      }
-    })
-  };
-  window.localStorage.setItem(LOGIN_STATE_KEY, JSON.stringify(state));
-};
-
-const loadLoginState = (): StoredLoginState | null => {
-  if (typeof window === 'undefined') return null;
-  try {
-    const stored = window.localStorage.getItem(LOGIN_STATE_KEY);
-    return stored ? JSON.parse(stored) : null;
-  } catch {
-    return null;
-  }
-};
-
-const clearLoginState = () => {
-  if (typeof window === 'undefined') return;
-  window.localStorage.removeItem(LOGIN_STATE_KEY);
-};
-
 export function SecretDerivationProvider({ children }: SecretDerivationProviderProps) {
-  const [method, setMethodState] = useState<DerivationMethod | null>(null);
-  const [isPasskeySupported, setIsPasskeySupported] = useState(false);
-  const [isReady, setIsReady] = useState(false);
-  const [derivationStatus, setDerivationStatus] = useState<DerivationStatus>('idle');
-  const [derivationMessage, setDerivationMessage] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loginWallet, setLoginWallet] = useState<Wallet | null>(null);
-  const [storedDerivedKey, setStoredDerivedKey] = useState<Buffer | null>(null);
+  // Get all state from the zustand store
+  const {
+    method,
+    isPasskeySupported,
+    isReady,
+    derivationStatus,
+    derivationMessage,
+    isLoggedIn,
+    loginWallet,
+    storedDerivedKey,
+    logout,
+  } = useSecretDerivationStore();
 
-  // Check passkey support and restore login state on mount
+  // Get setState function for updating store
+  const setState = useSecretDerivationStore.setState;
+
+  // Check passkey support on mount (localStorage restore is handled by zustand persist)
   useEffect(() => {
     checkPrfSupport().then((supported) => {
-      setIsPasskeySupported(supported);
-      setIsReady(true);
+      setState({ isPasskeySupported: supported, isReady: true });
     });
-
-    // Restore login state from localStorage
-    const savedState = loadLoginState();
-    if (savedState) {
-      setMethodState(savedState.method);
-      setIsLoggedIn(true);
-      // Restore derived key from hex string
-      setStoredDerivedKey(Buffer.from(savedState.derivedKey, 'hex'));
-      if (savedState.loginWallet) {
-        // Reconstruct wallet object from stored data
-        setLoginWallet(savedState.loginWallet as any);
-      }
-    }
-  }, []);
+  }, [setState]);
 
   const loginWithPasskey = useCallback(async () => {
-    setDerivationStatus('signing');
-    setDerivationMessage('Confirm with your passkey');
+    setState({ derivationStatus: 'signing', derivationMessage: 'Confirm with your passkey' });
     try {
       const derivedKey = await deriveKeyWithPasskey();
-      setMethodState('passkey');
-      setIsLoggedIn(true);
-      setLoginWallet(null);
-      setStoredDerivedKey(derivedKey);
-      saveLoginState('passkey', derivedKey);
+      setState({
+        method: 'passkey',
+        isLoggedIn: true,
+        loginWallet: null,
+        storedDerivedKey: derivedKey,
+      });
     } finally {
-      setDerivationStatus('idle');
-      setDerivationMessage('');
+      setState({ derivationStatus: 'idle', derivationMessage: '' });
     }
-  }, []);
+  }, [setState]);
 
   const loginWithWallet = useCallback(async (config: any, wallet: Wallet) => {
     if (wallet.providerName?.toLowerCase() !== 'evm') {
       throw new Error('Only EVM wallets are supported for login right now');
     }
-    setDerivationStatus('signing');
-    setDerivationMessage('Please sign in your wallet');
+    setState({ derivationStatus: 'signing', derivationMessage: 'Please sign in your wallet' });
     try {
       const derivedKey = await deriveKeyFromEvmSignature(config, wallet.address as `0x${string}`);
-      setMethodState('wallet_sign');
-      setIsLoggedIn(true);
-      setLoginWallet(wallet);
-      setStoredDerivedKey(derivedKey);
-      saveLoginState('wallet_sign', derivedKey, wallet);
+      setState({
+        method: 'wallet_sign',
+        isLoggedIn: true,
+        loginWallet: wallet,
+        storedDerivedKey: derivedKey,
+      });
     } finally {
-      setDerivationStatus('idle');
-      setDerivationMessage('');
+      setState({ derivationStatus: 'idle', derivationMessage: '' });
     }
-  }, []);
-
-  const logout = useCallback(() => {
-    setIsLoggedIn(false);
-    setLoginWallet(null);
-    setMethodState(null);
-    setStoredDerivedKey(null);
-    // Clear login state from localStorage
-    clearLoginState();
-  }, []);
+  }, [setState]);
 
   const deriveInitialKey = useCallback(async (params: DeriveKeyParams): Promise<Buffer> => {
     const { wallet, config } = params;
@@ -202,22 +137,21 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
   }, [method, storedDerivedKey]);
 
   const deriveSecret = useCallback(async (params: DeriveSecretParams): Promise<string> => {
-    setDerivationStatus('signing');
-    setDerivationMessage(
-      method === 'passkey'
+    setState({
+      derivationStatus: 'signing',
+      derivationMessage: method === 'passkey'
         ? 'Confirm with your passkey'
         : 'Please sign in your wallet'
-    );
+    });
     try {
       const { timelock, ...keyParams } = params;
       const initialKey = await deriveInitialKey(keyParams);
       const derivedKey = deriveSecretFromTimelock(initialKey, timelock);
       return '0x' + derivedKey.toString('hex');
     } finally {
-      setDerivationStatus('idle');
-      setDerivationMessage('');
+      setState({ derivationStatus: 'idle', derivationMessage: '' });
     }
-  }, [deriveInitialKey, method]);
+  }, [deriveInitialKey, method, setState]);
 
   const value: SecretDerivationContextValue = {
     method,

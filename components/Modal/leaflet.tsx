@@ -105,19 +105,17 @@ export const Leaflet = forwardRef<HTMLDivElement, PropsWithChildren<LeafletProps
                 dragConstraints={{ top: 0, bottom: 0 }}
             >
                 <div className={`py-3 overflow-y-auto flex flex-col h-full z-40 ${height != 'full' ? 'bg-secondary-900 rounded-t-2xl ' : ''} pb-6`}>
-                    <div className={`px-6 pb-2 flex justify-between items-center ${height != 'full' && 'hover:cursor-grab'}`}>
+                    <div className={`px-4 pb-2 flex justify-between items-center ${height != 'full' && 'hover:cursor-grab'}`}>
                         <div className="text-lg text-secondary-text font-semibold">
                             <div>{title}</div>
                         </div>
-                        <div className='-mr-2'>
-                            <IconButton onClick={handleCloseModal} icon={
-                                <X strokeWidth={3} />
-                            }>
-                            </IconButton>
-                        </div>
+                        <IconButton onClick={handleCloseModal} icon={
+                            <X strokeWidth={3} />
+                        }>
+                        </IconButton>
                     </div>
                     <div
-                        className='select-text max-h-full overflow-y-auto overflow-x-hidden styled-scroll px-6 h-full' id="virtualListContainer">
+                        className='select-text max-h-full overflow-y-auto overflow-x-hidden styled-scroll px-4 h-full' id="virtualListContainer">
                         {children}
                     </div>
                 </div>

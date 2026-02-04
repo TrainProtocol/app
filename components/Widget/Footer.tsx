@@ -50,7 +50,7 @@ const Footer = ({ children, hidden, sticky = true }: FooterProps) => {
                         max-sm:bg-secondary-900 
                         max-sm:shadow-widget-footer 
                         max-sm:p-4 
-                        max-sm:px-6 
+                        max-sm:px-4
                         max-sm:w-full ${hidden ? 'animation-slide-out' : ''}`
                         : ''}>
                     <div className="relative w-full">

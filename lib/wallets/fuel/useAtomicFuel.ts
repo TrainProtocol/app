@@ -1,8 +1,7 @@
 import { Address } from '@fuel-ts/address'
 import { concat, DateTime } from "@fuel-ts/utils"
 import { Contract } from "@fuel-ts/program"
-import { Account, B256Coder, BigNumberCoder, bn, Provider } from 'fuels'
-import { sha256 } from "@noble/hashes/sha2.js"
+import { Account, B256Coder, BigNumberCoder, bn, Provider, sha256 } from 'fuels'
 import { CreatePreHTLCParams, CommitmentParams, LockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
 import contractAbi from "../../abis/atomic/FUEL_PHTLC.json"
 import LayerSwapApiClient from "../../trainApiClient"

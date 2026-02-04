@@ -18,6 +18,10 @@ const WalletsMenu = dynamic(() => import("../Wallet/ConnectedWallets.tsx").then(
     loading: () => <></>
 })
 
+const UserStatusMenu = dynamic(() => import("../SecretDerivation/UserStatus.tsx").then((comp) => comp.UserStatusMenu), {
+    loading: () => <></>
+})
+
 const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ goToStep }) => {
     const router = useRouter();
     const { boot, show, update } = useIntercom()
@@ -35,6 +39,7 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
     return <div className="text-sm font-medium focus:outline-none h-full">
         <Menu>
 
+            <UserStatusMenu />
             <WalletsMenu />
 
 

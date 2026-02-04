@@ -158,7 +158,7 @@ const SwapForm: FC = () => {
         <Form className={`h-full ${(isSubmitting) ? 'pointer-events-none' : 'pointer-events-auto'}`} >
             <ResizablePanel>
                 <Widget.Content>
-                    <div className='flex-col relative flex justify-between gap-1.5 w-full mb-3.5 leading-4 bg-secondary-700 rounded-xl'>
+                    <div className='flex-col relative flex justify-between gap-1.5 w-full leading-4 bg-secondary-700 rounded-xl'>
                         {!(query?.hideFrom && values?.from) && <div className="flex flex-col w-full">
                             <NetworkFormField direction="from" label="From" className="rounded-t-xl pt-2.5" />
                         </div>}
@@ -185,7 +185,7 @@ const SwapForm: FC = () => {
                             <NetworkFormField direction="to" label="To" className="rounded-b-xl" />
                         </div>}
                     </div>
-                    <div className="mb-6 leading-4">
+                    <div className="leading-4">
                         <AmountField />
                     </div>
                     <div className="w-full">

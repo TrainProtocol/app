@@ -41,6 +41,12 @@ export const storeCredentialId = (credId: string): void => {
   window.localStorage.setItem(STORAGE_KEY, credId);
 };
 
+/** Format credential ID for UI display: first 2 chars + ... + last 5 chars (e.g. id:4a...9GEP7T) */
+export const formatPasskeyIdForDisplay = (credId: string): string => {
+  if (!credId || credId.length < 8) return credId;
+  return `id:${credId.slice(0, 2)}...${credId.slice(-5)}`;
+};
+
 // Generate PRF salt for identity derivation (not chain-specific)
 export const getPasskeyPrfSalt = (): Uint8Array => {
   const input = Buffer.from(`train-passkey-prf-salt-v1:${IDENTITY_SALT}`, 'utf8');
