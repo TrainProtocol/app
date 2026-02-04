@@ -163,7 +163,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
             <>
               <p className="text-sm text-secondary-text">Choose how to login.</p>
               <div className="flex flex-col gap-3">
-                <OptionItem onClick={() => isPasskeySupported && setStep('passkey_choice')} icon={Fingerprint} title="Passkey" description="Face ID, Touch ID, or Windows Hello" />
+                <OptionItem onClick={() => setStep('passkey_choice')} icon={Fingerprint} title="Passkey" description="Face ID, Touch ID, or Windows Hello" />
                 <OptionItem onClick={() => setStep('wallet_select')} icon={WalletIcon} title="Wallet (EVM)" description="Select or connect an EVM wallet" />
               </div>
             </>
