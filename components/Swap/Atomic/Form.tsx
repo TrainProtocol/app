@@ -39,7 +39,7 @@ const SwapForm: FC = () => {
     const shouldConnectDestinationWallet = !hasRequiredDestinationWallet(destination, providers);
 
     return <>
-        <Form className={`h-full ${(isSubmitting) ? 'pointer-events-none' : 'pointer-events-auto'}`} >
+        <Form className={`h-full space-y-3 ${(isSubmitting) ? 'pointer-events-none' : 'pointer-events-auto'}`} >
             <ResizablePanel>
                 <Widget.Content>
                     <div className='flex-col relative flex justify-between gap-1.5 w-full leading-4 bg-secondary-700 rounded-xl'>
