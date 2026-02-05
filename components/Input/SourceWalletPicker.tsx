@@ -2,7 +2,6 @@ import { useFormikContext } from "formik";
 import { SwapFormValues } from "../DTOs/SwapFormValues";
 import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
 import useWallet from "../../hooks/useWallet";
-import shortenAddress from "../utils/ShortenAddress";
 import { ChevronDown } from "lucide-react";
 import VaulDrawer from "../Modal/vaulModal";
 import { Wallet } from "../../Models/WalletProvider";
@@ -11,6 +10,7 @@ import SubmitButton from "../buttons/submitButton";
 import { useConnectModal } from "../WalletModal";
 import WalletsList from "../Wallet/WalletsList";
 import { useAtomicState } from "../../context/atomicContext";
+import { Address } from "@/lib/address";
 
 const Component: FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false)
@@ -65,7 +65,7 @@ const Component: FC = () => {
         setOpenModal(false)
     }
 
-    if (!walletNetwork || !source_token)
+    if (!walletNetwork || !source_token || !values.from)
         return <></>
 
     return <>
@@ -78,7 +78,7 @@ const Component: FC = () => {
                             <selectedWallet.icon className="w-5 h-5" />
                         </div>
                         <div className="text-primary-text">
-                            {shortenAddress(selectedSourceAccount.address)}
+                            {new Address(selectedSourceAccount.address, values.from).toShortString()}
                         </div>
                         <div className="w-5 h-5 items-center flex">
                             <ChevronDown className="h-4 w-4" aria-hidden="true" />

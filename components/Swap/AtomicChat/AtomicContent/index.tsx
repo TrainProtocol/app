@@ -12,6 +12,7 @@ import Link from "next/link";
 import { usePulsatingCircles } from "../../../../context/PulsatingCirclesContext";
 import { useRive } from "@rive-app/react-canvas";
 import SpinIcon from "../../../Icons/spinIcon";
+import { getExplorerUrl } from "@/lib/address";
 
 const AtomicContent: FC = () => {
 
@@ -43,7 +44,7 @@ const AtomicContent: FC = () => {
                             commitStatus={commitStatus}
                             isManualClaimable={isManualClaimable}
                             manualClaimRequested={manualClaimRequested}
-                            redeemTxLink={destRedeemTx && destination_network?.transactionExplorerTemplate.replace('{0}', destRedeemTx)}
+                            redeemTxLink={destRedeemTx && getExplorerUrl(destination_network?.transactionExplorerTemplate, destRedeemTx)}
                         />
                         <motion.div
                             layout

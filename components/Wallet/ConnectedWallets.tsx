@@ -5,7 +5,7 @@ import { useState } from "react"
 import WalletsList from "./WalletsList"
 import { Wallet } from "../../Models/WalletProvider"
 import VaulDrawer from "../Modal/vaulModal"
-import shortenAddress from "../utils/ShortenAddress"
+import { Address } from "@/lib/address"
 
 export const WalletsHeader = () => {
     const { wallets } = useWallet()
@@ -108,7 +108,7 @@ const WalletsMenuWalletsList = ({ wallets }: { wallets: Wallet[] }) => {
                 wallets.length === 1 ?
                     <div className="flex gap-4 items-start text-primary-text">
                         <wallet.icon className='h-5 w-5' />
-                        {!wallet.isLoading && wallet.address && <p>{shortenAddress(wallet.address)}</p>}
+                        {!wallet.isLoading && wallet.address && <p>{new Address(wallet.address, null, wallet.providerName).toShortString()}</p>}
                     </div>
                     :
                     <>

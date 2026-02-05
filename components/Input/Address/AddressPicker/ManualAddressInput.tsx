@@ -1,14 +1,12 @@
 import { ChangeEvent, FC, useCallback, useState } from "react";
 import { SwapFormValues } from "../../../DTOs/SwapFormValues";
 import { Pencil } from "lucide-react";
-import { isValidAddress } from "../../../../lib/address/validator";
-import { Partner } from "../../../../Models/Partner";
 import { NetworkType } from "../../../../Models/Network";
 import FilledX from "../../../Icons/FilledX";
 import { AddressGroup, AddressItem } from ".";
-import { addressFormat } from "../../../../lib/address/formatter";
 import AddressWithIcon from "./AddressWithIcon";
 import { Wallet } from "../../../../Models/WalletProvider";
+import { Address } from "@/lib/address";
 
 type AddressInput = {
     manualAddress: string,
@@ -39,7 +37,7 @@ const ManualAddressInput: FC<AddressInput> = ({ manualAddress, setManualAddress,
     }, [])
 
     const handleSaveNewAddress = () => {
-        if (isValidAddress(manualAddress, destination)) {
+        if (Address.isValid(manualAddress, destination) && destination) {
             if (destination) {
                 setNewAddress({ address: manualAddress, networkType: destination.type })
             }
@@ -50,11 +48,11 @@ const ManualAddressInput: FC<AddressInput> = ({ manualAddress, setManualAddress,
     }
 
     let errorMessage = '';
-    if (manualAddress && !isValidAddress(manualAddress, destination)) {
+    if (manualAddress && !Address.isValid(manualAddress, destination) && values.to?.displayName) {
         errorMessage = `Enter a valid ${values.to?.displayName} address`
     }
 
-    const addressFromList = destination && addresses?.find(a => addressFormat(a.address, destination) === addressFormat(manualAddress, destination))
+    const addressFromList = destination && addresses?.find(a => Address.equals(a.address, manualAddress, destination))
 
     return (
         <div className="text-left">

@@ -1,10 +1,9 @@
 import Image from "next/image";
 import { FC } from "react";
-import { truncateDecimals } from "../../../../utils/RoundDecimals";
-import { Network, Token } from "../../../../../Models/Network";
-import { addressFormat } from "../../../../../lib/address/formatter";
-import { ExtendedAddress } from "../../../../Input/Address/AddressPicker/AddressWithIcon";
-import { isValidAddress } from "../../../../../lib/address/validator";
+import { truncateDecimals } from "@/components/utils/RoundDecimals";
+import { Network, Token } from "@/Models/Network";
+import { Address } from "@/lib/address";
+import { ExtendedAddress } from "@/components/Input/Address/AddressPicker/AddressWithIcon";
 
 type AtomicSummaryProps = {
     sourceCurrency: Token,
@@ -39,9 +38,9 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceAccountAddress, sourceCurrency,
                             <div className="text-ellipsis overflow-hidden">
                                 <p className="text-primary-text truncate">{source?.displayName}</p>
                                 {
-                                    sourceAccountAddress && isValidAddress(sourceAccountAddress, from) ?
+                                    sourceAccountAddress && Address.isValid(sourceAccountAddress, from) ?
                                         <div className="text-sm group/addressItem text-secondary-text">
-                                            <ExtendedAddress address={addressFormat(sourceAccountAddress, from)} network={from} />
+                                            <ExtendedAddress address={sourceAccountAddress} network={from} />
                                         </div>
                                         :
                                         <p className="text-sm text-secondary-text">Network</p>
@@ -68,7 +67,7 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceAccountAddress, sourceCurrency,
                                 <p className="truncate text-primary-text">{destination?.displayName}</p>
                                 {
                                     !destination.name.toLowerCase().includes("aztec") ?
-                                        <ExtendedAddress address={addressFormat(destAddress, to)} network={to} />
+                                        <ExtendedAddress address={destAddress} network={to} />
                                         : null
                                 }
                             </div>

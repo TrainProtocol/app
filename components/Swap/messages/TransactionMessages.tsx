@@ -1,6 +1,6 @@
 import { FC } from "react"
 import WalletMessage from "./Message"
-import shortenAddress from "../../utils/ShortenAddress"
+import { Address } from "@/lib/address"
 
 const ConfirmTransactionMessage: FC = () => {
     return <WalletMessage
@@ -30,11 +30,11 @@ const TransactionRejectedMessage: FC = () => {
         details={`You've rejected the transaction in your wallet. Click “Try again” to open the prompt again.`} />
 }
 
-const WaletMismatchMessage: FC<{ address: string }> = ({ address }) => {
+const WaletMismatchMessage: FC<{ address: string; network: { name: string } }> = ({ address, network }) => {
     return <WalletMessage
         status="error"
         header='Account mismatch'
-        details={`Select ${shortenAddress(address)} in your wallet, then try again`} />
+        details={`Select ${new Address(address, network).toShortString()} in your wallet, then try again`} />
 }
 
 const UexpectedErrorMessage: FC<{ message: string }> = ({ message }) => {
@@ -42,7 +42,7 @@ const UexpectedErrorMessage: FC<{ message: string }> = ({ message }) => {
         status="error"
         header='Unexpected error'
         details={message}
-         />
+    />
 }
 
 const TransactionMessages = {

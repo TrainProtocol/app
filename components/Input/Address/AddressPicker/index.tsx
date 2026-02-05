@@ -1,10 +1,8 @@
 import { useFormikContext } from "formik";
-import { FC, forwardRef, useCallback, useEffect, useRef, useState } from "react";
+import { FC, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SwapFormValues } from "../../../DTOs/SwapFormValues";
-import { isValidAddress } from "../../../../lib/address/validator";
 import { Partner } from "../../../../Models/Partner";
 import useWallet from "../../../../hooks/useWallet";
-import { addressFormat } from "../../../../lib/address/formatter";
 import ManualAddressInput from "./ManualAddressInput";
 import Modal from "../../../Modal/modal";
 import ConnectWalletButton from "./ConnectedWallets/ConnectWalletButton";
@@ -16,8 +14,8 @@ import { useAddressesStore } from "../../../../stores/addressesStore";
 import ConnectedWallets from "./ConnectedWallets";
 import { Wallet } from "../../../../Models/WalletProvider";
 import { useAtomicState } from "../../../../context/atomicContext";
-import KnownInternalNames from "../../../../lib/knownIds";
 import { generateAztecSecret, storeAztecSecret } from "../../../../lib/wallets/aztec/secretUtils";
+import { Address as AddressClass } from "@/lib/address";
 
 export enum AddressGroup {
     ConnectedWallet = "Connected wallet",
@@ -80,7 +78,7 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
     }, [destination])
 
     useEffect(() => {
-        if (destination_address && !isValidAddress(destination_address, destination)) {
+        if (destination_address && !AddressClass.isValid(destination_address, destination)) {
             setFieldValue("destination_address", '')
         }
     }, [destination, destination_address])
@@ -102,10 +100,14 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
 
     const addressBookAddresses = groupedAddresses?.filter(a => a.group !== AddressGroup.ConnectedWallet)
 
-    const connectedWallet = (destination && destination_address) ? connectedWallets?.find(w => w.addresses?.find(a => addressFormat(a, destination) === addressFormat(destination_address, destination))) : undefined
+    const normalizedDestAddress = useMemo(
+        () => destination && destination_address ? new AddressClass(destination_address, destination).normalized : null
+        , [destination_address, destination]);
+
+    const connectedWallet = (destination && normalizedDestAddress) ? connectedWallets?.find(w => w.addresses?.some(a => new AddressClass(a, destination).normalized === normalizedDestAddress)) : undefined;
 
     const handleSelectAddress = useCallback((address: string) => {
-        const selected = destination && groupedAddresses?.find(a => addressFormat(a.address, destination) === addressFormat(address, destination))
+        const selected = destination && groupedAddresses?.find(a => AddressClass.equals(a.address, address, destination))
         const formattedAddress = selected?.address
         setFieldValue("destination_address", formattedAddress)
         if (selected?.wallet)
@@ -261,17 +263,30 @@ const resolveAddressGroups = ({
             addresses.push(...(wallet.addresses.map(a => ({ address: a, group: AddressGroup.ConnectedWallet, wallet })) || []))
         }
     })
-    if (addressFromQuery) {
+    if (addressFromQuery && AddressClass.isValid(addressFromQuery, destination)) {
         addresses.push({ address: addressFromQuery, group: AddressGroup.FromQuery })
     }
 
-    if (newAddress?.address && newAddress.networkType === networkType) {
+    if (newAddress?.address && newAddress.networkType === networkType && AddressClass.isValid(newAddress.address, destination)) {
         addresses.push({ address: newAddress.address, group: AddressGroup.ManualAdded })
     }
 
-    const uniqueAddresses = addresses.filter((a, index, self) => self.findIndex(t => addressFormat(t.address, destination) === addressFormat(a.address, destination)) === index)
+    const uniqueAddresses = getUniqueAddresses(addresses, destination)
 
     return uniqueAddresses
+}
+
+const getUniqueAddresses = (addresses: AddressItem[], destination: Network) => {
+    const normalizedMap = new Map<string, AddressItem>();
+
+    addresses.forEach((a) => {
+        const normalized = new AddressClass(a.address, destination).normalized;
+        if (!normalizedMap.has(normalized)) {
+            normalizedMap.set(normalized, a);
+        }
+    });
+
+    return Array.from(normalizedMap.values());
 }
 
 export default AddressPicker
