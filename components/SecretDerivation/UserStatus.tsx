@@ -74,9 +74,18 @@ interface UserStatusContentProps {
     loginWallet: LoginWallet | null
     logout: () => void
     onClose?: () => void
+    showHeader?: boolean
+    showPasskeyWarning?: boolean
 }
 
-const UserStatusContent = ({ method, loginWallet, logout, onClose }: UserStatusContentProps) => {
+const UserStatusContent = ({
+    method,
+    loginWallet,
+    logout,
+    onClose,
+    showHeader = true,
+    showPasskeyWarning = true,
+}: UserStatusContentProps) => {
     const handleLogout = () => {
         logout()
         onClose?.()
@@ -96,8 +105,10 @@ const UserStatusContent = ({ method, loginWallet, logout, onClose }: UserStatusC
         : null
 
     return (
-        <div className="flex flex-col gap-3">
-            <p className="text-secondary-text text-sm font-medium">Connected with</p>
+        <div className={`flex flex-col ${showHeader ? 'gap-3' : 'gap-2'}`}>
+            {showHeader && (
+                <p className="text-secondary-text text-sm font-medium">Connected with</p>
+            )}
             <LoginDataCard
                 method={method}
                 loginWallet={loginWallet}
@@ -105,7 +116,7 @@ const UserStatusContent = ({ method, loginWallet, logout, onClose }: UserStatusC
                 onCopyAddress={handleCopyAddress}
             />
 
-            {method === 'passkey' && (
+            {showPasskeyWarning && method === 'passkey' && (
                 <div className="rounded-xl bg-amber-900/40 border border-amber-700/50 px-3 py-2.5">
                     <p className="text-amber-200/90 text-sm leading-snug">
                         Store your passkeys securely. Losing your passkey means losing access to your account and any associated funds permanently.
@@ -264,51 +275,7 @@ interface UserStatusDrawerProps {
     logout: () => void
 }
 
-/** Drawer content for mobile: same login data card as popover + logout */
-const UserStatusDrawerContent = ({ method, loginWallet, logout, onClose }: UserStatusContentProps) => {
-    const handleLogout = () => {
-        logout()
-        onClose?.()
-        toast.success('Logged out successfully')
-    }
-
-    const handleCopyAddress = () => {
-        if (loginWallet?.address) {
-            navigator.clipboard.writeText(loginWallet.address)
-            toast.success('Address copied')
-        }
-    }
-
-    const storedPasskeyCredId = usePasskeyCredentialId()
-    const passkeyDisplayId = method === 'passkey' && storedPasskeyCredId
-        ? formatPasskeyIdForDisplay(storedPasskeyCredId)
-        : null
-
-    return (
-        <div className="flex flex-col gap-2">
-            <LoginDataCard
-                method={method}
-                loginWallet={loginWallet}
-                passkeyDisplayId={passkeyDisplayId}
-                onCopyAddress={handleCopyAddress}
-            />
-            <button
-                type="button"
-                onClick={handleLogout}
-                className="flex items-center justify-center gap-2 py-3 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl font-semibold transition-colors"
-            >
-                <LogOut className="h-5 w-5" strokeWidth={2} />
-                <span>Log out</span>
-            </button>
-        </div>
-    )
-}
-
 const UserStatusDrawer = ({ isOpen, onClose, method, loginWallet, logout }: UserStatusDrawerProps) => {
-    const handleClose = () => {
-        onClose()
-    }
-
     return (
         <VaulDrawer
             show={isOpen}
@@ -317,11 +284,13 @@ const UserStatusDrawer = ({ isOpen, onClose, method, loginWallet, logout }: User
             modalId="userStatus"
         >
             <VaulDrawer.Snap id="item-1">
-                <UserStatusDrawerContent
+                <UserStatusContent
                     method={method}
                     loginWallet={loginWallet}
                     logout={logout}
-                    onClose={handleClose}
+                    onClose={onClose}
+                    showHeader={false}
+                    showPasskeyWarning={false}
                 />
             </VaulDrawer.Snap>
         </VaulDrawer>

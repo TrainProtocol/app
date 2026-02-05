@@ -14,6 +14,12 @@ import WalletSelect from './SelectWallet';
 
 type LoginStep = 'pick' | 'passkey_choice' | 'wallet_select' | 'signing';
 
+const getErrorMessage = (error: unknown, fallback: string): string => {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return fallback;
+};
+
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -43,8 +49,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       await loginWithPasskey({ createIfMissing: false });
       toast.success('Logged in with passkey');
       closeAndReset();
-    } catch (e: any) {
-      toast.error(e?.message || 'Passkey login failed');
+    } catch (e) {
+      toast.error(getErrorMessage(e, 'Passkey login failed'));
       setNoPasskeyHint(true);
       goToStep('passkey_choice', 'back');
     }
@@ -56,8 +62,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       await loginWithNewPasskey(label);
       toast.success('Logged in with passkey');
       closeAndReset();
-    } catch (e: any) {
-      toast.error(e?.message || 'Passkey login failed');
+    } catch (e) {
+      toast.error(getErrorMessage(e, 'Passkey login failed'));
       goToStep('passkey_choice', 'back');
     }
   };
@@ -68,8 +74,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       await loginWithWallet(config, wallet);
       toast.success('Logged in with wallet');
       closeAndReset();
-    } catch (e: any) {
-      toast.error(e?.message || 'Wallet login failed');
+    } catch (e) {
+      toast.error(getErrorMessage(e, 'Wallet login failed'));
       goToStep('wallet_select', 'back');
     }
   };
