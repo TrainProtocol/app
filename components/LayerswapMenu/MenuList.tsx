@@ -13,6 +13,7 @@ import Menu from "./Menu";
 import dynamic from "next/dynamic";
 import { MenuStep } from "@/Models/Wizard";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
+import { UserStatusMenu } from "../SecretDerivation";
 
 const WalletsMenu = dynamic(() => import("../Wallet/ConnectedWallets.tsx").then((comp) => comp.WalletsMenu), {
     loading: () => <></>
@@ -35,6 +36,7 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
     return <div className="text-sm font-medium focus:outline-none h-full">
         <Menu>
 
+            <UserStatusMenu />
             <WalletsMenu />
 
 

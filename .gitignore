@@ -39,3 +39,4 @@ storybook-static/*
 .sentryclirc
 .env*.local
 
+pr-review-report.md

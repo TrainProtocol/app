@@ -42,10 +42,10 @@ const Widget = ({ children, className, hideMenu }: Props) => {
             !hideMenu &&
             <HeaderWithMenu goBack={handleBack} />
          }
-         <div className="relative px-6">
+         <div className="relative px-4">
             <div className="flex items-start" ref={wrapper}>
                <div className={`flex flex-nowrap grow`}>
-                  <div className={`w-full pb-6 flex flex-col justify-between space-y-5 text-secondary-text h-full ${className}`}>
+                  <div className={`w-full pb-4 flex flex-col justify-between space-y-5 text-secondary-text h-full ${className}`}>
                      {children}
                   </div>
                </div>
