@@ -21,6 +21,7 @@ import { generateSwapInitialValues } from "../../../lib/generateSwapInitialValue
 import { useSettingsState } from "../../../context/settings";
 import { resolvePersistantQueryParams } from "../../../helpers/querryHelper";
 import toast from "react-hot-toast";
+import { useSecretDerivation } from "../../../context/secretDerivationContext";
 
 const AtomicPage = dynamicWithRetries(
     () => import("../AtomicChat/index.tsx") as unknown as Promise<{ default: React.ComponentType<any> }>,
@@ -41,6 +42,7 @@ export default function Form() {
     const { goToStep } = useFormWizardaUpdate()
     const { currentStepName } = useFormWizardState()
     const query = useQueryState()
+    const { isLoggedIn } = useSecretDerivation()
 
     const { updatePolling: pollFee, fee } = useFee()
     const { getProvider } = useWallet()
@@ -53,6 +55,11 @@ export default function Form() {
 
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
+            // Check if user has logged in (chosen a derivation method)
+            if (!isLoggedIn) {
+                throw new Error("Please login first")
+            }
+
             if (!values.amount) {
                 throw new Error("No amount specified")
             }
@@ -99,7 +106,7 @@ export default function Form() {
             console.log(error)
             toast.error(error)
         }
-    }, [query, router, getProvider])
+    }, [query, router, getProvider, isLoggedIn])
 
     const initialValues: SwapFormValues = generateSwapInitialValues(settings, query)
 
@@ -133,9 +140,7 @@ export default function Form() {
         >
             <Wizard wizardId={"atomicSteps"}>
                 <WizardItem StepName={AtomicSteps.Form}>
-                    <div className="flex flex-col justify-between h-full">
-                        <SwapForm />
-                    </div>
+                    <SwapForm />
                 </WizardItem>
                 <WizardItem StepName={AtomicSteps.Swap} GoBack={() => handleWizardRouting(AtomicSteps.Form, 'back')}>
                     <AtomicPage type='contained' />

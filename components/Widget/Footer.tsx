@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useMeasure } from "@uidotdev/usehooks";
+import useWindowDimensions from "@/hooks/useWindowDimensions";
 
 const variants = {
     enter: () => {
@@ -31,6 +32,7 @@ type FooterProps = {
 
 const Footer = ({ children, hidden, sticky = true }: FooterProps) => {
     let [footerRef, { height }] = useMeasure();
+    const { isMobile } = useWindowDimensions()
 
     return (
         sticky ?
@@ -42,33 +44,32 @@ const Footer = ({ children, hidden, sticky = true }: FooterProps) => {
                     }}
                     custom={{ direction: -1, width: 100 }}
                     variants={variants}
-                    className={!!(height && height !== 0) ? `text-primary-text text-base mt-3
+                    className={`text-primary-text text-base
                         max-sm:fixed
                         max-sm:inset-x-0
                         max-sm:bottom-0 
                         max-sm:z-30
-                        max-sm:bg-secondary-900 
+                        max-sm:bg-secondary-transparent
                         max-sm:shadow-widget-footer 
                         max-sm:p-4 
-                        max-sm:px-6 
-                        max-sm:w-full ${hidden ? 'animation-slide-out' : ''}`
-                        : ''}>
-                    <div className="relative w-full">
-                        {children}
-                    </div>
+                        max-sm:px-4 
+                        max-sm:w-full ${hidden ? 'animation-slide-out' : ''} w-full`}>
+                    {children}
                 </motion.div>
 
-                <div style={{ height: `${height}px` }}
-                    className={`text-primary-text text-base mt-3        
+                {
+                    isMobile
+                        ? <div style={{ height: `${height ? height - 20 : 0}px` }}
+                            className={`text-primary-text text-base      
                              max-sm:inset-x-0
                              max-sm:bottom-0 
-                             max-sm:p-4 max-sm:w-full invisible sm:hidden`}>
-                </div>
-            </ >
+                             max-sm:w-full invisible sm:hidden w-full`}>
+                        </div>
+                        : null
+                }
+            </>
             :
-            <div className="relative">
-                {children}
-            </div>
+            children
     )
 }
 export default Footer;

@@ -4,6 +4,11 @@ import Link from 'next/link';
 import { JetBrains_Mono } from "next/font/google";
 import clsx from 'clsx';
 import { ArrowUpRight } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const UserStatusHeader = dynamic(() => import("./SecretDerivation/UserStatus.tsx").then((comp) => comp.UserStatusHeader), {
+   loading: () => <></>
+})
 
 const jetBrainsMono = JetBrains_Mono({
     variable: "--font-jb-mono",
@@ -22,29 +27,32 @@ export default function Navbar() {
     return (
         <div className='mt-5 mb-8  px-8 overflow-hidden hidden md:block relative z-20 w-full'>
             <div className="flex items-center justify-between w-full">
-                <GoHomeButton className='h-auto w-36 text-primary-logoColor fill-primary-text cursor-pointer headerLogo' />
-                <div className='flex space-x-5 text-primary-text'>
-                    {
-                        navigation.map((item, index) => {
-                            return (
-                                <Link
-                                    href={item.href}
-                                    key={index}
-                                    target={item.target || '_self'}
-                                    className={clsx(`hover:opacity-80 transition-opacity duration-300 ${jetBrainsMono.className}`, {
-                                        'text-accent underline underline-offset-[3px] decoration-accent': item.current,
-                                    })}
-                                >
-                                    {item.name}
-                                    {
-                                        item.target === '_blank' &&
-                                        <ArrowUpRight className='h-4 w-4 inline-flex ml-0.5' />
-                                    }
-                                </Link>
-                            )
-                        })
-                    }
+                <div className="flex items-center gap-8">
+                    <GoHomeButton className='h-auto w-36 text-primary-logoColor fill-primary-text cursor-pointer headerLogo' />
+                    <div className='flex space-x-5 text-primary-text'>
+                        {
+                            navigation.map((item, index) => {
+                                return (
+                                    <Link
+                                        href={item.href}
+                                        key={index}
+                                        target={item.target || '_self'}
+                                        className={clsx(`hover:opacity-80 transition-opacity duration-300 ${jetBrainsMono.className}`, {
+                                            'text-accent underline underline-offset-[3px] decoration-accent': item.current,
+                                        })}
+                                    >
+                                        {item.name}
+                                        {
+                                            item.target === '_blank' &&
+                                            <ArrowUpRight className='h-4 w-4 inline-flex ml-0.5' />
+                                        }
+                                    </Link>
+                                )
+                            })
+                        }
+                    </div>
                 </div>
+                <UserStatusHeader />
             </div>
         </div>
     )

@@ -1,4 +1,4 @@
-import { Address, beginCell, Cell, toNano } from "@ton/ton"
+import { beginCell, Cell, toNano } from "@ton/ton"
 import { hexToBigInt } from "viem"
 import { Network } from "../../../Models/Network"
 import { CreatePreHTLCParams, CommitmentParams, LockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
@@ -7,6 +7,8 @@ import { commitTransactionBuilder } from "./transactionBuilder"
 import { retryUntilFecth } from "../../retry"
 import { getTONDetails } from "./getters"
 import { calculateEpochTimelock } from "../utils/calculateTimelock"
+import { useSecretDerivation } from "@/context/secretDerivationContext"
+import { secretToHashlock } from "@/lib/htlc/secretDerivation"
 
 export interface UseAtomicTONParams {
     tonWallet: any
@@ -25,11 +27,25 @@ export interface AtomicTONFunctions {
 
 export default function useAtomicTON(params: UseAtomicTONParams): AtomicTONFunctions {
     const { tonWallet, tonConnectUI, networks, tonApiUrl } = params
+    const { deriveSecret } = useSecretDerivation()
 
     const createPreHTLC = async (params: CreatePreHTLCParams) => {
 
         if (!tonWallet?.account.publicKey) return
 
+        // Secret derivation for HTLC with hashlock
+        const network = networks.find(n => n.chainId === params.chainId);
+        const chainId = network?.chainId || params.chainId || 'ton-mainnet';
+        const timelock = calculateEpochTimelock(40);
+        const secret = await deriveSecret({
+            chainId,
+            wallet: { providerName: 'ton' } as any,
+            tonConnectUI,
+            timelock
+        });
+        const hashlock = secretToHashlock(secret);
+
+        // Note: Add hashlock to transaction params when contract supports it
         const tx = await commitTransactionBuilder({
             wallet: {
                 address: tonWallet.account.address,

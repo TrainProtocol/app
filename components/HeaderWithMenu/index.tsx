@@ -1,51 +1,47 @@
-import { useIntercom } from "react-use-intercom"
-import IconButton from "../buttons/iconButton"
-import GoHomeButton from "../utils/GoHome"
+import IconButton from "@/components/buttons/iconButton"
+import GoHomeButton from "@/components/utils/GoHome"
 import { ArrowLeft } from 'lucide-react'
-import ChatIcon from "../Icons/ChatIcon"
+import LayerswapMenu from "@/components/LayerswapMenu"
+import { useQueryState } from "@/context/query"
+import { UserStatusHeader } from "../SecretDerivation"
+import useWindowDimensions from "@/hooks/useWindowDimensions"
 import dynamic from "next/dynamic"
-import LayerswapMenu from "../LayerswapMenu"
-import { useQueryState } from "../../context/query"
 
 const WalletsHeader = dynamic(() => import("../Wallet/ConnectedWallets.tsx").then((comp) => comp.WalletsHeader), {
    loading: () => <></>
 })
-
 function HeaderWithMenu({ goBack }: { goBack: (() => void) | undefined | null }) {
-   const { boot, show, update } = useIntercom()
    const query = useQueryState()
+   const { isMobile } = useWindowDimensions()
 
    return (
-      <div className="w-full grid grid-cols-5 px-6 mt-3 pb-2" >
-         {
-            goBack &&
-            <IconButton onClick={goBack}
-               aria-label="Go back"
-               className="-ml-2"
-               icon={
-                  <ArrowLeft strokeWidth="2" />
-               }>
-            </IconButton>
-         }
-         {
-            !query.hideLogo && <div className='justify-self-center self-center col-start-2 col-span-3 mx-auto overflow-hidden md:hidden headerLogo'>
-               <GoHomeButton />
-            </div>
-         }
-         <div className="col-start-5 justify-self-end self-center flex items-center gap-x-1 -mr-2">
+      <div className="items-center justify-between sm:flex sm:items-center grid grid-cols-5 w-full sm:grid-cols-none sm:grid-none mt-2 pb-2 px-4">
+         <div className="self-center col-start-1 md:col-start-2 md:col-span-3 justify-self-start md:justify-self-center flex items-center gap-2">
+            {
+               goBack &&
+               <div className="sm:-ml-2 -ml-0">
+                  <IconButton onClick={goBack}
+                     aria-label="Go back"
+                     className=" inline-flex"
+                     icon={
+                        <ArrowLeft strokeWidth="2" />
+                     } />
+               </div>
+            }
+            {
+               !query.hideLogo && <div className="md:hidden mt-0.5">
+                  <GoHomeButton />
+               </div>
+            }
+         </div>
+         <div className="col-start-5 justify-self-end self-center flex items-center gap-x-2 sm:gap-x-1">
+            {
+               isMobile
+                  ? <UserStatusHeader />
+                  : null
+            }
             <WalletsHeader />
-            <IconButton className="relative hidden md:inline" onClick={() => {
-               boot();
-               show();
-               update()
-            }}
-               icon={
-                  <ChatIcon className="h-6 w-6" strokeWidth="2" />
-               }>
-            </IconButton>
-            <div className="fixed-width-container">
-               <LayerswapMenu />
-            </div>
+            <LayerswapMenu />
          </div>
       </div>
    )

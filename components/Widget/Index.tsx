@@ -3,8 +3,8 @@ import { useRouter } from "next/router"
 import { default as Content } from './Content';
 import { default as Footer } from './Footer';
 import { useCallback, useRef } from "react";
-import { resolvePersistantQueryParams } from "../../helpers/querryHelper";
-import AppSettings from "../../lib/AppSettings";
+import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
+import AppSettings from "@/lib/AppSettings";
 
 type Props = {
    children: JSX.Element | JSX.Element[];
@@ -29,7 +29,7 @@ const Widget = ({ children, className, hideMenu }: Props) => {
    const handleBack = router.pathname === "/" ? null : goBack
 
    return <>
-      <div id='widget' className={`bg-secondary-900 md:shadow-card rounded-3xl w-full sm:overflow-hidden relative ${AppSettings.ApiVersion === 'sandbox' && 'border-t-[2px] border-[#D95E1B]'}`}>
+      <div id='widget' className={`bg-secondary-900 md:shadow-card rounded-3xl w-full sm:overflow-hidden max-sm:has-openpicker:min-h-svh max-sm:min-h-[99.8svh] sm:has-openpicker:min-h-[79svh]! relative ${AppSettings.ApiVersion === 'sandbox' && 'border-t-[2px] border-[#D95E1B]'}`}>
          <div className="relative z-20 pb-1 sm:pb-0">
             {
                AppSettings.ApiVersion === 'sandbox' &&
@@ -42,10 +42,10 @@ const Widget = ({ children, className, hideMenu }: Props) => {
             !hideMenu &&
             <HeaderWithMenu goBack={handleBack} />
          }
-         <div className="relative px-6">
+         <div className="relative px-4">
             <div className="flex items-start" ref={wrapper}>
                <div className={`flex flex-nowrap grow`}>
-                  <div className={`w-full pb-6 flex flex-col justify-between space-y-5 text-secondary-text h-full ${className}`}>
+                  <div className={`w-full pb-4 flex flex-col justify-between space-y-5 text-secondary-text h-full ${className}`}>
                      {children}
                   </div>
                </div>

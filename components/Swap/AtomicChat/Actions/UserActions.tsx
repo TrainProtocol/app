@@ -9,12 +9,14 @@ import { useFee } from "../../../../context/feeContext";
 import useCommitDetailsPolling from "../../../../hooks/htlc/useCommitDetailsPolling";
 import useLockDetailsPolling from "../../../../hooks/htlc/useLockDetailsPolling";
 import useRefundStatusPolling from "../../../../hooks/htlc/useRefundStatusPolling";
+import { SignFlowModal } from "@/components/SecretDerivation";
 
 export const UserCommitAction: FC = () => {
     const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, updateCommit, srcAtomicContract } = useAtomicState();
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
     const { fee } = useFee()
+    const [signFlowOpen, setSignFlowOpen] = useState(false)
 
     const atomicContract = srcAtomicContract 
     const destLpAddress = fee?.quote?.destinationSolverAddress
@@ -83,6 +85,10 @@ export const UserCommitAction: FC = () => {
         }
     }
 
+    const onConfirmClick = async () => {
+        setSignFlowOpen(true)
+    }
+
     // Poll for commit details using SWR
     useCommitDetailsPolling({
         network: source_network,
@@ -105,15 +111,23 @@ export const UserCommitAction: FC = () => {
                     Confirm in wallet
                 </ButtonStatus>
                 :
-                <WalletActionButton
-                    activeChain={wallet?.chainId}
-                    isConnected={!!wallet}
-                    network={source_network}
-                    networkChainId={source_network.chainId}
-                    onClick={handleCommit}
-                >
-                    Confirm in wallet
-                </WalletActionButton>
+                <>
+                    <WalletActionButton
+                        activeChain={wallet?.chainId}
+                        isConnected={!!wallet}
+                        network={source_network}
+                        networkChainId={source_network.chainId}
+                        onClick={onConfirmClick}
+                    >
+                        Confirm in wallet
+                    </WalletActionButton>
+                    <SignFlowModal
+                        isOpen={signFlowOpen}
+                        onClose={() => setSignFlowOpen(false)}
+                        onComplete={() => setSignFlowOpen(false)}
+                        performCommit={handleCommit}
+                    />
+                </>
         }
     </div>
 }
