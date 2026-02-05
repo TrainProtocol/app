@@ -1,17 +1,15 @@
-import IconButton from "../buttons/iconButton"
-import GoHomeButton from "../utils/GoHome"
+import IconButton from "@/components/buttons/iconButton"
+import GoHomeButton from "@/components/utils/GoHome"
 import { ArrowLeft } from 'lucide-react'
-import dynamic from "next/dynamic"
-import LayerswapMenu from "../LayerswapMenu"
-import { useQueryState } from "../../context/query"
-import useWindowDimensions from "@/hooks/useWindowDimensions"
+import LayerswapMenu from "@/components/LayerswapMenu"
+import { useQueryState } from "@/context/query"
 import { UserStatusHeader } from "../SecretDerivation"
+import useWindowDimensions from "@/hooks/useWindowDimensions"
+import dynamic from "next/dynamic"
 
 const WalletsHeader = dynamic(() => import("../Wallet/ConnectedWallets.tsx").then((comp) => comp.WalletsHeader), {
    loading: () => <></>
 })
-
-
 function HeaderWithMenu({ goBack }: { goBack: (() => void) | undefined | null }) {
    const query = useQueryState()
    const { isMobile } = useWindowDimensions()

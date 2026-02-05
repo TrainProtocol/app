@@ -1,35 +1,26 @@
 import { MenuIcon, ChevronLeft } from "lucide-react";
-import { FC, useState } from "react";
-import IconButton from "../buttons/iconButton";
-import { FormWizardProvider, useFormWizardaUpdate, useFormWizardState } from "../../context/formWizardProvider";
-import { MenuStep } from "../../Models/Wizard";
+import { FC, useEffect, useState } from "react";
+import IconButton from "@/components/buttons/iconButton";
+import { FormWizardProvider, useFormWizardaUpdate, useFormWizardState } from "@/context/formWizardProvider";
+import { MenuStep } from "@/Models/Wizard";
 import MenuList from "./MenuList";
-import Wizard from "../Wizard/Wizard";
+import Wizard from "@/components/Wizard/Wizard";
 import WizardItem from "../Wizard/WizardItem";
 import { NextRouter, useRouter } from "next/router";
-import { resolvePersistantQueryParams } from "../../helpers/querryHelper";
-import Modal from "../Modal/modal";
-import RpcNetworkListView from "../Settings/RpcNetworkListView";
-import NetworkRpcEditView from "../Settings/NetworkRpcEditView";
-import { Network } from "../../Models/Network";
-import clsx from "clsx";
+import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
+import { Modal, ModalContent } from "@/components/Modal/modalWithoutAnimation";
+import RpcNetworkListView from "@/components/Settings/RpcNetworkListView";
+import NetworkRpcEditView from "@/components/Settings/NetworkRpcEditView";
+import { Network } from "@/Models/Network";
 
 const Comp = () => {
     const router = useRouter();
+    const [isOpen, setIsOpen] = useState(false);
 
     const { goBack, currentStepName } = useFormWizardState()
     const { goToStep } = useFormWizardaUpdate()
 
-    const [openTopModal, setOpenTopModal] = useState(false);
     const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
-
-    const handleModalOpenStateChange = (value: boolean) => {
-        setOpenTopModal(value)
-        if (value === false) {
-            goToStep(MenuStep.Menu)
-            setSelectedNetwork(null)
-        }
-    }
 
     const goBackToMenuStep = () => { goToStep(MenuStep.Menu, "back"); clearMenuPath(router) }
     const goBackToRpcConfiguration = () => { goToStep(MenuStep.RPCConfiguration, "back") }
@@ -51,55 +42,58 @@ const Comp = () => {
         goToStep(MenuStep.RPCConfiguration, "back")
     }
 
+    useEffect(() => {
+        if (!isOpen) {
+            goToStep(MenuStep.Menu)
+            setSelectedNetwork(null)
+            clearMenuPath(router)
+        }
+    }, [isOpen])
+
     return <>
         <div className="text-secondary-text cursor-pointer relative">
-            <IconButton className="inline-flex active:animate-press-down" onClick={() => setOpenTopModal(true)} icon={
+            <IconButton className="inline-flex active:animate-press-down" onClick={() => setIsOpen(true)} icon={
                 <MenuIcon strokeWidth="2" />
             } />
-            <Modal
-                modalId="menuModal"
-                show={openTopModal}
-                setShow={handleModalOpenStateChange}
-                header={
-                    <div className="inline-flex items-center">
-                        {
-                            goBack &&
-                            <div className="-ml-2">
-                                <IconButton onClick={goBack} icon={
-                                    <ChevronLeft strokeWidth="2" />
-                                }>
-                                </IconButton>
-                            </div>
-                        }
-                        <h2>{currentStepName as string}</h2>
-                    </div>
-                }
-            >
-                <Wizard wizardId='menuWizard'
-                    className={clsx("h-full", {
-                        '!pb-0': currentStepName !== MenuStep.Menu
-                    })}
+            <Modal isOpen={isOpen} setIsOpen={setIsOpen}>
+                <ModalContent
+                    header={
+                        <div className="inline-flex items-center w-full">
+                            {
+                                goBack &&
+                                <div className="-ml-2">
+                                    <IconButton className="inline-flex" onClick={goBack} icon={
+                                        <ChevronLeft strokeWidth="2" />
+                                    } />
+                                </div>
+                            }
+                            <h2 className="flex-1">{currentStepName as string}</h2>
+                        </div>
+                    }
                 >
-                    <WizardItem StepName={MenuStep.Menu} inModal>
-                        <MenuList goToStep={handleGoToStep} />
-                    </WizardItem>
-                    <WizardItem className="h-full" StepName={MenuStep.RPCConfiguration} GoBack={goBackToMenuStep} inModal>
-                        <RpcNetworkListView onNetworkSelect={handleNetworkSelect} />
-                    </WizardItem>
-                    <WizardItem className="h-full" StepName={MenuStep.NetworkRPCEdit} GoBack={goBackToRpcConfiguration} inModal>
-                        {selectedNetwork ? (
-                            <NetworkRpcEditView
-                                network={selectedNetwork}
-                                onSave={handleNetworkSave}
-                            />
-                        ) : (
-                            <div>Loading...</div>
-                        )}
-                    </WizardItem>
-                    {/* <WizardItem StepName={MenuStep.Transactions} GoBack={goBackToMenuStep} className="h-full" inModal>
-                        <HistoryList onNewTransferClick={() => handleModalOpenStateChange(false)} />
-                    </WizardItem> */}
-                </Wizard>
+                    {() => (
+                        <div className="h-full openpicker" id="virtualListContainer">
+                            <Wizard wizardId='menuWizard'>
+                                <WizardItem StepName={MenuStep.Menu} inModal>
+                                    <MenuList goToStep={handleGoToStep} />
+                                </WizardItem>
+                                <WizardItem className="h-full" StepName={MenuStep.RPCConfiguration} GoBack={goBackToMenuStep} inModal>
+                                    <RpcNetworkListView onNetworkSelect={handleNetworkSelect} />
+                                </WizardItem>
+                                <WizardItem className="h-full" StepName={MenuStep.NetworkRPCEdit} GoBack={goBackToRpcConfiguration} inModal>
+                                    {selectedNetwork ? (
+                                        <NetworkRpcEditView
+                                            network={selectedNetwork}
+                                            onSave={handleNetworkSave}
+                                        />
+                                    ) : (
+                                        <div>Loading...</div>
+                                    )}
+                                </WizardItem>
+                            </Wizard>
+                        </div>
+                    )}
+                </ModalContent>
             </Modal>
         </div >
     </>

@@ -1,10 +1,10 @@
 import Image from "next/image";
 import { FC } from "react";
-import { truncateDecimals } from "../../../../utils/RoundDecimals";
-import { Network, Token } from "../../../../../Models/Network";
-import { addressFormat } from "../../../../../lib/address/formatter";
-import { ExtendedAddress } from "../../../../Input/Address/AddressPicker/AddressWithIcon";
-import { isValidAddress } from "../../../../../lib/address/validator";
+import { truncateDecimals } from "@/components/utils/RoundDecimals";
+import { Network, Token } from "@/Models/Network";
+import { addressFormat } from "@/lib/address/formatter";
+import { ExtendedAddress } from "@/components/Input/Address/AddressPicker/AddressWithIcon";
+import { isValidAddress } from "@/lib/address/validator";
 
 type AtomicSummaryProps = {
     sourceCurrency: Token,

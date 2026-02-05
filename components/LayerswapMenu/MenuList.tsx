@@ -2,17 +2,17 @@ import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Inf
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
 import { useIntercom } from "react-use-intercom";
-import ChatIcon from "../Icons/ChatIcon";
-import inIframe from "../utils/inIframe";
-import GitHubLogo from "../Icons/GitHubLogo";
-import TwitterLogo from "../Icons/TwitterLogo";
+import ChatIcon from "@/components/Icons/ChatIcon";
+import inIframe from "@/components/utils/inIframe";
+import GitHubLogo from "@/components/Icons/GitHubLogo";
+import TwitterLogo from "@/components/Icons/TwitterLogo";
 import Link from "next/link";
-import Popover from "../Modal/popover";
-import SendFeedback from "../sendFeedback";
+import Popover from "@/components/Modal/popover";
+import SendFeedback from "@/components/sendFeedback";
 import Menu from "./Menu";
 import dynamic from "next/dynamic";
-import { MenuStep } from "../../Models/Wizard";
-import useWindowDimensions from "../../hooks/useWindowDimensions";
+import { MenuStep } from "@/Models/Wizard";
+import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { UserStatusMenu } from "../SecretDerivation";
 
 const WalletsMenu = dynamic(() => import("../Wallet/ConnectedWallets.tsx").then((comp) => comp.WalletsMenu), {

@@ -1,11 +1,11 @@
-import WalletIcon from "../Icons/WalletIcon"
-import useWallet from "../../hooks/useWallet"
-import ConnectButton from "../buttons/connectButton"
+import WalletIcon from "@/components/Icons/WalletIcon"
+import useWallet from "@/hooks/useWallet"
+import ConnectButton from "@/components/buttons/connectButton"
 import { useState } from "react"
 import WalletsList from "./WalletsList"
-import { Wallet } from "../../Models/WalletProvider"
-import VaulDrawer from "../Modal/vaulModal"
-import shortenAddress from "../utils/ShortenAddress"
+import { Wallet } from "@/Models/WalletProvider"
+import VaulDrawer from "@/components/Modal/vaulModal"
+import shortenAddress from "@/components/utils/ShortenAddress"
 
 export const WalletsHeader = () => {
     const { wallets } = useWallet()
