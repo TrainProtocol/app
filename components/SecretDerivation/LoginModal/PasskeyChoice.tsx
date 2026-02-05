@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { KeyRound, AlertTriangle } from 'lucide-react';
-import SubmitButton from '../buttons/submitButton';
+import SubmitButton from '../../buttons/submitButton';
 
 interface PasskeyChoiceProps {
   onUseExisting: () => void;
@@ -9,7 +9,6 @@ interface PasskeyChoiceProps {
 }
 
 export function PasskeyChoice({ onUseExisting, onCreateNew, noPasskeyHint }: PasskeyChoiceProps) {
-  const [label, setLabel] = useState('');
 
   const handleCreateNew = () => {
     onCreateNew('Train');
