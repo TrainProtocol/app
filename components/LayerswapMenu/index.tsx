@@ -1,17 +1,17 @@
 import { MenuIcon, ChevronLeft } from "lucide-react";
 import { FC, useEffect, useState } from "react";
-import IconButton from "../buttons/iconButton";
-import { FormWizardProvider, useFormWizardaUpdate, useFormWizardState } from "../../context/formWizardProvider";
-import { MenuStep } from "../../Models/Wizard";
+import IconButton from "@/components/buttons/iconButton";
+import { FormWizardProvider, useFormWizardaUpdate, useFormWizardState } from "@/context/formWizardProvider";
+import { MenuStep } from "@/Models/Wizard";
 import MenuList from "./MenuList";
-import Wizard from "../Wizard/Wizard";
+import Wizard from "@/components/Wizard/Wizard";
 import WizardItem from "../Wizard/WizardItem";
 import { NextRouter, useRouter } from "next/router";
-import { resolvePersistantQueryParams } from "../../helpers/querryHelper";
-import { Modal, ModalContent } from "../Modal/modalWithoutAnimation";
-import RpcNetworkListView from "../Settings/RpcNetworkListView";
-import NetworkRpcEditView from "../Settings/NetworkRpcEditView";
-import { Network } from "../../Models/Network";
+import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
+import { Modal, ModalContent } from "@/components/Modal/modalWithoutAnimation";
+import RpcNetworkListView from "@/components/Settings/RpcNetworkListView";
+import NetworkRpcEditView from "@/components/Settings/NetworkRpcEditView";
+import { Network } from "@/Models/Network";
 
 const Comp = () => {
     const router = useRouter();
