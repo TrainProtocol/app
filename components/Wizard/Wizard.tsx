@@ -1,8 +1,8 @@
 import { FC, useEffect, useRef } from 'react'
-import { useFormWizardaUpdate, useFormWizardState } from '../../context/formWizardProvider';
+import { useFormWizardaUpdate, useFormWizardState } from '@/context/formWizardProvider';
 import { AnimatePresence } from 'framer-motion';
 import HeaderWithMenu from '../HeaderWithMenu';
-import AppSettings from '../../lib/AppSettings';
+import AppSettings from '@/lib/AppSettings';
 
 type Props = {
    children: JSX.Element | JSX.Element[];
@@ -31,7 +31,7 @@ const Wizard: FC<Props> = ({ children, wizardId, className }) => {
 
    const width = positionPercent || 0
    return <>
-      <div id='widget' className={noToolBar ? `w-full h-full` : ` bg-secondary-900 md:shadow-card rounded-3xl w-full sm:overflow-hidden relative ${AppSettings.ApiVersion === 'sandbox' && 'border-t-[2px] border-[#D95E1B]'}`}>
+      <div id='widget' className={noToolBar ? `w-full h-full` : ` bg-secondary-900 md:shadow-card rounded-3xl w-full sm:overflow-hidden max-sm:has-openpicker:min-h-svh max-sm:min-h-[99.8svh] sm:has-openpicker:min-h-[79svh]! relative ${AppSettings.ApiVersion === 'sandbox' && 'border-t-[2px] border-[#D95E1B]'}`}>
          <div className="relative z-20 pb-1 sm:pb-0">
             {
                AppSettings.ApiVersion === 'sandbox' && !noToolBar &&
