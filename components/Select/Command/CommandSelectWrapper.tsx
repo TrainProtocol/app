@@ -3,7 +3,6 @@ import Image from 'next/image'
 import { ChevronDown } from 'lucide-react'
 import { ISelectMenuItem, SelectMenuItem } from '../Shared/Props/selectMenuItem'
 import CommandSelect, { SelectMenuItemGroup } from './commandSelect'
-import { LeafletHeight } from '../../Modal/leaflet'
 
 type CommandSelectWrapperProps = {
     setValue: (value: ISelectMenuItem) => void;
@@ -14,7 +13,6 @@ type CommandSelectWrapperProps = {
     disabled: boolean;
     valueGrouper: (values: ISelectMenuItem[]) => SelectMenuItemGroup[];
     isLoading: boolean;
-    modalHeight?: LeafletHeight;
     valueDetails?: React.ReactNode;
     modalContent?: React.ReactNode;
     direction?: string;
@@ -30,7 +28,6 @@ export default function CommandSelectWrapper<T>({
     values,
     valueGrouper,
     isLoading,
-    modalHeight,
     modalContent,
     header,
     valueDetails
@@ -95,7 +92,6 @@ export default function CommandSelectWrapper<T>({
                 valueGrouper={valueGrouper}
                 values={values}
                 isLoading={isLoading}
-                modalHeight={modalHeight}
                 modalContent={modalContent}
                 header={header}
             />

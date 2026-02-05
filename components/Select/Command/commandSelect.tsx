@@ -11,9 +11,8 @@ import React, { useCallback } from "react";
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import SelectItem from '../Shared/SelectItem';
 import { SelectProps } from '../Shared/Props/SelectProps'
-import Modal from '../../Modal/modal';
+import { Modal, ModalContent } from '../../Modal/modalWithoutAnimation';
 import SpinIcon from '../../Icons/spinIcon';
-import { LeafletHeight } from '../../Modal/leaflet';
 
 export interface CommandSelectProps extends SelectProps {
     show: boolean;
@@ -21,7 +20,6 @@ export interface CommandSelectProps extends SelectProps {
     searchHint: string;
     valueGrouper: (values: ISelectMenuItem[]) => SelectMenuItemGroup[];
     isLoading: boolean;
-    modalHeight?: LeafletHeight;
     modalContent?: React.ReactNode;
     header?: string;
 }
@@ -35,7 +33,7 @@ export class SelectMenuItemGroup {
     items: ISelectMenuItem[];
 }
 
-export default function CommandSelect({ values, setValue, show, setShow, searchHint, valueGrouper, isLoading, modalHeight = 'full', modalContent, header }: CommandSelectProps) {
+export default function CommandSelect({ values, setValue, show, setShow, searchHint, valueGrouper, isLoading, modalContent, header }: CommandSelectProps) {
     const { isDesktop } = useWindowDimensions();
 
     let groups: SelectMenuItemGroup[] = valueGrouper(values);
@@ -45,11 +43,8 @@ export default function CommandSelect({ values, setValue, show, setShow, searchH
     }, [setValue, setShow]);
 
     return (
-        <Modal height={modalHeight} show={show} setShow={setShow} modalId='comandSelect'>
-            {header ? <div className="absolute top-4 left-8 text-lg text-secondary-text font-semibold">
-                <div>{header}</div>
-            </div> : <></>}
-            {show ?
+        <Modal isOpen={show} setIsOpen={setShow}>
+            <ModalContent header={header}>
                 <CommandWrapper>
                     {searchHint && <CommandInput autoFocus={isDesktop} placeholder={searchHint} />}
                     {modalContent}
@@ -76,8 +71,7 @@ export default function CommandSelect({ values, setValue, show, setShow, searchH
                         </div>
                     }
                 </CommandWrapper>
-                : <></>
-            }
+            </ModalContent>
         </Modal>
     )
 }

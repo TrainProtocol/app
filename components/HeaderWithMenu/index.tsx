@@ -1,11 +1,11 @@
 import { useIntercom } from "react-use-intercom"
-import IconButton from "../buttons/iconButton"
-import GoHomeButton from "../utils/GoHome"
+import IconButton from "@/components/buttons/iconButton"
+import GoHomeButton from "@/components/utils/GoHome"
 import { ArrowLeft } from 'lucide-react'
-import ChatIcon from "../Icons/ChatIcon"
+import ChatIcon from "@/components/Icons/ChatIcon"
 import dynamic from "next/dynamic"
-import LayerswapMenu from "../LayerswapMenu"
-import { useQueryState } from "../../context/query"
+import LayerswapMenu from "@/components/LayerswapMenu"
+import { useQueryState } from "@/context/query"
 
 const WalletsHeader = dynamic(() => import("../Wallet/ConnectedWallets.tsx").then((comp) => comp.WalletsHeader), {
    loading: () => <></>
