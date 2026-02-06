@@ -1,6 +1,7 @@
 import { FC } from "react"
 import useWallet from "../../../../hooks/useWallet";
 import { useAtomicState } from "../../../../context/atomicContext";
+import { LockStatus } from "../../../../Models/phtlc/PHTLC";
 import { WalletActionButton } from "../../buttons";
 import { useRouter } from "next/router";
 import KnownInternalNames from "../../../../lib/knownIds";
@@ -33,7 +34,7 @@ export const RedeemAction: FC = () => {
         asset: source_asset,
         onStatusUpdate: (details) => {
             // Record claim time when claim is detected
-            if (details?.claimed === 3) {
+            if (details?.status === LockStatus.Redeemed) {
                 updateCommit('sourceDetails', {
                     ...details,
                     claimTime: !sourceDetails?.claimTime ? Date.now() : sourceDetails?.claimTime

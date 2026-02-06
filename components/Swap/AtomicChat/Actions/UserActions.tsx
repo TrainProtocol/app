@@ -63,7 +63,7 @@ export const UserCommitAction: FC = () => {
                 srcLpAddress,
                 tokenContractAddress: source_asset.contract as `0x${string}`,
                 decimals: source_asset.decimals,
-                atomicContract: atomicContract,
+                atomicContract: '0xa41a70ebd490dcc00567f447715138023c5c7428',
                 chainId: source_network.chainId,
             }) || {}
             if (commitId && hash) {
@@ -117,16 +117,10 @@ export const UserCommitAction: FC = () => {
                         isConnected={!!wallet}
                         network={source_network}
                         networkChainId={source_network.chainId}
-                        onClick={onConfirmClick}
+                        onClick={handleCommit}
                     >
                         Confirm in wallet
                     </WalletActionButton>
-                    <SignFlowModal
-                        isOpen={signFlowOpen}
-                        onClose={() => setSignFlowOpen(false)}
-                        onComplete={() => setSignFlowOpen(false)}
-                        performCommit={handleCommit}
-                    />
                 </>
         }
     </div>

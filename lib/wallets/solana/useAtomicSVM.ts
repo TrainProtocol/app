@@ -11,12 +11,8 @@ import { AnchorWallet } from "@solana/wallet-adapter-react"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
 import { calculateEpochTimelock } from "../utils/calculateTimelock"
-
-function toHexString(byteArray: any) {
-    return Array.from(byteArray, function (byte: any) {
-        return ('0' + (byte & 0xFF).toString(16)).slice(-2);
-    }).join('')
-}
+import { AtomicSVMFunctions } from "../utils/atomicTypes"
+import { toHexString } from "../utils/atomicHelpers"
 
 export interface UseAtomicSVMParams {
     connection: Connection
@@ -25,14 +21,6 @@ export interface UseAtomicSVMParams {
     publicKey: PublicKey | null
     network: Network | undefined
     anchorProvider: AnchorProvider | undefined
-}
-
-export interface AtomicSVMFunctions {
-    createPreHTLC: (params: CreatePreHTLCParams) => Promise<{ hash: string, commitId: string } | null | undefined>
-    getDetails: (params: CommitmentParams) => Promise<any>
-    addLock: (params: CommitmentParams & LockParams) => Promise<{ hash: string, result: any } | null>
-    refund: (params: RefundParams) => Promise<string | null>
-    claim: (params: ClaimParams) => Promise<string | undefined>
 }
 
 export default function useAtomicSVM(params: UseAtomicSVMParams): AtomicSVMFunctions {

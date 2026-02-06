@@ -10,20 +10,12 @@ import LayerSwapApiClient from "../../trainApiClient"
 import { calculateEpochTimelock } from "../utils/calculateTimelock"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
+import { AtomicStarknetFunctions } from "../utils/atomicTypes"
+import { generateRandomId } from "../utils/atomicHelpers"
 
 export interface UseAtomicStarknetParams {
     starknetWallet: any
     nodeUrl: string | undefined
-}
-
-export interface AtomicStarknetFunctions {
-    createPreHTLC: (params: CreatePreHTLCParams) => Promise<{ hash: string, commitId: string }>
-    getDetails: (params: CommitmentParams) => Promise<Commit>
-    addLock: (params: CommitmentParams & LockParams) => Promise<{ hash: string, result: any }>
-    addLockSig: (params: CommitmentParams & LockParams) => Promise<{ hash: string, result: any }>
-    refund: (params: RefundParams) => Promise<string>
-    claim: (params: ClaimParams) => Promise<string>
-    getContracts: (params: GetCommitsParams) => Promise<any>
 }
 
 export default function useAtomicStarknet(params: UseAtomicStarknetParams): AtomicStarknetFunctions {
@@ -52,12 +44,7 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Atom
             )
             const increaseAllowanceCall: Call = erc20Contract.populate("increaseAllowance", [atomicAddress, parsedAmount])
 
-            function generateBytes32Hex() {
-                const bytes = new Uint8Array(32); // 32 bytes = 64 hex characters
-                crypto.getRandomValues(bytes);
-                return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
-            }
-            const id = `0x${generateBytes32Hex()}`
+            const id = generateRandomId() as string
             const timelock = calculateEpochTimelock(20);
             
             // Secret derivation for HTLC with hashlock

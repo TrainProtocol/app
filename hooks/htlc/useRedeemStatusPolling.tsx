@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import { Network } from "../../Models/Network"
 import { Token } from "../../Models/Network"
+import { LockStatus } from "../../Models/phtlc/PHTLC"
 import useSWRCommitDetails from "./useSWRCommitDetails"
 
 interface UseRedeemStatusPollingParams {
@@ -45,7 +46,7 @@ const useRedeemStatusPolling = ({
         }
     }, [details, onStatusUpdate])
 
-    const isClaimComplete = details?.claimed === 3
+    const isClaimComplete = details?.status === LockStatus.Redeemed
     const isWaitingForClaim = !!commitId && !isClaimComplete
 
     return {
