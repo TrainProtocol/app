@@ -1,10 +1,11 @@
 import { useState } from "react"
-import { Fingerprint, LogOut } from "lucide-react"
+import { Fingerprint, Lock, LogOut } from "lucide-react"
 import toast from "react-hot-toast"
 import VaulDrawer from "../Modal/vaulModal"
 import { Popover, PopoverContent, PopoverTrigger } from "../shadcn/popover"
 import { useSecretDerivationStore } from "@/stores/secretDerivationStore"
 import { usePasskeyCredentialId } from "@/stores/secretDerivationStore"
+import { useLoginModalStore } from "@/stores/loginModalStore"
 import shortenAddress from "../utils/ShortenAddress"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
 import { formatPasskeyIdForDisplay } from "@/lib/htlc/secretDerivation/passkeyService"
@@ -143,6 +144,7 @@ export const UserStatusHeader = () => {
         loginWallet,
         logout,
     } = useSecretDerivationStore()
+    const openLoginModal = useLoginModalStore((s) => s.open)
     const [openDrawer, setOpenDrawer] = useState(false)
     const [openPopover, setOpenPopover] = useState(false)
     const { isMobile } = useWindowDimensions()
@@ -151,7 +153,18 @@ export const UserStatusHeader = () => {
         ? formatPasskeyIdForDisplay(storedPasskeyCredId)
         : null
 
-    if (!isLoggedIn) return null
+    if (!isLoggedIn) {
+        return (
+            <button
+                type="button"
+                onClick={openLoginModal}
+                className="inline-flex items-center gap-2 py-2 px-3 rounded-full bg-secondary-500 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down"
+            >
+                <Lock className="h-5 w-5" strokeWidth={2} />
+                <span className="text-sm font-medium">Login</span>
+            </button>
+        )
+    }
 
     const pillLabel = method === 'passkey'
         ? "Passkey"
@@ -222,13 +235,27 @@ export const UserStatusHeader = () => {
 
 export const UserStatusMenu = () => {
     const { isLoggedIn, method, loginWallet, logout } = useSecretDerivationStore()
+    const openLoginModal = useLoginModalStore((s) => s.open)
     const [openModal, setOpenModal] = useState(false)
     const storedPasskeyCredId = usePasskeyCredentialId()
     const passkeyDisplayId = method === 'passkey' && storedPasskeyCredId
         ? formatPasskeyIdForDisplay(storedPasskeyCredId)
         : null
 
-    if (!isLoggedIn) return null
+    if (!isLoggedIn) {
+        return (
+            <button
+                onClick={openLoginModal}
+                type="button"
+                className="py-3 px-4 bg-secondary-500 flex items-center w-full rounded-xl space-x-1 relative font-semibold transform border border-secondary-500 hover:bg-secondary-400 transition duration-200 ease-in-out outline-hidden"
+            >
+                <div className="flex gap-4 items-center text-primary-text w-full">
+                    <Lock className="h-5 w-5 shrink-0" strokeWidth={2} />
+                    <span>Login</span>
+                </div>
+            </button>
+        )
+    }
 
     const menuLabel = method === 'passkey'
         ? (passkeyDisplayId ? `Passkey · ${passkeyDisplayId}` : 'Passkey')
