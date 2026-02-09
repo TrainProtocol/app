@@ -1,11 +1,11 @@
 import { createContext, useContext, useMemo, useState } from 'react'
-import { resolveConnector, walletConnectWallets as _walletConnectWallets, WalletConnectWallet } from '../lib/wallets/evm/connectors/resolveConnectors';
+import { resolveConnector, walletConnectWallets as _walletConnectWallets, WalletConnectWallet } from '@/lib/wallets/evm/connectors/resolveConnectors';
 import { CreateConnectorFn } from 'wagmi';
 import { coinbaseWallet, walletConnect, metaMask } from '@wagmi/connectors'
-import { walletConnect as customWalletConnect } from '../lib/wallets/evm/connectors/resolveConnectors/walletConnect';
-import { browserInjected } from '../lib/wallets/evm/connectors/browserInjected';
-import { isMobile } from '../lib/isMobile';
-import { usePersistedState } from '../hooks/usePersistedState';
+import { walletConnect as customWalletConnect } from '@/lib/wallets/evm/connectors/resolveConnectors/walletConnect';
+import { browserInjected } from '@/lib/wallets/evm/connectors/browserInjected';
+import { isMobile } from '@/lib/isMobile';
+import { usePersistedState } from '@/hooks/usePersistedState';
 
 type ContextType = {
     connectors: CreateConnectorFn[],
@@ -34,31 +34,33 @@ const wltcnnct_inited = walletConnect({ projectId: WALLETCONNECT_PROJECT_ID, sho
 // Hidden WalletConnect connector for dynamic wallets - not shown in the list
 // Uses custom walletConnect with unique ID so we can identify it
 export const HIDDEN_WALLETCONNECT_ID = 'hiddenWalletConnect'
-const hiddenWalletConnectConnector = customWalletConnect({ 
+const hiddenWalletConnectConnector = customWalletConnect({
     id: HIDDEN_WALLETCONNECT_ID,
     name: 'Hidden WalletConnect',
     rdns: '',
     type: 'other',
     mobile: { native: '', universal: '' },
     icon: '',
-    projectId: WALLETCONNECT_PROJECT_ID, 
+    projectId: WALLETCONNECT_PROJECT_ID,
     showQrModal: false,
 })
 
 const featuredWallets = resolveFeaturedWallets(_walletConnectWallets)
 
 // Create stable connector instances at module level to ensure wagmi can reconnect properly
+const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://https://app.train.tech'
+
 const metaMaskConnector = metaMask({
     dappMetadata: {
-        name: 'Layerswap',
-        url: 'https://layerswap.io/app/',
-        iconUrl: 'https://layerswap.io/app/symbol.png'
+        name: 'Train',
+        url: appUrl,
+        iconUrl: `${appUrl}/symbol.png`
     }
 })
 
 const coinbaseWalletConnector = coinbaseWallet({
-    appName: 'Layerswap',
-    appLogoUrl: 'https://layerswap.io/app/symbol.png',
+    appName: 'Train',
+    appLogoUrl: `${appUrl}/symbol.png`,
 })
 
 const browserInjectedConnector = browserInjected()
