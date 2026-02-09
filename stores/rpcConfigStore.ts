@@ -64,7 +64,7 @@ export const useRpcConfigStore = create<RpcConfigStore>()(
 
       getEffectiveRpcUrl: (network: Network) => {
         const state = get()
-        const config = state.rpcConfigs[network.name]
+        const config = state.rpcConfigs[network.slug]
 
         if (config?.useCustomRpc) {
           // Return first URL from array
@@ -77,12 +77,12 @@ export const useRpcConfigStore = create<RpcConfigStore>()(
           }
         }
 
-        return network.rpcUrl
+        return network.nodes?.[0]?.url ?? ''
       },
 
       getEffectiveRpcUrls: (network: Network) => {
         const state = get()
-        const config = state.rpcConfigs[network.name]
+        const config = state.rpcConfigs[network.slug]
 
         if (config?.useCustomRpc) {
           // Return all URLs from array
@@ -95,7 +95,7 @@ export const useRpcConfigStore = create<RpcConfigStore>()(
           }
         }
 
-        return [network.rpcUrl]
+        return network.nodes?.map(n => n.url) ?? []
       },
 
       isUsingCustomRpc: (networkId: string) => {

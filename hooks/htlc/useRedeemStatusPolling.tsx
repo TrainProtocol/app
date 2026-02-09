@@ -23,7 +23,7 @@ const useRedeemStatusPolling = ({
     asset,
     onStatusUpdate
 }: UseRedeemStatusPollingParams) => {
-    const type: 'erc20' | 'native' = asset?.contract ? 'erc20' : 'native'
+    const type: 'erc20' | 'native' = asset?.contractAddress && asset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
 
     // Continue polling until claimed status is 3 (successfully claimed)
     const isClaimed = false // Will be determined by checking claimed status

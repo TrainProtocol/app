@@ -121,15 +121,15 @@ export function AtomicProvider({ children }) {
 
     const destinationRedeemTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination)?.hash || claimTxId
 
-    const source_network = networks.find(n => n.name.toUpperCase() === (source as string)?.toUpperCase())
-    const destination_network = networks.find(n => n.name.toUpperCase() === (destination as string)?.toUpperCase())
-    const source_token = routes.find(n => n.source.network.name.toUpperCase() === (source as string)?.toUpperCase() && n.source.token.symbol === source_asset)?.source.token
-    const destination_token = routes.find(n => n.destination.network.name.toUpperCase() === (destination as string)?.toUpperCase() && n.destination.token.symbol === destination_asset)?.destination.token
+    const source_network = networks.find(n => n.slug.toUpperCase() === (source as string)?.toUpperCase())
+    const destination_network = networks.find(n => n.slug.toUpperCase() === (destination as string)?.toUpperCase())
+    const source_token = routes.find(n => n.source.network.slug.toUpperCase() === (source as string)?.toUpperCase() && n.source.token.symbol === source_asset)?.source.token
+    const destination_token = routes.find(n => n.destination.network.slug.toUpperCase() === (destination as string)?.toUpperCase() && n.destination.token.symbol === destination_asset)?.destination.token
 
     const userLockTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
 
-    const isAztecDestination = destination_network?.name.toLowerCase().includes('aztec');
+    const isAztecDestination = destination_network?.slug.toLowerCase().includes('aztec');
     const isManualClaimable = (!!(assetsLocked && sourceDetails?.status === LockStatus.Redeemed && destinationDetails?.status !== LockStatus.Redeemed &&
         (sourceDetails.claimTime && (Date.now() - sourceDetails.claimTime > 30000)))) || isAztecDestination
 
@@ -275,7 +275,7 @@ const statusResolver = ({ commitFromApi, sourceDetails, destinationDetails, time
     const redeemCompleted = !!sourceDetails?.secret;
     const isTimelockActuallyExpired = timelockExpired ||
         (sourceDetails?.timelock ? (sourceDetails.timelock * 1000) < Date.now() : false);
-    const manualClaimNeeded = (destinationNetwork?.name.toLowerCase().includes("aztec") && assetsLocked && !redeemCompleted);
+    const manualClaimNeeded = (destinationNetwork?.slug.toLowerCase().includes("aztec") && assetsLocked && !redeemCompleted);
 
     if (redeemCompleted) return CommitStatus.RedeemCompleted
     else if (isTimelockActuallyExpired && !sourceDetails?.secret) return CommitStatus.TimelockExpired

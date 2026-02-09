@@ -29,7 +29,7 @@ export const ConnectWalletButton: FC<ConnectProps> = (props) => {
     const clickHandler = useCallback(async () => {
         try {
 
-            if (!provider) throw new Error(`No provider from ${network?.name}`)
+            if (!provider) throw new Error(`No provider from ${network?.slug}`)
 
             await connect(provider)
         }
@@ -80,9 +80,9 @@ export const ChangeNetworkButton: FC<ChangeNetworkProps> = (props) => {
     const clickHandler = useCallback(async () => {
         try {
             setIsPending(true)
-            if (!provider) throw new Error(`No provider from ${network?.name}`)
-            if (!provider.switchChain) throw new Error(`No switchChain from ${network?.name}`)
-            if (!selectedSourceAccount?.wallet) throw new Error(`No selectedSourceAccount from ${network?.name}`)
+            if (!provider) throw new Error(`No provider from ${network?.slug}`)
+            if (!provider.switchChain) throw new Error(`No switchChain from ${network?.slug}`)
+            if (!selectedSourceAccount?.wallet) throw new Error(`No selectedSourceAccount from ${network?.slug}`)
 
             return await provider.switchChain(selectedSourceAccount?.wallet, chainId)
         } catch (e) {

@@ -17,7 +17,7 @@ const AtomicContent: FC = () => {
 
     const { commitStatus, isManualClaimable, manualClaimRequested, destination_network, destRedeemTx, destinationDetails } = useAtomicState()
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
-    const isAztecDestination = destination_network?.name === KnownInternalNames.Networks.AztecTestnet;
+    const isAztecDestination = destination_network?.slug === KnownInternalNames.Networks.AztecTestnet;
     const isActualFailure = isManualClaimable && !isAztecDestination;
 
     const { setPulseState } = usePulsatingCircles();
@@ -43,7 +43,7 @@ const AtomicContent: FC = () => {
                             commitStatus={commitStatus}
                             isManualClaimable={isManualClaimable}
                             manualClaimRequested={manualClaimRequested}
-                            redeemTxLink={destRedeemTx && destination_network?.transactionExplorerTemplate.replace('{0}', destRedeemTx)}
+                            redeemTxLink={destRedeemTx && (destination_network as any)?.transactionExplorerTemplate?.replace('{0}', destRedeemTx)}
                         />
                         <motion.div
                             layout
@@ -79,7 +79,7 @@ const AtomicContent: FC = () => {
 
 const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boolean | undefined, manualClaimRequested: boolean | undefined, redeemTxLink: string | undefined }> = ({ commitStatus, isManualClaimable, manualClaimRequested, redeemTxLink }) => {
     const { destination_network } = useAtomicState();
-    const isAztecDestination = destination_network?.name === KnownInternalNames.Networks.AztecTestnet;
+    const isAztecDestination = destination_network?.slug === KnownInternalNames.Networks.AztecTestnet;
     
     // For Aztec destination, manual claim is normal flow, not a failure
     const isActualFailure = isManualClaimable && !isAztecDestination;

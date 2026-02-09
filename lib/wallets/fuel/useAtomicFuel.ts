@@ -40,8 +40,7 @@ export default function useAtomicFuel(params: UseAtomicFuelParams): AtomicFuelFu
         const chainId = params.chainId || 'fuel-mainnet';
         const secret = await deriveSecret({
             chainId,
-            wallet: { metadata: { wallet }, providerName: 'fuel' } as any,
-            timelock: timeLockMS
+            wallet: { metadata: { wallet }, providerName: 'fuel' } as any
         });
         const hashlock = secretToHashlock(secret);
 
@@ -59,7 +58,7 @@ export default function useAtomicFuel(params: UseAtomicFuelParams): AtomicFuelFu
 
         const parsedAmount = Number(amount) * 10 ** sourceAsset.decimals
 
-        const assetId: string | undefined = sourceAsset.contract ? new Address(sourceAsset.contract).toAssetId().bits : await fuelProvider.getBaseAssetId();
+        const assetId: string | undefined = sourceAsset.contractAddress ? new Address(sourceAsset.contractAddress).toAssetId().bits : await fuelProvider.getBaseAssetId();
 
         const { transactionId } = await contractInstance.functions
             .commit(hopChains, hopAssets, hopAddresses, dstChain, dstAsset, dstAddress, srcAsset, commitId, srcReceiver, timelock)

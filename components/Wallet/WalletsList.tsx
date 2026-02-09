@@ -39,7 +39,7 @@ const WalletsList: FC<Props> = (props) => {
     const connectWallet = async () => {
         const result = await connect(provider)
 
-        if (result && onSelect && result.withdrawalSupportedNetworks?.some(n => n === network?.name)) {
+        if (result && onSelect && result.withdrawalSupportedNetworks?.some(n => n === network?.slug)) {
             onSelect(result, result.address)
         }
 
@@ -84,7 +84,7 @@ type WalletItemProps = {
 }
 export const WalletItem: FC<HTMLAttributes<HTMLDivElement> & WalletItemProps> = ({ selectable, wallet, network, onWalletSelect, token, selectedAddress, ...props }) => {
     const { networks } = useSettingsState()
-    const networkWithTokens = networks.find(n => n.name === network?.name)
+    const networkWithTokens = networks.find(n => n.slug === network?.slug)
 
     const { balance, isBalanceLoading } = useSWRBalance(wallet.address, networkWithTokens)
 
@@ -223,7 +223,7 @@ type NestedWalletAddressProps = {
 
 const NestedWalletAddress: FC<HTMLAttributes<HTMLDivElement> & NestedWalletAddressProps> = ({ selectable, address, network, onWalletSelect, token, wallet, selectedAddress, ...props }) => {
     const { networks } = useSettingsState()
-    const networkWithTokens = networks.find(n => n.name === network?.name)
+    const networkWithTokens = networks.find(n => n.slug === network?.slug)
     const { balance, isBalanceLoading } = useSWRBalance(address, networkWithTokens)
 
     const isNestedSelected = selectable && address == selectedAddress

@@ -167,7 +167,7 @@ const StarknetWalletInitializer = () => {
 
     const { withdrawalSupportedNetworks, autofillSupportedNetworks, asSourceSupportedNetworks } = useStarknet();
     const [connectorsReady, setConnectorsReady] = useState(false)
-    const network = networks?.find(network => starknetNames.some(name => name === network.name))
+    const network = networks?.find(network => starknetNames.some(name => name === network.slug))
     const nodeUrl = network ? getEffectiveRpcUrl(network) : undefined
 
     useEffect(() => {
@@ -198,8 +198,8 @@ const StarknetWalletInitializer = () => {
         const initializeWallet = async () => {
             const starknetNetwork = networks.find(
                 (n) =>
-                    n.name === KnownInternalNames.Networks.StarkNetMainnet ||
-                    n.name === KnownInternalNames.Networks.StarkNetSepolia
+                    n.slug === KnownInternalNames.Networks.StarkNetMainnet ||
+                    n.slug === KnownInternalNames.Networks.StarkNetSepolia
             );
 
             for (const connector of connectors) {

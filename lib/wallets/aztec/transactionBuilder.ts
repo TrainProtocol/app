@@ -186,11 +186,11 @@ export const refundTransactionBuilder = async (params: RefundParams & { senderWa
 export const claimTransactionBuilder = async (params: ClaimParams & { senderWallet: Wallet, ownershipKey: string, aztecNodeUrl: string }) => {
     const { id, contractAddress, secret, senderWallet, ownershipKey, destinationAsset, aztecNodeUrl } = params;
 
-    if (!id || !contractAddress || !secret || !senderWallet || !ownershipKey || !destinationAsset?.contract) {
+    if (!id || !contractAddress || !secret || !senderWallet || !ownershipKey || !destinationAsset?.contractAddress) {
         throw new Error("Missing required parameters");
     }
 
-    const aztecTokenAddress = AztecAddress.fromString(destinationAsset.contract);
+    const aztecTokenAddress = AztecAddress.fromString(destinationAsset.contractAddress);
 
     const accounts = await senderWallet.getAccounts();
     const senderAddress = accounts[0].item;
@@ -203,7 +203,7 @@ export const claimTransactionBuilder = async (params: ClaimParams & { senderWall
     try {
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
 
-        const tokenAddress = AztecAddress.fromString(destinationAsset.contract);
+        const tokenAddress = AztecAddress.fromString(destinationAsset.contractAddress);
 
         const node: AztecNode = createAztecNodeClient(aztecNodeUrl);
         const trainInstance = await node.getContract(aztecAtomicContract);

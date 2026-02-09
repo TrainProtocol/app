@@ -5,7 +5,6 @@ import {
 } from "@solana/wallet-adapter-react";
 import AppSettings from "../../lib/AppSettings";
 import { useSettingsState } from "../../context/settings";
-import { NetworkType } from "../../Models/Network";
 import { useRpcConfigStore } from "../../stores/rpcConfigStore";
 import {
     NightlyWalletAdapter,
@@ -28,9 +27,7 @@ function SolanaProvider({ children }: { children: ReactNode }) {
 
     // Find Solana network in settings
     const solanaNetwork = settings?.networks?.find(
-        n => n.type === NetworkType.Solana &&
-        ((solNetwork === WalletAdapterNetwork.Mainnet && !n.isTestnet) ||
-         (solNetwork === WalletAdapterNetwork.Devnet && n.isTestnet))
+        n => n.type?.name === "solana"
     );
 
     // Use custom RPC if configured, otherwise use default

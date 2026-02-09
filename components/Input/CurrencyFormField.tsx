@@ -15,6 +15,7 @@ import { ApiError, LSAPIKnownErrorCode } from "../../Models/ApiError";
 import RouteIcon from "./RouteIcon";
 import useSWRBalance from "../../lib/balances/useSWRBalance";
 import { useAtomicState } from "../../context/atomicContext";
+import { ApiResponse } from "@/Models/ApiResponse";
 
 const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
     const {
@@ -36,9 +37,9 @@ const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
         data: routes,
         isLoading,
         error
-    } = useSWR<Route[]>('/routes', apiClient.fetcher, { keepPreviousData: true, dedupingInterval: 10000 })
-
-    const routesData = (direction == 'from' ? from : to) && routes?.filter(r => (direction === 'from' ? r.source.network.name : r.destination.network.name) === (direction === 'from' ? from?.name : to?.name))
+    } = useSWR<ApiResponse<Route[]>>('/routes', apiClient.fetcher, { keepPreviousData: true, dedupingInterval: 10000 })
+console.log('routes', routes)
+    const routesData = (direction == 'from' ? from : to) && routes?.data?.filter(r => (direction === 'from' ? r.source.network.slug : r.destination.network.slug) === (direction === 'from' ? from?.slug : to?.slug))
 
     const fromCurrencies = routesData?.map(r => r.source.token);
     const toCurrencies = routesData?.map(r => r.destination.token);
@@ -162,7 +163,7 @@ function GenerateCurrencyMenuItems(
     return currencies?.map(c => {
         const currency = c
         const displayName = currency.symbol;
-        const balance = balances?.find(b => b?.token === c?.symbol && (direction === 'from' ? from : to)?.name === b.network)
+        const balance = balances?.find(b => b?.token === c?.symbol && (direction === 'from' ? from : to)?.slug === b.network)
         const formatted_balance_amount = balance ? Number(truncateDecimals(balance?.amount, Math.min(c.decimals, 8))) : ''
 
         const currencyIsAvailable = (

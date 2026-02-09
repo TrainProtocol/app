@@ -10,7 +10,7 @@ import ButtonStatus from "./Status/ButtonStatus";
 
 export const RedeemAction: FC = () => {
     const { destination_network, source_network, sourceDetails, destinationDetails, updateCommit, manualClaimRequested, destination_asset, source_asset, commitId, isManualClaimable, atomicQuery, setAtomicQuery, destAtomicContract, srcAtomicContract, address, commitFromApi } = useAtomicState()
-    const isAztecDestination = destination_network?.name === KnownInternalNames.Networks.AztecTestnet;
+    const isAztecDestination = destination_network?.slug === KnownInternalNames.Networks.AztecTestnet;
     const router = useRouter()
     const { provider: destination_provider } = useWallet(destination_network, 'withdrawal')
     const destination_wallet = destination_provider?.activeWallet
@@ -54,7 +54,7 @@ export const RedeemAction: FC = () => {
             if (!sourceDetails?.secret) throw new Error("No secret")
 
             const claimTx = await destination_provider?.claim({
-                type: destination_asset?.contract ? 'erc20' : 'native',
+                type: (destination_asset?.contractAddress && destination_asset.contractAddress !== '0x0000000000000000000000000000000000000000') ? 'erc20' : 'native',
                 id: commitId,
                 secret: sourceDetails?.secret,
                 chainId: destination_network.chainId,

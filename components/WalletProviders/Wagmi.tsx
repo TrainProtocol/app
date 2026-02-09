@@ -1,5 +1,4 @@
 import { useSettingsState } from "../../context/settings";
-import { NetworkType } from "../../Models/Network";
 import resolveChain from "../../lib/resolveChain";
 import React, { useMemo } from "react";
 import NetworkSettings from "../../lib/NetworkSettings";
@@ -9,6 +8,7 @@ import { Chain, http, fallback } from 'viem';
 import { useEvmConnectors } from "../../context/evmConnectorsContext";
 import { ActiveEvmAccountProvider } from "./ActiveEvmAccount";
 import { useRpcConfigStore } from "@/stores/rpcConfigStore";
+import { getNativeToken } from "../../Models/Network";
 
 type Props = {
     children: JSX.Element | JSX.Element[]
@@ -27,11 +27,11 @@ function WagmiComponent({ children }: Props) {
     const isChain = (c: Chain | undefined): c is Chain => c != undefined
 
     const settingsChains = settings?.networks
-        .sort((a, b) => (NetworkSettings.KnownSettings[a.name]?.ChainOrder || Number(a.chainId)) - (NetworkSettings.KnownSettings[b.name]?.ChainOrder || Number(b.chainId)))
-        .filter(net => net.type == NetworkType.EVM
+        .sort((a, b) => (NetworkSettings.KnownSettings[a.slug]?.ChainOrder || Number(a.chainId)) - (NetworkSettings.KnownSettings[b.slug]?.ChainOrder || Number(b.chainId)))
+        .filter(net => net.type?.name === "eip155"
             && !isNaN(Number(net.chainId))
-            && net.rpcUrl
-            && net.nativeTokenSymbol)
+            && net.nodes?.[0]?.url
+            && getNativeToken(net))
         .map(network => {
             // Get the effective RPC URL (custom if configured, otherwise default)
             const effectiveRpcUrl = getEffectiveRpcUrl(network);
@@ -45,7 +45,7 @@ function WagmiComponent({ children }: Props) {
         // Find the original network to get all custom RPC URLs
         const network = settings?.networks?.find(n => Number(n.chainId) === chain.id)
 
-        if (network && isUsingCustomRpc(network.name)) {
+        if (network && isUsingCustomRpc(network.slug)) {
             // Get all custom RPC URLs for fallback support
             const customUrls = getEffectiveRpcUrls(network)
 

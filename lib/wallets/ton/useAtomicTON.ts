@@ -33,8 +33,7 @@ export default function useAtomicTON(params: UseAtomicTONParams): AtomicTONFunct
         const secret = await deriveSecret({
             chainId,
             wallet: { providerName: 'ton' } as any,
-            tonConnectUI,
-            timelock
+            tonConnectUI
         });
         const hashlock = secretToHashlock(secret);
 

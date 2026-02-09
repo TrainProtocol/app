@@ -53,8 +53,7 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Atom
                 : constants.StarknetChainId.SN_MAIN;
             const secret = await deriveSecret({
                 chainId,
-                wallet: starknetWallet,
-                timelock
+                wallet: starknetWallet
             });
             const hashlock = secretToHashlock(secret);
             

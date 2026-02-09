@@ -30,8 +30,7 @@ export default function useAtomicAztec(params: UseAtomicAztecParams): AtomicAzte
         const timelock = calculateEpochTimelock(40);
         const secret = await deriveSecret({
             chainId,
-            wallet: { metadata: { wallet }, providerName: 'aztec' } as any,
-            timelock
+            wallet: { metadata: { wallet }, providerName: 'aztec' } as any
         });
         const hashlock = secretToHashlock(secret);
 

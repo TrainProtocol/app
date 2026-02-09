@@ -35,7 +35,7 @@
 //                 assets: network.tokens,
 //                 network,
 //                 publicClient,
-//                 hasMulticall: !!network.contracts?.find(c => c.type === ContractType.EvmMultiCallContract)
+//                 hasMulticall: !!network.contracts?.find(c => c.type === "Multicall")
 //             });
 
 //             const erc20Balances = (erc20BalancesContractRes && await resolveERC20Balances(

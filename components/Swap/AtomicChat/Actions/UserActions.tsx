@@ -55,13 +55,13 @@ export const UserCommitAction: FC = () => {
             const { commitId, hash } = await provider.createPreHTLC({
                 address,
                 amount: amount.toString(),
-                destinationChain: destination_network.name,
-                sourceChain: source_network.name,
+                destinationChain: destination_network.slug,
+                sourceChain: source_network.slug,
                 destinationAsset: destination_asset.symbol,
                 sourceAsset: source_asset,
                 destLpAddress,
                 srcLpAddress,
-                tokenContractAddress: source_asset.contract as `0x${string}`,
+                tokenContractAddress: source_asset.contractAddress as `0x${string}`,
                 decimals: source_asset.decimals,
                 atomicContract: '0xa41a70ebd490dcc00567f447715138023c5c7428',
                 chainId: source_network.chainId,
@@ -72,8 +72,8 @@ export const UserCommitAction: FC = () => {
                 posthog.capture("Commit", {
                     commitId: commitId,
                     amount: amount,
-                    sourceNetwork: source_network.name,
-                    destinationNetwork: destination_network.name,
+                    sourceNetwork: source_network.slug,
+                    destinationNetwork: destination_network.slug,
                     sourceAsset: source_asset.symbol,
                     destinationAsset: destination_asset.symbol,
                     userAddress: address,
@@ -151,7 +151,7 @@ export const UserLockAction: FC = () => {
                 throw new Error("No add lock function")
 
             await provider.addLock({
-                type: source_asset?.contract ? 'erc20' : 'native',
+                type: (source_asset?.contractAddress && source_asset.contractAddress !== '0x0000000000000000000000000000000000000000') ? 'erc20' : 'native',
                 chainId: source_network?.chainId,
                 id: commitId as string,
                 hashlock: destinationDetails?.hashlock,
@@ -232,7 +232,7 @@ export const UserRefundAction: FC = () => {
             if (!srcAtomicContract) throw new Error("No atomic contract")
 
             const res = await source_provider?.refund({
-                type: source_asset?.contract ? 'erc20' : 'native',
+                type: (source_asset?.contractAddress && source_asset.contractAddress !== '0x0000000000000000000000000000000000000000') ? 'erc20' : 'native',
                 id: commitId,
                 hashlock: sourceDetails?.hashlock,
                 chainId: source_network.chainId,

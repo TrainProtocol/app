@@ -1,7 +1,7 @@
 import { Config, UseAccountReturnType } from "wagmi"
 import { writeContract, simulateContract, readContract, waitForTransactionReceipt } from '@wagmi/core'
 import { ethers } from "ethers"
-import { createPublicClient, http, PublicClient, Chain, zeroAddress } from "viem"
+import { createPublicClient, http, Chain, zeroAddress } from "viem"
 import { Network } from "../../../Models/Network"
 import { CreatePreHTLCParams, CommitmentParams, LockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
 import { Commit, LockStatus } from "../../../Models/phtlc/PHTLC"
@@ -41,30 +41,30 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): AtomicEVMFunct
             chainId
         } = params
 
-        const timelockDelta = minutesToSeconds(40)
         const rewardTimelockDelta = minutesToSeconds(20)
         const quoteExpiry = Math.floor(Date.now() / 1000) + minutesToSeconds(5)
+        const timelockDelta = minutesToSeconds(40) // duration in seconds for contract
 
         const parsedAmount = ethers.utils.parseUnits(amount.toString(), decimals).toBigInt()
 
         const secret = await deriveSecret({
             chainId: Number(chainId),
             wallet: account!.wallet,
-            config,
-            timelock: timelockDelta
+            config
         })
+        console.log('secret', secret)
         const hashlock = secretToHashlock(secret)
 
-        const tokenAddress = sourceAsset.contract
-            ? (sourceAsset.contract as `0x${string}`)
+        const tokenAddress = sourceAsset.contractAddress
+            ? (sourceAsset.contractAddress as `0x${string}`)
             : zeroAddress
 
         // Handle ERC20 approval
-        if (sourceAsset.contract) {
+        if (sourceAsset.contractAddress && sourceAsset.contractAddress !== zeroAddress) {
             const allowance = await readContract(config, {
                 account: account!.address as `0x${string}`,
                 abi: IMTBLZKERC20,
-                address: sourceAsset.contract as `0x${string}`,
+                address: sourceAsset.contractAddress as `0x${string}`,
                 functionName: 'allowance',
                 args: [account!.address, atomicContract],
                 chainId: Number(chainId),
@@ -74,7 +74,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): AtomicEVMFunct
                 const res = await writeContract(config, {
                     account: account!.address as `0x${string}`,
                     abi: IMTBLZKERC20,
-                    address: sourceAsset.contract as `0x${string}`,
+                    address: sourceAsset.contractAddress as `0x${string}`,
                     functionName: 'approve',
                     args: [atomicContract, parsedAmount],
                     chainId: Number(chainId),
@@ -118,14 +118,20 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): AtomicEVMFunct
             chainId: Number(chainId),
         }
 
-        if (!sourceAsset.contract) {
+        const isNativeToken = !sourceAsset.contractAddress || sourceAsset.contractAddress === zeroAddress
+        if (isNativeToken) {
             simulationData.value = parsedAmount
         }
-
-        const { request } = await simulateContract(config, simulationData)
-        const hash = await writeContract(config, request)
-
-        return { hash, commitId: hashlock }
+        try {
+            const { request } = await simulateContract(config, simulationData)
+            const hash = await writeContract(config, request)
+    
+            return { hash, commitId: hashlock }
+        }
+        catch (error) {
+            console.error('Error simulating contract:', error)
+            throw error
+        }
     }
 
     const getDetails = async (params: CommitmentParams): Promise<Commit> => {

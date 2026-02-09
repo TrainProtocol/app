@@ -2,7 +2,7 @@ import AppSettings from "./AppSettings";
 import { InitializeUnauthInstance } from "./axiosInterceptor"
 import { AxiosInstance, Method } from "axios";
 import { ApiResponse } from "../Models/ApiResponse";
-import { Network, NetworkType, Route } from "../Models/Network";
+import { Network, Route } from "../Models/Network";
 
 export default class LayerSwapApiClient {
     static apiBaseEndpoint?: string = AppSettings.LayerswapApiUri;
@@ -13,12 +13,14 @@ export default class LayerSwapApiClient {
 
     fetcher = (url: string) => this.UnauthenticatedRequest<any>("GET", url)
 
-    async GetLSNetworksAsync(): Promise<Network[]> {
-        return await this.UnauthenticatedRequest<Network[]>("GET", `/networks`);
+    async GetNetworksAsync(): Promise<Network[]> {
+        const response = await this.UnauthenticatedRequest<{ data: Network[] }>("GET", `/networks`);
+        return response.data;
     }
 
     async GetRoutesAsync(): Promise<Route[]> {
-        return await this.UnauthenticatedRequest<Route[]>("GET", `/routes`);
+        const response = await this.UnauthenticatedRequest<{ data: Route[] }>("GET", `/routes`);
+        return response.data;
     }
 
     async GetSwapsAsync(addresses: string[], page?: number): Promise<ApiResponse<CommitFromApi[]>> {
@@ -31,7 +33,7 @@ export default class LayerSwapApiClient {
     }
 
     private async UnauthenticatedRequest<T>(method: Method, endpoint: string, data?: any, header?: {}): Promise<T> {
-        let uri = LayerSwapApiClient.apiBaseEndpoint + "/api" + endpoint;
+        let uri = LayerSwapApiClient.apiBaseEndpoint + "/api/v1" + endpoint;
         return await this._unauthInterceptor(uri, { method: method, data: data, headers: { 'Access-Control-Allow-Origin': '*', ...(header ? header : {}) } })
             .then(res => {
                 return res?.data;
@@ -65,12 +67,12 @@ export type CommitFromApi = {
     sourceWallet: {
         address: string,
         name: string,
-        networkType: NetworkType,
+        networkType: string,
     }
     destinationWallet: {
         address: string,
         name: string,
-        networkType: NetworkType,
+        networkType: string,
     }
     destination: {
         network: {
@@ -81,7 +83,7 @@ export type CommitFromApi = {
             htlcNativeContractAddress: string,
             htlcTokenContractAddress:string,
             name:string,
-            type: NetworkType,
+            type: string,
             nativeToken: {
                 contract: string,
                 decimals: number,
@@ -112,11 +114,15 @@ export type Quote = {
 }
 
 export type SwapQuote = {
-    solverName: string,
-    totalFee: string,
-    receiveAmount: string,
-    destinationSolverAddress: string,
-    sourceSolverAddress: string,
-    sourceContractAddress: string,
-    destinationContractAddress: string
+    sourceSolverAddress: string;
+    sourceSignerAgent: string;
+    destinationSolverAddress: string;
+    destinationSignerAgent: string;
+    sourceContractAddress: string | null;
+    destinationContractAddress: string | null;
+    route: Route;
+    totalFee: string;
+    totalServiceFee: string;
+    totalExpenseFee: string;
+    receiveAmount: string;
 }

@@ -1,5 +1,7 @@
-import LayerSwapApiClient from "../lib/trainApiClient";
+import TrainApiClient from "../lib/trainApiClient";
 import { getThemeData } from "./settingsHelper";
+
+const apiClient = new TrainApiClient()
 
 export async function getServerSideProps(context) {
 
@@ -8,23 +10,17 @@ export async function getServerSideProps(context) {
         's-maxage=60, stale-while-revalidate'
     );
 
-    const apiClient = new LayerSwapApiClient()
-
-    const networks = await apiClient.GetLSNetworksAsync()
+    const networks = await apiClient.GetNetworksAsync()
     const routes = await apiClient.GetRoutesAsync();
 
     if (!networks.length) return
 
-    const isTestnet = process.env.NEXT_PUBLIC_API_VERSION == 'sandbox'
+    const networksWithLogos = networks.map(network => ({
+        ...network,
+        logo: `https://raw.githubusercontent.com/TrainProtocol/icons/main/networks/${network.slug.toLowerCase().split('-')[0]}.png`,
+    }))
 
-    const networksWithLogos = networks.filter(n => isTestnet ? n.isTestnet : !n.isTestnet).map(network => {
-        return {
-            ...network,
-            logo: network.logo || `https://raw.githubusercontent.com/TrainProtocol/icons/main/networks/${network.name.toLowerCase().split('_')[0]}.png`,
-        }
-    })
-
-    const filteredRoutes = routes?.filter(r => networksWithLogos.some(n => n.name == r.source.network.name) && networksWithLogos.some(n => n.name == r.destination.network.name)) || []
+    const filteredRoutes = routes?.filter(r => networksWithLogos.some(n => n.slug == r.source.network.slug) && networksWithLogos.some(n => n.slug == r.destination.network.slug)) || []
 
     const settings = {
         networks: networksWithLogos,

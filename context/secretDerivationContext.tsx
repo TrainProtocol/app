@@ -22,7 +22,7 @@ interface SecretDerivationContextValue {
   logout: () => void;
   isPasskeySupported: boolean;
   deriveInitialKey: (params: DeriveKeyParams) => Promise<Buffer>;
-  deriveSecret: (params: DeriveSecretParams) => Promise<string>;
+  deriveSecret: (params: DeriveKeyParams) => Promise<string>;
   isReady: boolean;
   /** Set while user is completing passkey or wallet sign */
   derivationStatus: DerivationStatus;
@@ -35,10 +35,6 @@ interface DeriveKeyParams {
   wallet?: Wallet;
   config?: any; // Wagmi config for EVM
   tonConnectUI?: any; // TON Connect UI
-}
-
-interface DeriveSecretParams extends DeriveKeyParams {
-  timelock: number;
 }
 
 const SecretDerivationContext = createContext<SecretDerivationContextValue | undefined>(undefined);
@@ -158,7 +154,7 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
     throw new Error(`Unsupported provider: ${providerName}`);
   }, [method, storedDerivedKey, setState]);
 
-  const deriveSecret = useCallback(async (params: DeriveSecretParams): Promise<string> => {
+  const deriveSecret = useCallback(async (params: DeriveKeyParams): Promise<string> => {
     setState({
       derivationStatus: 'signing',
       derivationMessage: method === 'passkey'
@@ -166,9 +162,10 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
         : 'Please sign in your wallet'
     });
     try {
-      const { timelock, ...keyParams } = params;
+      const { ...keyParams } = params;
+      const timestamp = Date.now();
       const initialKey = await deriveInitialKey(keyParams);
-      const derivedKey = deriveSecretFromTimelock(initialKey, timelock);
+      const derivedKey = deriveSecretFromTimelock(initialKey, timestamp);
       return '0x' + derivedKey.toString('hex');
     } finally {
       setState({ derivationStatus: 'idle', derivationMessage: '' });
