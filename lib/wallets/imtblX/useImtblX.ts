@@ -29,7 +29,7 @@ export default function useImtblX() {
     }
 
     const connectWallet = async () => {
-        const isMainnet = networks?.some(network => network.name === KnownInternalNames.Networks.ImmutableXMainnet)
+        const isMainnet = networks?.some(network => network.slug === KnownInternalNames.Networks.ImmutableXMainnet)
         const chain = (isMainnet ? KnownInternalNames.Networks.ImmutableXMainnet : KnownInternalNames.Networks.ImmutableXGoerli)
 
         if (!chain) throw new Error('No chain id for imx connect wallet')

@@ -19,7 +19,7 @@ export const commitTransactionBuilder = async (params: CreatePreHTLCParams & { w
         amount
     } = params
 
-    if (!sourceAsset.contract) return
+    if (!sourceAsset.contractAddress) return
 
     const response_destination = Address.parse(wallet.address);
 
@@ -45,7 +45,7 @@ export const commitTransactionBuilder = async (params: CreatePreHTLCParams & { w
 
     const userAddress = Address.parse(wallet.address)
 
-    const jettonMasterAddress = Address.parse(sourceAsset.contract)
+    const jettonMasterAddress = Address.parse(sourceAsset.contractAddress)
     const jettonMaster = tonClient.open(JettonMaster.create(jettonMasterAddress))
     const getJettonAddress = async (address: Address) => {
         return await jettonMaster.getWalletAddress(address)

@@ -22,7 +22,7 @@ const useRefundStatusPolling = ({
     asset,
     onStatusUpdate
 }: UseRefundStatusPollingParams) => {
-    const type: 'erc20' | 'native' = asset?.contract ? 'erc20' : 'native'
+    const type: 'erc20' | 'native' = asset?.contractAddress && asset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
 
     // Continue polling until claimed status is 2 (refunded)
     const isRefunded = false // Will be determined by checking claimed status

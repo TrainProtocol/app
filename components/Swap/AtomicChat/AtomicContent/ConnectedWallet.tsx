@@ -15,7 +15,7 @@ const Component: FC = () => {
     const { source_asset, source_network, commitId, setSelectedSourceAccount, selectedSourceAccount } = useAtomicState()
     const { provider } = useWallet(source_network, 'withdrawal')
     const { networks } = useSettingsState()
-    const sourceNetworkWithTokens = networks.find(n => n.name === source_network?.name)
+    const sourceNetworkWithTokens = networks.find(n => n.slug === source_network?.slug)
     const [openModal, setOpenModal] = useState(false)
 
     const changeWallet = async (wallet: Wallet, address: string) => {
@@ -47,7 +47,7 @@ const Component: FC = () => {
 
     const { balance, isBalanceLoading } = useSWRBalance(selectedWallet?.address, sourceNetworkWithTokens)
 
-    const walletBalance = source_network && balance?.find(b => b?.network === source_network?.name && b?.token === source_asset?.symbol)
+    const walletBalance = source_network && balance?.find(b => b?.network === source_network?.slug && b?.token === source_asset?.symbol)
     const walletBalanceAmount = (source_asset && walletBalance?.amount) && truncateDecimals(walletBalance?.amount, Math.min(source_asset?.decimals, 8))
 
     return (

@@ -35,7 +35,7 @@ const Address = dynamic(() => import("./Address/index.tsx").then(mod => mod.defa
 const GROUP_ORDERS = { "Popular": 1, "Networks": 2, "Other": 10, "Unavailable": 20 };
 export const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
 const getGroupName = (value: Network, type: 'network', canShowInPopular?: boolean) => {
-    if (NetworkSettings.KnownSettings[value.name]?.isFeatured && canShowInPopular) {
+    if (NetworkSettings.KnownSettings[value.slug]?.isFeatured && canShowInPopular) {
         return "Popular";
     }
     else if (type === 'network') {
@@ -75,11 +75,11 @@ const NetworkFormField = forwardRef(function NetworkFormField({ direction, label
 
     useEffect(() => {
         const directionRoute = routes?.data?.map(r => direction == 'from' ? r.source : r.destination)
-        const filteredRoutes = directionRoute?.filter(r => networks.some(n => n.name == r.network.name))
+        const filteredRoutes = directionRoute?.filter(r => networks.some(n => n.slug == r.network.slug))
         if (!isLoading && routes?.data) setRoutesData(filteredRoutes)
     }, [routes])
 
-    const routeNetworks = routesData?.map(rd => networks.find(n => n.name == rd.network.name)!)
+    const routeNetworks = routesData?.map(rd => networks.find(n => n.slug == rd.network.slug)!)
 
     if (direction === "from") {
         placeholder = "Source";
@@ -92,14 +92,14 @@ const NetworkFormField = forwardRef(function NetworkFormField({ direction, label
         menuItems = GenerateMenuItems(routeNetworks, direction, !!(to && lockTo), query);
     }
 
-    const value = menuItems.find(x => x.id == (direction === "from" ? from : to)?.name);
+    const value = menuItems.find(x => x.id == (direction === "from" ? from : to)?.slug);
 
     const handleSelect = useCallback((item: SelectMenuItem<Network>) => {
-        if (item.baseObject.name === value?.baseObject.name)
+        if (item.baseObject.slug === value?.baseObject.slug)
             return
         setFieldValue(name, item.baseObject, true)
         const currency = name == "from" ? fromCurrency : toCurrency
-        const routesData = (direction == 'from' ? from : to) && routes?.data?.filter(r => (direction === 'from' ? r.source.network.name : r.destination.network.name) === (direction === 'from' ? from?.name : to?.name))
+        const routesData = (direction == 'from' ? from : to) && routes?.data?.filter(r => (direction === 'from' ? r.source.network.slug : r.destination.network.slug) === (direction === 'from' ? from?.slug : to?.slug))
         const fromCurrencies = routesData?.map(r => r.source.token);
         const assetSubstitute = fromCurrencies?.find(a => a.symbol === currency?.symbol)
         if (assetSubstitute) {
@@ -121,7 +121,7 @@ const NetworkFormField = forwardRef(function NetworkFormField({ direction, label
                         <span>
                             <Address>{
                                 ({ destination, disabled, addressItem, connectedWallet, partner }) => {
-                                    if(destination?.name.toLowerCase().includes("aztec")) { 
+                                    if(destination?.slug.toLowerCase().includes("aztec")) { 
                                         return <></>
                                     }
                                     return <DestinationWalletPicker destination={destination} disabled={disabled} addressItem={addressItem} connectedWallet={connectedWallet} partner={partner} />
@@ -185,14 +185,14 @@ function GenerateMenuItems(routes: Network[] | undefined, direction: SwapDirecti
         const routeNotFound = isAvailable
         // && !r.tokens?.some(r => r.status === 'active');
 
-        const hasCustomRpc = isUsingCustomRpc(r.name);
+        const hasCustomRpc = isUsingCustomRpc(r.slug);
 
         const res: SelectMenuItem<Network> = {
             baseObject: r,
-            id: r.name,
+            id: r.slug,
             name: r.displayName,
             order,
-            imgSrc: r.logo,
+            imgSrc: r.logo ?? '',
             isAvailable: isAvailable,
             group: getGroupName(r, 'network', isAvailable && !routeNotFound),
             leftIcon: <RouteIcon direction={direction} isAvailable={true} routeNotFound={false} type="network" />,
@@ -205,7 +205,7 @@ function GenerateMenuItems(routes: Network[] | undefined, direction: SwapDirecti
         return res;
     })
         .sort(SortAscending)
-        .filter((route, index, self) => index === self.findIndex(r => r.name === route.name)) || [];
+        .filter((route, index, self) => index === self.findIndex(r => r.id === route.id)) || [];
 
     return mappedLayers
 }

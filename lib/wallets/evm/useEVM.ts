@@ -1,5 +1,5 @@
 import { useConfig, useConnect, useConnectors, useDisconnect, useSwitchAccount, Connector, useAccount } from "wagmi"
-import { Network, NetworkType } from "@/Models/Network"
+import { Network } from "@/Models/Network"
 import { useSettingsState } from "@/context/settings"
 import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon, resolveWalletConnectorIndex } from "../utils/resolveWalletIcon"
@@ -70,7 +70,7 @@ export default function useEVM(): WalletProvider {
     const evmAccount = useAccount()
 
     const asSourceSupportedNetworks = useMemo(() => [
-        ...networks.filter(network => network.type === NetworkType.EVM).map(l => l.name),
+        ...networks.filter(network => network.type?.name === "eip155").map(l => l.slug),
         KnownInternalNames.Networks.ZksyncMainnet,
         KnownInternalNames.Networks.LoopringGoerli,
         KnownInternalNames.Networks.LoopringMainnet,
@@ -347,7 +347,7 @@ export default function useEVM(): WalletProvider {
     }
 
     const activeWallet = useMemo(() => resolvedConnectors.find(w => w.isActive), [resolvedConnectors])
-    const providerIcon = useMemo(() => networks.find(n => ethereumNames.some(name => name === n.name))?.logo, [networks])
+    const providerIcon = useMemo(() => networks.find(n => ethereumNames.some(name => name === n.slug))?.logo, [networks])
 
     const atomicFunctions = useAtomicEVM({
         config,
@@ -459,7 +459,7 @@ const ResolveWallet = (props: ResolveWalletProps): Wallet | undefined => {
         asSourceSupportedNetworks: resolveSupportedNetworks(supportedNetworks.asSource, walletId),
         autofillSupportedNetworks: resolveSupportedNetworks(supportedNetworks.autofill, walletId),
         withdrawalSupportedNetworks: resolveSupportedNetworks(supportedNetworks.withdrawal, walletId),
-        networkIcon: networks.find(n => walletId === "com.immutable.passport" ? immutableZKEvm.some(name => name === n.name) : ethereumNames.some(name => name === n.name))?.logo,
+        networkIcon: networks.find(n => walletId === "com.immutable.passport" ? immutableZKEvm.some(name => name === n.slug) : ethereumNames.some(name => name === n.slug))?.logo,
         metadata: {
             deepLink: (connector as LSConnector).deepLink
         }

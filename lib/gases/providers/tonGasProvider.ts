@@ -4,7 +4,7 @@ import { Provider } from "./types";
 
 export class TonGasProvider implements Provider {
     supportsNetwork(network: Network): boolean {
-        return KnownInternalNames.Networks.TONMainnet.includes(network.name)
+        return KnownInternalNames.Networks.TONMainnet.includes(network.slug)
     }
 
     async getGas({address: string, network: Network, token: Token}): Promise<any> {

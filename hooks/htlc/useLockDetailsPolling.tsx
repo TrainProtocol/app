@@ -24,7 +24,7 @@ const useLockDetailsPolling = ({
     hasHashlock,
     onDetailsFound
 }: UseLockDetailsPollingParams) => {
-    const type: 'erc20' | 'native' = sourceAsset?.contract ? 'erc20' : 'native'
+    const type: 'erc20' | 'native' = sourceAsset?.contractAddress && sourceAsset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
 
     const { details, isLoading, error, mutate } = useSWRCommitDetails({
         network,

@@ -7,27 +7,12 @@ import contractAbi from "../../abis/atomic/FUEL_PHTLC.json"
 import LayerSwapApiClient from "../../trainApiClient"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
-
-function generateUint256Hex() {
-    const bytes = new Uint8Array(32);
-    crypto.getRandomValues(bytes);
-    let hex = Array.from(bytes)
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
-    return BigInt('0x' + hex);
-}
+import { AtomicFuelFunctions } from "../utils/atomicTypes"
+import { generateRandomId } from "../utils/atomicHelpers"
 
 export interface UseAtomicFuelParams {
     wallet: Account | null
     fuelProvider: Provider | null
-}
-
-export interface AtomicFuelFunctions {
-    createPreHTLC: (params: CreatePreHTLCParams) => Promise<{ hash: string, commitId: string }>
-    getDetails: (params: CommitmentParams) => Promise<any>
-    addLockSig: (params: CommitmentParams & LockParams) => Promise<{ hash: string, result: any }>
-    refund: (params: RefundParams) => Promise<string>
-    claim: (params: ClaimParams) => Promise<string>
 }
 
 export default function useAtomicFuel(params: UseAtomicFuelParams): AtomicFuelFunctions {
@@ -55,8 +40,7 @@ export default function useAtomicFuel(params: UseAtomicFuelParams): AtomicFuelFu
         const chainId = params.chainId || 'fuel-mainnet';
         const secret = await deriveSecret({
             chainId,
-            wallet: { metadata: { wallet }, providerName: 'fuel' } as any,
-            timelock: timeLockMS
+            wallet: { metadata: { wallet }, providerName: 'fuel' } as any
         });
         const hashlock = secretToHashlock(secret);
 
@@ -64,7 +48,7 @@ export default function useAtomicFuel(params: UseAtomicFuelParams): AtomicFuelFu
         const contractAddress = new Address(atomicContract);
         const contractInstance = new Contract(contractAddress, contractAbi, wallet);
 
-        const commitId = generateUint256Hex().toString()
+        const commitId = (generateRandomId({ asBigInt: true }) as bigint).toString()
 
         const dstChain = destinationChain.padEnd(64, ' ');
         const dstAsset = destinationAsset.padEnd(64, ' ');
@@ -74,7 +58,7 @@ export default function useAtomicFuel(params: UseAtomicFuelParams): AtomicFuelFu
 
         const parsedAmount = Number(amount) * 10 ** sourceAsset.decimals
 
-        const assetId: string | undefined = sourceAsset.contract ? new Address(sourceAsset.contract).toAssetId().bits : await fuelProvider.getBaseAssetId();
+        const assetId: string | undefined = sourceAsset.contractAddress ? new Address(sourceAsset.contractAddress).toAssetId().bits : await fuelProvider.getBaseAssetId();
 
         const { transactionId } = await contractInstance.functions
             .commit(hopChains, hopAssets, hopAddresses, dstChain, dstAsset, dstAddress, srcAsset, commitId, srcReceiver, timelock)

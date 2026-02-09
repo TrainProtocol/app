@@ -86,13 +86,13 @@ export default function Form() {
             const atomicValues = {
                 amount: values.amount,
                 address: values.destination_address,
-                source: values.from?.name!,
-                destination: values.to?.name!,
+                source: values.from?.slug!,
+                destination: values.to?.slug!,
                 source_asset: values.fromCurrency.symbol,
                 destination_asset: values.toCurrency.symbol,
-                solver: fee?.quote?.solverName,
-                srcContract: fee?.quote?.sourceContractAddress,
-                destContract: fee?.quote?.destinationContractAddress,
+                solver: fee?.quote?.sourceSignerAgent ?? fee?.quote?.route?.sourceWallet?.signerAgent?.name,
+                srcContract: fee?.quote?.sourceContractAddress ?? undefined,
+                destContract: fee?.quote?.destinationContractAddress ?? undefined,
             }
 
             setAtomicQuery(atomicValues)
@@ -206,7 +206,7 @@ const PendingSwap = ({ onClick }: { onClick: () => void }) => {
                     <div className="flex-shrink-0 h-5 w-5 relative">
                         {source_network ?
                             <Image
-                                src={source_network.logo}
+                                src={source_network.logo ?? ''}
                                 alt="From Logo"
                                 height="60"
                                 width="60"
@@ -218,7 +218,7 @@ const PendingSwap = ({ onClick }: { onClick: () => void }) => {
                     <div className="flex-shrink-0 h-5 w-5 relative block">
                         {destination_network ?
                             <Image
-                                src={destination_network.logo}
+                                src={destination_network.logo ?? ''}
                                 alt="To Logo"
                                 height="60"
                                 width="60"

@@ -21,7 +21,7 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
 
     // Filter for all networks with RPC URLs
     const networksWithRpc = settings?.networks?.filter(
-        network => network.rpcUrl && network.rpcUrl !== ""
+        network => network.nodes?.[0]?.url && network.nodes[0].url !== ""
     ) || []
 
     // Get filtered networks based on search query
@@ -30,8 +30,8 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
         const query = searchQuery.toLowerCase()
         return (
             network.displayName.toLowerCase().includes(query) ||
-            network.name.toLowerCase().includes(query) ||
-            network.type.toLowerCase().includes(query)
+            network.slug.toLowerCase().includes(query) ||
+            network.type?.displayName?.toLowerCase().includes(query)
         )
     })
 
@@ -60,18 +60,18 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
                     </div>
                 ) : (
                     filteredNetworks.map((network) => {
-                        const isCustom = isUsingCustomRpc(network.name)
-                        const config = rpcConfigs[network.name]
+                        const isCustom = isUsingCustomRpc(network.slug)
+                        const config = rpcConfigs[network.slug]
 
                         return (
                             <button
-                                key={network.name}
+                                key={network.slug}
                                 onClick={() => onNetworkSelect(network)}
                                 className="w-full flex items-center justify-between p-3 rounded-xl bg-secondary-700 hover:bg-secondary-600 cursor-pointer transition-colors"
                             >
                                 <div className="flex items-center space-x-3 overflow-hidden">
                                     <Image
-                                        src={network.logo}
+                                        src={network.logo ?? ''}
                                         alt={network.displayName}
                                         height="40"
                                         width="40"
@@ -97,7 +97,7 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
                                                 <span className="truncate max-w-[200px]">
                                                     {isCustom
                                                         ? (config?.customRpcUrls?.[0] || config?.customRpcUrl || '')
-                                                        : network.rpcUrl
+                                                        : network.nodes?.[0]?.url
                                                     }
                                                 </span>
                                             </span>

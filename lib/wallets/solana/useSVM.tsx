@@ -1,6 +1,5 @@
 import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon"
-import { NetworkType } from "../../../Models/Network"
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider"
 import { useCallback, useEffect, useMemo } from "react"
 import { useAnchorWallet, useConnection, useWallet } from "@solana/wallet-adapter-react"
@@ -17,9 +16,9 @@ export default function useSVM(): WalletProvider {
     const { networks } = useSettingsState()
     const isMobilePlatform = useMemo(() => isMobile(), []);
 
-    const network = networks.find(n => solanaNames.some(name => n.name === name))
+    const network = networks.find(n => solanaNames.some(name => n.slug === name))
     const commonSupportedNetworks = [
-        ...networks.filter(network => network.type === NetworkType.Solana).map(l => l.name)
+        ...networks.filter(network => network.type?.name === "solana").map(l => l.slug)
     ]
 
     const name = 'Solana'
@@ -53,7 +52,7 @@ export default function useSVM(): WalletProvider {
                 asSourceSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
                 autofillSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
                 withdrawalSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
-                networkIcon: networks.find(n => solanaNames.some(name => name === n.name))?.logo
+                networkIcon: networks.find(n => solanaNames.some(name => name === n.slug))?.logo
             } : undefined
 
             if (wallet) {
@@ -87,7 +86,7 @@ export default function useSVM(): WalletProvider {
             asSourceSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
             autofillSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
             withdrawalSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
-            networkIcon: networks.find(n => solanaNames.some(name => name === n.name))?.logo
+            networkIcon: networks.find(n => solanaNames.some(name => name === n.slug))?.logo
         } : undefined
 
         return wallet
@@ -156,7 +155,7 @@ export default function useSVM(): WalletProvider {
         asSourceSupportedNetworks: commonSupportedNetworks,
         name,
         id,
-        providerIcon: networks.find(n => solanaNames.some(name => name === n.name))?.logo,
+        providerIcon: networks.find(n => solanaNames.some(name => name === n.slug))?.logo,
         ready: wallets.length > 0,
         ...atomicFunctions
     }

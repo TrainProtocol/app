@@ -4,7 +4,7 @@ import { BalanceResolver } from "./balanceResolver"
 
 const useSWRBalance = (address: string | undefined, network: Network | undefined) => {
 
-    const { data, error, mutate, isLoading } = useSWR((network && address) ? `/balances/${address}/${network.name}` : null, () => {
+    const { data, error, mutate, isLoading } = useSWR((network && address) ? `/balances/${address}/${network.slug}` : null, () => {
         if (!address || !network) return
         return new BalanceResolver().getBalance(address, network)
     }, { refreshInterval: 60000 })

@@ -8,6 +8,7 @@ import { useQueryState } from "../../context/query";
 import useSWRGas from "../../lib/gases/useSWRGas";
 import useSWRBalance from "../../lib/balances/useSWRBalance";
 import { useAtomicState } from "../../context/atomicContext";
+import { getNativeToken } from "../../Models/Network";
 
 // const MinMax = dynamic(() => import("./dynamic/MinMax"), {
 //     loading: () => <></>,
@@ -25,7 +26,7 @@ const AmountField = forwardRef(function AmountField(_, ref: any) {
     const { balance, isBalanceLoading } = useSWRBalance(sourceAddress, from)
     const { gas, isGasLoading } = useSWRGas(sourceAddress, from, fromCurrency)
     const gasAmount = gas || 0;
-    const native_currency = from?.nativeTokenSymbol
+    const native_currency = getNativeToken(from!)?.symbol
     const query = useQueryState()
 
     const name = "amount"
