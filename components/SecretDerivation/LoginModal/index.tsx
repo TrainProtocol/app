@@ -30,6 +30,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const { loginWithPasskey, loginWithNewPasskey, loginWithWallet, derivationMessage } = useSecretDerivation();
   const { currentStep, goToStep, goBack, canGoBack, reset, isStep } = useSteps<LoginStep>({ initial: 'pick' });
   const [noPasskeyHint, setNoPasskeyHint] = useState(false);
+  const [signingWallet, setSigningWallet] = useState<Wallet | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -69,6 +70,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   };
 
   const startWalletLogin = async (wallet: Wallet) => {
+    setSigningWallet(wallet);
     goToStep('signing');
     try {
       await loginWithWallet(config, wallet);
@@ -137,7 +139,10 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </Step>
 
           <Step name="signing">
-            <Signing derivationMessage={derivationMessage} />
+            <Signing
+              derivationMessage={derivationMessage}
+              onRetry={signingWallet ? () => startWalletLogin(signingWallet) : undefined}
+            />
           </Step>
 
         </Steps>
@@ -147,7 +152,16 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 }
 
 
-const Signing = ({ derivationMessage }: { derivationMessage: string }) => {
+const Signing = ({ derivationMessage, onRetry }: { derivationMessage: string, onRetry?: () => void }) => {
+  const [showRetry, setShowRetry] = useState(false);
+
+  useEffect(() => {
+    setShowRetry(false);
+    if (!onRetry) return;
+    const timer = setTimeout(() => setShowRetry(true), 10000);
+    return () => clearTimeout(timer);
+  }, [onRetry]);
+
   return (
     <div className="flex flex-col items-center justify-center gap-5 py-10">
       <div className="w-14 h-14 rounded-2xl bg-secondary-700 flex items-center justify-center">
@@ -159,6 +173,15 @@ const Signing = ({ derivationMessage }: { derivationMessage: string }) => {
       <p className="text-sm text-secondary-text text-center max-w-[260px]">
         Complete the action in your passkey or wallet. Do not close this window.
       </p>
+      {showRetry && onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="w-full py-3 px-4 rounded-xl font-semibold border-2 border-secondary-700 bg-secondary-800 text-primary-text hover:bg-secondary-700 transition-colors text-sm"
+        >
+          Try again
+        </button>
+      )}
     </div>
   )
 }
