@@ -1,28 +1,25 @@
 import { Chain, defineChain, parseGwei } from "viem";
-import { ContractType, Network } from "../Models/Network";
+import { Network, getNativeToken } from "../Models/Network";
 import NetworkSettings from "./NetworkSettings";
 import { SendErrorMessage } from "./telegram";
 import { chainConfig } from 'viem/op-stack'
 
 export default function resolveChain(network: Network, customRpcUrl?: string) {
 
-    const nativeCurrency = network.nativeTokenSymbol;
-    const blockExplorersBaseURL =
-        network.transactionExplorerTemplate ?
-            new URL(network.transactionExplorerTemplate).origin
-            : null
+    const nativeToken = getNativeToken(network);
+    const nativeCurrency = nativeToken?.symbol;
 
-    const evm_multicall_contract = network.contracts?.find(c => c.type === ContractType.EvmMultiCallContract)?.address || undefined
+    const evm_multicall_contract = network.contracts?.find(c => c.type === "Multicall")?.address || undefined
 
-    if (!nativeCurrency) {
-        SendErrorMessage("UI Settings error", `env: ${process.env.NEXT_PUBLIC_VERCEL_ENV} %0A url: ${process.env.NEXT_PUBLIC_VERCEL_URL} %0A message: could not find native currency for ${network.name} ${JSON.stringify(network)} %0A`)
+    if (!nativeCurrency || !nativeToken) {
+        SendErrorMessage("UI Settings error", `env: ${process.env.NEXT_PUBLIC_VERCEL_ENV} %0A url: ${process.env.NEXT_PUBLIC_VERCEL_URL} %0A message: could not find native currency for ${network.slug} ${JSON.stringify(network)} %0A`)
         return
     }
 
     const opStackChainConfig = Number(network.chainId) == 10 ? chainConfig : {}
 
     // Use custom RPC URL if provided, otherwise use the network's default RPC
-    const rpcUrl = customRpcUrl || network.rpcUrl;
+    const rpcUrl = customRpcUrl || network.nodes?.[0]?.url;
 
     const res = defineChain({
         id: Number(network.chainId),
@@ -30,7 +27,7 @@ export default function resolveChain(network: Network, customRpcUrl?: string) {
         nativeCurrency: {
             name: nativeCurrency,
             symbol: nativeCurrency,
-            decimals: network.nativeTokenDecimals
+            decimals: nativeToken.decimals
         },
         rpcUrls: {
             default: {
@@ -40,14 +37,6 @@ export default function resolveChain(network: Network, customRpcUrl?: string) {
                 http: [rpcUrl],
             },
         },
-        ...(blockExplorersBaseURL ? {
-            blockExplorers: {
-                default: {
-                    name: 'name',
-                    url: blockExplorersBaseURL,
-                },
-            }
-        } : {}),
         contracts: {
             ...(evm_multicall_contract ? {
                 multicall3: {
@@ -58,8 +47,8 @@ export default function resolveChain(network: Network, customRpcUrl?: string) {
         ...opStackChainConfig,
     })
 
-    const defaultPriorityFee = NetworkSettings.KnownSettings[network.name]?.DefaultPriorityFee?.toString()
-    const baseFeeMultiplier = NetworkSettings.KnownSettings[network.name]?.BaseFeeMultiplier ?? 1.2
+    const defaultPriorityFee = NetworkSettings.KnownSettings[network.slug]?.DefaultPriorityFee?.toString()
+    const baseFeeMultiplier = NetworkSettings.KnownSettings[network.slug]?.BaseFeeMultiplier ?? 1.2
 
     if (defaultPriorityFee) {
         res.fees = {

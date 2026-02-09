@@ -15,7 +15,7 @@ export default class LightClient {
     initProvider = async ({ network }: { network: Network }) => {
         const provider = this.providers.find(p => p.supportsNetwork(network));
 
-        if (!provider) throw new Error(`No light client provider found for network ${network.name}`);
+        if (!provider) throw new Error(`No light client provider found for network ${network.slug}`);
 
         return provider.init({ network })
     }
@@ -23,7 +23,7 @@ export default class LightClient {
     getHashlock = async ({ network, token, commitId, atomicContract }: { network: Network, token: Token, commitId: string, atomicContract: string }) => {
         const provider = this.providers.find(p => p.supportsNetwork(network));
 
-        if (!provider) throw new Error(`No light client provider found for network ${network.name}`);
+        if (!provider) throw new Error(`No light client provider found for network ${network.slug}`);
 
         return provider.getDetails({
             network,

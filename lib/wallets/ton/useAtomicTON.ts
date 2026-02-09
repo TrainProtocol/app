@@ -9,20 +9,13 @@ import { getTONDetails } from "./getters"
 import { calculateEpochTimelock } from "../utils/calculateTimelock"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
+import { AtomicTONFunctions } from "../utils/atomicTypes"
 
 export interface UseAtomicTONParams {
     tonWallet: any
     tonConnectUI: any
     networks: Network[]
     tonApiUrl: string
-}
-
-export interface AtomicTONFunctions {
-    createPreHTLC: (params: CreatePreHTLCParams) => Promise<{ hash: string, commitId: string } | undefined>
-    getDetails: (params: CommitmentParams) => Promise<Commit>
-    addLock: (params: CommitmentParams & LockParams) => Promise<{ hash: string, result: any }>
-    refund: (params: RefundParams) => Promise<any>
-    claim: (params: ClaimParams) => Promise<string>
 }
 
 export default function useAtomicTON(params: UseAtomicTONParams): AtomicTONFunctions {
@@ -40,8 +33,7 @@ export default function useAtomicTON(params: UseAtomicTONParams): AtomicTONFunct
         const secret = await deriveSecret({
             chainId,
             wallet: { providerName: 'ton' } as any,
-            tonConnectUI,
-            timelock
+            tonConnectUI
         });
         const hashlock = secretToHashlock(secret);
 

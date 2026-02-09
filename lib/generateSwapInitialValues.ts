@@ -11,25 +11,25 @@ export function generateSwapInitialValues(settings: LayerSwapAppSettings, queryP
     const destinationRoutes = routes?.map(route => route.destination) || []
 
     const lockedSourceCurrency = lockFromAsset ?
-        sourceRoutes.find(l => l.network.name === to)?.token
+        sourceRoutes.find(l => l.network.slug === to)?.token
         : undefined
     const lockedDestinationCurrency = lockToAsset ?
-        destinationRoutes.find(l => l.network.name === to)?.token
+        destinationRoutes.find(l => l.network.slug === to)?.token
         : undefined
 
-    const sourceNetwork = sourceRoutes.find(l => l.network.name.toUpperCase() === from?.toUpperCase())
-    const destinationNetwork = destinationRoutes.find(l => l.network.name.toUpperCase() === to?.toUpperCase())
+    const sourceNetwork = sourceRoutes.find(l => l.network.slug.toUpperCase() === from?.toUpperCase())
+    const destinationNetwork = destinationRoutes.find(l => l.network.slug.toUpperCase() === to?.toUpperCase())
 
-    const initialSource = settings.networks.find(n => n.name === sourceNetwork?.network.name) ?? undefined
-    const initialDestination = settings.networks.find(n => n.name === destinationNetwork?.network.name) ?? undefined
+    const initialSource = settings.networks.find(n => n.slug === sourceNetwork?.network.slug) ?? undefined
+    const initialDestination = settings.networks.find(n => n.slug === destinationNetwork?.network.slug) ?? undefined
 
     const filteredSourceCurrencies = lockedSourceCurrency ?
         [lockedSourceCurrency]
-        : (sourceNetwork ? sourceRoutes.filter(r => r.network.name === sourceNetwork.network.name).map(r => r.token) : [])
+        : (sourceNetwork ? sourceRoutes.filter(r => r.network.slug === sourceNetwork.network.slug).map(r => r.token) : [])
 
     const filteredDestinationCurrencies = lockedDestinationCurrency ?
         [lockedDestinationCurrency]
-        : (destinationNetwork ? destinationRoutes.filter(r => r.network.name === destinationNetwork.network.name).map(r => r.token) : [])
+        : (destinationNetwork ? destinationRoutes.filter(r => r.network.slug === destinationNetwork.network.slug).map(r => r.token) : [])
 
     let initialAddress =
         destAddress && initialDestination && isValidAddress(destAddress, initialDestination) ? destAddress : "";

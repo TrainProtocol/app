@@ -5,7 +5,6 @@ import { ConnectedWallet, useTonConnectUI, useTonWallet } from "@tonconnect/ui-r
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider";
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
 import { useRpcConfigStore } from "../../../stores/rpcConfigStore";
-import { NetworkType } from "../../../Models/Network";
 import useAtomicTON from "./useAtomicTON";
 
 export default function useTON(): WalletProvider {
@@ -24,8 +23,8 @@ export default function useTON(): WalletProvider {
     const [tonConnectUI] = useTonConnectUI();
 
     const tonNetwork = networks?.find(n =>
-        n.type === NetworkType.TON &&
-        commonSupportedNetworks.some(name => name === n.name)
+        n.type?.name === "ton" &&
+        commonSupportedNetworks.some(name => name === n.slug)
     );
     const tonApiUrl = tonNetwork ? getEffectiveRpcUrl(tonNetwork) : 'https://testnet.toncenter.com';
 
@@ -44,7 +43,7 @@ export default function useTON(): WalletProvider {
         withdrawalSupportedNetworks: commonSupportedNetworks,
         autofillSupportedNetworks: commonSupportedNetworks,
         asSourceSupportedNetworks: commonSupportedNetworks,
-        networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.name))?.logo
+        networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.slug))?.logo
     } : undefined
     const switchAccount = async (wallet: Wallet, address: string) => {
         // as we do not have multiple accounts management we will leave the method empty
@@ -101,7 +100,7 @@ export default function useTON(): WalletProvider {
                     withdrawalSupportedNetworks: commonSupportedNetworks,
                     autofillSupportedNetworks: commonSupportedNetworks,
                     asSourceSupportedNetworks: commonSupportedNetworks,
-                    networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.name))?.logo
+                    networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.slug))?.logo
                 } : undefined
 
                 return wallet ? wallet : undefined

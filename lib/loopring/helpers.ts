@@ -130,7 +130,7 @@ export async function transfer
     const storageId = await getNextStorageId(
         {
             accountId: accInfo.accountId,
-            tokenId: Number(token?.contract),
+            tokenId: Number(token?.contractAddress),
         },
         apiKey)
     const feeData = await getOffchainFeeAmt(accInfo.accountId, OffchainFeeReqType.TRANSFER)
@@ -146,11 +146,11 @@ export async function transfer
         payeeId: 0,
         storageId: storageId.offchainId,
         token: {
-            tokenId: Number(token?.contract),
+            tokenId: Number(token?.contractAddress),
             volume: parseUnits(amount, Number(token?.decimals)).toString(),
         },
         maxFee: {
-            tokenId: Number(token?.contract),
+            tokenId: Number(token?.contractAddress),
             volume: fee,
         },
         validUntil: Math.round(Date.now() / 1000) + 30 * 86400,

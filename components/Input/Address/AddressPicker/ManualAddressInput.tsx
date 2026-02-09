@@ -3,7 +3,6 @@ import { SwapFormValues } from "../../../DTOs/SwapFormValues";
 import { Pencil } from "lucide-react";
 import { isValidAddress } from "../../../../lib/address/validator";
 import { Partner } from "../../../../Models/Partner";
-import { NetworkType } from "../../../../Models/Network";
 import FilledX from "../../../Icons/FilledX";
 import { AddressGroup, AddressItem } from ".";
 import { addressFormat } from "../../../../lib/address/formatter";
@@ -13,7 +12,7 @@ import { Wallet } from "../../../../Models/WalletProvider";
 type AddressInput = {
     manualAddress: string,
     setManualAddress: (address: string) => void,
-    setNewAddress: (value: { address: string, networkType: NetworkType | string } | undefined) => void,
+    setNewAddress: (value: { address: string, networkType: string } | undefined) => void,
     values: SwapFormValues,
     name: string,
     inputReference: React.Ref<HTMLInputElement>,
@@ -41,7 +40,7 @@ const ManualAddressInput: FC<AddressInput> = ({ manualAddress, setManualAddress,
     const handleSaveNewAddress = () => {
         if (isValidAddress(manualAddress, destination)) {
             if (destination) {
-                setNewAddress({ address: manualAddress, networkType: destination.type })
+                setNewAddress({ address: manualAddress, networkType: destination.type?.name })
             }
             setFieldValue(name, manualAddress)
             setManualAddress("")

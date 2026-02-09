@@ -40,7 +40,7 @@ export default function useFuel(): WalletProvider {
     const { networks } = useSettingsState()
     const { getEffectiveRpcUrl } = useRpcConfigStore()
 
-    const network = networks.find(n => n.name.toLowerCase().includes('fuel'))
+    const network = networks.find(n => n.slug.toLowerCase().includes('fuel'))
     const effectiveRpcUrl = network ? getEffectiveRpcUrl(network) : undefined
     const fuelProvider = effectiveRpcUrl ? new Provider(effectiveRpcUrl) : null;
 
@@ -72,7 +72,7 @@ export default function useFuel(): WalletProvider {
                         disconnectWallet,
                         name,
                         commonSupportedNetworks,
-                        networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.name))?.logo
+                        networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.slug))?.logo
                     })
 
                     addWallet(result)
@@ -171,7 +171,7 @@ export default function useFuel(): WalletProvider {
                         disconnectWallet,
                         name,
                         commonSupportedNetworks: commonSupportedNetworks,
-                        networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.name))?.logo
+                        networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.slug))?.logo
                     })
                     addWallet(w)
                 }

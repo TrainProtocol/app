@@ -4,33 +4,38 @@ import { validateAndParseAddress } from "./starkNetAddressValidator";
 import { PublicKey } from '@solana/web3.js'
 import { Address } from "@ton/core";
 
-export function isValidAddress(address?: string, network?: { name: string } | null): boolean {
+function getNetworkId(network: { name?: string; slug?: string } | null | undefined): string | undefined {
+    return network ? ((network as any).slug ?? (network as any).name) : undefined;
+}
+
+export function isValidAddress(address?: string, network?: { name?: string; slug?: string } | null): boolean {
     if (!address || isBlacklistedAddress(address)) {
         return false
     }
-    if (network?.name.toLowerCase().startsWith("ZKSYNC".toLowerCase())) {
+    const id = getNetworkId(network) ?? "";
+    if (id.toLowerCase().startsWith("zksync")) {
         if (address?.startsWith("zksync:")) {
             return isValidEtherAddress(address.replace("zksync:", ""));
         }
         return isValidEtherAddress(address);
     }
-    else if (network?.name.toLowerCase().startsWith("STARKNET".toLowerCase()) || network?.name.toLowerCase().startsWith("PARADEX".toLowerCase())) {
+    else if (id.toLowerCase().startsWith("starknet") || id.toLowerCase().startsWith("paradex")) {
         return validateAndParseAddress(address);
     }
-    else if (network?.name.toLowerCase().startsWith("TON".toLowerCase())) {
+    else if (id.toLowerCase().startsWith("ton")) {
         try {
             return !!Address.parse(address).toString({ bounceable: false, testOnly: false, urlSafe: true })
         } catch (error) {
             return false
         }
     }
-    else if (network?.name === KnownInternalNames.Networks.OsmosisMainnet) {
+    else if (id === KnownInternalNames.Networks.OsmosisMainnet) {
         if (/^(osmo1)?[a-z0-9]{38}$/.test(address)) {
             return true
         }
         return false
     }
-    else if (network?.name.toLowerCase().startsWith("solana") || network?.name.toLowerCase().startsWith("eclipse")) {
+    else if (id.toLowerCase().startsWith("solana") || id.toLowerCase().startsWith("eclipse")) {
         try {
             let pubkey = new PublicKey(address)
             let isSolana = PublicKey.isOnCurve(pubkey.toBuffer())
@@ -39,17 +44,17 @@ export function isValidAddress(address?: string, network?: { name: string } | nu
             return false
         }
     }
-    else if (network?.name === KnownInternalNames.Networks.SorareStage) {
+    else if (id === KnownInternalNames.Networks.SorareStage) {
         if (/^(0x)?[0-9a-f]{64}$/.test(address) || /^(0x)?[0-9A-F]{64}$/.test(address) || /^(0x)?[0-9a-f]{66}$/.test(address) || /^(0x)?[0-9A-F]{66}$/.test(address)) {
             return true;
         }
         return false
     }
-    else if (network?.name === KnownInternalNames.Networks.TronMainnet || network?.name === KnownInternalNames.Networks.TronTestnet) {
+    else if (id === KnownInternalNames.Networks.TronMainnet || id === KnownInternalNames.Networks.TronTestnet) {
         const decodedAddress = decodeBase58(address).toUpperCase();
         return decodedAddress.startsWith('41') && decodedAddress.length == 42
     }
-    else if (network?.name === KnownInternalNames.Networks.FuelTestnet || network?.name === KnownInternalNames.Networks.FuelMainnet) {
+    else if (id === KnownInternalNames.Networks.FuelTestnet || id === KnownInternalNames.Networks.FuelMainnet) {
         const hexRegex = /^[0-9a-fA-F]+$/;
 
         if (address.startsWith("0x")) {
@@ -60,7 +65,7 @@ export function isValidAddress(address?: string, network?: { name: string } | nu
 
         return address.length === 64 && hexRegex.test(address);
     }
-    else if (network?.name.toLowerCase().includes("aztec")) {
+    else if (id.toLowerCase().includes("aztec")) {
         return true
     }
     else {

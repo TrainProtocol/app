@@ -25,12 +25,12 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
 
     useEffect(() => {
         // Load existing URLs or start with one empty field
-        const existingConfig = rpcConfigs[network.name]
+        const existingConfig = rpcConfigs[network.slug]
         const urls = existingConfig?.customRpcUrls || []
         setCustomUrls(urls.length > 0 ? urls : [""])
         setValidationErrors({})
         setValidatedUrls({})
-    }, [network.name, rpcConfigs])
+    }, [network.slug, rpcConfigs])
 
     const validateUrl = async (url: string, index: number) => {
         if (!url) {
@@ -128,7 +128,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                 return
             }
 
-            setCustomRpc(network.name, {
+            setCustomRpc(network.slug, {
                 customRpcUrls: nonEmptyUrls,
                 useCustomRpc: true,
                 isValidated: true
@@ -136,7 +136,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
 
             toast.success(`Custom RPC URLs saved for ${network.displayName}`)
         } else {
-            removeCustomRpc(network.name)
+            removeCustomRpc(network.slug)
             toast.success(`Reverted to default RPC for ${network.displayName}`)
         }
 
@@ -144,7 +144,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
     }
 
     const handleReset = () => {
-        removeCustomRpc(network.name)
+        removeCustomRpc(network.slug)
         setCustomUrls([])
         toast.success(`Reset to default RPC for ${network.displayName}`)
         onSave()
@@ -156,7 +156,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                 {/* Network Info */}
                 <div className="flex items-center space-x-3">
                     <Image
-                        src={network.logo}
+                        src={network.logo ?? ''}
                         alt={network.displayName}
                         height="40"
                         width="40"
@@ -181,7 +181,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                 {/* Default RPC Info */}
                 <div className="p-3 bg-secondary-800 rounded-lg">
                     <div className="text-sm font-medium text-secondary-text mb-1">Default RPC URL</div>
-                    <div className="text-sm text-primary-text font-mono break-all">{network.rpcUrl}</div>
+                    <div className="text-sm text-primary-text font-mono break-all">{network.nodes?.[0]?.url}</div>
                 </div>
             </div>
 
@@ -257,7 +257,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                     </div>
                 ))}
 
-                {rpcConfigs[network.name]?.useCustomRpc && (
+                {rpcConfigs[network.slug]?.useCustomRpc && (
                     <SecondaryButton
                         onClick={handleReset}
                         className="flex items-center gap-2"

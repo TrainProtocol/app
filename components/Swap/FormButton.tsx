@@ -70,7 +70,7 @@ const FormButton = ({
         return <FormSourceWalletButton />;
     }
 
-    const isAztecDestination = values?.to?.name === KnownInternalNames.Networks.AztecTestnet;
+    const isAztecDestination = values?.to?.slug === KnownInternalNames.Networks.AztecTestnet;
 
     if (values?.to && !values?.destination_address && !isAztecDestination) {
         return (

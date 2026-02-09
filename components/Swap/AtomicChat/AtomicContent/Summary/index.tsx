@@ -2,7 +2,6 @@ import { FC, useEffect } from "react";
 import { useAtomicState, CommitStatus } from "../../../../../context/atomicContext";
 import { useFee } from "../../../../../context/feeContext";
 import { useSettingsState } from "../../../../../context/settings";
-import useWallet from "../../../../../hooks/useWallet";
 import Summary from "./Summary";
 import Details from "./Details";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../../../shadcn/accordion";
@@ -12,13 +11,11 @@ const MotionSummary: FC = () => {
 
     const { networks } = useSettingsState()
     const { fee, valuesChanger } = useFee()
-    const { sourceDetails, atomicQuery, commitStatus, commitFromApi, source_asset: source_token, destination_asset: destination_token } = useAtomicState()
+    const { atomicQuery, commitStatus, commitFromApi, source_asset: source_token, destination_asset: destination_token } = useAtomicState()
     const { source, destination, amount, address, source_asset, destination_asset } = atomicQuery;
 
-    const source_network = networks.find(n => n.name.toUpperCase() === source?.toUpperCase())
-    const destination_network = networks.find(n => n.name.toUpperCase() === destination?.toUpperCase())
-
-    const { provider } = useWallet(source_network, 'withdrawal')
+    const source_network = networks.find(n => n.slug.toUpperCase() === source?.toUpperCase())
+    const destination_network = networks.find(n => n.slug.toUpperCase() === destination?.toUpperCase())
 
     useEffect(() => {
         if (amount && source_network && destination_network && source_asset && destination_asset)
@@ -31,31 +28,23 @@ const MotionSummary: FC = () => {
             })
     }, [amount, source_network, destination, source_token, destination_token])
 
-    const wallet = provider?.activeWallet
-
     const receive_amount_in_base_units = fee?.quote?.receiveAmount
     const receive_amount = (receive_amount_in_base_units && source_token) ? (Number(receive_amount_in_base_units) / Math.pow(10, source_asset?.decimals)) : undefined;
 
     const receiveAmount = commitFromApi?.destinationAmount ? formatUnits(commitFromApi?.destinationAmount, destination_token?.decimals) : fee?.quote?.receiveAmount ? formatUnits(fee?.quote?.receiveAmount, destination_token?.decimals) : undefined
-    // const receiveAmountInUsd = commitFromApi?.destinationAmountInUsd || fee?.quote?.receiveAmountInUsd
-    // const requestedAmountInUsd = commitFromApi?.sourceAmountInUsd || fee?.quote?.sourceAmountInUsd
+
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
     return (
-        <div
-            className='bg-secondary-800 rounded-2xl p-3 w-full relative z-10 space-y-5 border border-transparent transition-all'>
+        <>
             {
                 destination_network && source_network && destination_token && source_token &&
                 <Summary
                     destination={destination_network}
                     source={source_network}
-                    destinationAddress={address}
                     destinationCurrency={destination_token}
                     requestedAmount={amount}
                     sourceCurrency={source_token}
-                    sourceAccountAddress={sourceDetails?.sender && sourceDetails?.amount !== 0 ? sourceDetails?.sender : wallet?.address}
                     receiveAmount={receiveAmount}
-                // requestedAmountInUsd={requestedAmountInUsd}
-                // receiveAmountInUsd={receiveAmountInUsd}
                 />
             }
             {
@@ -71,7 +60,7 @@ const MotionSummary: FC = () => {
                     </AccordionItem>
                 </Accordion>
             }
-        </div>
+        </>
     )
 }
 

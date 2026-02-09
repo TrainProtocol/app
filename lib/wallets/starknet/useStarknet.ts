@@ -37,8 +37,8 @@ export default function useStarknet(): WalletProvider {
     const setActiveWallet = useStarknetStore((state) => state.setActiveWallet);
 
     const activeWallet = starknetWallets.find(wallet => wallet.address === activeWalletAddress);
-    const isMainnet = networks?.some(network => network.name === KnownInternalNames.Networks.StarkNetMainnet)
-    const network = networks?.find(network => starknetNames.some(name => name === network.name))
+    const isMainnet = networks?.some(network => network.slug === KnownInternalNames.Networks.StarkNetMainnet)
+    const network = networks?.find(network => starknetNames.some(name => name === network.slug))
     const nodeUrl = network ? getEffectiveRpcUrl(network) : undefined
 
     const connectWallet = async ({ connector }) => {
@@ -50,7 +50,7 @@ export default function useStarknet(): WalletProvider {
             const walletChain = `0x${result?.chainId?.toString(16)}`
             const isWalletOnMainnet = walletChain === '0x534e5f4d41494e'
             const wrongChain = isWalletOnMainnet !== isMainnet
-            const starknetNetwork = networks.find(n => n.name === KnownInternalNames.Networks.StarkNetMainnet || n.name === KnownInternalNames.Networks.StarkNetSepolia)
+            const starknetNetwork = networks.find(n => n.slug === KnownInternalNames.Networks.StarkNetMainnet || n.slug === KnownInternalNames.Networks.StarkNetSepolia)
 
             if (result?.account && wrongChain) {
                 const wallet = (starknetConnector as any)?._wallet || (starknetConnector as any)?.wallet
@@ -144,7 +144,7 @@ export default function useStarknet(): WalletProvider {
         availableWalletsForConnect,
         name,
         id,
-        providerIcon: networks.find(n => starknetNames.some(name => name === n.name))?.logo,
+        providerIcon: networks.find(n => starknetNames.some(name => name === n.slug))?.logo,
         ready: connectors.length > 0,
         ...atomicFunctions
     }
@@ -191,7 +191,7 @@ export async function resolveStarknetWallet(props: ResolveStarknetWalletProps): 
             isActive: true,
             withdrawalSupportedNetworks,
             disconnect: () => disconnectWallets(connector.name, account),
-            networkIcon: starknetNames.includes(network?.name || '') ? network?.logo : undefined,
+            networkIcon: starknetNames.includes(network?.slug || '') ? network?.logo : undefined,
             autofillSupportedNetworks,
             asSourceSupportedNetworks
         };

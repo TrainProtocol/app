@@ -25,8 +25,8 @@ export const useAztecNodeUrl = () => {
     const { networks } = useSettingsState();
     const { getEffectiveRpcUrl } = useRpcConfigStore();
     const aztecNetwork = networks?.find(
-        n => n.name === KnownInternalNames.Networks.AztecTestnet ||
-             n.name.toLowerCase().includes('aztec')
+        n => n.slug === KnownInternalNames.Networks.AztecTestnet ||
+             n.slug.toLowerCase().includes('aztec')
     );
 
     if (aztecNetwork) {

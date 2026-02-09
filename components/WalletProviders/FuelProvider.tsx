@@ -4,7 +4,6 @@ import { FuelProvider, NetworkConfig } from '@fuels/react';
 import { FueletWalletConnector } from '../../lib/fuels/connectors/fuelet-wallet';
 import { FuelWalletConnector } from '../../lib/fuels/connectors/fuel-wallet';
 import { useSettingsState } from '@/context/settings';
-import { NetworkType } from '@/Models/Network';
 import { useMemo } from 'react';
 import { BakoRequestAPI } from '@/lib/wallets/fuel/Bako';
 
@@ -26,7 +25,7 @@ const FuelProviderWrapper = ({
         ]
     }
 
-    const fuelNetworks: Array<NetworkConfig> = useMemo(() => networks.filter(n => n.type == NetworkType.Fuel).map((network) => ({
+    const fuelNetworks: Array<NetworkConfig> = useMemo(() => networks.filter(n => n.type?.name === "fuel").map((network) => ({
         chainId: Number(network.chainId!)
     })), [networks])
 

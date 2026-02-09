@@ -20,7 +20,9 @@ export type CommitmentParams = {
     type: 'erc20' | 'native';
     id: string,
     chainId: string | null,
-    contractAddress: string
+    contractAddress: string,
+    /** Index for hashlock-based contracts (EVM v2) */
+    index?: number
 }
 
 export type LockParams = {
@@ -42,6 +44,8 @@ export type RefundParams = {
     id: string,
     hashlock?: string | undefined,
     sourceAsset: Token,
+    /** Index for hashlock-based contracts (EVM v2) */
+    index?: number
 }
 
 export type ClaimParams = {
@@ -52,8 +56,10 @@ export type ClaimParams = {
     secret: string | bigint,
     sourceAsset: Token,
     destLpAddress: string,
-    destinationAddress?: string
-    destinationAsset?: Token
+    destinationAddress?: string,
+    destinationAsset?: Token,
+    /** Index for hashlock-based contracts (EVM v2) */
+    index?: number
 }
 
 export type GetCommitsParams = {

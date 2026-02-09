@@ -1,8 +1,13 @@
 import { Address } from "@ton/core";
 
-export function addressFormat(address: string, network: { name: string } | null): string {
+function getNetworkId(network: { name?: string; slug?: string } | null): string {
+    return network ? ((network as any).slug ?? (network as any).name ?? "") : "";
+}
 
-    if (network?.name.toLowerCase().startsWith("starknet")) {
+export function addressFormat(address: string, network: { name?: string; slug?: string } | null): string {
+    const id = getNetworkId(network);
+
+    if (id.toLowerCase().startsWith("starknet")) {
         const removeHexPrefix = (hex: string) => {
             return hex?.replace("0x", "");
         }
@@ -16,14 +21,14 @@ export function addressFormat(address: string, network: { name: string } | null)
         return addAddressPadding(address?.toLowerCase());
 
     }
-    else if (network?.name.toLowerCase().startsWith("ton")) {
+    else if (id.toLowerCase().startsWith("ton")) {
         try {
             return Address.parse(address).toString({ bounceable: false, testOnly: false, urlSafe: true })
         } catch (error) {
             return address
         }
     }
-    else if (network?.name.toLowerCase().startsWith("solana") || network?.name.toLowerCase().startsWith("eclipse")) {
+    else if (id.toLowerCase().startsWith("solana") || id.toLowerCase().startsWith("eclipse")) {
         return address
     }
     else {

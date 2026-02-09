@@ -9,13 +9,13 @@ import { calculateEpochTimelock } from "../utils/calculateTimelock";
 export const transactionBuilder = async (network: Network, token: Token, walletPublicKey: PublicKey, recipientAddress?: string | undefined) => {
 
     const connection = new Connection(
-        `${network.rpcUrl}`,
+        `${network.nodes?.[0]?.url}`,
         "confirmed"
     );
     const recipientPublicKey = new PublicKey(recipientAddress || new Array(32).fill(0));
 
-    if (token.contract) {
-        const sourceToken = new PublicKey(token?.contract);
+    if (token.contractAddress) {
+        const sourceToken = new PublicKey(token?.contractAddress);
 
         const transactionInstructions: TransactionInstruction[] = [];
         const associatedTokenFrom = await getAssociatedTokenAddress(
@@ -120,9 +120,9 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
         let commit = new Transaction();
 
 
-        if (sourceAsset.contract) {
-            const senderTokenAddress = await getAssociatedTokenAddress(new PublicKey(sourceAsset.contract), walletPublicKey);
-            const tokenContract = new PublicKey(sourceAsset.contract);
+        if (sourceAsset.contractAddress) {
+            const senderTokenAddress = await getAssociatedTokenAddress(new PublicKey(sourceAsset.contractAddress), walletPublicKey);
+            const tokenContract = new PublicKey(sourceAsset.contractAddress);
 
             const commitTx = await program.methods
                 .commit(commitId, hopChains, hopAssets, hopAddresses, destinationChain, destinationAsset, destination_address, sourceAsset.symbol, lpAddressPublicKey, bnTimelock, bnAmount)
