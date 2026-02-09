@@ -29,7 +29,7 @@ export const RequestStep: FC = () => {
     //     </p>
     // </div>
 
-    const completedTxLink = source_network && commitTxId && getExplorerUrl(source_network?.transactionExplorerTemplate, commitTxId)
+    const completedTxLink = source_network && commitTxId && getExplorerUrl(`source_network?.transactionExplorerTemplate`, commitTxId)
 
     return <Step
         step={1}
@@ -119,7 +119,7 @@ export const LpLockingAssets: FC = () => {
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
 
     const title = completed ? 'Assets reserved' : 'Await reservation'
-    const completedTxLink = lpLockTx && getExplorerUrl(destination_network?.transactionExplorerTemplate, lpLockTx.hash)
+    const completedTxLink = lpLockTx && getExplorerUrl(`destination_network?.transactionExplorerTemplate`, lpLockTx.hash)
 
     const { setPulseState } = usePulsatingCircles();
 
@@ -238,7 +238,7 @@ export const CancelAndRefund: FC = () => {
     const completed = sourceDetails?.claimed == 2
     const loading = refundTxId && !completed
     const resolvedDescription = completed ? 'Assets are received back at the source address' : 'Cancel & refund to receive your assets back at the source address'
-    const completedTxLink = refundTxId && getExplorerUrl(source_network?.transactionExplorerTemplate, refundTxId)
+    const completedTxLink = refundTxId && getExplorerUrl(`source_network?.transactionExplorerTemplate`, refundTxId)
 
     const { setPulseState } = usePulsatingCircles();
 
@@ -297,7 +297,7 @@ export const ManualClaim: FC = () => {
     const title = "Manual Private Claim"
     const description = 'Please claim manually to privately recieve assets'
 
-    const isAztecDestination = destination_network?.name.toLowerCase().includes('aztec');
+    const isAztecDestination = destination_network?.slug.toLowerCase().includes('aztec');
 
     return (
         isAztecDestination && commitStatus !== CommitStatus.TimelockExpired &&

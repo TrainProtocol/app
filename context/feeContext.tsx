@@ -52,13 +52,13 @@ export function FeeProvider({ children }) {
     //     maxAmount: number
     //     maxAmountInUsd: number
     // }>>((from && fromCurrency && to && toCurrency && !commitId) ?
-    //     `/limits?SourceNetwork=${from?.name}&SourceToken=${fromCurrency?.symbol}&DestinationNetwork=${to?.name}&DestinationToken=${toCurrency?.symbol}` : null, apiClient.fetcher, {
+    //     `/limits?SourceNetwork=${from?.slug}&SourceToken=${fromCurrency?.symbol}&DestinationNetwork=${to?.slug}&DestinationToken=${toCurrency?.symbol}` : null, apiClient.fetcher, {
     //     refreshInterval: poll ? 20000 : 0,
     // })
 
     // const isAmountInRange = (amountRange?.data && debouncedAmount) && (Number(debouncedAmount) >= amountRange?.data?.minAmount && Number(debouncedAmount) <= amountRange?.data?.maxAmount)
     const { data: lsFee, mutate: mutateFee, isLoading: isFeeLoading } = useSWR<ApiResponse<SwapQuote>>((from && fromCurrency && to && toCurrency && debouncedAmount && !commitId) ?
-        `/quote?sourceNetwork=${from?.name}&sourceToken=${fromCurrency?.symbol}&destinationNetwork=${to?.name}&destinationToken=${toCurrency?.symbol}&amount=${debouncedAmount}` : null, apiClient.fetcher, {
+        `/quote?Amount=${encodeURIComponent(debouncedAmount)}&SourceNetwork=${encodeURIComponent(from?.slug ?? '')}&DestinationNetwork=${encodeURIComponent(to?.slug ?? '')}${fromCurrency?.contractAddress ? `&SourceTokenContract=${encodeURIComponent(fromCurrency.contractAddress)}` : ''}${toCurrency?.contractAddress ? `&DestinationTokenContract=${encodeURIComponent(toCurrency.contractAddress)}` : ''}` : null, apiClient.fetcher, {
         refreshInterval: poll ? 42000 : 0,
     })
     useEffect(() => {

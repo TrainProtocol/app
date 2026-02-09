@@ -9,7 +9,7 @@ export function ResolveNetworkOrder(network: Network, direction: SwapDirection) 
 
 
     let orderProp: keyof NetworkSettings = direction == 'from' ? 'OrderInSource' : 'OrderInDestination';
-    const initial_order = resolveInitialWeightedOrder(NetworkSettings.KnownSettings[network.name]?.[orderProp], 1)
+    const initial_order = resolveInitialWeightedOrder(NetworkSettings.KnownSettings[network.slug]?.[orderProp], 1)
 
     // const is_active = network.tokens?.some(r => r.status === 'active')
     // const is_inactive = network.tokens?.every(r => r.status === 'inactive')

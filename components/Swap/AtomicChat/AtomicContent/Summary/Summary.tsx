@@ -1,9 +1,10 @@
-import Image from "next/image";
 import { FC } from "react";
 import { truncateDecimals } from "@/components/utils/RoundDecimals";
 import { Network, Token } from "@/Models/Network";
-import { Address } from "@/lib/address";
-import { ExtendedAddress } from "@/components/Input/Address/AddressPicker/AddressWithIcon";
+import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
+import { ArrowDown } from "lucide-react";
+import NumberFlow from "@number-flow/react";
+
 
 type AtomicSummaryProps = {
     sourceCurrency: Token,
@@ -14,75 +15,46 @@ type AtomicSummaryProps = {
     requestedAmountInUsd?: number | undefined;
     receiveAmount: string | undefined;
     receiveAmountInUsd?: number | undefined;
-    destinationAddress: string;
-    fee?: number,
-    sourceAccountAddress?: string,
 }
 
-const Summary: FC<AtomicSummaryProps> = ({ sourceAccountAddress, sourceCurrency, destinationCurrency, source: from, destination: to, requestedAmount, destinationAddress, receiveAmount, receiveAmountInUsd, requestedAmountInUsd }) => {
-
-    const source = from
-    const destination = to
-    const destAddress = destinationAddress
-
+const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, source, destination, requestedAmount, receiveAmount, receiveAmountInUsd, requestedAmountInUsd }) => {
     return (
         <>
-            <div className="font-normal flex flex-col w-full relative z-10 space-y-5">
-                <div className="space-y-1">
-                    <p className="text-secondary-text text-xs">
-                        Send from
-                    </p>
-                    <div className="flex items-center justify-between gap-2 w-full">
-                        <div className="flex items-center gap-3">
-                            <Image src={source.logo} alt={source.displayName} width={44} height={44} className="rounded-lg" />
-                            <div className="text-ellipsis overflow-hidden">
-                                <p className="text-primary-text truncate">{source?.displayName}</p>
-                                {
-                                    sourceAccountAddress && Address.isValid(sourceAccountAddress, from) ?
-                                        <div className="text-sm group/addressItem text-secondary-text">
-                                            <ExtendedAddress address={sourceAccountAddress} network={from} />
-                                        </div>
-                                        :
-                                        <p className="text-sm text-secondary-text">Network</p>
-                                }
-                            </div>
-                        </div>
-                        <div className="flex flex-col items-end">
+            <div className="bg-secondary-500 rounded-2xl px-3 py-4 w-full relative z-10 space-y-4">
+                <div className="font-normal flex flex-col w-full relative z-10 space-y-3">
+                    <div className="w-full grid grid-cols-10">
+                        <RouteTokenPair
+                            route={source}
+                            token={sourceCurrency}
+                        />
+                        <div className="flex flex-col col-start-7 col-span-4 items-end">
                             {
                                 requestedAmount &&
-                                <p className="text-primary-text text-sm text-nowrap">{truncateDecimals(Number(requestedAmount), Math.min(sourceCurrency.decimals, 8))} {sourceCurrency.symbol}</p>
+                                <p className="text-primary-text text-xl leading-6 font-normal whitespace-nowrap">{truncateDecimals(Number(requestedAmount), sourceCurrency.decimals)} {sourceCurrency.symbol}</p>
                             }
-                            {/* <p className="text-secondary-text text-sm flex justify-end items-center">{requestedAmountInUsd ? <span>${requestedAmountInUsd.toFixed(2)}</span> : <span className="ml-1 h-[10px] w-10 animate-pulse rounded bg-gray-500" />}</p> */}
+                            <p className="text-secondary-text text-sm leading-5 flex font-medium justify-end"><NumberFlow value={requestedAmountInUsd || 0} prefix="$" trend={0} /></p>
                         </div>
                     </div>
-                </div>
-                <div className="space-y-1">
-                    <p className="text-xs text-secondary-text">
-                        Receive at
-                    </p>
-                    <div className="flex items-center gap-2 justify-between w-full ">
-                        <div className="flex items-center gap-3">
-                            <Image src={destination.logo} alt={destination.displayName} width={44} height={44} className="rounded-lg" />
-                            <div className="group/addressItem text-secondary-text text-ellipsis overflow-hidden">
-                                <p className="truncate text-primary-text">{destination?.displayName}</p>
-                                {
-                                    !destination.name.toLowerCase().includes("aztec") ?
-                                        <ExtendedAddress address={destAddress} network={to} />
-                                        : null
-                                }
-                            </div>
-                        </div>
+                    <div className="relative text-secondary-text">
+                        <hr className="border border-secondary-400 w-full rounded-full" />
+                        <ArrowDown className="absolute left-1/2 -translate-x-1/2 top-[-10px] h-6 w-6 p-1 bg-secondary-400 rounded-md text-secondary-text" />
+                    </div>
+                    <div className="w-full grid grid-cols-10">
+                        <RouteTokenPair
+                            route={destination}
+                            token={destinationCurrency}
+                        />
                         {
-                            receiveAmount != undefined ?
-                                <div className="flex flex-col justify-end">
-                                    <p className="text-primary-text text-sm text-nowrap">{truncateDecimals(Number(receiveAmount), destinationCurrency.decimals)} {destinationCurrency.symbol}</p>
-                                    {/* <p className="text-secondary-text text-sm flex justify-end">${receiveAmountInUsd && receiveAmountInUsd?.toFixed(2)}</p> */}
+                            receiveAmount && (
+                                <div className="flex flex-col justify-end items-end w-full col-start-7 col-span-4 h-[44px]">
+                                    <p className="text-primary-text text-xl font-normal text-end">
+                                        <NumberFlow value={Number(receiveAmount)} suffix={` ${destinationCurrency.symbol}`} trend={0} format={{ maximumFractionDigits: destinationCurrency.decimals || 2 }} />
+                                    </p>
+                                    <p className="text-secondary-text text-sm flex items-center gap-1 font-medium">
+                                        <NumberFlow value={receiveAmountInUsd || 0} prefix="$" trend={0} />
+                                    </p>
                                 </div>
-                                :
-                                <div className="flex flex-col justify-end">
-                                    <div className="h-[10px] my-[5px] w-20 animate-pulse rounded bg-gray-500" />
-                                    <div className="h-[10px] my-[5px] w-10 animate-pulse rounded bg-gray-500 ml-auto" />
-                                </div>
+                            )
                         }
                     </div>
                 </div>
@@ -90,5 +62,47 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceAccountAddress, sourceCurrency,
         </>
     )
 }
+
+type RouteTokenPairProps = {
+    route: Network,
+    token: Token,
+}
+
+const RouteTokenPair: FC<RouteTokenPairProps> = ({ route, token }) => {
+
+    return (
+        <div className="flex grow gap-4 text-left items-center md:text-base relative col-span-6 align-center">
+            <div className="inline-flex items-center relative shrink-0 h-8 w-8">
+                <ImageWithFallback
+                    src={token.logo ?? ''}
+                    alt="Token Logo"
+                    height="28"
+                    width="28"
+                    loading="eager"
+                    fetchPriority="high"
+                    className="rounded-full object-contain"
+                />
+                <div className="absolute -right-0.5 -bottom-0.5 rounded border border-secondary-500 bg-secondary-400 overflow-hidden">
+                    <ImageWithFallback
+                        src={route.logo ?? ''}
+                        alt="Route Logo"
+                        height="16"
+                        width="16"
+                        loading="eager"
+                        fetchPriority="high"
+                        className="object-contain"
+                    />
+                </div>
+            </div>
+            <div className="text-primary-text overflow-hidden">
+                <p className="text-xl leading-6 font-normal">{token.symbol}</p>
+                <p className="text-secondary-text text-sm truncate whitespace-nowrap font-medium leading-5">
+                    {route.displayName}
+                </p>
+            </div>
+        </div>
+    )
+}
+
 
 export default Summary

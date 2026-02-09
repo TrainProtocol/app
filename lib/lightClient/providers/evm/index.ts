@@ -20,7 +20,7 @@ export default class EVMLightClient extends _LightClient {
     ]
 
     supportsNetwork = (network: Network): boolean => {
-        return this.supportedNetworks.includes(network.name)
+        return this.supportedNetworks.includes(network.slug)
     }
 
     init({ network }: { network: Network }) {
@@ -36,9 +36,9 @@ export default class EVMLightClient extends _LightClient {
                         data: {
                             initConfigs: {
                                 hostname: window.location.origin,
-                                network: network.name,
+                                network: network.slug,
                                 alchemyKey: process.env.NEXT_PUBLIC_ALCHEMY_KEY,
-                                version: network.name.toLowerCase().includes('sepolia') ? 'sandbox' : 'mainnet'
+                                version: network.slug.toLowerCase().includes('sepolia') ? 'sandbox' : 'mainnet'
                             },
                         },
                     },
@@ -85,7 +85,7 @@ export default class EVMLightClient extends _LightClient {
                         data: {
                             commitConfigs: {
                                 commitId: commitId,
-                                abi: token.contract ? EVMERC20_PHTLC : EVM_PHTLC,
+                                abi: token.contractAddress ? EVMERC20_PHTLC : EVM_PHTLC,
                                 contractAddress: atomicContract,
                             },
                         },

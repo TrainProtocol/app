@@ -40,9 +40,10 @@ const AddressNote: FC<AddressNoteModalProps> = ({ partner, values }) => {
                         </div>
                         <div className="flex items-center gap-4 text-secondary-text">
                             <CopyButton toCopy={destination_address} />
-                            <Link href={getExplorerUrl(destination?.accountExplorerTemplate, destination_address) || ''} target="_blank">
+                            {/* <Link href={getExplorerUrl(destination?.accountExplorerTemplate, destination_address) || ''} target="_blank">
                                 <ExternalLink className="h-4 w-4" />
-                            </Link>
+                            </Link> */}
+                            <span className="inline-flex items-center"><ExternalLink className="h-4 w-4" /></span>
                         </div>
                     </div>
                 </div>

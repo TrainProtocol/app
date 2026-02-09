@@ -10,19 +10,12 @@ import { TrainContract } from "./Train"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
 import { calculateEpochTimelock } from "../utils/calculateTimelock"
+import { AtomicAztecFunctions } from "../utils/atomicTypes"
 
 export interface UseAtomicAztecParams {
     wallet: any
     accountAddress: string | undefined | null
     aztecNodeUrl: string
-}
-
-export interface AtomicAztecFunctions {
-    createPreHTLC: (params: CreatePreHTLCParams) => Promise<{ hash: string, commitId: string }>
-    getDetails: (params: CommitmentParams) => Promise<Commit>
-    addLock: (params: CommitmentParams & LockParams) => Promise<{ hash: string, result: any }>
-    refund: (params: RefundParams) => Promise<any>
-    claim: (params: ClaimParams) => Promise<any>
 }
 
 export default function useAtomicAztec(params: UseAtomicAztecParams): AtomicAztecFunctions {
@@ -37,8 +30,7 @@ export default function useAtomicAztec(params: UseAtomicAztecParams): AtomicAzte
         const timelock = calculateEpochTimelock(40);
         const secret = await deriveSecret({
             chainId,
-            wallet: { metadata: { wallet }, providerName: 'aztec' } as any,
-            timelock
+            wallet: { metadata: { wallet }, providerName: 'aztec' } as any
         });
         const hashlock = secretToHashlock(secret);
 

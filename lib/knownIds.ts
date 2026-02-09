@@ -12,7 +12,7 @@ export default class KnownInternalNames {
 
         public static readonly ArbitrumGoerli: string = "ARBITRUM_GOERLI";
 
-        public static readonly ArbitrumSepolia: string = "ARBITRUM_SEPOLIA";
+        public static readonly ArbitrumSepolia: string = "arb-sepolia";
 
         public static readonly ModMainnet: string = "MODE_MAINNET";
 
@@ -42,7 +42,7 @@ export default class KnownInternalNames {
 
         public static readonly EthereumGoerli: string = "ETHEREUM_GOERLI";
 
-        public static readonly EthereumSepolia: string = "ETHEREUM_SEPOLIA";
+        public static readonly EthereumSepolia: string = "eth-sepolia";
 
         public static readonly PolygonMainnet: string = "POLYGON_MAINNET";
 

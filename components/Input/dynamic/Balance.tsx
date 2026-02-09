@@ -12,7 +12,7 @@ const Balance = ({ values, direction }: { values: SwapFormValues, direction: str
     const network = direction === 'from' ? from : to
     const address = direction === 'from' ? selectedSourceAccount?.address : destination_address
     const { balance, isBalanceLoading, isError } = useSWRBalance(address, network)
-    const tokenBalance = balance?.find(b => b?.network === from?.name && b?.token === token?.symbol)
+    const tokenBalance = balance?.find(b => b?.network === from?.slug && b?.token === token?.symbol)
     const truncatedBalance = (tokenBalance?.amount && token) && truncateDecimals(tokenBalance?.amount, Math.min(token?.decimals, 8))
 
     const previouslySelectedSource = useRef(from);

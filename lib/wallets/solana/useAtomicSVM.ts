@@ -11,12 +11,8 @@ import { AnchorWallet } from "@solana/wallet-adapter-react"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
 import { calculateEpochTimelock } from "../utils/calculateTimelock"
-
-function toHexString(byteArray: any) {
-    return Array.from(byteArray, function (byte: any) {
-        return ('0' + (byte & 0xFF).toString(16)).slice(-2);
-    }).join('')
-}
+import { AtomicSVMFunctions } from "../utils/atomicTypes"
+import { toHexString } from "../utils/atomicHelpers"
 
 export interface UseAtomicSVMParams {
     connection: Connection
@@ -27,21 +23,13 @@ export interface UseAtomicSVMParams {
     anchorProvider: AnchorProvider | undefined
 }
 
-export interface AtomicSVMFunctions {
-    createPreHTLC: (params: CreatePreHTLCParams) => Promise<{ hash: string, commitId: string } | null | undefined>
-    getDetails: (params: CommitmentParams) => Promise<any>
-    addLock: (params: CommitmentParams & LockParams) => Promise<{ hash: string, result: any } | null>
-    refund: (params: RefundParams) => Promise<string | null>
-    claim: (params: ClaimParams) => Promise<string | undefined>
-}
-
 export default function useAtomicSVM(params: UseAtomicSVMParams): AtomicSVMFunctions {
     const { connection, signTransaction, signMessage, publicKey, network, anchorProvider } = params
     const { deriveSecret } = useSecretDerivation()
 
     const createPreHTLC = async (params: CreatePreHTLCParams): Promise<{ hash: string; commitId: string; } | null | undefined> => {
         const { atomicContract, sourceAsset } = params
-        const program = (anchorProvider && atomicContract) ? new Program(sourceAsset.contract ? TokenAnchorHtlc(atomicContract) : NativeAnchorHtlc(atomicContract), anchorProvider) : null;
+        const program = (anchorProvider && atomicContract) ? new Program(sourceAsset.contractAddress ? TokenAnchorHtlc(atomicContract) : NativeAnchorHtlc(atomicContract), anchorProvider) : null;
 
         if (!program || !publicKey || !network) return null
 
@@ -51,8 +39,7 @@ export default function useAtomicSVM(params: UseAtomicSVMParams): AtomicSVMFunct
         const solanaWallet = { signMessage };
         const secret = await deriveSecret({
             chainId,
-            wallet: { metadata: { wallet: solanaWallet }, providerName: 'solana' } as any,
-            timelock
+            wallet: { metadata: { wallet: solanaWallet }, providerName: 'solana' } as any
         });
         const hashlock = secretToHashlock(secret);
 
@@ -179,9 +166,9 @@ export default function useAtomicSVM(params: UseAtomicSVMParams): AtomicSVMFunct
 
     const refund = async (params: RefundParams) => {
         const { id, sourceAsset, contractAddress } = params
-        const program = (anchorProvider && contractAddress) ? new Program(sourceAsset.contract ? TokenAnchorHtlc(contractAddress) : NativeAnchorHtlc(contractAddress), anchorProvider) : null;
+        const program = (anchorProvider && contractAddress) ? new Program(sourceAsset.contractAddress ? TokenAnchorHtlc(contractAddress) : NativeAnchorHtlc(contractAddress), anchorProvider) : null;
 
-        if (!program || !sourceAsset?.contract || !publicKey) return null
+        if (!program || !sourceAsset?.contractAddress || !publicKey) return null
 
         const getAssociatedTokenAddress = (await import('@solana/spl-token')).getAssociatedTokenAddress;
 
@@ -192,14 +179,14 @@ export default function useAtomicSVM(params: UseAtomicSVMParams): AtomicSVMFunct
             program.programId
         );
 
-        if (sourceAsset.contract) {
+        if (sourceAsset.contractAddress) {
             let [htlcTokenAccount, _] = idBuffer && PublicKey.findProgramAddressSync(
                 [Buffer.from("htlc_token_account"), idBuffer],
                 program.programId
             );
 
-            const senderTokenAddress = await getAssociatedTokenAddress(new PublicKey(sourceAsset.contract), publicKey);
-            const tokenContract = new PublicKey(sourceAsset.contract);
+            const senderTokenAddress = await getAssociatedTokenAddress(new PublicKey(sourceAsset.contractAddress), publicKey);
+            const tokenContract = new PublicKey(sourceAsset.contractAddress);
 
             return await program.methods.refund(Array.from(idBuffer), Number(htlcBump)).accountsPartial({
                 userSigning: publicKey,
@@ -220,7 +207,7 @@ export default function useAtomicSVM(params: UseAtomicSVMParams): AtomicSVMFunct
 
     const claim = async (params: ClaimParams) => {
         const { sourceAsset, id, secret, contractAddress, destLpAddress } = params
-        const program = (anchorProvider && contractAddress) ? new Program(sourceAsset.contract ? TokenAnchorHtlc(contractAddress) : NativeAnchorHtlc(contractAddress), anchorProvider) : null;
+        const program = (anchorProvider && contractAddress) ? new Program(sourceAsset.contractAddress ? TokenAnchorHtlc(contractAddress) : NativeAnchorHtlc(contractAddress), anchorProvider) : null;
 
         const lpAddress = new PublicKey(destLpAddress);
 
@@ -234,8 +221,8 @@ export default function useAtomicSVM(params: UseAtomicSVMParams): AtomicSVMFunct
             program.programId
         );
 
-        if (sourceAsset.contract) {
-            const tokenContract = new PublicKey(sourceAsset.contract);
+        if (sourceAsset.contractAddress) {
+            const tokenContract = new PublicKey(sourceAsset.contractAddress);
 
             let [htlcTokenAccount, _] = idBuffer && PublicKey.findProgramAddressSync(
                 [Buffer.from("htlc_token_account"), idBuffer],
@@ -243,7 +230,7 @@ export default function useAtomicSVM(params: UseAtomicSVMParams): AtomicSVMFunct
             );
 
             const getAssociatedTokenAddress = (await import('@solana/spl-token')).getAssociatedTokenAddress;
-            const senderTokenAddress = await getAssociatedTokenAddress(new PublicKey(sourceAsset.contract), lpAddress);
+            const senderTokenAddress = await getAssociatedTokenAddress(new PublicKey(sourceAsset.contractAddress), lpAddress);
 
             return await program.methods.redeem(idBuffer, secretBuffer, htlcBump).
                 accountsPartial({

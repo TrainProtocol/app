@@ -1,8 +1,9 @@
+import { Network } from "@/Models/Network";
 import { Address } from "@ton/core";
 
 type AddressFormatProps = {
     address: string;
-    network?: { name: string } | null;
+    network?: Network | null;
     providerName?: string
 }
 
@@ -10,8 +11,8 @@ export function addressFormat(props: AddressFormatProps): string {
     const { address, network, providerName } = props
 
     if (
-        network?.name.toLowerCase().startsWith("starknet")
-        || network?.name.toLowerCase().startsWith("paradex")
+        network?.slug.toLowerCase().startsWith("starknet")
+        || network?.slug.toLowerCase().startsWith("paradex")
         || providerName?.toLowerCase() == 'paradex'
         || providerName?.toLowerCase() == 'starknet'
     ) {
@@ -29,7 +30,7 @@ export function addressFormat(props: AddressFormatProps): string {
 
     }
     else if (
-        network?.name.toLowerCase().startsWith("ton")
+        network?.slug.toLowerCase().startsWith("ton")
         || providerName?.toLowerCase() == 'ton'
     ) {
         try {
@@ -39,11 +40,11 @@ export function addressFormat(props: AddressFormatProps): string {
         }
     }
     else if (
-        network?.name.toLowerCase().startsWith("solana")
-        || network?.name.toLowerCase().startsWith("eclipse")
-        || network?.name.toLowerCase().startsWith("soon")
-        || network?.name.toLowerCase().startsWith("tron")
-        || network?.name.toLowerCase().startsWith("bitcoin")
+        network?.slug.toLowerCase().startsWith("solana")
+        || network?.slug.toLowerCase().startsWith("eclipse")
+        || network?.slug.toLowerCase().startsWith("soon")
+        || network?.slug.toLowerCase().startsWith("tron")
+        || network?.slug.toLowerCase().startsWith("bitcoin")
         || providerName?.toLowerCase() == 'solana'
         || providerName?.toLowerCase() == 'tron'
         || providerName?.toLowerCase() == 'bitcoin'

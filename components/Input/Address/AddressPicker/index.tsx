@@ -6,7 +6,7 @@ import useWallet from "../../../../hooks/useWallet";
 import ManualAddressInput from "./ManualAddressInput";
 import Modal from "../../../Modal/modal";
 import ConnectWalletButton from "./ConnectedWallets/ConnectWalletButton";
-import { Network, NetworkType } from "../../../../Models/Network";
+import { Network } from "../../../../Models/Network";
 import AddressBook from "./AddressBook";
 import AddressButton from "./AddressButton";
 import { useQueryState } from "../../../../context/query";
@@ -70,7 +70,7 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
     const defaultAddress = (selectedSourceAccount && defaultWallet?.addresses.find(a => a.toLowerCase() == selectedSourceAccount?.address.toLowerCase())) || defaultWallet?.address
 
     const [manualAddress, setManualAddress] = useState<string>('')
-    const [newAddress, setNewAddress] = useState<{ address: string, networkType: NetworkType | string } | undefined>()
+    const [newAddress, setNewAddress] = useState<{ address: string, networkType: string } | undefined>()
 
     useEffect(() => {
         if (!destination)
@@ -147,9 +147,9 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
     }, [canFocus])
     //Auto-generate secret and hash for Aztec destination (Aztec-specific logic)
     useEffect(() => {
-        const isAztecDestination = destination?.name.toLowerCase().includes("aztec");
+        const isAztecDestination = destination?.slug.toLowerCase().includes("aztec");
 
-        if (isAztecDestination && (!values.destination_address || previouslySelectedDestination.current !== destination?.name)) {
+        if (isAztecDestination && (!values.destination_address || previouslySelectedDestination.current !== destination?.slug)) {
             const processAztecSecret = async () => {
                 try {
                     const aztecSecret = generateAztecSecret();
@@ -167,7 +167,7 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
 
             processAztecSecret();
         }
-        previouslySelectedDestination.current = destination?.name;
+        previouslySelectedDestination.current = destination?.slug;
     }, [destination, values.destination_address])
 
     return (<>
@@ -249,13 +249,13 @@ const resolveAddressGroups = ({
 }: {
     destination: Network | undefined,
     wallets: Wallet[] | undefined,
-    newAddress: { address: string, networkType: NetworkType | string } | undefined,
+    newAddress: { address: string, networkType: string } | undefined,
     addressFromQuery: string | undefined,
 }) => {
 
     if (!destination) return
 
-    const networkType = destination?.type
+    const networkType = typeof destination?.type === 'object' ? (destination.type as any).name : (destination as any)?.type
 
     let addresses: AddressItem[] = []
     wallets?.forEach(wallet => {

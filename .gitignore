@@ -40,3 +40,5 @@ storybook-static/*
 .env*.local
 
 pr-review-report.md
+
+tsconfig.tsbuildinfo

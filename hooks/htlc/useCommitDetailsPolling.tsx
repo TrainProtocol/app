@@ -22,7 +22,7 @@ const useCommitDetailsPolling = ({
     sourceAsset,
     onDetailsFound
 }: UseCommitDetailsPollingParams) => {
-    const type: 'erc20' | 'native' = sourceAsset?.contract ? 'erc20' : 'native'
+    const type: 'erc20' | 'native' = sourceAsset?.contractAddress && sourceAsset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
 
     // Poll until we have valid commit details
     const hasValidDetails = false // Will be determined by checking sender

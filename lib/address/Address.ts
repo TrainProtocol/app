@@ -1,5 +1,6 @@
 import { isValidAddress } from '@/lib/address/validator';
 import { addressFormat } from '@/lib/address/formatter';
+import { Network } from '@/Models/Network';
 
 export type AddressDisplayFormat = 'short' | 'ending' | 'full' | 'emphasized';
 
@@ -22,8 +23,7 @@ export interface AddressFormatOptions {
 export class Address {
   private readonly _raw: string;
   private readonly _normalized: string;
-  private readonly _network: { name: string } | null | undefined;
-  private readonly _providerName: string | undefined;
+  private readonly _network: Network | null | undefined;
 
   /**
    * Creates a new Address instance with network context
@@ -31,7 +31,7 @@ export class Address {
    * @param network - Network context for network-specific formatting
    * @param providerName - Optional provider name for additional context
    */
-  constructor(address: string, network: { name: string }, providerName?: string);
+  constructor(address: string, network: Network, providerName?: string);
 
   /**
    * Creates a new Address instance with provider name only
@@ -48,16 +48,15 @@ export class Address {
    * @param network - Optional network context (can be null or undefined)
    * @param providerName - Provider name for provider-specific formatting
    */
-  constructor(address: string, network: { name: string } | null | undefined, providerName: string);
+  constructor(address: string, network: Network | null | undefined, providerName: string);
 
-  constructor(address: string, network: { name: string } | null | undefined, providerName?: string) {
+  constructor(address: string, network: Network | null | undefined, providerName?: string) {
     if (!network && !providerName) {
       throw new Error('Address requires either network or providerName');
     }
 
     this._raw = address || '';
     this._network = network;
-    this._providerName = providerName;
 
     this._normalized = addressFormat({ address: this._raw, network, providerName });
   }
@@ -87,14 +86,14 @@ export class Address {
   /**
    * Get the associated network
    */
-  get network(): { name: string } | null | undefined {
+  get network(): Network | null | undefined {
     return this._network;
   }
 
   /**
    * Check if this address is valid for its network
    */
-  static isValid(address: string, network: { name: string } | null = null): boolean {
+  static isValid(address: string, network: Network | null = null): boolean {
     return isValidAddress(address, network);
   }
 
@@ -180,7 +179,7 @@ export class Address {
   static equals(
     addr1: string,
     addr2: string,
-    network?: { name: string } | null,
+    network?: Network | null,
     providerName?: string
   ): boolean {
     if (!addr1 || !addr2) return false;

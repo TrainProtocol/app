@@ -25,7 +25,7 @@ const useSWRCommitDetails = ({
 
     // Create a unique key for SWR caching
     const key = (network && commitId && contractAddress && enabled)
-        ? `/htlc/details/${network.name}/${commitId}/${contractAddress}/${type}`
+        ? `/htlc/details/${network.slug}/${commitId}/${contractAddress}/${type}`
         : null
 
     const { data, error, mutate, isLoading } = useSWR<Commit | null>(

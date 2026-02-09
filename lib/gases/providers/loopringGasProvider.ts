@@ -8,7 +8,7 @@ import { GasProps } from "../../../Models/Balance";
 
 export class LoopringGasProvider {
     supportsNetwork(network: Network): boolean {
-        return (KnownInternalNames.Networks.LoopringMainnet.includes(network.name) || KnownInternalNames.Networks.LoopringGoerli.includes(network.name))
+        return (KnownInternalNames.Networks.LoopringMainnet.includes(network.slug) || KnownInternalNames.Networks.LoopringGoerli.includes(network.slug))
     }
 
     getGas = async ({ address, network, token }: GasProps) => {

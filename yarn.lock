@@ -4507,6 +4507,14 @@
   resolved "https://registry.yarnpkg.com/@nolyfill/is-core-module/-/is-core-module-1.0.39.tgz#3dc35ba0f1e66b403c00b39344f870298ebb1c8e"
   integrity sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==
 
+"@number-flow/react@^0.5.11":
+  version "0.5.11"
+  resolved "https://registry.yarnpkg.com/@number-flow/react/-/react-0.5.11.tgz#d108e37a3e1e8c7fd98e986b288a91ac8c767fe9"
+  integrity sha512-xo7QFAfQlKiIRbLjoIjZNXsNQmY+QxkyxkNWy+BCP9u1/SkqyqQ/1pYWa7d175V2r4OdmvCvlAnACSYOP1pTaw==
+  dependencies:
+    esm-env "^1.1.4"
+    number-flow "0.5.9"
+
 "@opensea/seaport-js@4.0.3":
   version "4.0.3"
   resolved "https://registry.yarnpkg.com/@opensea/seaport-js/-/seaport-js-4.0.3.tgz#21ebc6d3f05a6c6905e476d0fe8bae9b32917812"
@@ -13008,6 +13016,11 @@ eslint@8.49.0:
     strip-ansi "^6.0.1"
     text-table "^0.2.0"
 
+esm-env@^1.1.4:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/esm-env/-/esm-env-1.2.2.tgz#263c9455c55861f41618df31b20cb571fc20b75e"
+  integrity sha512-Epxrv+Nr/CaL4ZcFGPJIYLWFom+YeV1DqMLHJoEd9SYRxNbaFruBwfEX/kkHUJf55j2+TUbmDcmuilbP1TmXHA==
+
 esniff@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/esniff/-/esniff-2.0.1.tgz#a4d4b43a5c71c7ec51c51098c1d8a29081f9b308"
@@ -16331,6 +16344,13 @@ npm-run-path@^5.1.0:
   integrity sha512-ppwTtiJZq0O/ai0z7yfudtBpWIoxM8yE6nHi1X47eFR2EWORqfbu6CnPlNsjeN683eT0qG6H/Pyf9fCcvjnnnQ==
   dependencies:
     path-key "^4.0.0"
+
+number-flow@0.5.9:
+  version "0.5.9"
+  resolved "https://registry.yarnpkg.com/number-flow/-/number-flow-0.5.9.tgz#0f817a6321da366dc49aca74252185336c9239d0"
+  integrity sha512-o3102c/4qRd6eV4n+rw6B/UP8+FosbhIxj4uA6GsjhryrGZRVtCtKIKEeBiOwUV52cUGJneeu0treELcV7U/lw==
+  dependencies:
+    esm-env "^1.1.4"
 
 number-to-bn@1.7.0:
   version "1.7.0"

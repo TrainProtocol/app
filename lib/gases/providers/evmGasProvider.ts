@@ -1,6 +1,6 @@
 
 import { GasProps } from "../../../Models/Balance"
-import { Network, Token, ContractType, NetworkType } from "../../../Models/Network"
+import { Network, Token, getNativeToken } from "../../../Models/Network"
 import { Provider } from "./types"
 import { PublicClient, TransactionSerializedEIP1559, encodeFunctionData, serializeTransaction } from "viem";
 import { erc20Abi } from "viem";
@@ -12,7 +12,7 @@ import { ethers } from "ethers";
 
 export class EVMGasProvider implements Provider {
     supportsNetwork(network: Network): boolean {
-        return network.type == NetworkType.EVM && !!network.nativeTokenSymbol
+        return network.type?.name === "eip155" && !!network.tokens?.find(t => t.contractAddress === network.nativeTokenAddress)
     }
 
     getGas = async ({ address, network, token, recipientAddress = '0x2fc617e933a52713247ce25730f6695920b3befe', contractMethod }: GasProps) => {
@@ -28,12 +28,13 @@ export class EVMGasProvider implements Provider {
             const { createPublicClient, http } = await import("viem")
             const publicClient = createPublicClient({
                 chain: resolveChain(network),
-                transport: http(network.rpcUrl),
+                transport: http(network.nodes?.[0]?.url),
             })
-            const atomicContract = network.contracts?.find(c => token.contract ? c.type === ContractType.HTLCTokenContractAddress : c.type === ContractType.HTLCNativeContractAddress)?.address as `0x${string}`
+            const atomicContract = network.contracts?.find(c => c.type === "Train")?.address as `0x${string}`
 
-            const getGas = network?.contracts?.some(c => c.type === ContractType.GasPriceOracleContract) ? getOptimismGas : getEthereumGas
+            const getGas = network?.contracts?.some(c => c.type === "GasPriceOracle") ? getOptimismGas : getEthereumGas
 
+            const nativeToken = getNativeToken(network);
             const gasProvider = new getGas(
                 {
                     publicClient,
@@ -42,7 +43,7 @@ export class EVMGasProvider implements Provider {
                     from: network,
                     currency: token,
                     destination: atomicContract,
-                    nativeTokenDecimals: network.nativeTokenDecimals
+                    nativeTokenDecimals: nativeToken?.decimals ?? 18
                 }
             )
 
@@ -276,7 +277,7 @@ class getEthereumGas extends getEVMGas {
     resolveGas = async (contractMethod?: 'commit' | 'addLock') => {
         const feeData = await this.resolveFeeData()
 
-        const estimatedGasLimit = this.currency.contract
+        const estimatedGasLimit = this.currency.contractAddress
             ? await this.estimateERC20GasLimit(contractMethod)
             : await this.estimateNativeGasLimit(contractMethod)
 
@@ -299,7 +300,7 @@ export default class getOptimismGas extends getEVMGas {
     resolveGas = async (contractMethod?: 'commit' | 'addLock') => {
         const feeData = await this.resolveFeeData()
 
-        const estimatedGasLimit = this.currency.contract ?
+        const estimatedGasLimit = this.currency.contractAddress ?
             await this.estimateERC20GasLimit(contractMethod)
             : await this.estimateNativeGasLimit(contractMethod)
 
@@ -318,7 +319,7 @@ export default class getOptimismGas extends getEVMGas {
         const amount = BigInt(1000)
         let serializedTransaction: TransactionSerializedEIP1559
 
-        if (this.currency.contract) {
+        if (this.currency.contractAddress) {
             let encodedData = encodeFunctionData({
                 abi: erc20Abi,
                 functionName: "transfer",
@@ -335,7 +336,7 @@ export default class getOptimismGas extends getEVMGas {
                 functionName: "transfer",
                 chainId: this.chainId,
                 args: [this.destination, amount],
-                to: this.currency.contract as `0x${string}`,
+                to: this.currency.contractAddress as `0x${string}`,
                 data: encodedData,
                 type: 'eip1559',
             }) as TransactionSerializedEIP1559
@@ -350,7 +351,7 @@ export default class getOptimismGas extends getEVMGas {
             }) as TransactionSerializedEIP1559
         }
 
-        const oracleContract = this.from.contracts?.find(c => c.type === ContractType.GasPriceOracleContract)!.address as `0x${string}`
+        const oracleContract = this.from.contracts?.find(c => c.type === "GasPriceOracle")?.address as `0x${string}` | undefined
 
         if (!oracleContract) throw new Error("No oracle contract")
 
