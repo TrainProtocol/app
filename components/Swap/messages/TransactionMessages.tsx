@@ -1,6 +1,5 @@
 import { FC } from "react"
 import WalletMessage from "./Message"
-import { Address } from "@/lib/address"
 
 const ConfirmTransactionMessage: FC = () => {
     return <WalletMessage
@@ -30,13 +29,6 @@ const TransactionRejectedMessage: FC = () => {
         details={`You've rejected the transaction in your wallet. Click “Try again” to open the prompt again.`} />
 }
 
-const WaletMismatchMessage: FC<{ address: string; network: { name: string } }> = ({ address, network }) => {
-    return <WalletMessage
-        status="error"
-        header='Account mismatch'
-        details={`Select ${new Address(address, network).toShortString()} in your wallet, then try again`} />
-}
-
 const UexpectedErrorMessage: FC<{ message: string }> = ({ message }) => {
     return <WalletMessage
         status="error"
@@ -50,7 +42,6 @@ const TransactionMessages = {
     TransactionInProgressMessage,
     InsufficientFundsMessage,
     TransactionRejectedMessage,
-    WaletMismatchMessage,
     UexpectedErrorMessage
 }
 
