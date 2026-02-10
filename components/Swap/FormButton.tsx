@@ -5,12 +5,13 @@ import SwapButton from "../buttons/swapButton";
 import { FormikErrors } from "formik";
 import { SwapFormValues } from "../DTOs/SwapFormValues";
 import KnownInternalNames from "../../lib/knownIds";
-import { FC, useState } from "react";
+import { FC } from "react";
 import { useFormikContext } from "formik";
 import useWallet from "../../hooks/useWallet";
 import { useConnectModal } from "../WalletModal";
 import { useSecretDerivation } from "../../context/secretDerivationContext";
 import { LoginModal } from "../SecretDerivation";
+import { useLoginModalStore } from "@/stores/loginModalStore";
 import SubmitButton from "../buttons/submitButton";
 
 const Address = dynamic(
@@ -30,7 +31,7 @@ const FormButton = ({
     shouldConnectDestinationWallet
 }) => {
     const { isLoggedIn } = useSecretDerivation();
-    const [loginOpen, setLoginOpen] = useState(false);
+    const { isOpen: loginOpen, open: openLogin, close: closeLogin } = useLoginModalStore();
 
     // Check derivation method first (before any other checks)
     if (!isLoggedIn) {
@@ -38,13 +39,13 @@ const FormButton = ({
             <>
                 <SubmitButton
                     type="button"
-                    onClick={() => setLoginOpen(true)}
+                    onClick={openLogin}
                 >
                     Login to continue
                 </SubmitButton>
                 <LoginModal
                     isOpen={loginOpen}
-                    onClose={() => setLoginOpen(false)}
+                    onClose={closeLogin}
                 />
             </>
         );

@@ -1,6 +1,6 @@
 // lib/htlc/secretDerivation/walletSign/evm.ts
 
-import { signTypedData } from '@wagmi/core';
+import { getAccount } from '@wagmi/core';
 import { Config } from 'wagmi';
 import { deriveKeyMaterial } from '../keyDerivation';
 
@@ -29,17 +29,29 @@ export const deriveKeyFromEvmSignature = async (
   config: Config,
   address: `0x${string}`
 ): Promise<Buffer> => {
-  const { domain, types, primaryType, message } = getEvmTypedData();
+  const account = getAccount(config);
+  if (!account.connector) {
+    throw new Error('No wallet connector found');
+  }
 
-  const signature = await signTypedData(config, {
-    account: address,
-    domain,
-    types,
-    primaryType,
-    message,
-  });
+  const provider = await account.connector.getProvider() as { request: (args: { method: string; params: unknown[] }) => Promise<string> };
 
-  // Use full signature as input key material
+  try {
+    await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x1' }] });
+  } catch {
+    throw new Error('Please switch to Ethereum Mainnet in your wallet and try again');
+  }
+
+  let signature: string;
+  try {
+    signature = await provider.request({
+      method: 'eth_signTypedData_v4',
+      params: [address, JSON.stringify(getEvmTypedData())],
+    });
+  } catch {
+    throw new Error('Signing failed. Please switch to Ethereum Mainnet in your wallet and try again');
+  }
+
   const signatureHex = signature.startsWith('0x') ? signature.slice(2) : signature;
   const inputMaterial = Buffer.from(signatureHex, 'hex');
   const identitySalt = Buffer.from(IDENTITY_SALT, 'utf8');
