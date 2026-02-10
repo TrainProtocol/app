@@ -241,11 +241,4 @@ export default class KnownInternalNames {
         public static readonly ZKS: string = "ZKS";
     }
 
-    static LiquidityProviders = class {
-        public static readonly ConnextId: string = "39BF4D10-0AF8-4F54-A8B1-4C69A81ACA14".toLowerCase();
-
-        public static readonly LayerSwapId: string = "168D5457-05ED-46E3-AAB3-72A2D2098F0F".toLowerCase();
-
-        public static readonly StarkNetId: string = "fa3f93eb-9fea-44f3-a8a6-a5ced0f6d646".toLowerCase();
-    }
 }

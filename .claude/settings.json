@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/arentant/Documents/layerswapapp-1/**)"
+    ]
+  }
+}

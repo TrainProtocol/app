@@ -38,7 +38,7 @@ const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
         isLoading,
         error
     } = useSWR<ApiResponse<Route[]>>('/routes', apiClient.fetcher, { keepPreviousData: true, dedupingInterval: 10000 })
-console.log('routes', routes)
+
     const routesData = (direction == 'from' ? from : to) && routes?.data?.filter(r => (direction === 'from' ? r.source.network.slug : r.destination.network.slug) === (direction === 'from' ? from?.slug : to?.slug))
 
     const fromCurrencies = routesData?.map(r => r.source.token);
@@ -49,7 +49,7 @@ console.log('routes', routes)
         currencies,
         values,
         direction,
-        balance || [],
+        balance?.map(b => ({ ...b, amount: b.amount || 0 })) || [],
         query,
         error
     ) : []
