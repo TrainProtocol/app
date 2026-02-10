@@ -89,7 +89,7 @@ const RouteSearch: FC<RouteSearchProps> = ({ searchQuery, setSearchQuery, rowEle
 
     return <div>
         <motion.div
-            className="absolute z-0 bg-linear-180 from-secondary-500 from-70% to-secondary-500/0 backdrop-blur-sm -translate-x-1/2 -translate-y-1/2 left-1/2 top-19 sm:top-18 rounded-lg! shadow-lg!"
+            className="absolute z-0 bg-linear-180 from-secondary-700 from-70% to-secondary-700/0 backdrop-blur-sm -translate-x-1/2 -translate-y-1/2 left-1/2 top-19 sm:top-18 rounded-lg! shadow-lg!"
             initial={false}
             animate={{
                 width: width,
