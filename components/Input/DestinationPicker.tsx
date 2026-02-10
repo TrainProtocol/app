@@ -22,14 +22,10 @@ const DestinationPicker = ({ quote, isQuoteLoading }: Props) => {
                     Receive at
                 </label>
                 <div className="col-span-5 justify-self-end">
-                    <Address>{
-                        ({ destination, disabled, addressItem, connectedWallet, partner }) => {
-                            if (destination?.slug.toLowerCase().includes("aztec")) {
-                                return <></>
-                            }
-                            return <DestinationWalletPicker destination={destination} disabled={disabled} addressItem={addressItem} connectedWallet={connectedWallet} partner={partner} />
-                        }
-                    }</Address>
+                    <Address>
+                        {({ destination, addressItem, connectedWallet, partner }) =>
+                            <DestinationWalletPicker destination={destination} addressItem={addressItem} connectedWallet={connectedWallet} />}
+                    </Address>
                 </div>
             </div>
             <div className="items-center space-y-2">

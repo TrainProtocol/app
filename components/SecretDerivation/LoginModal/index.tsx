@@ -180,7 +180,7 @@ const Signing = ({ derivationMessage, onRetry, error }: { derivationMessage: str
     : 'Complete the action in your passkey or wallet. Do not close this window.';
 
   return (
-    <div className={`flex flex-col items-center justify-center gap-5 pt-10 ${showButton ? 'pb-5' : 'pb-10'}`}>
+    <div className={`flex flex-col items-center justify-center gap-5 pt-10 ${showButton ? '' : 'pb-10'}`}>
       <div className="w-14 h-14 rounded-2xl bg-secondary-700 flex items-center justify-center">
         {icon}
       </div>

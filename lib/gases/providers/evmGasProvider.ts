@@ -39,7 +39,7 @@ export class EVMGasProvider implements Provider {
                 {
                     publicClient,
                     chainId,
-                    account: address,
+                    account: address as `0x${string}`,
                     from: network,
                     currency: token,
                     destination: atomicContract,

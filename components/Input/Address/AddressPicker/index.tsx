@@ -1,21 +1,19 @@
 import { useFormikContext } from "formik";
 import { FC, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SwapFormValues } from "../../../DTOs/SwapFormValues";
-import { Partner } from "../../../../Models/Partner";
-import useWallet from "../../../../hooks/useWallet";
+import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
+import { Partner } from "@/Models/Partner";
+import useWallet from "@/hooks/useWallet";
+import { Address as AddressClass } from "@/lib/address";
 import ManualAddressInput from "./ManualAddressInput";
-import Modal from "../../../Modal/modal";
-import ConnectWalletButton from "./ConnectedWallets/ConnectWalletButton";
-import { Network } from "../../../../Models/Network";
+import Modal from "@/components/Modal/modal";
+import { Network } from "@/Models/Network";
 import AddressBook from "./AddressBook";
 import AddressButton from "./AddressButton";
-import { useQueryState } from "../../../../context/query";
-import { useAddressesStore } from "../../../../stores/addressesStore";
+import { useQueryState } from "@/context/query";
 import ConnectedWallets from "./ConnectedWallets";
-import { Wallet } from "../../../../Models/WalletProvider";
-import { useAtomicState } from "../../../../context/atomicContext";
-import { generateAztecSecret, storeAztecSecret } from "../../../../lib/wallets/aztec/secretUtils";
-import { Address as AddressClass } from "@/lib/address";
+import { Wallet } from "@/Models/WalletProvider";
+import { useSelectedAccount, useSelectSwapAccount } from "@/context/swapAccounts";
+import ConnectWalletButton from "./ConnectedWallets/ConnectWalletButton";
 
 export enum AddressGroup {
     ConnectedWallet = "Connected wallet",
@@ -35,7 +33,6 @@ export type AddressTriggerProps = {
     addressItem?: AddressItem;
     connectedWallet?: Wallet;
     partner?: Partner;
-    disabled: boolean;
     destination: Network | undefined,
 }
 
@@ -44,218 +41,213 @@ interface Input {
     showAddressModal: boolean;
     setShowAddressModal: (show: boolean) => void;
     hideLabel?: boolean;
-    disabled: boolean;
     name: string;
     close: () => void,
+    partner?: Partner,
     canFocus?: boolean,
 }
 
 const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Address
-    ({ showAddressModal, setShowAddressModal, name, canFocus, close, disabled, children }, ref) {
+    ({ showAddressModal, setShowAddressModal, name, canFocus, close, partner, children }, ref) {
 
     const {
         values,
         setFieldValue
     } = useFormikContext<SwapFormValues>();
+
     const query = useQueryState()
-    const { destination_address, to: destination, toCurrency: destinationAsset } = values
-    const groupedAddresses = useAddressesStore(state => state.addresses)
-    const setAddresses = useAddressesStore(state => state.setAddresses)
-    const { selectedSourceAccount } = useAtomicState()
-    const { provider, wallets } = useWallet(destination, 'autofil')
-    const connectedWallets = provider?.connectedWallets
+    const { destination_address, to: destination } = values
+    const selectDestinationAccount = useSelectSwapAccount("to");
+
+    const { provider, unAvailableWallets } = useWallet(destination, 'autofill')
+    const connectedWallets = provider?.connectedWallets?.filter(w => !w.isNotAvailable) || []
+    const defaultAccount = useSelectedAccount("to", values.to?.slug);
     const connectedWalletskey = connectedWallets?.map(w => w.addresses.join('')).join('')
-
-    const defaultWallet = provider?.connectedWallets?.sort((x, y) => (x.isActive === y.isActive) ? 0 : x.isActive ? -1 : 1).find(w => !w.isNotAvailable)
-    const defaultAddress = (selectedSourceAccount && defaultWallet?.addresses.find(a => a.toLowerCase() == selectedSourceAccount?.address.toLowerCase())) || defaultWallet?.address
-
     const [manualAddress, setManualAddress] = useState<string>('')
-    const [newAddress, setNewAddress] = useState<{ address: string, networkType: string } | undefined>()
+
+    // Get manually added address from context (shared across all AddressPicker instances)
+    const manualAddressFromContext = defaultAccount?.id === 'manually_added' ? defaultAccount.address : undefined
 
     useEffect(() => {
-        if (!destination)
-            setFieldValue("destination_address", undefined)
-    }, [destination])
-
-    useEffect(() => {
-        if (destination_address && !AddressClass.isValid(destination_address, destination)) {
-            setFieldValue("destination_address", '')
+        if (destination_address && destination && !AddressClass.isValid(destination_address, destination)) {
+            updateDestAddress('');
+            setManualAddress('');
         }
     }, [destination, destination_address])
 
     const inputReference = useRef<HTMLInputElement>(null);
-    const previouslyAutofilledAddress = useRef<string | undefined>(undefined)
-    const previouslySelectedDestination = useRef<string | undefined>(undefined)
 
-    useEffect(() => {
-
-        const groupedAddresses = destination && resolveAddressGroups({ destination, wallets: connectedWallets, newAddress, addressFromQuery: query.destAddress })
-        if (groupedAddresses) setAddresses(groupedAddresses)
-
-    }, [destination, newAddress, query.destAddress, connectedWalletskey])
+    const groupedAddresses = useMemo(() => {
+        return resolveAddressGroups({
+            destination,
+            wallets: connectedWallets,
+            manualAddressFromContext,
+            addressFromQuery: query.destAddress,
+            destination_address,
+        })
+    }, [destination, connectedWallets, manualAddressFromContext, query.destAddress, connectedWalletskey, destination_address])
 
     const destinationAddressItem = destination && destination_address ?
-        groupedAddresses?.find(a => a.address.toLowerCase() === destination_address.toLowerCase()) || { address: destination_address, group: AddressGroup.ManualAdded }
+        groupedAddresses?.find(a => a.address.toLowerCase() === destination_address.toLowerCase())
         : undefined
 
     const addressBookAddresses = groupedAddresses?.filter(a => a.group !== AddressGroup.ConnectedWallet)
 
     const normalizedDestAddress = useMemo(
-        () => destination && destination_address ? new AddressClass(destination_address, destination).normalized : null
-        , [destination_address, destination]);
+        () => destination && destination_address
+            ? new AddressClass(destination_address, destination).normalized
+            : null,
+        [destination_address, destination]
+    );
 
-    const connectedWallet = (destination && normalizedDestAddress) ? connectedWallets?.find(w => w.addresses?.some(a => new AddressClass(a, destination).normalized === normalizedDestAddress)) : undefined;
+    const connectedWallet = (destination && normalizedDestAddress)
+        ? connectedWallets?.find(w =>
+            w.addresses?.some(a =>
+                new AddressClass(a, destination).normalized === normalizedDestAddress
+            )
+        )
+        : undefined;
 
     const handleSelectAddress = useCallback((address: string) => {
         const selected = destination && groupedAddresses?.find(a => AddressClass.equals(a.address, address, destination))
         const formattedAddress = selected?.address
-        setFieldValue("destination_address", formattedAddress)
-        if (selected?.wallet)
-            previouslyAutofilledAddress.current = selected?.address
+        updateDestAddress(formattedAddress)
         close()
     }, [close, setFieldValue, groupedAddresses])
 
-    const autofillConnectedWallet = useCallback(() => {
-        if (destination_address || !destination) return
-        setFieldValue("destination_address", defaultAddress)
-        previouslyAutofilledAddress.current = defaultAddress
-        if (showAddressModal && defaultWallet) setShowAddressModal(false)
-    }, [setFieldValue, setShowAddressModal, showAddressModal, destination, defaultWallet, defaultAddress, destination_address])
-
     const onConnect = (wallet: Wallet) => {
-        previouslyAutofilledAddress.current = wallet.address
-        setFieldValue("destination_address", wallet.address)
+        setFieldValue('destination_address', wallet.address)
+        selectDestinationAccount({
+            address: wallet.address,
+            id: wallet.id,
+            providerName: wallet.providerName
+        });
         close()
     }
 
     useEffect(() => {
-        if ((!destination_address || (previouslyAutofilledAddress.current && previouslyAutofilledAddress.current != defaultAddress)) && defaultWallet) {
-            autofillConnectedWallet()
+        if (destinationAddressItem && !defaultAccount?.address && destinationAddressItem?.group == AddressGroup.ConnectedWallet) {
+            updateDestAddress(undefined)
+            return
         }
-    }, [defaultWallet?.address, destination_address])
+        if (destination_address?.toLowerCase() !== defaultAccount?.address?.toLowerCase() && (!destinationAddressItem || destinationAddressItem?.group === AddressGroup.ConnectedWallet)) {
+            updateDestAddress(defaultAccount?.address)
+            setShowAddressModal(false)
+        }
+    }, [defaultAccount?.address, destinationAddressItem])
 
-    useEffect(() => {
-        if (previouslyAutofilledAddress && previouslyAutofilledAddress.current?.toLowerCase() === destination_address?.toLowerCase() && !connectedWallet?.address) {
-            setFieldValue("destination_address", undefined)
+    const updateDestAddress = useCallback((address: string | undefined) => {
+        const wallet = destination && connectedWallets?.find(w => w.addresses?.some(a => AddressClass.equals(a, address || '', destination)))
+        setFieldValue('destination_address', address)
+
+        if (destination && address && provider) {
+            if (wallet)
+                selectDestinationAccount({
+                    address: address,
+                    id: wallet.id,
+                    providerName: wallet.providerName
+                });
+            else
+                selectDestinationAccount({
+                    address: address || "",
+                    id: 'manually_added',
+                    providerName: provider.name,
+                });
         }
-    }, [connectedWallet?.address, previouslyAutofilledAddress])
+    }, [destination, connectedWallets, provider, selectDestinationAccount]);
 
     useEffect(() => {
         if (canFocus) {
             inputReference?.current?.focus()
         }
     }, [canFocus])
-    //Auto-generate secret and hash for Aztec destination (Aztec-specific logic)
-    useEffect(() => {
-        const isAztecDestination = destination?.slug.toLowerCase().includes("aztec");
 
-        if (isAztecDestination && (!values.destination_address || previouslySelectedDestination.current !== destination?.slug)) {
-            const processAztecSecret = async () => {
-                try {
-                    const aztecSecret = generateAztecSecret();
-                    // Use the hash as the destination address for Aztec
-                    setFieldValue('destination_address', aztecSecret.secretHash);
+    return (
+        <>
+            <AddressButton
+                addressItem={destinationAddressItem}
+                openAddressModal={() => setShowAddressModal(true)}
+                connectedWallet={connectedWallet}
+                partner={partner}
+                destination={destination}
+            >{children({ destination, addressItem: destinationAddressItem, connectedWallet: connectedWallet, partner })}</AddressButton>
+            <Modal
+                header='Send To'
+                height="80%"
+                show={showAddressModal}
+                setShow={setShowAddressModal}
+                modalId="address"
+            >
+                <div className='w-full flex flex-col justify-between h-full text-primary-text'>
+                    <div className='flex flex-col self-center grow w-full space-y-5 h-full'>
 
-                    // Store the secret for later use (we'll need the swap ID here when available)
-                    storeAztecSecret(aztecSecret.secretHash, aztecSecret);
+                        {
+                            destination
+                            && provider
+                            && !connectedWallets.length &&
+                            <ConnectWalletButton
+                                provider={provider}
+                                onConnect={onConnect}
+                            />
+                        }
 
-                    // TODO: Replace tempSwapId with actual swap ID when swap is created
-                } catch (error) {
-                    console.error('Failed to generate and store Aztec secret:', error);
-                }
-            };
-
-            processAztecSecret();
-        }
-        previouslySelectedDestination.current = destination?.slug;
-    }, [destination, values.destination_address])
-
-    return (<>
-        <AddressButton
-            disabled={disabled}
-            openAddressModal={() => setShowAddressModal(true)}
-        >{children({ destination, disabled, addressItem: destinationAddressItem, connectedWallet: connectedWallet })}</AddressButton>
-        <Modal
-            header='Send To'
-            height="80%"
-            show={showAddressModal} setShow={setShowAddressModal}
-            modalId="address"
-        >
-            {/* <ResizablePanel> */}
-            <div className='w-full flex flex-col justify-between h-full text-primary-text'>
-                <div className='flex flex-col self-center grow w-full space-y-5 h-full'>
-
-                    {
-                        !disabled
-                        && destination
-                        && provider
-                        && !defaultWallet &&
-                        <ConnectWalletButton
-                            provider={provider}
-                            onConnect={onConnect}
+                        <ManualAddressInput
+                            manualAddress={manualAddress}
+                            setManualAddress={setManualAddress}
+                            setNewAddress={(props) => updateDestAddress(props?.address)}
+                            values={values}
+                            partner={partner}
+                            name={name}
+                            inputReference={inputReference}
+                            setFieldValue={setFieldValue}
+                            close={close}
+                            addresses={groupedAddresses}
                         />
-                    }
+                        {
+                            destination
+                            && provider
+                            && !manualAddress &&
+                            <ConnectedWallets
+                                provider={provider}
+                                notCompatibleWallets={unAvailableWallets}
+                                onClick={(props) => handleSelectAddress(props.address)}
+                                onConnect={onConnect}
+                                destination={destination}
+                                destination_address={destination_address}
+                            />
+                        }
 
-                    <ManualAddressInput
-                        manualAddress={manualAddress}
-                        setManualAddress={setManualAddress}
-                        setNewAddress={setNewAddress}
-                        values={values}
-                        name={name}
-                        inputReference={inputReference}
-                        setFieldValue={setFieldValue}
-                        close={close}
-                        addresses={groupedAddresses}
-                        connectedWallet={connectedWallet}
-                    />
-                    {
-                        !disabled
-                        && destination
-                        && provider
-                        && !manualAddress
-                        &&
-                        <ConnectedWallets
-                            provider={provider}
-                            wallets={wallets}
-                            onClick={(wallet, address) => handleSelectAddress(address)}
-                            onConnect={onConnect}
-                            destination={destination}
-                            destination_address={destination_address}
-                        />
-                    }
-
-                    {
-                        !disabled && addressBookAddresses && addressBookAddresses?.length > 0 && !manualAddress && destination &&
-                        <AddressBook
-                            addressBook={addressBookAddresses}
-                            onSelectAddress={handleSelectAddress}
-                            destination={destination}
-                            destination_address={destination_address}
-                        />
-                    }
+                        {
+                            addressBookAddresses && addressBookAddresses?.length > 0 && !manualAddress && destination &&
+                            <AddressBook
+                                addressBook={addressBookAddresses}
+                                onSelectAddress={handleSelectAddress}
+                                destination={destination}
+                                destination_address={destination_address}
+                                partner={partner}
+                            />
+                        }
+                    </div>
                 </div>
-            </div>
-            {/* </ResizablePanel> */}
-        </Modal>
-    </>
+            </Modal>
+        </>
     )
 });
 
 const resolveAddressGroups = ({
     destination,
     wallets,
-    newAddress,
+    manualAddressFromContext,
     addressFromQuery,
 }: {
     destination: Network | undefined,
     wallets: Wallet[] | undefined,
-    newAddress: { address: string, networkType: string } | undefined,
+    manualAddressFromContext: string | undefined,
     addressFromQuery: string | undefined,
+    destination_address: string | undefined,
 }) => {
 
     if (!destination) return
-
-    const networkType = typeof destination?.type === 'object' ? (destination.type as any).name : (destination as any)?.type
 
     let addresses: AddressItem[] = []
     wallets?.forEach(wallet => {
@@ -267,14 +259,16 @@ const resolveAddressGroups = ({
         addresses.push({ address: addressFromQuery, group: AddressGroup.FromQuery })
     }
 
-    if (newAddress?.address && newAddress.networkType === networkType && AddressClass.isValid(newAddress.address, destination)) {
-        addresses.push({ address: newAddress.address, group: AddressGroup.ManualAdded })
+    // Include manually added address from context (shared across all instances)
+    if (manualAddressFromContext && AddressClass.isValid(manualAddressFromContext, destination)) {
+        addresses.push({ address: manualAddressFromContext, group: AddressGroup.ManualAdded })
     }
 
     const uniqueAddresses = getUniqueAddresses(addresses, destination)
 
     return uniqueAddresses
 }
+
 
 const getUniqueAddresses = (addresses: AddressItem[], destination: Network) => {
     const normalizedMap = new Map<string, AddressItem>();

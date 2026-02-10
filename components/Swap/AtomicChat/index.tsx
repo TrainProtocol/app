@@ -53,7 +53,7 @@ const Container: FC<ContainerProps> = (props) => {
             <Commitment {...props} />
         </Widget>
     else
-        return <div className="w-full flex flex-col justify-between h-full space-y-3 text-secondary-text">
+        return <div className="w-full flex flex-col justify-between h-full space-y-2 text-secondary-text">
             <Commitment {...props} />
         </div>
 

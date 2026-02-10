@@ -6,8 +6,8 @@ import { Network } from "@/Models/Network";
 import React, { FC, useMemo } from "react";
 import { resolveMaxAllowedAmount } from "./helpers";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip";
-import { useAtomicState } from "@/context/atomicContext";
-import useSWRBalance from "@/lib/balances/useSWRBalance";
+import { useSelectedAccount } from "@/context/swapAccounts";
+import { useBalance } from "@/lib/balances/useBalance";
 import { getNativeToken } from "@/Models/Network";
 
 type MinMaxProps = {
@@ -23,13 +23,13 @@ const MinMax = (props: MinMaxProps) => {
     const { setFieldValue, values } = useFormikContext<SwapFormValues>();
     const { fromCurrency, from, limitsMinAmount, limitsMaxAmount, onActionHover } = props;
 
-    const { selectedSourceAccount } = useAtomicState();
+    const selectedSourceAccount = useSelectedAccount("from", from?.slug);
     const { gas } = useSWRGas(selectedSourceAccount?.address, from, fromCurrency)
-    const { balance, mutate: mutateBalances } = useSWRBalance(selectedSourceAccount?.address, from)
+    const { balances, mutate: mutateBalances } = useBalance(selectedSourceAccount?.address, from)
 
     const walletBalance = useMemo(() => {
-        return selectedSourceAccount?.address ? balance?.find(b => b?.network === from?.slug && b?.token === fromCurrency?.symbol) : undefined
-    }, [selectedSourceAccount?.address, balance, from?.slug, fromCurrency?.symbol])
+        return selectedSourceAccount?.address ? balances?.find(b => b?.network === from?.slug && b?.token === fromCurrency?.symbol) : undefined
+    }, [selectedSourceAccount?.address, balances, from?.slug, fromCurrency?.symbol])
 
     const gasAmount = gas || 0;
 
@@ -80,7 +80,7 @@ const MinMax = (props: MinMaxProps) => {
 
     const showMaxTooltip = !!(walletBalance?.amount && shouldPayGasWithTheToken && (!limitsMaxAmount || walletBalance.amount < limitsMaxAmount))
 
-    if (!from || !fromCurrency || !balance)
+    if (!from || !fromCurrency || !balances)
         return null;
 
     return (

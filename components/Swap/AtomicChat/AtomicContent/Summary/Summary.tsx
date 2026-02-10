@@ -4,6 +4,7 @@ import { Network, Token } from "@/Models/Network";
 import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
 import { ArrowDown } from "lucide-react";
 import NumberFlow from "@number-flow/react";
+import { resolveTokenLogoUrl } from "@/components/utils/resolveTokenLogoUrl";
 
 
 type AtomicSummaryProps = {
@@ -74,7 +75,7 @@ const RouteTokenPair: FC<RouteTokenPairProps> = ({ route, token }) => {
         <div className="flex grow gap-4 text-left items-center md:text-base relative col-span-6 align-center">
             <div className="inline-flex items-center relative shrink-0 h-8 w-8">
                 <ImageWithFallback
-                    src={token.logo ?? ''}
+                    src={resolveTokenLogoUrl(token.symbol)}
                     alt="Token Logo"
                     height="28"
                     width="28"

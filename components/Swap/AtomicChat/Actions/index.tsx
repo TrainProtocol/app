@@ -4,12 +4,11 @@ import { LpLockingAssets } from "./LpLock";
 import { RedeemAction } from "./Redeem";
 import { UserRefundAction, UserLockAction, UserCommitAction } from "./UserActions";
 import TransactionMessages from "../../messages/TransactionMessages";
-import { AnimatePresence, motion } from "framer-motion";
-import ButtonStatus from "./Status/ButtonStatus";
 import WalletMessage from "../../messages/Message";
 import { Commit } from "../../../../Models/phtlc/PHTLC";
 import DestinationWalletWrapper from "./DestinationWalletWrapper";
 import { SwapQuote } from "../../../../lib/trainApiClient";
+import SubmitButton from "@/components/buttons/submitButton";
 
 type ResolveActionProps = {
     sourceDetails: Commit | undefined
@@ -19,11 +18,16 @@ type ResolveActionProps = {
 }
 
 const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, sourceDetails, error, quote }) => {
+    const { updateCommit } = useAtomicState()
 
+    // When there's an error, show a retry button that clears the error and re-renders the appropriate action
     if (error) {
-        return <ButtonStatus>
-            Error
-        </ButtonStatus>
+        return <SubmitButton
+            type="button"
+            onClick={() => updateCommit('error', undefined)}
+        >
+            Try again
+        </SubmitButton>
     }
     if (commitStatus === CommitStatus.RedeemCompleted) {
         return null
@@ -57,8 +61,8 @@ export const Actions: FC<ActionsProps> = ({ quote, isQuoteLoading = false }) => 
     const { sourceDetails, commitStatus, error } = useAtomicState()
 
     return (
-        <>
-            <Error />
+        <div className="w-full space-y-3 h-fit text-primary-text">
+            {error && <TransactionMessage error={error.message} />}
             <DestinationWalletWrapper>
                 <ResolveAction
                     commitStatus={commitStatus}
@@ -67,52 +71,8 @@ export const Actions: FC<ActionsProps> = ({ quote, isQuoteLoading = false }) => 
                     quote={quote}
                 />
             </DestinationWalletWrapper>
-        </>
+        </div>
     )
-}
-
-const Error: FC = () => {
-    const { error, updateCommit, isTimelockExpired } = useAtomicState()
-
-    return <>
-        <AnimatePresence>
-            {
-                error &&
-                <>
-                    <motion.div
-                        initial={{ y: 150 }}
-                        animate={{ y: 0 }}
-                        exit={{ y: 150 }}
-                        transition={{ duration: 0.15, bounceDamping: 0 }}
-                        className="absolute z-30 bottom-0 bg-secondary-700 rounded-2xl p-3 w-full shadow-card"
-                    >
-                        <div className="w-full space-y-3 flex flex-col justify-between h-full text-secondary-text">
-                            <TransactionMessage
-                                error={error.message}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => updateCommit('error', undefined)}
-                                className='relative w-full font-semibold rounded-xl transition duration-200 ease-in-out bg-secondary-400 border border-secondary-500 text-primary-text py-3 px-2 md:px-3'
-                            >
-                                {error.buttonText || 'Try again'}
-                            </button>
-                        </div>
-                    </motion.div>
-                    {/* <ReactPortal wrapperId="widget">
-                        <motion.div
-                            className={`absolute inset-0 z-20 bg-black/50 block`}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => updateCommit('error', undefined)}
-                        />
-                    </ReactPortal> */}
-                </>
-
-            }
-        </AnimatePresence>
-    </>
 }
 
 const TransactionMessage: FC<{ error: string | undefined }> = ({ error }) => {

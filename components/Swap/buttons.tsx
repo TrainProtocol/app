@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import SubmitButton, { SubmitButtonProps } from "../buttons/submitButton";
 import ButtonStatus from "./AtomicChat/Actions/Status/ButtonStatus";
 import WalletMessage from "./messages/Message";
-import { useAtomicState } from "../../context/atomicContext";
+import { useSelectedAccount } from "../../context/swapAccounts";
 import { useConnectModal } from "../WalletModal";
 export type ActionData = {
     error: Error | null;
@@ -74,24 +74,25 @@ export const ChangeNetworkButton: FC<ChangeNetworkProps> = (props) => {
     const { provider } = useWallet(network, 'withdrawal')
     const [error, setError] = useState<Error | null>(null)
     const [isPending, setIsPending] = useState(false)
-
-    const { selectedSourceAccount } = useAtomicState()
+    const selectedSourceAccount = useSelectedAccount("from", network?.slug);
+    const { wallets } = useWallet(network, 'withdrawal')
 
     const clickHandler = useCallback(async () => {
         try {
             setIsPending(true)
-            if (!provider) throw new Error(`No provider from ${network?.slug}`)
-            if (!provider.switchChain) throw new Error(`No switchChain from ${network?.slug}`)
-            if (!selectedSourceAccount?.wallet) throw new Error(`No selectedSourceAccount from ${network?.slug}`)
+            const selectedWallet = wallets.find(w => w.id === selectedSourceAccount?.id)
+            if (!selectedWallet) throw new Error(`No selectedWallet for ${network?.slug}`)
+            if (!selectedSourceAccount) throw new Error(`No selectedSourceAccount for ${network?.slug}`)
+            if (!selectedSourceAccount.provider.switchChain) throw new Error(`No switchChain from ${network?.slug}`)
 
-            return await provider.switchChain(selectedSourceAccount?.wallet, chainId)
+            return await selectedSourceAccount.provider.switchChain(selectedWallet, chainId)
         } catch (e) {
             setError(e)
         } finally {
             setIsPending(false)
         }
 
-    }, [provider, chainId])
+    }, [selectedSourceAccount, chainId])
 
     return <>
         <ChangeNetworkMessage

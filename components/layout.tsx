@@ -19,6 +19,7 @@ import { AsyncModalProvider } from "../context/asyncModal";
 import WalletsProviders from "./WalletProviders";
 import { PulsatingCirclesProvider } from "../context/PulsatingCirclesContext";
 import { AtomicProvider } from "../context/atomicContext";
+import { SwapAccountsProvider } from "@/context/swapAccounts";
 
 type Props = {
   children: JSX.Element | JSX.Element[];
@@ -137,11 +138,13 @@ export default function Layout({ children, settings, themeData }: Props) {
               <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
                 <ThemeWrapper>
                   <WalletsProviders basePath={basePath} themeData={themeData} appName={router.query.appName?.toString()}>
-                    <AsyncModalProvider>
-                      {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
-                        <MaintananceContent />
-                        : children}
-                    </AsyncModalProvider>
+                    <SwapAccountsProvider>
+                      <AsyncModalProvider>
+                        {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
+                          <MaintananceContent />
+                          : children}
+                      </AsyncModalProvider>
+                    </SwapAccountsProvider>
                   </WalletsProviders>
                 </ThemeWrapper>
               </ErrorBoundary>

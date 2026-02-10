@@ -12,7 +12,7 @@ import MobileTooltip from "../../../../Modal/mobileTooltip";
 import { getExplorerUrl } from "@/lib/address";
 
 export const RequestStep: FC = () => {
-    const { sourceDetails, commitId, commitTxId, source_network, commitFromApi, isTimelockExpired, source_asset, amount, selectedSourceAccount } = useAtomicState()
+    const { sourceDetails, commitId, commitTxId, source_network, commitFromApi, isTimelockExpired, source_asset, amount } = useAtomicState()
 
     const commtting = (commitId && !sourceDetails) ? true : false;
     const commited = sourceDetails ? true : false;

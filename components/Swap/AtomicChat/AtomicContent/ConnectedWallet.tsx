@@ -5,50 +5,46 @@ import AddressWithIcon from "../../../Input/Address/AddressPicker/AddressWithIco
 import { AddressGroup } from "../../../Input/Address/AddressPicker";
 import { ChevronRight } from "lucide-react";
 import { Wallet } from "../../../../Models/WalletProvider";
-import useSWRBalance from "../../../../lib/balances/useSWRBalance";
 import VaulDrawer from "../../../Modal/vaulModal";
 import WalletsList from "../../../Wallet/WalletsList";
 import { useAtomicState } from "../../../../context/atomicContext";
 import { useSettingsState } from "../../../../context/settings";
+import { useSelectedAccount, useSelectSwapAccount } from "../../../../context/swapAccounts";
 
 const Component: FC = () => {
-    const { source_asset, source_network, commitId, setSelectedSourceAccount, selectedSourceAccount } = useAtomicState()
+    const { source_asset, source_network, commitId } = useAtomicState()
     const { provider } = useWallet(source_network, 'withdrawal')
     const { networks } = useSettingsState()
     const sourceNetworkWithTokens = networks.find(n => n.slug === source_network?.slug)
     const [openModal, setOpenModal] = useState(false)
+    const selectedSourceAccount = useSelectedAccount("from", source_network?.slug)
+    const selectSourceAccount = useSelectSwapAccount("from")
 
     const changeWallet = async (wallet: Wallet, address: string) => {
         provider?.switchAccount && provider.switchAccount(wallet, address)
-        setSelectedSourceAccount({ wallet, address })
+        selectSourceAccount({ address, id: wallet.id, providerName: wallet.providerName })
         setOpenModal(false)
     }
 
-    const selectedWallet = selectedSourceAccount?.wallet
+    const selectedWallet = selectedSourceAccount && provider?.connectedWallets?.find(w => w.id === selectedSourceAccount.id && w.addresses?.some(a => a.toLowerCase() === selectedSourceAccount.address.toLowerCase()))
     const activeWallet = provider?.activeWallet
 
     useEffect(() => {
         if (!selectedSourceAccount && activeWallet) {
-            setSelectedSourceAccount({
-                wallet: activeWallet,
-                address: activeWallet.address
-            })
+            selectSourceAccount({ address: activeWallet.address, id: activeWallet.id, providerName: activeWallet.providerName })
         } else if (selectedSourceAccount && activeWallet && !activeWallet.addresses.some(a => a.toLowerCase() === selectedSourceAccount.address.toLowerCase())) {
             const selectedWalletIsConnected = provider.connectedWallets?.some(w => w.addresses.some(a => a.toLowerCase() === selectedSourceAccount.address.toLowerCase()))
             if (selectedWalletIsConnected) {
-                provider.switchAccount && provider.switchAccount(selectedSourceAccount.wallet, selectedSourceAccount.address)
+                const wallet = provider.connectedWallets?.find(w => w.addresses.some(a => a.toLowerCase() === selectedSourceAccount.address.toLowerCase()))
+                wallet && provider.switchAccount && provider.switchAccount(wallet, selectedSourceAccount.address)
             }
             else {
-                setSelectedSourceAccount(undefined)
+                selectSourceAccount({ address: activeWallet.address, id: activeWallet.id, providerName: activeWallet.providerName })
             }
         }
-    }, [activeWallet?.address, setSelectedSourceAccount, provider, selectedSourceAccount?.address])
+    }, [activeWallet?.address, selectSourceAccount, provider, selectedSourceAccount?.address])
 
 
-    const { balance, isBalanceLoading } = useSWRBalance(selectedWallet?.address, sourceNetworkWithTokens)
-
-    const walletBalance = source_network && balance?.find(b => b?.network === source_network?.slug && b?.token === source_asset?.symbol)
-    const walletBalanceAmount = (source_asset && walletBalance?.amount) && truncateDecimals(walletBalance?.amount, Math.min(source_asset?.decimals, 8))
 
     return (
         !commitId &&
