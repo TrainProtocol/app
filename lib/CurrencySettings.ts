@@ -28,9 +28,6 @@ export default class CurrencySettings {
         CurrencySettings.KnownSettings[KnownInternalNames.Currencies.USDT] = {
             Order: 3,
         };
-        CurrencySettings.KnownSettings[KnownInternalNames.Currencies.LRC] = {
-            Order: 4,
-        };
     }
 }
 

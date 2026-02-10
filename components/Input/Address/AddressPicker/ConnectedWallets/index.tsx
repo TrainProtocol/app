@@ -1,28 +1,28 @@
 
 import { ChevronDown, Plus, RefreshCw } from "lucide-react";
-import { Network } from "../../../../../Models/Network";
+import { Network } from "@/Models/Network";
 import { FC, useState } from "react";
-import ResizablePanel from "../../../../ResizablePanel";
-import { Wallet, WalletProvider } from "../../../../../Models/WalletProvider";
-import WalletIcon from "../../../../Icons/WalletIcon";
-import { WalletItem } from "../../../../Wallet/WalletsList";
-import { useConnectModal } from "../../../../WalletModal";
+import ResizablePanel from "@/components/ResizablePanel";
+import { SelectAccountProps, Wallet, WalletProvider } from "@/Models/WalletProvider";
+import WalletIcon from "@/components/Icons/WalletIcon";
+import { WalletItem } from "@/components/Wallet/WalletsList";
+import { useConnectModal } from "@/components/WalletModal";
 
 type Props = {
     provider: WalletProvider,
-    wallets: Wallet[],
-    onClick: (wallet: Wallet, address: string,) => void,
+    notCompatibleWallets: Wallet[],
+    onClick: (props: SelectAccountProps) => void,
     onConnect?: (wallet: Wallet) => void,
     destination: Network,
     destination_address?: string | undefined
 }
 
-const ConnectedWallets: FC<Props> = ({ provider, wallets, onClick, onConnect, destination, destination_address }) => {
+const ConnectedWallets: FC<Props> = ({ provider, notCompatibleWallets, onClick, onConnect, destination, destination_address }) => {
 
     const [isLoading, setIsLoading] = useState(false)
     const [showIncompatibleWallets, setShowIncompatibleWallets] = useState(false)
-    const connectedWallets = provider.connectedWallets?.filter(wallet => !wallet.isNotAvailable)
     const { connect } = useConnectModal()
+    const connectedWallets = provider.connectedWallets?.filter(wallet => !wallet.isNotAvailable)
 
     const handleConnect = async () => {
         setIsLoading(true)
@@ -31,9 +31,7 @@ const ConnectedWallets: FC<Props> = ({ provider, wallets, onClick, onConnect, de
         setIsLoading(false)
     }
 
-    //TODO: should check for real compatibility, in the future network can have wallets from multiple providers
-    const notCompatibleWallets = wallets.filter(wallet => wallet.providerName !== provider.name || wallet.isNotAvailable)
-    return <div className="space-y-2">
+    return (notCompatibleWallets?.length || connectedWallets?.length) ? <div className="flex flex-col gap-2">
         {
             connectedWallets && connectedWallets?.length > 0 &&
             <div className="flex flex-col gap-2">
@@ -61,7 +59,7 @@ const ConnectedWallets: FC<Props> = ({ provider, wallets, onClick, onConnect, de
                     connectedWallets.map((wallet, index) => {
                         return <WalletItem
                             key={`${index}${wallet.providerName}`}
-                            wallet={wallet}
+                            account={wallet}
                             selectable
                             network={destination}
                             onWalletSelect={onClick}
@@ -71,13 +69,11 @@ const ConnectedWallets: FC<Props> = ({ provider, wallets, onClick, onConnect, de
                 }
             </div>
         }
-
-
         {
             notCompatibleWallets.length > 0 &&
             (notCompatibleWallets.length > 1 ? (
                 <ResizablePanel>
-                    <div className="flex flex-col gap-2 pl-2">
+                    <div className="flex flex-col gap-2">
                         <button
                             onClick={() => setShowIncompatibleWallets(!showIncompatibleWallets)}
                             disabled={isLoading}
@@ -96,7 +92,7 @@ const ConnectedWallets: FC<Props> = ({ provider, wallets, onClick, onConnect, de
                                     <div className="space-x-1 flex">
                                         {notCompatibleWallets?.map((wallet) => (
                                             <div key={wallet.address} className="inline-flex items-center relative">
-                                                <wallet.icon className="w-4 h-4 rounded-sm bg-secondary-800" />
+                                                <wallet.icon className="w-4 h-4 rounded-xs bg-secondary-800" />
                                             </div>
                                         ))}
                                         <ChevronDown
@@ -108,12 +104,13 @@ const ConnectedWallets: FC<Props> = ({ provider, wallets, onClick, onConnect, de
                         </button>
                         {showIncompatibleWallets &&
                             notCompatibleWallets.map((wallet, index) => (
-                                <div key={`${index}${wallet.address}`} className="group/addressItem w-full rounded-md hover:!bg-secondary-700 transition duration-200 opacity-50 cursor-not-allowed">
+                                <div key={`${index}${wallet.address}`} className="group/addressItem w-full rounded-md hover:bg-secondary-700! transition duration-200 opacity-50 cursor-not-allowed">
                                     <WalletItem
-                                        wallet={wallet}
+                                        account={wallet}
                                         selectable={true}
                                         network={destination}
                                         selectedAddress={undefined}
+                                        isCompatible={false}
                                     />
                                 </div>
                             ))}
@@ -128,10 +125,11 @@ const ConnectedWallets: FC<Props> = ({ provider, wallets, onClick, onConnect, de
                     </div>
                     <div className="w-full z-10">
                         <WalletItem
-                            wallet={notCompatibleWallets[0]}
+                            account={notCompatibleWallets[0]}
                             selectable={true}
                             network={destination}
                             selectedAddress={undefined}
+                            isCompatible={false}
                         />
                     </div>
                 </div>
@@ -139,6 +137,7 @@ const ConnectedWallets: FC<Props> = ({ provider, wallets, onClick, onConnect, de
         }
 
     </div>
+        : null
 }
 
 export default ConnectedWallets;

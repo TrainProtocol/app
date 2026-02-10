@@ -1,5 +1,5 @@
 import { Formik, FormikProps } from "formik";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import React from "react";
 import MainStepValidation from "../../../lib/mainStepValidator";
@@ -13,10 +13,8 @@ import { useAtomicState } from "../../../context/atomicContext";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
-import WizardItem from "../../Wizard/WizardItem";
-import Wizard from "../../Wizard/Wizard";
-import { AtomicSteps } from "../../../Models/Wizard";
-import { useFormWizardaUpdate, useFormWizardState } from "../../../context/formWizardProvider";
+import VaulDrawer from "../../Modal/vaulModal";
+import { Widget } from "../../Widget/Index";
 import { generateSwapInitialValues } from "../../../lib/generateSwapInitialValues";
 import { useSettingsState } from "../../../context/settings";
 import { resolvePersistantQueryParams } from "../../../helpers/querryHelper";
@@ -39,13 +37,12 @@ const AtomicPage = dynamicWithRetries(
 export default function Form() {
     const formikRef = useRef<FormikProps<SwapFormValues>>(null);
     const router = useRouter();
-    const { goToStep } = useFormWizardaUpdate()
-    const { currentStepName } = useFormWizardState()
     const query = useQueryState()
     const { isLoggedIn } = useSecretDerivation()
 
     const [quote, setQuote] = useState<SwapQuote | undefined>()
     const [polling, setPolling] = useState(true)
+    const [swapModalOpen, setSwapModalOpen] = useState(false)
     const { getProvider } = useWallet()
     const { atomicQuery, setAtomicQuery } = useAtomicState()
     const settings = useSettingsState()
@@ -53,6 +50,21 @@ export default function Form() {
     const {
         commitId
     } = atomicQuery;
+
+    const handleShowSwapModal = useCallback((value: boolean) => {
+        if (value) {
+            setPolling(false);
+            if (atomicQuery.source) setAtomicPath({ atomicQuery, router });
+        } else {
+            setPolling(true);
+            removeSwapPath(router);
+        }
+        setSwapModalOpen(value);
+    }, [atomicQuery, router]);
+
+    useEffect(() => {
+        if (commitId) handleShowSwapModal(true);
+    }, [commitId]);
 
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
@@ -101,7 +113,8 @@ export default function Form() {
                 atomicQuery: atomicValues,
                 router
             })
-            goToStep(AtomicSteps.Swap)
+            setSwapModalOpen(true)
+            setPolling(false)
         }
         catch (error) {
             console.log(error)
@@ -111,23 +124,13 @@ export default function Form() {
 
     const initialValues: SwapFormValues = generateSwapInitialValues(settings, query)
 
-    // useEffect(() => {
-    //     formikRef.current?.validateForm();
-    // }, [minAllowedAmount, maxAllowedAmount]);
-
-    const handleWizardRouting = useCallback((step: AtomicSteps, move?: 'back' | 'forward') => {
-        setPolling(move === 'back')
-        goToStep(step, move)
-        move == 'forward' ? (atomicQuery.source && setAtomicPath({ atomicQuery, router })) : removeSwapPath(router)
-    }, [atomicQuery, router])
-
     return <>
         <AnimatePresence mode='wait'>
             {
                 commitId &&
-                currentStepName !== AtomicSteps.Swap &&
+                !swapModalOpen &&
                 <div className="cursor-pointer absolute z-10 mt-4 ml-6">
-                    <PendingSwap key="pendingSwap" onClick={() => handleWizardRouting(AtomicSteps.Swap, 'forward')} />
+                    <PendingSwap key="pendingSwap" onClick={() => handleShowSwapModal(true)} />
                 </div>
             }
         </AnimatePresence>
@@ -139,14 +142,22 @@ export default function Form() {
             validate={MainStepValidation()}
             onSubmit={handleSubmit}
         >
-            <Wizard wizardId={"atomicSteps"}>
-                <WizardItem StepName={AtomicSteps.Form}>
+            <>
+                <VaulDrawer
+                    show={swapModalOpen}
+                    setShow={handleShowSwapModal}
+                    header="Complete the swap"
+                    modalId="showAtomicSwap"
+                    className="expandContainerHeight"
+                >
+                    <VaulDrawer.Snap id="item-1">
+                        <AtomicPage type='contained' />
+                    </VaulDrawer.Snap>
+                </VaulDrawer>
+                <Widget>
                     <SwapForm polling={polling} onQuoteChange={setQuote} />
-                </WizardItem>
-                <WizardItem StepName={AtomicSteps.Swap} GoBack={() => handleWizardRouting(AtomicSteps.Form, 'back')}>
-                    <AtomicPage type='contained' />
-                </WizardItem>
-            </Wizard>
+                </Widget>
+            </>
         </Formik>
     </>
 }

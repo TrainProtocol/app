@@ -1,11 +1,11 @@
-import WalletIcon from "@/components/Icons/WalletIcon"
-import useWallet from "@/hooks/useWallet"
-import ConnectButton from "@/components/buttons/connectButton"
+import WalletIcon from "../Icons/WalletIcon"
+import { Address } from "@/lib/address"
+import useWallet from "../../hooks/useWallet"
+import ConnectButton from "../buttons/connectButton"
 import { useState } from "react"
 import WalletsList from "./WalletsList"
 import { Wallet } from "../../Models/WalletProvider"
 import VaulDrawer from "../Modal/vaulModal"
-import { Address } from "@/lib/address"
 
 export const WalletsHeader = () => {
     const { wallets } = useWallet()

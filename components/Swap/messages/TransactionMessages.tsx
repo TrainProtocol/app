@@ -1,5 +1,5 @@
 import { FC } from "react"
-import WalletMessage from "./Message"
+import WalletMessage, { WalletUnknownError } from "./Message"
 
 const ConfirmTransactionMessage: FC = () => {
     return <WalletMessage
@@ -26,15 +26,11 @@ const TransactionRejectedMessage: FC = () => {
     return <WalletMessage
         status="error"
         header='Transaction rejected'
-        details={`You've rejected the transaction in your wallet. Click “Try again” to open the prompt again.`} />
+        details={`You've rejected the transaction in your wallet. Click "Try again" to open the prompt again.`} />
 }
 
 const UexpectedErrorMessage: FC<{ message: string }> = ({ message }) => {
-    return <WalletMessage
-        status="error"
-        header='Unexpected error'
-        details={message}
-    />
+    return <WalletUnknownError />
 }
 
 const TransactionMessages = {

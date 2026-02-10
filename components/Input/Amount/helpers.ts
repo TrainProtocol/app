@@ -1,7 +1,8 @@
-import { TokenBalance } from "@/lib/balances/useSWRBalance"
+import { TokenBalance } from "@/Models/Balance"
 import { Token } from "@/Models/Network"
 
-type ResolveMaxAllowedAmountProps = {
+
+type ResoleMaxAllowedAmountProps = {
     limitsMaxAmount: number | undefined
     walletBalance: TokenBalance | undefined
     gasAmount: number
@@ -11,13 +12,13 @@ type ResolveMaxAllowedAmountProps = {
     fallbackAmount: number
 }
 
-export const resolveMaxAllowedAmount = (props: ResolveMaxAllowedAmountProps) => {
+export const resolveMaxAllowedAmount = (props: ResoleMaxAllowedAmountProps) => {
     const { limitsMaxAmount, walletBalance, gasAmount, fromCurrency, native_currency, depositMethod, fallbackAmount } = props
 
     if (!walletBalance || isNaN(Number(walletBalance.amount)) || depositMethod !== 'wallet')
         return limitsMaxAmount
 
-    const shouldPayGasWithTheToken = Number(walletBalance.amount) > 0 && ((native_currency?.symbol === fromCurrency?.symbol) || !native_currency)
+    const shouldPayGasWithTheToken = Number(walletBalance.amount) > 0 && (native_currency?.symbol === fromCurrency?.symbol) || !native_currency
     const payableAmount = Number(walletBalance.amount) - gasAmount
 
     if (!shouldPayGasWithTheToken)

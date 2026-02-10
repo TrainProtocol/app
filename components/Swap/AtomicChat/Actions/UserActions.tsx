@@ -1,15 +1,14 @@
 import { FC, useState } from "react";
-import useWallet from "../../../../hooks/useWallet";
-import { useAtomicState } from "../../../../context/atomicContext";
+import useWallet from "@/hooks/useWallet";
+import { useAtomicState } from "@/context/atomicContext";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
 import ButtonStatus from "./Status/ButtonStatus";
 import { useRouter } from "next/router";
-import useCommitDetailsPolling from "../../../../hooks/htlc/useCommitDetailsPolling";
-import useLockDetailsPolling from "../../../../hooks/htlc/useLockDetailsPolling";
-import useRefundStatusPolling from "../../../../hooks/htlc/useRefundStatusPolling";
-import { SignFlowModal } from "@/components/SecretDerivation";
-import { SwapQuote } from "../../../../lib/trainApiClient";
+import useCommitDetailsPolling from "@/hooks/htlc/useCommitDetailsPolling";
+import useLockDetailsPolling from "@/hooks/htlc/useLockDetailsPolling";
+import useRefundStatusPolling from "@/hooks/htlc/useRefundStatusPolling";
+import { SwapQuote } from "@/lib/trainApiClient";
 
 type UserCommitActionProps = {
     quote?: SwapQuote
@@ -19,7 +18,6 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
     const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, updateCommit, srcAtomicContract } = useAtomicState();
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
-    const [signFlowOpen, setSignFlowOpen] = useState(false)
 
     const atomicContract = srcAtomicContract
     const destLpAddress = quote?.destinationSolverAddress
@@ -55,6 +53,9 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
                 throw new Error("No lp address")
             }
 
+            if (provider.activeWallet && (provider.activeWallet.chainId != source_network.chainId) && provider.switchChain)
+                await provider.switchChain(provider.activeWallet, source_network.chainId)
+
             const { commitId, hash } = await provider.createPreHTLC({
                 address,
                 amount: amount.toString(),
@@ -86,10 +87,6 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
         catch (e) {
             updateCommit('error', { message: e.details || e.message })
         }
-    }
-
-    const onConfirmClick = async () => {
-        setSignFlowOpen(true)
     }
 
     // Poll for commit details using SWR

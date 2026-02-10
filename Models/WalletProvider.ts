@@ -1,4 +1,4 @@
-import { AccountInterface, WalletAccount } from 'starknet';
+import { WalletAccount } from 'starknet';
 import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from './phtlc';
 import { Commit } from './phtlc/PHTLC';
 
@@ -75,4 +75,10 @@ export type AtmoicFunctions = {
     getDetails: (args: CommitmentParams) => Promise<Commit | null>,
     secureGetDetails?: (args: CommitmentParams) => Promise<Commit | null>,
     addLock?: (args: CommitmentParams & LockParams) => Promise<{ hash: string, result: any } | null>,
+}
+
+export type SelectAccountProps = {
+    walletId: string;
+    address: string;
+    providerName: string;
 }

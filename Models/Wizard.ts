@@ -62,12 +62,7 @@ export enum MenuStep {
     NetworkRPCEdit = "Network RPC Edit"
 }
 
-export enum AtomicSteps {
-    Form = "Form",
-    Swap = "Swap",
-}
-
-export type Steps = AuthStep | SwapWithdrawalStep | SwapCreateStep | MenuStep | AtomicSteps
+export type Steps = AuthStep | SwapWithdrawalStep | SwapCreateStep | MenuStep
 
 export const ExchangeAuthorizationSteps: { [key: string]: SwapCreateStep } = {
     "api_credentials": SwapCreateStep.ApiKey,

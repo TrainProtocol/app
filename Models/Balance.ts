@@ -1,32 +1,39 @@
 import { Network, Token } from "./Network"
 import { Wallet } from "./WalletProvider"
+import { NodeErrorCategory } from "@/lib/balances/nodeErrorClassifier"
 
 export type GasProps = {
     network: Network,
     token: Token,
-    address?: `0x${string}`,
+    address?: string,
     recipientAddress?: string,
-    wallet?: Wallet
+    wallet?: Wallet,
+    amount?: number,
     contractMethod?: 'commit' | 'addLock',
 }
 
-export type Balance = {
+export type TokenBalanceError = {
+    message: string;
+    name?: string;
+    stack?: string;
+    code?: string;
+    status?: number;
+    statusText?: string;
+    responseData?: unknown;
+    requestUrl?: string;
+    category?: NodeErrorCategory;
+}
+
+export type TokenBalance = {
     network: string,
-    amount: number,
+    amount: number | undefined,
     decimals: number,
     isNativeCurrency: boolean,
     token: string,
     request_time: string,
+    error?: TokenBalanceError
 }
 
-export type Gas = {
-    token: string,
-    gas: number,
-    gasDetails?: {
-        gasLimit?: number,
-        maxFeePerGas?: number,
-        gasPrice?: number,
-        maxPriorityFeePerGas?: number
-    },
-    request_time: string
+export type NetworkBalance = {
+    balances?: TokenBalance[] | null,
 }

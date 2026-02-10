@@ -4,8 +4,8 @@ import { truncateDecimals } from "@/components/utils/RoundDecimals";
 import { SelectItem } from "@/components/Select/Selector/SelectItem";
 import { ChevronDown } from "lucide-react";
 import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
-import useSWRBalance from "@/lib/balances/useSWRBalance";
-import { useAtomicState } from "@/context/atomicContext";
+import { useBalance } from "@/lib/balances/useBalance";
+import { useSelectedAccount } from "@/context/swapAccounts";
 import { memo } from "react";
 import { RowElement } from "@/Models/Route";
 import { resolveTokenLogoUrl } from "@/components/utils/resolveTokenLogoUrl";
@@ -41,12 +41,12 @@ type NetworkTokenItemProps = {
 
 export const NetworkTokenTitle = (props: NetworkTokenItemProps) => {
     const { item, route, direction } = props
-    const { selectedSourceAccount } = useAtomicState();
+    const selectedSourceAccount = useSelectedAccount("from", route?.slug);
 
     const address = direction === 'from' ? selectedSourceAccount?.address : undefined;
-    const { balance } = useSWRBalance(address, route);
+    const { balances } = useBalance(address, route);
 
-    const tokenBalance = balance?.find(b => b.token === item.symbol);
+    const tokenBalance = balances?.find(b => b.token === item.symbol);
     const formatted_balance_amount = (tokenBalance?.amount || tokenBalance?.amount === 0)
         ? truncateDecimals(tokenBalance?.amount, Math.min(item.decimals, 8))
         : '';

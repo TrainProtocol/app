@@ -3,7 +3,7 @@ import ResizablePanel from "../../../ResizablePanel";
 import { CommitStatus, useAtomicState } from "../../../../context/atomicContext";
 import KnownInternalNames from "../../../../lib/knownIds";
 import CheckedIcon from "../../../Icons/CheckedIcon";
-import MotionSummary from "./Summary";
+import Summary from "./Summary";
 import { CircleAlert, ExternalLink } from "lucide-react";
 import ConnectedWallet from "./ConnectedWallet";
 import Link from "next/link";
@@ -12,7 +12,8 @@ import { useRive } from "@rive-app/react-canvas";
 import SpinIcon from "../../../Icons/spinIcon";
 import { getExplorerUrl } from "@/lib/address";
 import { SwapQuote } from "../../../../lib/trainApiClient";
-import NetworkSettings from "@/lib/NetworkSettings";
+import SwapQuoteComp from "@/components/FeeDetails/SwapQuote";
+import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 
 type AtomicContentProps = {
     quote?: SwapQuote
@@ -21,12 +22,20 @@ type AtomicContentProps = {
 
 const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }) => {
 
-    const { commitStatus, isManualClaimable, manualClaimRequested, destination_network, destRedeemTx, destinationDetails } = useAtomicState()
+    const { commitStatus, isManualClaimable, manualClaimRequested, destination_network, source_network, source_asset, destination_asset, destRedeemTx, destinationDetails, amount } = useAtomicState()
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
     const isAztecDestination = destination_network?.slug === KnownInternalNames.Networks.AztecTestnet;
     const isActualFailure = isManualClaimable && !isAztecDestination;
 
     const { setPulseState } = usePulsatingCircles();
+
+    const values: SwapFormValues = {
+        amount: amount?.toString(),
+        from: source_network,
+        to: destination_network,
+        fromCurrency: source_asset,
+        toCurrency: destination_asset,
+    }
 
     useEffect(() => {
         if (commitStatus === CommitStatus.RedeemCompleted) {
@@ -41,20 +50,15 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
     }, [assetsLocked, commitStatus, isActualFailure, manualClaimRequested, destinationDetails?.claimed]);
 
     return (
-        destination_network && <>
-            <ResizablePanel>
-                <div className="w-full flex flex-col justify-between text-secondary-text">
-                    <div className='grid grid-cols-1 gap-4'>
-                        <ReleasingAssets
+        <>
+            {/* <ReleasingAssets
                             commitStatus={commitStatus}
                             isManualClaimable={isManualClaimable}
                             manualClaimRequested={manualClaimRequested}
-                            redeemTxLink={destRedeemTx && getExplorerUrl(NetworkSettings.KnownSettings[destination_network.slug]?.TransactionExplorerTemplate, destRedeemTx)}
-                        />
-                        <MotionSummary quote={quote} isQuoteLoading={isQuoteLoading} />
-                    </div>
-                </div>
-            </ResizablePanel >
+                            redeemTxLink={destRedeemTx && getExplorerUrl(`destination_network?.transactionExplorerTemplate`, destRedeemTx)}
+                        /> */}
+            <Summary quote={quote} isQuoteLoading={isQuoteLoading} />
+            <SwapQuoteComp values={values} quote={quote} isQuoteLoading={isQuoteLoading} />
             <ConnectedWallet />
         </>
 

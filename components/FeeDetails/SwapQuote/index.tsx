@@ -33,7 +33,7 @@ const SwapQuoteComp: FC<QuoteComponentProps> = ({ values, quote, isQuoteLoading 
                     <SummaryRow
                         isQuoteLoading={isQuoteLoading}
                         values={values}
-                        quote={quote}
+                        quoteData={quote}
                         onOpen={() => setIsOpen(true)}
                         isOpen={isOpen}
                     />
