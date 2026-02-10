@@ -42,10 +42,15 @@ export const deriveKeyFromEvmSignature = async (
     throw new Error('Please switch to Ethereum Mainnet in your wallet and try again');
   }
 
-  const signature = await provider.request({
-    method: 'eth_signTypedData_v4',
-    params: [address, JSON.stringify(getEvmTypedData())],
-  });
+  let signature: string;
+  try {
+    signature = await provider.request({
+      method: 'eth_signTypedData_v4',
+      params: [address, JSON.stringify(getEvmTypedData())],
+    });
+  } catch {
+    throw new Error('Signing failed. Please switch to Ethereum Mainnet in your wallet and try again');
+  }
 
   const signatureHex = signature.startsWith('0x') ? signature.slice(2) : signature;
   const inputMaterial = Buffer.from(signatureHex, 'hex');

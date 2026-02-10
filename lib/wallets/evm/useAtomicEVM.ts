@@ -52,7 +52,6 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): AtomicEVMFunct
             wallet: account!.wallet,
             config
         })
-        console.log('secret', secret)
         const hashlock = secretToHashlock(secret)
 
         const tokenAddress = sourceAsset.contractAddress
@@ -125,7 +124,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): AtomicEVMFunct
         try {
             const { request } = await simulateContract(config, simulationData)
             const hash = await writeContract(config, request)
-    
+
             return { hash, commitId: hashlock }
         }
         catch (error) {

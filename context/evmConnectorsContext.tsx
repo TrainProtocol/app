@@ -48,7 +48,7 @@ const hiddenWalletConnectConnector = customWalletConnect({
 const featuredWallets = resolveFeaturedWallets(_walletConnectWallets)
 
 // Create stable connector instances at module level to ensure wagmi can reconnect properly
-const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://https://app.train.tech'
+const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://app.train.tech'
 
 const metaMaskConnector = metaMask({
     dappMetadata: {

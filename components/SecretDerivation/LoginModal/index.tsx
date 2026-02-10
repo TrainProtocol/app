@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useConfig } from 'wagmi';
-import { Loader2, ChevronLeft } from 'lucide-react';
+import { Loader2, ChevronLeft, CircleX } from 'lucide-react';
 import toast from 'react-hot-toast';
 import VaulModal from '../../Modal/vaulModal';
 import { useSecretDerivation } from '@/context/secretDerivationContext';
@@ -31,11 +31,13 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const { currentStep, goToStep, goBack, canGoBack, reset, isStep } = useSteps<LoginStep>({ initial: 'pick' });
   const [noPasskeyHint, setNoPasskeyHint] = useState(false);
   const [signingWallet, setSigningWallet] = useState<Wallet | null>(null);
+  const [signingError, setSigningError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       reset();
       setNoPasskeyHint(false);
+      setSigningError(null);
     }
   }, [isOpen, reset]);
 
@@ -71,14 +73,15 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   const startWalletLogin = async (wallet: Wallet) => {
     setSigningWallet(wallet);
+    setSigningError(null);
     goToStep('signing');
     try {
       await loginWithWallet(config, wallet);
       toast.success('Logged in with wallet');
       closeAndReset();
     } catch (e) {
-      toast.error(getErrorMessage(e, 'Wallet login failed'));
-      goToStep('wallet_select', 'back');
+      const message = getErrorMessage(e, 'Wallet login failed');
+      setSigningError(message);
     }
   };
 
@@ -142,6 +145,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
             <Signing
               derivationMessage={derivationMessage}
               onRetry={signingWallet ? () => startWalletLogin(signingWallet) : undefined}
+              error={signingError}
             />
           </Step>
 
@@ -152,28 +156,39 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 }
 
 
-const Signing = ({ derivationMessage, onRetry }: { derivationMessage: string, onRetry?: () => void }) => {
+const Signing = ({ derivationMessage, onRetry, error }: { derivationMessage: string, onRetry?: () => void, error?: string | null }) => {
   const [showRetry, setShowRetry] = useState(false);
+  const showButton = error ? !!onRetry : showRetry && !!onRetry;
 
   useEffect(() => {
     setShowRetry(false);
-    if (!onRetry) return;
+    if (!onRetry || error) return;
     const timer = setTimeout(() => setShowRetry(true), 10000);
     return () => clearTimeout(timer);
-  }, [onRetry]);
+  }, [onRetry, error]);
+
+  const icon = error
+    ? <CircleX className="w-8 h-8 text-primary-500" />
+    : <Loader2 className="w-8 h-8 text-primary animate-spin" />;
+
+  const title = error
+    ? 'Failed'
+    : (derivationMessage || 'Please sign…');
+
+  const subtitle = error
+    ? error
+    : 'Complete the action in your passkey or wallet. Do not close this window.';
 
   return (
-    <div className="flex flex-col items-center justify-center gap-5 py-10">
+    <div className={`flex flex-col items-center justify-center gap-5 pt-10 ${showButton ? 'pb-5' : 'pb-10'}`}>
       <div className="w-14 h-14 rounded-2xl bg-secondary-700 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        {icon}
       </div>
-      <p className="text-center text-primary-text font-semibold">
-        {derivationMessage || 'Please sign…'}
-      </p>
-      <p className="text-sm text-secondary-text text-center max-w-[260px]">
-        Complete the action in your passkey or wallet. Do not close this window.
-      </p>
-      {showRetry && onRetry && (
+      <div className="text-center space-y-1">
+        <p className="text-primary-text font-semibold">{title}</p>
+        <p className="text-sm text-secondary-text max-w-[280px]">{subtitle}</p>
+      </div>
+      {showButton && (
         <button
           type="button"
           onClick={onRetry}
