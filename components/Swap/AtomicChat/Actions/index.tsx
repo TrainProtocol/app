@@ -9,8 +9,16 @@ import ButtonStatus from "./Status/ButtonStatus";
 import WalletMessage from "../../messages/Message";
 import { Commit } from "../../../../Models/phtlc/PHTLC";
 import DestinationWalletWrapper from "./DestinationWalletWrapper";
+import { SwapQuote } from "../../../../lib/trainApiClient";
 
-const ResolveAction: FC<{ sourceDetails: Commit | undefined, commitStatus: CommitStatus, error: string | undefined }> = ({ commitStatus, sourceDetails, error }) => {
+type ResolveActionProps = {
+    sourceDetails: Commit | undefined
+    commitStatus: CommitStatus
+    error: string | undefined
+    quote?: SwapQuote
+}
+
+const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, sourceDetails, error, quote }) => {
 
     if (error) {
         return <ButtonStatus>
@@ -37,10 +45,15 @@ const ResolveAction: FC<{ sourceDetails: Commit | undefined, commitStatus: Commi
     if (commitStatus === CommitStatus.Commited) {
         return <LpLockingAssets />
     }
-    return <UserCommitAction />
+    return <UserCommitAction quote={quote} />
 }
 
-export const Actions: FC = () => {
+type ActionsProps = {
+    quote?: SwapQuote
+    isQuoteLoading?: boolean
+}
+
+export const Actions: FC<ActionsProps> = ({ quote, isQuoteLoading = false }) => {
     const { sourceDetails, commitStatus, error } = useAtomicState()
 
     return (
@@ -51,6 +64,7 @@ export const Actions: FC = () => {
                     commitStatus={commitStatus}
                     sourceDetails={sourceDetails}
                     error={error?.message}
+                    quote={quote}
                 />
             </DestinationWalletWrapper>
         </>

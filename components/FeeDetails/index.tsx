@@ -1,14 +1,19 @@
-
 import { SwapFormValues } from '../DTOs/SwapFormValues';
 import { ReceiveAmounts } from './ReceiveAmounts';
 import DetailedEstimates from './DetailedEstimates';
-import { useFee } from '../../context/feeContext';
 import FeeDetails from './FeeDetailsComponent';
 import ResizablePanel from '../ResizablePanel';
+import { SwapQuote } from '../../lib/trainApiClient';
 
-export default function FeeDetailsComponent({ values }: { values: SwapFormValues }) {
-    const { toCurrency, refuel, fromCurrency, amount } = values || {};
-    const { fee, isFeeLoading } = useFee()
+type FeeDetailsComponentProps = {
+    values: SwapFormValues
+    quote?: SwapQuote
+    isFeeLoading?: boolean
+}
+
+export default function FeeDetailsComponent({ values, quote, isFeeLoading = false }: FeeDetailsComponentProps) {
+    const { toCurrency, fromCurrency, amount } = values || {}
+    const fee = quote != null ? { quote } : undefined
 
     return (
         <span className={amount ? 'visible' : 'hidden'}>
@@ -16,9 +21,9 @@ export default function FeeDetailsComponent({ values }: { values: SwapFormValues
                 <FeeDetails>
 
                     {
-                        fee && fromCurrency && toCurrency &&
+                        quote && fromCurrency && toCurrency &&
                         <FeeDetails.Item>
-                            <DetailedEstimates />
+                            <DetailedEstimates fromCurrency={fromCurrency} quote={quote} isFeeLoading={isFeeLoading} />
                         </FeeDetails.Item>
                     }
 

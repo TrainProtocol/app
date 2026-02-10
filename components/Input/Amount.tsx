@@ -2,7 +2,6 @@ import { useFormikContext } from "formik";
 import { forwardRef, useRef, useState } from "react";
 import { SwapFormValues } from "../DTOs/SwapFormValues";
 import NumericInput from "./NumericInput";
-import { useFee } from "../../context/feeContext";
 import dynamic from "next/dynamic";
 import { useQueryState } from "../../context/query";
 import useSWRGas from "../../lib/gases/useSWRGas";
@@ -18,7 +17,6 @@ const AmountField = forwardRef(function AmountField(_, ref: any) {
 
     const { values, handleChange } = useFormikContext<SwapFormValues>();
     const { fromCurrency, from, to, amount, toCurrency } = values || {};
-    // const { fee, isFeeLoading } = useFee()
     const { selectedSourceAccount } = useAtomicState()
     const [isFocused, setIsFocused] = useState(false);
     const sourceAddress = selectedSourceAccount?.address

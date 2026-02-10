@@ -1,20 +1,25 @@
 import { Form, useFormikContext } from "formik";
-import { FC, useEffect } from "react";
+import { FC, useEffect, useMemo } from "react";
 import React from "react";
 import NetworkFormField from "../../Input/NetworkFormField";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import { Widget } from "../../Widget/Index";
 import { useQueryState } from "../../../context/query";
 import FeeDetailsComponent from "../../FeeDetails";
-import { useFee } from "../../../context/feeContext";
+import { transformFormValuesToQuoteArgs, useQuoteData } from "../../../hooks/useFee";
 import AmountField from "../../Input/Amount"
 import ResizablePanel from "../../ResizablePanel";
 import useWallet from "../../../hooks/useWallet";
 import FormButton from "../FormButton";
 import { hasRequiredDestinationWallet } from "../../../lib/wallets/utils/destinationWalletUtils";
+import { SwapQuote } from "../../../lib/trainApiClient";
 
+type SwapFormProps = {
+    polling?: boolean
+    onQuoteChange?: (quote: SwapQuote | undefined) => void
+}
 
-const SwapForm: FC = () => {
+const SwapForm: FC<SwapFormProps> = ({ polling = true, onQuoteChange }) => {
     const {
         values,
         errors, isValid, isSubmitting
@@ -23,19 +28,17 @@ const SwapForm: FC = () => {
         to: destination,
     } = values
     const { providers, wallets } = useWallet()
-    const { valuesChanger } = useFee()
+    const query = useQueryState()
 
-    const query = useQueryState();
-    const { fee, isFeeLoading } = useFee()
-
-    const actionDisplayName = query?.buttonTextColor || "Swap now"
+    const params = useMemo(() => transformFormValuesToQuoteArgs(values), [values])
+    const { quote, isQuoteLoading } = useQuoteData(params, polling ? 42000 : 0)
 
     useEffect(() => {
-        valuesChanger(values)
-    }, [values])
+        onQuoteChange?.(quote)
+    }, [quote, onQuoteChange])
 
+    const actionDisplayName = query?.buttonTextColor || "Swap now"
     const shouldConnectWallet = !wallets.length;
-
     const shouldConnectDestinationWallet = !hasRequiredDestinationWallet(destination, providers);
 
     return <>
@@ -54,20 +57,20 @@ const SwapForm: FC = () => {
                         <AmountField />
                     </div>
                     <div className="w-full">
-                        <FeeDetailsComponent values={values} />
+                        <FeeDetailsComponent values={values} quote={quote} isFeeLoading={isQuoteLoading} />
                     </div>
                 </Widget.Content>
             </ResizablePanel>
             <Widget.Footer>
                 <FormButton
-                    quote={fee?.quote}
-                    isQuoteLoading={isFeeLoading}
+                    quote={quote}
+                    isQuoteLoading={isQuoteLoading}
                     shouldConnectWallet={shouldConnectWallet}
                     shouldConnectDestinationWallet={shouldConnectDestinationWallet}
                     values={values}
-                    isValid={isValid && fee?.quote !== undefined}
+                    isValid={isValid && quote !== undefined}
                     errors={errors}
-                    isSubmitting={isSubmitting || isFeeLoading}
+                    isSubmitting={isSubmitting || isQuoteLoading}
                     actionDisplayName={actionDisplayName}
                 />
             </Widget.Footer>

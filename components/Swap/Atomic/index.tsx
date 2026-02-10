@@ -1,13 +1,13 @@
 import { Formik, FormikProps } from "formik";
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import React from "react";
 import MainStepValidation from "../../../lib/mainStepValidator";
 import SwapForm from "./Form";
 import { NextRouter, useRouter } from "next/router";
 import { useQueryState } from "../../../context/query";
-import { useFee } from "../../../context/feeContext";
 import useWallet from "../../../hooks/useWallet";
+import { SwapQuote } from "../../../lib/trainApiClient";
 import { dynamicWithRetries } from "../../../lib/dynamicWithRetries";
 import { useAtomicState } from "../../../context/atomicContext";
 import { AnimatePresence, motion } from "framer-motion";
@@ -44,7 +44,8 @@ export default function Form() {
     const query = useQueryState()
     const { isLoggedIn } = useSecretDerivation()
 
-    const { updatePolling: pollFee, fee } = useFee()
+    const [quote, setQuote] = useState<SwapQuote | undefined>()
+    const [polling, setPolling] = useState(true)
     const { getProvider } = useWallet()
     const { atomicQuery, setAtomicQuery } = useAtomicState()
     const settings = useSettingsState()
@@ -90,9 +91,9 @@ export default function Form() {
                 destination: values.to?.slug!,
                 source_asset: values.fromCurrency.symbol,
                 destination_asset: values.toCurrency.symbol,
-                solver: fee?.quote?.sourceSignerAgent ?? fee?.quote?.route?.sourceWallet?.signerAgent?.name,
-                srcContract: fee?.quote?.sourceContractAddress ?? undefined,
-                destContract: fee?.quote?.destinationContractAddress ?? undefined,
+                solver: quote?.sourceSignerAgent ?? quote?.route?.sourceWallet?.signerAgent?.name,
+                srcContract: quote?.sourceContractAddress ?? undefined,
+                destContract: quote?.destinationContractAddress ?? undefined,
             }
 
             setAtomicQuery(atomicValues)
@@ -106,7 +107,7 @@ export default function Form() {
             console.log(error)
             toast.error(error)
         }
-    }, [query, router, getProvider, isLoggedIn])
+    }, [query, router, getProvider, isLoggedIn, quote])
 
     const initialValues: SwapFormValues = generateSwapInitialValues(settings, query)
 
@@ -115,7 +116,7 @@ export default function Form() {
     // }, [minAllowedAmount, maxAllowedAmount]);
 
     const handleWizardRouting = useCallback((step: AtomicSteps, move?: 'back' | 'forward') => {
-        pollFee(move === 'back')
+        setPolling(move === 'back')
         goToStep(step, move)
         move == 'forward' ? (atomicQuery.source && setAtomicPath({ atomicQuery, router })) : removeSwapPath(router)
     }, [atomicQuery, router])
@@ -140,7 +141,7 @@ export default function Form() {
         >
             <Wizard wizardId={"atomicSteps"}>
                 <WizardItem StepName={AtomicSteps.Form}>
-                    <SwapForm />
+                    <SwapForm polling={polling} onQuoteChange={setQuote} />
                 </WizardItem>
                 <WizardItem StepName={AtomicSteps.Swap} GoBack={() => handleWizardRouting(AtomicSteps.Form, 'back')}>
                     <AtomicPage type='contained' />
