@@ -31,7 +31,7 @@ const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ dir
                 <SelectorTrigger
                     data-attr={direction === "from" ? "from-route-picker" : "to-route-picker"}
                     disabled={false}
-                    className="py-1.5 px-2 active:animate-press-down rounded-xl bg-secondary-500"
+                    className="py-1.5 px-2 active:animate-press-down rounded-2xl bg-secondary-500"
                 >
                     <SelectedRouteDisplay route={selectedRoute} token={selectedToken} placeholder="Select token" />
                 </SelectorTrigger>

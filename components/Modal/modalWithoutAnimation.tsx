@@ -129,7 +129,7 @@ export const ModalTrigger = (props: ModalTriggerProps) => {
                 type="button"
                 onClick={openModal}
                 disabled={disabled}
-                className={clsx("rounded-lg focus:outline-none disabled:cursor-not-allowed relative grow flex items-center text-left justify-bottom w-full px-2 pr-0 bg-secondary-500 hover:bg-secondary-600 font-semibold", className)}
+                className={clsx("rounded-2xl focus:outline-none disabled:cursor-not-allowed relative grow flex items-center text-left justify-bottom w-full px-2 pr-0 bg-secondary-500 hover:bg-secondary-600 font-semibold", className)}
             >
                 {children}
             </button>
