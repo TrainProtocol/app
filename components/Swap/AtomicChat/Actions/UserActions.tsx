@@ -1,26 +1,29 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useState } from "react";
 import useWallet from "../../../../hooks/useWallet";
 import { useAtomicState } from "../../../../context/atomicContext";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
 import ButtonStatus from "./Status/ButtonStatus";
 import { useRouter } from "next/router";
-import { useFee } from "../../../../context/feeContext";
 import useCommitDetailsPolling from "../../../../hooks/htlc/useCommitDetailsPolling";
 import useLockDetailsPolling from "../../../../hooks/htlc/useLockDetailsPolling";
 import useRefundStatusPolling from "../../../../hooks/htlc/useRefundStatusPolling";
 import { SignFlowModal } from "@/components/SecretDerivation";
+import { SwapQuote } from "../../../../lib/trainApiClient";
 
-export const UserCommitAction: FC = () => {
+type UserCommitActionProps = {
+    quote?: SwapQuote
+}
+
+export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
     const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, commitId, updateCommit, srcAtomicContract } = useAtomicState();
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
-    const { fee } = useFee()
     const [signFlowOpen, setSignFlowOpen] = useState(false)
 
-    const atomicContract = srcAtomicContract 
-    const destLpAddress = fee?.quote?.destinationSolverAddress
-    const srcLpAddress = fee?.quote?.sourceSolverAddress
+    const atomicContract = srcAtomicContract
+    const destLpAddress = quote?.destinationSolverAddress
+    const srcLpAddress = quote?.sourceSolverAddress
 
     const handleCommit = async () => {
         try {

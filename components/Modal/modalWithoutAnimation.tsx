@@ -1,4 +1,4 @@
-import { createContext, DetailedHTMLProps, HTMLAttributes, ReactNode, SetStateAction, useContext, useEffect, useState } from "react";
+import { createContext, DetailedHTMLProps, forwardRef, HTMLAttributes, ReactNode, SetStateAction, useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import IconButton from "@/components/buttons/iconButton";
@@ -45,7 +45,7 @@ type ModalContentProps = {
     showCloseButton?: boolean;
 }
 
-export const ModalContent = (props: ModalContentProps) => {
+export const ModalContent = forwardRef<HTMLDivElement, ModalContentProps>((props, ref) => {
     const { children, header, className = "", showCloseButton = true } = props
     const { isOpen, setIsOpen, setShouldFocus, shouldFocus } = useModalState();
     const closeModal = () => { setIsOpen(false); setShouldFocus(false) };
@@ -84,7 +84,7 @@ export const ModalContent = (props: ModalContentProps) => {
                 </div>
             )}
 
-            <div className="flex flex-col w-full h-full max-h-[90dvh] px-4 styled-scroll overflow-x-hidden overflow-y-auto pb-6 z-0 openpicker">
+            <div ref={ref} className="flex flex-col w-full h-full max-h-[90dvh] px-4 styled-scroll overflow-x-hidden overflow-y-auto pb-6 z-0 openpicker">
                 {typeof children === 'function' ? children({ closeModal, shouldFocus }) : children}
             </div>
         </div>
@@ -98,7 +98,9 @@ export const ModalContent = (props: ModalContentProps) => {
     }
 
     return createPortal(modalElement, widgetElement);
-}
+});
+
+ModalContent.displayName = 'ModalContent';
 
 type ModalTriggerProps = DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> & {
     disabled?: boolean;
@@ -127,7 +129,7 @@ export const ModalTrigger = (props: ModalTriggerProps) => {
                 type="button"
                 onClick={openModal}
                 disabled={disabled}
-                className={clsx("rounded-lg focus:outline-none disabled:cursor-not-allowed relative grow flex items-center text-left justify-bottom w-full px-2 pr-0 bg-secondary-700 hover:bg-secondary-600 font-semibold", className)}
+                className={clsx("rounded-lg focus:outline-none disabled:cursor-not-allowed relative grow flex items-center text-left justify-bottom w-full px-2 pr-0 bg-secondary-500 hover:bg-secondary-600 font-semibold", className)}
             >
                 {children}
             </button>

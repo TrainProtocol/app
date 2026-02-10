@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { ChevronDown } from 'lucide-react'
 import { ISelectMenuItem, SelectMenuItem } from '../Shared/Props/selectMenuItem'
 import CommandSelect, { SelectMenuItemGroup } from './commandSelect'
+import { ImageWithFallback } from '@/components/Common/ImageWithFallback'
 
 type CommandSelectWrapperProps = {
     setValue: (value: ISelectMenuItem) => void;
@@ -55,13 +56,13 @@ export default function CommandSelectWrapper<T>({
                     <span className='flex grow text-left items-center text-xs md:text-base'>
                         {
                             value?.imgSrc && <div className="flex items-center">
-                                <div className="flex-shrink-0 h-6 w-6 relative">
-                                    <Image
+                                <div className="shrink-0 h-6 w-6 relative">
+                                    <ImageWithFallback
                                         src={value.imgSrc}
                                         alt="Project Logo"
-                                        height="40"
-                                        width="40"
                                         loading="eager"
+                                        width={24}
+                                        height={24}
                                         fetchPriority='high'
                                         className="rounded-md object-contain"
                                     />

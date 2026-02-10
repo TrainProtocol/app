@@ -16,6 +16,7 @@ import RouteIcon from "./RouteIcon";
 import useSWRBalance from "../../lib/balances/useSWRBalance";
 import { useAtomicState } from "../../context/atomicContext";
 import { ApiResponse } from "@/Models/ApiResponse";
+import { resolveTokenLogoUrl } from "@/components/utils/resolveTokenLogoUrl";
 
 const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
     const {
@@ -38,7 +39,7 @@ const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
         isLoading,
         error
     } = useSWR<ApiResponse<Route[]>>('/routes', apiClient.fetcher, { keepPreviousData: true, dedupingInterval: 10000 })
-console.log('routes', routes)
+
     const routesData = (direction == 'from' ? from : to) && routes?.data?.filter(r => (direction === 'from' ? r.source.network.slug : r.destination.network.slug) === (direction === 'from' ? from?.slug : to?.slug))
 
     const fromCurrencies = routesData?.map(r => r.source.token);
@@ -49,7 +50,7 @@ console.log('routes', routes)
         currencies,
         values,
         direction,
-        balance || [],
+        balance?.map(b => ({ ...b, amount: b.amount || 0 })) || [],
         query,
         error
     ) : []
@@ -182,7 +183,7 @@ function GenerateCurrencyMenuItems(
             {formatted_balance_amount}
         </p>
 
-        const logo = `https://raw.githubusercontent.com/TrainProtocol/icons/main/tokens/${c.symbol.toLowerCase()}.png`
+        const logo = resolveTokenLogoUrl(c.symbol)
 
         const res: SelectMenuItem<Token> = {
             baseObject: c,
