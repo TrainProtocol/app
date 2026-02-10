@@ -8,6 +8,7 @@ import useSWRBalance from "@/lib/balances/useSWRBalance";
 import { useAtomicState } from "@/context/atomicContext";
 import { memo } from "react";
 import { RowElement } from "@/Models/Route";
+import { resolveTokenLogoUrl } from "@/components/utils/resolveTokenLogoUrl";
 
 type TokenItemProps = {
     route: NetworkRoute;
@@ -22,7 +23,7 @@ export const CurrencySelectItemDisplay = memo((props: TokenItemProps) => {
 
     return <SelectItem className="group">
         <SelectItem.Logo
-            imgSrc={item.logo || `https://raw.githubusercontent.com/TrainProtocol/icons/main/tokens/${item.symbol.toLowerCase()}.png`}
+            imgSrc={item.logo || resolveTokenLogoUrl(item.symbol)}
             altText={`${item.symbol} logo`}
             className="rounded-full"
         />
@@ -124,7 +125,7 @@ export const SelectedRouteDisplay = ({ route, token, placeholder }: SelectedRout
                     <div className="inline-flex items-center relative shrink-0 h-7 w-7">
                         <div className="h-6 w-6">
                             <ImageWithFallback
-                                src={token.logo || `https://raw.githubusercontent.com/TrainProtocol/icons/main/tokens/${token.symbol.toLowerCase()}.png`}
+                                src={token.logo || resolveTokenLogoUrl(token.symbol)}
                                 alt="Token Logo"
                                 height="24"
                                 width="24"

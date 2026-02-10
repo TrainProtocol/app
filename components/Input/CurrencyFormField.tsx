@@ -16,6 +16,7 @@ import RouteIcon from "./RouteIcon";
 import useSWRBalance from "../../lib/balances/useSWRBalance";
 import { useAtomicState } from "../../context/atomicContext";
 import { ApiResponse } from "@/Models/ApiResponse";
+import { resolveTokenLogoUrl } from "@/components/utils/resolveTokenLogoUrl";
 
 const CurrencyFormField: FC<{ direction: SwapDirection }> = ({ direction }) => {
     const {
@@ -182,7 +183,7 @@ function GenerateCurrencyMenuItems(
             {formatted_balance_amount}
         </p>
 
-        const logo = `https://raw.githubusercontent.com/TrainProtocol/icons/main/tokens/${c.symbol.toLowerCase()}.png`
+        const logo = resolveTokenLogoUrl(c.symbol)
 
         const res: SelectMenuItem<Token> = {
             baseObject: c,
