@@ -17,7 +17,7 @@ export const resolveMaxAllowedAmount = (props: ResolveMaxAllowedAmountProps) => 
     if (!walletBalance || isNaN(Number(walletBalance.amount)) || depositMethod !== 'wallet')
         return limitsMaxAmount
 
-    const shouldPayGasWithTheToken = Number(walletBalance.amount) > 0 && (native_currency?.symbol === fromCurrency?.symbol) || !native_currency
+    const shouldPayGasWithTheToken = Number(walletBalance.amount) > 0 && ((native_currency?.symbol === fromCurrency?.symbol) || !native_currency)
     const payableAmount = Number(walletBalance.amount) - gasAmount
 
     if (!shouldPayGasWithTheToken)
