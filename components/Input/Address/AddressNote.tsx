@@ -6,6 +6,7 @@ import AddressIcon from "../../AddressIcon"
 import { SwapFormValues } from "../../DTOs/SwapFormValues"
 import { Partner } from "../../../Models/Partner"
 import { Address, getExplorerUrl } from "@/lib/address"
+import NetworkSettings from "@/lib/NetworkSettings"
 
 type AddressNoteModalProps = {
     partner: Partner | undefined;
@@ -40,9 +41,9 @@ const AddressNote: FC<AddressNoteModalProps> = ({ partner, values }) => {
                         </div>
                         <div className="flex items-center gap-4 text-secondary-text">
                             <CopyButton toCopy={destination_address} />
-                            {/* <Link href={getExplorerUrl(destination?.accountExplorerTemplate, destination_address) || ''} target="_blank">
+                            <Link href={getExplorerUrl(NetworkSettings.KnownSettings[destination.slug]?.AccountExplorerTemplate, destination_address) || ''} target="_blank">
                                 <ExternalLink className="h-4 w-4" />
-                            </Link> */}
+                            </Link>
                             <span className="inline-flex items-center"><ExternalLink className="h-4 w-4" /></span>
                         </div>
                     </div>

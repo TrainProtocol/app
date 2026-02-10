@@ -7,6 +7,7 @@ import WalletIcon from "@/components/Icons/WalletIcon";
 import LockIcon from "@/components/Icons/LockIcon";
 import SignatureIcon from "@/components/Icons/SignatureIcon";
 import { CommitTransaction } from "@/lib/trainApiClient";
+import NetworkSettings from "@/lib/NetworkSettings";
 
 const Details: FC = () => {
     return (
@@ -20,7 +21,7 @@ const Details: FC = () => {
 
 const Confirmed: FC = () => {
     const { commitTxId, source_network } = useAtomicState()
-    const description = (commitTxId && source_network) && <p><span>Transaction ID:</span> <Link target="_blank" className="underline hover:no-underline" href={getExplorerUrl(`source_network?.transactionExplorerTemplate`, commitTxId)}>{shortenString(commitTxId)}</Link></p>
+    const description = (commitTxId && source_network) && <p><span>Transaction ID:</span> <Link target="_blank" className="underline hover:no-underline" href={getExplorerUrl(NetworkSettings.KnownSettings[source_network.slug]?.TransactionExplorerTemplate, commitTxId)}>{shortenString(commitTxId)}</Link></p>
 
     return (
         <Item
@@ -35,7 +36,7 @@ const AssetsReady: FC = () => {
     const { destination_network, commitFromApi, destinationDetails, destinationDetailsByLightClient } = useAtomicState()
 
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
-    const description = (lpLockTx && destination_network) ? <p><span>Transaction ID:</span> <Link className="underline hover:no-underline" target="_blank" href={getExplorerUrl(`destination_network?.transactionExplorerTemplate`, lpLockTx?.hash)}>{shortenString(lpLockTx.hash)}</Link></p> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />
+    const description = (lpLockTx && destination_network) ? <p><span>Transaction ID:</span> <Link className="underline hover:no-underline" target="_blank" href={getExplorerUrl(NetworkSettings.KnownSettings[destination_network.slug]?.TransactionExplorerTemplate, lpLockTx?.hash)}>{shortenString(lpLockTx.hash)}</Link></p> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />
 
     return (
         <Item
@@ -58,7 +59,7 @@ const SignAndConfirm: FC = () => {
     const { source_network, commitFromApi } = useAtomicState()
 
     const addLockSigTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
-    const description = (addLockSigTx && source_network) ? <p><span>Transaction ID:</span> <Link className="underline hover:no-underline" target="_blank" href={getExplorerUrl(`source_network?.transactionExplorerTemplate`, addLockSigTx?.hash)}>{shortenString(addLockSigTx.hash)}</Link></p> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />
+    const description = (addLockSigTx && source_network) ? <p><span>Transaction ID:</span> <Link className="underline hover:no-underline" target="_blank" href={getExplorerUrl(NetworkSettings.KnownSettings[source_network.slug]?.TransactionExplorerTemplate, addLockSigTx?.hash)}>{shortenString(addLockSigTx.hash)}</Link></p> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />
 
     return (
         <Item
