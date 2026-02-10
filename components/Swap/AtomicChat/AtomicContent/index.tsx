@@ -1,9 +1,7 @@
 import { FC, useEffect, useMemo } from "react";
 import ResizablePanel from "../../../ResizablePanel";
-import Steps from "./Steps";
 import { CommitStatus, useAtomicState } from "../../../../context/atomicContext";
 import KnownInternalNames from "../../../../lib/knownIds";
-import { motion } from "framer-motion";
 import CheckedIcon from "../../../Icons/CheckedIcon";
 import MotionSummary from "./Summary";
 import { CircleAlert, ExternalLink } from "lucide-react";
@@ -12,8 +10,15 @@ import Link from "next/link";
 import { usePulsatingCircles } from "../../../../context/PulsatingCirclesContext";
 import { useRive } from "@rive-app/react-canvas";
 import SpinIcon from "../../../Icons/spinIcon";
+import { getExplorerUrl } from "@/lib/address";
+import { SwapQuote } from "../../../../lib/trainApiClient";
 
-const AtomicContent: FC = () => {
+type AtomicContentProps = {
+    quote?: SwapQuote
+    isQuoteLoading?: boolean
+}
+
+const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }) => {
 
     const { commitStatus, isManualClaimable, manualClaimRequested, destination_network, destRedeemTx, destinationDetails } = useAtomicState()
     const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
@@ -43,31 +48,9 @@ const AtomicContent: FC = () => {
                             commitStatus={commitStatus}
                             isManualClaimable={isManualClaimable}
                             manualClaimRequested={manualClaimRequested}
-                            redeemTxLink={destRedeemTx && (destination_network as any)?.transactionExplorerTemplate?.replace('{0}', destRedeemTx)}
+                            redeemTxLink={destRedeemTx && getExplorerUrl(`destination_network?.transactionExplorerTemplate`, destRedeemTx)}
                         />
-                        <motion.div
-                            layout
-                            transition={{ duration: 0.4 }}
-                            style={{
-                                bottom: assetsLocked ? '0px' : undefined,
-                                top: assetsLocked ? undefined : '0px',
-                            }}
-                            className="z-20 absolute left-0 w-full"
-                        >
-                            <MotionSummary />
-                        </motion.div>
-
-                        {
-                            assetsLocked &&
-                            <div className="h-[220px]" />
-                        }
-                        <div
-                            style={{
-                                display: assetsLocked ? 'none' : 'block'
-                            }}
-                            className="transition-opacity">
-                            <Steps />
-                        </div>
+                        <MotionSummary quote={quote} isQuoteLoading={isQuoteLoading} />
                     </div>
                 </div>
             </ResizablePanel >
@@ -80,7 +63,7 @@ const AtomicContent: FC = () => {
 const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boolean | undefined, manualClaimRequested: boolean | undefined, redeemTxLink: string | undefined }> = ({ commitStatus, isManualClaimable, manualClaimRequested, redeemTxLink }) => {
     const { destination_network } = useAtomicState();
     const isAztecDestination = destination_network?.slug === KnownInternalNames.Networks.AztecTestnet;
-    
+
     // For Aztec destination, manual claim is normal flow, not a failure
     const isActualFailure = isManualClaimable && !isAztecDestination;
 

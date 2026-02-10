@@ -1,7 +1,7 @@
-import { FC, useState } from "react"
+import { FC, useState, useMemo } from "react"
 import { AddressGroup, AddressItem } from ".";
 import AddressIcon from "../../../AddressIcon";
-import shortenAddress from "../../../utils/ShortenAddress";
+import { Address, getExplorerUrl } from "@/lib/address";
 import { History, ExternalLink, Copy, Check, ChevronDown, WalletIcon, Pencil, Power } from "lucide-react";
 import { Network } from "../../../../Models/Network";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../shadcn/popover";
@@ -48,15 +48,22 @@ const AddressWithIcon: FC<Props> = ({ addressItem, connectedWallet, network, bal
 
     const itemDescription = descriptions.find(d => d.group === addressItem.group)
 
+    const address = useMemo(() => {
+        if (network) {
+            return new Address(addressItem.address, network).full
+        }
+        return addressItem.address
+    }, [addressItem.address, network])
+
     return (
         <div className="w-full flex items-center justify-between">
             <div className="flex bg-secondary-400 text-primary-text items-center justify-center rounded-md h-8 overflow-hidden w-8">
-                <AddressIcon className="scale-150 h-9 w-9" address={addressItem.address} size={36} />
+                <AddressIcon className="scale-150 h-9 w-9" address={address} size={36} />
             </div>
 
             <div className="flex flex-col items-start flex-grow min-w-0 ml-3 text-sm">
                 <div className="flex w-full min-w-0">
-                    <ExtendedAddress address={addressItem.address} network={network} addressClassNames="font-normal" />
+                    <ExtendedAddress address={address} network={network} providerName={addressItem?.wallet?.providerName} addressClassNames="font-normal" />
                 </div>
                 <div className="text-secondary-text w-full min-w-0">
                     <div className="flex items-center gap-1 text-xs">
@@ -96,6 +103,7 @@ type ExtendedAddressProps = {
     network?: Network;
     addressClassNames?: string;
     onDisconnect?: () => void;
+    providerName?: string;
 }
 
 const calculateMaxWidth = (balance: string | undefined) => {
@@ -110,9 +118,23 @@ const calculateMaxWidth = (balance: string | undefined) => {
     }
 };
 
-export const ExtendedAddress: FC<ExtendedAddressProps> = ({ address, network, addressClassNames, onDisconnect }) => {
+export const ExtendedAddress: FC<ExtendedAddressProps> = ({ address, network, addressClassNames, onDisconnect, providerName }) => {
     const [isCopied, setCopied] = useCopyClipboard()
     const [isPopoverOpen, setPopoverOpen] = useState(false)
+
+    const addr = useMemo(() => {
+        if (network) {
+            return new Address(address, network, providerName)
+        }
+        return new Address(address, null, providerName!)
+    }, [address, network, providerName]);
+
+    const isAddressValid = useMemo(() => {
+        if (network) {
+            return Address.isValid(addr.full, network)
+        }
+        return false
+    }, [addr.full, network]);
 
     return (
         <div onClick={(e) => e.stopPropagation()}>
@@ -123,19 +145,19 @@ export const ExtendedAddress: FC<ExtendedAddressProps> = ({ address, network, ad
                             <TooltipTrigger asChild>
                                 <div className="group-hover/addressItem:underline hover:text-secondary-text transition duration-200 no-underline flex gap-1 items-center cursor-pointer">
                                     <p className={`block text-sm font-medium ${addressClassNames}`}>
-                                        {shortenAddress(address)}
+                                        {addr.toShortString()}
                                     </p>
                                     <ChevronDown className="invisible group-hover/addressItem:visible h-4 w-4" />
                                 </div>
                             </TooltipTrigger>
                             <TooltipContent side="bottom">
-                                <p>{address}</p>
+                                <p>{addr.full}</p>
                             </TooltipContent>
                         </Tooltip>
                     </div>
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-2 flex flex-col gap-1 items-stretch" side="top">
-                    <div onClick={(e) => { e.stopPropagation(), setCopied(address) }} className="hover:text-primary-text px-2 py-1.5 hover:bg-secondary-600 rounded transition-all duartion-200 flex items-center justify-between gap-5 w-full">
+                    <div onClick={(e) => { e.stopPropagation(), setCopied(addr.normalized) }} className="hover:text-primary-text px-2 py-1.5 hover:bg-secondary-600 rounded transition-all duartion-200 flex items-center justify-between gap-5 w-full">
                         <p>
                             Copy address
                         </p>
@@ -145,6 +167,15 @@ export const ExtendedAddress: FC<ExtendedAddressProps> = ({ address, network, ad
                                 : <Copy className="w-4 h-4" />
                         }
                     </div>
+                    {/* {
+                        (network && isAddressValid) &&
+                        <Link href={getExplorerUrl(network?.accountExplorerTemplate, addr.full)} target="_blank" className="hover:text-primary-text px-2 py-1.5 hover:bg-secondary-600 rounded transition-all duartion-200 flex items-center justify-between gap-5 w-full">
+                            <p>
+                                Open in explorer
+                            </p>
+                            <ExternalLink className="w-4 h-4" />
+                        </Link>
+                    } */}
                     {
                         onDisconnect &&
                         <div onClick={(e) => { e.stopPropagation(), onDisconnect() }} className="hover:text-primary-text px-2 py-1.5 hover:bg-secondary-600 rounded transition-all duartion-200 flex items-center justify-between gap-5 w-full">

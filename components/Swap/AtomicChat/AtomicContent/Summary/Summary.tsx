@@ -17,7 +17,7 @@ type AtomicSummaryProps = {
     receiveAmountInUsd?: number | undefined;
 }
 
-const Summary: FC<AtomicSummaryProps> = ({  sourceCurrency, destinationCurrency, source, destination, requestedAmount, receiveAmount, receiveAmountInUsd, requestedAmountInUsd }) => {
+const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, source, destination, requestedAmount, receiveAmount, receiveAmountInUsd, requestedAmountInUsd }) => {
     return (
         <>
             <div className="bg-secondary-500 rounded-2xl px-3 py-4 w-full relative z-10 space-y-4">

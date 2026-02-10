@@ -2,7 +2,6 @@ import { useFormikContext } from "formik";
 import { SwapFormValues } from "../DTOs/SwapFormValues";
 import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
 import useWallet from "../../hooks/useWallet";
-import shortenAddress from "../utils/ShortenAddress";
 import { ChevronDown } from "lucide-react";
 import VaulDrawer from "../Modal/vaulModal";
 import { Wallet } from "../../Models/WalletProvider";
@@ -11,6 +10,7 @@ import SubmitButton from "../buttons/submitButton";
 import { useConnectModal } from "../WalletModal";
 import WalletsList from "../Wallet/WalletsList";
 import { useAtomicState } from "../../context/atomicContext";
+import { Address } from "@/lib/address";
 
 const Component: FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false)
@@ -65,25 +65,27 @@ const Component: FC = () => {
         setOpenModal(false)
     }
 
-    if (!walletNetwork || !source_token)
+    if (!walletNetwork || !source_token || !values.from)
         return <></>
 
     return <>
-        <div className="rounded-lg bg-secondary-800 flex items-center space-x-2 text-sm leading-4">
+        <div>
             {
                 selectedWallet && selectedSourceAccount?.address && <>
                     {/* <div><Balance values={values} direction="from" /></div> */}
-                    <div onClick={handleWalletChange} className="rounded-lg bg-secondary-500 flex space-x-1 items-center py-0.5 pl-2 pr-1 cursor-pointer">
-                        <div className="inline-flex items-center relative p-0.5">
-                            <selectedWallet.icon className="w-5 h-5" />
+                    <button type="button" onClick={handleWalletChange} className="rounded-lg flex items-center space-x-2 text-sm hover:bg-secondary-400 py-1 pl-2 pr-2 outline-hidden">
+                        <div className="rounded-lg flex space-x-1 items-center">
+                            <div className="inline-flex items-center relative px-0.5">
+                                <selectedWallet.icon className="w-4 h-4" />
+                            </div>
+                            <div className="text-secondary-text">
+                                {new Address(selectedSourceAccount.address, values.from).toShortString()}
+                            </div>
+                            <div className="w-4 h-4 items-center flex text-secondary-text">
+                                <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                            </div>
                         </div>
-                        <div className="text-primary-text">
-                            {shortenAddress(selectedSourceAccount.address)}
-                        </div>
-                        <div className="w-5 h-5 items-center flex">
-                            <ChevronDown className="h-4 w-4" aria-hidden="true" />
-                        </div>
-                    </div>
+                    </button>
                 </>
             }
         </div>

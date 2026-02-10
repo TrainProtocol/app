@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useConfig } from 'wagmi';
 import { Loader2, ChevronLeft, CircleX } from 'lucide-react';
 import toast from 'react-hot-toast';
-import VaulModal from '../../Modal/vaulModal';
+import VaulModal from '@/components/Modal/vaulModal';
 import { useSecretDerivation } from '@/context/secretDerivationContext';
 import { PasskeyChoice } from './PasskeyChoice';
 import { Wallet } from '@/Models/WalletProvider';

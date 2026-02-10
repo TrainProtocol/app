@@ -12,8 +12,7 @@ import {
     Provider,
     getPredicateRoot,
 } from '@fuel-ts/account';
-import { Address, AssetId } from '@fuel-ts/address';
-import shortenAddress from "../../../components/utils/ShortenAddress";
+import { Address } from '@fuel-ts/address';
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider";
 import { useEffect, useMemo } from "react";
@@ -23,7 +22,7 @@ import { useRpcConfigStore } from "../../../stores/rpcConfigStore";
 import useAtomicFuel from "./useAtomicFuel";
 import sleep from "../utils/sleep";
 import { BAKO_STATE } from "./Bako";
-
+import { Address as TrainAddress } from "@/lib/address"
 export default function useFuel(): WalletProvider {
     const commonSupportedNetworks = [
         KnownInternalNames.Networks.FuelTestnet,
@@ -267,7 +266,7 @@ const resolveFuelWallet = async ({ address, addresses, commonSupportedNetworks, 
         );
         const convertedAddress = Address.fromB256(getPredicateRoot(predicateBytes)).toString();
         if (convertedAddress.toLowerCase() === address.toLowerCase()) {
-            fuelCurrentConnector = `${evmConnector.name} (${shortenAddress(evmAddress)})`
+            fuelCurrentConnector = `${evmConnector.name} (${new TrainAddress(evmAddress, null, 'evm').toShortString()})`
             customConnectorname = evmConnector.name
         }
     }

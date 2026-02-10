@@ -141,13 +141,14 @@ export const WalletItem: FC<HTMLAttributes<HTMLDivElement> & WalletItemProps> = 
                                             network={network}
                                             addressClassNames="font-normal text-sm"
                                             onDisconnect={() => wallet.disconnect && wallet.disconnect()}
+                                            providerName={wallet.providerName}
                                         />
                                     }
                                     <p className="text-xs text-secondary-text">
                                         {wallet.displayName}
                                     </p>
                                 </div>
-                                {
+                                {/* {
                                     walletBalanceAmount !== undefined && token &&
                                     <span className="text-sm flex space-x-2 justif-end">
                                         {
@@ -166,7 +167,7 @@ export const WalletItem: FC<HTMLAttributes<HTMLDivElement> & WalletItemProps> = 
                                                 <></>
                                         }
                                     </span>
-                                }
+                                } */}
                             </div>
                     }
                 </div>
@@ -255,12 +256,13 @@ const NestedWalletAddress: FC<HTMLAttributes<HTMLDivElement> & NestedWalletAddre
                             network={network}
                             addressClassNames="font-normal text-sm"
                             onDisconnect={() => wallet.disconnect && wallet.disconnect()}
+                            providerName={wallet.providerName}
                         />
                     }
                 </div>
             </div>
             <div className="inline-flex gap-2">
-                {
+                {/* {
                     nestedWalletBalanceAmount !== undefined && token &&
                     <span className="text-sm flex space-x-2 justif-end">
                         {
@@ -279,7 +281,7 @@ const NestedWalletAddress: FC<HTMLAttributes<HTMLDivElement> & NestedWalletAddre
                                 <></>
                         }
                     </span>
-                }
+                } */}
                 {
                     isNestedSelected &&
                     <div className="flex h-6 items-center">

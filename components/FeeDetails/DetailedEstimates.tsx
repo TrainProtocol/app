@@ -1,18 +1,18 @@
 import { FC } from "react";
-import { useFormikContext } from "formik";
-import { SwapFormValues } from "../DTOs/SwapFormValues";
-import { useFee } from "../../context/feeContext";
+import { Token } from "../../Models/Network";
+import { SwapQuote } from "../../lib/trainApiClient";
 
-const DetailedEstimates: FC = () => {
+type DetailedEstimatesProps = {
+    fromCurrency: Token | undefined
+    quote: SwapQuote
+    isFeeLoading: boolean
+}
 
-    const { values } = useFormikContext<SwapFormValues>();
-    const { fromCurrency } = values;
-    const { fee, isFeeLoading } = useFee()
-
-    const fee_amount_in_base_units = fee?.quote?.totalFee
+const DetailedEstimates: FC<DetailedEstimatesProps> = ({ fromCurrency, quote, isFeeLoading }) => {
+    const fee_amount_in_base_units = quote?.totalFee
     const fee_amount = (fee_amount_in_base_units && fromCurrency) ? (Number(fee_amount_in_base_units) / Math.pow(10, fromCurrency?.decimals)) : null;
 
-    const parsedFee = (fee?.quote && fromCurrency) && parseFloat(Number(fee_amount).toFixed(Math.min(fromCurrency?.decimals, 8)))
+    const parsedFee = (quote && fromCurrency) && parseFloat(Number(fee_amount).toFixed(Math.min(fromCurrency?.decimals, 8)))
     const currencyName = fromCurrency?.symbol || " "
     // const feeAmountInUsd = fee?.quote?.totalFeeInUsd
 

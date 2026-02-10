@@ -8617,6 +8617,18 @@
   dependencies:
     "@tanstack/query-core" "5.90.10"
 
+"@tanstack/react-virtual@^3.13.18":
+  version "3.13.18"
+  resolved "https://registry.yarnpkg.com/@tanstack/react-virtual/-/react-virtual-3.13.18.tgz#9124ee9f08b2ca3c67ffd508dae3732328983362"
+  integrity sha512-dZkhyfahpvlaV0rIKnvQiVoWPyURppl6w4m9IwMDpuIjcJ1sD9YGWrt0wISvgU7ewACXx2Ct46WPgI6qAD4v6A==
+  dependencies:
+    "@tanstack/virtual-core" "3.13.18"
+
+"@tanstack/virtual-core@3.13.18":
+  version "3.13.18"
+  resolved "https://registry.yarnpkg.com/@tanstack/virtual-core/-/virtual-core-3.13.18.tgz#586e3c1fe08547ee6abf87e8fb7c99087b9c47ff"
+  integrity sha512-Mx86Hqu1k39icq2Zusq+Ey2J6dDWTjDvEv43PJtRCoEYTLyfaPnxIQ6iy7YAOK0NV/qOEmZQ/uCufrppZxTgcg==
+
 "@telegram-apps/bridge@^1.9.2":
   version "1.9.2"
   resolved "https://registry.yarnpkg.com/@telegram-apps/bridge/-/bridge-1.9.2.tgz#5dbff521fbe3160ff6134fbb53fd3a8306306eb2"

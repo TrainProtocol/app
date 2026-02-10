@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../shadcn/popover"
 import { useSecretDerivationStore } from "@/stores/secretDerivationStore"
 import { usePasskeyCredentialId } from "@/stores/secretDerivationStore"
 import { useLoginModalStore } from "@/stores/loginModalStore"
-import shortenAddress from "../utils/ShortenAddress"
+import { Address } from "@/lib/address"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
 import { formatPasskeyIdForDisplay } from "@/lib/htlc/secretDerivation/passkeyService"
 import WalletIcon from "../Icons/WalletIcon"
@@ -61,7 +61,7 @@ const LoginDataCard = ({
                             onClick={onCopyAddress}
                             className="text-secondary-text text-sm text-left hover:text-primary-text truncate"
                         >
-                            {shortenAddress(loginWallet.address)}
+                            {new Address(loginWallet.address, null, loginWallet.providerName).toShortString()}
                         </button>
                     )}
                 </div>
@@ -168,7 +168,7 @@ export const UserStatusHeader = () => {
 
     const pillLabel = method === 'passkey'
         ? "Passkey"
-        : (loginWallet?.displayName || shortenAddress(loginWallet?.address ?? '') || 'Wallet')
+        : (loginWallet?.displayName || (loginWallet?.address ? new Address(loginWallet.address, null, loginWallet.providerName).toShortString() : '') || 'Wallet')
 
     const pillContent = (
         <>
@@ -259,7 +259,7 @@ export const UserStatusMenu = () => {
 
     const menuLabel = method === 'passkey'
         ? (passkeyDisplayId ? `Passkey · ${passkeyDisplayId}` : 'Passkey')
-        : `${loginWallet?.displayName || 'Wallet'}${loginWallet?.address ? ` · ${shortenAddress(loginWallet.address)}` : ''}`
+        : `${loginWallet?.displayName || 'Wallet'}${loginWallet?.address ? ` · ${new Address(loginWallet.address, null, loginWallet.providerName).toShortString()}` : ''}`
 
     return (
         <>
