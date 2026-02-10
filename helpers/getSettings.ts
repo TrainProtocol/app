@@ -17,7 +17,7 @@ export async function getServerSideProps(context) {
 
     const networksWithLogos = networks.map(network => ({
         ...network,
-        logo: `https://raw.githubusercontent.com/TrainProtocol/icons/main/networks/${network.slug.toLowerCase().split('-')[0]}.png`,
+        logo: `https://github.com/TrainProtocol/icons/blob/standardize-caip2-names/networks/${network.slug.toLowerCase().split('-')[0]}.png?raw=true`,
     }))
 
     const filteredRoutes = routes?.filter(r => networksWithLogos.some(n => n.slug == r.source.network.slug) && networksWithLogos.some(n => n.slug == r.destination.network.slug)) || []
