@@ -1,5 +1,10 @@
 export default class KnownInternalNames {
     static Networks = class {
+        public static readonly ArbitrumSepolia: string = "arb-sepolia";
+
+        public static readonly EthereumSepolia: string = "eth-sepolia";
+
+        
         public static readonly CronosMainnet: string = "CRONOS_MAINNET";
 
         public static readonly OsmosisMainnet: string = "OSMOSIS_MAINNET";
@@ -11,8 +16,6 @@ export default class KnownInternalNames {
         public static readonly ArbitrumRinkeby: string = "ARBITRUM_RINKEBY";
 
         public static readonly ArbitrumGoerli: string = "ARBITRUM_GOERLI";
-
-        public static readonly ArbitrumSepolia: string = "arb-sepolia";
 
         public static readonly ModMainnet: string = "MODE_MAINNET";
 
@@ -41,8 +44,6 @@ export default class KnownInternalNames {
         public static readonly EthereumMainnet: string = "ETHEREUM_MAINNET";
 
         public static readonly EthereumGoerli: string = "ETHEREUM_GOERLI";
-
-        public static readonly EthereumSepolia: string = "eth-sepolia";
 
         public static readonly PolygonMainnet: string = "POLYGON_MAINNET";
 
@@ -217,6 +218,7 @@ export default class KnownInternalNames {
         public static readonly SeiMainnet: string = "SEI_MAINNET";
         
         public static readonly GravityMainnet: string = "GRAVITY_MAINNET";
+
         public static readonly BitcoinMainnet: string = "BITCOIN_MAINNET"
 
         public static readonly BitcoinTestnet: string = "BITCOIN_TESTNET"
@@ -235,10 +237,6 @@ export default class KnownInternalNames {
         public static readonly USDC: string = "USDC";
         public static readonly USDCe: string = "USDC.e";
         public static readonly USDCE: string = "USDC.E";
-        public static readonly LRC: string = "LRC";
-        public static readonly IMX: string = "IMX";
-        public static readonly SNX: string = "SNX";
-        public static readonly ZKS: string = "ZKS";
     }
 
 }
