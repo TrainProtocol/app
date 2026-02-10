@@ -1,5 +1,5 @@
 import WalletIcon from "@/components/Icons/WalletIcon";
-import shortenAddress from "@/components/utils/ShortenAddress";
+import { Address } from "@/lib/address";
 import { useConnectModal } from "@/components/WalletModal";
 import useWallet from "@/hooks/useWallet";
 import { Wallet } from "@/Models/WalletProvider";
@@ -38,7 +38,7 @@ const WalletSelect = ({  startWalletLogin }: WalletSelectProps) => {
                         </div>
                         <div className="flex-1 min-w-0 text-left">
                             <div className="text-primary-text font-semibold">{wallet.displayName || 'EVM Wallet'}</div>
-                            <div className="text-xs text-secondary-text">{shortenAddress(wallet.address)}</div>
+                            <div className="text-xs text-secondary-text">{new Address(wallet.address, null, wallet.providerName).toShortString()}</div>
                         </div>
                     </button>
                 ))}

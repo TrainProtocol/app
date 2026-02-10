@@ -1,6 +1,6 @@
 import { FormikErrors } from "formik";
 import { SwapFormValues } from "../components/DTOs/SwapFormValues";
-import { isValidAddress } from "./address/validator";
+import { Address } from "./address";
 
 export default function MainStepValidation(): ((values: SwapFormValues) => FormikErrors<SwapFormValues>) {
     return (values: SwapFormValues) => {
@@ -35,7 +35,7 @@ export default function MainStepValidation(): ((values: SwapFormValues) => Formi
         //     errors.amount = `Min amount is ${minAllowedAmount}`;
         // }
         if (values.to) {
-            if (values.destination_address && !isValidAddress(values.destination_address, values.to)) {
+            if (values.destination_address && !Address.isValid(values.destination_address, values.to)) {
                 errors.destination_address = `Enter a valid ${values.to?.displayName} address`;
             }
         }

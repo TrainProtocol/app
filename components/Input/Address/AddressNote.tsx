@@ -5,6 +5,7 @@ import Link from "next/link"
 import AddressIcon from "../../AddressIcon"
 import { SwapFormValues } from "../../DTOs/SwapFormValues"
 import { Partner } from "../../../Models/Partner"
+import { Address, getExplorerUrl } from "@/lib/address"
 
 type AddressNoteModalProps = {
     partner: Partner | undefined;
@@ -22,7 +23,7 @@ const AddressNote: FC<AddressNoteModalProps> = ({ partner, values }) => {
         destination && destination_address &&
         <div className="flex flex-col items-center gap-6 mt-2">
             <div className="h-24 w-24 rounded-2xl overflow-hidden">
-                <AddressIcon className="scale-150 h-24 w-24 blur-[1.5px]" address={destination_address} size={96} />
+                <AddressIcon className="scale-150 h-24 w-24 blur-[1.5px]" address={new Address(destination_address, destination).full} size={96} />
             </div>
             <div className="text-center max-w-xs space-y-1">
                 <p className="text-2xl">Address Confirmation</p>
@@ -39,6 +40,9 @@ const AddressNote: FC<AddressNoteModalProps> = ({ partner, values }) => {
                         </div>
                         <div className="flex items-center gap-4 text-secondary-text">
                             <CopyButton toCopy={destination_address} />
+                            {/* <Link href={getExplorerUrl(destination?.accountExplorerTemplate, destination_address) || ''} target="_blank">
+                                <ExternalLink className="h-4 w-4" />
+                            </Link> */}
                             <span className="inline-flex items-center"><ExternalLink className="h-4 w-4" /></span>
                         </div>
                     </div>

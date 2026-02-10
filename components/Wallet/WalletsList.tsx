@@ -141,6 +141,7 @@ export const WalletItem: FC<HTMLAttributes<HTMLDivElement> & WalletItemProps> = 
                                             network={network}
                                             addressClassNames="font-normal text-sm"
                                             onDisconnect={() => wallet.disconnect && wallet.disconnect()}
+                                            providerName={wallet.providerName}
                                         />
                                     }
                                     <p className="text-xs text-secondary-text">
@@ -255,6 +256,7 @@ const NestedWalletAddress: FC<HTMLAttributes<HTMLDivElement> & NestedWalletAddre
                             network={network}
                             addressClassNames="font-normal text-sm"
                             onDisconnect={() => wallet.disconnect && wallet.disconnect()}
+                            providerName={wallet.providerName}
                         />
                     }
                 </div>

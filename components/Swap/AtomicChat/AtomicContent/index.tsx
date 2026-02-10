@@ -10,6 +10,7 @@ import Link from "next/link";
 import { usePulsatingCircles } from "../../../../context/PulsatingCirclesContext";
 import { useRive } from "@rive-app/react-canvas";
 import SpinIcon from "../../../Icons/spinIcon";
+import { getExplorerUrl } from "@/lib/address";
 import { SwapQuote } from "../../../../lib/trainApiClient";
 
 type AtomicContentProps = {
@@ -47,7 +48,7 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
                             commitStatus={commitStatus}
                             isManualClaimable={isManualClaimable}
                             manualClaimRequested={manualClaimRequested}
-                            redeemTxLink={destRedeemTx && `destination_network?.transactionExplorerTemplate`?.replace('{0}', destRedeemTx)}
+                            redeemTxLink={destRedeemTx && getExplorerUrl(`destination_network?.transactionExplorerTemplate`, destRedeemTx)}
                         />
                         <MotionSummary quote={quote} isQuoteLoading={isQuoteLoading} />
                     </div>

@@ -1,5 +1,4 @@
 import { CommandGroup, CommandList, CommandWrapper } from "../../../shadcn/command";
-import { addressFormat } from "../../../../lib/address/formatter";
 import FilledCheck from "../../../Icons/FilledCheck";
 import { AddressGroup, AddressItem } from ".";
 import { Network } from "../../../../Models/Network";
@@ -7,6 +6,7 @@ import { FC } from "react";
 import AddressWithIcon from "./AddressWithIcon";
 import { Wallet } from "../../../../Models/WalletProvider";
 import { BookOpen } from "lucide-react";
+import { Address } from "@/lib/address";
 
 type AddressBookProps = {
     addressBook: AddressItem[];
@@ -32,7 +32,7 @@ const AddressBook: FC<AddressBookProps> = ({ addressBook, onSelectAddress, desti
                     >
                         <div className="space-y-0 w-full flex flex-col items-stretch max-h-[200px] overflow-y-auto styled-scroll">
                             {addressBook.sort(sortingByDate).map(item => {
-                                const isSelected = addressFormat(item.address, destination!) === addressFormat(destination_address!, destination!)
+                                const isSelected = Address.equals(item.address, destination_address!, destination!)
                                 return (
                                     <button type="button" key={item.address} onClick={() => onSelectAddress(item.address, item.wallet)} className={`group/addressItem px-3 py-3 rounded-xl hover:bg-secondary-600 w-full transition duration-200 bg-secondary-700 ${isSelected && 'bg-secondary-800'}`}>
                                         <div className={`flex items-center justify-between w-full`}>

@@ -5,19 +5,19 @@ import AddressIcon from "../AddressIcon";
 import { Wallet } from "@/Models/WalletProvider";
 import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
 import clsx from 'clsx';
-import shortenAddress from "../utils/ShortenAddress";
+import { Address } from "@/lib/address";
 
 const DestinationWalletPicker = (props: AddressTriggerProps) => {
     const { addressItem, connectedWallet, partner, destination } = props
-    return destination && <div 
-    data-attr={addressItem ? "address-item" : "add-address"}
-    className={clsx(
-        "flex items-center space-x-2 text-sm rounded-lg py-1 px-2 justify-self-end",
-        {
-            "hover:bg-secondary-400": addressItem,
-            "bg-secondary-400 hover:bg-secondary-300": !addressItem
-        }
-    )}>
+    return destination && <div
+        data-attr={addressItem ? "address-item" : "add-address"}
+        className={clsx(
+            "flex items-center space-x-2 text-sm rounded-lg py-1 px-2 justify-self-end",
+            {
+                "hover:bg-secondary-400": addressItem,
+                "bg-secondary-400 hover:bg-secondary-300": !addressItem
+            }
+        )}>
         <div className="rounded-lg flex space-x-1 items-center cursor-pointer">
             {
                 addressItem &&
@@ -26,7 +26,7 @@ const DestinationWalletPicker = (props: AddressTriggerProps) => {
                         <ResolvedIcon addressItem={addressItem} partner={partner} wallet={connectedWallet} destination={destination} />
                     </div>
                     <div className="text-secondary-text">
-                        {shortenAddress(addressItem.address)}
+                        {new Address(addressItem.address, destination).toShortString()}
                     </div>
                     <div className="w-4 h-4 items-center flex text-secondary-text">
                         <ChevronDown className="h-4 w-4" aria-hidden="true" />
@@ -73,7 +73,7 @@ const ResolvedIcon = (props: AdderssIconprops) => {
         return <wallet.icon className="w-4 h-4" />
     }
     else {
-        return <AddressIcon className="h-4 w-4 p-0.5" address={addressItem.address} size={20} />
+        return <AddressIcon className="h-4 w-4 p-0.5" address={destination ? new Address(addressItem.address, destination).full : addressItem.address} size={20} />
     }
 }
 

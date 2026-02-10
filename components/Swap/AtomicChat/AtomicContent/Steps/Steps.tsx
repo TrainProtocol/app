@@ -9,6 +9,7 @@ import XCircle from "../../../../Icons/CircleX";
 import { usePulsatingCircles } from "../../../../../context/PulsatingCirclesContext";
 import LoaderIcon from "../../../../Icons/LoaderIcon";
 import MobileTooltip from "../../../../Modal/mobileTooltip";
+import { getExplorerUrl } from "@/lib/address";
 
 export const RequestStep: FC = () => {
     const { sourceDetails, commitId, commitTxId, source_network, commitFromApi, isTimelockExpired, source_asset, amount, selectedSourceAccount } = useAtomicState()
@@ -28,7 +29,7 @@ export const RequestStep: FC = () => {
     //     </p>
     // </div>
 
-    const completedTxLink = source_network && commitTxId && `source_network?.transactionExplorerTemplate`?.replace('{0}', commitTxId)
+    const completedTxLink = source_network && commitTxId && getExplorerUrl(`source_network?.transactionExplorerTemplate`, commitTxId)
 
     return <Step
         step={1}
@@ -118,7 +119,7 @@ export const LpLockingAssets: FC = () => {
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
 
     const title = completed ? 'Assets reserved' : 'Await reservation'
-    const completedTxLink = lpLockTx && `destination_network?.transactionExplorerTemplate`?.replace('{0}', lpLockTx.hash)
+    const completedTxLink = lpLockTx && getExplorerUrl(`destination_network?.transactionExplorerTemplate`, lpLockTx.hash)
 
     const { setPulseState } = usePulsatingCircles();
 
@@ -237,7 +238,7 @@ export const CancelAndRefund: FC = () => {
     const completed = sourceDetails?.claimed == 2
     const loading = refundTxId && !completed
     const resolvedDescription = completed ? 'Assets are received back at the source address' : 'Cancel & refund to receive your assets back at the source address'
-    const completedTxLink = refundTxId && `source_network?.transactionExplorerTemplate`?.replace('{0}', refundTxId)
+    const completedTxLink = refundTxId && getExplorerUrl(`source_network?.transactionExplorerTemplate`, refundTxId)
 
     const { setPulseState } = usePulsatingCircles();
 
