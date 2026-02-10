@@ -6,13 +6,12 @@ import DestinationPicker from "../../Input/DestinationPicker";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import { Widget } from "../../Widget/Index";
 import { useQueryState } from "../../../context/query";
-import FeeDetailsComponent from "../../FeeDetails";
 import { transformFormValuesToQuoteArgs, useQuoteData } from "../../../hooks/useFee";
-import ResizablePanel from "../../ResizablePanel";
 import useWallet from "../../../hooks/useWallet";
 import FormButton from "../FormButton";
 import { hasRequiredDestinationWallet } from "../../../lib/wallets/utils/destinationWalletUtils";
 import { SwapQuote } from "../../../lib/trainApiClient";
+import QuoteDetails from "@/components/FeeDetails";
 
 type SwapFormProps = {
     polling?: boolean
@@ -42,22 +41,18 @@ const SwapForm: FC<SwapFormProps> = ({ polling = true, onQuoteChange }) => {
     const shouldConnectDestinationWallet = !hasRequiredDestinationWallet(destination, providers);
 
     return <>
-        <Form className={`h-full space-y-3 ${(isSubmitting) ? 'pointer-events-none' : 'pointer-events-auto'}`} >
-            <ResizablePanel>
-                <Widget.Content>
-                    <div className='flex-col relative flex justify-between gap-1.5 w-full leading-4'>
-                        {!(query?.hideFrom && values?.from) && <div className="flex flex-col w-full">
-                            <SourcePicker quote={quote} isQuoteLoading={isQuoteLoading} />
-                        </div>}
-                        {!(query?.hideTo && values?.to) && <div className="flex flex-col w-full">
-                            <DestinationPicker quote={quote} isQuoteLoading={isQuoteLoading} />
-                        </div>}
-                    </div>
-                    <div className="w-full">
-                        <FeeDetailsComponent values={values} quote={quote} isFeeLoading={isQuoteLoading} />
-                    </div>
-                </Widget.Content>
-            </ResizablePanel>
+        <Form className={`h-full space-y-2 ${(isSubmitting) ? 'pointer-events-none' : 'pointer-events-auto'}`} >
+            <Widget.Content>
+                <div className='flex-col relative flex justify-between gap-1.5 w-full leading-4'>
+                    {!(query?.hideFrom && values?.from) && <div className="flex flex-col w-full">
+                        <SourcePicker quote={quote} isQuoteLoading={isQuoteLoading} />
+                    </div>}
+                    {!(query?.hideTo && values?.to) && <div className="flex flex-col w-full">
+                        <DestinationPicker quote={quote} isQuoteLoading={isQuoteLoading} />
+                    </div>}
+                </div>
+                <QuoteDetails values={values} quote={quote} isQuoteLoading={isQuoteLoading} />
+            </Widget.Content>
             <Widget.Footer>
                 <FormButton
                     quote={quote}
