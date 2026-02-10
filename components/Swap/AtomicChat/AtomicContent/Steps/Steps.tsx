@@ -10,6 +10,7 @@ import { usePulsatingCircles } from "../../../../../context/PulsatingCirclesCont
 import LoaderIcon from "../../../../Icons/LoaderIcon";
 import MobileTooltip from "../../../../Modal/mobileTooltip";
 import { getExplorerUrl } from "@/lib/address";
+import NetworkSettings from "@/lib/NetworkSettings";
 
 export const RequestStep: FC = () => {
     const { sourceDetails, commitId, commitTxId, source_network, commitFromApi, isTimelockExpired, source_asset, amount, selectedSourceAccount } = useAtomicState()
@@ -29,7 +30,7 @@ export const RequestStep: FC = () => {
     //     </p>
     // </div>
 
-    const completedTxLink = source_network && commitTxId && getExplorerUrl(`source_network?.transactionExplorerTemplate`, commitTxId)
+    const completedTxLink = source_network && commitTxId && getExplorerUrl(NetworkSettings.KnownSettings[source_network.slug]?.TransactionExplorerTemplate, commitTxId)
 
     return <Step
         step={1}
@@ -119,7 +120,7 @@ export const LpLockingAssets: FC = () => {
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
 
     const title = completed ? 'Assets reserved' : 'Await reservation'
-    const completedTxLink = lpLockTx && getExplorerUrl(`destination_network?.transactionExplorerTemplate`, lpLockTx.hash)
+    const completedTxLink = lpLockTx && destination_network && getExplorerUrl(NetworkSettings.KnownSettings[destination_network.slug]?.TransactionExplorerTemplate, lpLockTx.hash)
 
     const { setPulseState } = usePulsatingCircles();
 
@@ -238,7 +239,7 @@ export const CancelAndRefund: FC = () => {
     const completed = sourceDetails?.claimed == 2
     const loading = refundTxId && !completed
     const resolvedDescription = completed ? 'Assets are received back at the source address' : 'Cancel & refund to receive your assets back at the source address'
-    const completedTxLink = refundTxId && getExplorerUrl(`source_network?.transactionExplorerTemplate`, refundTxId)
+    const completedTxLink = refundTxId && source_network && getExplorerUrl(NetworkSettings.KnownSettings[source_network.slug]?.TransactionExplorerTemplate, refundTxId)
 
     const { setPulseState } = usePulsatingCircles();
 

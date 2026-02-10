@@ -12,6 +12,7 @@ import { useRive } from "@rive-app/react-canvas";
 import SpinIcon from "../../../Icons/spinIcon";
 import { getExplorerUrl } from "@/lib/address";
 import { SwapQuote } from "../../../../lib/trainApiClient";
+import NetworkSettings from "@/lib/NetworkSettings";
 
 type AtomicContentProps = {
     quote?: SwapQuote
@@ -40,7 +41,7 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
     }, [assetsLocked, commitStatus, isActualFailure, manualClaimRequested, destinationDetails?.claimed]);
 
     return (
-        <>
+        destination_network && <>
             <ResizablePanel>
                 <div className="w-full flex flex-col justify-between text-secondary-text">
                     <div className='grid grid-cols-1 gap-4'>
@@ -48,7 +49,7 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
                             commitStatus={commitStatus}
                             isManualClaimable={isManualClaimable}
                             manualClaimRequested={manualClaimRequested}
-                            redeemTxLink={destRedeemTx && getExplorerUrl(`destination_network?.transactionExplorerTemplate`, destRedeemTx)}
+                            redeemTxLink={destRedeemTx && getExplorerUrl(NetworkSettings.KnownSettings[destination_network.slug]?.TransactionExplorerTemplate, destRedeemTx)}
                         />
                         <MotionSummary quote={quote} isQuoteLoading={isQuoteLoading} />
                     </div>

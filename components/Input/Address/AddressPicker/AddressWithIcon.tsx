@@ -9,6 +9,7 @@ import useCopyClipboard from "../../../../hooks/useCopyClipboard";
 import Link from "next/link";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../../shadcn/tooltip";
 import { Wallet } from "../../../../Models/WalletProvider";
+import NetworkSettings from "@/lib/NetworkSettings";
 
 type Props = {
     addressItem: AddressItem;
@@ -167,15 +168,15 @@ export const ExtendedAddress: FC<ExtendedAddressProps> = ({ address, network, ad
                                 : <Copy className="w-4 h-4" />
                         }
                     </div>
-                    {/* {
+                    {
                         (network && isAddressValid) &&
-                        <Link href={getExplorerUrl(network?.accountExplorerTemplate, addr.full)} target="_blank" className="hover:text-primary-text px-2 py-1.5 hover:bg-secondary-600 rounded transition-all duartion-200 flex items-center justify-between gap-5 w-full">
+                        <Link href={getExplorerUrl(NetworkSettings.KnownSettings[network.slug]?.AccountExplorerTemplate, addr.full)} target="_blank" className="hover:text-primary-text px-2 py-1.5 hover:bg-secondary-600 rounded transition-all duartion-200 flex items-center justify-between gap-5 w-full">
                             <p>
                                 Open in explorer
                             </p>
                             <ExternalLink className="w-4 h-4" />
                         </Link>
-                    } */}
+                    }
                     {
                         onDisconnect &&
                         <div onClick={(e) => { e.stopPropagation(), onDisconnect() }} className="hover:text-primary-text px-2 py-1.5 hover:bg-secondary-600 rounded transition-all duartion-200 flex items-center justify-between gap-5 w-full">
