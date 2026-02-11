@@ -68,7 +68,7 @@ export const SummaryRow: FC<{
                 isOpen &&
                 <GasFee values={values} quote={quoteData.quote} />
             } */}
-            <div className={`${isOpen ? "hidden" : ""} flex items-center w-full justify-between px-2 py-3`}>
+            <div className={`${isOpen ? "hidden" : ""} flex items-center w-full justify-between px-2`}>
                 <DetailsButton quote={quoteData} isQuoteLoading={isQuoteLoading} values={values} />
                 <button
                     data-attr="see-swap-details"
