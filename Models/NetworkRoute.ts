@@ -1,17 +1,13 @@
 import { Network, Token } from "./Network";
 
 /**
- * Extended Token with optional ranking info for source/destination
+ * Alias for Network - kept for backward compatibility during migration
+ * Can be removed once all references are updated to use Network directly
  */
-export class NetworkRouteToken extends Token {
-    sourceRank?: number;
-    destinationRank?: number;
-}
+export type NetworkRoute = Network;
 
 /**
- * Network extended with direction-filtered tokens
- * This is computed client-side from Route[] based on the selected direction
+ * Alias for Token - kept for backward compatibility during migration
+ * Can be removed once all references are updated to use Token directly
  */
-export class NetworkRoute extends Network {
-    tokens: NetworkRouteToken[];
-}
+export type NetworkRouteToken = Token;

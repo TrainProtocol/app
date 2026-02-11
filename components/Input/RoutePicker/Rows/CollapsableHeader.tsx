@@ -14,7 +14,7 @@ export const CollapsableHeader = ({ item, direction, hideTokenImages }: Props) =
     if (item.type === "network") {
         return (
             <NetworkRouteSelectItemDisplay
-                item={item.route}
+                item={item.network}
                 selected={false}
                 direction={direction}
             />
@@ -22,7 +22,7 @@ export const CollapsableHeader = ({ item, direction, hideTokenImages }: Props) =
     }
 
     // grouped_token case - simplified for now
-    const mainToken = item.items[0]?.route.token;
+    const mainToken = item.items[0]?.data.token;
     if (!mainToken) return null;
 
     return (

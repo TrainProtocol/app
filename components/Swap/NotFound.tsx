@@ -1,17 +1,12 @@
-import { FC, useCallback, useEffect } from "react";
+import { FC, useCallback } from "react";
 import MessageComponent from "../MessageComponent";
 import SubmitButton, { DoubleLineText } from "../buttons/submitButton";
 import GoHomeButton from "../utils/GoHome";
 import { useIntercom } from "react-use-intercom";
-import { TrackEvent } from '../../pages/_document';
 import { Home, MessageSquare } from "lucide-react";
 
 const NotFound: FC = () => {
     const { boot, show, update } = useIntercom()
-
-    useEffect(() => {
-        plausible(TrackEvent.SwapFailed)
-    }, [])
 
     const startIntercom = useCallback(() => {
         boot();

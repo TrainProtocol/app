@@ -3,9 +3,9 @@ import { FC, useCallback, useEffect, useState } from "react";
 import { SwapDirection, SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import { Selector, SelectorContent, SelectorTrigger } from "@/components/Select/Selector/Index";
 import { SelectedRouteDisplay } from "./Routes";
-import useFormRoutes from "@/hooks/useFormRoutes";
+import useFormNetworks from "@/hooks/useFormNetworks";
 import { Content } from "./Content";
-import { NetworkRoute, NetworkRouteToken } from "@/Models/NetworkRoute";
+import { Network, Token } from "@/Models/Network";
 import clsx from "clsx";
 
 const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ direction, className }) => {
@@ -15,14 +15,14 @@ const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ dir
     } = useFormikContext<SwapFormValues>();
     const [searchQuery, setSearchQuery] = useState("")
 
-    const { isLoading, routeElements, selectedRoute, selectedToken } = useFormRoutes({ direction, values }, searchQuery, 4)
+    const { isLoading, networkElements, selectedNetwork, selectedToken } = useFormNetworks({ direction, values }, searchQuery, 4)
     const currencyFieldName = direction === 'from' ? 'fromCurrency' : 'toCurrency';
 
-    const handleSelect = useCallback(async (route: NetworkRoute, token: NetworkRouteToken) => {
+    const handleSelect = useCallback(async (network: Network, token: Token) => {
         // Set the token
         await setFieldValue(currencyFieldName, token, true);
         // Set the network
-        await setFieldValue(direction, route, true);
+        await setFieldValue(direction, network, true);
     }, [currencyFieldName, direction, setFieldValue])
 
     return (
@@ -33,7 +33,7 @@ const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ dir
                     disabled={false}
                     className="py-1.5 px-2 active:animate-press-down rounded-2xl bg-secondary-500"
                 >
-                    <SelectedRouteDisplay route={selectedRoute} token={selectedToken} placeholder="Select token" />
+                    <SelectedRouteDisplay network={selectedNetwork} token={selectedToken} placeholder="Select token" />
                 </SelectorTrigger>
                 <SelectorContent
                     isLoading={isLoading}
@@ -44,9 +44,9 @@ const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ dir
                             onSelect={(r, t) => { handleSelect(r, t); closeModal(); }}
                             searchQuery={searchQuery}
                             setSearchQuery={setSearchQuery}
-                            rowElements={routeElements}
+                            rowElements={networkElements}
                             direction={direction}
-                            selectedRoute={selectedRoute?.slug}
+                            selectedNetwork={selectedNetwork?.slug}
                             selectedToken={selectedToken?.symbol}
                         />
                     )}

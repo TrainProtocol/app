@@ -80,7 +80,7 @@ const MinMax = (props: MinMaxProps) => {
 
     const showMaxTooltip = !!(walletBalance?.amount && shouldPayGasWithTheToken && (!limitsMaxAmount || walletBalance.amount < limitsMaxAmount))
 
-    if (!from || !fromCurrency || !balances)
+    if (!from || !fromCurrency || !balances?.length)
         return null;
 
     return (

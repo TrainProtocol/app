@@ -103,9 +103,9 @@ export default function Form() {
                 destination: values.to?.slug!,
                 source_asset: values.fromCurrency.symbol,
                 destination_asset: values.toCurrency.symbol,
-                solver: quote?.sourceSignerAgent ?? quote?.route?.sourceWallet?.signerAgent?.name,
-                srcContract: quote?.sourceContractAddress ?? undefined,
-                destContract: quote?.destinationContractAddress ?? undefined,
+                solver: quote?.sourceSolverAddress,
+                srcContract: quote?.route?.source?.tokenContract ?? undefined,
+                destContract: quote?.route?.destination?.tokenContract ?? undefined,
             }
 
             setAtomicQuery(atomicValues)

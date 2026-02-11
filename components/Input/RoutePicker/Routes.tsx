@@ -1,4 +1,4 @@
-import { NetworkRoute, NetworkRouteToken } from "@/Models/NetworkRoute";
+import { Network, Token } from "@/Models/Network";
 import { SwapDirection } from "@/components/DTOs/SwapFormValues";
 import { truncateDecimals } from "@/components/utils/RoundDecimals";
 import { SelectItem } from "@/components/Select/Selector/SelectItem";
@@ -11,15 +11,15 @@ import { RowElement } from "@/Models/Route";
 import { resolveTokenLogoUrl } from "@/components/utils/resolveTokenLogoUrl";
 
 type TokenItemProps = {
-    route: NetworkRoute;
-    item: NetworkRouteToken;
+    network: Network;
+    item: Token;
     type?: RowElement['type'];
     selected: boolean;
     direction: SwapDirection;
 };
 
 export const CurrencySelectItemDisplay = memo((props: TokenItemProps) => {
-    const { item, route, direction } = props
+    const { item, network, direction } = props
 
     return <SelectItem className="group">
         <SelectItem.Logo
@@ -27,24 +27,24 @@ export const CurrencySelectItemDisplay = memo((props: TokenItemProps) => {
             altText={`${item.symbol} logo`}
             className="rounded-full"
         />
-        <NetworkTokenTitle item={item} route={route} direction={direction} />
+        <NetworkTokenTitle item={item} network={network} direction={direction} />
     </SelectItem>
 });
 
 CurrencySelectItemDisplay.displayName = 'CurrencySelectItemDisplay';
 
 type NetworkTokenItemProps = {
-    route: NetworkRoute;
-    item: NetworkRouteToken;
+    network: Network;
+    item: Token;
     direction: SwapDirection;
 }
 
 export const NetworkTokenTitle = (props: NetworkTokenItemProps) => {
-    const { item, route, direction } = props
-    const selectedSourceAccount = useSelectedAccount("from", route?.slug);
+    const { item, network, direction } = props
+    const selectedSourceAccount = useSelectedAccount("from", network?.slug);
 
     const address = direction === 'from' ? selectedSourceAccount?.address : undefined;
-    const { balances } = useBalance(address, route);
+    const { balances } = useBalance(address, network);
 
     const tokenBalance = balances?.find(b => b.token === item.symbol);
     const formatted_balance_amount = (tokenBalance?.amount || tokenBalance?.amount === 0)
@@ -63,13 +63,13 @@ export const NetworkTokenTitle = (props: NetworkTokenItemProps) => {
                 )}
             </div>
         }
-        secondaryImageAlt={route.displayName}
+        secondaryImageAlt={network.displayName}
         secondary={
             <div className="flex items-center gap-1">
-                <span className="truncate">{route.displayName}</span>
+                <span className="truncate">{network.displayName}</span>
             </div>
         }
-        secondaryLogoSrc={route.logo}
+        secondaryLogoSrc={network.logo}
     >
         {(tokenBalance && Number(tokenBalance?.amount) > 0) ? (
             <span className="text-sm text-secondary-text text-right my-auto font-medium block">
@@ -81,13 +81,13 @@ export const NetworkTokenTitle = (props: NetworkTokenItemProps) => {
     </SelectItem.DetailedTitle>
 }
 
-type NetworkRouteItemProps = {
-    item: NetworkRoute;
+type NetworkItemProps = {
+    item: Network;
     selected: boolean;
     direction: SwapDirection;
 }
 
-export const NetworkRouteSelectItemDisplay = (props: NetworkRouteItemProps) => {
+export const NetworkRouteSelectItemDisplay = (props: NetworkItemProps) => {
     const { item } = props
 
     return (
@@ -110,13 +110,13 @@ export const NetworkRouteSelectItemDisplay = (props: NetworkRouteItemProps) => {
 };
 
 type SelectedRouteDisplayProps = {
-    route?: NetworkRoute;
-    token?: NetworkRouteToken;
+    network?: Network;
+    token?: Token;
     placeholder: string;
 }
 
-export const SelectedRouteDisplay = ({ route, token, placeholder }: SelectedRouteDisplayProps) => {
-    const showContent = token && route;
+export const SelectedRouteDisplay = ({ network, token, placeholder }: SelectedRouteDisplayProps) => {
+    const showContent = token && network;
 
     return (
         <span className="flex grow text-left items-center text-xs md:text-base relative">
@@ -136,7 +136,7 @@ export const SelectedRouteDisplay = ({ route, token, placeholder }: SelectedRout
                         </div>
                         <div className="absolute left-[13px] top-3.5 h-4 w-4 rounded border border-secondary-500 bg-secondary-400 overflow-hidden">
                             <ImageWithFallback
-                                src={route.logo || ''}
+                                src={network.logo || ''}
                                 alt="Network Logo"
                                 height="14"
                                 width="14"
@@ -149,7 +149,7 @@ export const SelectedRouteDisplay = ({ route, token, placeholder }: SelectedRout
                     <div className="ml-2 flex flex-col grow text-primary-text overflow-hidden min-w-0 max-w-3/4 group-[.exchange-picker]:max-w-full xs:max-w-[60px]">
                         <p className="text-base leading-5 font-medium">{token.symbol}</p>
                         <p className="text-secondary-text grow text-sm font-normal leading-4 truncate whitespace-nowrap">
-                            {route.displayName}
+                            {network.displayName}
                         </p>
                     </div>
                 </>

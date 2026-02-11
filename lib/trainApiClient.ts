@@ -2,7 +2,7 @@ import AppSettings from "./AppSettings";
 import { InitializeUnauthInstance } from "./axiosInterceptor"
 import { AxiosInstance, Method } from "axios";
 import { ApiResponse } from "../Models/ApiResponse";
-import { Network, Route } from "../Models/Network";
+import { Network } from "../Models/Network";
 
 export default class LayerSwapApiClient {
     static apiBaseEndpoint?: string = AppSettings.LayerswapApiUri;
@@ -15,11 +15,6 @@ export default class LayerSwapApiClient {
 
     async GetNetworksAsync(): Promise<Network[]> {
         const response = await this.UnauthenticatedRequest<{ data: Network[] }>("GET", `/networks`);
-        return response.data;
-    }
-
-    async GetRoutesAsync(): Promise<Route[]> {
-        const response = await this.UnauthenticatedRequest<{ data: Route[] }>("GET", `/routes`);
         return response.data;
     }
 
@@ -113,16 +108,48 @@ export type Quote = {
     quote?: SwapQuote,
 }
 
-export type SwapQuote = {
-    sourceSolverAddress: string;
-    sourceSignerAgent: string;
-    destinationSolverAddress: string;
-    destinationSignerAgent: string;
-    sourceContractAddress: string | null;
-    destinationContractAddress: string | null;
-    route: Route;
-    totalFee: string;
-    totalServiceFee: string;
-    totalExpenseFee: string;
-    receiveAmount: string;
+type QuoteRouteEndpoint = {
+    networkSlug: string;
+    tokenSymbol: string;
+    tokenContract: string;
+    tokenDecimals: number;
 }
+
+type QuoteRoute = {
+    source: QuoteRouteEndpoint;
+    destination: QuoteRouteEndpoint;
+    minAmountInSource: string;
+    maxAmountInSource: string;
+}
+
+type QuoteDetails = {
+    signature: string;
+    totalFee: string;
+    receiveAmount: string;
+    sourceSolverAddress: string;
+    destinationSolverAddress: string;
+    quoteExpirationTimestampInSeconds: number;
+    route: QuoteRoute;
+    timelock: {
+        timelockTimeSpanInSeconds: number;
+    };
+    reward: {
+        amount: string;
+        rewardTimelockTimeSpanInSeconds: number;
+        rewardToken: string;
+        rewardRecipientAddress: string;
+    };
+}
+
+export type SwapQuoteResponse = {
+    error?: {
+        message: string;
+    };
+    data?: {
+        quoteWithReward: QuoteDetails;
+        quoteWithoutReward: QuoteDetails;
+    };
+}
+
+// For backward compatibility - represents a single quote
+export type SwapQuote = QuoteDetails;

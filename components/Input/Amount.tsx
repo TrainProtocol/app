@@ -21,7 +21,7 @@ const AmountField = forwardRef(function AmountField({ usdPosition = "bottom", ac
     const amountRef = useRef(ref)
     const suffixRef = useRef<HTMLDivElement>(null);
 
-    const sourceCurrencyPriceInUsd = resolveTokenUsdPrice(fromCurrency, fee)
+    const sourceCurrencyPriceInUsd = resolveTokenUsdPrice(fromCurrency)
 
     const requestedAmountInUsd = useMemo(() => {
         const amountNumber = Number(amount);

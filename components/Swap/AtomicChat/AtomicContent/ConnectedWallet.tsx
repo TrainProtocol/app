@@ -29,20 +29,20 @@ const Component: FC = () => {
     const selectedWallet = selectedSourceAccount && provider?.connectedWallets?.find(w => w.id === selectedSourceAccount.id && w.addresses?.some(a => a.toLowerCase() === selectedSourceAccount.address.toLowerCase()))
     const activeWallet = provider?.activeWallet
 
-    useEffect(() => {
-        if (!selectedSourceAccount && activeWallet) {
-            selectSourceAccount({ address: activeWallet.address, id: activeWallet.id, providerName: activeWallet.providerName })
-        } else if (selectedSourceAccount && activeWallet && !activeWallet.addresses.some(a => a.toLowerCase() === selectedSourceAccount.address.toLowerCase())) {
-            const selectedWalletIsConnected = provider.connectedWallets?.some(w => w.addresses.some(a => a.toLowerCase() === selectedSourceAccount.address.toLowerCase()))
-            if (selectedWalletIsConnected) {
-                const wallet = provider.connectedWallets?.find(w => w.addresses.some(a => a.toLowerCase() === selectedSourceAccount.address.toLowerCase()))
-                wallet && provider.switchAccount && provider.switchAccount(wallet, selectedSourceAccount.address)
-            }
-            else {
-                selectSourceAccount({ address: activeWallet.address, id: activeWallet.id, providerName: activeWallet.providerName })
-            }
-        }
-    }, [activeWallet?.address, selectSourceAccount, provider, selectedSourceAccount?.address])
+    // useEffect(() => {
+    //     if (!selectedSourceAccount && activeWallet) {
+    //         selectSourceAccount({ address: activeWallet.address, id: activeWallet.id, providerName: activeWallet.providerName })
+    //     } else if (selectedSourceAccount && activeWallet && !activeWallet.addresses.some(a => a.toLowerCase() === selectedSourceAccount.address.toLowerCase())) {
+    //         const selectedWalletIsConnected = provider.connectedWallets?.some(w => w.addresses.some(a => a.toLowerCase() === selectedSourceAccount.address.toLowerCase()))
+    //         if (selectedWalletIsConnected) {
+    //             const wallet = provider.connectedWallets?.find(w => w.addresses.some(a => a.toLowerCase() === selectedSourceAccount.address.toLowerCase()))
+    //             wallet && provider.switchAccount && provider.switchAccount(wallet, selectedSourceAccount.address)
+    //         }
+    //         else {
+    //             selectSourceAccount({ address: activeWallet.address, id: activeWallet.id, providerName: activeWallet.providerName })
+    //         }
+    //     }
+    // }, [activeWallet?.address, selectSourceAccount, provider, selectedSourceAccount?.address])
 
 
 

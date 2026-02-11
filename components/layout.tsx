@@ -5,8 +5,8 @@ import ThemeWrapper from "./themeWrapper";
 import { ErrorBoundary } from "react-error-boundary";
 import MaintananceContent from "./Maintanance";
 import { SettingsProvider } from "../context/settings";
-import { LayerSwapAppSettings } from "../Models/LayerSwapAppSettings";
-import { LayerSwapSettings } from "../Models/LayerSwapSettings";
+import { TrainAppSettings } from "../Models/TrainAppSettings";
+import { TrainSettings } from "../Models/TrainSettings";
 import ErrorFallback from "./ErrorFallback";
 import { SendErrorMessage } from "../lib/telegram";
 import { QueryParams } from "../Models/QueryParams";
@@ -24,44 +24,19 @@ import { SwapAccountsProvider } from "@/context/swapAccounts";
 type Props = {
   children: JSX.Element | JSX.Element[];
   hideFooter?: boolean;
-  settings?: LayerSwapSettings;
+  settings?: TrainSettings;
   themeData?: ThemeData | null
 };
 
 export default function Layout({ children, settings, themeData }: Props) {
   const router = useRouter();
 
-  useEffect(() => {
-    function prepareUrl(params) {
-      const url = new URL(location.href)
-      const queryParams = new URLSearchParams(location.search)
-      let customUrl = url.protocol + "//" + url.hostname + url.pathname.replace(/\/$/, '')
-      for (const paramName of params) {
-        const paramValue = queryParams.get(paramName)
-        if (paramValue) customUrl = customUrl + '/' + paramValue
-      }
-      return customUrl
-    }
-    plausible('pageview', {
-      u: prepareUrl([
-        'destNetwork', //opsolate
-        'addressSource', //opsolate
-        'from',
-        'to',
-        'appName',
-        'asset',
-        'amount',
-        'destAddress'
-      ])
-    })
-  }, [])
-
   if (!settings)
     return <ThemeWrapper>
       <MaintananceContent />
     </ThemeWrapper>
 
-  let appSettings = new LayerSwapAppSettings(settings)
+  let appSettings = new TrainAppSettings(settings)
 
   const query: QueryParams = {
     ...router.query,

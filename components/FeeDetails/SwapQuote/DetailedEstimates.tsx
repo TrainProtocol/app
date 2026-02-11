@@ -49,7 +49,7 @@ export const GasFee = ({ values, quote }: { values: SwapFormValues, quote: SwapQ
     const wallet = wallets?.[0]
 
     const { gas, isGasLoading } = useSWRGas(wallet?.address, values.from, values.fromCurrency)
-    const gasTokenPriceInUsd = resolveTokenUsdPrice(values.fromCurrency, quote)
+    const gasTokenPriceInUsd = resolveTokenUsdPrice(values.fromCurrency)
     const gasFeeInUsd = gas && gasTokenPriceInUsd ? gas * gasTokenPriceInUsd : null
     const displayGasFeeInUsd = gasFeeInUsd != null ? (gasFeeInUsd < 0.01 ? '<$0.01' : `$${gasFeeInUsd.toFixed(2)}`) : null
 
@@ -86,7 +86,7 @@ const Fees = ({ quote, values }: { quote: SwapQuote | undefined, values: SwapFor
 
     const feeInUsd = useMemo(() => {
         if (fee_amount === null || fee_amount === undefined) return null
-        const priceInUsd = resolveTokenUsdPrice(fromCurrency, quote)
+        const priceInUsd = resolveTokenUsdPrice(fromCurrency)
         if (!priceInUsd) return null
         return fee_amount * priceInUsd
     }, [fee_amount, fromCurrency, quote])

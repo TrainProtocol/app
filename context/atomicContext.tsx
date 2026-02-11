@@ -63,7 +63,7 @@ type CommitStatesDict = Record<string, CommitState>;
 
 export function AtomicProvider({ children }) {
     const router = useRouter()
-    const { networks, routes } = useSettingsState()
+    const { networks } = useSettingsState()
 
     const [atomicQuery, setAtomicQuery] = useState(router.query)
 
@@ -119,8 +119,8 @@ export function AtomicProvider({ children }) {
 
     const source_network = networks.find(n => n.slug.toUpperCase() === (source as string)?.toUpperCase())
     const destination_network = networks.find(n => n.slug.toUpperCase() === (destination as string)?.toUpperCase())
-    const source_token = routes.find(n => n.source.network.slug.toUpperCase() === (source as string)?.toUpperCase() && n.source.token.symbol === source_asset)?.source.token
-    const destination_token = routes.find(n => n.destination.network.slug.toUpperCase() === (destination as string)?.toUpperCase() && n.destination.token.symbol === destination_asset)?.destination.token
+    const source_token = source_network?.tokens.find(t => t.symbol === source_asset)
+    const destination_token = destination_network?.tokens.find(t => t.symbol === destination_asset)
 
     const userLockTransaction = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
     const assetsLocked = ((sourceDetails?.hashlock && destinationDetails?.hashlock) || !!userLockTransaction) ? true : false;
