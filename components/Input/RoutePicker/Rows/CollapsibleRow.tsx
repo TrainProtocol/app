@@ -106,8 +106,8 @@ export const CollapsibleRow = ({
                     index={childIndex}
                     parentIndex={index}
                     onClick={() => onSelect(network, token)}
-                    focusedClassName="bg-secondary-500 is-focused"
-                    className="token-item cursor-pointer rounded-lg hover:bg-secondary-600 transition-colors"
+                    focusedClassName="bg-secondary-400"
+                    className="token-item pl-2 pr-3 cursor-pointer rounded-xl outline-none disabled:cursor-not-allowed hover:bg-secondary-400"
                   >
                     <TokenItem
                       token={token}
