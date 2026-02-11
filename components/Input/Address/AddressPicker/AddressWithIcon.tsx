@@ -308,7 +308,7 @@ const ActionButton: FC<ActionButtonProps> = ({ title, Icon, onClick, href, iconC
         </>
     )
 
-    const buttonClasses = "cursor-pointer text-secondary-text hover:text-primary-text px-2.5 py-2 bg-secondary-300 hover:bg-secondary-400 rounded-lg transition-all duration-200 flex items-center gap-1 flex-1 justify-center"
+    const buttonClasses = "cursor-pointer text-secondary-text hover:text-primary-text px-2.5 py-2 bg-secondary-400 hover:bg-secondary-300 rounded-lg transition-all duration-200 flex items-center gap-1 flex-1 justify-center"
 
     const renderButton = () => {
         if (href) {

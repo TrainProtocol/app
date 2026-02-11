@@ -388,7 +388,7 @@ path {
 /* Focus ring - 2px accent inset with 12px radius */
 .navigation-focus-ring-text-bold-lg:focus-visible {
   outline: none !important;
-  box-shadow: inset 0 0 0 2px rgb(var(--ls-colors-accent, 39, 142, 246)) !important;
+  box-shadow: inset 0 0 0 2px rgb(var(--ls-colors-secondary-100)) !important;
   border-radius: 12px;
 }
 
