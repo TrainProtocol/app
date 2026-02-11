@@ -1,26 +1,25 @@
 import { FC } from "react";
 import { CommitStatus, useAtomicState } from "../../../../context/atomicContext";
-import { LpLockingAssets } from "./LpLock";
-import { RedeemAction } from "./Redeem";
-import { UserRefundAction, UserLockAction, UserCommitAction } from "./UserActions";
+import { SolverLockingAssets } from "./SolverLock";
+import { RevealSecretAction } from "./RevealSecret";
+import { WaitForSolverRedeem } from "./WaitForSolverRedeem";
+import { UserRefundAction, UserCommitAction } from "./UserActions";
 import TransactionMessages from "../../messages/TransactionMessages";
 import WalletMessage from "../../messages/Message";
-import { Commit } from "../../../../Models/phtlc/PHTLC";
+import { LockStatus } from "../../../../Models/phtlc/PHTLC";
 import DestinationWalletWrapper from "./DestinationWalletWrapper";
 import { SwapQuote } from "../../../../lib/trainApiClient";
 import SubmitButton from "@/components/buttons/submitButton";
 
 type ResolveActionProps = {
-    sourceDetails: Commit | undefined
     commitStatus: CommitStatus
     error: string | undefined
     quote?: SwapQuote
 }
 
-const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, sourceDetails, error, quote }) => {
-    const { updateCommit } = useAtomicState()
+const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote }) => {
+    const { updateCommit, sourceDetails } = useAtomicState()
 
-    // When there's an error, show a retry button that clears the error and re-renders the appropriate action
     if (error) {
         return <SubmitButton
             type="button"
@@ -33,21 +32,19 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, sourceDetails, er
         return null
     }
     if (commitStatus === CommitStatus.TimelockExpired) {
-        if (sourceDetails?.claimed == 2) {
+        if (sourceDetails?.status === LockStatus.Refunded) {
             return null
         }
-        else {
-            return <UserRefundAction />
-        }
+        return <UserRefundAction />
     }
-    if (commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.ManualClaimNeeded) {
-        return <RedeemAction />
+    if (commitStatus === CommitStatus.SecretRevealed) {
+        return <WaitForSolverRedeem />
     }
-    if (commitStatus === CommitStatus.LpLockDetected || commitStatus === CommitStatus.UserLocked) {
-        return <UserLockAction />
+    if (commitStatus === CommitStatus.SolverLockDetected) {
+        return <RevealSecretAction />
     }
     if (commitStatus === CommitStatus.Commited) {
-        return <LpLockingAssets />
+        return <SolverLockingAssets />
     }
     return <UserCommitAction quote={quote} />
 }
@@ -58,7 +55,7 @@ type ActionsProps = {
 }
 
 export const Actions: FC<ActionsProps> = ({ quote, isQuoteLoading = false }) => {
-    const { sourceDetails, commitStatus, error } = useAtomicState()
+    const { commitStatus, error } = useAtomicState()
 
     return (
         <div className="w-full space-y-3 h-fit text-primary-text">
@@ -66,7 +63,6 @@ export const Actions: FC<ActionsProps> = ({ quote, isQuoteLoading = false }) => 
             <DestinationWalletWrapper>
                 <ResolveAction
                     commitStatus={commitStatus}
-                    sourceDetails={sourceDetails}
                     error={error?.message}
                     quote={quote}
                 />

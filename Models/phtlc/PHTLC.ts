@@ -26,5 +26,9 @@ export type Commit = {
     /** Index for hashlock-based contracts (EVM v2+) */
     index?: number,
     /** Lock status (EVM v3) - 0=Pending, 1=Redeemed, 2=Refunded */
-    status?: LockStatus
+    status?: LockStatus,
+    /** Reward recipient address (solver lock) */
+    rewardRecipient?: string,
+    /** Reward token address (solver lock) */
+    rewardToken?: string,
 }

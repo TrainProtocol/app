@@ -3,7 +3,7 @@ import { writeContract, simulateContract, readContract, waitForTransactionReceip
 import { ethers } from "ethers"
 import { createPublicClient, http, Chain, zeroAddress } from "viem"
 import { Network } from "../../../Models/Network"
-import { CreatePreHTLCParams, CommitmentParams, LockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
+import { CreatePreHTLCParams, CommitmentParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
 import { Commit, LockStatus } from "../../../Models/phtlc/PHTLC"
 import HTLCAbi from "../../abis/atomic/EVM_HTLC.json"
 import IMTBLZKERC20 from "../../abis/IMTBLZKERC20.json"
@@ -11,7 +11,7 @@ import formatAmount from "../../formatAmount"
 import resolveChain from "../../resolveChain"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
-import { AtomicEVMFunctions } from "../utils/atomicTypes"
+import { BaseAtomicFunctions } from "../utils/atomicTypes"
 
 export interface UseAtomicEVMParams {
     config: Config
@@ -23,11 +23,11 @@ export interface UseAtomicEVMParams {
 
 const minutesToSeconds = (minutes: number) => minutes * 60
 
-export default function useAtomicEVM(params: UseAtomicEVMParams): AtomicEVMFunctions {
+export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunctions {
     const { config, account, evmAccount, networks, getEffectiveRpcUrls } = params
     const { deriveSecret } = useSecretDerivation()
 
-    const createPreHTLC = async (params: CreatePreHTLCParams) => {
+    const createHTLC = async (params: CreatePreHTLCParams) => {
         const {
             destinationChain,
             sourceChain,
@@ -47,12 +47,15 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): AtomicEVMFunct
 
         const parsedAmount = ethers.utils.parseUnits(amount.toString(), decimals).toBigInt()
 
+        if(!account) throw new Error("No account found")
+
         const secret = await deriveSecret({
             chainId: Number(chainId),
-            wallet: account!.wallet,
+            wallet: account.wallet,
             config
         })
-        const hashlock = secretToHashlock(secret)
+        const hashlock = secretToHashlock(secret.hashlock)
+        const _timestamp = secret.nonce
 
         const tokenAddress = sourceAsset.contractAddress
             ? (sourceAsset.contractAddress as `0x${string}`)
@@ -125,7 +128,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): AtomicEVMFunct
             const { request } = await simulateContract(config, simulationData)
             const hash = await writeContract(config, request)
 
-            return { hash, commitId: hashlock }
+            return { hash, commitId: hashlock, nonce: _timestamp }
         }
         catch (error) {
             console.error('Error simulating contract:', error)
@@ -204,8 +207,46 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): AtomicEVMFunct
         }
     }
 
-    const addLock = async (_params: CommitmentParams & LockParams) => {
-        throw new Error("addLock is not supported - hashlock is provided in userLock()")
+    const getSolverLockDetails = async (params: CommitmentParams): Promise<Commit | null> => {
+        const { chainId, id, contractAddress } = params
+
+        const count: any = await readContract(config, {
+            abi: HTLCAbi,
+            address: contractAddress as `0x${string}`,
+            functionName: 'getSolverLockCount',
+            args: [id],
+            chainId: Number(chainId),
+        })
+
+        if (Number(count) === 0) return null
+
+        const result: any = await readContract(config, {
+            abi: HTLCAbi,
+            address: contractAddress as `0x${string}`,
+            functionName: 'getSolverLock',
+            args: [id, 0],
+            chainId: Number(chainId),
+        })
+
+        const lockExists = result.sender !== zeroAddress
+        if (!lockExists) return null
+
+        return {
+            hashlock: id,
+            amount: formatAmount(Number(result.amount), 18),
+            secret: result.secret != 0n ? BigInt(result.secret) : undefined,
+            sender: result.sender,
+            recipient: result.recipient !== zeroAddress ? result.recipient : undefined,
+            token: result.token !== zeroAddress ? result.token : undefined,
+            timelock: Number(result.timelock),
+            reward: formatAmount(Number(result.reward), 18),
+            rewardTimelock: Number(result.rewardTimelock),
+            rewardRecipient: result.rewardRecipient !== zeroAddress ? result.rewardRecipient : undefined,
+            rewardToken: result.rewardToken !== zeroAddress ? result.rewardToken : undefined,
+            status: Number(result.status) as LockStatus,
+            claimed: Number(result.status),
+            index: 0,
+        }
     }
 
     const refund = async (params: RefundParams) => {
@@ -238,10 +279,10 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): AtomicEVMFunct
     }
 
     return {
-        createPreHTLC,
+        createHTLC: createHTLC,
         getDetails,
         secureGetDetails,
-        addLock,
+        getSolverLockDetails,
         refund,
         claim
     }

@@ -11,7 +11,6 @@ import { AnchorWallet } from "@solana/wallet-adapter-react"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
 import { calculateEpochTimelock } from "../utils/calculateTimelock"
-import { AtomicSVMFunctions } from "../utils/atomicTypes"
 import { toHexString } from "../utils/atomicHelpers"
 
 export interface UseAtomicSVMParams {
@@ -23,7 +22,7 @@ export interface UseAtomicSVMParams {
     anchorProvider: AnchorProvider | undefined
 }
 
-export default function useAtomicSVM(params: UseAtomicSVMParams): AtomicSVMFunctions {
+export default function useAtomicSVM(params: UseAtomicSVMParams) {
     const { connection, signTransaction, signMessage, publicKey, network, anchorProvider } = params
     const { deriveSecret } = useSecretDerivation()
 
@@ -41,7 +40,7 @@ export default function useAtomicSVM(params: UseAtomicSVMParams): AtomicSVMFunct
             chainId,
             wallet: { metadata: { wallet: solanaWallet }, providerName: 'solana' } as any
         });
-        const hashlock = secretToHashlock(secret);
+        // const hashlock = secretToHashlock(secret);
 
         // Note: Add hashlock to transaction params when contract supports it
         const transaction = await phtlcTransactionBuilder({ connection, program, walletPublicKey: publicKey, network, ...params })
@@ -256,7 +255,7 @@ export default function useAtomicSVM(params: UseAtomicSVMParams): AtomicSVMFunct
     }
 
     return {
-        createPreHTLC,
+        createHTLC: createPreHTLC,
         getDetails,
         addLock,
         refund,

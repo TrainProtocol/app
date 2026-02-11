@@ -10,7 +10,6 @@ import LayerSwapApiClient from "../../trainApiClient"
 import { calculateEpochTimelock } from "../utils/calculateTimelock"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
-import { AtomicStarknetFunctions } from "../utils/atomicTypes"
 import { generateRandomId } from "../utils/atomicHelpers"
 
 export interface UseAtomicStarknetParams {
@@ -18,7 +17,7 @@ export interface UseAtomicStarknetParams {
     nodeUrl: string | undefined
 }
 
-export default function useAtomicStarknet(params: UseAtomicStarknetParams): AtomicStarknetFunctions {
+export default function useAtomicStarknet(params: UseAtomicStarknetParams) {
     const { starknetWallet, nodeUrl } = params
     const { deriveSecret } = useSecretDerivation()
 
@@ -55,7 +54,7 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Atom
                 chainId,
                 wallet: starknetWallet
             });
-            const hashlock = secretToHashlock(secret);
+            // const hashlock = secretToHashlock(secret);
             
             // Note: Add hashlock to args array when contract supports it
             // For hashlock-based contracts, insert hashlock in the appropriate position
@@ -306,7 +305,7 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Atom
     }
 
     return {
-        createPreHTLC,
+        createHTLC: createPreHTLC,
         getDetails,
         addLock,
         addLockSig,

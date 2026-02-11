@@ -27,6 +27,10 @@ export default class LayerSwapApiClient {
         return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/${solver}/swaps/${commit_id}/addLockSig`, params);
     }
 
+    async RevealSecret(params: RevealSecretParams, commitId: string, solver: string): Promise<ApiResponse<{}>> {
+        return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/${solver}/swaps/${commitId}/revealSecret`, params);
+    }
+
     private async UnauthenticatedRequest<T>(method: Method, endpoint: string, data?: any, header?: {}): Promise<T> {
         let uri = LayerSwapApiClient.apiBaseEndpoint + "/api/v1" + endpoint;
         return await this._unauthInterceptor(uri, { method: method, data: data, headers: { 'Access-Control-Allow-Origin': '*', ...(header ? header : {}) } })
@@ -37,6 +41,10 @@ export default class LayerSwapApiClient {
                 return Promise.reject(reason);
             });
     }
+}
+
+export type RevealSecretParams = {
+    secret: string
 }
 
 export type AddLockSig = {

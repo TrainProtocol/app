@@ -9,7 +9,6 @@ import { getTONDetails } from "./getters"
 import { calculateEpochTimelock } from "../utils/calculateTimelock"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
-import { AtomicTONFunctions } from "../utils/atomicTypes"
 
 export interface UseAtomicTONParams {
     tonWallet: any
@@ -18,7 +17,7 @@ export interface UseAtomicTONParams {
     tonApiUrl: string
 }
 
-export default function useAtomicTON(params: UseAtomicTONParams): AtomicTONFunctions {
+export default function useAtomicTON(params: UseAtomicTONParams) {
     const { tonWallet, tonConnectUI, networks, tonApiUrl } = params
     const { deriveSecret } = useSecretDerivation()
 
@@ -35,7 +34,7 @@ export default function useAtomicTON(params: UseAtomicTONParams): AtomicTONFunct
             wallet: { providerName: 'ton' } as any,
             tonConnectUI
         });
-        const hashlock = secretToHashlock(secret);
+        // const hashlock = secretToHashlock(secret);
 
         // Note: Add hashlock to transaction params when contract supports it
         const tx = await commitTransactionBuilder({
@@ -190,7 +189,7 @@ export default function useAtomicTON(params: UseAtomicTONParams): AtomicTONFunct
     }
 
     return {
-        createPreHTLC,
+        createHTLC: createPreHTLC,
         getDetails,
         addLock,
         refund,

@@ -10,7 +10,7 @@ import { TrainContract } from "./Train"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
 import { calculateEpochTimelock } from "../utils/calculateTimelock"
-import { AtomicAztecFunctions } from "../utils/atomicTypes"
+import { BaseAtomicFunctions } from "../utils/atomicTypes"
 
 export interface UseAtomicAztecParams {
     wallet: any
@@ -18,11 +18,11 @@ export interface UseAtomicAztecParams {
     aztecNodeUrl: string
 }
 
-export default function useAtomicAztec(params: UseAtomicAztecParams): AtomicAztecFunctions {
+export default function useAtomicAztec(params: UseAtomicAztecParams): BaseAtomicFunctions {
     const { wallet, accountAddress, aztecNodeUrl } = params
     const { deriveSecret } = useSecretDerivation()
 
-    const createPreHTLC = async (params: CreatePreHTLCParams) => {
+    const createHTLC = async (params: CreatePreHTLCParams) => {
         if (!wallet) throw new Error("No wallet connected");
         
         // Secret derivation for HTLC with hashlock
@@ -32,7 +32,7 @@ export default function useAtomicAztec(params: UseAtomicAztecParams): AtomicAzte
             chainId,
             wallet: { metadata: { wallet }, providerName: 'aztec' } as any
         });
-        const hashlock = secretToHashlock(secret);
+        // const hashlock = secretToHashlock(secret);
 
         const { commitTransactionBuilder } = await import('./transactionBuilder.ts')
 
@@ -140,9 +140,9 @@ export default function useAtomicAztec(params: UseAtomicAztecParams): AtomicAzte
     }
 
     return {
-        createPreHTLC,
+        createHTLC: createHTLC,
         getDetails,
-        addLock,
+        getSolverLockDetails: getDetails,
         refund,
         claim
     }

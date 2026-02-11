@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import { Network } from "../../Models/Network"
 import { Token } from "../../Models/Network"
+import { LockStatus } from "../../Models/phtlc/PHTLC"
 import useSWRCommitDetails from "./useSWRCommitDetails"
 
 interface UseRefundStatusPollingParams {
@@ -12,8 +13,8 @@ interface UseRefundStatusPollingParams {
 }
 
 /**
- * Polls for refund status until claimed == 2 (refunded)
- * Used in UserRefundAction to track refund completion on both source and destination chains
+ * Polls for refund status until status === LockStatus.Refunded
+ * Used in UserRefundAction to track refund completion on source chain
  */
 const useRefundStatusPolling = ({
     network,
@@ -24,19 +25,15 @@ const useRefundStatusPolling = ({
 }: UseRefundStatusPollingParams) => {
     const type: 'erc20' | 'native' = asset?.contractAddress && asset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
 
-    // Continue polling until claimed status is 2 (refunded)
-    const isRefunded = false // Will be determined by checking claimed status
-
     const { details, isLoading, error, mutate } = useSWRCommitDetails({
         network,
         commitId,
         contractAddress,
         type,
-        enabled: !!commitId && !!network && !!contractAddress && !isRefunded,
-        refreshInterval: 5000 // Slightly longer interval for refund tracking
+        enabled: !!commitId && !!network && !!contractAddress,
+        refreshInterval: 5000
     })
 
-    // Check if refund is complete and trigger callback
     useEffect(() => {
         if (details) {
             if (onStatusUpdate) {
@@ -45,7 +42,7 @@ const useRefundStatusPolling = ({
         }
     }, [details, onStatusUpdate])
 
-    const isRefundComplete = details?.claimed === 2
+    const isRefundComplete = details?.status === LockStatus.Refunded
     const isWaitingForRefund = !!commitId && !isRefundComplete
 
     return {

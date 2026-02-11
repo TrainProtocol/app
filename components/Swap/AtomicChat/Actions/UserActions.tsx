@@ -6,8 +6,8 @@ import posthog from "posthog-js";
 import ButtonStatus from "./Status/ButtonStatus";
 import { useRouter } from "next/router";
 import useCommitDetailsPolling from "@/hooks/htlc/useCommitDetailsPolling";
-import useLockDetailsPolling from "@/hooks/htlc/useLockDetailsPolling";
 import useRefundStatusPolling from "@/hooks/htlc/useRefundStatusPolling";
+import { LockStatus } from "@/Models/phtlc/PHTLC";
 import { SwapQuote } from "@/lib/trainApiClient";
 
 type UserCommitActionProps = {
@@ -56,7 +56,7 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
             if (provider.activeWallet && (provider.activeWallet.chainId != source_network.chainId) && provider.switchChain)
                 await provider.switchChain(provider.activeWallet, source_network.chainId)
 
-            const { commitId, hash } = await provider.createPreHTLC({
+            const result = await provider.createHTLC({
                 address,
                 amount: amount.toString(),
                 destinationChain: destination_network.slug,
@@ -69,12 +69,16 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
                 decimals: source_asset.decimals,
                 atomicContract: '0xa41a70ebd490dcc00567f447715138023c5c7428',
                 chainId: source_network.chainId,
-            }) || {}
-            if (commitId && hash) {
-                onCommit(commitId, hash)
+            })
+            if (result?.commitId && result?.hash) {
+                onCommit(
+                    result.commitId,
+                    result.hash,
+                    1 // result.nonce
+                )
 
                 posthog.capture("Commit", {
-                    commitId: commitId,
+                    commitId: result.commitId,
                     amount: amount,
                     sourceNetwork: source_network.slug,
                     destinationNetwork: destination_network.slug,
@@ -126,97 +130,9 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
     </div>
 }
 
-
-export const UserLockAction: FC = () => {
-    const { source_network, commitId, sourceDetails, updateCommit, userLocked, source_asset, destinationDetails, commitFromApi, srcAtomicContract, solver } = useAtomicState()
-
-    const { provider } = useWallet(source_network, 'withdrawal')
-
-    const wallet = provider?.activeWallet
-
-    const handleLockAssets = async () => {
-        try {
-            if (!provider)
-                throw new Error("No source provider")
-            if (!destinationDetails?.hashlock)
-                throw new Error("No destination hashlock")
-            if (!srcAtomicContract)
-                throw new Error("No atomic contract")
-            if (!source_network)
-                throw new Error("No source network")
-            if (!solver)
-                throw new Error("No solver")
-
-            if (!provider.addLock)
-                throw new Error("No add lock function")
-
-            await provider.addLock({
-                type: (source_asset?.contractAddress && source_asset.contractAddress !== '0x0000000000000000000000000000000000000000') ? 'erc20' : 'native',
-                chainId: source_network?.chainId,
-                id: commitId as string,
-                hashlock: destinationDetails?.hashlock,
-                contractAddress: srcAtomicContract as `0x${string}`,
-                lockData: destinationDetails,
-                sourceAsset: source_asset,
-                solver: solver
-            })
-
-            posthog.capture("Lock", {
-                commitId: commitId,
-                hashlock: destinationDetails?.hashlock,
-                contractAddress: srcAtomicContract,
-                lockData: destinationDetails,
-                chainId: source_network?.chainId,
-            })
-
-            updateCommit('userLocked', true)
-        }
-        catch (e) {
-            updateCommit('error', { message: e.details || e.message })
-        }
-        finally {
-        }
-    }
-
-    // Poll for lock details (hashlock) using SWR
-    useLockDetailsPolling({
-        network: source_network,
-        commitId: commitId,
-        contractAddress: srcAtomicContract,
-        sourceAsset: source_asset,
-        hasHashlock: !!sourceDetails?.hashlock,
-        onDetailsFound: (details) => {
-            updateCommit('sourceDetails', details)
-        }
-    })
-
-    return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
-        {
-            userLocked ?
-                <ButtonStatus
-                    isDisabled={true}
-                >
-                    Sign to finalize
-                </ButtonStatus>
-                :
-                source_network && <WalletActionButton
-                    activeChain={wallet?.chainId}
-                    isConnected={!!wallet}
-                    network={source_network}
-                    networkChainId={source_network.chainId}
-                    onClick={handleLockAssets}
-                >
-                    Sign to finalize
-                </WalletActionButton>
-        }
-    </div>
-
-}
-
 export const UserRefundAction: FC = () => {
-    const { source_network, commitId, sourceDetails, source_asset, destination_network, destination_asset, updateCommit, setAtomicQuery, atomicQuery, commitFromApi, destAtomicContract, srcAtomicContract } = useAtomicState()
+    const { source_network, commitId, sourceDetails, source_asset, updateCommit, setAtomicQuery, atomicQuery, srcAtomicContract } = useAtomicState()
     const { provider: source_provider } = useWallet(source_network, 'withdrawal')
-    const { provider: destination_provider } = useWallet(destination_network, 'withdrawal')
 
     const [requestedRefund, setRequestedRefund] = useState(false)
     const router = useRouter()
@@ -279,20 +195,9 @@ export const UserRefundAction: FC = () => {
         }
     })
 
-    // Poll for destination chain status using SWR
-    useRefundStatusPolling({
-        network: destination_network,
-        commitId: commitId,
-        contractAddress: destAtomicContract,
-        asset: destination_asset,
-        onStatusUpdate: (details) => {
-            updateCommit('destinationDetails', details)
-        }
-    })
-
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
         {
-            ((requestedRefund || !!atomicQuery.refundTxId) && sourceDetails?.claimed !== 2) ?
+            ((requestedRefund || !!atomicQuery.refundTxId) && sourceDetails?.status !== LockStatus.Refunded) ?
                 <ButtonStatus
                     isDisabled={true}
                 >

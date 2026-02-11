@@ -27,7 +27,7 @@ const MotionSummary: FC<MotionSummaryProps> = ({ quote, isQuoteLoading = false }
             ? formatUnits(quote.receiveAmount, destination_token?.decimals)
             : undefined
 
-    const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
+    const assetsLocked = commitStatus === CommitStatus.SecretRevealed || commitStatus === CommitStatus.RedeemCompleted
     return (
         <>
             {

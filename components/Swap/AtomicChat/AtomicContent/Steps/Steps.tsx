@@ -1,6 +1,7 @@
 import { FC, useEffect } from "react";
 import { CommitStatus, useAtomicState } from "../../../../../context/atomicContext";
 import { CommitTransaction } from "../../../../../lib/trainApiClient";
+import { LockStatus } from "../../../../../Models/phtlc/PHTLC";
 import LockIcon from "../../../../Icons/LockIcon";
 import Step, { TxLink } from "./Step";
 import { Clock, Fuel, Info } from "lucide-react";
@@ -48,27 +49,20 @@ export const RequestStep: FC = () => {
 }
 
 export const SignAndConfirmStep: FC = () => {
-    const { sourceDetails, destinationDetails, commitStatus, destRedeemTx } = useAtomicState()
+    const { commitStatus, secretRevealed, solverLockDetails } = useAtomicState()
 
-    const assetsLocked = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted;
-    const loading = commitStatus === CommitStatus.UserLocked
+    const revealed = secretRevealed || commitStatus === CommitStatus.RedeemCompleted
+    const loading = commitStatus === CommitStatus.SolverLockDetected
 
-    const title = assetsLocked ? "Finalized" : "Finalize"
-    const completed = !!(sourceDetails?.hashlock && destinationDetails?.hashlock) || !!destRedeemTx || commitStatus === CommitStatus.RedeemCompleted || commitStatus === CommitStatus.AssetsLocked
+    const title = revealed ? "Secret revealed" : "Reveal secret"
+    const completed = revealed
 
-    const titleDetails = completed ? null : <div className="flex items-center gap-1">
-        <Fuel className="h-4 w-4" />
-        <p>
-            ($0.00)
-        </p>
-    </div>
-
-    const description = assetsLocked
+    const description = revealed
         ? <span>
             You will receive your assets at the destination address shortly.
         </span>
         : <span>
-            Sign to finalize the transfer. You can get a refund anytime before this step.
+            Verify solver lock and reveal secret. You can get a refund anytime before this step.
         </span>
 
     return (
@@ -77,8 +71,7 @@ export const SignAndConfirmStep: FC = () => {
             step={2}
             title={title}
             description={description}
-            titleDetails={titleDetails}
-            active={!!destinationDetails?.hashlock}
+            active={!!solverLockDetails?.sender}
             completed={completed}
             loading={loading}
         />
@@ -88,11 +81,11 @@ export const SignAndConfirmStep: FC = () => {
 
 
 const SolverStatus: FC = () => {
-    const { destinationDetails, destinationDetailsByLightClient } = useAtomicState()
-    const lpLockDetected = destinationDetails?.hashlock ? true : false;
+    const { solverLockDetails, destinationDetailsByLightClient } = useAtomicState()
+    const solverLockDetected = !!solverLockDetails?.sender;
 
-    if (lpLockDetected) {
-        if (destinationDetailsByLightClient?.data?.hashlock && destinationDetails?.hashlock && destinationDetailsByLightClient?.data?.hashlock == destinationDetails?.hashlock) {
+    if (solverLockDetected) {
+        if (destinationDetailsByLightClient?.data?.hashlock && solverLockDetails?.hashlock && destinationDetailsByLightClient?.data?.hashlock == solverLockDetails?.hashlock) {
             return <div className="flex items-center gap-1 text-sm">
                 <p>
                     Transaction is verified by a
@@ -114,10 +107,10 @@ const SolverStatus: FC = () => {
 
 
 export const LpLockingAssets: FC = () => {
-    const { destinationDetails, commitStatus, sourceDetails, commitFromApi, destination_network, verifyingByLightClient, destinationDetailsByLightClient, updateCommit } = useAtomicState()
-    const completed = destinationDetails?.hashlock ? true : false;
-    const loading = sourceDetails && !destinationDetails?.hashlock
-    const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
+    const { solverLockDetails, commitStatus, sourceDetails, commitFromApi, destination_network, verifyingByLightClient, destinationDetailsByLightClient, updateCommit } = useAtomicState()
+    const completed = !!solverLockDetails?.sender;
+    const loading = sourceDetails && !solverLockDetails?.sender
+    const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock as string)
 
     const title = completed ? 'Assets reserved' : 'Await reservation'
     const completedTxLink = lpLockTx && destination_network && getExplorerUrl(NetworkSettings.KnownSettings[destination_network.slug]?.TransactionExplorerTemplate, lpLockTx.hash)
@@ -125,10 +118,10 @@ export const LpLockingAssets: FC = () => {
     const { setPulseState } = usePulsatingCircles();
 
     useEffect(() => {
-        if (destinationDetailsByLightClient?.data?.hashlock && destinationDetails?.hashlock && destinationDetails?.hashlock !== destinationDetailsByLightClient?.data?.hashlock) {
+        if (destinationDetailsByLightClient?.data?.hashlock && solverLockDetails?.hashlock && solverLockDetails?.hashlock !== destinationDetailsByLightClient?.data?.hashlock) {
             updateCommit('error', { buttonText: 'Ok', message: 'Hashlock mismatch, please wait for refund.' })
         }
-    }, [destinationDetails, destinationDetailsByLightClient]);
+    }, [solverLockDetails, destinationDetailsByLightClient]);
 
     useEffect(() => {
         setPulseState((loading && commitStatus !== CommitStatus.TimelockExpired) ? "pulsing" : "initial");
@@ -195,7 +188,7 @@ export const LpLockingAssets: FC = () => {
                         }
                     </div>
                     {
-                        verifyingByLightClient && !destinationDetailsByLightClient?.data && destinationDetails?.hashlock &&
+                        verifyingByLightClient && !destinationDetailsByLightClient?.data && solverLockDetails?.hashlock &&
                         <div className="flex items-center text-sm gap-1">
                             <p>
                                 Verifying
@@ -236,7 +229,7 @@ export const TimelockExpired: FC = () => {
 export const CancelAndRefund: FC = () => {
     const { commitStatus, refundTxId, source_network, sourceDetails } = useAtomicState()
 
-    const completed = sourceDetails?.claimed == 2
+    const completed = sourceDetails?.status === LockStatus.Refunded
     const loading = refundTxId && !completed
     const resolvedDescription = completed ? 'Assets are received back at the source address' : 'Cancel & refund to receive your assets back at the source address'
     const completedTxLink = refundTxId && source_network && getExplorerUrl(NetworkSettings.KnownSettings[source_network.slug]?.TransactionExplorerTemplate, refundTxId)
@@ -293,7 +286,7 @@ export const CancelAndRefund: FC = () => {
 }
 
 export const ManualClaim: FC = () => {
-    const { commitStatus, destination_network, sourceDetails, destinationDetails, manualClaimRequested } = useAtomicState()
+    const { commitStatus, destination_network, solverLockDetails } = useAtomicState()
 
     const title = "Manual Private Claim"
     const description = 'Please claim manually to privately recieve assets'
@@ -306,9 +299,9 @@ export const ManualClaim: FC = () => {
             step={3}
             title={title}
             description={description}
-            active={!!sourceDetails?.secret}
-            completed={destinationDetails?.claimed === 3}
-            loading={manualClaimRequested}
+            active={!!solverLockDetails?.sender}
+            completed={solverLockDetails?.status === LockStatus.Redeemed}
+            loading={false}
         />
     )
 }

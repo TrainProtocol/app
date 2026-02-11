@@ -353,7 +353,7 @@ export default function useEVM(): WalletProvider {
 
     const selectedSourceAccount = useMemo(() => {
         if (!source_network || !address) return undefined
-        const wallet = resolvedConnectors.find(w => w.id === source_network.slug && Address.equals(w.address, address, source_network))
+        const wallet = resolvedConnectors.find(w => w.withdrawalSupportedNetworks?.includes(source_network.slug) && Address.equals(w.address, address, source_network))
         return wallet ? { wallet, address: wallet.address } : undefined
     }, [source_network, address, resolvedConnectors])
 

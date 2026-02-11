@@ -1,16 +1,13 @@
 import { FC, useEffect, useMemo } from "react";
-import ResizablePanel from "../../../ResizablePanel";
 import { CommitStatus, useAtomicState } from "../../../../context/atomicContext";
-import KnownInternalNames from "../../../../lib/knownIds";
 import CheckedIcon from "../../../Icons/CheckedIcon";
 import Summary from "./Summary";
-import { CircleAlert, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import ConnectedWallet from "./ConnectedWallet";
 import Link from "next/link";
 import { usePulsatingCircles } from "../../../../context/PulsatingCirclesContext";
 import { useRive } from "@rive-app/react-canvas";
 import SpinIcon from "../../../Icons/spinIcon";
-import { getExplorerUrl } from "@/lib/address";
 import { SwapQuote } from "../../../../lib/trainApiClient";
 import SwapQuoteComp from "@/components/FeeDetails/SwapQuote";
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
@@ -22,10 +19,8 @@ type AtomicContentProps = {
 
 const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }) => {
 
-    const { commitStatus, isManualClaimable, manualClaimRequested, destination_network, source_network, source_asset, destination_asset, destRedeemTx, destinationDetails, amount } = useAtomicState()
-    const assetsLocked = commitStatus === CommitStatus.AssetsLocked || commitStatus === CommitStatus.RedeemCompleted
-    const isAztecDestination = destination_network?.slug === KnownInternalNames.Networks.AztecTestnet;
-    const isActualFailure = isManualClaimable && !isAztecDestination;
+    const { commitStatus, destination_network, source_network, source_asset, destination_asset, amount } = useAtomicState()
+    const secretRevealed = commitStatus === CommitStatus.SecretRevealed || commitStatus === CommitStatus.RedeemCompleted
 
     const { setPulseState } = usePulsatingCircles();
 
@@ -41,20 +36,15 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
         if (commitStatus === CommitStatus.RedeemCompleted) {
             setPulseState("completed");
         }
-        else if (isActualFailure && !manualClaimRequested) {
-            setPulseState("initial");
-        }
-        else if (assetsLocked || (manualClaimRequested && destinationDetails?.claimed !== 3)) {
+        else if (secretRevealed) {
             setPulseState("pulsing");
         }
-    }, [assetsLocked, commitStatus, isActualFailure, manualClaimRequested, destinationDetails?.claimed]);
+    }, [secretRevealed, commitStatus]);
 
     return (
         <>
             {/* <ReleasingAssets
                             commitStatus={commitStatus}
-                            isManualClaimable={isManualClaimable}
-                            manualClaimRequested={manualClaimRequested}
                             redeemTxLink={destRedeemTx && getExplorerUrl(`destination_network?.transactionExplorerTemplate`, destRedeemTx)}
                         /> */}
             <Summary quote={quote} isQuoteLoading={isQuoteLoading} />
@@ -65,23 +55,14 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
     )
 }
 
-const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boolean | undefined, manualClaimRequested: boolean | undefined, redeemTxLink: string | undefined }> = ({ commitStatus, isManualClaimable, manualClaimRequested, redeemTxLink }) => {
-    const { destination_network } = useAtomicState();
-    const isAztecDestination = destination_network?.slug === KnownInternalNames.Networks.AztecTestnet;
-
-    // For Aztec destination, manual claim is normal flow, not a failure
-    const isActualFailure = isManualClaimable && !isAztecDestination;
+const ReleasingAssets: FC<{ commitStatus: CommitStatus, redeemTxLink: string | undefined }> = ({ commitStatus, redeemTxLink }) => {
 
     const ResolvedIcon = useMemo(() => {
         if (commitStatus === CommitStatus.RedeemCompleted) {
             return <CheckedIcon className="h-16 w-auto text-accent" />
         }
-        if (isActualFailure && !manualClaimRequested) {
-            return <CircleAlert className="h-16 w-auto text-yellow-600" />
-        }
         return <RiveComponent />
-
-    }, [commitStatus, isActualFailure, manualClaimRequested])
+    }, [commitStatus])
 
     const ResolvedTitle = useMemo(() => {
         if (commitStatus === CommitStatus.RedeemCompleted) {
@@ -89,15 +70,10 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
                 Swap Completed
             </p>
         }
-        if (isActualFailure && !manualClaimRequested) {
-            return <p className="text-xl text-primary-text">
-                Release Failed
-            </p>
-        }
         return <p className="text-xl text-primary-text">
             Releasing assets
         </p>
-    }, [commitStatus, isActualFailure, manualClaimRequested])
+    }, [commitStatus])
 
     const ResolvedDescription = useMemo(() => {
         if (commitStatus === CommitStatus.RedeemCompleted) {
@@ -127,17 +103,12 @@ const ReleasingAssets: FC<{ commitStatus: CommitStatus, isManualClaimable: boole
                 </div>
 
         }
-        if (isActualFailure && !manualClaimRequested) {
-            return <p className="text-base text-secondary-text max-w-xs mx-auto">
-                The solver was unable to release your funds. Please claim them manually.
-            </p>
-        }
         return <p className="text-base text-secondary-text max-w-xs mx-auto">
             You will receive your assets at the destination address shortly.
         </p>
-    }, [commitStatus, isActualFailure, manualClaimRequested, redeemTxLink])
+    }, [commitStatus, redeemTxLink])
 
-    const show = commitStatus === CommitStatus.RedeemCompleted || commitStatus === CommitStatus.AssetsLocked
+    const show = commitStatus === CommitStatus.RedeemCompleted || commitStatus === CommitStatus.SecretRevealed
 
     return (
         <div
