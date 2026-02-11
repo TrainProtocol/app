@@ -59,7 +59,7 @@ export default function Row({
                 <NavigatableItem
                     index={index}
                     onClick={() => onSelect(route, token)}
-                    focusedClassName="bg-secondary-500 is-focused"
+                    focusedClassName="bg-secondary-500"
                     className="cursor-pointer outline-none disabled:cursor-not-allowed rounded-xl hover:bg-secondary-500"
                 >
                     <CurrencySelectItemDisplay
