@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
 import { parseUnits } from 'viem'
 import { SwapFormValues } from '../components/DTOs/SwapFormValues'
-import LayerSwapApiClient, { SwapQuote } from '../lib/trainApiClient'
+import LayerSwapApiClient, { SwapQuote, SwapQuoteResponse } from '../lib/trainApiClient'
 import { ApiResponse } from '../Models/ApiResponse'
 import { Token } from '../Models/Network'
 import { create } from 'zustand'
@@ -128,11 +128,36 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
                 setLoading(true)
             }
 
-            const newData = await apiClient.fetcher(url) as ApiResponse<SwapQuote>
+            // Fetch the new SwapQuoteResponse structure
+            const response = await apiClient.fetcher(url) as SwapQuoteResponse
 
             setKey(url)
             setLoading(false)
-            return newData
+
+            // Handle API-level errors (in response.error field)
+            if (response.error) {
+                return {
+                    error: {
+                        message: response.error.message,
+                        code: 'QUOTE_ERROR'
+                    }
+                } as ApiResponse<SwapQuote>
+            }
+
+            // Handle missing data or missing quoteWithReward
+            if (!response.data?.quoteWithReward) {
+                return {
+                    error: {
+                        message: 'Quote data not available',
+                        code: 'NO_QUOTE_DATA'
+                    }
+                } as ApiResponse<SwapQuote>
+            }
+
+            // Extract quoteWithReward and return in expected ApiResponse format
+            return {
+                data: response.data.quoteWithReward
+            } as ApiResponse<SwapQuote>
         }
         catch (error) {
             setLoading(false)

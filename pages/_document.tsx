@@ -7,39 +7,10 @@ export enum TrackEvent {
   SwapInitiated = 'Swap initiated',
 }
 
-type PlausibleArgs = [TrackEvent, () => void] | [TrackEvent] | any
-
-declare global {
-  const plausible: {
-    (...args: PlausibleArgs): void
-    q?: PlausibleArgs[]
-  }
-
-  interface Window {
-    plausible?: typeof plausible
-  }
-}
-
 export default function Document() {
   return (
     <Html lang="en">
       <Head>
-        <script
-          defer
-          data-domain='layerswap.io/v8'
-          src="https://plausible.io/js/script.tagged-events.js"
-        />
-        <script
-          defer
-          data-domain='layerswap.io/v8'
-          src="https://plausible.io/js/script.manual.js"
-        />
-        <script
-          dangerouslySetInnerHTML={{
-            __html:
-              'window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }',
-          }}
-        />
         <script
           dangerouslySetInnerHTML={{
             __html:

@@ -4,16 +4,16 @@ import { SwapDirection } from "@/components/DTOs/SwapFormValues";
 import { useVirtualizer } from "@/lib/virtual";
 import { Accordion } from "@/components/shadcn/accordion";
 import Row from "./Rows";
-import { NetworkRoute, NetworkRouteToken } from "@/Models/NetworkRoute";
+import { Network, Token } from "@/Models/Network";
 import RouteSearch from "./RouteSearch";
 import NavigatableList from "@/components/NavigatableList";
 
 type ContentProps = {
-    onSelect: (route: NetworkRoute, token: NetworkRouteToken) => Promise<void> | void;
+    onSelect: (network: Network, token: Token) => Promise<void> | void;
     searchQuery: string;
     setSearchQuery: (query: string) => void;
     rowElements: RowElement[];
-    selectedRoute: string | undefined;
+    selectedNetwork: string | undefined;
     selectedToken: string | undefined;
     direction: SwapDirection;
 }
@@ -41,9 +41,9 @@ type ItemsProps = ContentProps & {
     setIsItemsScrolling: (isScrolling: boolean) => void;
 }
 
-const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selectedToken, selectedRoute, direction, onSelect, onScroll, setIsItemsScrolling }) => {
+const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selectedToken, selectedNetwork, direction, onSelect, onScroll, setIsItemsScrolling }) => {
     const parentRef = useRef<HTMLDivElement>(null)
-    const [openValues, setOpenValues] = useState<string[]>(selectedRoute ? [selectedRoute] : [])
+    const [openValues, setOpenValues] = useState<string[]>(selectedNetwork ? [selectedNetwork] : [])
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     const toggleAccordionItem = (value: string) => {
@@ -56,12 +56,12 @@ const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selec
         count: rowElements.length,
         estimateSize: (index) => {
             const item = rowElements[index];
-            const key = (item as any)?.route?.slug || (item as any)?.symbol;
+            const key = (item as any)?.network?.slug || (item as any)?.symbol;
             const isOpen = openValues.includes(key);
             // Better size estimation based on open state
             if (isOpen && (item.type === 'network' || item.type === 'grouped_token')) {
                 const tokenCount = item.type === 'network'
-                    ? item.route.tokens.length
+                    ? item.network.tokens.length
                     : item.items.length;
                 // Base header (52) + tokens (each ~52px) + padding
                 return 52 + (tokenCount * 52) + 20;
@@ -120,7 +120,7 @@ const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selec
                                     }}>
                                     {items.map((virtualRow) => {
                                         const data = rowElements?.[virtualRow.index]
-                                        const key = ((data as any)?.route as any)?.slug || virtualRow.key;
+                                        const key = ((data as any)?.network as any)?.slug || virtualRow.key;
                                         return <div
                                             className="py-1 box-border w-full overflow-hidden select-none"
                                             key={key}
@@ -132,7 +132,7 @@ const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selec
                                                 onSelect={onSelect}
                                                 direction={direction}
                                                 item={data}
-                                                selectedRoute={selectedRoute}
+                                                selectedNetwork={selectedNetwork}
                                                 selectedToken={selectedToken}
                                                 searchQuery={searchQuery}
                                                 toggleContent={toggleAccordionItem}

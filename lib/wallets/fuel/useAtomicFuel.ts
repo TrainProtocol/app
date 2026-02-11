@@ -7,7 +7,7 @@ import contractAbi from "../../abis/atomic/FUEL_PHTLC.json"
 import LayerSwapApiClient from "../../trainApiClient"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
-import { AtomicFuelFunctions } from "../utils/atomicTypes"
+import { BaseAtomicFunctions } from "../utils/atomicTypes"
 import { generateRandomId } from "../utils/atomicHelpers"
 
 export interface UseAtomicFuelParams {
@@ -15,11 +15,11 @@ export interface UseAtomicFuelParams {
     fuelProvider: Provider | null
 }
 
-export default function useAtomicFuel(params: UseAtomicFuelParams): AtomicFuelFunctions {
+export default function useAtomicFuel(params: UseAtomicFuelParams) {
     const { wallet, fuelProvider } = params
     const { deriveSecret } = useSecretDerivation()
 
-    const createPreHTLC = async (params: CreatePreHTLCParams) => {
+    const createHTLC = async (params: CreatePreHTLCParams) => {
         const createEmptyArray = (length: number, char: string) =>
             Array.from({ length }, () => ''.padEnd(64, char));
 
@@ -42,7 +42,7 @@ export default function useAtomicFuel(params: UseAtomicFuelParams): AtomicFuelFu
             chainId,
             wallet: { metadata: { wallet }, providerName: 'fuel' } as any
         });
-        const hashlock = secretToHashlock(secret);
+        // const hashlock = secretToHashlock(secret);
 
         // Note: Add hashlock to contract call params when contract supports it
         const contractAddress = new Address(atomicContract);
@@ -169,9 +169,8 @@ export default function useAtomicFuel(params: UseAtomicFuelParams): AtomicFuelFu
     }
 
     return {
-        createPreHTLC,
+        createHTLC: createHTLC,
         getDetails,
-        addLockSig,
         refund,
         claim
     }

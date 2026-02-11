@@ -22,7 +22,7 @@ interface SecretDerivationContextValue {
   logout: () => void;
   isPasskeySupported: boolean;
   deriveInitialKey: (params: DeriveKeyParams) => Promise<Buffer>;
-  deriveSecret: (params: DeriveKeyParams) => Promise<string>;
+  deriveSecret: (params: DeriveKeyParams) => Promise<{hashlock: string, nonce: number}>;
   isReady: boolean;
   /** Set while user is completing passkey or wallet sign */
   derivationStatus: DerivationStatus;
@@ -154,7 +154,7 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
     throw new Error(`Unsupported provider: ${providerName}`);
   }, [method, storedDerivedKey, setState]);
 
-  const deriveSecret = useCallback(async (params: DeriveKeyParams): Promise<string> => {
+  const deriveSecret = useCallback(async (params: DeriveKeyParams): Promise<{hashlock: string, nonce: number}> => {
     setState({
       derivationStatus: 'signing',
       derivationMessage: method === 'passkey'
@@ -166,7 +166,7 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
       const timestamp = Date.now();
       const initialKey = await deriveInitialKey(keyParams);
       const derivedKey = deriveSecretFromTimelock(initialKey, timestamp);
-      return '0x' + derivedKey.toString('hex');
+      return {hashlock:'0x' + derivedKey.toString('hex'), nonce: timestamp};
     } finally {
       setState({ derivationStatus: 'idle', derivationMessage: '' });
     }

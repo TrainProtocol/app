@@ -69,12 +69,12 @@ export type WalletProvider = {
 } & AtmoicFunctions
 
 export type AtmoicFunctions = {
-    createPreHTLC: (args: CreatePreHTLCParams) => Promise<{ hash: string, commitId: string } | null | undefined>,
+    createHTLC: (args: CreatePreHTLCParams) => Promise<{ hash: string, commitId: string } | null | undefined>,
     claim: (args: ClaimParams) => Promise<string | undefined> | undefined | void,
     refund: (args: RefundParams) => Promise<any> | undefined | void,
     getDetails: (args: CommitmentParams) => Promise<Commit | null>,
     secureGetDetails?: (args: CommitmentParams) => Promise<Commit | null>,
-    addLock?: (args: CommitmentParams & LockParams) => Promise<{ hash: string, result: any } | null>,
+    getSolverLockDetails?: (args: CommitmentParams) => Promise<Commit | null>
 }
 
 export type SelectAccountProps = {

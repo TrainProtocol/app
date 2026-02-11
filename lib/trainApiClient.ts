@@ -2,7 +2,7 @@ import AppSettings from "./AppSettings";
 import { InitializeUnauthInstance } from "./axiosInterceptor"
 import { AxiosInstance, Method } from "axios";
 import { ApiResponse } from "../Models/ApiResponse";
-import { Network, Route } from "../Models/Network";
+import { Network } from "../Models/Network";
 
 export default class LayerSwapApiClient {
     static apiBaseEndpoint?: string = AppSettings.LayerswapApiUri;
@@ -18,11 +18,6 @@ export default class LayerSwapApiClient {
         return response.data;
     }
 
-    async GetRoutesAsync(): Promise<Route[]> {
-        const response = await this.UnauthenticatedRequest<{ data: Route[] }>("GET", `/routes`);
-        return response.data;
-    }
-
     async GetSwapsAsync(addresses: string[], page?: number): Promise<ApiResponse<CommitFromApi[]>> {
         const addressesQuery = addresses.map(a => `addresses=${a}`).join('&');
         return await this.UnauthenticatedRequest<ApiResponse<CommitFromApi[]>>("GET", `/swaps?${addressesQuery}&page=${page ? page : 1}`);
@@ -30,6 +25,10 @@ export default class LayerSwapApiClient {
 
     async AddLockSig(params: AddLockSig, commit_id: string, solver: string): Promise<ApiResponse<{}>> {
         return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/${solver}/swaps/${commit_id}/addLockSig`, params);
+    }
+
+    async RevealSecret(params: RevealSecretParams, commitId: string, solver: string): Promise<ApiResponse<{}>> {
+        return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/${solver}/swaps/${commitId}/revealSecret`, params);
     }
 
     private async UnauthenticatedRequest<T>(method: Method, endpoint: string, data?: any, header?: {}): Promise<T> {
@@ -42,6 +41,10 @@ export default class LayerSwapApiClient {
                 return Promise.reject(reason);
             });
     }
+}
+
+export type RevealSecretParams = {
+    secret: string
 }
 
 export type AddLockSig = {
@@ -113,16 +116,48 @@ export type Quote = {
     quote?: SwapQuote,
 }
 
-export type SwapQuote = {
-    sourceSolverAddress: string;
-    sourceSignerAgent: string;
-    destinationSolverAddress: string;
-    destinationSignerAgent: string;
-    sourceContractAddress: string | null;
-    destinationContractAddress: string | null;
-    route: Route;
-    totalFee: string;
-    totalServiceFee: string;
-    totalExpenseFee: string;
-    receiveAmount: string;
+type QuoteRouteEndpoint = {
+    networkSlug: string;
+    tokenSymbol: string;
+    tokenContract: string;
+    tokenDecimals: number;
 }
+
+type QuoteRoute = {
+    source: QuoteRouteEndpoint;
+    destination: QuoteRouteEndpoint;
+    minAmountInSource: string;
+    maxAmountInSource: string;
+}
+
+type QuoteDetails = {
+    signature: string;
+    totalFee: string;
+    receiveAmount: string;
+    sourceSolverAddress: string;
+    destinationSolverAddress: string;
+    quoteExpirationTimestampInSeconds: number;
+    route: QuoteRoute;
+    timelock: {
+        timelockTimeSpanInSeconds: number;
+    };
+    reward: {
+        amount: string;
+        rewardTimelockTimeSpanInSeconds: number;
+        rewardToken: string;
+        rewardRecipientAddress: string;
+    };
+}
+
+export type SwapQuoteResponse = {
+    error?: {
+        message: string;
+    };
+    data?: {
+        quoteWithReward: QuoteDetails;
+        quoteWithoutReward: QuoteDetails;
+    };
+}
+
+// For backward compatibility - represents a single quote
+export type SwapQuote = QuoteDetails;

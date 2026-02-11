@@ -19,6 +19,7 @@ import useAtomicEVM from "./useAtomicEVM"
 import { useRpcConfigStore } from "@/stores/rpcConfigStore"
 import { useAtomicState } from "@/context/atomicContext"
 import { useSelectedAccount } from "@/context/swapAccounts"
+import { Address } from "@/lib/address/Address"
 
 // Storage key for dynamic wallet metadata
 const DYNAMIC_WALLET_METADATA_KEY = 'ls_dynamic_wallet_metadata'
@@ -67,8 +68,7 @@ export default function useEVM(): WalletProvider {
     const { networks } = useSettingsState()
     const isMobilePlatform = useMemo(() => isMobile(), []);
     const { getEffectiveRpcUrls } = useRpcConfigStore();
-    const { source_network } = useAtomicState()
-    const selectedAccountFromSwap = useSelectedAccount("from", source_network?.slug)
+    const { source_network, address } = useAtomicState()
     const evmAccount = useAccount()
 
     const asSourceSupportedNetworks = useMemo(() => [
@@ -352,10 +352,10 @@ export default function useEVM(): WalletProvider {
     const providerIcon = useMemo(() => networks.find(n => ethereumNames.some(name => name === n.slug))?.logo, [networks])
 
     const selectedSourceAccount = useMemo(() => {
-        if (!selectedAccountFromSwap) return undefined
-        const wallet = resolvedConnectors.find(w => w.id === selectedAccountFromSwap.id)
-        return wallet ? { wallet, address: selectedAccountFromSwap.address } : undefined
-    }, [selectedAccountFromSwap, resolvedConnectors])
+        if (!source_network || !address) return undefined
+        const wallet = resolvedConnectors.find(w => w.withdrawalSupportedNetworks?.includes(source_network.slug) && Address.equals(w.address, address, source_network))
+        return wallet ? { wallet, address: wallet.address } : undefined
+    }, [source_network, address, resolvedConnectors])
 
     const atomicFunctions = useAtomicEVM({
         config,

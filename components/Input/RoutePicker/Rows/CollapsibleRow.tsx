@@ -2,7 +2,7 @@ import { useMemo, memo, useRef, useState } from "react";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/shadcn/accordion";
 import { NetworkElement, GroupedTokenElement } from "@/Models/Route";
 import { SwapDirection } from "@/components/DTOs/SwapFormValues";
-import { NetworkRoute, NetworkRouteToken } from "@/Models/NetworkRoute";
+import { Network, Token } from "@/Models/Network";
 import { CollapsableHeader } from "./CollapsableHeader";
 import { CurrencySelectItemDisplay } from "../Routes";
 import clsx from "clsx";
@@ -12,8 +12,8 @@ import { StickyHeader } from "./StickyHeader";
 type GenericAccordionRowProps = {
   item: NetworkElement | GroupedTokenElement;
   direction: SwapDirection;
-  onSelect: (route: NetworkRoute, token: NetworkRouteToken) => void;
-  selectedRoute: string | undefined;
+  onSelect: (network: Network, token: Token) => void;
+  selectedNetwork: string | undefined;
   selectedToken: string | undefined;
   toggleContent: (itemName: string) => void;
   openValues?: string[];
@@ -21,8 +21,8 @@ type GenericAccordionRowProps = {
 };
 
 type ChildWrapper = {
-  token: NetworkRouteToken;
-  route: NetworkRoute;
+  token: Token;
+  network: Network;
 };
 
 export const CollapsibleRow = ({
@@ -31,12 +31,12 @@ export const CollapsibleRow = ({
   toggleContent,
   direction,
   onSelect,
-  selectedRoute,
+  selectedNetwork,
   selectedToken,
   openValues,
   scrollContainerRef,
 }: GenericAccordionRowProps & { index: number }) => {
-  const groupName = item.type === "grouped_token" ? item.symbol : item.route.slug;
+  const groupName = item.type === "grouped_token" ? item.symbol : item.network.slug;
   const [isSticky, setSticky] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -45,14 +45,14 @@ export const CollapsibleRow = ({
     if (item.type === "grouped_token") {
       const grouped = item as GroupedTokenElement;
       return grouped.items.map((el) => ({
-        token: el.route.token,
-        route: el.route.route,
+        token: el.data.token,
+        network: el.data.network,
       }));
     } else {
-      const route = (item as NetworkElement).route;
-      return route.tokens.map((t) => ({
+      const network = (item as NetworkElement).network;
+      return network.tokens.map((t) => ({
         token: t,
-        route: route as NetworkRoute,
+        network: network,
       }));
     }
   }, [item])
@@ -97,21 +97,21 @@ export const CollapsibleRow = ({
         <AccordionContent className="AccordionContent" ref={contentRef}>
           <div className="has-[.token-item]:mt-1 bg-secondary-500 rounded-xl overflow-hidden">
             <div className="overflow-y-auto styled-scroll p-2">
-              {childrenList?.map(({ token, route }, childIndex) => {
-                const isSelected = selectedRoute === route.slug && selectedToken === token.symbol;
+              {childrenList?.map(({ token, network }, childIndex) => {
+                const isSelected = selectedNetwork === network.slug && selectedToken === token.symbol;
 
                 return (
                   <NavigatableItem
                     key={`${groupName}-${childIndex}`}
                     index={childIndex}
                     parentIndex={index}
-                    onClick={() => onSelect(route, token)}
+                    onClick={() => onSelect(network, token)}
                     focusedClassName="bg-secondary-400"
                     className="token-item pl-2 pr-3 cursor-pointer rounded-xl outline-none disabled:cursor-not-allowed hover:bg-secondary-400"
                   >
                     <TokenItem
                       token={token}
-                      route={route}
+                      network={network}
                       isSelected={isSelected}
                       direction={direction}
                     />
@@ -128,16 +128,16 @@ export const CollapsibleRow = ({
 
 // Memoized child item to prevent re-renders
 const TokenItem = memo<{
-  token: NetworkRouteToken;
-  route: NetworkRoute;
+  token: Token;
+  network: Network;
   isSelected: boolean;
   direction: SwapDirection;
-}>(({ token, route, isSelected, direction }) => {
+}>(({ token, network, isSelected, direction }) => {
   return (
     <CurrencySelectItemDisplay
       item={token}
       selected={isSelected}
-      route={route}
+      network={network}
       direction={direction}
       type="network_token"
     />

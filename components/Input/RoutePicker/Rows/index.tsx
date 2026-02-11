@@ -2,19 +2,19 @@ import { RowElement } from "@/Models/Route";
 import { SwapDirection } from "@/components/DTOs/SwapFormValues";
 import { CurrencySelectItemDisplay } from "../Routes";
 import { CollapsibleRow } from "./CollapsibleRow";
-import { NetworkRoute, NetworkRouteToken } from "@/Models/NetworkRoute";
+import { Network, Token } from "@/Models/Network";
 import { SelectItem } from "@/components/Select/Selector/SelectItem";
 import TitleRow from "./TitleRow";
 import { NavigatableItem } from "@/components/NavigatableList";
 
 type Props = {
     item: RowElement;
-    selectedRoute: string | undefined;
+    selectedNetwork: string | undefined;
     selectedToken: string | undefined;
     searchQuery: string
     direction: SwapDirection;
     toggleContent: (itemName: string) => void;
-    onSelect: (route: NetworkRoute, token: NetworkRouteToken) => void;
+    onSelect: (network: Network, token: Token) => void;
     openValues: string[];
     index: number;
     scrollContainerRef?: React.RefObject<HTMLDivElement>;
@@ -23,7 +23,7 @@ type Props = {
 export default function Row({
     item,
     direction,
-    selectedRoute,
+    selectedNetwork,
     selectedToken,
     toggleContent,
     onSelect,
@@ -40,7 +40,7 @@ export default function Row({
                     index={index}
                     item={item}
                     direction={direction}
-                    selectedRoute={selectedRoute}
+                    selectedNetwork={selectedNetwork}
                     selectedToken={selectedToken}
                     toggleContent={toggleContent}
                     onSelect={onSelect}
@@ -51,21 +51,21 @@ export default function Row({
         }
         case "network_token":
         case "suggested_token": {
-            const token = item.route.token;
-            const route = item.route.route;
-            const isSelected = selectedRoute === route.slug && selectedToken === token.symbol;
+            const token = item.data.token;
+            const network = item.data.network;
+            const isSelected = selectedNetwork === network.slug && selectedToken === token.symbol;
 
             return (
                 <NavigatableItem
                     index={index}
-                    onClick={() => onSelect(route, token)}
+                    onClick={() => onSelect(network, token)}
                     focusedClassName="bg-secondary-500"
                     className="cursor-pointer outline-none disabled:cursor-not-allowed rounded-xl hover:bg-secondary-500"
                 >
                     <CurrencySelectItemDisplay
                         item={token}
                         selected={isSelected}
-                        route={route}
+                        network={network}
                         direction={direction}
                         type={item.type}
                     />

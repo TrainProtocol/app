@@ -103,9 +103,9 @@ export default function Form() {
                 destination: values.to?.slug!,
                 source_asset: values.fromCurrency.symbol,
                 destination_asset: values.toCurrency.symbol,
-                solver: quote?.sourceSignerAgent ?? quote?.route?.sourceWallet?.signerAgent?.name,
-                srcContract: quote?.sourceContractAddress ?? undefined,
-                destContract: quote?.destinationContractAddress ?? undefined,
+                solver: quote?.sourceSolverAddress,
+                srcContract: quote?.route?.source?.tokenContract ?? undefined,
+                destContract: quote?.route?.destination?.tokenContract ?? undefined,
             }
 
             setAtomicQuery(atomicValues)
@@ -144,15 +144,14 @@ export default function Form() {
         >
             <>
                 <VaulDrawer
+                    mode="fitHeight"
                     show={swapModalOpen}
                     setShow={handleShowSwapModal}
                     header="Complete the swap"
                     modalId="showAtomicSwap"
                     className="expandContainerHeight"
                 >
-                    <VaulDrawer.Snap id="item-1">
-                        <AtomicPage type='contained' />
-                    </VaulDrawer.Snap>
+                    <AtomicPage type='contained' />
                 </VaulDrawer>
                 <Widget>
                     <SwapForm polling={polling} onQuoteChange={setQuote} />

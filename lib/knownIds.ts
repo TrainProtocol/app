@@ -4,6 +4,8 @@ export default class KnownInternalNames {
 
         public static readonly EthereumSepolia: string = "eth-sepolia";
 
+        public static readonly BaseSepolia: string = "base-sepolia";
+        
         
         public static readonly CronosMainnet: string = "CRONOS_MAINNET";
 

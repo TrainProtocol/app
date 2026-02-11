@@ -82,9 +82,9 @@ const RouteSearch: FC<RouteSearchProps> = ({ searchQuery, setSearchQuery, rowEle
     }, [showExpanded, searchQuery]);
 
     const randomRouteName = useMemo(() => {
-        if (!randomRoute?.route?.tokens?.length) return '';
-        const token = randomRoute.route.tokens[Math.floor(Math.random() * randomRoute.route.tokens.length)];
-        return token.symbol + ' ' + (randomRoute.route.displayName || randomRoute.route.slug || '');
+        if (!randomRoute?.network?.tokens?.length) return '';
+        const token = randomRoute.network.tokens[Math.floor(Math.random() * randomRoute.network.tokens.length)];
+        return token.symbol + ' ' + (randomRoute.network.displayName || randomRoute.network.slug || '');
     }, [randomRoute]);
 
     return <div>

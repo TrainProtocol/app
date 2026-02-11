@@ -1,45 +1,39 @@
 import { SwapFormValues } from "../components/DTOs/SwapFormValues";
 import { QueryParams } from "../Models/QueryParams";
 import { Address } from "./address";
-import { LayerSwapAppSettings } from "../Models/LayerSwapAppSettings";
+import { TrainAppSettings } from "../Models/TrainAppSettings";
 
-export function generateSwapInitialValues(settings: LayerSwapAppSettings, queryParams: QueryParams): SwapFormValues {
-    const { destAddress, transferAmount, fromAsset, toAsset, from, to, lockFromAsset, lockToAsset } = queryParams
-    const { routes } = settings || {}
+export function generateSwapInitialValues(settings: TrainAppSettings, queryParams: QueryParams): SwapFormValues {
+    const { destAddress, transferAmount, fromAsset, toAsset, from, to } = queryParams
+    const { networks } = settings || {}
 
-    const sourceRoutes = routes?.map(route => route.source) || []
-    const destinationRoutes = routes?.map(route => route.destination) || []
-
-    const lockedSourceCurrency = lockFromAsset ?
-        sourceRoutes.find(l => l.network.slug === to)?.token
-        : undefined
-    const lockedDestinationCurrency = lockToAsset ?
-        destinationRoutes.find(l => l.network.slug === to)?.token
+    // Find networks by slug (case-insensitive)
+    const initialSource = from
+        ? networks?.find(n => n.slug.toUpperCase() === from.toUpperCase())
         : undefined
 
-    const sourceNetwork = sourceRoutes.find(l => l.network.slug.toUpperCase() === from?.toUpperCase())
-    const destinationNetwork = destinationRoutes.find(l => l.network.slug.toUpperCase() === to?.toUpperCase())
+    const initialDestination = to
+        ? networks?.find(n => n.slug.toUpperCase() === to.toUpperCase())
+        : undefined
 
-    const initialSource = settings.networks.find(n => n.slug === sourceNetwork?.network.slug) ?? undefined
-    const initialDestination = settings.networks.find(n => n.slug === destinationNetwork?.network.slug) ?? undefined
+    // Find tokens within the selected networks
+    const initialSourceCurrency = initialSource && fromAsset
+        ? initialSource.tokens.find(t => t.symbol?.toUpperCase() === fromAsset.toUpperCase())
+        : undefined
 
-    const filteredSourceCurrencies = lockedSourceCurrency ?
-        [lockedSourceCurrency]
-        : (sourceNetwork ? sourceRoutes.filter(r => r.network.slug === sourceNetwork.network.slug).map(r => r.token) : [])
+    const initialDestinationCurrency = initialDestination && toAsset
+        ? initialDestination.tokens.find(t => t.symbol?.toUpperCase() === toAsset.toUpperCase())
+        : undefined
 
-    const filteredDestinationCurrencies = lockedDestinationCurrency ?
-        [lockedDestinationCurrency]
-        : (destinationNetwork ? destinationRoutes.filter(r => r.network.slug === destinationNetwork.network.slug).map(r => r.token) : [])
+    // Validate destination address
+    let initialAddress = '';
+    if (destAddress && initialDestination) {
+        if (Address.isValid(destAddress, initialDestination)) {
+            initialAddress = destAddress;
+        }
+    }
 
-    let initialAddress =
-        destAddress && initialDestination && Address.isValid(destAddress, initialDestination) ? destAddress : "";
-
-    let initialSourceCurrency = filteredSourceCurrencies?.find(c => c.symbol?.toUpperCase() == fromAsset?.toUpperCase())
-
-    let initialDestinationCurrency = filteredDestinationCurrencies?.find(c => c.symbol?.toUpperCase() == toAsset?.toUpperCase())
-
-    let initialAmount =
-        (lockedDestinationCurrency && transferAmount) || (initialDestinationCurrency ? transferAmount : '')
+    let initialAmount = transferAmount || ''
 
     const result: SwapFormValues = {
         from: initialSource,
@@ -47,7 +41,7 @@ export function generateSwapInitialValues(settings: LayerSwapAppSettings, queryP
         amount: initialAmount,
         fromCurrency: initialSourceCurrency,
         toCurrency: initialDestinationCurrency,
-        destination_address: initialAddress ? initialAddress : '',
+        destination_address: initialAddress,
     }
 
     return result

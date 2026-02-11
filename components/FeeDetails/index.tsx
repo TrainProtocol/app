@@ -68,7 +68,7 @@ export const DetailsButton: FC<QuoteComponentProps> = ({ quote, isQuoteLoading, 
     const wallet = wallets?.[0]
 
     const { gas } = useSWRGas(wallet?.address, values.from, values.fromCurrency)
-    const gasTokenPriceInUsd = resolveTokenUsdPrice(values.fromCurrency, quote)
+    const gasTokenPriceInUsd = resolveTokenUsdPrice(values.fromCurrency)
     const gasFeeInUsd = gas && gasTokenPriceInUsd ? gas * gasTokenPriceInUsd : null
 
     // Fee display in collapsed view
@@ -80,7 +80,7 @@ export const DetailsButton: FC<QuoteComponentProps> = ({ quote, isQuoteLoading, 
 
     const feeInUsd = useMemo(() => {
         if (feeAmount === null || feeAmount === undefined) return null
-        const priceInUsd = resolveTokenUsdPrice(fromCurrency, quote)
+        const priceInUsd = resolveTokenUsdPrice(fromCurrency)
         if (!priceInUsd) return null
         return feeAmount * priceInUsd
     }, [feeAmount, fromCurrency, quote])

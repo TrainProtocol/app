@@ -1,5 +1,4 @@
 import { Home } from "lucide-react"
-import { useEffect } from "react"
 import SubmitButton from "../components/buttons/submitButton"
 import MessageComponent from "../components/MessageComponent"
 import Navbar from "../components/navbar"
@@ -8,10 +7,6 @@ import ColorSchema from "../components/ColorSchema"
 import { THEME_COLORS } from "../Models/Theme"
 
 export default function Custom404() {
-
-    useEffect(() => {
-        plausible("404", { props: { path: document.location.pathname } })
-    }, [])
 
     const themeData = THEME_COLORS.default
 
