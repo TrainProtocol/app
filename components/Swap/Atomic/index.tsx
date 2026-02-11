@@ -144,15 +144,14 @@ export default function Form() {
         >
             <>
                 <VaulDrawer
+                    mode="fitHeight"
                     show={swapModalOpen}
                     setShow={handleShowSwapModal}
                     header="Complete the swap"
                     modalId="showAtomicSwap"
                     className="expandContainerHeight"
                 >
-                    <VaulDrawer.Snap id="item-1">
-                        <AtomicPage type='contained' />
-                    </VaulDrawer.Snap>
+                    <AtomicPage type='contained' />
                 </VaulDrawer>
                 <Widget>
                     <SwapForm polling={polling} onQuoteChange={setQuote} />
