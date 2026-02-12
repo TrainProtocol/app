@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { CommitStatus, useAtomicState } from "../../../../context/atomicContext";
+import { HTLCStatus, useAtomicState } from "../../../../context/atomicContext";
 import { SolverLockingAssets } from "./SolverLock";
 import { RevealSecretAction } from "./RevealSecret";
 import { WaitForSolverRedeem } from "./WaitForSolverRedeem";
@@ -10,44 +10,10 @@ import { LockStatus } from "../../../../Models/phtlc/PHTLC";
 import DestinationWalletWrapper from "./DestinationWalletWrapper";
 import { SwapQuote } from "../../../../lib/trainApiClient";
 import SubmitButton from "@/components/buttons/submitButton";
-
-type ResolveActionProps = {
-    commitStatus: CommitStatus
-    error: string | undefined
-    quote?: SwapQuote
-}
-
-const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote }) => {
-    const { updateCommit, sourceDetails } = useAtomicState()
-
-    if (error) {
-        return <SubmitButton
-            type="button"
-            onClick={() => updateCommit('error', undefined)}
-        >
-            Try again
-        </SubmitButton>
-    }
-    if (commitStatus === CommitStatus.RedeemCompleted) {
-        return null
-    }
-    if (commitStatus === CommitStatus.TimelockExpired) {
-        if (sourceDetails?.status === LockStatus.Refunded) {
-            return null
-        }
-        return <UserRefundAction />
-    }
-    if (commitStatus === CommitStatus.SecretRevealed) {
-        return <WaitForSolverRedeem />
-    }
-    if (commitStatus === CommitStatus.SolverLockDetected) {
-        return <RevealSecretAction />
-    }
-    if (commitStatus === CommitStatus.Commited) {
-        return <SolverLockingAssets />
-    }
-    return <UserCommitAction quote={quote} />
-}
+import { ExternalLink, Home } from "lucide-react";
+import { useGoHome } from "@/hooks/useGoHome";
+import { getExplorerUrl } from "@/lib/address";
+import NetworkSettings from "@/lib/NetworkSettings";
 
 type ActionsProps = {
     quote?: SwapQuote
@@ -71,22 +37,100 @@ export const Actions: FC<ActionsProps> = ({ quote, isQuoteLoading = false }) => 
     )
 }
 
+type ResolveActionProps = {
+    commitStatus: HTLCStatus
+    error: string | undefined
+    quote?: SwapQuote
+}
+
+const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote }) => {
+    const { updateCommit, sourceDetails } = useAtomicState()
+
+    if (error) {
+        return (
+            <SubmitButton type="button" onClick={() => updateCommit('error', undefined)}>
+                Try again
+            </SubmitButton>
+        )
+    }
+
+    switch (commitStatus) {
+        case HTLCStatus.RedeemCompleted:
+            return <TerminalActions variant="success" />
+        case HTLCStatus.TimelockExpired:
+            if (sourceDetails?.status === LockStatus.Refunded) {
+                return <TerminalActions variant="refund" />
+            }
+            return <UserRefundAction />
+        case HTLCStatus.SecretRevealed:
+            return <WaitForSolverRedeem />
+        case HTLCStatus.SolverLockDetected:
+            return <RevealSecretAction />
+        case HTLCStatus.UserLocked:
+            return <SolverLockingAssets />
+        default:
+            return <UserCommitAction quote={quote} />
+    }
+}
+
+const TerminalActions: FC<{ variant: 'success' | 'refund' }> = ({ variant }) => {
+    const { destRedeemTx, destination_network, refundTxId, source_network } = useAtomicState()
+    const goHome = useGoHome()
+
+    const isSuccess = variant === 'success'
+    const networkSlug = isSuccess ? destination_network?.slug : source_network?.slug
+    const txHash = isSuccess ? destRedeemTx : refundTxId
+    const txLink = networkSlug && txHash
+        ? getExplorerUrl(NetworkSettings.KnownSettings[networkSlug]?.TransactionExplorerTemplate, txHash)
+        : undefined
+
+    return (
+        <div className="flex flex-row text-primary-text text-base space-x-2">
+            {txLink && (
+                <div className="grow">
+                    <SubmitButton
+                        type="button"
+                        buttonStyle={isSuccess ? "filled" : "secondary"}
+                        onClick={() => window.open(txLink, '_blank')}
+                        icon={<ExternalLink className="h-5 w-5" />}
+                        text_align="left"
+                    >
+                        {isSuccess ? 'View in Explorer' : 'View Refund'}
+                    </SubmitButton>
+                </div>
+            )}
+            <div className="grow">
+                <SubmitButton
+                    type="button"
+                    buttonStyle={isSuccess ? "secondary" : "filled"}
+                    onClick={() => goHome()}
+                    icon={<Home className="h-5 w-5" />}
+                >
+                    Swap More
+                </SubmitButton>
+            </div>
+        </div>
+    )
+}
+
 const TransactionMessage: FC<{ error: string | undefined }> = ({ error }) => {
     if (error === "An error occurred (USER_REFUSED_OP)" || error === "Execute failed" || error?.toLowerCase()?.includes('denied') || error?.toLowerCase()?.includes('user rejected')) {
         return <TransactionMessages.TransactionRejectedMessage />
     }
-    else if (error?.includes('insufficient funds')) {
+    if (error?.includes('insufficient funds')) {
         return <TransactionMessages.InsufficientFundsMessage />
     }
-    else if (error === "Timelock expired") {
-        return <WalletMessage
-            status="error"
-            header='Timelock expired'
-            details='Unfortunately the time lock was expired, continuing the transaction is not recommended, cancel & refund to receive your assets back.'
-        />
+    if (error === "Timelock expired") {
+        return (
+            <WalletMessage
+                status="error"
+                header="Timelock expired"
+                details="Unfortunately the time lock was expired, continuing the transaction is not recommended, cancel & refund to receive your assets back."
+            />
+        )
     }
-    else if (error) {
+    if (error) {
         return <TransactionMessages.UexpectedErrorMessage message={error} />
     }
-    else return <></>
+    return <></>
 }

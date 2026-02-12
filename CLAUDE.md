@@ -45,9 +45,11 @@ Mapped to code enum (`CommitStatus`):
 - `Refunded` = User refunded on source
 
 ## Secret & Nonce
-- Secret recoverable from nonce: `deriveInitialKey()` + `deriveSecretFromTimelock(key, nonce)`
-- Nonce stored in URL query params for page refresh recovery
+- Secret recoverable from nonce (timestamp): `deriveInitialKey()` + `deriveSecretFromTimelock(key, nonce)`
 - `deriveSecret()` returns `{hashlock, nonce}` where nonce = `Date.now()` timestamp
+- Nonce is stored on-chain in `userData` field of `userLock()` call (ABI-encoded timestamp)
+- Also stored in URL query params for page refresh recovery before tx confirms
+- `userLock()` accepts `userData` (bytes) and `solverData` (bytes) — we use `userData` for the timestamp
 
 ---
 

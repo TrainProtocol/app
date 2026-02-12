@@ -8,9 +8,9 @@ import { ApiResponse } from '../Models/ApiResponse';
 import { CommitFromApi, CommitTransaction } from '../lib/trainApiClient';
 import LightClient from '../lib/lightClient';
 
-export enum CommitStatus {
-    Commit = 'commit',
-    Commited = 'commited',
+export enum HTLCStatus {
+    Initial = 'initial',
+    UserLocked = 'userLocked',
     SolverLockDetected = 'solverLockDetected',
     SecretRevealed = 'secretRevealed',
     RedeemCompleted = 'redeemCompleted',
@@ -29,7 +29,7 @@ type DataContextType = CommitState & {
     amount?: number,
     commitId?: string,
     commitTxId?: string,
-    commitStatus: CommitStatus,
+    commitStatus: HTLCStatus,
     atomicQuery?: any,
     destRedeemTx?: string,
     verifyingByLightClient: boolean,
@@ -134,7 +134,7 @@ export function AtomicProvider({ children }) {
     }, [data])
 
     useEffect(() => {
-        if (destination_network && commitStatus !== CommitStatus.TimelockExpired && commitStatus !== CommitStatus.RedeemCompleted) {
+        if (destination_network && commitStatus !== HTLCStatus.TimelockExpired && commitStatus !== HTLCStatus.RedeemCompleted) {
             (async () => {
                 try {
                     const lightClient = new LightClient()
@@ -183,7 +183,7 @@ export function AtomicProvider({ children }) {
 
         if (!sourceDetails?.timelock || isTimelockExpired) return;
         if (sourceDetails.status === LockStatus.Redeemed || sourceDetails.status === LockStatus.Refunded) return;
-
+1
         const timeRemaining = (Number(sourceDetails.timelock) * 1000) - Date.now();
 
         if (timeRemaining <= 0) {
@@ -247,8 +247,8 @@ export function AtomicProvider({ children }) {
             destRedeemTx: destinationRedeemTx,
             verifyingByLightClient,
             destinationDetailsByLightClient,
-            srcAtomicContract: '0xa41a70ebd490dcc00567f447715138023c5c7428',
-            destAtomicContract,
+            srcAtomicContract: '0x9A0E4E619d391f6352E112cC4c452344a3EB4119',
+            destAtomicContract: '0xcf6d47cdd0cb259e78262832b4db3f4f4f909dcb',
             setVerifyingByLightClient,
             updateCommit,
             setAtomicQuery
@@ -259,18 +259,18 @@ export function AtomicProvider({ children }) {
 }
 
 const statusResolver = ({ sourceDetails, solverLockDetails, timelockExpired, secretRevealed }: { sourceDetails: Commit | undefined, solverLockDetails: Commit | undefined, timelockExpired: boolean, secretRevealed: boolean | undefined }) => {
-    const commited = !!sourceDetails?.sender;
+    const userLocked = !!sourceDetails?.sender;
     const solverLocked = !!solverLockDetails?.sender;
     const redeemCompleted = solverLockDetails?.status === LockStatus.Redeemed;
     const isTimelockActuallyExpired = timelockExpired ||
         (sourceDetails?.timelock ? (sourceDetails.timelock * 1000) < Date.now() : false);
 
-    if (redeemCompleted) return CommitStatus.RedeemCompleted
-    else if (isTimelockActuallyExpired && !redeemCompleted) return CommitStatus.TimelockExpired
-    else if (secretRevealed) return CommitStatus.SecretRevealed
-    else if (solverLocked) return CommitStatus.SolverLockDetected
-    else if (commited) return CommitStatus.Commited
-    else return CommitStatus.Commit
+    if (redeemCompleted) return HTLCStatus.RedeemCompleted
+    else if (isTimelockActuallyExpired && !redeemCompleted) return HTLCStatus.TimelockExpired
+    else if (secretRevealed) return HTLCStatus.SecretRevealed
+    else if (solverLocked) return HTLCStatus.SolverLockDetected
+    else if (userLocked) return HTLCStatus.UserLocked
+    else return HTLCStatus.Initial
 }
 
 export function useAtomicState() {

@@ -1,7 +1,7 @@
 import { Config, UseAccountReturnType } from "wagmi"
 import { writeContract, simulateContract, readContract, waitForTransactionReceipt } from '@wagmi/core'
 import { ethers } from "ethers"
-import { createPublicClient, http, Chain, zeroAddress } from "viem"
+import { createPublicClient, http, Chain, zeroAddress, toHex } from "viem"
 import { Network } from "../../../Models/Network"
 import { CreatePreHTLCParams, CommitmentParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
 import { Commit, LockStatus } from "../../../Models/phtlc/PHTLC"
@@ -55,7 +55,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
             config
         })
         const hashlock = secretToHashlock(secret.hashlock)
-        const _timestamp = secret.nonce
+        const timestamp = secret.nonce
 
         const tokenAddress = sourceAsset.contractAddress
             ? (sourceAsset.contractAddress as `0x${string}`)
@@ -111,12 +111,14 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
             dstToken: destinationAsset
         }
 
+        const userData = toHex(BigInt(timestamp), { size: 32 })
+
         const simulationData: any = {
             account: account!.address as `0x${string}`,
             abi: HTLCAbi,
             address: atomicContract,
             functionName: 'userLock',
-            args: [userLockParams, destinationInfo, '0x'],
+            args: [userLockParams, destinationInfo, userData, '0x'],
             chainId: Number(chainId),
         }
 
@@ -128,7 +130,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
             const { request } = await simulateContract(config, simulationData)
             const hash = await writeContract(config, request)
 
-            return { hash, commitId: hashlock, nonce: _timestamp }
+            return { hash, commitId: hashlock, nonce: timestamp }
         }
         catch (error) {
             console.error('Error simulating contract:', error)

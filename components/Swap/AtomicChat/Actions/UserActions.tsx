@@ -67,7 +67,7 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
                 srcLpAddress,
                 tokenContractAddress: source_asset.contractAddress as `0x${string}`,
                 decimals: source_asset.decimals,
-                atomicContract: '0xa41a70ebd490dcc00567f447715138023c5c7428',
+                atomicContract,
                 chainId: source_network.chainId,
             })
             if (result?.commitId && result?.hash) {

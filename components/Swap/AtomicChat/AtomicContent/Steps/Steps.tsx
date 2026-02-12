@@ -1,5 +1,5 @@
 import { FC, useEffect } from "react";
-import { CommitStatus, useAtomicState } from "../../../../../context/atomicContext";
+import { HTLCStatus, useAtomicState } from "../../../../../context/atomicContext";
 import { CommitTransaction } from "../../../../../lib/trainApiClient";
 import { LockStatus } from "../../../../../Models/phtlc/PHTLC";
 import LockIcon from "../../../../Icons/LockIcon";
@@ -51,8 +51,8 @@ export const RequestStep: FC = () => {
 export const SignAndConfirmStep: FC = () => {
     const { commitStatus, secretRevealed, solverLockDetails } = useAtomicState()
 
-    const revealed = secretRevealed || commitStatus === CommitStatus.RedeemCompleted
-    const loading = commitStatus === CommitStatus.SolverLockDetected
+    const revealed = secretRevealed || commitStatus === HTLCStatus.RedeemCompleted
+    const loading = commitStatus === HTLCStatus.SolverLockDetected
 
     const title = revealed ? "Secret revealed" : "Reveal secret"
     const completed = revealed
@@ -66,7 +66,7 @@ export const SignAndConfirmStep: FC = () => {
         </span>
 
     return (
-        commitStatus !== CommitStatus.TimelockExpired &&
+        commitStatus !== HTLCStatus.TimelockExpired &&
         <Step
             step={2}
             title={title}
@@ -124,11 +124,11 @@ export const LpLockingAssets: FC = () => {
     }, [solverLockDetails, destinationDetailsByLightClient]);
 
     useEffect(() => {
-        setPulseState((loading && commitStatus !== CommitStatus.TimelockExpired) ? "pulsing" : "initial");
+        setPulseState((loading && commitStatus !== HTLCStatus.TimelockExpired) ? "pulsing" : "initial");
     }, [loading, commitStatus]);
 
     return (
-        commitStatus !== CommitStatus.TimelockExpired &&
+        commitStatus !== HTLCStatus.TimelockExpired &&
         <>
             <div className={`relative inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3 pr-5 ${!sourceDetails ? 'opacity-60' : ''}`}>
                 <div className="space-y-1">
@@ -213,7 +213,7 @@ export const TimelockExpired: FC = () => {
     const description = 'The response was not received in time'
 
     return (
-        commitStatus === CommitStatus.TimelockExpired &&
+        commitStatus === HTLCStatus.TimelockExpired &&
         <div className='inline-flex items-center justify-between w-full bg-secondary-700 rounded-2xl p-3'>
             <div className="space-y-1">
                 <div className="inline-flex items-center gap-2">
@@ -245,7 +245,7 @@ export const CancelAndRefund: FC = () => {
     }, [loading, completed]);
 
     return (
-        commitStatus === CommitStatus.TimelockExpired &&
+        commitStatus === HTLCStatus.TimelockExpired &&
         <div className={`inline-flex items-center justify-between w-full pr-5 bg-secondary-700 rounded-2xl p-3 relative`}>
             <div className="space-y-1">
                 <div className="inline-flex items-center gap-2">
@@ -294,7 +294,7 @@ export const ManualClaim: FC = () => {
     const isAztecDestination = destination_network?.slug.toLowerCase().includes('aztec');
 
     return (
-        isAztecDestination && commitStatus !== CommitStatus.TimelockExpired &&
+        isAztecDestination && commitStatus !== HTLCStatus.TimelockExpired &&
         <Step
             step={3}
             title={title}

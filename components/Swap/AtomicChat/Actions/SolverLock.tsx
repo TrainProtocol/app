@@ -2,6 +2,7 @@ import { FC } from "react";
 import { useAtomicState } from "../../../../context/atomicContext";
 import ButtonStatus from "./Status/ButtonStatus";
 import useSolverLockPolling from "../../../../hooks/htlc/useSolverLockPolling";
+import { Ellipsis } from "lucide-react";
 
 export const SolverLockingAssets: FC = () => {
     const { destination_network, commitId, updateCommit, destination_asset, destAtomicContract, solverLockDetails } = useAtomicState()
@@ -19,8 +20,6 @@ export const SolverLockingAssets: FC = () => {
 
     return <ButtonStatus
         isDisabled={true}
-        isLoading={true}
-    >
-        Waiting for solver
-    </ButtonStatus>
+        isLoading={false}
+    />
 }

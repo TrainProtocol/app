@@ -11,7 +11,7 @@ const ActionStatus: FC<Props> = ({ title, status }) => {
 
     return <div
         className={clsx('flex text-center space-x-3.5 bg-secondary-700 p-3 rounded-xl', {
-            '!bg-accent !p-2 !pl-2.5': status === 'success',
+            'bg-accent! p-2! pl-2.5!': status === 'success',
         })}
     >
         <div className='relative self-center'>
@@ -19,7 +19,7 @@ const ActionStatus: FC<Props> = ({ title, status }) => {
         </div>
         <div
               className={clsx('text-md text-left self-center text-primary-text', {
-                '!text-black': status === 'success',
+                'text-black!': status === 'success',
             })}
         >
             {title}

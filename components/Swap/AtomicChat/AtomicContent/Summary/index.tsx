@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { useAtomicState, CommitStatus } from "../../../../../context/atomicContext";
+import { useAtomicState, HTLCStatus } from "../../../../../context/atomicContext";
 import { useSettingsState } from "../../../../../context/settings";
 import Summary from "./Summary";
 import Details from "./Details";
@@ -27,7 +27,7 @@ const MotionSummary: FC<MotionSummaryProps> = ({ quote, isQuoteLoading = false }
             ? formatUnits(quote.receiveAmount, destination_token?.decimals)
             : undefined
 
-    const assetsLocked = commitStatus === CommitStatus.SecretRevealed || commitStatus === CommitStatus.RedeemCompleted
+    const assetsLocked = commitStatus === HTLCStatus.SecretRevealed || commitStatus === HTLCStatus.RedeemCompleted
     return (
         <>
             {
