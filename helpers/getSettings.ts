@@ -47,6 +47,7 @@ const mockData = {
                 {
                     "symbol": "ETH",
                     "contractAddress": "0x0000000000000000000000000000000000000000",
+                    "priceInUsd": 1969,
                     "decimals": 18
                 }
             ],
@@ -87,6 +88,7 @@ const mockData = {
                 {
                     "symbol": "ETH",
                     "contractAddress": "0x0000000000000000000000000000000000000000",
+                    "priceInUsd": 1969,
                     "decimals": 18
                 }
             ],
