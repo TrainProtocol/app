@@ -1,6 +1,6 @@
 import { WalletAccount } from 'starknet';
-import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from './phtlc';
-import { Commit } from './phtlc/PHTLC';
+import { ClaimParams, LockParams, CreatePreHTLCParams, OldLockParams, RefundParams } from './phtlc';
+import { LockDetails } from './phtlc/PHTLC';
 
 export type InternalConnector = {
     name: string,
@@ -69,12 +69,12 @@ export type WalletProvider = {
 } & AtmoicFunctions
 
 export type AtmoicFunctions = {
-    createHTLC: (args: CreatePreHTLCParams) => Promise<{ hash: string, commitId: string } | null | undefined>,
+    createHTLC: (args: CreatePreHTLCParams) => Promise<{ hash: string, hashlock: string } | null | undefined>,
     claim: (args: ClaimParams) => Promise<string | undefined> | undefined | void,
     refund: (args: RefundParams) => Promise<any> | undefined | void,
-    getDetails: (args: CommitmentParams) => Promise<Commit | null>,
-    secureGetDetails?: (args: CommitmentParams) => Promise<Commit | null>,
-    getSolverLockDetails?: (args: CommitmentParams) => Promise<Commit | null>
+    getDetails: (args: LockParams) => Promise<LockDetails | null>,
+    secureGetDetails?: (args: LockParams) => Promise<LockDetails | null>,
+    getSolverLockDetails?: (args: LockParams) => Promise<LockDetails | null>
 }
 
 export type SelectAccountProps = {

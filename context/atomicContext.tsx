@@ -1,7 +1,7 @@
 import { Context, createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router';
 import { useSettingsState } from './settings';
-import { Commit, LockStatus } from '../Models/phtlc/PHTLC';
+import { LockDetails, LockStatus } from '../Models/phtlc/PHTLC';
 import { Network, Token } from '../Models/Network';
 import useSWR from 'swr';
 import { ApiResponse } from '../Models/ApiResponse';
@@ -27,25 +27,25 @@ type DataContextType = CommitState & {
     destination_asset?: Token,
     address?: string,
     amount?: number,
-    commitId?: string,
-    commitTxId?: string,
-    commitStatus: HTLCStatus,
+    hashlock?: string,
+    lockTxId?: string,
+    htlcStatus: HTLCStatus,
     atomicQuery?: any,
     destRedeemTx?: string,
     verifyingByLightClient: boolean,
     srcAtomicContract?: string,
     destAtomicContract?: string,
     setVerifyingByLightClient: (value: boolean) => void;
-    onCommit: (commitId: string, txId: string, nonce?: number) => void;
+    onCommit: (hashlock: string, txId: string) => void;
     updateCommit: (field: keyof CommitState, value: any) => void;
     setAtomicQuery: (query: any) => void;
 }
 
 interface CommitState {
-    sourceDetails?: Commit;
-    destinationDetails?: Commit;
-    solverLockDetails?: Commit;
-    destinationDetailsByLightClient?: { data?: Commit, error?: string };
+    sourceDetails?: LockDetails;
+    destinationDetails?: LockDetails;
+    solverLockDetails?: LockDetails;
+    destinationDetailsByLightClient?: { data?: LockDetails, error?: string };
     nonce?: number;
     secretRevealed?: boolean;
     error?: { message: string, buttonText?: string } | undefined;
@@ -73,44 +73,44 @@ export function AtomicProvider({ children }) {
         source_asset,
     } = atomicQuery
 
-    const commitId = atomicQuery?.commitId as string
+    const hashlock = atomicQuery?.hashlock as string
     const refundTxId = atomicQuery?.refundTxId as string
-    const commitTxId = atomicQuery?.txId as string
+    const lockTxId = atomicQuery?.txId as string
     const solverName = atomicQuery?.solver as string;
     const srcAtomicContractFromQuery = atomicQuery?.srcContract as string
     const destAtomicContractfromQuery = atomicQuery?.destContract as string
 
-    const [commitStates, setCommitStates] = useState<CommitStatesDict>({});
+    const [htlcStates, setHtlcStates] = useState<CommitStatesDict>({});
     const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
     const [verifyingByLightClient, setVerifyingByLightClient] = useState(false)
 
-    const updateCommitState = (commitId: string, newState: Partial<CommitState>) => {
-        setCommitStates((prev) => ({
+    const updateCommitState = (hashlock: string, newState: Partial<CommitState>) => {
+        setHtlcStates((prev) => ({
             ...prev,
-            [commitId]: {
-                ...prev[commitId],
+            [hashlock]: {
+                ...prev[hashlock],
                 ...newState,
             },
         }));
     };
 
     const setIsTimelockExpired = (isTimelockExpired: boolean) => {
-        updateCommitState(commitId, { isTimelockExpired });
+        updateCommitState(hashlock, { isTimelockExpired });
     }
 
     const updateCommit = (field: keyof CommitState, value: any) => {
-        updateCommitState(commitId, { [field]: value });
+        updateCommitState(hashlock, { [field]: value });
     }
 
-    const sourceDetails = commitStates[commitId]?.sourceDetails;
-    const destinationDetails = commitStates[commitId]?.destinationDetails;
-    const solverLockDetails = commitStates[commitId]?.solverLockDetails;
-    const nonce = commitStates[commitId]?.nonce;
-    const secretRevealed = commitStates[commitId]?.secretRevealed;
-    const error = commitStates[commitId]?.error;
-    const commitFromApi = commitStates[commitId]?.commitFromApi;
-    const isTimelockExpired = commitStates[commitId]?.isTimelockExpired;
-    const destinationDetailsByLightClient = commitStates[commitId]?.destinationDetailsByLightClient
+    const sourceDetails = htlcStates[hashlock]?.sourceDetails;
+    const destinationDetails = htlcStates[hashlock]?.destinationDetails;
+    const solverLockDetails = htlcStates[hashlock]?.solverLockDetails;
+    const nonce = htlcStates[hashlock]?.nonce;
+    const secretRevealed = htlcStates[hashlock]?.secretRevealed;
+    const error = htlcStates[hashlock]?.error;
+    const commitFromApi = htlcStates[hashlock]?.commitFromApi;
+    const isTimelockExpired = htlcStates[hashlock]?.isTimelockExpired;
+    const destinationDetailsByLightClient = htlcStates[hashlock]?.destinationDetailsByLightClient
 
     const destinationRedeemTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination)?.hash
 
@@ -124,8 +124,8 @@ export function AtomicProvider({ children }) {
 
     const fetcher = (args: string) => fetch(args).then(res => res.json())
     const url = process.env.NEXT_PUBLIC_TRAIN_API
-    const { data } = useSWR<ApiResponse<CommitFromApi>>((commitId && !destinationRedeemTx) ? `${url}/api/${solverName}/swaps/${commitId}` : null, fetcher, { refreshInterval: 2000 })
-    const commitStatus = useMemo(() => statusResolver({ sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed }), [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, refundTxId])
+    const { data } = useSWR<ApiResponse<CommitFromApi>>((hashlock && !destinationRedeemTx) ? `${url}/api/${solverName}/swaps/${hashlock}` : null, fetcher, { refreshInterval: 2000 })
+    const htlcStatus = useMemo(() => statusResolver({ sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed }), [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, refundTxId])
 
     useEffect(() => {
         if (data?.data) {
@@ -134,7 +134,7 @@ export function AtomicProvider({ children }) {
     }, [data])
 
     useEffect(() => {
-        if (destination_network && commitStatus !== HTLCStatus.TimelockExpired && commitStatus !== HTLCStatus.RedeemCompleted) {
+        if (destination_network && htlcStatus !== HTLCStatus.TimelockExpired && htlcStatus !== HTLCStatus.RedeemCompleted) {
             (async () => {
                 try {
                     const lightClient = new LightClient()
@@ -150,15 +150,15 @@ export function AtomicProvider({ children }) {
 
     useEffect(() => {
         (async () => {
-            if (destination_network && destination_token && commitId && destination_asset && lightClient && !sourceDetails?.hashlock && destAtomicContract) {
+            if (destination_network && destination_token && hashlock && destination_asset && lightClient && !sourceDetails?.hashlock && destAtomicContract) {
                 if(!lightClient.supportsNetwork(destination_network)) return
 
                 try {
                     setVerifyingByLightClient(true)
-                    const data = await lightClient.getHashlock({
+                    const data = await lightClient.getDetails({
                         network: destination_network,
                         token: destination_token,
-                        commitId,
+                        hashlock,
                         atomicContract: destAtomicContract
                     })
                     if (data) {
@@ -175,7 +175,7 @@ export function AtomicProvider({ children }) {
                 }
             }
         })()
-    }, [destination_network, commitId, destAtomicContract, lightClient, destination_token, sourceDetails, destination_asset])
+    }, [destination_network, hashlock, destAtomicContract, lightClient, destination_token, sourceDetails, destination_asset])
 
 
     useEffect(() => {
@@ -198,8 +198,8 @@ export function AtomicProvider({ children }) {
         return () => clearTimeout(timer);
     }, [sourceDetails, isTimelockExpired])
 
-    const handleCommited = (commitId: string, txId: string, nonce?: number) => {
-        const queryUpdate = { ...atomicQuery, commitId, txId, ...(nonce ? { nonce: String(nonce) } : {}) }
+    const handleCommited = (hashlock: string, txId: string) => {
+        const queryUpdate = { ...atomicQuery, hashlock, txId }
         setAtomicQuery(queryUpdate)
         const basePath = router?.basePath || ""
         var atomicURL = window.location.protocol + "//"
@@ -209,16 +209,15 @@ export function AtomicProvider({ children }) {
             atomicURL += `?${atomicParams}`
         }
         window.history.replaceState({ ...window.history.state, as: atomicURL, url: atomicURL }, '', atomicURL);
-        updateCommitState(commitId, { nonce });
     }
 
     // Restore nonce from URL query if not in state
     useEffect(() => {
         const nonceFromQuery = atomicQuery?.nonce
-        if (nonceFromQuery && commitId && !nonce) {
+        if (nonceFromQuery && hashlock && !nonce) {
             updateCommit('nonce', Number(nonceFromQuery))
         }
-    }, [atomicQuery?.nonce, commitId, nonce])
+    }, [atomicQuery?.nonce, hashlock, nonce])
 
     return (
         <AtomicStateContext.Provider value={{
@@ -230,8 +229,8 @@ export function AtomicProvider({ children }) {
             address: address as string,
             amount: amount ? Number(amount) : undefined,
             destination_network,
-            commitId: commitId as string,
-            commitTxId: commitTxId as string,
+            hashlock,
+            lockTxId: lockTxId as string,
             solver: solverName,
             sourceDetails,
             destinationDetails,
@@ -241,7 +240,7 @@ export function AtomicProvider({ children }) {
             error,
             commitFromApi,
             lightClient,
-            commitStatus,
+            htlcStatus: htlcStatus,
             isTimelockExpired,
             refundTxId,
             destRedeemTx: destinationRedeemTx,
@@ -258,7 +257,7 @@ export function AtomicProvider({ children }) {
     )
 }
 
-const statusResolver = ({ sourceDetails, solverLockDetails, timelockExpired, secretRevealed }: { sourceDetails: Commit | undefined, solverLockDetails: Commit | undefined, timelockExpired: boolean, secretRevealed: boolean | undefined }) => {
+const statusResolver = ({ sourceDetails, solverLockDetails, timelockExpired, secretRevealed }: { sourceDetails: LockDetails | undefined, solverLockDetails: LockDetails | undefined, timelockExpired: boolean, secretRevealed: boolean | undefined }) => {
     const userLocked = !!sourceDetails?.sender;
     const solverLocked = !!solverLockDetails?.sender;
     const redeemCompleted = solverLockDetails?.status === LockStatus.Redeemed;

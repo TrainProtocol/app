@@ -14,9 +14,9 @@ import { getExplorerUrl } from "@/lib/address";
 import NetworkSettings from "@/lib/NetworkSettings";
 
 export const RequestStep: FC = () => {
-    const { sourceDetails, commitId, commitTxId, source_network, commitFromApi, isTimelockExpired, source_asset, amount } = useAtomicState()
+    const { sourceDetails, hashlock, lockTxId, source_network, commitFromApi, isTimelockExpired, source_asset, amount } = useAtomicState()
 
-    const commtting = (commitId && !sourceDetails) ? true : false;
+    const commtting = (hashlock && !sourceDetails) ? true : false;
     const commited = sourceDetails ? true : false;
 
     const title = commited ? "Details confirmed" : "Confirm the details"
@@ -31,7 +31,7 @@ export const RequestStep: FC = () => {
     //     </p>
     // </div>
 
-    const completedTxLink = source_network && commitTxId && getExplorerUrl(NetworkSettings.KnownSettings[source_network.slug]?.TransactionExplorerTemplate, commitTxId)
+    const completedTxLink = source_network && lockTxId && getExplorerUrl(NetworkSettings.KnownSettings[source_network.slug]?.TransactionExplorerTemplate, lockTxId)
 
     return <Step
         step={1}
@@ -49,7 +49,7 @@ export const RequestStep: FC = () => {
 }
 
 export const SignAndConfirmStep: FC = () => {
-    const { commitStatus, secretRevealed, solverLockDetails } = useAtomicState()
+    const { htlcStatus: commitStatus, secretRevealed, solverLockDetails } = useAtomicState()
 
     const revealed = secretRevealed || commitStatus === HTLCStatus.RedeemCompleted
     const loading = commitStatus === HTLCStatus.SolverLockDetected
@@ -107,7 +107,7 @@ const SolverStatus: FC = () => {
 
 
 export const LpLockingAssets: FC = () => {
-    const { solverLockDetails, commitStatus, sourceDetails, commitFromApi, destination_network, verifyingByLightClient, destinationDetailsByLightClient, updateCommit } = useAtomicState()
+    const { solverLockDetails, htlcStatus: commitStatus, sourceDetails, commitFromApi, destination_network, verifyingByLightClient, destinationDetailsByLightClient, updateCommit } = useAtomicState()
     const completed = !!solverLockDetails?.sender;
     const loading = sourceDetails && !solverLockDetails?.sender
     const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock as string)
@@ -207,7 +207,7 @@ export const LpLockingAssets: FC = () => {
 
 
 export const TimelockExpired: FC = () => {
-    const { commitStatus } = useAtomicState()
+    const { htlcStatus: commitStatus } = useAtomicState()
 
     const title = "Timelock Expired"
     const description = 'The response was not received in time'
@@ -227,7 +227,7 @@ export const TimelockExpired: FC = () => {
 }
 
 export const CancelAndRefund: FC = () => {
-    const { commitStatus, refundTxId, source_network, sourceDetails } = useAtomicState()
+    const { htlcStatus: commitStatus, refundTxId, source_network, sourceDetails } = useAtomicState()
 
     const completed = sourceDetails?.status === LockStatus.Refunded
     const loading = refundTxId && !completed
@@ -286,7 +286,7 @@ export const CancelAndRefund: FC = () => {
 }
 
 export const ManualClaim: FC = () => {
-    const { commitStatus, destination_network, solverLockDetails } = useAtomicState()
+    const { htlcStatus: commitStatus, destination_network, solverLockDetails } = useAtomicState()
 
     const title = "Manual Private Claim"
     const description = 'Please claim manually to privately recieve assets'

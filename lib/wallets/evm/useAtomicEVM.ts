@@ -3,8 +3,8 @@ import { writeContract, simulateContract, readContract, waitForTransactionReceip
 import { ethers } from "ethers"
 import { createPublicClient, http, Chain, zeroAddress, toHex } from "viem"
 import { Network } from "../../../Models/Network"
-import { CreatePreHTLCParams, CommitmentParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
-import { Commit, LockStatus } from "../../../Models/phtlc/PHTLC"
+import { CreatePreHTLCParams, LockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
+import { LockDetails, LockStatus } from "../../../Models/phtlc/PHTLC"
 import HTLCAbi from "../../abis/atomic/EVM_HTLC.json"
 import IMTBLZKERC20 from "../../abis/IMTBLZKERC20.json"
 import formatAmount from "../../formatAmount"
@@ -130,7 +130,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
             const { request } = await simulateContract(config, simulationData)
             const hash = await writeContract(config, request)
 
-            return { hash, commitId: hashlock, nonce: timestamp }
+            return { hash, hashlock, nonce: timestamp }
         }
         catch (error) {
             console.error('Error simulating contract:', error)
@@ -138,7 +138,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
         }
     }
 
-    const getDetails = async (params: CommitmentParams): Promise<Commit> => {
+    const getDetails = async (params: LockParams): Promise<LockDetails> => {
         const { chainId, id, contractAddress } = params
 
         const result: any = await readContract(config, {
@@ -164,7 +164,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
         }
     }
 
-    const secureGetDetails = async (params: CommitmentParams): Promise<Commit | null> => {
+    const secureGetDetails = async (params: LockParams): Promise<LockDetails | null> => {
         const { chainId, id, contractAddress } = params
 
         const network = networks.find(n => n.chainId === chainId)
@@ -209,7 +209,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
         }
     }
 
-    const getSolverLockDetails = async (params: CommitmentParams): Promise<Commit | null> => {
+    const getSolverLockDetails = async (params: LockParams): Promise<LockDetails | null> => {
         const { chainId, id, contractAddress } = params
 
         const count: any = await readContract(config, {
@@ -281,7 +281,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
     }
 
     return {
-        createHTLC: createHTLC,
+        createHTLC,
         getDetails,
         secureGetDetails,
         getSolverLockDetails,

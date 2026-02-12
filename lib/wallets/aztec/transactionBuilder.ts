@@ -1,7 +1,7 @@
 import { AztecAddress } from '@aztec/aztec.js/addresses';
 import { Wallet } from '@aztec/aztec.js/wallet';
 import { TrainContract } from "./Train";
-import { ClaimParams, CommitmentParams, CreatePreHTLCParams, LockParams, RefundParams } from "../../../Models/phtlc";
+import { ClaimParams, LockParams, CreatePreHTLCParams, OldLockParams, RefundParams } from "../../../Models/phtlc";
 import { generateId, getFunctionAbi, getSelector, hexToHighLowValidated, hexToU128Limbs, padTo32Bytes } from './utils';
 import { calculateEpochTimelock } from '../utils/calculateTimelock';
 import { toHex } from 'viem';
@@ -101,7 +101,7 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
             throw new Error("Transaction failed or timed out");
         }
 
-        return { hash: tx.txHash.toString(), commitId: padTo32Bytes(id.toString()) };
+        return { hash: tx.txHash.toString(), hashlock: padTo32Bytes(id.toString()) };
 
     } catch (error) {
         console.error("Error building commit transaction:", error);
@@ -109,7 +109,7 @@ export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { se
     }
 }
 
-export const addLockTransactionBuilder = async (params: CommitmentParams & LockParams & { senderWallet: Wallet }) => {
+export const addLockTransactionBuilder = async (params: LockParams & OldLockParams & { senderWallet: Wallet }) => {
 
     const { id, senderWallet, contractAddress, hashlock } = params;
 

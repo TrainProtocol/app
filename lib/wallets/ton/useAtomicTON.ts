@@ -1,14 +1,15 @@
 import { beginCell, Cell, toNano } from "@ton/ton"
 import { hexToBigInt } from "viem"
 import { Network } from "../../../Models/Network"
-import { CreatePreHTLCParams, CommitmentParams, LockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
-import { Commit } from "../../../Models/phtlc/PHTLC"
+import { CreatePreHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
+import { LockDetails } from "../../../Models/phtlc/PHTLC"
 import { commitTransactionBuilder } from "./transactionBuilder"
 import { retryUntilFecth } from "../../retry"
 import { getTONDetails } from "./getters"
 import { calculateEpochTimelock } from "../utils/calculateTimelock"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
+import { AtomicResult, BaseAtomicFunctions } from "../utils/atomicTypes"
 
 export interface UseAtomicTONParams {
     tonWallet: any
@@ -17,11 +18,11 @@ export interface UseAtomicTONParams {
     tonApiUrl: string
 }
 
-export default function useAtomicTON(params: UseAtomicTONParams) {
+export default function useAtomicTON(params: UseAtomicTONParams): BaseAtomicFunctions {
     const { tonWallet, tonConnectUI, networks, tonApiUrl } = params
     const { deriveSecret } = useSecretDerivation()
 
-    const createPreHTLC = async (params: CreatePreHTLCParams) => {
+    const createHTLC = async (params: CreatePreHTLCParams) => {
 
         if (!tonWallet?.account.publicKey) return
 
@@ -74,13 +75,13 @@ export default function useAtomicTON(params: UseAtomicTONParams) {
             }
         }
 
-        const commitId = await retryUntilFecth(getCommitId)
+        const hashlock = await retryUntilFecth(getCommitId)
 
 
-        return { hash: messageHash, commitId }
+        return { hash: messageHash, hashlock }
     }
 
-    const getDetails = async (params: CommitmentParams): Promise<Commit> => {
+    const getDetails = async (params: LockParams): Promise<LockDetails> => {
         const network = networks.find(n => n.chainId === params.chainId)
 
         try {
@@ -99,7 +100,7 @@ export default function useAtomicTON(params: UseAtomicTONParams) {
 
     }
 
-    const addLock = async (params: CommitmentParams & LockParams) => {
+    const addLock = async (params: LockParams & OldLockParams) => {
         const { id, hashlock, contractAddress } = params
 
         const timelock = BigInt(calculateEpochTimelock(20))
@@ -189,12 +190,14 @@ export default function useAtomicTON(params: UseAtomicTONParams) {
     }
 
     return {
-        createHTLC: createPreHTLC,
-        getDetails,
-        addLock,
-        refund,
-        claim
+    createHTLC,
+    getDetails,
+    refund,
+    claim,
+    getSolverLockDetails: function (params: LockParams): Promise<LockDetails | null> {
+        throw new Error("Function not implemented.")
     }
+}
 }
 
 type Events = {

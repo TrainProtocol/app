@@ -1,7 +1,7 @@
 import { Connection, PublicKey, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { createAssociatedTokenAccountInstruction, createTransferInstruction, getAccount, getAssociatedTokenAddress } from '@solana/spl-token';
 import { Network, Token } from "../../../Models/Network";
-import { CommitmentParams, CreatePreHTLCParams, LockParams } from "../../../Models/phtlc";
+import { LockParams, CreatePreHTLCParams, OldLockParams } from "../../../Models/phtlc";
 import { BN, Idl, Program } from "@coral-xyz/anchor";
 import { createHash } from "crypto";
 import { calculateEpochTimelock } from "../utils/calculateTimelock";
@@ -101,14 +101,14 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
             crypto.getRandomValues(bytes);
             return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
         }
-        const commitId = Buffer.from(generateBytes32Hex(), 'hex')
+        const hashlock = Buffer.from(generateBytes32Hex(), 'hex')
 
-        let [htlcTokenAccount, _] = commitId && PublicKey.findProgramAddressSync(
-            [Buffer.from("htlc_token_account"), commitId],
+        let [htlcTokenAccount, _] = hashlock && PublicKey.findProgramAddressSync(
+            [Buffer.from("htlc_token_account"), hashlock],
             program.programId
         );
-        let [htlc] = commitId && PublicKey.findProgramAddressSync(
-            [commitId],
+        let [htlc] = hashlock && PublicKey.findProgramAddressSync(
+            [hashlock],
             program.programId
         );
 
@@ -125,7 +125,7 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
             const tokenContract = new PublicKey(sourceAsset.contractAddress);
 
             const commitTx = await program.methods
-                .commit(commitId, hopChains, hopAssets, hopAddresses, destinationChain, destinationAsset, destination_address, sourceAsset.symbol, lpAddressPublicKey, bnTimelock, bnAmount)
+                .commit(hashlock, hopChains, hopAssets, hopAddresses, destinationChain, destinationAsset, destination_address, sourceAsset.symbol, lpAddressPublicKey, bnTimelock, bnAmount)
                 .accountsPartial({
                     sender: walletPublicKey,
                     htlc: htlc,
@@ -138,7 +138,7 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
             commit.add(commitTx);
         } else {
             const commitTx = await program.methods
-                .commit(commitId, hopChains, hopAssets, hopAddresses, destinationChain, destinationAsset, destination_address, sourceAsset.symbol, lpAddressPublicKey, bnTimelock, bnAmount)
+                .commit(hashlock, hopChains, hopAssets, hopAddresses, destinationChain, destinationAsset, destination_address, sourceAsset.symbol, lpAddressPublicKey, bnTimelock, bnAmount)
                 .accountsPartial({
                     sender: walletPublicKey,
                     htlc: htlc,
@@ -154,7 +154,7 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
         commit.lastValidBlockHeight = blockHash.lastValidBlockHeight;
         commit.feePayer = walletPublicKey;
 
-        return { initAndCommit: commit, commitId: commitId }
+        return { initAndCommit: commit, hashlock }
     }
     catch (error) {
 
@@ -168,7 +168,7 @@ export const phtlcTransactionBuilder = async (params: CreatePreHTLCParams & { pr
 
 }
 
-export const lockTransactionBuilder = async (params: CommitmentParams & LockParams & { program: Program<Idl>, walletPublicKey: PublicKey }) => {
+export const lockTransactionBuilder = async (params: LockParams & OldLockParams & { program: Program<Idl>, walletPublicKey: PublicKey }) => {
     const { walletPublicKey, id, hashlock, program } = params
 
     if (!program) {

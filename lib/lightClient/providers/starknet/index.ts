@@ -1,6 +1,6 @@
 import formatAmount from "../../../formatAmount"
 import _LightClient from "../../types/lightClient"
-import { Commit } from "../../../../Models/phtlc/PHTLC"
+import { LockDetails } from "../../../../Models/phtlc/PHTLC"
 import KnownInternalNames from "../../../knownIds"
 import { Network, Token } from "../../../../Models/Network"
 import PHTLCAbi from "../../../../lib/abis/atomic/STARKNET_PHTLC.json"
@@ -65,8 +65,8 @@ export default class StarknetLightClient extends _LightClient {
             }
         });
     }
-    getDetails = async ({ network, token, commitId, atomicContract }: { network: Network, token: Token, commitId: string, atomicContract: string }) => {
-        return new Promise(async (resolve: (value: Commit) => void, reject) => {
+    getDetails = async ({ network, token, hashlock, atomicContract }: { network: Network, token: Token, hashlock: string, atomicContract: string }) => {
+        return new Promise(async (resolve: (value: LockDetails) => void, reject) => {
             try {
 
 
@@ -78,9 +78,8 @@ export default class StarknetLightClient extends _LightClient {
                 }
 
 
-                const calldata = splitUint256(commitId)
+                const calldata = splitUint256(hashlock)
                 const selector = hash.getSelectorFromName("getHTLCDetails");
-                console.log('commitId:', commitId)
 
                 //TODO: construct call data here and pass to the worker
                 const call = {
@@ -97,7 +96,7 @@ export default class StarknetLightClient extends _LightClient {
                     payload: {
                         data: {
                             commitConfigs: {
-                                commitId: commitId,
+                                hashlock,
                                 contractAddress: atomicContract,
                                 call,
                             },
@@ -113,9 +112,9 @@ export default class StarknetLightClient extends _LightClient {
                     const rawData = event.data.data
                     if (rawData) {
                         const CallDataInstance = new CallData(PHTLCAbi)
-                        const result = CallDataInstance.parse("getHTLCDetails", rawData) as Commit;
+                        const result = CallDataInstance.parse("getHTLCDetails", rawData) as LockDetails;
 
-                        const parsedResult: Commit = {
+                        const parsedResult: LockDetails = {
                             ...result,
                             sender: toHex(result.sender as any),
                             amount: formatAmount(result.amount, token.decimals),

@@ -4,11 +4,11 @@ import ButtonStatus from "./Status/ButtonStatus";
 import useSolverRedeemPolling from "../../../../hooks/htlc/useSolverRedeemPolling";
 
 export const WaitForSolverRedeem: FC = () => {
-    const { destination_network, commitId, updateCommit, destination_asset, destAtomicContract } = useAtomicState()
+    const { destination_network, hashlock, updateCommit, destination_asset, destAtomicContract } = useAtomicState()
 
     useSolverRedeemPolling({
         network: destination_network,
-        commitId: commitId,
+        hashlock: hashlock,
         contractAddress: destAtomicContract,
         asset: destination_asset,
         onStatusUpdate: (details) => {

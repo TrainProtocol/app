@@ -2,20 +2,21 @@ import { Address } from '@fuel-ts/address'
 import { concat, DateTime } from "@fuel-ts/utils"
 import { Contract } from "@fuel-ts/program"
 import { Account, B256Coder, BigNumberCoder, bn, Provider, sha256 } from 'fuels'
-import { CreatePreHTLCParams, CommitmentParams, LockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
+import { CreatePreHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
 import contractAbi from "../../abis/atomic/FUEL_PHTLC.json"
 import LayerSwapApiClient from "../../trainApiClient"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
 import { BaseAtomicFunctions } from "../utils/atomicTypes"
 import { generateRandomId } from "../utils/atomicHelpers"
+import { LockDetails } from '@/Models/phtlc/PHTLC'
 
 export interface UseAtomicFuelParams {
     wallet: Account | null
     fuelProvider: Provider | null
 }
 
-export default function useAtomicFuel(params: UseAtomicFuelParams) {
+export default function useAtomicFuel(params: UseAtomicFuelParams): BaseAtomicFunctions {
     const { wallet, fuelProvider } = params
     const { deriveSecret } = useSecretDerivation()
 
@@ -48,7 +49,7 @@ export default function useAtomicFuel(params: UseAtomicFuelParams) {
         const contractAddress = new Address(atomicContract);
         const contractInstance = new Contract(contractAddress, contractAbi, wallet);
 
-        const commitId = (generateRandomId({ asBigInt: true }) as bigint).toString()
+        const hashlock = (generateRandomId({ asBigInt: true }) as bigint).toString()
 
         const dstChain = destinationChain.padEnd(64, ' ');
         const dstAsset = destinationAsset.padEnd(64, ' ');
@@ -61,13 +62,13 @@ export default function useAtomicFuel(params: UseAtomicFuelParams) {
         const assetId: string | undefined = sourceAsset.contractAddress ? new Address(sourceAsset.contractAddress).toAssetId().bits : await fuelProvider.getBaseAssetId();
 
         const { transactionId } = await contractInstance.functions
-            .commit(hopChains, hopAssets, hopAddresses, dstChain, dstAsset, dstAddress, srcAsset, commitId, srcReceiver, timelock)
+            .commit(hopChains, hopAssets, hopAddresses, dstChain, dstAsset, dstAddress, srcAsset, hashlock, srcReceiver, timelock)
             .callParams({
                 forward: [parsedAmount, assetId],
             })
             .call();
 
-        return { hash: transactionId, commitId: commitId.toString() }
+        return { hash: transactionId, hashlock: hashlock.toString() }
     }
 
     const claim = async (params: ClaimParams) => {
@@ -110,7 +111,7 @@ export default function useAtomicFuel(params: UseAtomicFuelParams) {
 
     }
 
-    const getDetails = async (params: CommitmentParams) => {
+    const getDetails = async (params: LockParams) => {
         const { id, contractAddress: contractAddressString } = params
 
         const contractInstance = fuelProvider && new Contract(contractAddressString, contractAbi, fuelProvider);
@@ -134,7 +135,7 @@ export default function useAtomicFuel(params: UseAtomicFuelParams) {
         return resolvedDetails
     }
 
-    const addLockSig = async (params: CommitmentParams & LockParams) => {
+    const addLockSig = async (params: LockParams & OldLockParams) => {
         const { id, hashlock, solver } = params
 
         const LOCK_TIME = 1000 * 60 * 20 // 20 minutes
@@ -169,9 +170,12 @@ export default function useAtomicFuel(params: UseAtomicFuelParams) {
     }
 
     return {
-        createHTLC: createHTLC,
+        createHTLC,
         getDetails,
         refund,
-        claim
+        claim,
+        getSolverLockDetails: function (params: LockParams): Promise<LockDetails | null> {
+            throw new Error("Function not implemented.")
+        }
     }
 }

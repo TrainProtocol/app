@@ -5,7 +5,7 @@ import useSWRCommitDetails from "./useSWRCommitDetails"
 
 interface UseCommitDetailsPollingParams {
     network: Network | undefined
-    commitId: string | undefined
+    hashlock: string | undefined
     contractAddress: string | undefined
     sourceAsset: Token | undefined
     onDetailsFound?: (details: any) => void
@@ -15,9 +15,9 @@ interface UseCommitDetailsPollingParams {
  * Polls for commit details until a valid sender is found (sender != 0x0)
  * Used in UserCommitAction to wait for commit transaction to be confirmed
  */
-const useCommitDetailsPolling = ({
+const useUserLockDetailsPolling = ({
     network,
-    commitId,
+    hashlock,
     contractAddress,
     sourceAsset,
     onDetailsFound
@@ -29,10 +29,10 @@ const useCommitDetailsPolling = ({
 
     const { details, isLoading, error, mutate } = useSWRCommitDetails({
         network,
-        commitId,
+        hashlock,
         contractAddress,
         type,
-        enabled: !!commitId && !hasValidDetails,
+        enabled: !!hashlock && !hasValidDetails,
         refreshInterval: 3000
     })
 
@@ -45,7 +45,7 @@ const useCommitDetailsPolling = ({
         }
     }, [details, onDetailsFound])
 
-    const isWaitingForDetails = !!commitId && (!details || details.sender === '0x0000000000000000000000000000000000000000')
+    const isWaitingForDetails = !!hashlock && (!details || details.sender === '0x0000000000000000000000000000000000000000')
 
     return {
         details,
@@ -56,4 +56,4 @@ const useCommitDetailsPolling = ({
     }
 }
 
-export default useCommitDetailsPolling
+export default useUserLockDetailsPolling

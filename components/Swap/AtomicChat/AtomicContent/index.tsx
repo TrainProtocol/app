@@ -24,7 +24,7 @@ type AtomicContentProps = {
 
 const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }) => {
     const {
-        commitStatus, destination_network, source_network,
+        htlcStatus: commitStatus, destination_network, source_network,
         source_asset, destination_asset, amount,
         solverLockDetails, destinationDetailsByLightClient, updateCommit,
     } = useAtomicState()
@@ -81,7 +81,7 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
 // Renders state-specific content based on commitStatus
 const SwapStateContent: FC = () => {
     const {
-        commitStatus, commitTxId, sourceDetails, solverLockDetails,
+        htlcStatus: commitStatus, lockTxId: commitTxId, sourceDetails, solverLockDetails,
         source_network, destination_network,
         destRedeemTx, refundTxId,
         destinationDetailsByLightClient, verifyingByLightClient,

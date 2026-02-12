@@ -1,10 +1,10 @@
-import { CreatePreHTLCParams, CommitmentParams, LockParams, RefundParams, ClaimParams, GetCommitsParams } from "@/Models/phtlc"
-import { Commit } from "@/Models/phtlc/PHTLC"
+import { CreatePreHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams, GetCommitsParams } from "@/Models/phtlc"
+import { LockDetails } from "@/Models/phtlc/PHTLC"
 
 // Common result types
 export interface AtomicResult {
     hash: string
-    commitId: string
+    hashlock: string
     nonce?: number
 }
 
@@ -18,7 +18,7 @@ export interface BaseAtomicFunctions {
     createHTLC: (params: CreatePreHTLCParams) => Promise<AtomicResult | null | undefined>
     refund: (params: RefundParams) => Promise<string | any | null>
     claim: (params: ClaimParams) => Promise<string | undefined>
-    getDetails: (params: CommitmentParams) => Promise<Commit | null>
-    secureGetDetails?: (params: CommitmentParams) => Promise<Commit | null>
-    getSolverLockDetails: (params: CommitmentParams) => Promise<Commit | null>
+    getDetails: (params: LockParams) => Promise<LockDetails | null>
+    secureGetDetails?: (params: LockParams) => Promise<LockDetails | null>
+    getSolverLockDetails: (params: LockParams) => Promise<LockDetails | null>
 }

@@ -15,7 +15,7 @@ type MotionSummaryProps = {
 const MotionSummary: FC<MotionSummaryProps> = ({ quote, isQuoteLoading = false }) => {
 
     const { networks } = useSettingsState()
-    const { atomicQuery, commitStatus, commitFromApi, source_asset: source_token, destination_asset: destination_token } = useAtomicState()
+    const { atomicQuery, htlcStatus: commitStatus, commitFromApi, source_asset: source_token, destination_asset: destination_token } = useAtomicState()
     const { source, destination, amount } = atomicQuery;
 
     const source_network = networks.find(n => n.slug.toUpperCase() === source?.toUpperCase())

@@ -21,7 +21,7 @@ type ActionsProps = {
 }
 
 export const Actions: FC<ActionsProps> = ({ quote, isQuoteLoading = false }) => {
-    const { commitStatus, error } = useAtomicState()
+    const { htlcStatus: commitStatus, error } = useAtomicState()
 
     return (
         <div className="w-full space-y-3 h-fit text-primary-text">

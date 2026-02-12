@@ -10,13 +10,13 @@ type ContainerProps = {
     type: "widget" | "contained",
 }
 
-const Commitment: FC<ContainerProps> = ({ type }) => {
+const Swap: FC<ContainerProps> = ({ type }) => {
     const { isLoggedIn } = useSecretDerivation();
     const { source_network, destination_network, source_asset, destination_asset, amount, atomicQuery } = useAtomicState();
-    const commitId = atomicQuery?.commitId;
+    const hashlock = atomicQuery?.hashlock;
 
     const quoteParams = useMemo(() => {
-        if (commitId) return undefined;
+        if (hashlock) return undefined;
         return buildQuoteParamsFromAtomic({
             from: source_network?.slug,
             to: destination_network?.slug,
@@ -24,7 +24,7 @@ const Commitment: FC<ContainerProps> = ({ type }) => {
             toCurrency: destination_asset,
             amount: amount != null ? String(amount) : undefined,
         });
-    }, [commitId, source_network?.slug, destination_network?.slug, source_asset, destination_asset, amount]);
+    }, [hashlock, source_network?.slug, destination_network?.slug, source_asset, destination_asset, amount]);
 
     const { quote, isQuoteLoading } = useQuoteData(quoteParams, 42000);
 
@@ -50,11 +50,11 @@ const Container: FC<ContainerProps> = (props) => {
 
     if (type === "widget")
         return <Widget className="!space-y-3">
-            <Commitment {...props} />
+            <Swap {...props} />
         </Widget>
     else
         return <div className="w-full flex flex-col justify-between h-full space-y-2 text-secondary-text">
-            <Commitment {...props} />
+            <Swap {...props} />
         </div>
 
 }

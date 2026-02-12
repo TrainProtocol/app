@@ -1,12 +1,12 @@
 import useSWR from "swr"
 import { Network } from "../../Models/Network"
-import { Commit } from "../../Models/phtlc/PHTLC"
-import { CommitmentParams } from "../../Models/phtlc"
+import { LockDetails } from "../../Models/phtlc/PHTLC"
+import { LockParams } from "../../Models/phtlc"
 import useWallet from "../../hooks/useWallet"
 
 interface UseSWRCommitDetailsParams {
     network: Network | undefined
-    commitId: string | undefined
+    hashlock: string | undefined
     contractAddress: string | undefined
     type: 'erc20' | 'native'
     enabled?: boolean
@@ -15,7 +15,7 @@ interface UseSWRCommitDetailsParams {
 
 const useSWRCommitDetails = ({
     network,
-    commitId,
+    hashlock,
     contractAddress,
     type,
     enabled = true,
@@ -24,21 +24,21 @@ const useSWRCommitDetails = ({
     const { provider } = useWallet(network, 'withdrawal')
 
     // Create a unique key for SWR caching
-    const key = (network && commitId && contractAddress && enabled)
-        ? `/htlc/details/${network.slug}/${commitId}/${contractAddress}/${type}`
+    const key = (network && hashlock && contractAddress && enabled)
+        ? `/htlc/details/${network.slug}/${hashlock}/${contractAddress}/${type}`
         : null
 
-    const { data, error, mutate, isLoading } = useSWR<Commit | null>(
+    const { data, error, mutate, isLoading } = useSWR<LockDetails | null>(
         key,
         async () => {
-            if (!provider || !network || !commitId || !contractAddress) {
+            if (!provider || !network || !hashlock || !contractAddress) {
                 return null
             }
 
-            const params: CommitmentParams = {
+            const params: LockParams = {
                 type,
                 chainId: network.chainId,
-                id: commitId,
+                id: hashlock,
                 contractAddress
             }
 

@@ -1,8 +1,8 @@
 import { AztecAddress } from "@aztec/aztec.js/addresses"
 import { Fr } from "@aztec/aztec.js/fields"
 import { AztecNode, createAztecNodeClient } from "@aztec/aztec.js/node"
-import { CreatePreHTLCParams, CommitmentParams, LockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
-import { Commit } from "../../../Models/phtlc/PHTLC"
+import { CreatePreHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
+import { LockDetails } from "../../../Models/phtlc/PHTLC"
 import { getAztecSecret } from "./secretUtils"
 import { combineHighLow, highLowToHexValidated, trimTo30Bytes } from "./utils"
 import formatAmount from "../../formatAmount"
@@ -43,10 +43,10 @@ export default function useAtomicAztec(params: UseAtomicAztecParams): BaseAtomic
             ...params
         })
 
-        return { hash: tx.hash, commitId: tx.commitId }
+        return { hash: tx.hash, hashlock: tx.hashlock }
     }
 
-    const getDetails = async (params: CommitmentParams): Promise<Commit> => {
+    const getDetails = async (params: LockParams): Promise<LockDetails> => {
         let { id, contractAddress } = params;
         const id30Bytes = trimTo30Bytes(id);
 
@@ -80,7 +80,7 @@ export default function useAtomicAztec(params: UseAtomicAztecParams): BaseAtomic
             throw new Error("No result")
         }
 
-        const commit: Commit = {
+        const commit: LockDetails = {
             amount: formatAmount(Number(commitRaw.amount), 8),
             claimed: Number(commitRaw.claimed),
             timelock: Number(commitRaw.timelock),
@@ -93,7 +93,7 @@ export default function useAtomicAztec(params: UseAtomicAztecParams): BaseAtomic
         return commit
     }
 
-    const addLock = async (params: CommitmentParams & LockParams) => {
+    const addLock = async (params: LockParams & OldLockParams) => {
         if (!wallet) throw new Error("No wallet connected");
 
         const { addLockTransactionBuilder } = await import('./transactionBuilder.ts')
@@ -140,7 +140,7 @@ export default function useAtomicAztec(params: UseAtomicAztecParams): BaseAtomic
     }
 
     return {
-        createHTLC: createHTLC,
+        createHTLC,
         getDetails,
         getSolverLockDetails: getDetails,
         refund,

@@ -1,5 +1,5 @@
 import { Token } from "../Network";
-import { Commit } from "./PHTLC";
+import { LockDetails } from "./PHTLC";
 
 export type CreatePreHTLCParams = {
     destinationChain: string,
@@ -16,23 +16,22 @@ export type CreatePreHTLCParams = {
     chainId?: string | null;
 }
 
-export type CommitmentParams = {
-    type: 'erc20' | 'native';
+export type LockParams = {
+    type?: 'erc20' | 'native';
     id: string,
     chainId: string | null,
     contractAddress: string,
-    /** Index for hashlock-based contracts (EVM v2) */
     index?: number
 }
 
-export type LockParams = {
+export type OldLockParams = {
     type: 'erc20' | 'native';
     id: string,
-    lockData?: Commit,
+    lockData?: LockDetails,
     hashlock: string,
     chainId: string | null,
     contractAddress: string,
-    lockDataResolver?: (data: any[]) => Commit,
+    lockDataResolver?: (data: any[]) => LockDetails,
     sourceAsset?: Token,
     solver: string,
 }
@@ -44,7 +43,6 @@ export type RefundParams = {
     id: string,
     hashlock?: string | undefined,
     sourceAsset: Token,
-    /** Index for hashlock-based contracts (EVM v2) */
     index?: number
 }
 

@@ -6,7 +6,7 @@ import useSWRCommitDetails from "./useSWRCommitDetails"
 
 interface UseRefundStatusPollingParams {
     network: Network | undefined
-    commitId: string | undefined
+    hashlock: string | undefined
     contractAddress: string | undefined
     asset: Token | undefined
     onStatusUpdate?: (details: any) => void
@@ -18,7 +18,7 @@ interface UseRefundStatusPollingParams {
  */
 const useRefundStatusPolling = ({
     network,
-    commitId,
+    hashlock,
     contractAddress,
     asset,
     onStatusUpdate
@@ -27,10 +27,10 @@ const useRefundStatusPolling = ({
 
     const { details, isLoading, error, mutate } = useSWRCommitDetails({
         network,
-        commitId,
+        hashlock,
         contractAddress,
         type,
-        enabled: !!commitId && !!network && !!contractAddress,
+        enabled: !!hashlock && !!network && !!contractAddress,
         refreshInterval: 5000
     })
 
@@ -43,7 +43,7 @@ const useRefundStatusPolling = ({
     }, [details, onStatusUpdate])
 
     const isRefundComplete = details?.status === LockStatus.Refunded
-    const isWaitingForRefund = !!commitId && !isRefundComplete
+    const isWaitingForRefund = !!hashlock && !isRefundComplete
 
     return {
         details,

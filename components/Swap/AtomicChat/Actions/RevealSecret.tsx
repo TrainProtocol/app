@@ -10,7 +10,7 @@ import posthog from "posthog-js";
 import { useConfig } from "wagmi";
 
 export const RevealSecretAction: FC = () => {
-    const { source_network, commitId, nonce, solver, updateCommit, solverLockDetails } = useAtomicState()
+    const { source_network, hashlock, nonce, solver, updateCommit, solverLockDetails } = useAtomicState()
     const { deriveInitialKey } = useSecretDerivation()
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
@@ -20,7 +20,7 @@ export const RevealSecretAction: FC = () => {
 
     const handleRevealSecret = async () => {
         try {
-            if (!commitId) throw new Error("No commitment ID")
+            if (!hashlock) throw new Error("No hashlock")
             if (!nonce) throw new Error("No nonce available")
             if (!solver) throw new Error("No solver")
             if (!solverLockDetails) throw new Error("No solver lock details")
@@ -37,10 +37,10 @@ export const RevealSecretAction: FC = () => {
             const secret = '0x' + derivedKey.toString('hex')
 
             const apiClient = new LayerSwapApiClient()
-            await apiClient.RevealSecret({ secret }, commitId, solver)
+            await apiClient.RevealSecret({ secret }, hashlock, solver)
 
             posthog.capture("RevealSecret", {
-                commitId,
+                hashlock,
                 solver,
             })
 

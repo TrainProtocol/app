@@ -2,7 +2,7 @@ import formatAmount from "../../../formatAmount"
 import _LightClient from "../../types/lightClient"
 import EVMERC20_PHTLC from '../../../abis/atomic/EVMERC20_PHTLC.json'
 import EVM_PHTLC from '../../../abis/atomic/EVM_PHTLC.json'
-import { Commit } from "../../../../Models/phtlc/PHTLC"
+import { LockDetails } from "../../../../Models/phtlc/PHTLC"
 import KnownInternalNames from "../../../knownIds"
 import { Network, Token } from "../../../../Models/Network"
 import { hexToBigInt } from "viem"
@@ -68,8 +68,8 @@ export default class EVMLightClient extends _LightClient {
         });
     }
 
-    getDetails = async ({ network, token, commitId, atomicContract }: { network: Network, token: Token, commitId: string, atomicContract: string }) => {
-        return new Promise(async (resolve: (value: Commit) => void, reject) => {
+    getDetails = async ({ network, token, hashlock, atomicContract }: { network: Network, token: Token, hashlock: string, atomicContract: string }) => {
+        return new Promise(async (resolve: (value: LockDetails) => void, reject) => {
             try {
 
                 if (!this.worker) {
@@ -84,7 +84,7 @@ export default class EVMLightClient extends _LightClient {
                     payload: {
                         data: {
                             commitConfigs: {
-                                commitId: commitId,
+                                hashlock,
                                 abi: token.contractAddress ? EVMERC20_PHTLC : EVM_PHTLC,
                                 contractAddress: atomicContract,
                             },
@@ -103,7 +103,7 @@ export default class EVMLightClient extends _LightClient {
                     }
 
                     if (result?.hashlock && result?.hashlock !== "0x0100000000000000000000000000000000000000000000000000000000000000" && result?.hashlock !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
-                        const parsedResult: Commit = result ? {
+                        const parsedResult: LockDetails = result ? {
                             ...result,
                             secret: Number(result.secret) !== 1 ? Number(result.secret) : null,
                             amount: formatAmount(Number(hexToBigInt(result.amount._hex)), token.decimals),

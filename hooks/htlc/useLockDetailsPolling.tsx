@@ -5,7 +5,7 @@ import useSWRCommitDetails from "./useSWRCommitDetails"
 
 interface UseLockDetailsPollingParams {
     network: Network | undefined
-    commitId: string | undefined
+    hashlock: string | undefined
     contractAddress: string | undefined
     sourceAsset: Token | undefined
     hasHashlock: boolean
@@ -18,7 +18,7 @@ interface UseLockDetailsPollingParams {
  */
 const useLockDetailsPolling = ({
     network,
-    commitId,
+    hashlock,
     contractAddress,
     sourceAsset,
     hasHashlock,
@@ -28,10 +28,10 @@ const useLockDetailsPolling = ({
 
     const { details, isLoading, error, mutate } = useSWRCommitDetails({
         network,
-        commitId,
+        hashlock,
         contractAddress,
         type,
-        enabled: !!commitId && !hasHashlock,
+        enabled: !!hashlock && !hasHashlock,
         refreshInterval: 3000
     })
 
@@ -44,7 +44,7 @@ const useLockDetailsPolling = ({
         }
     }, [details, onDetailsFound])
 
-    const isWaitingForHashlock = !!commitId && !hasHashlock && !details?.hashlock
+    const isWaitingForHashlock = !!hashlock && !hasHashlock && !details?.hashlock
 
     return {
         details,

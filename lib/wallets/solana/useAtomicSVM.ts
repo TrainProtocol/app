@@ -1,7 +1,7 @@
 import { AnchorProvider, Program } from "@coral-xyz/anchor"
 import { Connection, PublicKey } from "@solana/web3.js"
 import { Network } from "../../../Models/Network"
-import { CreatePreHTLCParams, CommitmentParams, LockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
+import { CreatePreHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
 import { TokenAnchorHtlc } from "./tokenAnchorHTLC"
 import { NativeAnchorHtlc } from "./nativeAnchorHTLC"
 import { lockTransactionBuilder, phtlcTransactionBuilder } from "./transactionBuilder"
@@ -12,6 +12,8 @@ import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
 import { calculateEpochTimelock } from "../utils/calculateTimelock"
 import { toHexString } from "../utils/atomicHelpers"
+import { BaseAtomicFunctions } from "../utils/atomicTypes"
+import { LockDetails } from "@/Models/phtlc/PHTLC"
 
 export interface UseAtomicSVMParams {
     connection: Connection
@@ -22,11 +24,11 @@ export interface UseAtomicSVMParams {
     anchorProvider: AnchorProvider | undefined
 }
 
-export default function useAtomicSVM(params: UseAtomicSVMParams) {
+export default function useAtomicSVM(params: UseAtomicSVMParams): BaseAtomicFunctions {
     const { connection, signTransaction, signMessage, publicKey, network, anchorProvider } = params
     const { deriveSecret } = useSecretDerivation()
 
-    const createPreHTLC = async (params: CreatePreHTLCParams): Promise<{ hash: string; commitId: string; } | null | undefined> => {
+    const createHTLC = async (params: CreatePreHTLCParams): Promise<{ hash: string; hashlock: string; } | null | undefined> => {
         const { atomicContract, sourceAsset } = params
         const program = (anchorProvider && atomicContract) ? new Program(sourceAsset.contractAddress ? TokenAnchorHtlc(atomicContract) : NativeAnchorHtlc(atomicContract), anchorProvider) : null;
 
@@ -61,12 +63,12 @@ export default function useAtomicSVM(params: UseAtomicSVMParams) {
                 throw new Error(res.value.err.toString())
             }
 
-            return { hash: signature, commitId: `0x${toHexString(transaction.commitId)}` }
+            return { hash: signature, hashlock: `0x${toHexString(transaction.hashlock)}` }
         }
 
     }
 
-    const getDetails = async (params: CommitmentParams) => {
+    const getDetails = async (params: LockParams) => {
         const solanaAddress = '4hLwFR5JpxztsYMyy574mcWsfYc9sbfeAx5FKMYfw8vB'
         const { contractAddress, id, type } = params
 
@@ -121,7 +123,7 @@ export default function useAtomicSVM(params: UseAtomicSVMParams) {
         }
     }
 
-    const addLock = async (params: CommitmentParams & LockParams) => {
+    const addLock = async (params: LockParams & OldLockParams) => {
 
         const { contractAddress } = params
         const program = (anchorProvider && contractAddress) ? new Program(TokenAnchorHtlc(contractAddress), anchorProvider) : null;
@@ -255,10 +257,12 @@ export default function useAtomicSVM(params: UseAtomicSVMParams) {
     }
 
     return {
-        createHTLC: createPreHTLC,
+        createHTLC,
         getDetails,
-        addLock,
         refund,
-        claim
+        claim,
+        getSolverLockDetails: function (params: LockParams): Promise<LockDetails | null> {
+            throw new Error("Function not implemented.")
+        }
     }
 }

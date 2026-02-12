@@ -6,7 +6,7 @@ import useSWRCommitDetails from "./useSWRCommitDetails"
 
 interface UseRedeemStatusPollingParams {
     network: Network | undefined
-    commitId: string | undefined
+    hashlock: string | undefined
     contractAddress: string | undefined
     asset: Token | undefined
     onStatusUpdate?: (details: any) => void
@@ -18,7 +18,7 @@ interface UseRedeemStatusPollingParams {
  */
 const useRedeemStatusPolling = ({
     network,
-    commitId,
+    hashlock,
     contractAddress,
     asset,
     onStatusUpdate
@@ -30,10 +30,10 @@ const useRedeemStatusPolling = ({
 
     const { details, isLoading, error, mutate } = useSWRCommitDetails({
         network,
-        commitId,
+        hashlock,
         contractAddress,
         type,
-        enabled: !!commitId && !!network && !!contractAddress && !isClaimed,
+        enabled: !!hashlock && !!network && !!contractAddress && !isClaimed,
         refreshInterval: 5000 // 5 second interval for claim tracking
     })
 
@@ -47,7 +47,7 @@ const useRedeemStatusPolling = ({
     }, [details, onStatusUpdate])
 
     const isClaimComplete = details?.status === LockStatus.Redeemed
-    const isWaitingForClaim = !!commitId && !isClaimComplete
+    const isWaitingForClaim = !!hashlock && !isClaimComplete
 
     return {
         details,

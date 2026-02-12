@@ -1,13 +1,13 @@
-import { CommitmentParams } from "../../../Models/phtlc";
+import { LockParams } from "../../../Models/phtlc";
 import { Address } from "@ton/ton"
 import tonClient from "./client";
 import { hexToBigInt, toHex } from "viem";
 import { TupleBuilder } from "@ton/core"
 import { Network } from "../../../Models/Network";
-import { Commit } from "../../../Models/phtlc/PHTLC";
+import { LockDetails } from "../../../Models/phtlc/PHTLC";
 
 
-export const getTONDetails = async (params: CommitmentParams & { network: Network | undefined }) => {
+export const getTONDetails = async (params: LockParams & { network: Network | undefined }) => {
 
     const {
         id,
@@ -40,7 +40,7 @@ export const getTONDetails = async (params: CommitmentParams & { network: Networ
     // const amount = Number(details[9]) / Math.pow(10, token?.decimals || 8)
     const hashlock = (Number(details[8]) != 0) ? toHex(details[8]) : undefined
 
-    const parsedResult: Commit = {
+    const parsedResult: LockDetails = {
         sender,
         srcReceiver: details[6].beginParse().loadAddress().toString(),
         timelock: Number(details[10]),

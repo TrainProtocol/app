@@ -48,7 +48,7 @@ export default function Form() {
     const settings = useSettingsState()
 
     const {
-        commitId
+        hashlock
     } = atomicQuery;
 
     const handleShowSwapModal = useCallback((value: boolean) => {
@@ -63,8 +63,8 @@ export default function Form() {
     }, [atomicQuery, router]);
 
     useEffect(() => {
-        if (commitId) handleShowSwapModal(true);
-    }, [commitId]);
+        if (hashlock) handleShowSwapModal(true);
+    }, [hashlock]);
 
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
@@ -127,7 +127,7 @@ export default function Form() {
     return <>
         <AnimatePresence mode='wait'>
             {
-                commitId &&
+                hashlock &&
                 !swapModalOpen &&
                 <div className="cursor-pointer absolute z-10 mt-4 ml-6">
                     <PendingSwap key="pendingSwap" onClick={() => handleShowSwapModal(true)} />

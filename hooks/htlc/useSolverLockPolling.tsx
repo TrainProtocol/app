@@ -2,22 +2,22 @@ import { useEffect } from "react"
 import useSWR from "swr"
 import { Network } from "../../Models/Network"
 import { Token } from "../../Models/Network"
-import { Commit } from "../../Models/phtlc/PHTLC"
-import { CommitmentParams } from "../../Models/phtlc"
+import { LockDetails } from "../../Models/phtlc/PHTLC"
+import { LockParams } from "../../Models/phtlc"
 import useWallet from "../../hooks/useWallet"
 
 interface UseSolverLockPollingParams {
     network: Network | undefined
-    commitId: string | undefined
+    hashlock: string | undefined
     contractAddress: string | undefined
     sourceAsset: Token | undefined
     hasSolverLock: boolean
-    onDetailsFound?: (details: Commit) => void
+    onDetailsFound?: (details: LockDetails) => void
 }
 
 const useSolverLockPolling = ({
     network,
-    commitId,
+    hashlock,
     contractAddress,
     sourceAsset,
     hasSolverLock,
@@ -26,14 +26,14 @@ const useSolverLockPolling = ({
     const type: 'erc20' | 'native' = sourceAsset?.contractAddress && sourceAsset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
     const { provider } = useWallet(network, 'withdrawal')
 
-    const key = (network && commitId && contractAddress && !hasSolverLock)
-        ? `/htlc/solverLock/${network.slug}/${commitId}/${contractAddress}/${type}`
+    const key = (network && hashlock && contractAddress && !hasSolverLock)
+        ? `/htlc/solverLock/${network.slug}/${hashlock}/${contractAddress}/${type}`
         : null
 
-    const { data: details, isLoading, error, mutate } = useSWR<Commit | null>(
+    const { data: details, isLoading, error, mutate } = useSWR<LockDetails | null>(
         key,
         async () => {
-            if (!provider || !network || !commitId || !contractAddress) {
+            if (!provider || !network || !hashlock || !contractAddress) {
                 return null
             }
 
@@ -41,10 +41,10 @@ const useSolverLockPolling = ({
                 return null
             }
 
-            const params: CommitmentParams = {
+            const params: LockParams = {
                 type,
                 chainId: network.chainId,
-                id: commitId,
+                id: hashlock,
                 contractAddress
             }
 
@@ -76,7 +76,7 @@ const useSolverLockPolling = ({
         isLoading,
         error,
         mutate,
-        isWaitingForSolverLock: !!commitId && !hasSolverLock && !details?.sender
+        isWaitingForSolverLock: !!hashlock && !hasSolverLock && !details?.sender
     }
 }
 

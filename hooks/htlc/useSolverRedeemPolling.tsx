@@ -2,21 +2,21 @@ import { useEffect } from "react"
 import useSWR from "swr"
 import { Network } from "../../Models/Network"
 import { Token } from "../../Models/Network"
-import { Commit, LockStatus } from "../../Models/phtlc/PHTLC"
-import { CommitmentParams } from "../../Models/phtlc"
+import { LockDetails, LockStatus } from "../../Models/phtlc/PHTLC"
+import { LockParams } from "../../Models/phtlc"
 import useWallet from "../../hooks/useWallet"
 
 interface UseSolverRedeemPollingParams {
     network: Network | undefined
-    commitId: string | undefined
+    hashlock: string | undefined
     contractAddress: string | undefined
     asset: Token | undefined
-    onStatusUpdate?: (details: Commit) => void
+    onStatusUpdate?: (details: LockDetails) => void
 }
 
 const useSolverRedeemPolling = ({
     network,
-    commitId,
+    hashlock,
     contractAddress,
     asset,
     onStatusUpdate
@@ -24,14 +24,14 @@ const useSolverRedeemPolling = ({
     const type: 'erc20' | 'native' = asset?.contractAddress && asset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
     const { provider } = useWallet(network, 'withdrawal')
 
-    const key = (network && commitId && contractAddress)
-        ? `/htlc/solverRedeem/${network.slug}/${commitId}/${contractAddress}/${type}`
+    const key = (network && hashlock && contractAddress)
+        ? `/htlc/solverRedeem/${network.slug}/${hashlock}/${contractAddress}/${type}`
         : null
 
-    const { data: details, isLoading, error, mutate } = useSWR<Commit | null>(
+    const { data: details, isLoading, error, mutate } = useSWR<LockDetails | null>(
         key,
         async () => {
-            if (!provider || !network || !commitId || !contractAddress) {
+            if (!provider || !network || !hashlock || !contractAddress) {
                 return null
             }
 
@@ -39,10 +39,10 @@ const useSolverRedeemPolling = ({
                 return null
             }
 
-            const params: CommitmentParams = {
+            const params: LockParams = {
                 type,
                 chainId: network.chainId,
-                id: commitId,
+                id: hashlock,
                 contractAddress
             }
 
@@ -77,7 +77,7 @@ const useSolverRedeemPolling = ({
         error,
         mutate,
         isRedeemed,
-        isWaitingForRedeem: !!commitId && !isRedeemed
+        isWaitingForRedeem: !!hashlock && !isRedeemed
     }
 }
 

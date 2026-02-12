@@ -20,7 +20,7 @@ const Details: FC = () => {
 }
 
 const Confirmed: FC = () => {
-    const { commitTxId, source_network } = useAtomicState()
+    const { lockTxId: commitTxId, source_network } = useAtomicState()
     const description = (commitTxId && source_network) && <p><span>Transaction ID:</span> <Link target="_blank" className="underline hover:no-underline" href={getExplorerUrl(NetworkSettings.KnownSettings[source_network.slug]?.TransactionExplorerTemplate, commitTxId)}>{shortenString(commitTxId)}</Link></p>
 
     return (
