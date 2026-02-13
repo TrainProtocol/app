@@ -45,13 +45,13 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
             rewardRecipient,
             rewardAmount,
             rewardTimelockDelta,
-            solverData
+            solverData,
+            destinationAmount,
+            timelockDelta
         } = params
 
         const network = networks.find(n => n.caip2Id === sourceChain)
         const account = network ? getAccount(network, address, wallets) : undefined
-
-        const timelockDelta = minutesToSeconds(40) // duration in seconds for contract
 
         const parsedAmount = ethers.utils.parseUnits(amount.toString(), decimals).toBigInt()
 
@@ -102,7 +102,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
             amount: parsedAmount,
             timelockDelta,
             quoteExpiry,
-            sender: account!.address as `0x${string}`,
+            sender: account.address as `0x${string}`,
             recipient: lpAddress as `0x${string}`,
             token: tokenAddress,
             rewardAmount,
@@ -113,15 +113,15 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
 
         const destinationInfo = {
             dstChain: destinationChain,
-            dstAddress: address,
-            dstAmount: parsedAmount,
+            dstAddress: account.address,
+            dstAmount: destinationAmount,
             dstToken: destinationAsset
         }
 
         const userData = toHex(BigInt(timestamp), { size: 32 })
 
         const simulationData: any = {
-            account: account!.address as `0x${string}`,
+            account: account.address as `0x${string}`,
             abi: HTLCAbi,
             address: atomicContract,
             functionName: 'userLock',

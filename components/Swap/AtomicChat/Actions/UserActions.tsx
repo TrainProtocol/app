@@ -73,6 +73,8 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
                 rewardRecipient: quote?.reward.rewardRecipientAddress,
                 rewardAmount: quote?.reward.amount,
                 rewardTimelockDelta: quote?.reward.rewardTimelockTimeSpanInSeconds,
+                destinationAmount: quote?.receiveAmount,
+                timelockDelta: quote?.timelock.timelockTimeSpanInSeconds,
             })
             if (result?.hashlock && result?.hash) {
                 onCommit(

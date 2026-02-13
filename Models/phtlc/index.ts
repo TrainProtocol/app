@@ -5,6 +5,7 @@ export type CreateHTLCParams = {
     destinationChain: string,
     sourceChain: string,
     amount: string,
+    destinationAmount: string,
     decimals: number,
     destinationAsset: string,
     sourceAsset: Token;
@@ -20,6 +21,7 @@ export type CreateHTLCParams = {
     rewardRecipient?: string;
     rewardAmount?: string;
     rewardTimelockDelta?: number;
+    timelockDelta?: number;
 }
 
 export type LockParams = {
