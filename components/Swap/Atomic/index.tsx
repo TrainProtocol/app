@@ -47,7 +47,6 @@ export default function Form() {
     const { getProvider } = useWallet()
     const { hashlock } = useAtomicState()
     const settings = useSettingsState()
-    const swaps = useSwapStore(s => s.swaps)
     const clearTempSwap = useSwapStore(s => s.clearTempSwap)
     const setTempSwap = useSwapStore(s => s.setTempSwap)
 
