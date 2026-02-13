@@ -129,7 +129,7 @@ function groupNetworks({ networks, direction, search, suggestionsLimit = 4 }: Gr
     }
 
     // Get suggestions (alphabetical for now - can be enhanced with balance-based)
-    const suggestedTokens = getSuggestedTokens(networks, suggestionsLimit);
+    const suggestedTokens = getSuggestedTokens(networks, direction, suggestionsLimit);
 
     // Group all networks
     const groupedNetworks = resolveNetworkElements(networks);
@@ -229,30 +229,38 @@ const searchInTokens = (networks: Network[], search: string): NetworkTokenElemen
     );
 };
 
-// ---------- Suggestions (Alphabetical for now) ----------
+// ---------- Suggestions ----------
+
+const extractTokenElementsAsSuggested = (networks: Network[]): NetworkTokenElement[] =>
+    networks.flatMap(network =>
+        (network.tokens || []).map(token => ({
+            type: 'suggested_token' as const,
+            data: { token, network }
+        }))
+    );
+
+const sortSuggestedTokenElements = (direction: SwapDirection) =>
+    (a: NetworkTokenElement, b: NetworkTokenElement) => {
+        // 1. Sort by priceInUsd descending (higher value tokens first)
+        const aPrice = a.data.token.priceInUsd ?? 0;
+        const bPrice = b.data.token.priceInUsd ?? 0;
+        if (aPrice !== bPrice) {
+            return bPrice - aPrice;
+        }
+
+        // 2. Alphabetical fallback
+        return a.data.token.symbol.localeCompare(b.data.token.symbol);
+    };
 
 function getSuggestedTokens(
     networks: Network[],
+    direction: SwapDirection,
     limit: number
 ): NetworkTokenElement[] {
-    const allTokenElements: NetworkTokenElement[] = [];
-
-    networks.forEach(network => {
-        network.tokens.forEach(token => {
-            allTokenElements.push({
-                type: 'suggested_token' as const,
-                data: { token, network }
-            });
-        });
-    });
-
-    // Sort alphabetically for now
-    // TODO: Enhance with balance-based sorting (tokens with balance first)
-    const sorted = allTokenElements.sort((a, b) =>
-        a.data.token.symbol.localeCompare(b.data.token.symbol)
-    );
-
-    return sorted.slice(0, limit);
+    const effectiveLimit = Math.max(4, limit);
+    const tokenElements = extractTokenElementsAsSuggested(networks);
+    const sorted = tokenElements.sort(sortSuggestedTokenElements(direction));
+    return sorted.slice(0, effectiveLimit);
 }
 
 // ---------- Resolvers ----------
