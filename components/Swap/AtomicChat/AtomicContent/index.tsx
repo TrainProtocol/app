@@ -27,6 +27,7 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
         htlcStatus: commitStatus, destination_network, source_network,
         source_asset, destination_asset, amount,
         solverLockDetails, destinationDetailsByLightClient, updateCommit,
+        hashlock,
     } = useAtomicState()
 
     const { setPulseState } = usePulsatingCircles();
@@ -73,7 +74,7 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
                 <SwapQuoteComp values={values} quote={quote} isQuoteLoading={isQuoteLoading} />
             )}
 
-            {!isInitial && <SwapStateContent />}
+            {(!isInitial || hashlock) && <SwapStateContent />}
         </>
     )
 }
@@ -81,7 +82,7 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
 // Renders state-specific content based on commitStatus
 const SwapStateContent: FC = () => {
     const {
-        htlcStatus: commitStatus, lockTxId: commitTxId, sourceDetails, solverLockDetails,
+        htlcStatus: commitStatus, lockTxId, sourceDetails, solverLockDetails,
         source_network, destination_network,
         destRedeemTx, refundTxId,
         destinationDetailsByLightClient, verifyingByLightClient,
@@ -98,7 +99,7 @@ const SwapStateContent: FC = () => {
                     title="Waiting for solver"
                     description="The solver is reserving assets for you on the destination chain."
                     timelock={sourceDetails?.timelock}
-                    txLink={buildExplorerLink(source_network?.slug, commitTxId)}
+                    txLink={buildExplorerLink(source_network?.slug, lockTxId)}
                 />
             )
 
@@ -152,6 +153,17 @@ const SwapStateContent: FC = () => {
                     icon={<XCircle className="h-5 w-5" />}
                     title="Timelock Expired"
                     description="The response was not received in time. Cancel & refund to receive your assets back."
+                />
+            )
+
+        case HTLCStatus.Initial:
+            if (!lockTxId) return null
+            return (
+                <StateCard
+                    icon={<SpinIcon className="h-5 w-5 animate-reverse-spin text-accent" />}
+                    title="Waiting for confirmation"
+                    description="Your transaction is being confirmed on-chain."
+                    txLink={buildExplorerLink(source_network?.slug, lockTxId)}
                 />
             )
 

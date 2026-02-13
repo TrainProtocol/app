@@ -1,7 +1,7 @@
 import { AztecAddress } from "@aztec/aztec.js/addresses"
 import { Fr } from "@aztec/aztec.js/fields"
 import { AztecNode, createAztecNodeClient } from "@aztec/aztec.js/node"
-import { CreatePreHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
+import { CreateHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
 import { LockDetails } from "../../../Models/phtlc/PHTLC"
 import { getAztecSecret } from "./secretUtils"
 import { combineHighLow, highLowToHexValidated, trimTo30Bytes } from "./utils"
@@ -22,14 +22,13 @@ export default function useAtomicAztec(params: UseAtomicAztecParams): BaseAtomic
     const { wallet, accountAddress, aztecNodeUrl } = params
     const { deriveSecret } = useSecretDerivation()
 
-    const createHTLC = async (params: CreatePreHTLCParams) => {
+    const createHTLC = async (params: CreateHTLCParams) => {
         if (!wallet) throw new Error("No wallet connected");
         
         // Secret derivation for HTLC with hashlock
         const chainId = params.chainId || 'aztec-mainnet';
         const timelock = calculateEpochTimelock(40);
         const secret = await deriveSecret({
-            chainId,
             wallet: { metadata: { wallet }, providerName: 'aztec' } as any
         });
         // const hashlock = secretToHashlock(secret);
@@ -141,7 +140,7 @@ export default function useAtomicAztec(params: UseAtomicAztecParams): BaseAtomic
 
     return {
         createHTLC,
-        getDetails,
+        getUserLockDetails: getDetails,
         getSolverLockDetails: getDetails,
         refund,
         claim

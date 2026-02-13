@@ -18,6 +18,7 @@ export type NetworkContract = {
 }
 
 export class Network {
+    caip2Id: string;
     slug: string;
     displayName: string;
     chainId: string;

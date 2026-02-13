@@ -2,40 +2,38 @@ import useSWR from "swr"
 import { Network, Token } from "../../Models/Network"
 import { LockDetails } from "../../Models/phtlc/PHTLC"
 import { LockParams } from "../../Models/phtlc"
-import useWallet from "../useWallet"
 import { WalletProvider } from "@/Models/WalletProvider"
 
-interface UseSolverLockPollingParams {
+interface UseUserLockPollingParams {
     network: Network | undefined
     hashlock: string | undefined
     contractAddress: string | undefined
-    destinationAsset: Token | undefined
+    sourceAsset: Token | undefined
     enabled?: boolean
     provider: WalletProvider | undefined
 }
 
-const useSolverLockPolling = ({
+const useUserLockPolling = ({
     network,
     hashlock,
     contractAddress,
-    destinationAsset,
+    sourceAsset,
     enabled = true,
     provider
-}: UseSolverLockPollingParams) => {
-    const type: 'erc20' | 'native' = destinationAsset?.contractAddress && destinationAsset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
+}: UseUserLockPollingParams) => {
+    const type: 'erc20' | 'native' = sourceAsset?.contractAddress && sourceAsset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
 
     const shouldPoll = !!(network && hashlock && contractAddress && enabled)
 
     const key = shouldPoll
-        ? `/htlc/solverLock/${network!.slug}/${hashlock}/${contractAddress}/${type}`
+        ? `/htlc/userLock/${network!.slug}/${hashlock}/${contractAddress}/${type}`
         : null
 
     const { data, error, isLoading, mutate } = useSWR<LockDetails | null>(
         key,
         async () => {
-            if (!provider || !network || !hashlock || !contractAddress) return null
-            if (!provider.getSolverLockDetails) return null
-
+            if (!network || !hashlock || !contractAddress || !provider) return null
+            
             const params: LockParams = {
                 type,
                 chainId: network.chainId,
@@ -44,9 +42,9 @@ const useSolverLockPolling = ({
             }
 
             try {
-                return await provider.getSolverLockDetails(params)
+                return await provider?.getUserLockDetails(params)
             } catch (err) {
-                console.error('Error fetching solver lock details:', err)
+                console.error('Error fetching user lock details:', err)
                 throw err
             }
         },
@@ -68,4 +66,4 @@ const useSolverLockPolling = ({
     }
 }
 
-export default useSolverLockPolling
+export default useUserLockPolling

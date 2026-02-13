@@ -6,7 +6,6 @@ import { WaitForSolverRedeem } from "./WaitForSolverRedeem";
 import { UserRefundAction, UserCommitAction } from "./UserActions";
 import TransactionMessages from "../../messages/TransactionMessages";
 import WalletMessage from "../../messages/Message";
-import { LockStatus } from "../../../../Models/phtlc/PHTLC";
 import DestinationWalletWrapper from "./DestinationWalletWrapper";
 import { SwapQuote } from "../../../../lib/trainApiClient";
 import SubmitButton from "@/components/buttons/submitButton";
@@ -44,7 +43,7 @@ type ResolveActionProps = {
 }
 
 const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote }) => {
-    const { updateCommit, sourceDetails } = useAtomicState()
+    const { updateCommit } = useAtomicState()
 
     if (error) {
         return (
@@ -57,10 +56,9 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote }) =
     switch (commitStatus) {
         case HTLCStatus.RedeemCompleted:
             return <TerminalActions variant="success" />
+        case HTLCStatus.Refunded:
+            return <TerminalActions variant="refund" />
         case HTLCStatus.TimelockExpired:
-            if (sourceDetails?.status === LockStatus.Refunded) {
-                return <TerminalActions variant="refund" />
-            }
             return <UserRefundAction />
         case HTLCStatus.SecretRevealed:
             return <WaitForSolverRedeem />

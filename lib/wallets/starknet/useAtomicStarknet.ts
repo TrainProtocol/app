@@ -1,7 +1,7 @@
 import { cairo, Call, constants, Contract, RpcProvider, shortString, TypedData, TypedDataRevision } from "starknet"
 import { ethers } from "ethers"
 import { toHex } from "viem"
-import { CreatePreHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams, GetCommitsParams } from "../../../Models/phtlc"
+import { CreateHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams, GetCommitsParams } from "../../../Models/phtlc"
 import { LockDetails } from "../../../Models/phtlc/PHTLC"
 import PHTLCAbi from "../../abis/atomic/STARKNET_PHTLC.json"
 import ETHABbi from "../../abis/STARKNET_ETH.json"
@@ -22,7 +22,7 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Base
     const { starknetWallet, nodeUrl } = params
     const { deriveSecret } = useSecretDerivation()
 
-    const createHTLC = async (params: CreatePreHTLCParams) => {
+    const createHTLC = async (params: CreateHTLCParams) => {
         const { destinationChain, destinationAsset, sourceAsset, srcLpAddress: lpAddress, address, tokenContractAddress, amount, decimals, atomicContract: atomicAddress } = params
 
         if (!starknetWallet?.metadata?.starknetAccount) {
@@ -307,7 +307,7 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Base
 
     return {
     createHTLC,
-    getDetails,
+    getUserLockDetails: getDetails,
     refund,
     claim,
     getSolverLockDetails: function (params: LockParams): Promise<LockDetails | null> {

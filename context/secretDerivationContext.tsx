@@ -31,10 +31,8 @@ interface SecretDerivationContextValue {
 }
 
 interface DeriveKeyParams {
-  chainId: string | number;
   wallet?: Wallet;
   config?: any; // Wagmi config for EVM
-  tonConnectUI?: any; // TON Connect UI
 }
 
 const SecretDerivationContext = createContext<SecretDerivationContextValue | undefined>(undefined);

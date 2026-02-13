@@ -1,16 +1,18 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { useAtomicState } from "../../../../context/atomicContext";
 import { useSecretDerivation } from "@/context/secretDerivationContext";
 import { deriveSecretFromTimelock } from "@/lib/htlc/secretDerivation";
-import LayerSwapApiClient from "@/lib/trainApiClient";
+import TrainApiClient from "@/lib/trainApiClient";
 import useWallet from "@/hooks/useWallet";
 import { WalletActionButton } from "../../buttons";
 import ButtonStatus from "./Status/ButtonStatus";
 import posthog from "posthog-js";
 import { useConfig } from "wagmi";
 
+const apiClient = new TrainApiClient()
+
 export const RevealSecretAction: FC = () => {
-    const { source_network, hashlock, nonce, solver, updateCommit, solverLockDetails } = useAtomicState()
+    const { source_network, hashlock, solver, updateCommit, solverLockDetails, sourceDetails } = useAtomicState()
     const { deriveInitialKey } = useSecretDerivation()
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
@@ -21,22 +23,18 @@ export const RevealSecretAction: FC = () => {
     const handleRevealSecret = async () => {
         try {
             if (!hashlock) throw new Error("No hashlock")
-            if (!nonce) throw new Error("No nonce available")
-            if (!solver) throw new Error("No solver")
-            if (!solverLockDetails) throw new Error("No solver lock details")
+            if (!sourceDetails) throw new Error("No solver lock details")
 
             setIsRevealing(true)
 
             const initialKey = await deriveInitialKey({
-                chainId: Number(source_network?.chainId),
                 wallet: wallet,
                 config
             })
 
-            const derivedKey = deriveSecretFromTimelock(initialKey, nonce)
+            const derivedKey = deriveSecretFromTimelock(initialKey, Number(sourceDetails?.userData))
             const secret = '0x' + derivedKey.toString('hex')
 
-            const apiClient = new LayerSwapApiClient()
             await apiClient.RevealSecret({ secret }, hashlock, solver)
 
             posthog.capture("RevealSecret", {

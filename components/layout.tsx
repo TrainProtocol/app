@@ -108,11 +108,11 @@ export default function Layout({ children, settings, themeData }: Props) {
     <PulsatingCirclesProvider>
       <QueryProvider query={query}>
         <SettingsProvider data={appSettings}>
-          <AtomicProvider>
-            <TooltipProvider delayDuration={500}>
-              <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
-                <ThemeWrapper>
-                  <WalletsProviders basePath={basePath} themeData={themeData} appName={router.query.appName?.toString()}>
+          <TooltipProvider delayDuration={500}>
+            <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
+              <ThemeWrapper>
+                <WalletsProviders basePath={basePath} themeData={themeData} appName={router.query.appName?.toString()}>
+                  <AtomicProvider>
                     <SwapAccountsProvider>
                       <AsyncModalProvider>
                         {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
@@ -120,11 +120,11 @@ export default function Layout({ children, settings, themeData }: Props) {
                           : children}
                       </AsyncModalProvider>
                     </SwapAccountsProvider>
-                  </WalletsProviders>
-                </ThemeWrapper>
-              </ErrorBoundary>
-            </TooltipProvider>
-          </AtomicProvider>
+                  </AtomicProvider>
+                </WalletsProviders>
+              </ThemeWrapper>
+            </ErrorBoundary>
+          </TooltipProvider>
         </SettingsProvider >
       </QueryProvider >
     </PulsatingCirclesProvider>

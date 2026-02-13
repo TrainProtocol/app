@@ -68,7 +68,6 @@ export default function useEVM(): WalletProvider {
     const { networks } = useSettingsState()
     const isMobilePlatform = useMemo(() => isMobile(), []);
     const { getEffectiveRpcUrls } = useRpcConfigStore();
-    const { source_network, address } = useAtomicState()
     const evmAccount = useAccount()
 
     const asSourceSupportedNetworks = useMemo(() => [
@@ -351,16 +350,10 @@ export default function useEVM(): WalletProvider {
     const activeWallet = useMemo(() => resolvedConnectors.find(w => w.isActive), [resolvedConnectors])
     const providerIcon = useMemo(() => networks.find(n => ethereumNames.some(name => name === n.slug))?.logo, [networks])
 
-    const selectedSourceAccount = useMemo(() => {
-        if (!source_network || !address) return undefined
-        const wallet = resolvedConnectors.find(w => w.withdrawalSupportedNetworks?.includes(source_network.slug) && Address.equals(w.address, address, source_network))
-        return wallet ? { wallet, address: wallet.address } : undefined
-    }, [source_network, address, resolvedConnectors])
 
     const atomicFunctions = useAtomicEVM({
         config,
-        account: selectedSourceAccount,
-        evmAccount,
+        wallets: resolvedConnectors,
         networks,
         getEffectiveRpcUrls
     })

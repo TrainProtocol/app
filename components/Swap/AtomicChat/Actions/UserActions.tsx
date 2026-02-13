@@ -5,8 +5,6 @@ import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
 import ButtonStatus from "./Status/ButtonStatus";
 import { useRouter } from "next/router";
-import useUserLockDetailsPolling from "@/hooks/htlc/useCommitDetailsPolling";
-import useRefundStatusPolling from "@/hooks/htlc/useRefundStatusPolling";
 import { LockStatus } from "@/Models/phtlc/PHTLC";
 import { SwapQuote } from "@/lib/trainApiClient";
 
@@ -59,9 +57,9 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
             const result = await provider.createHTLC({
                 address,
                 amount: amount.toString(),
-                destinationChain: destination_network.slug,
-                sourceChain: source_network.slug,
-                destinationAsset: destination_asset.symbol,
+                destinationChain: destination_network.caip2Id,
+                sourceChain: source_network.caip2Id,
+                destinationAsset: destination_asset.contractAddress,
                 sourceAsset: source_asset,
                 destLpAddress,
                 srcLpAddress,
@@ -69,6 +67,12 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
                 decimals: source_asset.decimals,
                 atomicContract,
                 chainId: source_network.chainId,
+                solverData: quote?.signature,
+                quoteExpiry: quote?.quoteExpirationTimestampInSeconds,
+                rewardToken: quote?.reward.rewardToken,
+                rewardRecipient: quote?.reward.rewardRecipientAddress,
+                rewardAmount: quote?.reward.amount,
+                rewardTimelockDelta: quote?.reward.rewardTimelockTimeSpanInSeconds,
             })
             if (result?.hashlock && result?.hash) {
                 onCommit(
@@ -91,17 +95,6 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
             updateCommit('error', { message: e.details || e.message })
         }
     }
-
-    // Poll for commit details using SWR
-    useUserLockDetailsPolling({
-        network: source_network,
-        hashlock: hashlock,
-        contractAddress: atomicContract,
-        sourceAsset: source_asset,
-        onDetailsFound: (details) => {
-            updateCommit('sourceDetails', details)
-        }
-    })
 
     if (!source_network) return <></>
 
@@ -182,17 +175,6 @@ export const UserRefundAction: FC = () => {
             updateCommit('error', { message: e.details || e.message })
         }
     }
-
-    // Poll for source chain refund status using SWR
-    useRefundStatusPolling({
-        network: source_network,
-        hashlock,
-        contractAddress: srcAtomicContract,
-        asset: source_asset,
-        onStatusUpdate: (details) => {
-            updateCommit('sourceDetails', details)
-        }
-    })
 
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
         {

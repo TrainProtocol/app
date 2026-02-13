@@ -1,7 +1,7 @@
 import { beginCell, Cell, toNano } from "@ton/ton"
 import { hexToBigInt } from "viem"
 import { Network } from "../../../Models/Network"
-import { CreatePreHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
+import { CreateHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
 import { LockDetails } from "../../../Models/phtlc/PHTLC"
 import { commitTransactionBuilder } from "./transactionBuilder"
 import { retryUntilFecth } from "../../retry"
@@ -22,7 +22,7 @@ export default function useAtomicTON(params: UseAtomicTONParams): BaseAtomicFunc
     const { tonWallet, tonConnectUI, networks, tonApiUrl } = params
     const { deriveSecret } = useSecretDerivation()
 
-    const createHTLC = async (params: CreatePreHTLCParams) => {
+    const createHTLC = async (params: CreateHTLCParams) => {
 
         if (!tonWallet?.account.publicKey) return
 
@@ -191,7 +191,7 @@ export default function useAtomicTON(params: UseAtomicTONParams): BaseAtomicFunc
 
     return {
     createHTLC,
-    getDetails,
+    getUserLockDetails: getDetails,
     refund,
     claim,
     getSolverLockDetails: function (params: LockParams): Promise<LockDetails | null> {

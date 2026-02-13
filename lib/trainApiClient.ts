@@ -28,7 +28,7 @@ export default class LayerSwapApiClient {
     }
 
     async RevealSecret(params: RevealSecretParams, hashlock: string, solver: string): Promise<ApiResponse<{}>> {
-        return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/${solver}/swaps/${hashlock}/revealSecret`, params);
+        return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/orders/${hashlock}/reveal-secret`, params);
     }
 
     private async UnauthenticatedRequest<T>(method: Method, endpoint: string, data?: any, header?: {}): Promise<T> {
