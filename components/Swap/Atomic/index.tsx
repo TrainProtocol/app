@@ -1,5 +1,5 @@
 import { Formik, FormikProps } from "formik";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import React from "react";
 import MainStepValidation from "../../../lib/mainStepValidator";
@@ -43,7 +43,7 @@ export default function Form() {
 
     const [quote, setQuote] = useState<SwapQuote | undefined>()
     const [polling, setPolling] = useState(true)
-    const [swapModalOpen, setSwapModalOpen] = useState(false)
+    const [swapModalOpen, setSwapModalOpen] = useState(() => !!router.query.hashlock)
     const { getProvider } = useWallet()
     const { hashlock } = useAtomicState()
     const settings = useSettingsState()
@@ -53,19 +53,16 @@ export default function Form() {
     const handleShowSwapModal = useCallback((value: boolean) => {
         if (value) {
             setPolling(false);
+            if (hashlock) {
+                setHashlockInUrl(router, hashlock);
+            }
         } else {
             setPolling(true);
-            if (!hashlock) {
-                clearTempSwap()
-            }
+            clearTempSwap()
             removeSwapPath(router);
         }
         setSwapModalOpen(value);
     }, [hashlock, router]);
-
-    useEffect(() => {
-        if (hashlock) handleShowSwapModal(true);
-    }, [hashlock, handleShowSwapModal]);
 
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
@@ -170,6 +167,19 @@ const removeSwapPath = (router: NextRouter) => {
     }
 
     window.history.replaceState({ ...window.history.state, as: router.asPath, url: homeURL }, '', homeURL);
+}
+
+const setHashlockInUrl = (router: NextRouter, hashlock: string) => {
+    const basePath = router?.basePath || ""
+    let url = window.location.protocol + "//" + window.location.host + `${basePath}/swap`
+    const params = resolvePersistantQueryParams(router.query)
+    const atomicParams = new URLSearchParams({ hashlock })
+    url += `?${atomicParams}`
+    if (params && Object.keys(params).length) {
+        const search = new URLSearchParams(params as any);
+        url += `&${search}`
+    }
+    window.history.replaceState({ ...window.history.state, as: url, url }, '', url);
 }
 
 const PendingSwap = ({ onClick }: { onClick: () => void }) => {

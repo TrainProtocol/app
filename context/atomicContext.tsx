@@ -74,7 +74,7 @@ export function AtomicProvider({ children }) {
     const committedSwap = useSwapStore(
         useShallow(s => activeHashlock ? s.swaps[activeHashlock] ?? null : null)
     )
-    const currentSwap = committedSwap ?? tempSwap
+    const currentSwap = tempSwap ?? committedSwap
 
     const address = currentSwap?.address
     const amount = currentSwap?.requestedAmount
@@ -83,7 +83,7 @@ export function AtomicProvider({ children }) {
     const source = currentSwap?.source
     const source_asset = currentSwap?.source_asset
 
-    const hashlock = activeHashlock ?? currentSwap?.hashlock
+    const hashlock = tempSwap ? currentSwap?.hashlock : (activeHashlock ?? currentSwap?.hashlock)
     const refundTxId = currentSwap?.refundTxId
     const lockTxId = currentSwap?.txId
     const solverName = currentSwap?.solver
