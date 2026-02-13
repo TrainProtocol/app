@@ -1,8 +1,6 @@
 import { FC } from "react";
 import { HTLCStatus, useAtomicState } from "../../../../context/atomicContext";
-import { SolverLockingAssets } from "./SolverLock";
 import { RevealSecretAction } from "./RevealSecret";
-import { WaitForSolverRedeem } from "./WaitForSolverRedeem";
 import { UserRefundAction, UserCommitAction } from "./UserActions";
 import TransactionMessages from "../../messages/TransactionMessages";
 import WalletMessage from "../../messages/Message";
@@ -13,6 +11,7 @@ import { ExternalLink, Home } from "lucide-react";
 import { useGoHome } from "@/hooks/useGoHome";
 import { getExplorerUrl } from "@/lib/address";
 import NetworkSettings from "@/lib/NetworkSettings";
+import { Widget } from "@/components/Widget/Index";
 
 type ActionsProps = {
     quote?: SwapQuote
@@ -23,7 +22,7 @@ export const Actions: FC<ActionsProps> = ({ quote, isQuoteLoading = false }) => 
     const { htlcStatus: commitStatus, error } = useAtomicState()
 
     return (
-        <div className="w-full space-y-3 h-fit text-primary-text">
+        <>
             {error && <TransactionMessage error={error.message} />}
             <DestinationWalletWrapper>
                 <ResolveAction
@@ -32,7 +31,7 @@ export const Actions: FC<ActionsProps> = ({ quote, isQuoteLoading = false }) => 
                     quote={quote}
                 />
             </DestinationWalletWrapper>
-        </div>
+        </>
     )
 }
 
@@ -55,20 +54,36 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote }) =
 
     switch (commitStatus) {
         case HTLCStatus.RedeemCompleted:
-            return <TerminalActions variant="success" />
+            return <ActionWrapper>
+                <TerminalActions variant="success" />
+            </ActionWrapper>
         case HTLCStatus.Refunded:
-            return <TerminalActions variant="refund" />
+            return <ActionWrapper>
+                <TerminalActions variant="refund" />
+            </ActionWrapper>
         case HTLCStatus.TimelockExpired:
-            return <UserRefundAction />
+            return <ActionWrapper>
+                <UserRefundAction />
+            </ActionWrapper>
         case HTLCStatus.SecretRevealed:
-            return <WaitForSolverRedeem />
+            return <></>
         case HTLCStatus.SolverLockDetected:
-            return <RevealSecretAction />
+            return <ActionWrapper>
+                <RevealSecretAction />
+            </ActionWrapper>
         case HTLCStatus.UserLocked:
-            return <SolverLockingAssets />
+            return <></>
         default:
-            return <UserCommitAction quote={quote} />
+            return <ActionWrapper>
+                <UserCommitAction quote={quote} />
+            </ActionWrapper>
     }
+}
+
+const ActionWrapper: FC<{ children: React.ReactNode }> = ({ children }) => {
+    return <Widget.Footer sticky={true} >
+        {children}
+    </Widget.Footer>
 }
 
 const TerminalActions: FC<{ variant: 'success' | 'refund' }> = ({ variant }) => {

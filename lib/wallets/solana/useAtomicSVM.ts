@@ -35,11 +35,9 @@ export default function useAtomicSVM(params: UseAtomicSVMParams): BaseAtomicFunc
         if (!program || !publicKey || !network) return null
 
         // Secret derivation for HTLC with hashlock
-        const chainId = network.chainId || 'solana-mainnet';
         const timelock = calculateEpochTimelock(40);
         const solanaWallet = { signMessage };
         const secret = await deriveSecret({
-            chainId,
             wallet: { metadata: { wallet: solanaWallet }, providerName: 'solana' } as any
         });
         // const hashlock = secretToHashlock(secret);

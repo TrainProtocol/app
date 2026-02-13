@@ -26,7 +26,7 @@ const variants = {
 
 type FooterProps = {
     hidden?: boolean,
-    children?: JSX.Element | JSX.Element[];
+    children?: React.ReactNode;
     sticky?: boolean
 }
 

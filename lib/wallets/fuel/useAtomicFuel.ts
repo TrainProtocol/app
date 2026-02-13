@@ -38,9 +38,7 @@ export default function useAtomicFuel(params: UseAtomicFuelParams): BaseAtomicFu
         if (!wallet) throw new Error('Wallet not connected')
 
         // Secret derivation for HTLC with hashlock
-        const chainId = params.chainId || 'fuel-mainnet';
         const secret = await deriveSecret({
-            chainId,
             wallet: { metadata: { wallet }, providerName: 'fuel' } as any
         });
         // const hashlock = secretToHashlock(secret);

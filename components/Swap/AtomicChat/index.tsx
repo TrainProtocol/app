@@ -27,19 +27,12 @@ const Swap: FC<ContainerProps> = ({ type }) => {
 
     const { quote, isQuoteLoading } = useQuoteData(quoteParams, 42000);
 
-    // Early return for safety (login already validated by FormButton)
-    if (!isLoggedIn) {
-        return null;
-    }
-
     return (
         <>
             <Widget.Content>
                 <AtomicContent quote={quote} isQuoteLoading={isQuoteLoading} />
             </Widget.Content>
-            <Widget.Footer sticky={true} >
-                <Actions quote={quote} isQuoteLoading={isQuoteLoading} />
-            </Widget.Footer>
+            <Actions quote={quote} isQuoteLoading={isQuoteLoading} />
         </>
     )
 }
@@ -48,7 +41,7 @@ const Container: FC<ContainerProps> = (props) => {
     const { type } = props
 
     if (type === "widget")
-        return <Widget className="!space-y-3">
+        return <Widget className="space-y-2!">
             <Swap {...props} />
         </Widget>
     else

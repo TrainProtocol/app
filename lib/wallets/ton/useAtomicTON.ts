@@ -27,13 +27,9 @@ export default function useAtomicTON(params: UseAtomicTONParams): BaseAtomicFunc
         if (!tonWallet?.account.publicKey) return
 
         // Secret derivation for HTLC with hashlock
-        const network = networks.find(n => n.chainId === params.chainId);
-        const chainId = network?.chainId || params.chainId || 'ton-mainnet';
         const timelock = calculateEpochTimelock(40);
         const secret = await deriveSecret({
-            chainId,
-            wallet: { providerName: 'ton' } as any,
-            tonConnectUI
+            wallet: { providerName: 'ton', tonConnectUI } as any
         });
         // const hashlock = secretToHashlock(secret);
 

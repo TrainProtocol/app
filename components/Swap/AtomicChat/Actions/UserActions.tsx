@@ -101,12 +101,7 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
         {
             hashlock ?
-                <ButtonStatus
-                    isDisabled={true}
-                    isLoading={true}
-                >
-                    Confirm in wallet
-                </ButtonStatus>
+                <></>
                 :
                 <WalletActionButton
                     activeChain={wallet?.chainId}

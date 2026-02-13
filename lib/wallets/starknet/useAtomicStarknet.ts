@@ -48,11 +48,7 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Base
             const timelock = calculateEpochTimelock(20);
             
             // Secret derivation for HTLC with hashlock
-            const chainId = process.env.NEXT_PUBLIC_API_VERSION === 'sandbox' 
-                ? constants.StarknetChainId.SN_SEPOLIA 
-                : constants.StarknetChainId.SN_MAIN;
             const secret = await deriveSecret({
-                chainId,
                 wallet: starknetWallet
             });
             // const hashlock = secretToHashlock(secret);
