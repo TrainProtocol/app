@@ -63,7 +63,7 @@ export default function Form() {
 
     useEffect(() => {
         if (hashlock) handleShowSwapModal(true);
-    }, [hashlock]);
+    }, [hashlock, handleShowSwapModal]);
 
     useEffect(() => {
         const hashlockFromUrl = router.query.hashlock as string | undefined

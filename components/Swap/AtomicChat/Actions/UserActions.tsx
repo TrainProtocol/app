@@ -115,17 +115,15 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
                     Confirm in wallet
                 </ButtonStatus>
                 :
-                <>
-                    <WalletActionButton
-                        activeChain={wallet?.chainId}
-                        isConnected={!!wallet}
-                        network={source_network}
-                        networkChainId={source_network.chainId}
-                        onClick={handleCommit}
-                    >
-                        Confirm in wallet
-                    </WalletActionButton>
-                </>
+                <WalletActionButton
+                    activeChain={wallet?.chainId}
+                    isConnected={!!wallet}
+                    network={source_network}
+                    networkChainId={source_network.chainId}
+                    onClick={handleCommit}
+                >
+                    Confirm in wallet
+                </WalletActionButton>
         }
     </div>
 }

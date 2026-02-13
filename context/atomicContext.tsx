@@ -135,7 +135,10 @@ export function AtomicProvider({ children }) {
     const fetcher = (args: string) => fetch(args).then(res => res.json())
     const url = process.env.NEXT_PUBLIC_TRAIN_API
     const { data } = useSWR<ApiResponse<CommitFromApi>>((hashlock && !destinationRedeemTx) ? `${url}/api/${solverName}/swaps/${hashlock}` : null, fetcher, { refreshInterval: 2000 })
-    const htlcStatus = useMemo(() => statusResolver({ sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed }), [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, refundTxId])
+    const htlcStatus = useMemo(() =>
+        statusResolver({
+            sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed
+        }), [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed])
 
     useEffect(() => {
         if (data?.data) {
@@ -161,7 +164,7 @@ export function AtomicProvider({ children }) {
     useEffect(() => {
         (async () => {
             if (destination_network && destination_token && hashlock && destination_asset && lightClient && !sourceDetails?.hashlock && destAtomicContract) {
-                if(!lightClient.supportsNetwork(destination_network)) return
+                if (!lightClient.supportsNetwork(destination_network)) return
 
                 try {
                     setVerifyingByLightClient(true)
@@ -247,7 +250,7 @@ export function AtomicProvider({ children }) {
             error,
             commitFromApi,
             lightClient,
-            htlcStatus: htlcStatus,
+            htlcStatus,
             isTimelockExpired,
             refundTxId,
             destRedeemTx: destinationRedeemTx,
