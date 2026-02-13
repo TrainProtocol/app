@@ -98,7 +98,7 @@ export default function Form() {
             }
 
             setTempSwap({
-                amount: values.amount,
+                requestedAmount: values.amount,
                 address: values.destination_address,
                 source: values.from?.slug!,
                 destination: values.to?.slug!,

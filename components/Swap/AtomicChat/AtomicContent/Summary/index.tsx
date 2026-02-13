@@ -6,7 +6,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "..
 import { formatUnits } from "fuels";
 import { SwapQuote } from "@/lib/trainApiClient";
 import { useSwapStore } from "@/stores/swapStore";
-import { useRouter } from "next/router";
 
 type MotionSummaryProps = {
     quote?: SwapQuote
@@ -14,12 +13,10 @@ type MotionSummaryProps = {
 }
 
 const MotionSummary: FC<MotionSummaryProps> = ({ quote, isQuoteLoading = false }) => {
-    const router = useRouter()
-    const { htlcStatus: commitStatus, commitFromApi, source_asset: source_token, destination_asset: destination_token, source_network, destination_network, amount } = useAtomicState()
+    const { htlcStatus: commitStatus, commitFromApi, source_asset: source_token, destination_asset: destination_token, source_network, destination_network, amount, hashlock } = useAtomicState()
 
-    const hashlockFromUrl = router.query.hashlock as string | undefined
     const storedReceiveAmount = useSwapStore(s =>
-        hashlockFromUrl ? s.swaps[hashlockFromUrl]?.receiveAmount : s.tempSwap?.receiveAmount
+        hashlock ? s.swaps[hashlock]?.receiveAmount : undefined
     )
 
     const receiveAmount = commitFromApi?.destinationAmount

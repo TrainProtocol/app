@@ -77,7 +77,7 @@ export function AtomicProvider({ children }) {
     const currentSwap = committedSwap ?? tempSwap
 
     const address = currentSwap?.address
-    const amount = currentSwap?.amount
+    const amount = currentSwap?.requestedAmount
     const destination = currentSwap?.destination
     const destination_asset = currentSwap?.destination_asset
     const source = currentSwap?.source
