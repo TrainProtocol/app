@@ -65,19 +65,17 @@ export function AtomicProvider({ children }) {
     const router = useRouter()
     const { networks } = useSettingsState()
 
-    // Track the active hashlock in local state (initialized from URL on reload)
     const [activeHashlock, setActiveHashlock] = useState<string | undefined>(
         router.query.hashlock as string | undefined
     )
 
-    // Read current swap from Zustand store
     const tempSwap = useSwapStore(s => s.tempSwap)
+    const commitSwap = useSwapStore(s => s.commitSwap)
     const committedSwap = useSwapStore(
         useShallow(s => activeHashlock ? s.swaps[activeHashlock] ?? null : null)
     )
     const currentSwap = committedSwap ?? tempSwap
 
-    // Destructure swap data from store
     const address = currentSwap?.address
     const amount = currentSwap?.amount
     const destination = currentSwap?.destination
@@ -247,7 +245,7 @@ export function AtomicProvider({ children }) {
 
     const handleCommited = (hashlock: string, txId: string) => {
         // Move tempSwap → swaps[hashlock] in the store
-        useSwapStore.getState().commitSwap(hashlock, txId)
+        commitSwap(hashlock, txId)
         setActiveHashlock(hashlock)
 
         // Write only hashlock to URL

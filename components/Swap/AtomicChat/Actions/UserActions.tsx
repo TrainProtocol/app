@@ -124,6 +124,7 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
 export const UserRefundAction: FC = () => {
     const { source_network, hashlock, sourceDetails, source_asset, updateCommit, refundTxId, srcAtomicContract } = useAtomicState()
     const { provider: source_provider } = useWallet(source_network, 'withdrawal')
+    const updateSwap = useSwapStore(s => s.updateSwap)
 
     const [requestedRefund, setRequestedRefund] = useState(false)
 
@@ -154,7 +155,7 @@ export const UserRefundAction: FC = () => {
             })
 
             if (res) {
-                useSwapStore.getState().updateSwap(hashlock, { refundTxId: res })
+                updateSwap(hashlock, { refundTxId: res })
                 setRequestedRefund(true)
             }
         }

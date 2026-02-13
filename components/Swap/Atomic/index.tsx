@@ -47,6 +47,9 @@ export default function Form() {
     const { getProvider } = useWallet()
     const { hashlock } = useAtomicState()
     const settings = useSettingsState()
+    const swaps = useSwapStore(s => s.swaps)
+    const clearTempSwap = useSwapStore(s => s.clearTempSwap)
+    const setTempSwap = useSwapStore(s => s.setTempSwap)
 
     const handleShowSwapModal = useCallback((value: boolean) => {
         if (value) {
@@ -54,7 +57,7 @@ export default function Form() {
         } else {
             setPolling(true);
             if (!hashlock) {
-                useSwapStore.getState().clearTempSwap()
+                clearTempSwap()
             }
             removeSwapPath(router);
         }
@@ -68,7 +71,6 @@ export default function Form() {
     useEffect(() => {
         const hashlockFromUrl = router.query.hashlock as string | undefined
         if (hashlockFromUrl) {
-            const { swaps } = useSwapStore.getState()
             if (swaps[hashlockFromUrl]) {
                 setSwapModalOpen(true)
                 setPolling(false)
@@ -106,7 +108,7 @@ export default function Form() {
                 throw new Error("No destination_provider")
             }
 
-            useSwapStore.getState().setTempSwap({
+            setTempSwap({
                 amount: values.amount,
                 address: values.destination_address,
                 source: values.from?.slug!,
