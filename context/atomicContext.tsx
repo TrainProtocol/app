@@ -7,6 +7,9 @@ import useSWR from 'swr';
 import { ApiResponse } from '../Models/ApiResponse';
 import { CommitFromApi, CommitTransaction } from '../lib/trainApiClient';
 import LightClient from '../lib/lightClient';
+import { useSwapStore } from '../stores/swapStore';
+import { useShallow } from 'zustand/react/shallow';
+import { resolvePersistantQueryParams } from '../helpers/querryHelper';
 
 export enum HTLCStatus {
     Initial = 'initial',
@@ -30,7 +33,6 @@ type DataContextType = CommitState & {
     hashlock?: string,
     lockTxId?: string,
     htlcStatus: HTLCStatus,
-    atomicQuery?: any,
     destRedeemTx?: string,
     verifyingByLightClient: boolean,
     srcAtomicContract?: string,
@@ -38,7 +40,6 @@ type DataContextType = CommitState & {
     setVerifyingByLightClient: (value: boolean) => void;
     onCommit: (hashlock: string, txId: string) => void;
     updateCommit: (field: keyof CommitState, value: any) => void;
-    setAtomicQuery: (query: any) => void;
 }
 
 interface CommitState {
@@ -62,23 +63,32 @@ export function AtomicProvider({ children }) {
     const router = useRouter()
     const { networks } = useSettingsState()
 
-    const [atomicQuery, setAtomicQuery] = useState(router.query)
+    // Track the active hashlock in local state (initialized from URL on reload)
+    const [activeHashlock, setActiveHashlock] = useState<string | undefined>(
+        router.query.hashlock as string | undefined
+    )
 
-    const {
-        address,
-        amount,
-        destination,
-        destination_asset,
-        source,
-        source_asset,
-    } = atomicQuery
+    // Read current swap from Zustand store
+    const tempSwap = useSwapStore(s => s.tempSwap)
+    const committedSwap = useSwapStore(
+        useShallow(s => activeHashlock ? s.swaps[activeHashlock] ?? null : null)
+    )
+    const currentSwap = committedSwap ?? tempSwap
 
-    const hashlock = atomicQuery?.hashlock as string
-    const refundTxId = atomicQuery?.refundTxId as string
-    const lockTxId = atomicQuery?.txId as string
-    const solverName = atomicQuery?.solver as string;
-    const srcAtomicContractFromQuery = atomicQuery?.srcContract as string
-    const destAtomicContractfromQuery = atomicQuery?.destContract as string
+    // Destructure swap data from store
+    const address = currentSwap?.address
+    const amount = currentSwap?.amount
+    const destination = currentSwap?.destination
+    const destination_asset = currentSwap?.destination_asset
+    const source = currentSwap?.source
+    const source_asset = currentSwap?.source_asset
+
+    const hashlock = activeHashlock ?? currentSwap?.hashlock
+    const refundTxId = currentSwap?.refundTxId
+    const lockTxId = currentSwap?.txId
+    const solverName = currentSwap?.solver
+    const srcAtomicContractFromStore = currentSwap?.srcContract
+    const destAtomicContractFromStore = currentSwap?.destContract
 
     const [htlcStates, setHtlcStates] = useState<CommitStatesDict>({});
     const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
@@ -95,22 +105,22 @@ export function AtomicProvider({ children }) {
     };
 
     const setIsTimelockExpired = (isTimelockExpired: boolean) => {
-        updateCommitState(hashlock, { isTimelockExpired });
+        if (hashlock) updateCommitState(hashlock, { isTimelockExpired });
     }
 
     const updateCommit = (field: keyof CommitState, value: any) => {
-        updateCommitState(hashlock, { [field]: value });
+        if (hashlock) updateCommitState(hashlock, { [field]: value });
     }
 
-    const sourceDetails = htlcStates[hashlock]?.sourceDetails;
-    const destinationDetails = htlcStates[hashlock]?.destinationDetails;
-    const solverLockDetails = htlcStates[hashlock]?.solverLockDetails;
-    const nonce = htlcStates[hashlock]?.nonce;
-    const secretRevealed = htlcStates[hashlock]?.secretRevealed;
-    const error = htlcStates[hashlock]?.error;
-    const commitFromApi = htlcStates[hashlock]?.commitFromApi;
-    const isTimelockExpired = htlcStates[hashlock]?.isTimelockExpired;
-    const destinationDetailsByLightClient = htlcStates[hashlock]?.destinationDetailsByLightClient
+    const sourceDetails = hashlock ? htlcStates[hashlock]?.sourceDetails : undefined;
+    const destinationDetails = hashlock ? htlcStates[hashlock]?.destinationDetails : undefined;
+    const solverLockDetails = hashlock ? htlcStates[hashlock]?.solverLockDetails : undefined;
+    const nonce = hashlock ? htlcStates[hashlock]?.nonce : undefined;
+    const secretRevealed = hashlock ? htlcStates[hashlock]?.secretRevealed : undefined;
+    const error = hashlock ? htlcStates[hashlock]?.error : undefined;
+    const commitFromApi = hashlock ? htlcStates[hashlock]?.commitFromApi : undefined;
+    const isTimelockExpired = hashlock ? htlcStates[hashlock]?.isTimelockExpired : false;
+    const destinationDetailsByLightClient = hashlock ? htlcStates[hashlock]?.destinationDetailsByLightClient : undefined
 
     const destinationRedeemTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination)?.hash
 
@@ -119,8 +129,8 @@ export function AtomicProvider({ children }) {
     const source_token = source_network?.tokens.find(t => t.symbol === source_asset)
     const destination_token = destination_network?.tokens.find(t => t.symbol === destination_asset)
 
-    const destAtomicContract = commitFromApi?.destinationContractAddress || destAtomicContractfromQuery
-    const srcAtomicContract = commitFromApi?.sourceContractAddress || srcAtomicContractFromQuery
+    const destAtomicContract = commitFromApi?.destinationContractAddress || destAtomicContractFromStore
+    const srcAtomicContract = commitFromApi?.sourceContractAddress || srcAtomicContractFromStore
 
     const fetcher = (args: string) => fetch(args).then(res => res.json())
     const url = process.env.NEXT_PUBLIC_TRAIN_API
@@ -183,7 +193,7 @@ export function AtomicProvider({ children }) {
 
         if (!sourceDetails?.timelock || isTimelockExpired) return;
         if (sourceDetails.status === LockStatus.Redeemed || sourceDetails.status === LockStatus.Refunded) return;
-1
+
         const timeRemaining = (Number(sourceDetails.timelock) * 1000) - Date.now();
 
         if (timeRemaining <= 0) {
@@ -199,29 +209,26 @@ export function AtomicProvider({ children }) {
     }, [sourceDetails, isTimelockExpired])
 
     const handleCommited = (hashlock: string, txId: string) => {
-        const queryUpdate = { ...atomicQuery, hashlock, txId }
-        setAtomicQuery(queryUpdate)
+        // Move tempSwap → swaps[hashlock] in the store
+        useSwapStore.getState().commitSwap(hashlock, txId)
+        setActiveHashlock(hashlock)
+
+        // Write only hashlock to URL
         const basePath = router?.basePath || ""
         var atomicURL = window.location.protocol + "//"
             + window.location.host + `${basePath}/swap`;
-        const atomicParams = new URLSearchParams(queryUpdate)
-        if (atomicParams) {
-            atomicURL += `?${atomicParams}`
+        const params = resolvePersistantQueryParams(router.query)
+        const atomicParams = new URLSearchParams({ hashlock })
+        atomicURL += `?${atomicParams}`
+        if (params && Object.keys(params).length) {
+            const search = new URLSearchParams(params as any);
+            atomicURL += `&${search}`
         }
         window.history.replaceState({ ...window.history.state, as: atomicURL, url: atomicURL }, '', atomicURL);
     }
 
-    // Restore nonce from URL query if not in state
-    useEffect(() => {
-        const nonceFromQuery = atomicQuery?.nonce
-        if (nonceFromQuery && hashlock && !nonce) {
-            updateCommit('nonce', Number(nonceFromQuery))
-        }
-    }, [atomicQuery?.nonce, hashlock, nonce])
-
     return (
         <AtomicStateContext.Provider value={{
-            atomicQuery,
             source_network,
             onCommit: handleCommited,
             source_asset: source_token,
@@ -231,7 +238,7 @@ export function AtomicProvider({ children }) {
             destination_network,
             hashlock,
             lockTxId: lockTxId as string,
-            solver: solverName,
+            solver: solverName as string,
             sourceDetails,
             destinationDetails,
             solverLockDetails,
@@ -250,7 +257,6 @@ export function AtomicProvider({ children }) {
             destAtomicContract: '0xcf6d47cdd0cb259e78262832b4db3f4f4f909dcb',
             setVerifyingByLightClient,
             updateCommit,
-            setAtomicQuery
         }}>
             {children}
         </AtomicStateContext.Provider>

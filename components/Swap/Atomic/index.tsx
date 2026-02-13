@@ -20,6 +20,7 @@ import { useSettingsState } from "../../../context/settings";
 import { resolvePersistantQueryParams } from "../../../helpers/querryHelper";
 import toast from "react-hot-toast";
 import { useSecretDerivation } from "../../../context/secretDerivationContext";
+import { useSwapStore } from "../../../stores/swapStore";
 
 const AtomicPage = dynamicWithRetries(
     () => import("../AtomicChat/index.tsx") as unknown as Promise<{ default: React.ComponentType<any> }>,
@@ -44,27 +45,36 @@ export default function Form() {
     const [polling, setPolling] = useState(true)
     const [swapModalOpen, setSwapModalOpen] = useState(false)
     const { getProvider } = useWallet()
-    const { atomicQuery, setAtomicQuery } = useAtomicState()
+    const { hashlock } = useAtomicState()
     const settings = useSettingsState()
-
-    const {
-        hashlock
-    } = atomicQuery;
 
     const handleShowSwapModal = useCallback((value: boolean) => {
         if (value) {
             setPolling(false);
-            if (atomicQuery.source) setAtomicPath({ atomicQuery, router });
         } else {
             setPolling(true);
+            if (!hashlock) {
+                useSwapStore.getState().clearTempSwap()
+            }
             removeSwapPath(router);
         }
         setSwapModalOpen(value);
-    }, [atomicQuery, router]);
+    }, [hashlock, router]);
 
     useEffect(() => {
         if (hashlock) handleShowSwapModal(true);
     }, [hashlock]);
+
+    useEffect(() => {
+        const hashlockFromUrl = router.query.hashlock as string | undefined
+        if (hashlockFromUrl) {
+            const { swaps } = useSwapStore.getState()
+            if (swaps[hashlockFromUrl]) {
+                setSwapModalOpen(true)
+                setPolling(false)
+            }
+        }
+    }, [router.query.hashlock])
 
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
@@ -96,7 +106,7 @@ export default function Form() {
                 throw new Error("No destination_provider")
             }
 
-            const atomicValues = {
+            useSwapStore.getState().setTempSwap({
                 amount: values.amount,
                 address: values.destination_address,
                 source: values.from?.slug!,
@@ -106,12 +116,7 @@ export default function Form() {
                 solver: quote?.sourceSolverAddress,
                 srcContract: quote?.route?.source?.tokenContract ?? undefined,
                 destContract: quote?.route?.destination?.tokenContract ?? undefined,
-            }
-
-            setAtomicQuery(atomicValues)
-            setAtomicPath({
-                atomicQuery: atomicValues,
-                router
+                receiveAmount: quote?.receiveAmount,
             })
             setSwapModalOpen(true)
             setPolling(false)
@@ -159,29 +164,6 @@ export default function Form() {
             </>
         </Formik>
     </>
-}
-
-const setAtomicPath = ({
-    atomicQuery,
-    router
-}: {
-    atomicQuery: any
-    router: NextRouter
-}) => {
-    const basePath = router?.basePath || ""
-    var atomicURL = window.location.protocol + "//"
-        + window.location.host + `${basePath}/swap`;
-    const params = resolvePersistantQueryParams(router.query)
-    const atomicParams = new URLSearchParams({ ...atomicQuery })
-    if (atomicParams) {
-        atomicURL += `?${atomicParams}`
-        if (params && Object.keys(params).length) {
-            const search = new URLSearchParams(params as any);
-            if (search)
-                atomicURL += `&${search}`
-        }
-    }
-    window.history.pushState({ ...window.history.state, as: atomicURL, url: atomicURL }, '', atomicURL);
 }
 
 const removeSwapPath = (router: NextRouter) => {

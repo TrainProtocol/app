@@ -1,11 +1,12 @@
 import { FC } from "react";
-import { useAtomicState, HTLCStatus } from "../../../../../context/atomicContext";
-import { useSettingsState } from "../../../../../context/settings";
+import { useAtomicState, HTLCStatus } from "@/context/atomicContext";
 import Summary from "./Summary";
 import Details from "./Details";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../../../shadcn/accordion";
 import { formatUnits } from "fuels";
-import { SwapQuote } from "../../../../../lib/trainApiClient";
+import { SwapQuote } from "@/lib/trainApiClient";
+import { useSwapStore } from "@/stores/swapStore";
+import { useRouter } from "next/router";
 
 type MotionSummaryProps = {
     quote?: SwapQuote
@@ -13,19 +14,21 @@ type MotionSummaryProps = {
 }
 
 const MotionSummary: FC<MotionSummaryProps> = ({ quote, isQuoteLoading = false }) => {
+    const router = useRouter()
+    const { htlcStatus: commitStatus, commitFromApi, source_asset: source_token, destination_asset: destination_token, source_network, destination_network, amount } = useAtomicState()
 
-    const { networks } = useSettingsState()
-    const { atomicQuery, htlcStatus: commitStatus, commitFromApi, source_asset: source_token, destination_asset: destination_token } = useAtomicState()
-    const { source, destination, amount } = atomicQuery;
-
-    const source_network = networks.find(n => n.slug.toUpperCase() === source?.toUpperCase())
-    const destination_network = networks.find(n => n.slug.toUpperCase() === destination?.toUpperCase())
+    const hashlockFromUrl = router.query.hashlock as string | undefined
+    const storedReceiveAmount = useSwapStore(s =>
+        hashlockFromUrl ? s.swaps[hashlockFromUrl]?.receiveAmount : s.tempSwap?.receiveAmount
+    )
 
     const receiveAmount = commitFromApi?.destinationAmount
         ? formatUnits(commitFromApi?.destinationAmount, destination_token?.decimals)
         : quote?.receiveAmount
             ? formatUnits(quote.receiveAmount, destination_token?.decimals)
-            : undefined
+            : storedReceiveAmount
+                ? formatUnits(storedReceiveAmount, destination_token?.decimals)
+                : undefined
 
     const assetsLocked = commitStatus === HTLCStatus.SecretRevealed || commitStatus === HTLCStatus.RedeemCompleted
     return (

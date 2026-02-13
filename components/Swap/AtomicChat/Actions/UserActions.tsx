@@ -4,11 +4,11 @@ import { useAtomicState } from "@/context/atomicContext";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
 import ButtonStatus from "./Status/ButtonStatus";
-import { useRouter } from "next/router";
 import useUserLockDetailsPolling from "@/hooks/htlc/useCommitDetailsPolling";
 import useRefundStatusPolling from "@/hooks/htlc/useRefundStatusPolling";
 import { LockStatus } from "@/Models/phtlc/PHTLC";
 import { SwapQuote } from "@/lib/trainApiClient";
+import { useSwapStore } from "@/stores/swapStore";
 
 type UserCommitActionProps = {
     quote?: SwapQuote
@@ -131,11 +131,10 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
 }
 
 export const UserRefundAction: FC = () => {
-    const { source_network, hashlock, sourceDetails, source_asset, updateCommit, setAtomicQuery, atomicQuery, srcAtomicContract } = useAtomicState()
+    const { source_network, hashlock, sourceDetails, source_asset, updateCommit, refundTxId, srcAtomicContract } = useAtomicState()
     const { provider: source_provider } = useWallet(source_network, 'withdrawal')
 
     const [requestedRefund, setRequestedRefund] = useState(false)
-    const router = useRouter()
 
     const wallet = source_provider?.activeWallet
 
@@ -164,17 +163,7 @@ export const UserRefundAction: FC = () => {
             })
 
             if (res) {
-                setAtomicQuery({ ...atomicQuery, refundTxId: res })
-
-                const basePath = router?.basePath || ""
-                var atomicURL = window.location.protocol + "//"
-                    + window.location.host + `${basePath}/swap`;
-                const atomicParams = new URLSearchParams({ ...atomicQuery, hashlock, refundTxId: res })
-                if (atomicParams) {
-                    atomicURL += `?${atomicParams}`
-                }
-                window.history.replaceState({ ...window.history.state, as: atomicURL, url: atomicURL }, '', atomicURL);
-
+                useSwapStore.getState().updateSwap(hashlock, { refundTxId: res })
                 setRequestedRefund(true)
             }
         }
@@ -196,7 +185,7 @@ export const UserRefundAction: FC = () => {
 
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
         {
-            ((requestedRefund || !!atomicQuery.refundTxId) && sourceDetails?.status !== LockStatus.Refunded) ?
+            ((requestedRefund || !!refundTxId) && sourceDetails?.status !== LockStatus.Refunded) ?
                 <ButtonStatus
                     isDisabled={true}
                 >
