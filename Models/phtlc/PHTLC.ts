@@ -1,8 +1,8 @@
-/** Lock status enum (EVM v3) */
 export enum LockStatus {
-    Pending = 0,
-    Redeemed = 1,
-    Refunded = 2
+    Empty,
+    Pending,
+    Refunded,
+    Redeemed
 }
 
 export type LockDetails = {
@@ -23,4 +23,5 @@ export type LockDetails = {
     status?: LockStatus,
     rewardRecipient?: string,
     rewardToken?: string,
+    userData?: string,
 }

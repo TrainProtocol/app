@@ -1,11 +1,11 @@
 import { retryWithExponentialBackoff } from "../../retry";
-import { CreatePreHTLCParams } from "../../../Models/phtlc";
+import { CreateHTLCParams } from "../../../Models/phtlc";
 import tonClient from "./client";
 import { JettonMaster, Address, Builder, Dictionary, DictionaryValue, beginCell, Slice, Cell, toNano } from "@ton/ton"
 import { fromHex } from "viem";
 import { calculateEpochTimelock } from "../utils/calculateTimelock";
 
-export const commitTransactionBuilder = async (params: CreatePreHTLCParams & { wallet: { address: string, publicKey: string } }) => {
+export const commitTransactionBuilder = async (params: CreateHTLCParams & { wallet: { address: string, publicKey: string } }) => {
 
     const {
         wallet,

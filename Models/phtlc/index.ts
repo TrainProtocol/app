@@ -1,7 +1,7 @@
 import { Token } from "../Network";
 import { LockDetails } from "./PHTLC";
 
-export type CreatePreHTLCParams = {
+export type CreateHTLCParams = {
     destinationChain: string,
     sourceChain: string,
     amount: string,
@@ -14,6 +14,12 @@ export type CreatePreHTLCParams = {
     address: string;
     tokenContractAddress?: string | undefined | null;
     chainId?: string | null;
+    solverData?: string;
+    quoteExpiry?: number;
+    rewardToken?: string;
+    rewardRecipient?: string;
+    rewardAmount?: string;
+    rewardTimelockDelta?: number;
 }
 
 export type LockParams = {

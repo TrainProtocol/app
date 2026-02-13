@@ -14,14 +14,13 @@ const Details: FC = () => {
         <div className="flex flex-col space-y-4">
             <Confirmed />
             <AssetsReady />
-            <SignAndConfirm />
         </div>
     )
 }
 
 const Confirmed: FC = () => {
-    const { lockTxId: commitTxId, source_network } = useAtomicState()
-    const description = (commitTxId && source_network) && <p><span>Transaction ID:</span> <Link target="_blank" className="underline hover:no-underline" href={getExplorerUrl(NetworkSettings.KnownSettings[source_network.slug]?.TransactionExplorerTemplate, commitTxId)}>{shortenString(commitTxId)}</Link></p>
+    const { lockTxId, source_network } = useAtomicState()
+    const description = (lockTxId && source_network) && <p><span>Transaction ID:</span> <Link target="_blank" className="underline hover:no-underline" href={getExplorerUrl(NetworkSettings.KnownSettings[source_network.slug]?.TransactionExplorerTemplate, lockTxId)}>{shortenString(lockTxId)}</Link></p>
 
     return (
         <Item
@@ -55,20 +54,6 @@ const AssetsReady: FC = () => {
     )
 }
 
-const SignAndConfirm: FC = () => {
-    const { source_network, commitFromApi } = useAtomicState()
-
-    const addLockSigTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCAddLockSig)
-    const description = (addLockSigTx && source_network) ? <p><span>Transaction ID:</span> <Link className="underline hover:no-underline" target="_blank" href={getExplorerUrl(NetworkSettings.KnownSettings[source_network.slug]?.TransactionExplorerTemplate, addLockSigTx?.hash)}>{shortenString(addLockSigTx.hash)}</Link></p> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />
-
-    return (
-        <Item
-            icon={SignatureIcon}
-            title="Signed & Confirmed"
-            description={description}
-        />
-    )
-}
 
 const Item: FC<{
     icon: (props: SVGProps<SVGSVGElement>) => JSX.Element;

@@ -1,7 +1,7 @@
 import { AnchorProvider, Program } from "@coral-xyz/anchor"
 import { Connection, PublicKey } from "@solana/web3.js"
 import { Network } from "../../../Models/Network"
-import { CreatePreHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
+import { CreateHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
 import { TokenAnchorHtlc } from "./tokenAnchorHTLC"
 import { NativeAnchorHtlc } from "./nativeAnchorHTLC"
 import { lockTransactionBuilder, phtlcTransactionBuilder } from "./transactionBuilder"
@@ -28,7 +28,7 @@ export default function useAtomicSVM(params: UseAtomicSVMParams): BaseAtomicFunc
     const { connection, signTransaction, signMessage, publicKey, network, anchorProvider } = params
     const { deriveSecret } = useSecretDerivation()
 
-    const createHTLC = async (params: CreatePreHTLCParams): Promise<{ hash: string; hashlock: string; } | null | undefined> => {
+    const createHTLC = async (params: CreateHTLCParams): Promise<{ hash: string; hashlock: string; } | null | undefined> => {
         const { atomicContract, sourceAsset } = params
         const program = (anchorProvider && atomicContract) ? new Program(sourceAsset.contractAddress ? TokenAnchorHtlc(atomicContract) : NativeAnchorHtlc(atomicContract), anchorProvider) : null;
 
@@ -258,7 +258,7 @@ export default function useAtomicSVM(params: UseAtomicSVMParams): BaseAtomicFunc
 
     return {
         createHTLC,
-        getDetails,
+        getUserLockDetails: getDetails,
         refund,
         claim,
         getSolverLockDetails: function (params: LockParams): Promise<LockDetails | null> {

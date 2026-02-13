@@ -2,7 +2,7 @@ import { Address } from '@fuel-ts/address'
 import { concat, DateTime } from "@fuel-ts/utils"
 import { Contract } from "@fuel-ts/program"
 import { Account, B256Coder, BigNumberCoder, bn, Provider, sha256 } from 'fuels'
-import { CreatePreHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
+import { CreateHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
 import contractAbi from "../../abis/atomic/FUEL_PHTLC.json"
 import LayerSwapApiClient from "../../trainApiClient"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
@@ -20,7 +20,7 @@ export default function useAtomicFuel(params: UseAtomicFuelParams): BaseAtomicFu
     const { wallet, fuelProvider } = params
     const { deriveSecret } = useSecretDerivation()
 
-    const createHTLC = async (params: CreatePreHTLCParams) => {
+    const createHTLC = async (params: CreateHTLCParams) => {
         const createEmptyArray = (length: number, char: string) =>
             Array.from({ length }, () => ''.padEnd(64, char));
 
@@ -171,7 +171,7 @@ export default function useAtomicFuel(params: UseAtomicFuelParams): BaseAtomicFu
 
     return {
         createHTLC,
-        getDetails,
+        getUserLockDetails: getDetails,
         refund,
         claim,
         getSolverLockDetails: function (params: LockParams): Promise<LockDetails | null> {

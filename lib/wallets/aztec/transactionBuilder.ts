@@ -1,7 +1,7 @@
 import { AztecAddress } from '@aztec/aztec.js/addresses';
 import { Wallet } from '@aztec/aztec.js/wallet';
 import { TrainContract } from "./Train";
-import { ClaimParams, LockParams, CreatePreHTLCParams, OldLockParams, RefundParams } from "../../../Models/phtlc";
+import { ClaimParams, LockParams, CreateHTLCParams, OldLockParams, RefundParams } from "../../../Models/phtlc";
 import { generateId, getFunctionAbi, getSelector, hexToHighLowValidated, hexToU128Limbs, padTo32Bytes } from './utils';
 import { calculateEpochTimelock } from '../utils/calculateTimelock';
 import { toHex } from 'viem';
@@ -18,7 +18,7 @@ const feeOptions = {
     paymentMethod: new SponsoredFeePaymentMethod(AztecAddress.fromString('0x280e5686a148059543f4d0968f9a18cd4992520fcd887444b8689bf2726a1f97')),
 };
 
-export const commitTransactionBuilder = async (props: CreatePreHTLCParams & { senderWallet: Wallet, aztecNodeUrl: string }) => {
+export const commitTransactionBuilder = async (props: CreateHTLCParams & { senderWallet: Wallet, aztecNodeUrl: string }) => {
     let { tokenContractAddress, srcLpAddress: lpAddress, atomicContract, sourceAsset, senderWallet, address, destinationChain, destinationAsset, amount, aztecNodeUrl } = props;
 
     if (!tokenContractAddress || !lpAddress || !atomicContract || !sourceAsset || !senderWallet) throw new Error("Missing required parameters");
