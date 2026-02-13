@@ -68,16 +68,6 @@ export default function Form() {
         if (hashlock) handleShowSwapModal(true);
     }, [hashlock, handleShowSwapModal]);
 
-    useEffect(() => {
-        const hashlockFromUrl = router.query.hashlock as string | undefined
-        if (hashlockFromUrl) {
-            if (swaps[hashlockFromUrl]) {
-                setSwapModalOpen(true)
-                setPolling(false)
-            }
-        }
-    }, [router.query.hashlock])
-
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
             // Check if user has logged in (chosen a derivation method)
