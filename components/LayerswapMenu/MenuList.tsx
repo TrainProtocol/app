@@ -1,4 +1,5 @@
-import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info, Settings2 } from "lucide-react";
+import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info, Settings2, Zap } from "lucide-react";
+import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
 import { useIntercom } from "react-use-intercom";
@@ -25,6 +26,7 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
     const [embedded, setEmbedded] = useState<boolean>()
     const [openFeedbackModal, setOpenFeedbackModal] = useState(false);
     const { isMobile } = useWindowDimensions()
+    const { autoRevealSecret, setAutoRevealSecret } = useSwapPreferencesStore()
 
     useEffect(() => {
         setEmbedded(inIframe())
@@ -52,6 +54,14 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
                     <Menu.Item onClick={() => goToStep(MenuStep.RPCConfiguration)} icon={<Settings2 className="h-5 w-5" />} >
                         RPC Configuration
                     </Menu.Item>
+
+                    <Menu.ToggleItem
+                        icon={<Zap className="h-5 w-5" />}
+                        checked={autoRevealSecret}
+                        onChange={setAutoRevealSecret}
+                    >
+                        Auto Reveal Secret
+                    </Menu.ToggleItem>
 
                 </>
                 {/* <>

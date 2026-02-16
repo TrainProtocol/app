@@ -10,4 +10,5 @@ export type TimelineStep = {
     status: StepStatus;
     description?: React.ReactNode;
     txLink?: string;
+    timelock?: number;
 }

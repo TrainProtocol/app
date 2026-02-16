@@ -19,6 +19,7 @@ export enum HTLCStatus {
     UserLocked = 'userLocked',
     SolverLockDetected = 'solverLockDetected',
     SecretRevealed = 'secretRevealed',
+    ManualClaimRequired = 'manualClaimRequired',
     RedeemCompleted = 'redeemCompleted',
     TimelockExpired = 'timelockExpired',
     Refunded = 'refunded',
@@ -55,6 +56,7 @@ interface CommitState {
     commitFromApi?: CommitFromApi;
     lightClient?: LightClient | undefined;
     isTimelockExpired: boolean;
+    manualClaimRequired?: boolean;
     refundTxId?: string | null;
     solver: string,
 }
@@ -119,6 +121,7 @@ export function AtomicProvider({ children }) {
     const error = hashlock ? htlcStates[hashlock]?.error : undefined;
     const commitFromApi = hashlock ? htlcStates[hashlock]?.commitFromApi : undefined;
     const isTimelockExpired = hashlock ? htlcStates[hashlock]?.isTimelockExpired : false;
+    const manualClaimRequired = hashlock ? htlcStates[hashlock]?.manualClaimRequired : false;
     const destinationDetailsByLightClient = hashlock ? htlcStates[hashlock]?.destinationDetailsByLightClient : undefined
 
     const destinationRedeemTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination)?.hash
@@ -136,8 +139,8 @@ export function AtomicProvider({ children }) {
     const { data } = useSWR<ApiResponse<CommitFromApi>>((hashlock && !destinationRedeemTx) ? `${url}/api/${solverName}/swaps/${hashlock}` : null, fetcher, { refreshInterval: 2000 })
     const htlcStatus = useMemo(() =>
         statusResolver({
-            sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed
-        }), [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed])
+            sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed, manualClaimRequired
+        }), [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, manualClaimRequired])
 
     const isTerminal = htlcStatus === HTLCStatus.RedeemCompleted || htlcStatus === HTLCStatus.Refunded
     const { provider } = useWallet(source_network, 'autofill')
@@ -243,6 +246,24 @@ export function AtomicProvider({ children }) {
         return () => clearTimeout(timer);
     }, [sourceDetails, isTimelockExpired])
 
+    // Manual claim timer: if solver redeemed on source but not destination, wait 2 min then enable manual claim
+    useEffect(() => {
+        const sourceRedeemed = sourceDetails?.status === LockStatus.Redeemed;
+        const hasSecret = sourceDetails?.secret && sourceDetails.secret !== 0n;
+        const destNotRedeemed = solverLockDetails?.status !== LockStatus.Redeemed;
+
+        if (!sourceRedeemed || !hasSecret || !destNotRedeemed || !hashlock) return;
+
+        // On page reload, source is already redeemed — skip the wait
+        if (manualClaimRequired) return;
+
+        const timer = setTimeout(() => {
+            updateCommitState(hashlock, { manualClaimRequired: true });
+        }, 2 * 60 * 1000);
+
+        return () => clearTimeout(timer);
+    }, [sourceDetails?.status, sourceDetails?.secret, solverLockDetails?.status, hashlock])
+
     const handleCommited = (hashlock: string, txId: string) => {
         // Move tempSwap → swaps[hashlock] in the store
         commitSwap(hashlock, txId)
@@ -297,7 +318,7 @@ export function AtomicProvider({ children }) {
     )
 }
 
-const statusResolver = ({ sourceDetails, solverLockDetails, timelockExpired, secretRevealed }: { sourceDetails: LockDetails | undefined, solverLockDetails: LockDetails | undefined, timelockExpired: boolean, secretRevealed: boolean | undefined }) => {
+const statusResolver = ({ sourceDetails, solverLockDetails, timelockExpired, secretRevealed, manualClaimRequired }: { sourceDetails: LockDetails | undefined, solverLockDetails: LockDetails | undefined, timelockExpired: boolean, secretRevealed: boolean | undefined, manualClaimRequired: boolean | undefined }) => {
     const userLocked = !!sourceDetails?.sender;
     const solverLocked = !!solverLockDetails?.sender;
     const redeemCompleted = solverLockDetails?.status === LockStatus.Redeemed;
@@ -307,6 +328,7 @@ const statusResolver = ({ sourceDetails, solverLockDetails, timelockExpired, sec
     const refunded = sourceDetails?.status === LockStatus.Refunded;
 
     if (redeemCompleted) return HTLCStatus.RedeemCompleted
+    else if (manualClaimRequired) return HTLCStatus.ManualClaimRequired
     else if (refunded) return HTLCStatus.Refunded
     else if (isTimelockActuallyExpired && !redeemCompleted) return HTLCStatus.TimelockExpired
     else if (secretRevealed) return HTLCStatus.SecretRevealed

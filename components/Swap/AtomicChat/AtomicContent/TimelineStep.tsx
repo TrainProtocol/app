@@ -5,6 +5,7 @@ import { StepStatus, TimelineStep as TimelineStepType } from "./progressTypes";
 import Link from "next/link";
 import { Link2 } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "../../../shadcn/tooltip";
+import TimelockTimer from "../Timer";
 
 function renderStepIcon(status: StepStatus) {
     switch (status) {
@@ -41,7 +42,7 @@ const TxLink = ({ txLink }: { txLink: string }) => {
     return (
         <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>
-                <Link className="bg-secondary-500 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm" target="_blank" href={txLink}>
+                <Link className="bg-secondary-400 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm" target="_blank" href={txLink}>
                     <Link2 className="h-4 w-4" />
                 </Link>
             </TooltipTrigger>
@@ -84,11 +85,14 @@ function TimelineStep({ step, isLastStep }: { step: TimelineStepType, isLastStep
                         }
                     </span>
                 </div>
-                {step.txLink && (
-                    <div className="flex justify-end">
-                        <TxLink txLink={step.txLink} />
-                    </div>
-                )}
+                <div className="flex items-center gap-2">
+                    {step.timelock && <TimelockTimer timelock={step.timelock} />}
+                    {step.txLink && (
+                        <div className="flex justify-end">
+                            <TxLink txLink={step.txLink} />
+                        </div>
+                    )}
+                </div>
             </div>
         </li>
     );

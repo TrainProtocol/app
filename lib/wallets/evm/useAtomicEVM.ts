@@ -274,25 +274,23 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
     }
 
     const claim = async (params: ClaimParams) => {
-        // const { chainId, id, contractAddress, secret } = params
+        const { chainId, id, contractAddress, secret, destinationAddress } = params
 
-        // const network = networks.find(n => n.slug === sourceChain)
-        // const account = network ? getAccount(network, address, wallets) : undefined
+        const network = networks.find(n => n.chainId === chainId)
+        const account = network && destinationAddress ? getAccount(network, destinationAddress, wallets) : undefined
 
-        // if (!account) throw new Error("No account found")
+        if (!account) throw new Error("No account found")
 
-        // const { request } = await simulateContract(config, {
-        //     account: account.address as `0x${string}`,
-        //     abi: HTLCAbi,
-        //     address: contractAddress as `0x${string}`,
-        //     functionName: 'redeemUser',
-        //     args: [id, BigInt(secret)],
-        //     chainId: Number(chainId),
-        // })
+        const { request } = await simulateContract(config, {
+            account: account.address as `0x${string}`,
+            abi: HTLCAbi,
+            address: contractAddress as `0x${string}`,
+            functionName: 'redeemUser',
+            args: [id, BigInt(secret)],
+            chainId: Number(chainId),
+        })
 
-        // return await writeContract(config, request)'
-
-        return 'klir'
+        return await writeContract(config, request)
     }
 
     return {

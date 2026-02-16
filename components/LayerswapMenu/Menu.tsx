@@ -150,8 +150,38 @@ const Footer = ({ children, hidden, sticky = true }: FooterProps) => {
     )
 }
 
+type ToggleItemProps = {
+    children: ReactNode;
+    icon: JSX.Element;
+    checked: boolean;
+    onChange: (checked: boolean) => void;
+};
+
+const ToggleItem = ({ children, icon, checked, onChange }: ToggleItemProps) => {
+    return (
+        <button
+            type="button"
+            onClick={() => onChange(!checked)}
+            className="gap-4 flex relative cursor-pointer hover:bg-secondary-600 select-none items-center px-4 py-3 outline-none w-full text-primary-text"
+        >
+            <div>
+                {icon}
+            </div>
+            <p className="text-primary-text">{children}</p>
+            <div
+                className={`absolute right-4 w-10 h-6 rounded-full transition-colors duration-200 ${checked ? 'bg-accent' : 'bg-secondary-400'}`}
+            >
+                <div
+                    className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform duration-200 ${checked ? 'translate-x-5' : 'translate-x-1'}`}
+                />
+            </div>
+        </button>
+    )
+}
+
 Menu.Group = Group
 Menu.Item = Item
 Menu.Footer = Footer
+Menu.ToggleItem = ToggleItem
 
 export default Menu

@@ -1,6 +1,7 @@
-import { FC } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { HTLCStatus, useAtomicState } from "../../../../context/atomicContext";
 import { RevealSecretAction } from "./RevealSecret";
+import { ManualClaimAction } from "./ManualClaim";
 import { UserRefundAction, UserCommitAction } from "./UserActions";
 import TransactionMessages from "../../messages/TransactionMessages";
 import WalletMessage from "../../messages/Message";
@@ -12,6 +13,9 @@ import { useGoHome } from "@/hooks/useGoHome";
 import { getExplorerUrl } from "@/lib/address";
 import NetworkSettings from "@/lib/NetworkSettings";
 import { Widget } from "@/components/Widget/Index";
+import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
+import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
+import ButtonStatus from "./Status/ButtonStatus";
 
 type ActionsProps = {
     quote?: SwapQuote
@@ -65,11 +69,15 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote }) =
             return <ActionWrapper>
                 <UserRefundAction />
             </ActionWrapper>
+        case HTLCStatus.ManualClaimRequired:
+            return <ActionWrapper>
+                <ManualClaimAction />
+            </ActionWrapper>
         case HTLCStatus.SecretRevealed:
             return <></>
         case HTLCStatus.SolverLockDetected:
             return <ActionWrapper>
-                <RevealSecretAction />
+                <SolverLockDetectedAction />
             </ActionWrapper>
         case HTLCStatus.UserLocked:
             return <></>
@@ -78,6 +86,33 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote }) =
                 <UserCommitAction quote={quote} />
             </ActionWrapper>
     }
+}
+
+const SolverLockDetectedAction: FC = () => {
+    const { autoRevealSecret, hasSeenAutoRevealPrompt } = useSwapPreferencesStore()
+    const { revealSecret, isRevealing } = useRevealSecret()
+    const [autoRevealFailed, setAutoRevealFailed] = useState(false)
+    const attemptedRef = useRef(false)
+
+    const shouldAutoReveal = autoRevealSecret && hasSeenAutoRevealPrompt && !autoRevealFailed
+
+    useEffect(() => {
+        if (shouldAutoReveal && !attemptedRef.current) {
+            attemptedRef.current = true
+            revealSecret().catch(() => {
+                setAutoRevealFailed(true)
+            })
+        }
+    }, [shouldAutoReveal, revealSecret])
+
+    if (shouldAutoReveal || isRevealing) {
+        return <ButtonStatus isDisabled={true} isLoading={true}>
+            Revealing secret
+        </ButtonStatus>
+    }
+
+    // First time: show checkbox. After that (or on auto-reveal failure): just the button
+    return <RevealSecretAction showCheckbox={!hasSeenAutoRevealPrompt} />
 }
 
 const ActionWrapper: FC<{ children: React.ReactNode }> = ({ children }) => {

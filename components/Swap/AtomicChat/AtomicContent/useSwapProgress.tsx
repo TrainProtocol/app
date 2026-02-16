@@ -32,6 +32,7 @@ type StepOverride = {
     description?: React.ReactNode;
     name?: string;
     status?: StepStatus;
+    timelock?: number;
 };
 
 // --- Step Templates ---
@@ -90,6 +91,7 @@ function buildSteps(
         }
 
         if (override?.description) step.description = override.description;
+        if (override?.timelock) step.timelock = override.timelock;
 
         return step;
     });
@@ -174,7 +176,7 @@ export function useSwapProgress(): SwapProgress {
                 title: "Transfer in progress",
                 subtitle: "Waiting for solver to reserve assets.",
                 steps: buildSteps(HAPPY_STEPS, 1, { source: sourceTxLink }, {
-                    0: { description: "Transaction confirmed" },
+                    0: { description: "Transaction confirmed", timelock: sourceDetails?.timelock },
                     1: { description: "Solver is reserving assets on destination" },
                 }),
             };
@@ -187,8 +189,9 @@ export function useSwapProgress(): SwapProgress {
                 title: "Transfer in progress",
                 subtitle: "Verify solver lock and reveal your secret.",
                 steps: buildSteps(HAPPY_STEPS, 2, { source: sourceTxLink, dest: destTxLink }, {
+                    0: { timelock: sourceDetails?.timelock },
                     1: { description: <VerificationStatus /> },
-                    2: { description: "Verify solver lock and reveal secret" },
+                    2: { status: StepStatus.Upcoming, description: "Verify solver lock and reveal secret" },
                 }),
             };
         }
@@ -200,7 +203,21 @@ export function useSwapProgress(): SwapProgress {
                 title: "Releasing assets",
                 subtitle: "You will receive your assets shortly.",
                 steps: buildSteps(HAPPY_STEPS, 3, { source: sourceTxLink, dest: destTxLink }, {
+                    0: { timelock: sourceDetails?.timelock },
                     3: { name: "Receiving assets", status: StepStatus.Current, description: "Solver is claiming on destination" },
+                }),
+            };
+        }
+
+        // Manual claim required — solver didn't redeem on destination
+        if (htlcStatus === HTLCStatus.ManualClaimRequired) {
+            return {
+                gaugeValue: 85, gaugeIcon: null,
+                title: "Action required",
+                subtitle: "Claim your assets manually on the destination chain.",
+                steps: buildSteps(HAPPY_STEPS, 3, { source: sourceTxLink, dest: destTxLink }, {
+                    0: { timelock: sourceDetails?.timelock },
+                    3: { name: "Claim assets", status: StepStatus.Current, description: "Solver didn't complete the claim. You can claim your assets manually." },
                 }),
             };
         }
@@ -211,7 +228,9 @@ export function useSwapProgress(): SwapProgress {
                 gaugeValue: 100, gaugeIcon: "check",
                 title: "Swap complete",
                 subtitle: "Your assets have been sent to your address.",
-                steps: buildSteps(HAPPY_STEPS, -1, { redeem: redeemTxLink }),
+                steps: buildSteps(HAPPY_STEPS, -1, { redeem: redeemTxLink }, {
+                    0: { timelock: sourceDetails?.timelock },
+                }),
             };
         }
 
@@ -223,7 +242,7 @@ export function useSwapProgress(): SwapProgress {
                 subtitle: "The response was not received in time.",
                 steps: buildSteps(REFUND_STEPS, 2, { source: sourceTxLink }, {
                     1: { description: "Solver did not respond in time" },
-                    2: { description: "Cancel & refund to get your assets back" },
+                    2: { status: StepStatus.Upcoming, description: "Cancel & refund to get your assets back" },
                 }),
             };
         }
@@ -234,19 +253,19 @@ export function useSwapProgress(): SwapProgress {
                 gaugeValue: 50, gaugeIcon: "undo",
                 title: "Processing refund",
                 subtitle: "Your refund is being processed.",
-                steps: buildSteps(REFUND_STEPS, 2, {}, {
+                steps: buildSteps(REFUND_STEPS, 2, { source: sourceTxLink }, {
                     2: { name: "Refund pending", description: "Assets are being returned to your source wallet" },
                 }),
             };
         }
 
         // Refund complete
-        if (htlcStatus === HTLCStatus.TimelockExpired && isRefunded) {
+        if (htlcStatus === HTLCStatus.Refunded) {
             return {
-                gaugeValue: 100, gaugeIcon: "circleCheck",
+                gaugeValue: 100, gaugeIcon: "undo",
                 title: "Refund complete",
                 subtitle: "Your assets have been returned to your wallet.",
-                steps: buildSteps(REFUND_STEPS, -1, { refund: refundTxLink }),
+                steps: buildSteps(REFUND_STEPS, -1, { refund: refundTxLink, source: sourceTxLink }),
             };
         }
 

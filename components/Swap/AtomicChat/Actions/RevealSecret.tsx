@@ -1,66 +1,37 @@
-import { FC, useEffect, useState } from "react";
-import { useAtomicState } from "../../../../context/atomicContext";
-import { useSecretDerivation } from "@/context/secretDerivationContext";
-import { deriveSecretFromTimelock } from "@/lib/htlc/secretDerivation";
-import TrainApiClient from "@/lib/trainApiClient";
-import useWallet from "@/hooks/useWallet";
+import { FC, useState } from "react";
 import { WalletActionButton } from "../../buttons";
 import ButtonStatus from "./Status/ButtonStatus";
-import posthog from "posthog-js";
-import { useConfig } from "wagmi";
+import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
+import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
+import { Checkbox } from "@/components/shadcn/checkbox";
 
-const apiClient = new TrainApiClient()
-
-export const RevealSecretAction: FC = () => {
-    const { source_network, hashlock, solver, updateCommit, solverLockDetails, sourceDetails } = useAtomicState()
-    const { deriveInitialKey } = useSecretDerivation()
-    const { provider } = useWallet(source_network, 'withdrawal')
-    const wallet = provider?.activeWallet
-    const config = useConfig()
-
-    const [isRevealing, setIsRevealing] = useState(false)
+export const RevealSecretAction: FC<{ showCheckbox?: boolean }> = ({ showCheckbox = false }) => {
+    const { revealSecret, isRevealing, source_network, wallet } = useRevealSecret()
+    const { autoRevealSecret, setAutoRevealSecret, setHasSeenAutoRevealPrompt } = useSwapPreferencesStore()
+    const [checked, setChecked] = useState(autoRevealSecret)
 
     const handleRevealSecret = async () => {
-        try {
-            if (!hashlock) throw new Error("No hashlock")
-            if (!sourceDetails) throw new Error("No solver lock details")
-
-            setIsRevealing(true)
-
-            const initialKey = await deriveInitialKey({
-                wallet: wallet,
-                config
-            })
-
-            const derivedKey = deriveSecretFromTimelock(initialKey, Number(sourceDetails?.userData))
-            const secret = '0x' + derivedKey.toString('hex')
-
-            await apiClient.RevealSecret({ secret }, hashlock, solver)
-
-            posthog.capture("RevealSecret", {
-                hashlock,
-                solver,
-            })
-
-            updateCommit('secretRevealed', true)
+        if (showCheckbox) {
+            setAutoRevealSecret(checked)
+            setHasSeenAutoRevealPrompt(true)
         }
-        catch (e) {
-            updateCommit('error', { message: e.details || e.message })
-        }
-        finally {
-            setIsRevealing(false)
-        }
+        await revealSecret()
     }
 
     if (!source_network) return <></>
 
-    if (isRevealing) {
-        return <ButtonStatus isDisabled={true} isLoading={true}>
-            Revealing secret
-        </ButtonStatus>
-    }
+    if (isRevealing) return <></>
 
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
+        {showCheckbox && (
+            <label className="flex items-center gap-2 cursor-pointer text-sm text-primary-text-muted">
+                <Checkbox
+                    checked={checked}
+                    onCheckedChange={(val) => setChecked(val === true)}
+                />
+                Reveal secret automatically for future swaps
+            </label>
+        )}
         <WalletActionButton
             activeChain={wallet?.chainId}
             isConnected={!!wallet}

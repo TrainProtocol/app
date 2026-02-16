@@ -19,10 +19,10 @@ function HeaderWithMenu({ goBack }: { goBack: (() => void) | undefined | null })
          <div className="self-center col-start-1 md:col-start-2 md:col-span-3 justify-self-start md:justify-self-center flex items-center gap-2">
             {
                goBack &&
-               <div className="sm:-ml-2 -ml-0">
+               <div className="ml-0 sm:ml-2">
                   <IconButton onClick={goBack}
                      aria-label="Go back"
-                     className=" inline-flex"
+                     className="sm:-ml-2 inline-flex"
                      icon={
                         <ArrowLeft strokeWidth="2" />
                      } />
