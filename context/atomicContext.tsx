@@ -151,7 +151,8 @@ export function AtomicProvider({ children }) {
         contractAddress: srcAtomicContract,
         sourceAsset: source_token,
         enabled: !!hashlock && !isTerminal,
-        provider
+        provider,
+        txId: lockTxId as string | undefined,
     })
 
     const { details: solverLockPollData } = useSolverLockPolling({
@@ -259,7 +260,7 @@ export function AtomicProvider({ children }) {
 
         const timer = setTimeout(() => {
             updateCommitState(hashlock, { manualClaimRequired: true });
-        }, 2 * 60 * 1000);
+        },  1000)//2 * 60 * 1000);
 
         return () => clearTimeout(timer);
     }, [sourceDetails?.status, sourceDetails?.secret, solverLockDetails?.status, hashlock])
@@ -331,8 +332,8 @@ const statusResolver = ({ sourceDetails, solverLockDetails, timelockExpired, sec
     else if (manualClaimRequired) return HTLCStatus.ManualClaimRequired
     else if (refunded) return HTLCStatus.Refunded
     else if (isTimelockActuallyExpired && !redeemCompleted) return HTLCStatus.TimelockExpired
-    else if (secretRevealed) return HTLCStatus.SecretRevealed
-    else if (solverLocked) return HTLCStatus.SolverLockDetected
+    else if (secretRevealed || sourceDetails?.secret) return HTLCStatus.SecretRevealed
+    else if (solverLocked && !sourceDetails?.secret) return HTLCStatus.SolverLockDetected
     else if (userLocked) return HTLCStatus.UserLocked
     else return HTLCStatus.Initial
 }

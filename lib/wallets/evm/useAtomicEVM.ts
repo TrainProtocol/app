@@ -1,7 +1,7 @@
 import { Config, UseAccountReturnType } from "wagmi"
-import { writeContract, simulateContract, readContract, waitForTransactionReceipt } from '@wagmi/core'
+import { writeContract, simulateContract, readContract, waitForTransactionReceipt, getTransactionReceipt } from '@wagmi/core'
 import { ethers } from "ethers"
-import { createPublicClient, http, Chain, zeroAddress, toHex } from "viem"
+import { createPublicClient, http, Chain, zeroAddress, toHex, parseEventLogs } from "viem"
 import { Network } from "../../../Models/Network"
 import { CreateHTLCParams, LockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
 import { LockDetails, LockStatus } from "../../../Models/phtlc/PHTLC"
@@ -13,19 +13,18 @@ import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
 import { BaseAtomicFunctions } from "../utils/atomicTypes"
 import { Address } from "@/lib/address"
-import { Wallet } from "@/Models/WalletProvider"
+import { Wallet, WalletProvider } from "@/Models/WalletProvider"
 
 export interface UseAtomicEVMParams {
     config: Config
     wallets: Wallet[]
     networks: Network[]
     getEffectiveRpcUrls: (network: Network) => string[]
+    switchChain: WalletProvider['switchChain']
 }
 
-const minutesToSeconds = (minutes: number) => minutes * 60
-
 export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunctions {
-    const { config, networks, wallets, getEffectiveRpcUrls } = params
+    const { config, networks, wallets, getEffectiveRpcUrls, switchChain } = params
     const { deriveSecret } = useSecretDerivation()
 
     const createHTLC = async (params: CreateHTLCParams) => {
@@ -57,12 +56,12 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
 
         if (!account) throw new Error("No account found")
 
-        const secret = await deriveSecret({
+        const { secret, nonce: timestamp } = await deriveSecret({
             wallet: account.wallet,
             config
         })
-        const hashlock = secretToHashlock(secret.hashlock)
-        const timestamp = secret.nonce
+
+        const hashlock = secretToHashlock(secret)
 
         const tokenAddress = sourceAsset.contractAddress
             ? (sourceAsset.contractAddress as `0x${string}`)
@@ -146,7 +145,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
     }
 
     const getUserLockDetails = async (params: LockParams): Promise<LockDetails> => {
-        const { chainId, id, contractAddress } = params
+        const { chainId, id, contractAddress, txId } = params
 
         const result: any = await readContract(config, {
             abi: HTLCAbi,
@@ -158,6 +157,28 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
 
         const lockExists = result.sender !== zeroAddress
 
+        let userData: string | undefined
+        if (lockExists && txId) {
+            try {
+                const receipt = await getTransactionReceipt(config, {
+                    hash: txId as `0x${string}`,
+                    chainId: Number(chainId),
+                })
+                const logs = parseEventLogs({
+                    abi: HTLCAbi,
+                    logs: receipt.logs,
+                    eventName: 'UserLocked',
+                }) as any[]
+                const lockEvent = logs.find((log) => log.args.hashlock === id)
+                if (lockEvent?.args?.userData && lockEvent.args.userData !== '0x') {
+                    const decoded = BigInt(lockEvent.args.userData)
+                    userData = decoded.toString()
+                }
+            } catch (e) {
+                console.error('Error fetching userData from tx receipt:', e)
+            }
+        }
+
         return {
             hashlock: lockExists ? id : undefined,
             amount: formatAmount(Number(result.amount), 18),
@@ -168,7 +189,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
             timelock: Number(result.timelock),
             status: lockExists ? Number(result.status) as LockStatus : undefined,
             claimed: Number(result.status),
-            userData: result.userData !== zeroAddress ? Number(result.userData).toString() : undefined,
+            userData,
         }
     }
 
@@ -213,7 +234,8 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
             token: firstResult.token !== zeroAddress ? firstResult.token : undefined,
             timelock: Number(firstResult.timelock),
             status: Number(firstResult.status) as LockStatus,
-            claimed: Number(firstResult.status)
+            claimed: Number(firstResult.status),
+            userData: firstResult.userData !== zeroAddress ? Number(firstResult.userData).toString() : undefined,
         }
     }
 
@@ -275,18 +297,19 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
 
     const claim = async (params: ClaimParams) => {
         const { chainId, id, contractAddress, secret, destinationAddress } = params
-
         const network = networks.find(n => n.chainId === chainId)
         const account = network && destinationAddress ? getAccount(network, destinationAddress, wallets) : undefined
 
         if (!account) throw new Error("No account found")
 
+        if ((account.wallet.chainId !== chainId) && chainId && switchChain) await switchChain(account.wallet, chainId)
+
         const { request } = await simulateContract(config, {
             account: account.address as `0x${string}`,
             abi: HTLCAbi,
             address: contractAddress as `0x${string}`,
-            functionName: 'redeemUser',
-            args: [id, BigInt(secret)],
+            functionName: 'redeemSolver',
+            args: [id, 1, BigInt(secret)],
             chainId: Number(chainId),
         })
 

@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 import { useAtomicState } from "@/context/atomicContext";
 import { useSecretDerivation } from "@/context/secretDerivationContext";
-import { deriveSecretFromTimelock } from "@/lib/htlc/secretDerivation";
 import TrainApiClient from "@/lib/trainApiClient";
 import useWallet from "@/hooks/useWallet";
 import posthog from "posthog-js";
@@ -11,7 +10,7 @@ const apiClient = new TrainApiClient()
 
 export function useRevealSecret() {
     const { source_network, hashlock, solver, updateCommit, sourceDetails } = useAtomicState()
-    const { deriveInitialKey } = useSecretDerivation()
+    const { deriveSecret } = useSecretDerivation()
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
     const config = useConfig()
@@ -24,14 +23,15 @@ export function useRevealSecret() {
             if (!sourceDetails) throw new Error("No source lock details")
 
             setIsRevealing(true)
+            const timestamp = Number(sourceDetails?.userData)
 
-            const initialKey = await deriveInitialKey({
-                wallet: wallet,
+            if (isNaN(timestamp)) throw new Error("Invalid timestamp")
+
+            const { secret } = await deriveSecret({
+                wallet,
+                nonce: timestamp,
                 config
             })
-
-            const derivedKey = deriveSecretFromTimelock(initialKey, Number(sourceDetails?.userData))
-            const secret = '0x' + derivedKey.toString('hex')
 
             await apiClient.RevealSecret({ secret }, hashlock, solver)
 
@@ -49,7 +49,7 @@ export function useRevealSecret() {
         finally {
             setIsRevealing(false)
         }
-    }, [hashlock, sourceDetails, wallet, config, solver, deriveInitialKey, updateCommit])
+    }, [hashlock, sourceDetails, wallet, config, solver, deriveSecret, updateCommit])
 
     return { revealSecret, isRevealing, source_network, wallet }
 }

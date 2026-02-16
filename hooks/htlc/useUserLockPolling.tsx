@@ -11,6 +11,7 @@ interface UseUserLockPollingParams {
     sourceAsset: Token | undefined
     enabled?: boolean
     provider: WalletProvider | undefined
+    txId?: string
 }
 
 const useUserLockPolling = ({
@@ -19,7 +20,8 @@ const useUserLockPolling = ({
     contractAddress,
     sourceAsset,
     enabled = true,
-    provider
+    provider,
+    txId,
 }: UseUserLockPollingParams) => {
     const type: 'erc20' | 'native' = sourceAsset?.contractAddress && sourceAsset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
 
@@ -38,7 +40,8 @@ const useUserLockPolling = ({
                 type,
                 chainId: network.chainId,
                 id: hashlock,
-                contractAddress
+                contractAddress,
+                txId,
             }
 
             try {

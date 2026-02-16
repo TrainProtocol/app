@@ -29,7 +29,8 @@ export type LockParams = {
     id: string,
     chainId: string | null,
     contractAddress: string,
-    index?: number
+    index?: number,
+    txId?: string,
 }
 
 export type OldLockParams = {

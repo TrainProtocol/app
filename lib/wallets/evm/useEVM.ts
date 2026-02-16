@@ -355,7 +355,8 @@ export default function useEVM(): WalletProvider {
         config,
         wallets: resolvedConnectors,
         networks,
-        getEffectiveRpcUrls
+        getEffectiveRpcUrls,
+        switchChain
     })
 
     const provider = useMemo(() => {
