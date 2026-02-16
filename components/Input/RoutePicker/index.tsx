@@ -1,5 +1,5 @@
 import { useFormikContext } from "formik";
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useState } from "react";
 import { SwapDirection, SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import { Selector, SelectorContent, SelectorTrigger } from "@/components/Select/Selector/Index";
 import { SelectedRouteDisplay } from "./Routes";
@@ -7,6 +7,8 @@ import useFormNetworks from "@/hooks/useFormNetworks";
 import { Content } from "./Content";
 import { Network, Token } from "@/Models/Network";
 import clsx from "clsx";
+import useWallet from "@/hooks/useWallet";
+import useSuggestionsLimit from "@/hooks/useSuggestionsLimit";
 
 const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ direction, className }) => {
     const {
@@ -15,9 +17,11 @@ const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ dir
     } = useFormikContext<SwapFormValues>();
     const [searchQuery, setSearchQuery] = useState("")
 
-    const { isLoading, networkElements, selectedNetwork, selectedToken } = useFormNetworks({ direction, values }, searchQuery, 4)
-    const currencyFieldName = direction === 'from' ? 'fromCurrency' : 'toCurrency';
+    const { wallets } = useWallet()
+    const { suggestionsLimit } = useSuggestionsLimit({ hasWallet: wallets.length > 0, });
 
+    const { isLoading, networkElements, selectedNetwork, selectedToken } = useFormNetworks({ direction, values }, searchQuery, suggestionsLimit)
+    const currencyFieldName = direction === 'from' ? 'fromCurrency' : 'toCurrency';
     const handleSelect = useCallback(async (network: Network, token: Token) => {
         // Set the token
         await setFieldValue(currencyFieldName, token, true);
