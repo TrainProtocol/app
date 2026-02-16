@@ -1,5 +1,5 @@
 import { Formik, FormikProps } from "formik";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import React from "react";
 import MainStepValidation from "../../../lib/mainStepValidator";
@@ -20,6 +20,7 @@ import { useSettingsState } from "../../../context/settings";
 import { resolvePersistantQueryParams } from "../../../helpers/querryHelper";
 import toast from "react-hot-toast";
 import { useSecretDerivation } from "../../../context/secretDerivationContext";
+import { useSwapStore } from "../../../stores/swapStore";
 
 const AtomicPage = dynamicWithRetries(
     () => import("../AtomicChat/index.tsx") as unknown as Promise<{ default: React.ComponentType<any> }>,
@@ -42,29 +43,26 @@ export default function Form() {
 
     const [quote, setQuote] = useState<SwapQuote | undefined>()
     const [polling, setPolling] = useState(true)
-    const [swapModalOpen, setSwapModalOpen] = useState(false)
+    const [swapModalOpen, setSwapModalOpen] = useState(() => !!router.query.hashlock)
     const { getProvider } = useWallet()
-    const { atomicQuery, setAtomicQuery } = useAtomicState()
+    const { hashlock } = useAtomicState()
     const settings = useSettingsState()
-
-    const {
-        hashlock
-    } = atomicQuery;
+    const clearTempSwap = useSwapStore(s => s.clearTempSwap)
+    const setTempSwap = useSwapStore(s => s.setTempSwap)
 
     const handleShowSwapModal = useCallback((value: boolean) => {
         if (value) {
             setPolling(false);
-            if (atomicQuery.source) setAtomicPath({ atomicQuery, router });
+            if (hashlock) {
+                setHashlockInUrl(router, hashlock);
+            }
         } else {
             setPolling(true);
+            clearTempSwap()
             removeSwapPath(router);
         }
         setSwapModalOpen(value);
-    }, [atomicQuery, router]);
-
-    useEffect(() => {
-        if (hashlock) handleShowSwapModal(true);
-    }, [hashlock]);
+    }, [hashlock, router]);
 
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
@@ -96,8 +94,8 @@ export default function Form() {
                 throw new Error("No destination_provider")
             }
 
-            const atomicValues = {
-                amount: values.amount,
+            setTempSwap({
+                requestedAmount: values.amount,
                 address: values.destination_address,
                 source: values.from?.slug!,
                 destination: values.to?.slug!,
@@ -106,12 +104,7 @@ export default function Form() {
                 solver: quote?.sourceSolverAddress,
                 srcContract: quote?.route?.source?.tokenContract ?? undefined,
                 destContract: quote?.route?.destination?.tokenContract ?? undefined,
-            }
-
-            setAtomicQuery(atomicValues)
-            setAtomicPath({
-                atomicQuery: atomicValues,
-                router
+                receiveAmount: quote?.receiveAmount,
             })
             setSwapModalOpen(true)
             setPolling(false)
@@ -161,29 +154,6 @@ export default function Form() {
     </>
 }
 
-const setAtomicPath = ({
-    atomicQuery,
-    router
-}: {
-    atomicQuery: any
-    router: NextRouter
-}) => {
-    const basePath = router?.basePath || ""
-    var atomicURL = window.location.protocol + "//"
-        + window.location.host + `${basePath}/swap`;
-    const params = resolvePersistantQueryParams(router.query)
-    const atomicParams = new URLSearchParams({ ...atomicQuery })
-    if (atomicParams) {
-        atomicURL += `?${atomicParams}`
-        if (params && Object.keys(params).length) {
-            const search = new URLSearchParams(params as any);
-            if (search)
-                atomicURL += `&${search}`
-        }
-    }
-    window.history.pushState({ ...window.history.state, as: atomicURL, url: atomicURL }, '', atomicURL);
-}
-
 const removeSwapPath = (router: NextRouter) => {
     const basePath = router?.basePath || ""
     let homeURL = window.location.protocol + "//"
@@ -197,6 +167,19 @@ const removeSwapPath = (router: NextRouter) => {
     }
 
     window.history.replaceState({ ...window.history.state, as: router.asPath, url: homeURL }, '', homeURL);
+}
+
+const setHashlockInUrl = (router: NextRouter, hashlock: string) => {
+    const basePath = router?.basePath || ""
+    let url = window.location.protocol + "//" + window.location.host + `${basePath}/swap`
+    const params = resolvePersistantQueryParams(router.query)
+    const atomicParams = new URLSearchParams({ hashlock })
+    url += `?${atomicParams}`
+    if (params && Object.keys(params).length) {
+        const search = new URLSearchParams(params as any);
+        url += `&${search}`
+    }
+    window.history.replaceState({ ...window.history.state, as: url, url }, '', url);
 }
 
 const PendingSwap = ({ onClick }: { onClick: () => void }) => {

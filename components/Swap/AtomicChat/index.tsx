@@ -12,8 +12,7 @@ type ContainerProps = {
 
 const Swap: FC<ContainerProps> = ({ type }) => {
     const { isLoggedIn } = useSecretDerivation();
-    const { source_network, destination_network, source_asset, destination_asset, amount, atomicQuery } = useAtomicState();
-    const hashlock = atomicQuery?.hashlock;
+    const { source_network, destination_network, source_asset, destination_asset, amount, hashlock } = useAtomicState();
 
     const quoteParams = useMemo(() => {
         if (hashlock) return undefined;

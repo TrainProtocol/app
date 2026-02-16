@@ -13,12 +13,14 @@ type AtomicSummaryProps = {
     source: Network,
     destination: Network;
     requestedAmount: number | undefined;
-    requestedAmountInUsd?: number | undefined;
     receiveAmount: string | undefined;
-    receiveAmountInUsd?: number | undefined;
 }
 
-const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, source, destination, requestedAmount, receiveAmount, receiveAmountInUsd, requestedAmountInUsd }) => {
+const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, source, destination, requestedAmount, receiveAmount, }) => {
+
+    const requestedAmountInUsd = (requestedAmount && sourceCurrency?.priceInUsd) ? (sourceCurrency.priceInUsd * Number(requestedAmount)).toFixed(2) : undefined
+    const receiveAmountInUsd = (receiveAmount && destinationCurrency?.priceInUsd) ? (destinationCurrency.priceInUsd * Number(receiveAmount)).toFixed(2) : undefined
+
     return (
         <>
             <div className="bg-secondary-500 rounded-2xl px-3 py-4 w-full relative z-10 space-y-4">
@@ -33,7 +35,7 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, 
                                 requestedAmount &&
                                 <p className="text-primary-text text-xl leading-6 font-normal whitespace-nowrap">{truncateDecimals(Number(requestedAmount), sourceCurrency.decimals)} {sourceCurrency.symbol}</p>
                             }
-                            <p className="text-secondary-text text-sm leading-5 flex font-medium justify-end"><NumberFlow value={requestedAmountInUsd || 0} prefix="$" trend={0} /></p>
+                            <p className="text-secondary-text text-sm leading-5 flex font-medium justify-end"><NumberFlow value={Number(requestedAmountInUsd) || 0} prefix="$" trend={0} /></p>
                         </div>
                     </div>
                     <div className="relative text-secondary-text">
@@ -52,7 +54,7 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, 
                                         <NumberFlow value={Number(receiveAmount)} suffix={` ${destinationCurrency.symbol}`} trend={0} format={{ maximumFractionDigits: destinationCurrency.decimals || 2 }} />
                                     </p>
                                     <p className="text-secondary-text text-sm flex items-center gap-1 font-medium">
-                                        <NumberFlow value={receiveAmountInUsd || 0} prefix="$" trend={0} />
+                                        <NumberFlow value={Number(receiveAmountInUsd) || 0} prefix="$" trend={0} />
                                     </p>
                                 </div>
                             )
