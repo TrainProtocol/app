@@ -2,7 +2,6 @@ import { FC, useMemo } from "react";
 import { Widget } from "../../Widget/Index";
 import { Actions } from "./Actions";
 import AtomicContent from "./AtomicContent";
-import { useSecretDerivation } from "../../../context/secretDerivationContext";
 import { useAtomicState } from "../../../context/atomicContext";
 import { buildQuoteParamsFromAtomic, useQuoteData } from "../../../hooks/useFee";
 
@@ -11,7 +10,6 @@ type ContainerProps = {
 }
 
 const Swap: FC<ContainerProps> = ({ type }) => {
-    const { isLoggedIn } = useSecretDerivation();
     const { source_network, destination_network, source_asset, destination_asset, amount, hashlock } = useAtomicState();
 
     const quoteParams = useMemo(() => {
@@ -32,7 +30,7 @@ const Swap: FC<ContainerProps> = ({ type }) => {
             <Widget.Content>
                 <AtomicContent quote={quote} isQuoteLoading={isQuoteLoading} />
             </Widget.Content>
-            <Actions quote={quote} isQuoteLoading={isQuoteLoading} />
+            <Actions quote={quote} />
         </>
     )
 }
