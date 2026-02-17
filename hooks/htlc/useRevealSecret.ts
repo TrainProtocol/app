@@ -9,7 +9,7 @@ import { useConfig } from "wagmi";
 const apiClient = new TrainApiClient()
 
 export function useRevealSecret() {
-    const { source_network, hashlock, solver, updateCommit, sourceDetails } = useAtomicState()
+    const { source_network, hashlock, solver, updateHTLC: updateCommit, setError, sourceDetails } = useAtomicState()
     const { deriveSecret } = useSecretDerivation()
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
@@ -43,7 +43,7 @@ export function useRevealSecret() {
             updateCommit('secretRevealed', true)
         }
         catch (e: any) {
-            updateCommit('error', { message: e.details || e.message })
+            setError({ message: e.details || e.message })
             throw e
         }
         finally {

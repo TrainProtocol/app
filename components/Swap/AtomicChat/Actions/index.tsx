@@ -24,7 +24,7 @@ type ActionsProps = {
 
 export const Actions: FC<ActionsProps> = ({ quote, isQuoteLoading = false }) => {
     const { htlcStatus: commitStatus, error } = useAtomicState()
-
+console.log(error)
     return (
         <>
             {error && <TransactionMessage error={error.message} />}
@@ -46,11 +46,11 @@ type ResolveActionProps = {
 }
 
 const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote }) => {
-    const { updateCommit } = useAtomicState()
+    const { setError } = useAtomicState()
 
     if (error) {
         return (
-            <SubmitButton type="button" onClick={() => updateCommit('error', undefined)}>
+            <SubmitButton type="button" onClick={() => setError(undefined)}>
                 Try again
             </SubmitButton>
         )

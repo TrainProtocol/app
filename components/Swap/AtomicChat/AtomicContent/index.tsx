@@ -19,7 +19,7 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
     const {
         htlcStatus: commitStatus, destination_network, source_network,
         source_asset, destination_asset, amount,
-        solverLockDetails, destinationDetailsByLightClient, updateCommit,
+        solverLockDetails, destinationDetailsByLightClient, setError,
         hashlock,
     } = useAtomicState()
 
@@ -47,7 +47,7 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
         const lcHash = destinationDetailsByLightClient?.data?.hashlock
         const solverHash = solverLockDetails?.hashlock
         if (lcHash && solverHash && lcHash !== solverHash) {
-            updateCommit('error', { buttonText: 'Ok', message: 'Hashlock mismatch, please wait for refund.' })
+            setError({ buttonText: 'Ok', message: 'Hashlock mismatch, please wait for refund.' })
         }
     }, [solverLockDetails, destinationDetailsByLightClient]);
 

@@ -11,7 +11,7 @@ type MotionSummaryProps = {
 }
 
 const MotionSummary: FC<MotionSummaryProps> = ({ quote, isQuoteLoading = false }) => {
-    const { htlcStatus: commitStatus, commitFromApi, source_asset: source_token, destination_asset: destination_token, source_network, destination_network, amount, hashlock } = useAtomicState()
+    const { htlcStatus: commitStatus, htlcFromApi: commitFromApi, source_asset: source_token, destination_asset: destination_token, source_network, destination_network, amount, hashlock } = useAtomicState()
 
     const storedReceiveAmount = useSwapStore(s =>
         hashlock ? s.swaps[hashlock]?.receiveAmount : undefined

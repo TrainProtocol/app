@@ -14,7 +14,7 @@ export const ManualClaimAction: FC = () => {
         solverLockDetails,
         destAtomicContract,
         address,
-        updateCommit,
+        setError,
     } = useAtomicState();
 
     const { provider } = useWallet(destination_network, 'withdrawal');
@@ -50,8 +50,7 @@ export const ManualClaimAction: FC = () => {
                 destinationNetwork: destination_network.slug,
             });
         } catch (e: any) {
-            updateCommit('error', { message: e.details || e.message });
-        } finally {
+            setError({ message: e.details || e.message });
             setIsClaiming(false);
         }
     };

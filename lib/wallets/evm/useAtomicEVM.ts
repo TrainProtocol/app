@@ -1,4 +1,4 @@
-import { Config, UseAccountReturnType } from "wagmi"
+import { Config, useAccount, UseAccountReturnType } from "wagmi"
 import { writeContract, simulateContract, readContract, waitForTransactionReceipt, getTransactionReceipt } from '@wagmi/core'
 import { ethers } from "ethers"
 import { createPublicClient, http, Chain, zeroAddress, toHex, parseEventLogs } from "viem"
@@ -26,6 +26,7 @@ export interface UseAtomicEVMParams {
 export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunctions {
     const { config, networks, wallets, getEffectiveRpcUrls, switchChain } = params
     const { deriveSecret } = useSecretDerivation()
+    const { address } = useAccount()
 
     const createHTLC = async (params: CreateHTLCParams) => {
         const {
@@ -55,6 +56,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
         const parsedAmount = ethers.utils.parseUnits(amount.toString(), decimals).toBigInt()
 
         if (!account) throw new Error("No account found")
+        if ((account.wallet.chainId !== chainId) && chainId && switchChain) await switchChain(account.wallet, chainId)
 
         const { secret, nonce: timestamp } = await deriveSecret({
             wallet: account.wallet,
@@ -283,6 +285,10 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
 
     const refund = async (params: RefundParams) => {
         const { chainId, id, contractAddress } = params
+
+        const network = networks.find(n => n.chainId == chainId)
+        const account = (network && address) ? getAccount(network, address, wallets) : null
+        if ((account?.wallet.chainId !== Number(chainId)) && account?.wallet && chainId && switchChain) await switchChain(account?.wallet, chainId)
 
         const { request } = await simulateContract(config, {
             abi: HTLCAbi,

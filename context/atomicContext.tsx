@@ -5,7 +5,7 @@ import { LockDetails, LockStatus } from '../Models/phtlc/PHTLC';
 import { Network, Token } from '../Models/Network';
 import useSWR from 'swr';
 import { ApiResponse } from '../Models/ApiResponse';
-import { CommitFromApi, CommitTransaction } from '../lib/trainApiClient';
+import { HTLCFromApi, CommitTransaction } from '../lib/trainApiClient';
 import LightClient from '../lib/lightClient';
 import { useSwapStore } from '../stores/swapStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -27,7 +27,7 @@ export enum HTLCStatus {
 
 const AtomicStateContext = createContext<DataContextType | null>(null);
 
-type DataContextType = CommitState & {
+type DataContextType = HTLCState & {
     source_network?: Network,
     destination_network?: Network,
     source_asset?: Token,
@@ -41,19 +41,20 @@ type DataContextType = CommitState & {
     verifyingByLightClient: boolean,
     srcAtomicContract?: string,
     destAtomicContract?: string,
+    error?: { message: string, buttonText?: string },
+    setError: (error: { message: string, buttonText?: string } | undefined) => void;
     setVerifyingByLightClient: (value: boolean) => void;
-    onCommit: (hashlock: string, txId: string) => void;
-    updateCommit: (field: keyof CommitState, value: any) => void;
+    onUserLock: (hashlock: string, txId: string) => void;
+    updateHTLC: (field: keyof HTLCState, value: any) => void;
 }
 
-interface CommitState {
+interface HTLCState {
     sourceDetails?: LockDetails;
     destinationDetails?: LockDetails;
     solverLockDetails?: LockDetails;
     destinationDetailsByLightClient?: { data?: LockDetails, error?: string };
     secretRevealed?: boolean;
-    error?: { message: string, buttonText?: string } | undefined;
-    commitFromApi?: CommitFromApi;
+    htlcFromApi?: HTLCFromApi;
     lightClient?: LightClient | undefined;
     isTimelockExpired: boolean;
     manualClaimRequired?: boolean;
@@ -61,7 +62,7 @@ interface CommitState {
     solver: string,
 }
 
-type CommitStatesDict = Record<string, CommitState>;
+type CommitStatesDict = Record<string, HTLCState>;
 
 export function AtomicProvider({ children }) {
     const router = useRouter()
@@ -93,10 +94,11 @@ export function AtomicProvider({ children }) {
     const destAtomicContractFromStore = currentSwap?.destContract
 
     const [htlcStates, setHtlcStates] = useState<CommitStatesDict>({});
+    const [error, setError] = useState<{ message: string, buttonText?: string } | undefined>(undefined);
     const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
     const [verifyingByLightClient, setVerifyingByLightClient] = useState(false)
 
-    const updateCommitState = (hashlock: string, newState: Partial<CommitState>) => {
+    const updateHTLCState = (hashlock: string, newState: Partial<HTLCState>) => {
         setHtlcStates((prev) => ({
             ...prev,
             [hashlock]: {
@@ -107,24 +109,23 @@ export function AtomicProvider({ children }) {
     };
 
     const setIsTimelockExpired = (isTimelockExpired: boolean) => {
-        if (hashlock) updateCommitState(hashlock, { isTimelockExpired });
+        if (hashlock) updateHTLCState(hashlock, { isTimelockExpired });
     }
 
-    const updateCommit = (field: keyof CommitState, value: any) => {
-        if (hashlock) updateCommitState(hashlock, { [field]: value });
+    const updateCommit = (field: keyof HTLCState, value: any) => {
+        if (hashlock) updateHTLCState(hashlock, { [field]: value });
     }
 
     const sourceDetails = hashlock ? htlcStates[hashlock]?.sourceDetails : undefined;
     const destinationDetails = hashlock ? htlcStates[hashlock]?.destinationDetails : undefined;
     const solverLockDetails = hashlock ? htlcStates[hashlock]?.solverLockDetails : undefined;
     const secretRevealed = hashlock ? htlcStates[hashlock]?.secretRevealed : undefined;
-    const error = hashlock ? htlcStates[hashlock]?.error : undefined;
-    const commitFromApi = hashlock ? htlcStates[hashlock]?.commitFromApi : undefined;
+    const htlcFromApi = hashlock ? htlcStates[hashlock]?.htlcFromApi : undefined;
     const isTimelockExpired = hashlock ? htlcStates[hashlock]?.isTimelockExpired : false;
     const manualClaimRequired = hashlock ? htlcStates[hashlock]?.manualClaimRequired : false;
     const destinationDetailsByLightClient = hashlock ? htlcStates[hashlock]?.destinationDetailsByLightClient : undefined
 
-    const destinationRedeemTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination)?.hash
+    const destinationRedeemTx = htlcFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination)?.hash
 
     const source_network = networks.find(n => n.slug.toUpperCase() === (source as string)?.toUpperCase())
     const destination_network = networks.find(n => n.slug.toUpperCase() === (destination as string)?.toUpperCase())
@@ -136,7 +137,7 @@ export function AtomicProvider({ children }) {
 
     const fetcher = (args: string) => fetch(args).then(res => res.json())
     const url = process.env.NEXT_PUBLIC_TRAIN_API
-    const { data } = useSWR<ApiResponse<CommitFromApi>>((hashlock && !destinationRedeemTx) ? `${url}/api/${solverName}/swaps/${hashlock}` : null, fetcher, { refreshInterval: 2000 })
+    const { data } = useSWR<ApiResponse<HTLCFromApi>>((hashlock && !destinationRedeemTx) ? `${url}/api/${solverName}/swaps/${hashlock}` : null, fetcher, { refreshInterval: 2000 })
     const htlcStatus = useMemo(() =>
         statusResolver({ sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed, manualClaimRequired }),
         [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, manualClaimRequired])
@@ -165,19 +166,19 @@ export function AtomicProvider({ children }) {
 
     useEffect(() => {
         if (userLockPollData && hashlock) {
-            updateCommitState(hashlock, { sourceDetails: userLockPollData })
+            updateHTLCState(hashlock, { sourceDetails: userLockPollData })
         }
     }, [userLockPollData, hashlock])
 
     useEffect(() => {
         if (solverLockPollData && hashlock) {
-            updateCommitState(hashlock, { solverLockDetails: solverLockPollData })
+            updateHTLCState(hashlock, { solverLockDetails: solverLockPollData })
         }
     }, [solverLockPollData, hashlock])
 
     useEffect(() => {
         if (data?.data) {
-            updateCommit('commitFromApi', data.data)
+            updateCommit('htlcFromApi', data.data)
         }
     }, [data])
 
@@ -258,7 +259,7 @@ export function AtomicProvider({ children }) {
         if (manualClaimRequired) return;
 
         const timer = setTimeout(() => {
-            updateCommitState(hashlock, { manualClaimRequired: true });
+            updateHTLCState(hashlock, { manualClaimRequired: true });
         }, 1000)//2 * 60 * 1000);
 
         return () => clearTimeout(timer);
@@ -286,7 +287,7 @@ export function AtomicProvider({ children }) {
     return (
         <AtomicStateContext.Provider value={{
             source_network,
-            onCommit: handleCommited,
+            onUserLock: handleCommited,
             source_asset: source_token,
             destination_asset: destination_token,
             address: address as string,
@@ -300,7 +301,8 @@ export function AtomicProvider({ children }) {
             solverLockDetails,
             secretRevealed,
             error,
-            commitFromApi,
+            setError,
+            htlcFromApi: htlcFromApi,
             lightClient,
             htlcStatus,
             isTimelockExpired,
@@ -311,7 +313,7 @@ export function AtomicProvider({ children }) {
             srcAtomicContract,
             destAtomicContract,
             setVerifyingByLightClient,
-            updateCommit,
+            updateHTLC: updateCommit,
         }}>
             {children}
         </AtomicStateContext.Provider>

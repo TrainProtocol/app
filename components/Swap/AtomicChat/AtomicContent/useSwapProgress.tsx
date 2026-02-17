@@ -140,7 +140,7 @@ export function useSwapProgress(): SwapProgress {
         refundTxId,
         source_network,
         destination_network,
-        commitFromApi,
+        htlcFromApi: commitFromApi,
     } = useAtomicState();
 
     return useMemo(() => {

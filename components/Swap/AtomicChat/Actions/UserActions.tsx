@@ -13,7 +13,7 @@ type UserCommitActionProps = {
 }
 
 export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
-    const { source_network, destination_network, amount, address, source_asset, destination_asset, onCommit, hashlock, updateCommit, srcAtomicContract } = useAtomicState();
+    const { source_network, destination_network, amount, address, source_asset, destination_asset, onUserLock: onCommit, hashlock, setError, srcAtomicContract } = useAtomicState();
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
 
@@ -53,7 +53,6 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
 
             if (provider.activeWallet && (provider.activeWallet.chainId != source_network.chainId) && provider.switchChain)
                 await provider.switchChain(provider.activeWallet, source_network.chainId)
-
             const result = await provider.createHTLC({
                 address,
                 amount: amount.toString(),
@@ -94,7 +93,7 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
             }
         }
         catch (e) {
-            updateCommit('error', { message: e.details || e.message })
+            setError({ message: e.details || e.message })
         }
     }
 
@@ -119,7 +118,7 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
 }
 
 export const UserRefundAction: FC = () => {
-    const { source_network, hashlock, sourceDetails, source_asset, updateCommit, refundTxId, srcAtomicContract } = useAtomicState()
+    const { source_network, hashlock, sourceDetails, source_asset, setError, refundTxId, srcAtomicContract } = useAtomicState()
     const { provider: source_provider } = useWallet(source_network, 'withdrawal')
     const updateSwap = useSwapStore(s => s.updateSwap)
 
@@ -157,7 +156,7 @@ export const UserRefundAction: FC = () => {
             }
         }
         catch (e) {
-            updateCommit('error', { message: e.details || e.message })
+            setError({ message: e.details || e.message })
         }
     }
 

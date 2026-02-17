@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "debug": "next dev -p 6969",
-    "dev": "next dev -p 6969",
+    "debug": "next dev",
+    "dev": "next dev",
     "build": "next build",
-    "start": "next start -p 6969",
+    "start": "next start",
     "analyze": "cross-env ANALYZE=true next build",
     "lint": "next lint",
     "build:workers": "tsc -p tsconfig.worker.json"

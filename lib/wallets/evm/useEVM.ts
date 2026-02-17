@@ -450,6 +450,7 @@ const ResolveWallet = (props: ResolveWalletProps): Wallet | undefined => {
 
     const wallet: Wallet = {
         id: walletName,
+        chainId: connection?.chainId,
         internalId: walletId,
         isActive: walletIsActive,
         address,

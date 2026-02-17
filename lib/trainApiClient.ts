@@ -18,9 +18,9 @@ export default class LayerSwapApiClient {
         return response.data;
     }
 
-    async GetSwapsAsync(addresses: string[], page?: number): Promise<ApiResponse<CommitFromApi[]>> {
+    async GetSwapsAsync(addresses: string[], page?: number): Promise<ApiResponse<HTLCFromApi[]>> {
         const addressesQuery = addresses.map(a => `addresses=${a}`).join('&');
-        return await this.UnauthenticatedRequest<ApiResponse<CommitFromApi[]>>("GET", `/swaps?${addressesQuery}&page=${page ? page : 1}`);
+        return await this.UnauthenticatedRequest<ApiResponse<HTLCFromApi[]>>("GET", `/swaps?${addressesQuery}&page=${page ? page : 1}`);
     }
 
     async AddLockSig(params: AddLockSig, hashlock: string, solver: string): Promise<ApiResponse<{}>> {
@@ -56,7 +56,7 @@ export type AddLockSig = {
     timelock: number
 }
 
-export type CommitFromApi = {
+export type HTLCFromApi = {
     hashlock: string,
     sourceAmount: number,
     sourceAmountInUsd: number,

@@ -166,27 +166,12 @@ export const Comp: FC<LockButtonProps> = (props) => {
             network={network}
         />
     }
-    if (activeChain && activeChain != networkChainId && !!network && (!!networkChainId && !isNaN(Number(networkChainId)))) {
-        return <ChangeNetworkButton
-            chainId={networkChainId}
-            network={network}
-            defaultText="Change network"
-        />
-    }
-    if (isPending) {
-        return <ButtonStatus
-            isLoading={isPending}
-            isDisabled={isPending}
-        >
-            Confirm in wallet
-        </ButtonStatus>
-    }
     return <SubmitButton
         onClick={handleClick}
         isDisabled={isPending}
         isSubmitting={isPending}
     >
-        {children}
+        {isPending ? 'Confirm in wallet' : children}
     </SubmitButton>
 
 }
