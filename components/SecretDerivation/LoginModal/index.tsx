@@ -4,6 +4,7 @@ import { Loader2, ChevronLeft, CircleX } from 'lucide-react';
 import toast from 'react-hot-toast';
 import VaulModal from '@/components/Modal/vaulModal';
 import { useSecretDerivation } from '@/context/secretDerivationContext';
+import { mapPasskeyError } from '@/lib/htlc/secretDerivation/passkeyService';
 import { PasskeyChoice } from './PasskeyChoice';
 import { Wallet } from '@/Models/WalletProvider';
 import { useSteps } from '@/hooks/useSteps';
@@ -12,7 +13,7 @@ import OptionSelect from './OptionSelect';
 import IconButton from '@/components/buttons/iconButton';
 import WalletSelect from './SelectWallet';
 
-type LoginStep = 'pick' | 'passkey_choice' | 'wallet_select' | 'signing';
+type LoginStep = 'pick' | 'passkey_recovery' | 'wallet_select' | 'signing';
 
 const getErrorMessage = (error: unknown, fallback: string): string => {
   if (error instanceof Error) return error.message;
@@ -29,14 +30,14 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const config = useConfig();
   const { loginWithPasskey, loginWithNewPasskey, loginWithWallet, derivationMessage } = useSecretDerivation();
   const { currentStep, goToStep, goBack, canGoBack, reset, isStep } = useSteps<LoginStep>({ initial: 'pick' });
-  const [noPasskeyHint, setNoPasskeyHint] = useState(false);
+  const [passkeyError, setPasskeyError] = useState<string | null>(null);
   const [signingWallet, setSigningWallet] = useState<Wallet | null>(null);
   const [signingError, setSigningError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       reset();
-      setNoPasskeyHint(false);
+      setPasskeyError(null);
       setSigningError(null);
     }
   }, [isOpen, reset]);
@@ -45,17 +46,17 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     onClose();
   };
 
-  const startUseExistingPasskey = async () => {
+  const startPasskeyLogin = async () => {
     goToStep('signing');
-    setNoPasskeyHint(false);
+    setPasskeyError(null);
     try {
-      await loginWithPasskey({ createIfMissing: false });
-      toast.success('Logged in with passkey');
+      await loginWithPasskey({ createIfMissing: true });
       closeAndReset();
     } catch (e) {
-      toast.error(getErrorMessage(e, 'Passkey login failed'));
-      setNoPasskeyHint(true);
-      goToStep('passkey_choice', 'back');
+      const message = mapPasskeyError(e);
+      setPasskeyError(message);
+      toast.error(message);
+      goToStep('passkey_recovery', 'back');
     }
   };
 
@@ -63,11 +64,12 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     goToStep('signing');
     try {
       await loginWithNewPasskey(label);
-      toast.success('Logged in with passkey');
       closeAndReset();
     } catch (e) {
-      toast.error(getErrorMessage(e, 'Passkey login failed'));
-      goToStep('passkey_choice', 'back');
+      const message = mapPasskeyError(e);
+      setPasskeyError(message);
+      toast.error(message);
+      goToStep('passkey_recovery', 'back');
     }
   };
 
@@ -77,7 +79,6 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     goToStep('signing');
     try {
       await loginWithWallet(config, wallet);
-      toast.success('Logged in with wallet');
       closeAndReset();
     } catch (e) {
       const message = getErrorMessage(e, 'Wallet login failed');
@@ -94,8 +95,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   };
 
   const handleBack = () => {
-    if (isStep('passkey_choice')) {
-      setNoPasskeyHint(false);
+    if (isStep('passkey_recovery')) {
+      setPasskeyError(null);
     }
     goBack();
   };
@@ -126,14 +127,14 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         <Steps currentStep={currentStep}>
 
           <Step name="pick">
-            <OptionSelect goToStep={goToStep} onConnectFinish={onConnectFinish} />
+            <OptionSelect onPasskeyLogin={startPasskeyLogin} goToStep={goToStep} onConnectFinish={onConnectFinish} />
           </Step>
 
-          <Step name="passkey_choice">
+          <Step name="passkey_recovery">
             <PasskeyChoice
-              onUseExisting={startUseExistingPasskey}
+              error={passkeyError || ''}
+              onTryAgain={startPasskeyLogin}
               onCreateNew={startCreateNewPasskey}
-              noPasskeyHint={noPasskeyHint}
             />
           </Step>
 
@@ -145,7 +146,9 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
             <Signing
               derivationMessage={derivationMessage}
               onRetry={signingWallet ? () => startWalletLogin(signingWallet) : undefined}
+              onCancel={() => goToStep('pick')}
               error={signingError}
+              isPasskey={!signingWallet}
             />
           </Step>
 
@@ -156,16 +159,31 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 }
 
 
-const Signing = ({ derivationMessage, onRetry, error }: { derivationMessage: string, onRetry?: () => void, error?: string | null }) => {
-  const [showRetry, setShowRetry] = useState(false);
-  const showButton = error ? !!onRetry : showRetry && !!onRetry;
+const Signing = ({
+  derivationMessage,
+  onRetry,
+  onCancel,
+  error,
+  isPasskey
+}: {
+  derivationMessage: string;
+  onRetry?: () => void;
+  onCancel: () => void;
+  error?: string | null;
+  isPasskey?: boolean;
+}) => {
+  // Platform-specific hint text
+  const getPlatformHint = () => {
+    if (!isPasskey) return null;
+    const ua = navigator.userAgent.toLowerCase();
+    if (ua.includes('mac')) return 'Use Touch ID or your security key to confirm';
+    if (ua.includes('windows')) return 'Use Windows Hello or your security key to confirm';
+    if (/iphone|ipad/.test(ua)) return 'Use Face ID or Touch ID to confirm';
+    if (ua.includes('android')) return 'Use your fingerprint or screen lock to confirm';
+    return null;
+  };
 
-  useEffect(() => {
-    setShowRetry(false);
-    if (!onRetry || error) return;
-    const timer = setTimeout(() => setShowRetry(true), 10000);
-    return () => clearTimeout(timer);
-  }, [onRetry, error]);
+  const platformHint = getPlatformHint();
 
   const icon = error
     ? <CircleX className="w-8 h-8 text-primary-500" />
@@ -177,10 +195,10 @@ const Signing = ({ derivationMessage, onRetry, error }: { derivationMessage: str
 
   const subtitle = error
     ? error
-    : 'Complete the action in your passkey or wallet. Do not close this window.';
+    : (platformHint || 'Complete the action in your passkey or wallet.');
 
   return (
-    <div className={`flex flex-col items-center justify-center gap-5 pt-10 ${showButton ? '' : 'pb-10'}`}>
+    <div className="flex flex-col items-center justify-center gap-5 pt-10">
       <div className="w-14 h-14 rounded-2xl bg-secondary-700 flex items-center justify-center">
         {icon}
       </div>
@@ -188,15 +206,24 @@ const Signing = ({ derivationMessage, onRetry, error }: { derivationMessage: str
         <p className="text-primary-text font-semibold">{title}</p>
         <p className="text-sm text-secondary-text max-w-[280px]">{subtitle}</p>
       </div>
-      {showButton && (
+      <div className="flex flex-col gap-2 w-full">
+        {error && onRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="w-full py-3 px-4 rounded-xl font-semibold border-2 border-secondary-700 bg-secondary-800 text-primary-text hover:bg-secondary-700 transition-colors text-sm"
+          >
+            Try again
+          </button>
+        )}
         <button
           type="button"
-          onClick={onRetry}
+          onClick={onCancel}
           className="w-full py-3 px-4 rounded-xl font-semibold border-2 border-secondary-700 bg-secondary-800 text-primary-text hover:bg-secondary-700 transition-colors text-sm"
         >
-          Try again
+          {error ? 'Back' : 'Cancel'}
         </button>
-      )}
+      </div>
     </div>
-  )
-}
+  );
+};

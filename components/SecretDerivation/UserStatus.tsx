@@ -3,12 +3,11 @@ import { Fingerprint, Lock, LogOut } from "lucide-react"
 import toast from "react-hot-toast"
 import VaulDrawer from "../Modal/vaulModal"
 import { Popover, PopoverContent, PopoverTrigger } from "../shadcn/popover"
-import { useSecretDerivationStore } from "@/stores/secretDerivationStore"
-import { usePasskeyCredentialId } from "@/stores/secretDerivationStore"
+import { useSecretDerivationStore, usePasskeyCredentialId, usePasskeyCredentialIds } from "@/stores/secretDerivationStore"
 import { useLoginModalStore } from "@/stores/loginModalStore"
 import { Address } from "@/lib/address"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
-import { formatPasskeyIdForDisplay } from "@/lib/htlc/secretDerivation/passkeyService"
+import { formatPasskeyIdForDisplay, registerPasskey } from "@/lib/htlc/secretDerivation/passkeyService"
 import WalletIcon from "../Icons/WalletIcon"
 
 interface LoginWallet {
@@ -87,18 +86,35 @@ const UserStatusContent = ({
     showHeader = true,
     showPasskeyWarning = true,
 }: UserStatusContentProps) => {
+    const credentialIds = usePasskeyCredentialIds();
+    const activeId = usePasskeyCredentialId();
+    const removeCredential = useSecretDerivationStore((s) => s.removePasskeyCredential);
+
     const handleLogout = () => {
         logout()
         onClose?.()
-        toast.success('Logged out successfully')
     }
 
     const handleCopyAddress = () => {
         if (loginWallet?.address) {
             navigator.clipboard.writeText(loginWallet.address)
-            toast.success('Address copied')
         }
     }
+
+    const handleRemoveCredential = (credId: string) => {
+        removeCredential(credId);
+        toast.success('Passkey removed from this device');
+    };
+
+    const handleAddPasskey = async () => {
+        onClose?.();
+        try {
+            await registerPasskey(true, 'Train');
+        } catch (e) {
+            const errorMsg = e instanceof Error ? e.message : 'Failed to add passkey';
+            toast.error(errorMsg);
+        }
+    };
 
     const storedPasskeyCredId = usePasskeyCredentialId()
     const passkeyDisplayId = method === 'passkey' && storedPasskeyCredId
@@ -116,6 +132,41 @@ const UserStatusContent = ({
                 passkeyDisplayId={passkeyDisplayId}
                 onCopyAddress={handleCopyAddress}
             />
+
+            {method === 'passkey' && credentialIds.length > 0 && (
+                <div className="flex flex-col gap-2">
+                    <p className="text-secondary-text text-xs font-medium uppercase">Registered passkeys</p>
+                    {credentialIds.map(id => (
+                        <div key={id} className="flex items-center justify-between p-2 bg-secondary-700 rounded-lg">
+                            <span className="text-sm text-primary-text">
+                                {formatPasskeyIdForDisplay(id)}
+                                {id === activeId && <span className="text-green-400 ml-1">(active)</span>}
+                            </span>
+                            {credentialIds.length > 1 && (
+                                <button
+                                    type="button"
+                                    onClick={() => handleRemoveCredential(id)}
+                                    className="text-xs text-red-400 hover:text-red-300"
+                                >
+                                    Remove
+                                </button>
+                            )}
+                        </div>
+                    ))}
+                    {credentialIds.length < 2 && (
+                        <div className="text-amber-200/80 text-xs bg-amber-900/30 rounded-lg px-3 py-2">
+                            Add a backup passkey on another device for safety.
+                        </div>
+                    )}
+                    <button
+                        type="button"
+                        onClick={handleAddPasskey}
+                        className="text-sm text-primary-text underline text-left"
+                    >
+                        Add passkey on another device
+                    </button>
+                </div>
+            )}
 
             {showPasskeyWarning && method === 'passkey' && (
                 <div className="rounded-xl bg-amber-900/40 border border-amber-700/50 px-3 py-2.5">

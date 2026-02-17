@@ -7,7 +7,8 @@ import {
   checkPrfSupport,
   deriveKeyWithPasskey,
   registerPasskey,
-  deriveSecretFromTimelock
+  deriveSecretFromTimelock,
+  PrfSupportResult
 } from '@/lib/htlc/secretDerivation';
 import { deriveKeyFromEvmSignature } from '@/lib/htlc/secretDerivation/walletSign/evm';
 import { useSecretDerivationStore, DerivationStatus } from '@/stores/secretDerivationStore';
@@ -21,6 +22,7 @@ interface SecretDerivationContextValue {
   loginWithWallet: (config: any, wallet: Wallet) => Promise<void>;
   logout: () => void;
   isPasskeySupported: boolean;
+  prfSupportDetails: PrfSupportResult | null;
   deriveInitialKey: (params: DeriveKeyParams) => Promise<Buffer>;
   deriveSecret: (params: DeriveKeyParams) => Promise<{ secret: string, nonce: number }>;
   isReady: boolean;
@@ -47,6 +49,7 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
   const {
     method,
     isPasskeySupported,
+    prfSupportDetails,
     isReady,
     derivationStatus,
     derivationMessage,
@@ -61,8 +64,12 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
 
   // Check passkey support on mount (localStorage restore is handled by zustand persist)
   useEffect(() => {
-    checkPrfSupport().then((supported) => {
-      setState({ isPasskeySupported: supported, isReady: true });
+    checkPrfSupport().then((result) => {
+      setState({
+        isPasskeySupported: result.supported,
+        prfSupportDetails: result,
+        isReady: true,
+      });
     });
   }, [setState]);
 
@@ -75,8 +82,8 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
         isLoggedIn: true,
         loginWallet: null,
         storedDerivedKey: key,
-        passkeyCredentialId: credentialId,
       });
+      useSecretDerivationStore.getState().addPasskeyCredential(credentialId);
     } finally {
       setState({ derivationStatus: 'idle', derivationMessage: '' });
     }
@@ -85,15 +92,28 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
   const loginWithNewPasskey = useCallback(async (label?: string) => {
     setState({ derivationStatus: 'signing', derivationMessage: 'Confirm with your passkey' });
     try {
-      await registerPasskey(true, label);
-      const { key, credentialId } = await deriveKeyWithPasskey();
-      setState({
-        method: 'passkey',
-        isLoggedIn: true,
-        loginWallet: null,
-        storedDerivedKey: key,
-        passkeyCredentialId: credentialId,
-      });
+      const result = await registerPasskey(true, label);
+
+      if (result.key) {
+        // PRF worked during registration - single prompt!
+        setState({
+          method: 'passkey',
+          isLoggedIn: true,
+          loginWallet: null,
+          storedDerivedKey: result.key,
+        });
+        useSecretDerivationStore.getState().addPasskeyCredential(result.credentialId);
+      } else {
+        // PRF not available during creation, need one more prompt
+        const { key, credentialId } = await deriveKeyWithPasskey();
+        setState({
+          method: 'passkey',
+          isLoggedIn: true,
+          loginWallet: null,
+          storedDerivedKey: key,
+        });
+        useSecretDerivationStore.getState().addPasskeyCredential(credentialId);
+      }
     } finally {
       setState({ derivationStatus: 'idle', derivationMessage: '' });
     }
@@ -132,7 +152,8 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
     // Fallback: Re-authenticate if no stored key
     if (method === 'passkey') {
       const { key, credentialId } = await deriveKeyWithPasskey();
-      setState({ storedDerivedKey: key, passkeyCredentialId: credentialId });
+      setState({ storedDerivedKey: key });
+      useSecretDerivationStore.getState().addPasskeyCredential(credentialId);
       return key;
     }
 
@@ -180,6 +201,7 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
     loginWithWallet,
     logout,
     isPasskeySupported,
+    prfSupportDetails,
     deriveInitialKey,
     deriveSecret,
     isReady,

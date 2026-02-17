@@ -90,8 +90,10 @@ export const Timer = ({ timelock }: { timelock: number }) => {
     const secondsToDisplay = Number(secondsRemaining?.toFixed()) % 60
     const minutesRemaining = (Number(secondsRemaining) - secondsToDisplay) / 60
     const minutesToDisplay = Number(minutesRemaining.toFixed()) % 60
+    const hoursRemaining = (minutesRemaining - minutesToDisplay) / 60
+    const hoursToDisplay = Number(hoursRemaining.toFixed())
 
-    return <>{twoDigits(minutesToDisplay)}:{twoDigits(secondsToDisplay)}</>
+    return <>{hoursToDisplay > 0 ? `${twoDigits(hoursToDisplay)}:` : ''}{twoDigits(minutesToDisplay)}:{twoDigits(secondsToDisplay)}</>
 
 }
 

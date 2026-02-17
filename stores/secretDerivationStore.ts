@@ -5,15 +5,25 @@ import { DerivationMethod } from '@/lib/htlc/secretDerivation';
 
 export type DerivationStatus = 'idle' | 'signing';
 
+export interface PrfSupportResult {
+  supported: boolean;
+  reason?: string;
+  platformAuthenticatorAvailable: boolean;
+  prfCapabilityReported: boolean | null;
+  platformHint?: 'windows_hello_no_prf' | 'unsupported_browser';
+}
+
 interface SecretDerivationState {
   // Persisted state (in localStorage)
   method: DerivationMethod | null;
   storedDerivedKey: Buffer | null;
   loginWallet: Wallet | null;
-  passkeyCredentialId: string | null;
+  passkeyCredentialIds: string[];
+  activePasskeyCredentialId: string | null;
 
   // Transient state (not persisted)
   isPasskeySupported: boolean;
+  prfSupportDetails: PrfSupportResult | null;
   isReady: boolean;
   derivationStatus: DerivationStatus;
   derivationMessage: string;
@@ -21,6 +31,8 @@ interface SecretDerivationState {
 
   // Actions
   logout: () => void;
+  addPasskeyCredential: (credId: string) => void;
+  removePasskeyCredential: (credId: string) => void;
 }
 
 export const useSecretDerivationStore = create<SecretDerivationState>()(
@@ -30,8 +42,10 @@ export const useSecretDerivationStore = create<SecretDerivationState>()(
       method: null,
       storedDerivedKey: null,
       loginWallet: null,
-      passkeyCredentialId: null,
+      passkeyCredentialIds: [],
+      activePasskeyCredentialId: null,
       isPasskeySupported: false,
+      prfSupportDetails: null,
       isReady: false,
       derivationStatus: 'idle',
       derivationMessage: '',
@@ -44,7 +58,31 @@ export const useSecretDerivationStore = create<SecretDerivationState>()(
           loginWallet: null,
           method: null,
           storedDerivedKey: null,
-          passkeyCredentialId: null,
+          activePasskeyCredentialId: null,
+          // Keep passkeyCredentialIds so user can log back in
+        });
+      },
+      addPasskeyCredential: (credId: string) => {
+        set((state) => {
+          const ids = state.passkeyCredentialIds.includes(credId)
+            ? state.passkeyCredentialIds
+            : [...state.passkeyCredentialIds, credId];
+          return {
+            passkeyCredentialIds: ids,
+            activePasskeyCredentialId: credId,
+          };
+        });
+      },
+      removePasskeyCredential: (credId: string) => {
+        set((state) => {
+          const ids = state.passkeyCredentialIds.filter(id => id !== credId);
+          const active = state.activePasskeyCredentialId === credId
+            ? (ids[0] ?? null)
+            : state.activePasskeyCredentialId;
+          return {
+            passkeyCredentialIds: ids,
+            activePasskeyCredentialId: active,
+          };
         });
       },
     }),
@@ -65,7 +103,10 @@ export const useSecretDerivationStore = create<SecretDerivationState>()(
               displayName: state.loginWallet.displayName,
             }
           : null,
-        passkeyCredentialId: state.passkeyCredentialId,
+        passkeyCredentialIds: state.passkeyCredentialIds,
+        activePasskeyCredentialId: state.activePasskeyCredentialId,
+        // Keep old key for backward compat during write
+        passkeyCredentialId: state.activePasskeyCredentialId,
       }),
       // Handle rehydration - convert hex string back to Buffer
       merge: (persistedState: any, currentState) => {
@@ -87,9 +128,18 @@ export const useSecretDerivationStore = create<SecretDerivationState>()(
           merged.loginWallet = persistedState.loginWallet;
         }
 
-        // Restore passkeyCredentialId
-        if (persistedState?.passkeyCredentialId != null) {
-          merged.passkeyCredentialId = persistedState.passkeyCredentialId;
+        // BACKWARD COMPAT: migrate old single-credential format
+        if (persistedState?.passkeyCredentialId && !persistedState?.passkeyCredentialIds) {
+          merged.passkeyCredentialIds = [persistedState.passkeyCredentialId];
+          merged.activePasskeyCredentialId = persistedState.passkeyCredentialId;
+        }
+
+        // Restore new format
+        if (persistedState?.passkeyCredentialIds) {
+          merged.passkeyCredentialIds = persistedState.passkeyCredentialIds;
+        }
+        if (persistedState?.activePasskeyCredentialId) {
+          merged.activePasskeyCredentialId = persistedState.activePasskeyCredentialId;
         }
 
         return merged;
@@ -115,4 +165,7 @@ export const useDerivationStatus = () =>
   }));
 
 export const usePasskeyCredentialId = () =>
-  useSecretDerivationStore((state) => state.passkeyCredentialId);
+  useSecretDerivationStore((state) => state.activePasskeyCredentialId);
+
+export const usePasskeyCredentialIds = () =>
+  useSecretDerivationStore((state) => state.passkeyCredentialIds);
