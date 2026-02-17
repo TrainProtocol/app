@@ -99,22 +99,20 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
 
     if (!source_network) return <></>
 
-    return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
-        {
-            hashlock ?
-                <></>
-                :
-                <WalletActionButton
-                    activeChain={wallet?.chainId}
-                    isConnected={!!wallet}
-                    network={source_network}
-                    networkChainId={source_network.chainId}
-                    onClick={handleCommit}
-                >
-                    Confirm in wallet
-                </WalletActionButton>
-        }
-    </div>
+    return hashlock ?
+        <></>
+        :
+        <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
+            <WalletActionButton
+                activeChain={wallet?.chainId}
+                isConnected={!!wallet}
+                network={source_network}
+                networkChainId={source_network.chainId}
+                onClick={handleCommit}
+            >
+                Confirm in wallet
+            </WalletActionButton>
+        </div>
 }
 
 export const UserRefundAction: FC = () => {

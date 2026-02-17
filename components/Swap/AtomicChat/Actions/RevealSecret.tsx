@@ -1,6 +1,5 @@
 import { FC, useState } from "react";
 import { WalletActionButton } from "../../buttons";
-import ButtonStatus from "./Status/ButtonStatus";
 import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { Checkbox } from "@/components/shadcn/checkbox";
@@ -18,9 +17,7 @@ export const RevealSecretAction: FC<{ showCheckbox?: boolean }> = ({ showCheckbo
         await revealSecret()
     }
 
-    if (!source_network) return <></>
-
-    if (isRevealing) return <></>
+    if (!source_network || isRevealing) return <></>
 
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
         {showCheckbox && (

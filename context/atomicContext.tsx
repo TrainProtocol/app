@@ -43,6 +43,7 @@ type DataContextType = HTLCState & {
     destAtomicContract?: string,
     error?: { message: string, buttonText?: string },
     setError: (error: { message: string, buttonText?: string } | undefined) => void;
+    setManualClaimTxId: (txId: string | undefined) => void;
     setVerifyingByLightClient: (value: boolean) => void;
     onUserLock: (hashlock: string, txId: string) => void;
     updateHTLC: (field: keyof HTLCState, value: any) => void;
@@ -95,6 +96,7 @@ export function AtomicProvider({ children }) {
 
     const [htlcStates, setHtlcStates] = useState<CommitStatesDict>({});
     const [error, setError] = useState<{ message: string, buttonText?: string } | undefined>(undefined);
+    const [manualClaimTxId, setManualClaimTxId] = useState<string | undefined>(undefined);
     const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
     const [verifyingByLightClient, setVerifyingByLightClient] = useState(false)
 
@@ -125,7 +127,7 @@ export function AtomicProvider({ children }) {
     const manualClaimRequired = hashlock ? htlcStates[hashlock]?.manualClaimRequired : false;
     const destinationDetailsByLightClient = hashlock ? htlcStates[hashlock]?.destinationDetailsByLightClient : undefined
 
-    const destinationRedeemTx = htlcFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination)?.hash
+    const destinationRedeemTx = manualClaimTxId ?? htlcFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination)?.hash
 
     const source_network = networks.find(n => n.slug.toUpperCase() === (source as string)?.toUpperCase())
     const destination_network = networks.find(n => n.slug.toUpperCase() === (destination as string)?.toUpperCase())
@@ -302,6 +304,7 @@ export function AtomicProvider({ children }) {
             secretRevealed,
             error,
             setError,
+            setManualClaimTxId,
             htlcFromApi: htlcFromApi,
             lightClient,
             htlcStatus,

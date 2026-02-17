@@ -1,8 +1,7 @@
-import { FC, useState } from "react";
+import { FC } from "react";
 import { useAtomicState } from "../../../../context/atomicContext";
 import useWallet from "@/hooks/useWallet";
 import { WalletActionButton } from "../../buttons";
-import ButtonStatus from "./Status/ButtonStatus";
 import posthog from "posthog-js";
 
 export const ManualClaimAction: FC = () => {
@@ -15,12 +14,12 @@ export const ManualClaimAction: FC = () => {
         destAtomicContract,
         address,
         setError,
+        setManualClaimTxId,
+        destRedeemTx
     } = useAtomicState();
 
     const { provider } = useWallet(destination_network, 'withdrawal');
     const wallet = provider?.activeWallet;
-
-    const [isClaiming, setIsClaiming] = useState(false);
 
     const handleManualClaim = async () => {
         try {
@@ -31,9 +30,7 @@ export const ManualClaimAction: FC = () => {
             if (!destAtomicContract) throw new Error("No destination contract");
             if (!address) throw new Error("No destination address");
 
-            setIsClaiming(true);
-
-            await provider?.claim({
+            const txHash = await provider?.claim({
                 type: destination_asset.contractAddress ? 'erc20' : 'native',
                 chainId: destination_network.chainId,
                 contractAddress: destAtomicContract,
@@ -45,25 +42,20 @@ export const ManualClaimAction: FC = () => {
                 destinationAsset: destination_asset,
             });
 
+            if (txHash) {
+                setManualClaimTxId(txHash);
+            }
+
             posthog.capture("ManualClaim", {
                 hashlock,
                 destinationNetwork: destination_network.slug,
             });
         } catch (e: any) {
             setError({ message: e.details || e.message });
-            setIsClaiming(false);
         }
     };
 
-    if (!destination_network) return <></>;
-
-    if (isClaiming) {
-        return (
-            <ButtonStatus isDisabled={true} isLoading={true}>
-                Claiming assets
-            </ButtonStatus>
-        );
-    }
+    if (!destination_network || destRedeemTx) return <></>;
 
     return (
         <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">

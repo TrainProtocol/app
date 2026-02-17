@@ -15,16 +15,14 @@ import NetworkSettings from "@/lib/NetworkSettings";
 import { Widget } from "@/components/Widget/Index";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
-import ButtonStatus from "./Status/ButtonStatus";
 
 type ActionsProps = {
     quote?: SwapQuote
-    isQuoteLoading?: boolean
 }
 
-export const Actions: FC<ActionsProps> = ({ quote, isQuoteLoading = false }) => {
+export const Actions: FC<ActionsProps> = ({ quote }) => {
     const { htlcStatus: commitStatus, error } = useAtomicState()
-console.log(error)
+
     return (
         <>
             {error && <TransactionMessage error={error.message} />}
@@ -78,7 +76,7 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote }) =
 
 const SolverLockDetectedAction: FC = () => {
     const { autoRevealSecret, hasSeenAutoRevealPrompt } = useSwapPreferencesStore()
-    const { revealSecret, isRevealing } = useRevealSecret()
+    const { revealSecret } = useRevealSecret()
     const [autoRevealFailed, setAutoRevealFailed] = useState(false)
     const attemptedRef = useRef(false)
 
@@ -93,11 +91,7 @@ const SolverLockDetectedAction: FC = () => {
         }
     }, [shouldAutoReveal, revealSecret])
 
-    if (shouldAutoReveal || isRevealing) {
-        return <ButtonStatus isDisabled={true} isLoading={true}>
-            Revealing secret
-        </ButtonStatus>
-    }
+    if (shouldAutoReveal) return <></>
 
     // First time: show checkbox. After that (or on auto-reveal failure): just the button
     return <RevealSecretAction showCheckbox={!hasSeenAutoRevealPrompt} />

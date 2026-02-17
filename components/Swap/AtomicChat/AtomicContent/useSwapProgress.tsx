@@ -216,8 +216,7 @@ export function useSwapProgress(): SwapProgress {
                 title: "Action required",
                 subtitle: "Claim your assets manually on the destination chain.",
                 steps: buildSteps(HAPPY_STEPS, 3, { source: sourceTxLink, dest: destTxLink }, {
-                    0: { timelock: sourceDetails?.timelock },
-                    3: { name: "Claim assets", status: StepStatus.Upcoming, description: "Solver didn't complete the claim. You can claim your assets manually." },
+                    3: { name: "Claim assets", status: !redeemTxLink ? StepStatus.Upcoming : StepStatus.Current, description: "Solver didn't complete the claim. You can claim your assets manually." },
                 }),
             };
         }
