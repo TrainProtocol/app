@@ -58,33 +58,21 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote }) =
 
     switch (commitStatus) {
         case HTLCStatus.RedeemCompleted:
-            return <ActionWrapper>
-                <TerminalActions variant="success" />
-            </ActionWrapper>
+            return <TerminalActions variant="success" />
         case HTLCStatus.Refunded:
-            return <ActionWrapper>
-                <TerminalActions variant="refund" />
-            </ActionWrapper>
+            return <TerminalActions variant="refund" />
         case HTLCStatus.TimelockExpired:
-            return <ActionWrapper>
-                <UserRefundAction />
-            </ActionWrapper>
+            return <UserRefundAction />
         case HTLCStatus.ManualClaimRequired:
-            return <ActionWrapper>
-                <ManualClaimAction />
-            </ActionWrapper>
+            return <ManualClaimAction />
         case HTLCStatus.SecretRevealed:
             return <></>
         case HTLCStatus.SolverLockDetected:
-            return <ActionWrapper>
-                <SolverLockDetectedAction />
-            </ActionWrapper>
+            return <SolverLockDetectedAction />
         case HTLCStatus.UserLocked:
             return <></>
         default:
-            return <ActionWrapper>
-                <UserCommitAction quote={quote} />
-            </ActionWrapper>
+            return <UserCommitAction quote={quote} />
     }
 }
 
@@ -115,7 +103,7 @@ const SolverLockDetectedAction: FC = () => {
     return <RevealSecretAction showCheckbox={!hasSeenAutoRevealPrompt} />
 }
 
-const ActionWrapper: FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ActionWrapper: FC<{ children: React.ReactNode }> = ({ children }) => {
     return <Widget.Footer sticky={true} >
         {children}
     </Widget.Footer>

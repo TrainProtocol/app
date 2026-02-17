@@ -228,9 +228,7 @@ export function useSwapProgress(): SwapProgress {
                 gaugeValue: 100, gaugeIcon: "check",
                 title: "Swap complete",
                 subtitle: "Your assets have been sent to your address.",
-                steps: buildSteps(HAPPY_STEPS, -1, { redeem: redeemTxLink }, {
-                    0: { timelock: sourceDetails?.timelock },
-                }),
+                steps: buildSteps(HAPPY_STEPS, -1, { redeem: redeemTxLink, source: sourceTxLink }),
             };
         }
 

@@ -8,6 +8,7 @@ import ButtonStatus from "./AtomicChat/Actions/Status/ButtonStatus";
 import WalletMessage from "./messages/Message";
 import { useSelectedAccount } from "../../context/swapAccounts";
 import { useConnectModal } from "../WalletModal";
+import { ActionWrapper } from "./AtomicChat/Actions";
 export type ActionData = {
     error: Error | null;
     isError: boolean;
@@ -142,7 +143,7 @@ type LockButtonProps = {
     children: ReactNode | undefined
 }
 
-export const WalletActionButton: FC<LockButtonProps> = (props) => {
+export const Comp: FC<LockButtonProps> = (props) => {
     const { isConnected, networkChainId, network, activeChain, onClick, children } = props;
     const [isPending, setIsPending] = useState(false)
 
@@ -188,4 +189,10 @@ export const WalletActionButton: FC<LockButtonProps> = (props) => {
         {children}
     </SubmitButton>
 
+}
+
+export const WalletActionButton: FC<LockButtonProps> = (props) => {
+    return <ActionWrapper>
+        <Comp {...props} />
+    </ActionWrapper>
 }

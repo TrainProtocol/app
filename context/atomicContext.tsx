@@ -131,16 +131,15 @@ export function AtomicProvider({ children }) {
     const source_token = source_network?.tokens.find(t => t.symbol === source_asset)
     const destination_token = destination_network?.tokens.find(t => t.symbol === destination_asset)
 
-    const destAtomicContract = '0xcf6d47cdd0cb259e78262832b4db3f4f4f909dcb' // commitFromApi?.destinationContractAddress || destAtomicContractfromQuery
-    const srcAtomicContract = '0x9A0E4E619d391f6352E112cC4c452344a3EB4119' //commitFromApi?.sourceContractAddress || srcAtomicContractFromQuery
+    const destAtomicContract = destination_network?.chainId == '11155111' ? '0x9A0E4E619d391f6352E112cC4c452344a3EB4119' : '0xcf6d47cdd0cb259e78262832b4db3f4f4f909dcb' // commitFromApi?.destinationContractAddress || destAtomicContractfromQuery
+    const srcAtomicContract = source_network?.chainId == '11155111' ? '0x9A0E4E619d391f6352E112cC4c452344a3EB4119' : '0xcf6d47cdd0cb259e78262832b4db3f4f4f909dcb' //commitFromApi?.sourceContractAddress || srcAtomicContractFromQuery
 
     const fetcher = (args: string) => fetch(args).then(res => res.json())
     const url = process.env.NEXT_PUBLIC_TRAIN_API
     const { data } = useSWR<ApiResponse<CommitFromApi>>((hashlock && !destinationRedeemTx) ? `${url}/api/${solverName}/swaps/${hashlock}` : null, fetcher, { refreshInterval: 2000 })
     const htlcStatus = useMemo(() =>
-        statusResolver({
-            sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed, manualClaimRequired
-        }), [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, manualClaimRequired])
+        statusResolver({ sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed, manualClaimRequired }),
+        [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, manualClaimRequired])
 
     const isTerminal = htlcStatus === HTLCStatus.RedeemCompleted || htlcStatus === HTLCStatus.Refunded
     const { provider } = useWallet(source_network, 'autofill')
@@ -260,7 +259,7 @@ export function AtomicProvider({ children }) {
 
         const timer = setTimeout(() => {
             updateCommitState(hashlock, { manualClaimRequired: true });
-        },  1000)//2 * 60 * 1000);
+        }, 1000)//2 * 60 * 1000);
 
         return () => clearTimeout(timer);
     }, [sourceDetails?.status, sourceDetails?.secret, solverLockDetails?.status, hashlock])
