@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
 import { parseUnits } from 'viem'
 import { SwapFormValues } from '../components/DTOs/SwapFormValues'
-import LayerSwapApiClient, { SwapQuote, SwapQuoteResponse } from '../lib/trainApiClient'
+import TrainApiClient, { SwapQuote, SwapQuoteResponse } from '../lib/trainApiClient'
 import { ApiResponse } from '../Models/ApiResponse'
 import { Token } from '../Models/Network'
 import { create } from 'zustand'
+
+const apiClient = new TrainApiClient()
 
 type UseQuoteData = {
     quote?: SwapQuote
@@ -105,7 +107,6 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
         }
     }, [convertedAmount, debouncedAmount])
 
-    const apiClient = new LayerSwapApiClient()
 
     const canGetQuote = from && to && fromCurrency && toCurrency && debouncedAmount
 

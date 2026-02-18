@@ -6,7 +6,6 @@ import { useRouter } from "next/router";
 import { IntercomProvider } from 'react-use-intercom';
 import { SWRConfig } from 'swr'
 import ProgressBar from "@badrap/bar-of-progress";
-import DatadogInit from "../components/datadog-init";
 import Router from "next/router";
 import { useEffect } from "react";
 import { PostHogProvider } from 'posthog-js/react'
@@ -59,7 +58,6 @@ function App({ Component, pageProps }) {
           dedupingInterval: 5000,
         }}
       >
-        <DatadogInit />
         <IntercomProvider appId={INTERCOM_APP_ID} initializeDelay={2500}>
           <Component key={router.asPath} {...pageProps} />
         </IntercomProvider>

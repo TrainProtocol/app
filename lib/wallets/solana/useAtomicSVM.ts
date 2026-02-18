@@ -5,7 +5,7 @@ import { CreateHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams 
 import { TokenAnchorHtlc } from "./tokenAnchorHTLC"
 import { NativeAnchorHtlc } from "./nativeAnchorHTLC"
 import { lockTransactionBuilder, phtlcTransactionBuilder } from "./transactionBuilder"
-import LayerSwapApiClient from "../../trainApiClient"
+import TrainApiClient from "../../trainApiClient"
 import { toHex } from "viem"
 import { AnchorWallet } from "@solana/wallet-adapter-react"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
@@ -142,7 +142,7 @@ export default function useAtomicSVM(params: UseAtomicSVMParams): BaseAtomicFunc
 
             if (signature) {
                 const sigBase64 = Buffer.from(signature).toString("base64");
-                const apiClient = new LayerSwapApiClient()
+                const apiClient = new TrainApiClient()
 
                 await apiClient.AddLockSig({
                     signature: sigBase64,

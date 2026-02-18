@@ -1,6 +1,7 @@
 import { WalletAccount } from 'starknet';
 import { ClaimParams, LockParams, CreateHTLCParams, RefundParams } from './phtlc';
 import { LockDetails } from './phtlc/PHTLC';
+import { RecoveredSwapData } from '@/lib/wallets/utils/atomicTypes';
 
 export type InternalConnector = {
     name: string,
@@ -75,6 +76,7 @@ export type AtmoicFunctions = {
     getUserLockDetails: (args: LockParams) => Promise<LockDetails | null>,
     secureGetDetails?: (args: LockParams) => Promise<LockDetails | null>,
     getSolverLockDetails?: (args: LockParams) => Promise<LockDetails | null>
+    recoverSwap?: (txHash: string, chainId: string) => Promise<RecoveredSwapData>
 }
 
 export type SelectAccountProps = {

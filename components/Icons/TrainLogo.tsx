@@ -1,6 +1,6 @@
 import { SVGProps } from "react";
 
-const LayerswapLogo = (props: SVGProps<SVGSVGElement>) => {
+const TrainLogo = (props: SVGProps<SVGSVGElement>) => {
     return (
         <>
             <svg xmlns="http://www.w3.org/2000/svg" width="221" height="70" viewBox="0 0 221 70" fill="none" {...props}>
@@ -16,4 +16,4 @@ const LayerswapLogo = (props: SVGProps<SVGSVGElement>) => {
     )
 }
 
-export default LayerswapLogo;
+export default TrainLogo;

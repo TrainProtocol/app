@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useIntercom } from "react-use-intercom";
 import SubmitButton from "./buttons/submitButton";
 import CardContainer from "./cardContainer";
-import LayerSwapLogo from "./Icons/TrainLogo";
+import TrainLogo from "./Icons/TrainLogo";
 import TwitterLogo from "./Icons/TwitterLogo";
 
 function MaintananceContent(props) {
@@ -16,7 +16,7 @@ function MaintananceContent(props) {
     const twitterLogo = <TwitterLogo className="h-6 w-6" />
     return (
         <div className="flex items-stretch flex-col">
-            <LayerSwapLogo className="h-8 mt-4 md:hidden w-auto text-primary-logoColor fill-primary-text" />
+            <TrainLogo className="h-8 mt-4 md:hidden w-auto text-primary-logoColor fill-primary-text" />
             <CardContainer {...props} >
                 <div className="flex flex-col justify-center space-y-12 p-10 text-primary-text md:min-h-fit min-h-[400px]">
                     <h1 className="text-xl tracking-tight text-gray-200">

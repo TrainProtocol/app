@@ -4,11 +4,11 @@ import { AxiosInstance, Method } from "axios";
 import { ApiResponse } from "../Models/ApiResponse";
 import { Network } from "../Models/Network";
 
-export default class LayerSwapApiClient {
-    static apiBaseEndpoint?: string = AppSettings.LayerswapApiUri;
+export default class TrainApiClient {
+    static apiBaseEndpoint?: string = AppSettings.TrainApiUri;
     _unauthInterceptor: AxiosInstance
     constructor() {
-        this._unauthInterceptor = InitializeUnauthInstance(LayerSwapApiClient.apiBaseEndpoint)
+        this._unauthInterceptor = InitializeUnauthInstance(TrainApiClient.apiBaseEndpoint)
     }
 
     fetcher = (url: string) => this.UnauthenticatedRequest<any>("GET", url)
@@ -32,7 +32,7 @@ export default class LayerSwapApiClient {
     }
 
     private async UnauthenticatedRequest<T>(method: Method, endpoint: string, data?: any, header?: {}): Promise<T> {
-        let uri = LayerSwapApiClient.apiBaseEndpoint + "/api/v1" + endpoint;
+        let uri = TrainApiClient.apiBaseEndpoint + "/api/v1" + endpoint;
         return await this._unauthInterceptor(uri, { method: method, data: data, headers: { 'Access-Control-Allow-Origin': '*', ...(header ? header : {}) } })
             .then(res => {
                 return res?.data;

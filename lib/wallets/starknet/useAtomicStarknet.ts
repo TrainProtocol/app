@@ -6,17 +6,17 @@ import { LockDetails } from "../../../Models/phtlc/PHTLC"
 import PHTLCAbi from "../../abis/atomic/STARKNET_PHTLC.json"
 import ETHABbi from "../../abis/STARKNET_ETH.json"
 import formatAmount from "../../formatAmount"
-import LayerSwapApiClient from "../../trainApiClient"
+import TrainApiClient from "../../trainApiClient"
 import { calculateEpochTimelock } from "../utils/calculateTimelock"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
-import { secretToHashlock } from "@/lib/htlc/secretDerivation"
 import { generateRandomId } from "../utils/atomicHelpers"
-import { AtomicResult, BaseAtomicFunctions } from "../utils/atomicTypes"
+import { BaseAtomicFunctions } from "../utils/atomicTypes"
 
 export interface UseAtomicStarknetParams {
     starknetWallet: any
     nodeUrl: string | undefined
 }
+const apiClient = new TrainApiClient()
 
 export default function useAtomicStarknet(params: UseAtomicStarknetParams): BaseAtomicFunctions {
     const { starknetWallet, nodeUrl } = params
@@ -257,7 +257,6 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Base
             }
         }
         const signature = await starknetWallet?.metadata?.starknetAccount.signMessage(addlockData)
-        const apiClient = new LayerSwapApiClient()
 
         try {
             await apiClient.AddLockSig({

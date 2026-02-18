@@ -117,9 +117,9 @@ const StarknetProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
         defaultConnectors.push(ArgentMobileConnector.init({
             options: {
-                dappName: 'Layerswap',
+                dappName: 'Train',
                 projectId: WALLETCONNECT_PROJECT_ID,
-                url: 'https://www.layerswap.io/app/',
+                url: 'https://app.train.tech/',
                 description: 'Move crypto across exchanges, blockchains, and wallets.'
             }
         }))

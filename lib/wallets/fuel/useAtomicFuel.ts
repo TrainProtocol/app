@@ -4,7 +4,7 @@ import { Contract } from "@fuel-ts/program"
 import { Account, B256Coder, BigNumberCoder, bn, Provider, sha256 } from 'fuels'
 import { CreateHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
 import contractAbi from "../../abis/atomic/FUEL_PHTLC.json"
-import LayerSwapApiClient from "../../trainApiClient"
+import TrainApiClient from "../../trainApiClient"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
 import { BaseAtomicFunctions } from "../utils/atomicTypes"
@@ -15,6 +15,7 @@ export interface UseAtomicFuelParams {
     wallet: Account | null
     fuelProvider: Provider | null
 }
+const apiClient = new TrainApiClient()
 
 export default function useAtomicFuel(params: UseAtomicFuelParams): BaseAtomicFunctions {
     const { wallet, fuelProvider } = params
@@ -150,7 +151,6 @@ export default function useAtomicFuel(params: UseAtomicFuelParams): BaseAtomicFu
         if (!wallet) throw new Error('Wallet not connected')
 
         const signature = await wallet.signMessage(message);
-        const apiClient = new LayerSwapApiClient()
 
         try {
             await apiClient.AddLockSig({

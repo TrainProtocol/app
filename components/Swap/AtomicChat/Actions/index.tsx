@@ -15,12 +15,16 @@ import NetworkSettings from "@/lib/NetworkSettings";
 import { Widget } from "@/components/Widget/Index";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
+import { Drawer } from "@/components/Modal/vaul";
+
+type SwapViewType = "widget" | "contained"
 
 type ActionsProps = {
     quote?: SwapQuote
+    type: SwapViewType
 }
 
-export const Actions: FC<ActionsProps> = ({ quote }) => {
+export const Actions: FC<ActionsProps> = ({ quote, type }) => {
     const { htlcStatus: commitStatus, error } = useAtomicState()
 
     return (
@@ -31,6 +35,7 @@ export const Actions: FC<ActionsProps> = ({ quote }) => {
                     commitStatus={commitStatus}
                     error={error?.message}
                     quote={quote}
+                    type={type}
                 />
             </DestinationWalletWrapper>
         </>
@@ -41,9 +46,10 @@ type ResolveActionProps = {
     commitStatus: HTLCStatus
     error: string | undefined
     quote?: SwapQuote
+    type: SwapViewType
 }
 
-const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote }) => {
+const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote, type }) => {
     const { setError } = useAtomicState()
 
     if (error) {
@@ -56,9 +62,9 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote }) =
 
     switch (commitStatus) {
         case HTLCStatus.RedeemCompleted:
-            return <TerminalActions variant="success" />
+            return <TerminalActions variant="success" type={type} />
         case HTLCStatus.Refunded:
-            return <TerminalActions variant="refund" />
+            return <TerminalActions variant="refund" type={type} />
         case HTLCStatus.TimelockExpired:
             return <UserRefundAction />
         case HTLCStatus.ManualClaimRequired:
@@ -103,16 +109,28 @@ export const ActionWrapper: FC<{ children: React.ReactNode }> = ({ children }) =
     </Widget.Footer>
 }
 
-const TerminalActions: FC<{ variant: 'success' | 'refund' }> = ({ variant }) => {
+const TerminalActions: FC<{ variant: 'success' | 'refund'; type: SwapViewType }> = ({ variant, type }) => {
     const { destRedeemTx, destination_network, refundTxId, source_network } = useAtomicState()
     const goHome = useGoHome()
 
     const isSuccess = variant === 'success'
+    const isModal = type === 'contained'
     const networkSlug = isSuccess ? destination_network?.slug : source_network?.slug
     const txHash = isSuccess ? destRedeemTx : refundTxId
     const txLink = networkSlug && txHash
         ? getExplorerUrl(NetworkSettings.KnownSettings[networkSlug]?.TransactionExplorerTemplate, txHash)
         : undefined
+
+    const swapMoreButton = (
+        <SubmitButton
+            type="button"
+            buttonStyle={isSuccess ? "secondary" : "filled"}
+            onClick={isModal ? undefined : () => goHome()}
+            icon={<Home className="h-5 w-5" />}
+        >
+            Swap More
+        </SubmitButton>
+    )
 
     return (
         <div className="flex flex-row text-primary-text text-base space-x-2">
@@ -130,14 +148,13 @@ const TerminalActions: FC<{ variant: 'success' | 'refund' }> = ({ variant }) => 
                 </div>
             )}
             <div className="grow">
-                <SubmitButton
-                    type="button"
-                    buttonStyle={isSuccess ? "secondary" : "filled"}
-                    onClick={() => goHome()}
-                    icon={<Home className="h-5 w-5" />}
-                >
-                    Swap More
-                </SubmitButton>
+                {isModal ? (
+                    <Drawer.Close asChild>
+                        {swapMoreButton}
+                    </Drawer.Close>
+                ) : (
+                    swapMoreButton
+                )}
             </div>
         </div>
     )

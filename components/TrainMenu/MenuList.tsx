@@ -1,4 +1,4 @@
-import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info, Settings2, Zap } from "lucide-react";
+import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info, Settings2, Zap, RotateCcw } from "lucide-react";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
@@ -53,6 +53,10 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
 
                     <Menu.Item onClick={() => goToStep(MenuStep.RPCConfiguration)} icon={<Settings2 className="h-5 w-5" />} >
                         RPC Configuration
+                    </Menu.Item>
+
+                    <Menu.Item onClick={() => goToStep(MenuStep.RecoverSwap)} icon={<RotateCcw className="h-5 w-5" />} >
+                        Recover Swap
                     </Menu.Item>
 
                     <Menu.ToggleItem

@@ -30,7 +30,7 @@ const Swap: FC<ContainerProps> = ({ type }) => {
             <Widget.Content>
                 <AtomicContent quote={quote} isQuoteLoading={isQuoteLoading} />
             </Widget.Content>
-            <Actions quote={quote} />
+            <Actions quote={quote} type={type} />
         </>
     )
 }

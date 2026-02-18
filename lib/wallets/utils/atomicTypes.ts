@@ -13,6 +13,20 @@ export interface LockResult {
     result: any
 }
 
+export interface RecoveredSwapData {
+    hashlock: string
+    sender: string
+    recipient: string
+    srcChain: string
+    dstChain: string
+    token: string
+    amount: bigint
+    dstAddress: string
+    dstAmount: bigint
+    dstToken: string
+    srcContract: string
+}
+
 // Base interface with core methods all chains implement
 export interface BaseAtomicFunctions {
     createHTLC: (params: CreateHTLCParams) => Promise<AtomicResult | null | undefined>
@@ -21,4 +35,5 @@ export interface BaseAtomicFunctions {
     getUserLockDetails: (params: LockParams) => Promise<LockDetails | null>
     secureGetDetails?: (params: LockParams) => Promise<LockDetails | null>
     getSolverLockDetails: (params: LockParams) => Promise<LockDetails | null>
+    recoverSwap?: (txHash: string, chainId: string) => Promise<RecoveredSwapData>
 }
