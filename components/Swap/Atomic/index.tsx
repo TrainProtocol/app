@@ -20,6 +20,7 @@ import { useSettingsState } from "../../../context/settings";
 import { resolvePersistantQueryParams } from "../../../helpers/querryHelper";
 import { useSecretDerivation } from "../../../context/secretDerivationContext";
 import { useSwapStore } from "../../../stores/swapStore";
+import { formatUnits } from "viem";
 
 const AtomicPage = dynamicWithRetries(
     () => import("../AtomicChat/index.tsx") as unknown as Promise<{ default: React.ComponentType<any> }>,
@@ -92,6 +93,7 @@ export default function Form() {
             if (!destination_provider) {
                 throw new Error("No destination_provider")
             }
+            const formattedReceiveAmount = quote?.receiveAmount ? formatUnits(BigInt(quote?.receiveAmount), values.toCurrency.decimals) : undefined
 
             setTempSwap({
                 requestedAmount: values.amount,
@@ -103,7 +105,7 @@ export default function Form() {
                 solver: quote?.sourceSolverAddress,
                 srcContract: quote?.route?.source?.tokenContract ?? undefined,
                 destContract: quote?.route?.destination?.tokenContract ?? undefined,
-                receiveAmount: quote?.receiveAmount,
+                receiveAmount: formattedReceiveAmount,
             })
             setSwapModalOpen(true)
             setPolling(false)
