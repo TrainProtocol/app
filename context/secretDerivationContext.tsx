@@ -17,8 +17,7 @@ interface SecretDerivationContextValue {
   method: DerivationMethod | null;
   isLoggedIn: boolean;
   loginWallet: Wallet | null;
-  loginWithPasskey: (options?: { createIfMissing?: boolean }) => Promise<void>;
-  loginWithNewPasskey: (label?: string) => Promise<void>;
+  loginWithPasskey: (options?: { forceCreate?: boolean; label?: string; crossDevice?: boolean }) => Promise<void>;
   loginWithWallet: (config: any, wallet: Wallet) => Promise<void>;
   logout: () => void;
   isPasskeySupported: boolean;
@@ -73,10 +72,28 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
     });
   }, [setState]);
 
-  const loginWithPasskey = useCallback(async (options?: { createIfMissing?: boolean }) => {
+  const loginWithPasskey = useCallback(async (options?: { forceCreate?: boolean; label?: string; crossDevice?: boolean }) => {
     setState({ derivationStatus: 'signing', derivationMessage: 'Confirm with your passkey' });
     try {
-      const { key, credentialId } = await deriveKeyWithPasskey(options);
+      let key: Buffer;
+      let credentialId: string;
+
+      if (options?.forceCreate) {
+        // Force create a new passkey (tries PRF during creation for single-prompt flow)
+        const result = await registerPasskey(true, options.label);
+        if (result.key) {
+          key = result.key;
+          credentialId = result.credentialId;
+        } else {
+          // PRF not available during creation, need one more prompt
+          ({ key, credentialId } = await deriveKeyWithPasskey());
+        }
+      } else {
+        // crossDevice: only authenticate with existing passkey (no auto-creation)
+        // Normal: use existing passkey or create if missing
+        ({ key, credentialId } = await deriveKeyWithPasskey({ createIfMissing: !options?.crossDevice }));
+      }
+
       setState({
         method: 'passkey',
         isLoggedIn: true,
@@ -84,36 +101,6 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
         storedDerivedKey: key,
       });
       useSecretDerivationStore.getState().addPasskeyCredential(credentialId);
-    } finally {
-      setState({ derivationStatus: 'idle', derivationMessage: '' });
-    }
-  }, [setState]);
-
-  const loginWithNewPasskey = useCallback(async (label?: string) => {
-    setState({ derivationStatus: 'signing', derivationMessage: 'Confirm with your passkey' });
-    try {
-      const result = await registerPasskey(true, label);
-
-      if (result.key) {
-        // PRF worked during registration - single prompt!
-        setState({
-          method: 'passkey',
-          isLoggedIn: true,
-          loginWallet: null,
-          storedDerivedKey: result.key,
-        });
-        useSecretDerivationStore.getState().addPasskeyCredential(result.credentialId);
-      } else {
-        // PRF not available during creation, need one more prompt
-        const { key, credentialId } = await deriveKeyWithPasskey();
-        setState({
-          method: 'passkey',
-          isLoggedIn: true,
-          loginWallet: null,
-          storedDerivedKey: key,
-        });
-        useSecretDerivationStore.getState().addPasskeyCredential(credentialId);
-      }
     } finally {
       setState({ derivationStatus: 'idle', derivationMessage: '' });
     }
@@ -197,7 +184,6 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
     isLoggedIn,
     loginWallet,
     loginWithPasskey,
-    loginWithNewPasskey,
     loginWithWallet,
     logout,
     isPasskeySupported,

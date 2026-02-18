@@ -12,6 +12,7 @@ import FormButton from "../FormButton";
 import { hasRequiredDestinationWallet } from "../../../lib/wallets/utils/destinationWalletUtils";
 import { SwapQuote } from "../../../lib/trainApiClient";
 import QuoteDetails from "@/components/FeeDetails";
+import ReverseRouteButton from "./ReverseRouteButton";
 
 type SwapFormProps = {
     polling?: boolean
@@ -47,6 +48,7 @@ const SwapForm: FC<SwapFormProps> = ({ polling = true, onQuoteChange }) => {
                     {!(query?.hideFrom && values?.from) && <div className="flex flex-col w-full">
                         <SourcePicker quote={quote} isQuoteLoading={isQuoteLoading} />
                     </div>}
+                    {!(query?.hideFrom && values?.from) && !(query?.hideTo && values?.to) && <ReverseRouteButton />}
                     {!(query?.hideTo && values?.to) && <div className="flex flex-col w-full">
                         <DestinationPicker quote={quote} isQuoteLoading={isQuoteLoading} />
                     </div>}

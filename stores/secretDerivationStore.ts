@@ -1,17 +1,9 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Wallet } from '@/Models/WalletProvider';
-import { DerivationMethod } from '@/lib/htlc/secretDerivation';
+import { DerivationMethod, PrfSupportResult } from '@/lib/htlc/secretDerivation';
 
 export type DerivationStatus = 'idle' | 'signing';
-
-export interface PrfSupportResult {
-  supported: boolean;
-  reason?: string;
-  platformAuthenticatorAvailable: boolean;
-  prfCapabilityReported: boolean | null;
-  platformHint?: 'windows_hello_no_prf' | 'unsupported_browser';
-}
 
 interface SecretDerivationState {
   // Persisted state (in localStorage)

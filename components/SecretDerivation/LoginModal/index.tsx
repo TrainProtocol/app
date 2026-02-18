@@ -12,6 +12,7 @@ import { Steps, Step } from '@/components/Step';
 import OptionSelect from './OptionSelect';
 import IconButton from '@/components/buttons/iconButton';
 import WalletSelect from './SelectWallet';
+import { usePasskeyCredentialIds } from '@/stores/secretDerivationStore';
 
 type LoginStep = 'pick' | 'passkey_recovery' | 'wallet_select' | 'signing';
 
@@ -28,7 +29,9 @@ interface LoginModalProps {
 
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const config = useConfig();
-  const { loginWithPasskey, loginWithNewPasskey, loginWithWallet, derivationMessage } = useSecretDerivation();
+  const { loginWithPasskey, loginWithWallet, derivationMessage } = useSecretDerivation();
+  const storedPasskeyIds = usePasskeyCredentialIds();
+  const hasStoredPasskeys = storedPasskeyIds.length > 0;
   const { currentStep, goToStep, goBack, canGoBack, reset, isStep } = useSteps<LoginStep>({ initial: 'pick' });
   const [passkeyError, setPasskeyError] = useState<string | null>(null);
   const [signingWallet, setSigningWallet] = useState<Wallet | null>(null);
@@ -46,24 +49,17 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     onClose();
   };
 
-  const startPasskeyLogin = async () => {
+  const startPasskeyLogin = async (options?: { forceCreate?: boolean; crossDevice?: boolean }) => {
     goToStep('signing');
     setPasskeyError(null);
     try {
-      await loginWithPasskey({ createIfMissing: true });
-      closeAndReset();
-    } catch (e) {
-      const message = mapPasskeyError(e);
-      setPasskeyError(message);
-      toast.error(message);
-      goToStep('passkey_recovery', 'back');
-    }
-  };
-
-  const startCreateNewPasskey = async (label?: string) => {
-    goToStep('signing');
-    try {
-      await loginWithNewPasskey(label);
+      if (options?.forceCreate) {
+        await loginWithPasskey({ forceCreate: true, label: 'Train' });
+      } else if (options?.crossDevice) {
+        await loginWithPasskey({ crossDevice: true });
+      } else {
+        await loginWithPasskey();
+      }
       closeAndReset();
     } catch (e) {
       const message = mapPasskeyError(e);
@@ -127,14 +123,15 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         <Steps currentStep={currentStep}>
 
           <Step name="pick">
-            <OptionSelect onPasskeyLogin={startPasskeyLogin} goToStep={goToStep} onConnectFinish={onConnectFinish} />
+            <OptionSelect onPasskeyLogin={() => startPasskeyLogin(hasStoredPasskeys ? {} : { forceCreate: true })} goToStep={goToStep} onConnectFinish={onConnectFinish} />
           </Step>
 
           <Step name="passkey_recovery">
             <PasskeyChoice
               error={passkeyError || ''}
-              onTryAgain={startPasskeyLogin}
-              onCreateNew={startCreateNewPasskey}
+              onTryAgain={() => startPasskeyLogin({ forceCreate: true })}
+              onCreateNew={() => startPasskeyLogin({ forceCreate: true })}
+              onCrossDeviceLogin={() => startPasskeyLogin({ crossDevice: true })}
             />
           </Step>
 

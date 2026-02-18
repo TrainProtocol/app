@@ -1,7 +1,7 @@
 // lib/htlc/secretDerivation/passkeyService.ts
 
 import { sha256 } from "@noble/hashes/sha2.js";
-import { deriveKeyMaterial } from './keyDerivation';
+import { deriveKeyMaterial, IDENTITY_SALT } from './keyDerivation';
 import { useSecretDerivationStore } from '@/stores/secretDerivationStore';
 
 // Native base64URL utilities (replacing @simplewebauthn/browser)
@@ -27,8 +27,6 @@ const bufferToBase64URLString = (buffer: ArrayBuffer): string => {
   // Convert to base64 then to base64url
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 };
-
-const IDENTITY_SALT = 'train-identity-v1';
 
 /** Get stored passkey credential ID from the login store (for use outside React). */
 export const getStoredCredentialId = (): string | null => {
@@ -236,7 +234,12 @@ export const deriveKeyWithPasskey = async (options?: { createIfMissing?: boolean
     if (!createIfMissing) {
       throw new Error('No passkey found for this site. Create one instead.');
     }
-    await registerPasskey();
+    // Force create — stored credential IDs may be stale (passkey deleted from device)
+    const result = await registerPasskey(true);
+    if (result.key) {
+      return { key: result.key, credentialId: result.credentialId };
+    }
+    // PRF not available during creation, need a get() for PRF
     cred = (await navigator.credentials.get({ publicKey })) as PublicKeyCredential | null;
     if (!cred) {
       throw new Error('Passkey authentication was cancelled or no passkey is available');

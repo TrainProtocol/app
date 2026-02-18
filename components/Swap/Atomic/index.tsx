@@ -122,7 +122,7 @@ export default function Form() {
             {
                 hashlock &&
                 !swapModalOpen &&
-                <div className="cursor-pointer absolute z-10 mt-4 ml-6">
+                <div className="cursor-pointer absolute z-10 mt-2.5 ml-4">
                     <PendingSwap key="pendingSwap" onClick={() => handleShowSwapModal(true)} />
                 </div>
             }

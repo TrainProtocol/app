@@ -4,13 +4,11 @@ import SubmitButton from '../../buttons/submitButton';
 interface PasskeyChoiceProps {
   error: string;
   onTryAgain: () => void;
-  onCreateNew: (label?: string) => void;
+  onCreateNew: () => void;
+  onCrossDeviceLogin: () => void;
 }
 
-export function PasskeyChoice({ error, onTryAgain, onCreateNew }: PasskeyChoiceProps) {
-  const handleCreateNew = () => {
-    onCreateNew('Train');
-  };
+export function PasskeyChoice({ error, onTryAgain, onCreateNew, onCrossDeviceLogin }: PasskeyChoiceProps) {
 
   return (
     <div className="flex flex-col gap-5">
@@ -39,11 +37,19 @@ export function PasskeyChoice({ error, onTryAgain, onCreateNew }: PasskeyChoiceP
 
         <SubmitButton
           type="button"
-          onClick={handleCreateNew}
+          onClick={onCreateNew}
         >
           Create new passkey
         </SubmitButton>
       </div>
+
+      <button
+        type="button"
+        onClick={onCrossDeviceLogin}
+        className="text-sm text-secondary-text hover:text-primary-text transition-colors text-center"
+      >
+        I have a passkey on another device
+      </button>
     </div>
   );
 }

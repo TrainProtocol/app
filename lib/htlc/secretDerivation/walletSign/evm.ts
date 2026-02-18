@@ -2,17 +2,19 @@
 
 import { getAccount } from '@wagmi/core';
 import { Config } from 'wagmi';
-import { deriveKeyMaterial } from '../keyDerivation';
+import { deriveKeyMaterial, IDENTITY_SALT } from '../keyDerivation';
 
-const version = process.env.NEXT_PUBLIC_API_VERSION;
-const IDENTITY_SALT = 'train-identity-v1';
+const isSandbox = process.env.NEXT_PUBLIC_API_VERSION === 'sandbox';
+const SIGNING_CHAIN_ID = isSandbox ? 11155111 : 1;
+const SIGNING_CHAIN_HEX = isSandbox ? '0xAA36A7' : '0x1';
+const SIGNING_CHAIN_NAME = isSandbox ? 'Sepolia' : 'Mainnet';
 
 // EIP-712 typed data for signature (chainId=1 for consistent signatures across chains)
 export const getEvmTypedData = () => ({
   domain: {
     name: 'Train',
     version: '1',
-    chainId: version == 'sandbox' ? 11155111 : 1,
+    chainId: SIGNING_CHAIN_ID,
   },
   types: {
     Message: [
@@ -36,12 +38,11 @@ export const deriveKeyFromEvmSignature = async (
   }
 
   const provider = await account.connector.getProvider() as { request: (args: { method: string; params: unknown[] }) => Promise<string> };
-  if (account.chainId !== (version == 'sandbox' ? 11155111 : 1)) {
+  if (account.chainId !== SIGNING_CHAIN_ID) {
     try {
-      const chainId = version == 'sandbox' ? '0xAA36A7' : '0x1';
-      await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId }] });
+      await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: SIGNING_CHAIN_HEX }] });
     } catch {
-      throw new Error(`Please switch to ${version == 'sandbox' ? 'Sepolia' : 'Mainnet'} in your wallet and try again`);
+      throw new Error(`Please switch to ${SIGNING_CHAIN_NAME} in your wallet and try again`);
     }
   }
 
@@ -52,7 +53,7 @@ export const deriveKeyFromEvmSignature = async (
       params: [address, JSON.stringify(getEvmTypedData())],
     });
   } catch {
-    throw new Error(`Signing failed. Please switch to ${version == 'sandbox' ? 'Sepolia' : 'Mainnet'} in your wallet and try again`);
+    throw new Error(`Signing failed. Please switch to ${SIGNING_CHAIN_NAME} in your wallet and try again`);
   }
 
   const signatureHex = signature.startsWith('0x') ? signature.slice(2) : signature;

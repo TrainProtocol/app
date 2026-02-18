@@ -7,8 +7,14 @@ import { useSecretDerivationStore, usePasskeyCredentialId, usePasskeyCredentialI
 import { useLoginModalStore } from "@/stores/loginModalStore"
 import { Address } from "@/lib/address"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
-import { formatPasskeyIdForDisplay, registerPasskey } from "@/lib/htlc/secretDerivation/passkeyService"
+import { formatPasskeyIdForDisplay } from "@/lib/htlc/secretDerivation/passkeyService"
 import WalletIcon from "../Icons/WalletIcon"
+
+const usePasskeyDisplayId = () => {
+    const method = useSecretDerivationStore((s) => s.method)
+    const credId = usePasskeyCredentialId()
+    return method === 'passkey' && credId ? formatPasskeyIdForDisplay(credId) : null
+}
 
 interface LoginWallet {
     address: string
@@ -106,20 +112,7 @@ const UserStatusContent = ({
         toast.success('Passkey removed from this device');
     };
 
-    const handleAddPasskey = async () => {
-        onClose?.();
-        try {
-            await registerPasskey(true, 'Train');
-        } catch (e) {
-            const errorMsg = e instanceof Error ? e.message : 'Failed to add passkey';
-            toast.error(errorMsg);
-        }
-    };
-
-    const storedPasskeyCredId = usePasskeyCredentialId()
-    const passkeyDisplayId = method === 'passkey' && storedPasskeyCredId
-        ? formatPasskeyIdForDisplay(storedPasskeyCredId)
-        : null
+    const passkeyDisplayId = usePasskeyDisplayId()
 
     return (
         <div className={`flex flex-col ${showHeader ? 'gap-3' : 'gap-2'}`}>
@@ -153,18 +146,6 @@ const UserStatusContent = ({
                             )}
                         </div>
                     ))}
-                    {credentialIds.length < 2 && (
-                        <div className="text-amber-200/80 text-xs bg-amber-900/30 rounded-lg px-3 py-2">
-                            Add a backup passkey on another device for safety.
-                        </div>
-                    )}
-                    <button
-                        type="button"
-                        onClick={handleAddPasskey}
-                        className="text-sm text-primary-text underline text-left"
-                    >
-                        Add passkey on another device
-                    </button>
                 </div>
             )}
 
@@ -199,10 +180,6 @@ export const UserStatusHeader = () => {
     const [openDrawer, setOpenDrawer] = useState(false)
     const [openPopover, setOpenPopover] = useState(false)
     const { isMobile } = useWindowDimensions()
-    const storedPasskeyCredId = usePasskeyCredentialId()
-    const passkeyDisplayId = method === 'passkey' && storedPasskeyCredId
-        ? formatPasskeyIdForDisplay(storedPasskeyCredId)
-        : null
 
     if (!isLoggedIn) {
         return (
@@ -288,10 +265,7 @@ export const UserStatusMenu = () => {
     const { isLoggedIn, method, loginWallet, logout } = useSecretDerivationStore()
     const openLoginModal = useLoginModalStore((s) => s.open)
     const [openModal, setOpenModal] = useState(false)
-    const storedPasskeyCredId = usePasskeyCredentialId()
-    const passkeyDisplayId = method === 'passkey' && storedPasskeyCredId
-        ? formatPasskeyIdForDisplay(storedPasskeyCredId)
-        : null
+    const passkeyDisplayId = usePasskeyDisplayId()
 
     if (!isLoggedIn) {
         return (
