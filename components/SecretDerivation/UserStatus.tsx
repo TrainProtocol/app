@@ -17,7 +17,6 @@ const usePasskeyDisplayId = () => {
 
 interface LoginWallet {
     address: string
-    chainId?: string | number
     providerName: string
     displayName?: string
 }

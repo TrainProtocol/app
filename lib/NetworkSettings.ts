@@ -29,7 +29,6 @@ const destinationOrder = [
     KnownInternalNames.Networks.EthereumMainnet,
     KnownInternalNames.Networks.PolygonMainnet,
     KnownInternalNames.Networks.AvalancheMainnet,
-    KnownInternalNames.Networks.ImmutableXMainnet,
     KnownInternalNames.Networks.LoopringMainnet,
     KnownInternalNames.Networks.BNBChainMainnet,
     KnownInternalNames.Networks.MantleMainnet,
@@ -56,7 +55,6 @@ const sourceOrder = [
     KnownInternalNames.Networks.PolygonZkMainnet,
     KnownInternalNames.Networks.KCCMainnet,
     KnownInternalNames.Networks.LoopringMainnet,
-    KnownInternalNames.Networks.ImmutableXMainnet,
     KnownInternalNames.Networks.BaseMainnet,
 ];
 
@@ -74,8 +72,6 @@ export default class NetworkSettings {
     ChainOrder?: number
 
     public static KnownSettings: { [network: string]: NetworkSettings } = {};
-
-    public static ImmutableXSettings: NetworkItemSettings
 
     private static _isInitialized = false;
     public static Initialize() {

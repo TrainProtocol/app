@@ -1,7 +1,7 @@
 # Train Protocol - Frontend
 
 ## What This App Is
-Cross-chain atomic swap platform (Next.js 15 + React 18 + TypeScript). Users swap assets across blockchains using HTLC contracts. Currently EVM is fully implemented; other chains (Solana, Starknet, TON, Fuel, Aztec, ImmutableX, ZKSync) will follow once EVM is end-to-end working.
+Cross-chain atomic swap platform (Next.js 15 + React 18 + TypeScript). Users swap assets across blockchains using HTLC contracts. Currently EVM is fully implemented; other chains (Solana, Starknet, TON, Fuel, Aztec) will follow once EVM is end-to-end working.
 
 ## App Main Flow
 1. **Auth**: User signs in via passkey or EVM wallet. Login securely stores a secret used for generating hashlocks in the HTLC flow.
