@@ -2,40 +2,16 @@
 // Single flow: choose method (if needed) → signing state until commit completes
 
 import { useSecretDerivation } from '@/context/secretDerivationContext';
-import { useEffect, useState } from 'react';
 import VaulModal from '../Modal/vaulModal';
 import { Loader2 } from 'lucide-react';
 
 interface SignFlowModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onComplete: () => void;
-  performCommit: () => Promise<void>;
 }
 
-export function SignFlowModal({ isOpen, onClose, onComplete, performCommit }: SignFlowModalProps) {
+export function SignFlowModal({ isOpen, onClose }: SignFlowModalProps) {
   const { derivationMessage } = useSecretDerivation();
-  const [commitStarted, setCommitStarted] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      setCommitStarted(false);
-    }
-  }, [isOpen]);
-
-  // useEffect(() => {
-  //   if (!isOpen || commitStarted) return;
-
-  //   setCommitStarted(true);
-  //   performCommit()
-  //     .then(() => {
-  //       onComplete();
-  //       onClose();
-  //     })
-  //     .catch(() => {
-  //       setCommitStarted(false);
-  //     });
-  // }, [isOpen, commitStarted, performCommit, onComplete, onClose]);
 
   return (
     <VaulModal

@@ -100,16 +100,15 @@ export type HTLCFromApi = {
         },
     }
     transactions: {
-        type: CommitTransaction,
+        type: HTLCTransaction,
         hash: string,
         network: string
     }[]
 }
 
-export enum CommitTransaction {
+export enum HTLCTransaction {
     HTLCLock = 'HTLCLock',
     HTLCRedeem = 'HTLCRedeem',
-    HTLCAddLockSig = 'HTLCAddLockSig'
 }
 
 export type Quote = {
