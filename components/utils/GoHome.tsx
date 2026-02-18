@@ -1,5 +1,5 @@
 import { FC } from "react";
-import LayerSwapLogo from "../Icons/TrainLogo";
+import TrainLogo from "../Icons/TrainLogo";
 import { useGoHome } from "../../hooks/useGoHome";
 import { useRouter } from "next/router";
 
@@ -25,7 +25,7 @@ const GoHomeButton: FC<Props> = (({ className, children }) => {
         <div onClick={onClick}>
             {
                 children ??
-                <LayerSwapLogo className={className ?? "h-8 w-auto text-primary-logoColor fill-primary-text"} />
+                <TrainLogo className={className ?? "h-8 w-auto text-primary-logoColor fill-primary-text"} />
             }
         </div>
     )

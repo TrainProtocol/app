@@ -6,14 +6,6 @@ import { BookOpen } from "lucide-react";
 const GLobalFooter = () => {
 
     const footerNavigation = {
-        main: [
-            { name: 'Product', href: '/' },
-            { name: 'Company', href: '/company' },
-            { name: 'FAQ', href: '/faq' },
-            { name: 'Privacy Policy', href: 'https://docs.layerswap.io/user-docs/more-information/privacy-policy' },
-            { name: 'Terms of Services', href: 'https://docs.layerswap.io/user-docs/more-information/terms-of-services' },
-            { name: 'Docs', href: 'https://docs.layerswap.io/onboarding-sdk' },
-        ],
         social: [
             {
                 name: 'Twitter',

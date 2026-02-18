@@ -22,8 +22,6 @@ const MotionSummary: FC<MotionSummaryProps> = ({ quote, isQuoteLoading = false }
         : quote?.receiveAmount
             ? formatUnits(quote.receiveAmount, destination_token?.decimals)
             : storedReceiveAmount
-                ? formatUnits(storedReceiveAmount, destination_token?.decimals)
-                : undefined
 
     return (
         <>

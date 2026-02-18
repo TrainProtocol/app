@@ -50,10 +50,10 @@ function SolanaProvider({ children }: { children: ReactNode }) {
             options: {
                 projectId: WALLETCONNECT_PROJECT_ID,
                 metadata: {
-                    name: 'Layerwap',
-                    description: 'Layerswap App',
-                    url: 'https://layerswap.io/app/',
-                    icons: ['https://www.layerswap.io/app/symbol.png'],
+                    name: 'Train',
+                    description: 'Train App',
+                    url: 'https://app.train.tech/',
+                    icons: ['https://app.train.tech/symbol.png'],
                 },
             }
         })

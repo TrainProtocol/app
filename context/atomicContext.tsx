@@ -5,7 +5,7 @@ import { LockDetails, LockStatus } from '../Models/phtlc/PHTLC';
 import { Network, Token } from '../Models/Network';
 import useSWR from 'swr';
 import { ApiResponse } from '../Models/ApiResponse';
-import { HTLCFromApi, CommitTransaction } from '../lib/trainApiClient';
+import { HTLCFromApi, HTLCTransaction } from '../lib/trainApiClient';
 import LightClient from '../lib/lightClient';
 import { useSwapStore } from '../stores/swapStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -127,7 +127,7 @@ export function AtomicProvider({ children }) {
     const manualClaimRequired = hashlock ? htlcStates[hashlock]?.manualClaimRequired : false;
     const destinationDetailsByLightClient = hashlock ? htlcStates[hashlock]?.destinationDetailsByLightClient : undefined
 
-    const destinationRedeemTx = manualClaimTxId ?? htlcFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCRedeem && t.network === destination)?.hash
+    const destinationRedeemTx = manualClaimTxId ?? htlcFromApi?.transactions.find(t => t.type === HTLCTransaction.HTLCRedeem && t.network === destination)?.hash
 
     const source_network = networks.find(n => n.slug.toUpperCase() === (source as string)?.toUpperCase())
     const destination_network = networks.find(n => n.slug.toUpperCase() === (destination as string)?.toUpperCase())

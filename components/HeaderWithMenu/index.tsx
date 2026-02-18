@@ -1,7 +1,7 @@
 import IconButton from "@/components/buttons/iconButton"
 import GoHomeButton from "@/components/utils/GoHome"
 import { ArrowLeft } from 'lucide-react'
-import LayerswapMenu from "@/components/LayerswapMenu"
+import TrainMenu from "@/components/TrainMenu"
 import { useQueryState } from "@/context/query"
 import { UserStatusHeader } from "../SecretDerivation"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
@@ -41,7 +41,7 @@ function HeaderWithMenu({ goBack }: { goBack: (() => void) | undefined | null })
                   : null
             }
             <WalletsHeader />
-            <LayerswapMenu />
+            <TrainMenu />
          </div>
       </div>
    )

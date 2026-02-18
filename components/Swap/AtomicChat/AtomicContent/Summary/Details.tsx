@@ -6,7 +6,7 @@ import { useAtomicState } from "@/context/atomicContext";
 import WalletIcon from "@/components/Icons/WalletIcon";
 import LockIcon from "@/components/Icons/LockIcon";
 import SignatureIcon from "@/components/Icons/SignatureIcon";
-import { CommitTransaction } from "@/lib/trainApiClient";
+import { HTLCTransaction } from "@/lib/trainApiClient";
 import NetworkSettings from "@/lib/NetworkSettings";
 
 const Details: FC = () => {
@@ -32,9 +32,9 @@ const Confirmed: FC = () => {
 }
 
 const AssetsReady: FC = () => {
-    const { destination_network, htlcFromApi: commitFromApi, destinationDetails, destinationDetailsByLightClient } = useAtomicState()
+    const { destination_network, htlcFromApi: htlcFromApi, destinationDetails, destinationDetailsByLightClient } = useAtomicState()
 
-    const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock)
+    const lpLockTx = htlcFromApi?.transactions.find(t => t.type === HTLCTransaction.HTLCLock)
     const description = (lpLockTx && destination_network) ? <p><span>Transaction ID:</span> <Link className="underline hover:no-underline" target="_blank" href={getExplorerUrl(NetworkSettings.KnownSettings[destination_network.slug]?.TransactionExplorerTemplate, lpLockTx?.hash)}>{shortenString(lpLockTx.hash)}</Link></p> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />
 
     return (

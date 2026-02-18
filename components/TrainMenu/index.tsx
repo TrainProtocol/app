@@ -12,6 +12,7 @@ import { Modal, ModalContent } from "@/components/Modal/modalWithoutAnimation";
 import RpcNetworkListView from "@/components/Settings/RpcNetworkListView";
 import NetworkRpcEditView from "@/components/Settings/NetworkRpcEditView";
 import { Network } from "@/Models/Network";
+import RecoverSwap from "@/components/Swap/Atomic/RecoverSwap";
 
 const Comp = () => {
     const router = useRouter();
@@ -24,6 +25,11 @@ const Comp = () => {
 
     const goBackToMenuStep = () => { goToStep(MenuStep.Menu, "back"); clearMenuPath(router) }
     const goBackToRpcConfiguration = () => { goToStep(MenuStep.RPCConfiguration, "back") }
+
+    const handleRecoverSwap = (hashlock: string) => {
+        setIsOpen(false)
+        router.push({ pathname: '/swap', query: { hashlock } })
+    }
 
     const handleGoToStep = (step: MenuStep, path?: string) => {
         goToStep(step)
@@ -90,6 +96,9 @@ const Comp = () => {
                                         <div>Loading...</div>
                                     )}
                                 </WizardItem>
+                                <WizardItem StepName={MenuStep.RecoverSwap} GoBack={goBackToMenuStep} inModal>
+                                    <RecoverSwap onRecovered={handleRecoverSwap} />
+                                </WizardItem>
                             </Wizard>
                         </div>
                     )}
@@ -99,7 +108,7 @@ const Comp = () => {
     </>
 }
 
-const LayerswapMenu: FC = () => {
+const TrainMenu: FC = () => {
     return (
         <FormWizardProvider noToolBar hideMenu initialStep={MenuStep.Menu}>
             <Comp />
@@ -129,4 +138,4 @@ export const clearMenuPath = (router: NextRouter) => {
     window.history.replaceState({ ...window.history.state, as: router.asPath, url: finalURI }, '', finalURI);
 }
 
-export default LayerswapMenu
+export default TrainMenu

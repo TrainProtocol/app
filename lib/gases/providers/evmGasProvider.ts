@@ -4,9 +4,7 @@ import { Network, Token, getNativeToken } from "../../../Models/Network"
 import { Provider } from "./types"
 import { PublicClient, TransactionSerializedEIP1559, encodeFunctionData, serializeTransaction } from "viem";
 import { erc20Abi } from "viem";
-import { datadogRum } from "@datadog/browser-rum";
 import formatAmount from "../../formatAmount";
-import EVM_ERC20PHTLC from "../../abis/atomic/EVMERC20_PHTLC.json";
 import EVM_PHTLC from "../../abis/atomic/EVM_PHTLC.json";
 import { ethers } from "ethers";
 
@@ -121,7 +119,6 @@ abstract class getEVMGas {
             const error = new Error(e)
             error.name = "GasPriceError"
             error.cause = e
-            datadogRum.addError(error);
         }
     }
     private async estimateFeesPerGas() {
@@ -132,7 +129,6 @@ abstract class getEVMGas {
             const error = new Error(e)
             error.name = "FeesPerGasError"
             error.cause = e
-            datadogRum.addError(error);
         }
     }
     private async estimateMaxPriorityFeePerGas() {
@@ -143,7 +139,6 @@ abstract class getEVMGas {
             const error = new Error(e)
             error.name = "MaxPriorityFeePerGasError"
             error.cause = e
-            datadogRum.addError(error);
         }
     }
 
@@ -211,7 +206,7 @@ abstract class getEVMGas {
 
         const contract = getContract({
             address: this.destination,
-            abi: EVM_ERC20PHTLC,
+            abi: EVM_PHTLC,
             client: this.publicClient,
         })
 

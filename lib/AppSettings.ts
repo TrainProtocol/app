@@ -1,6 +1,4 @@
 export default class AppSettings {
-    static LayerswapBridgeApiUri?: string = process.env.NEXT_PUBLIC_LS_BRIDGE_API;
-    static LayerswapApiUri?: string = process.env.NEXT_PUBLIC_TRAIN_API
-    static ExplorerURl: string = `https://www.layerswap.io/explorer/`
+    static TrainApiUri?: string = process.env.NEXT_PUBLIC_TRAIN_API
     static ApiVersion?: string = process.env.NEXT_PUBLIC_API_VERSION
 }

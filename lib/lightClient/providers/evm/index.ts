@@ -1,6 +1,5 @@
 import formatAmount from "../../../formatAmount"
 import _LightClient from "../../types/lightClient"
-import EVMERC20_PHTLC from '../../../abis/atomic/EVMERC20_PHTLC.json'
 import EVM_PHTLC from '../../../abis/atomic/EVM_PHTLC.json'
 import { LockDetails } from "../../../../Models/phtlc/PHTLC"
 import KnownInternalNames from "../../../knownIds"
@@ -85,7 +84,7 @@ export default class EVMLightClient extends _LightClient {
                         data: {
                             commitConfigs: {
                                 hashlock,
-                                abi: token.contractAddress ? EVMERC20_PHTLC : EVM_PHTLC,
+                                abi: EVM_PHTLC,
                                 contractAddress: atomicContract,
                             },
                         },
@@ -96,7 +95,7 @@ export default class EVMLightClient extends _LightClient {
 
                 this.worker.onmessage = async (event) => {
                     const result = event.data.data
-                    if(attempts > 15) {
+                    if (attempts > 15) {
                         reject('Could not get details via light client')
                         this.worker.terminate()
                         return

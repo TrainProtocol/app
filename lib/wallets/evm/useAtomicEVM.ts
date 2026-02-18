@@ -1,5 +1,5 @@
 import { Config, useAccount, UseAccountReturnType } from "wagmi"
-import { writeContract, simulateContract, readContract, waitForTransactionReceipt, getTransactionReceipt } from '@wagmi/core'
+import { writeContract, simulateContract, readContract, waitForTransactionReceipt, getTransactionReceipt, getTransaction } from '@wagmi/core'
 import { ethers } from "ethers"
 import { createPublicClient, http, Chain, zeroAddress, toHex, parseEventLogs } from "viem"
 import { Network } from "../../../Models/Network"
@@ -11,7 +11,7 @@ import formatAmount from "../../formatAmount"
 import resolveChain from "../../resolveChain"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
-import { BaseAtomicFunctions } from "../utils/atomicTypes"
+import { BaseAtomicFunctions, RecoveredSwapData } from "../utils/atomicTypes"
 import { Address } from "@/lib/address"
 import { Wallet, WalletProvider } from "@/Models/WalletProvider"
 
@@ -322,13 +322,55 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
         return await writeContract(config, request)
     }
 
+    const recoverSwap = async (txHash: string, chainId: string): Promise<RecoveredSwapData> => {
+        const numericChainId = Number(chainId)
+
+        const [receipt, tx] = await Promise.all([
+            getTransactionReceipt(config, {
+                hash: txHash as `0x${string}`,
+                chainId: numericChainId,
+            }),
+            getTransaction(config, {
+                hash: txHash as `0x${string}`,
+                chainId: numericChainId,
+            }),
+        ])
+
+        const logs = parseEventLogs({
+            abi: HTLCAbi,
+            logs: receipt.logs,
+            eventName: 'UserLocked',
+        }) as any[]
+
+        if (!logs.length) {
+            throw new Error('This transaction does not contain a swap lock')
+        }
+
+        const args = logs[0].args
+
+        return {
+            hashlock: args.hashlock,
+            sender: args.sender,
+            recipient: args.recipient,
+            srcChain: args.srcChain,
+            dstChain: args.dstChain,
+            token: args.token,
+            amount: args.amount,
+            dstAddress: args.dstAddress,
+            dstAmount: args.dstAmount,
+            dstToken: args.dstToken,
+            srcContract: tx.to as string,
+        }
+    }
+
     return {
         createHTLC,
         getUserLockDetails,
         secureGetDetails,
         getSolverLockDetails,
         refund,
-        claim
+        claim,
+        recoverSwap
     }
 }
 

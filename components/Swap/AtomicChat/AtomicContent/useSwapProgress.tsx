@@ -4,7 +4,7 @@ import { StepStatus, TimelineStep } from "./progressTypes";
 import { LockStatus } from "../../../../Models/phtlc/PHTLC";
 import { getExplorerUrl } from "@/lib/address";
 import NetworkSettings from "@/lib/NetworkSettings";
-import { CommitTransaction } from "../../../../lib/trainApiClient";
+import { HTLCTransaction } from "../../../../lib/trainApiClient";
 import LockIcon from "../../../Icons/LockIcon";
 
 // --- Types ---
@@ -140,12 +140,12 @@ export function useSwapProgress(): SwapProgress {
         refundTxId,
         source_network,
         destination_network,
-        htlcFromApi: commitFromApi,
+        htlcFromApi,
     } = useAtomicState();
 
     return useMemo(() => {
         const sourceTxLink = buildExplorerLink(source_network?.slug, lockTxId);
-        const lpLockTx = commitFromApi?.transactions.find(t => t.type === CommitTransaction.HTLCLock as string);
+        const lpLockTx = htlcFromApi?.transactions.find(t => t.type === HTLCTransaction.HTLCLock as string);
         const destTxLink = buildExplorerLink(destination_network?.slug, lpLockTx?.hash);
         const redeemTxLink = buildExplorerLink(destination_network?.slug, destRedeemTx);
         const refundTxLink = buildExplorerLink(source_network?.slug, refundTxId);
@@ -275,6 +275,6 @@ export function useSwapProgress(): SwapProgress {
         refundTxId,
         source_network,
         destination_network,
-        commitFromApi,
+        htlcFromApi,
     ]);
 }
