@@ -2,9 +2,7 @@ import { WalletIcon } from "lucide-react";
 import { FC, ReactNode, useCallback, useState } from "react";
 import useWallet from "../../hooks/useWallet";
 import { Network } from "../../Models/Network";
-import toast from "react-hot-toast";
 import SubmitButton, { SubmitButtonProps } from "../buttons/submitButton";
-import ButtonStatus from "./AtomicChat/Actions/Status/ButtonStatus";
 import WalletMessage from "./messages/Message";
 import { useSelectedAccount } from "../../context/swapAccounts";
 import { useConnectModal } from "../WalletModal";
@@ -35,7 +33,7 @@ export const ConnectWalletButton: FC<ConnectProps> = (props) => {
             await connect(provider)
         }
         catch (e) {
-            toast.error(e.message)
+            console.error(e)
         }
 
     }, [provider])
@@ -144,7 +142,7 @@ type LockButtonProps = {
 }
 
 export const Comp: FC<LockButtonProps> = (props) => {
-    const { isConnected, networkChainId, network, activeChain, onClick, children } = props;
+    const { isConnected, network, onClick, children } = props;
     const [isPending, setIsPending] = useState(false)
 
     const handleClick = async () => {
@@ -153,7 +151,7 @@ export const Comp: FC<LockButtonProps> = (props) => {
             await onClick()
         }
         catch (e) {
-            toast.error(e.message)
+            console.error(e)
         }
         finally {
             setIsPending(false)

@@ -18,7 +18,6 @@ import { Widget } from "../../Widget/Index";
 import { generateSwapInitialValues } from "../../../lib/generateSwapInitialValues";
 import { useSettingsState } from "../../../context/settings";
 import { resolvePersistantQueryParams } from "../../../helpers/querryHelper";
-import toast from "react-hot-toast";
 import { useSecretDerivation } from "../../../context/secretDerivationContext";
 import { useSwapStore } from "../../../stores/swapStore";
 
@@ -111,7 +110,6 @@ export default function Form() {
         }
         catch (error) {
             console.log(error)
-            toast.error(error)
         }
     }, [query, router, getProvider, isLoggedIn, quote])
 

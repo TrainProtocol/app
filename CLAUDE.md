@@ -53,11 +53,44 @@ Mapped to code enum (`CommitStatus`):
 
 ---
 
+## Passkey Login Flow
+
+### UX Flow
+1. User clicks **"Passkey"** in login modal
+   - If `passkeyCredentialIds` exist in store → use existing passkey (`deriveKeyWithPasskey({ createIfMissing: true })`)
+   - If no stored IDs → create new passkey (`registerPasskey(true)`)
+2. If passkey operation fails → **PasskeyChoice** recovery screen (adapts to stored state):
+   - **Has stored passkeys**: "Try again" (primary) + "Create new passkey" (text link)
+   - **No stored passkeys**: "Create new passkey" (primary) + "Log in using existing passkey" (text link — triggers `deriveKeyWithPasskey({ createIfMissing: false })`, browser shows QR/security key cross-device options)
+3. Back from recovery screen calls `reset()` to return to pick with clean step history (avoids stale signing entries)
+
+### Key Files
+- `lib/htlc/secretDerivation/passkeyService.ts` — WebAuthn API calls (`registerPasskey`, `deriveKeyWithPasskey`, `checkPrfSupport`)
+- `context/secretDerivationContext.tsx` — `loginWithPasskey(options?)` dispatches to create vs use-existing
+- `components/SecretDerivation/LoginModal/index.tsx` — Login modal step flow (pick → passkey_recovery → wallet_select → signing)
+- `components/SecretDerivation/LoginModal/PasskeyChoice.tsx` — Recovery screen with try again / create new / cross-device
+- `components/SecretDerivation/LoginModal/OptionSelect.tsx` — Initial Passkey vs Wallet choice
+- `stores/secretDerivationStore.ts` — Persists `passkeyCredentialIds`, `activePasskeyCredentialId`, `storedDerivedKey`
+
+### loginWithPasskey Options
+| Option | Behavior |
+|--------|----------|
+| `{ forceCreate: true }` | `registerPasskey(true)` — always creates new passkey |
+| `{ crossDevice: true }` | `deriveKeyWithPasskey({ createIfMissing: false })` — existing passkey only |
+| `{}` or no options | `deriveKeyWithPasskey({ createIfMissing: true })` — use existing or create if missing |
+
+### PRF (Pseudo-Random Function)
+- Passkey PRF output is used as key material for HTLC secret derivation
+- PRF support detected via `getClientCapabilities()` (Chrome 132+) with heuristic fallbacks
+- During `registerPasskey`, PRF may return key immediately (single-prompt flow) or require a follow-up `credentials.get()`
+
+---
+
 ## Architecture
 
 ### Context (React Context providers)
 - `context/atomicContext.tsx` - Central swap state machine (swap status, sourceDetails, solverLockDetails, timelock tracking)
-- `context/secretDerivationContext.tsx` - Secret generation and derivation (`deriveSecret` returns `{hashlock, nonce}`)
+- `context/secretDerivationContext.tsx` - Secret generation and derivation (`deriveSecret` returns `{hashlock, nonce}`), passkey/wallet login
 - `context/settings.tsx` - App settings (networks, routes)
 
 ### Models

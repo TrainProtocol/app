@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useConfig } from 'wagmi';
 import { Loader2, ChevronLeft, CircleX } from 'lucide-react';
-import toast from 'react-hot-toast';
 import VaulModal from '@/components/Modal/vaulModal';
 import { useSecretDerivation } from '@/context/secretDerivationContext';
 import { mapPasskeyError } from '@/lib/htlc/secretDerivation/passkeyService';
@@ -64,7 +63,6 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     } catch (e) {
       const message = mapPasskeyError(e);
       setPasskeyError(message);
-      toast.error(message);
       goToStep('passkey_recovery', 'back');
     }
   };
@@ -93,6 +91,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const handleBack = () => {
     if (isStep('passkey_recovery')) {
       setPasskeyError(null);
+      reset();
+      return;
     }
     goBack();
   };
@@ -104,7 +104,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         if (!show) closeAndReset();
       }}
       header={
-        <div className="inline-flex items-center">
+        <div className="inline-flex items-center gap-1">
           {
             (canGoBack || currentStep === 'signing') &&
             <div className="-ml-2">
@@ -129,7 +129,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           <Step name="passkey_recovery">
             <PasskeyChoice
               error={passkeyError || ''}
-              onTryAgain={() => startPasskeyLogin({ forceCreate: true })}
+              onTryAgain={() => startPasskeyLogin(hasStoredPasskeys ? {} : { forceCreate: true })}
               onCreateNew={() => startPasskeyLogin({ forceCreate: true })}
               onCrossDeviceLogin={() => startPasskeyLogin({ crossDevice: true })}
             />

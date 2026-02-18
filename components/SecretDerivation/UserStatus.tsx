@@ -1,6 +1,5 @@
 import { useState } from "react"
 import { Fingerprint, Lock, LogOut } from "lucide-react"
-import toast from "react-hot-toast"
 import VaulDrawer from "../Modal/vaulModal"
 import { Popover, PopoverContent, PopoverTrigger } from "../shadcn/popover"
 import { useSecretDerivationStore, usePasskeyCredentialId, usePasskeyCredentialIds } from "@/stores/secretDerivationStore"
@@ -109,7 +108,6 @@ const UserStatusContent = ({
 
     const handleRemoveCredential = (credId: string) => {
         removeCredential(credId);
-        toast.success('Passkey removed from this device');
     };
 
     const passkeyDisplayId = usePasskeyDisplayId()

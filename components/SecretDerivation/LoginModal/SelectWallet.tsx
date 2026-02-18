@@ -17,10 +17,10 @@ const WalletSelect = ({  startWalletLogin }: WalletSelectProps) => {
     const { connect } = useConnectModal();
 
     return (
-        <>
+        <div className="flex flex-col gap-2">
             <p className="text-sm text-secondary-text">Select a connected EVM wallet</p>
 
-            <div className="flex flex-col gap-2 mt-4">
+            <div className="flex flex-col gap-2">
                 {connectedWallets.length === 0 && (
                     <div className="text-sm text-secondary-text bg-secondary-800 border border-secondary-700 rounded-xl p-4">
                         No EVM wallets connected.
@@ -46,12 +46,12 @@ const WalletSelect = ({  startWalletLogin }: WalletSelectProps) => {
             <button
                 type="button"
                 onClick={() => connect(evmProvider)}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 mt-4 rounded-xl font-semibold border-2 border-secondary-700 bg-secondary-800 text-primary-text hover:bg-secondary-700 transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold border-2 border-secondary-700 bg-secondary-800 text-primary-text hover:bg-secondary-700 transition-colors"
             >
                 <Plus className="w-4 h-4" />
                 Connect new wallet
             </button>
-        </>
+        </div>
     );
 };
 
