@@ -9,30 +9,30 @@
 [data-vaul-drawer][data-vaul-snap-points='false'][data-vaul-drawer-direction='bottom'][data-state='open'] {
   animation-name: slideFromBottom;
 }
-[data-vaul-drawer][data-vaul-snap-points='false'][data-vaul-drawer-direction='bottom'][data-state='closed'] {
+/* [data-vaul-drawer][data-vaul-snap-points='false'][data-vaul-drawer-direction='bottom'][data-state='closed'] {
   animation-name: slideToBottom;
-}
+} */
 
 [data-vaul-drawer][data-vaul-snap-points='false'][data-vaul-drawer-direction='top'][data-state='open'] {
   animation-name: slideFromTop;
 }
-[data-vaul-drawer][data-vaul-snap-points='false'][data-vaul-drawer-direction='top'][data-state='closed'] {
+/* [data-vaul-drawer][data-vaul-snap-points='false'][data-vaul-drawer-direction='top'][data-state='closed'] {
   animation-name: slideToTop;
-}
+} */
 
 [data-vaul-drawer][data-vaul-snap-points='false'][data-vaul-drawer-direction='left'][data-state='open'] {
   animation-name: slideFromLeft;
 }
-[data-vaul-drawer][data-vaul-snap-points='false'][data-vaul-drawer-direction='left'][data-state='closed'] {
+/* [data-vaul-drawer][data-vaul-snap-points='false'][data-vaul-drawer-direction='left'][data-state='closed'] {
   animation-name: slideToLeft;
-}
+} */
 
 [data-vaul-drawer][data-vaul-snap-points='false'][data-vaul-drawer-direction='right'][data-state='open'] {
   animation-name: slideFromRight;
 }
-[data-vaul-drawer][data-vaul-snap-points='false'][data-vaul-drawer-direction='right'][data-state='closed'] {
+/* [data-vaul-drawer][data-vaul-snap-points='false'][data-vaul-drawer-direction='right'][data-state='closed'] {
   animation-name: slideToRight;
-}
+} */
 
 [data-vaul-drawer][data-vaul-snap-points='true'][data-vaul-drawer-direction='bottom'] {
   transform: translate3d(0, var(--initial-transform, 100%), 0);
@@ -73,9 +73,9 @@
 [data-vaul-overlay][data-vaul-snap-points='false'][data-state='open'] {
   animation-name: fadeIn;
 }
-[data-vaul-overlay][data-state='closed'] {
+/* [data-vaul-overlay][data-state='closed'] {
   animation-name: fadeOut;
-}
+} */
 
 [data-vaul-animate='false'] {
   animation: none !important;
