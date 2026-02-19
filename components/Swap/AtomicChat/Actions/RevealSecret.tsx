@@ -3,8 +3,9 @@ import { WalletActionButton } from "../../buttons";
 import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { Checkbox } from "@/components/shadcn/checkbox";
+import { SwapViewType } from ".";
 
-export const RevealSecretAction: FC<{ showCheckbox?: boolean }> = ({ showCheckbox = false }) => {
+export const RevealSecretAction: FC<{ showCheckbox?: boolean, type: SwapViewType }> = ({ showCheckbox = false, type }) => {
     const { revealSecret, isRevealing, source_network, wallet } = useRevealSecret()
     const { autoRevealSecret, setAutoRevealSecret, setHasSeenAutoRevealPrompt } = useSwapPreferencesStore()
     const [checked, setChecked] = useState(autoRevealSecret)
@@ -35,6 +36,7 @@ export const RevealSecretAction: FC<{ showCheckbox?: boolean }> = ({ showCheckbo
             network={source_network}
             networkChainId={source_network.chainId}
             onClick={handleRevealSecret}
+            type={type}
         >
             Reveal Secret
         </WalletActionButton>

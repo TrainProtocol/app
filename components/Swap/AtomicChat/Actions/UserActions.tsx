@@ -7,10 +7,11 @@ import ButtonStatus from "./Status/ButtonStatus";
 import { LockStatus } from "@/Models/phtlc/PHTLC";
 import { SwapQuote } from "@/lib/trainApiClient";
 import { useSwapStore } from "@/stores/swapStore";
+import { SwapViewType } from ".";
 
 type UserCommitActionProps = {
     quote?: SwapQuote
-    type: 'widget' | 'contained'
+    type: SwapViewType
 }
 
 export const UserCommitAction: FC<UserCommitActionProps> = ({ quote, type }) => {
@@ -117,7 +118,7 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote, type }) => 
         </div>
 }
 
-export const UserRefundAction: FC<{type: 'widget' | 'contained'}> = ({type}) => {
+export const UserRefundAction: FC<{type: SwapViewType}> = ({type}) => {
     const { source_network, hashlock, sourceDetails, source_asset, setError, refundTxId, srcAtomicContract } = useAtomicState()
     const { provider: source_provider } = useWallet(source_network, 'withdrawal')
     const updateSwap = useSwapStore(s => s.updateSwap)

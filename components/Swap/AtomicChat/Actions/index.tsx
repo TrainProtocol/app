@@ -17,7 +17,7 @@ import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
 import { Drawer } from "@/components/Modal/vaul";
 
-type SwapViewType = "widget" | "contained"
+export type SwapViewType = "widget" | "contained"
 
 type ActionsProps = {
     quote?: SwapQuote
@@ -80,7 +80,7 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote, typ
     }
 }
 
-const SolverLockDetectedAction: FC<{ type: 'widget' | 'contained' }> = ({ type }) => {
+const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const { autoRevealSecret, hasSeenAutoRevealPrompt } = useSwapPreferencesStore()
     const { revealSecret } = useRevealSecret()
     const [autoRevealFailed, setAutoRevealFailed] = useState(false)
@@ -100,10 +100,10 @@ const SolverLockDetectedAction: FC<{ type: 'widget' | 'contained' }> = ({ type }
     if (shouldAutoReveal) return <></>
 
     // First time: show checkbox. After that (or on auto-reveal failure): just the button
-    return <RevealSecretAction showCheckbox={!hasSeenAutoRevealPrompt} />
+    return <RevealSecretAction showCheckbox={!hasSeenAutoRevealPrompt} type={type} />
 }
 
-export const ActionWrapper: FC<{ children: React.ReactNode, type: 'widget' | 'contained' }> = ({ children, type }) => {
+export const ActionWrapper: FC<{ children: React.ReactNode, type: SwapViewType }> = ({ children, type }) => {
     return <Widget.Footer sticky={type === 'widget' ? true : false} >
         {children}
     </Widget.Footer>

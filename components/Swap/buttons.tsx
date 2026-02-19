@@ -6,7 +6,7 @@ import SubmitButton, { SubmitButtonProps } from "../buttons/submitButton";
 import WalletMessage from "./messages/Message";
 import { useSelectedAccount } from "../../context/swapAccounts";
 import { useConnectModal } from "../WalletModal";
-import { ActionWrapper } from "./AtomicChat/Actions";
+import { ActionWrapper, SwapViewType } from "./AtomicChat/Actions";
 export type ActionData = {
     error: Error | null;
     isError: boolean;
@@ -139,7 +139,7 @@ type LockButtonProps = {
     activeChain: any,
     onClick: () => Promise<void>,
     children: ReactNode | undefined
-    type: 'widget' | 'contained'
+    type: SwapViewType
 }
 
 export const Comp: FC<LockButtonProps> = (props) => {

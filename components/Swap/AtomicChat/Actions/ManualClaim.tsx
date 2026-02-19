@@ -3,8 +3,9 @@ import { useAtomicState } from "../../../../context/atomicContext";
 import useWallet from "@/hooks/useWallet";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
+import { SwapViewType } from ".";
 
-export const ManualClaimAction: FC<{ type: 'widget' | 'contained' }> = ({ type }) => {
+export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const {
         destination_network,
         destination_asset,

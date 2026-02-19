@@ -1,12 +1,12 @@
 import { FC, useMemo } from "react";
 import { Widget } from "../../Widget/Index";
-import { Actions } from "./Actions";
+import { Actions, SwapViewType } from "./Actions";
 import AtomicContent from "./AtomicContent";
 import { useAtomicState } from "../../../context/atomicContext";
 import { buildQuoteParamsFromAtomic, useQuoteData } from "../../../hooks/useFee";
 
 type ContainerProps = {
-    type: "widget" | "contained",
+    type: SwapViewType,
 }
 
 const Swap: FC<ContainerProps> = ({ type }) => {
