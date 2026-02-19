@@ -3,16 +3,13 @@ import { SwapFormValues } from "../DTOs/SwapFormValues";
 import { Dispatch, FC, SetStateAction, useCallback, useState } from "react";
 import useWallet from "@/hooks/useWallet";
 import { Address } from "@/lib/address";
-import { ChevronDown, CircleHelp, QrCode } from "lucide-react";
-import VaulDrawer, { ModalFooterPortal } from "../Modal/vaulModal";
+import { ChevronDown } from "lucide-react";
+import VaulDrawer from "../Modal/vaulModal";
 import { SelectAccountProps, Wallet } from "@/Models/WalletProvider";
 import WalletIcon from "@/components/Icons/WalletIcon";
 import SubmitButton from "@/components/buttons/submitButton";
 import { useConnectModal } from "../WalletModal";
 import WalletsList from "@/components/Wallet/WalletsList";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover";
-import FilledCheck from "@/components/Icons/FilledCheck";
-import clsx from "clsx";
 import { useSelectedAccount, useSelectSwapAccount } from "@/context/swapAccounts";
 
 const SourceWalletPicker: FC = () => {
@@ -29,7 +26,6 @@ const SourceWalletPicker: FC = () => {
     const { provider } = useWallet(values.from, "withdrawal")
     const selectedSourceAccount = useSelectedAccount("from", values.from?.slug);
 
-    const { selectedConnector } = useConnectModal()
     const availableWallets = provider?.connectedWallets?.filter(w => !w.isNotAvailable) || []
 
     const handleWalletChange = () => {
