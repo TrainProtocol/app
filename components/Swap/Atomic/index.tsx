@@ -58,11 +58,16 @@ export default function Form() {
             }
         } else {
             setPolling(true);
-            clearTempSwap()
             removeSwapPath(router);
         }
         setSwapModalOpen(value);
     }, [hashlock, router]);
+
+    const handleDrawerAnimationEnd = useCallback((open: boolean) => {
+        if (!open) {
+            clearTempSwap();
+        }
+    }, [clearTempSwap]);
 
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
@@ -143,6 +148,7 @@ export default function Form() {
                     header="Complete the swap"
                     modalId="showAtomicSwap"
                     className="expandContainerHeight"
+                    onAnimationEnd={handleDrawerAnimationEnd}
                 >
                     <AtomicPage type='contained' />
                 </VaulDrawer>
