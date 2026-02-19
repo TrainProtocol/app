@@ -69,9 +69,8 @@ export function AtomicProvider({ children }) {
     const router = useRouter()
     const { networks } = useSettingsState()
 
-    const [activeHashlock, setActiveHashlock] = useState<string | undefined>(
-        router.query.hashlock as string | undefined
-    )
+    const activeHashlock = useSwapStore(s => s.activeHashlock)
+    const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
 
     const tempSwap = useSwapStore(s => s.tempSwap)
     const commitSwap = useSwapStore(s => s.commitSwap)
@@ -145,6 +144,13 @@ export function AtomicProvider({ children }) {
         [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, manualClaimRequired])
 
     const isTerminal = htlcStatus === HTLCStatus.RedeemCompleted || htlcStatus === HTLCStatus.Refunded
+
+    useEffect(() => {
+        if (isTerminal && activeHashlock) {
+            setActiveHashlock(null)
+        }
+    }, [isTerminal, activeHashlock, setActiveHashlock])
+
     const { provider } = useWallet(source_network, 'autofill')
 
     const { details: userLockPollData } = useUserLockPolling({
@@ -268,9 +274,8 @@ export function AtomicProvider({ children }) {
     }, [sourceDetails?.status, sourceDetails?.secret, solverLockDetails?.status, hashlock])
 
     const handleCommited = (hashlock: string, txId: string) => {
-        // Move tempSwap → swaps[hashlock] in the store
+        // Move tempSwap → swaps[hashlock] in the store (also sets activeHashlock)
         commitSwap(hashlock, txId)
-        setActiveHashlock(hashlock)
 
         // Write only hashlock to URL
         const basePath = router?.basePath || ""
@@ -351,3 +356,4 @@ export function useAtomicState() {
 
     return data;
 }
+

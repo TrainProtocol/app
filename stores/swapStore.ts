@@ -20,6 +20,10 @@ export interface SwapData {
 interface SwapStoreState {
     tempSwap: SwapData | null
     swaps: Record<string, SwapData>
+    activeHashlock: string | null
+    swapModalOpen: boolean
+    setSwapModalOpen: (open: boolean) => void
+    setActiveHashlock: (hashlock: string | null) => void
     setTempSwap: (data: SwapData) => void
     clearTempSwap: () => void
     commitSwap: (hashlock: string, txId: string) => void
@@ -32,6 +36,12 @@ export const useSwapStore = create<SwapStoreState>()(
         (set, get) => ({
             tempSwap: null,
             swaps: {},
+            activeHashlock: null,
+            swapModalOpen: false,
+
+            setSwapModalOpen: (open) => set({ swapModalOpen: open }),
+
+            setActiveHashlock: (hashlock) => set({ activeHashlock: hashlock }),
 
             setTempSwap: (data) => set({ tempSwap: data }),
 
@@ -43,6 +53,7 @@ export const useSwapStore = create<SwapStoreState>()(
 
                 set({
                     tempSwap: null,
+                    activeHashlock: hashlock,
                     swaps: {
                         ...swaps,
                         [hashlock]: {
@@ -84,6 +95,7 @@ export const useSwapStore = create<SwapStoreState>()(
             storage: createJSONStorage(() => localStorage),
             partialize: (state) => ({
                 swaps: state.swaps,
+                activeHashlock: state.activeHashlock,
             }),
         }
     )

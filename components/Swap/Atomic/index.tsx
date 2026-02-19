@@ -1,5 +1,5 @@
 import { Formik, FormikProps } from "formik";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import React from "react";
 import MainStepValidation from "../../../lib/mainStepValidator";
@@ -10,9 +10,6 @@ import useWallet from "../../../hooks/useWallet";
 import { SwapQuote } from "../../../lib/trainApiClient";
 import { dynamicWithRetries } from "../../../lib/dynamicWithRetries";
 import { useAtomicState } from "../../../context/atomicContext";
-import { AnimatePresence, motion } from "framer-motion";
-import Image from "next/image";
-import { ChevronRight } from "lucide-react";
 import VaulDrawer from "../../Modal/vaulModal";
 import { Widget } from "../../Widget/Index";
 import { generateSwapInitialValues } from "../../../lib/generateSwapInitialValues";
@@ -43,15 +40,17 @@ export default function Form() {
 
     const [quote, setQuote] = useState<SwapQuote | undefined>()
     const [polling, setPolling] = useState(true)
-    const [swapModalOpen, setSwapModalOpen] = useState(() => !!router.query.hashlock)
     const { getProvider } = useWallet()
     const { hashlock } = useAtomicState()
     const settings = useSettingsState()
+    const swapModalOpen = useSwapStore(s => s.swapModalOpen)
+    const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
     const clearTempSwap = useSwapStore(s => s.clearTempSwap)
     const setTempSwap = useSwapStore(s => s.setTempSwap)
 
-    const handleShowSwapModal = useCallback((value: boolean) => {
-        if (value) {
+
+    useEffect(() => {
+        if (swapModalOpen) {
             setPolling(false);
             if (hashlock) {
                 setHashlockInUrl(router, hashlock);
@@ -60,8 +59,11 @@ export default function Form() {
             setPolling(true);
             removeSwapPath(router);
         }
+    }, [swapModalOpen, hashlock, router]);
+
+    const handleShowSwapModal = useCallback((value: boolean) => {
         setSwapModalOpen(value);
-    }, [hashlock, router]);
+    }, [setSwapModalOpen]);
 
     const handleDrawerAnimationEnd = useCallback((open: boolean) => {
         if (!open) {
@@ -123,16 +125,6 @@ export default function Form() {
     const initialValues: SwapFormValues = generateSwapInitialValues(settings, query)
 
     return <>
-        <AnimatePresence mode='wait'>
-            {
-                hashlock &&
-                !swapModalOpen &&
-                <div className="cursor-pointer absolute z-10 mt-2.5 ml-4">
-                    <PendingSwap key="pendingSwap" onClick={() => handleShowSwapModal(true)} />
-                </div>
-            }
-        </AnimatePresence>
-
         <Formik
             innerRef={formikRef}
             initialValues={initialValues}
@@ -186,48 +178,4 @@ const setHashlockInUrl = (router: NextRouter, hashlock: string) => {
         url += `&${search}`
     }
     window.history.replaceState({ ...window.history.state, as: url, url }, '', url);
-}
-
-const PendingSwap = ({ onClick }: { onClick: () => void }) => {
-    const { source_network, destination_network } = useAtomicState()
-
-    return <motion.div
-        initial={{ y: 10, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: -10, opacity: 0 }}
-        transition={{ duration: 0.2 }}
-    >
-        <div
-            onClick={onClick}
-            className="relative bg-secondary-600 rounded-lg hover:bg-secondary-500 transition-colors">
-            <div
-                className="flex items-center">
-                <div className="text-primary-text flex px-3 p-2 items-center space-x-2">
-                    <div className="flex-shrink-0 h-5 w-5 relative">
-                        {source_network ?
-                            <Image
-                                src={source_network.logo ?? ''}
-                                alt="From Logo"
-                                height="60"
-                                width="60"
-                                className="rounded-md object-contain"
-                            /> : null
-                        }
-                    </div>
-                    <ChevronRight className="block h-4 w-4 mx-1" />
-                    <div className="flex-shrink-0 h-5 w-5 relative block">
-                        {destination_network ?
-                            <Image
-                                src={destination_network.logo ?? ''}
-                                alt="To Logo"
-                                height="60"
-                                width="60"
-                                className="rounded-md object-contain"
-                            /> : null
-                        }
-                    </div>
-                </div>
-            </div>
-        </div>
-    </motion.div>
 }

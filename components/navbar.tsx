@@ -5,6 +5,7 @@ import { JetBrains_Mono } from "next/font/google";
 import clsx from 'clsx';
 import { ArrowUpRight } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import PendingSwap from './Swap/PendingSwap';
 
 const UserStatusHeader = dynamic(() => import("./SecretDerivation/UserStatus.tsx").then((comp) => comp.UserStatusHeader), {
    loading: () => <></>
@@ -52,7 +53,10 @@ export default function Navbar() {
                         }
                     </div>
                 </div>
-                <UserStatusHeader />
+                <div className="flex items-center gap-x-2">
+                    <PendingSwap />
+                    <UserStatusHeader />
+                </div>
             </div>
         </div>
     )

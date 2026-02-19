@@ -6,10 +6,12 @@ import { useQueryState } from "@/context/query"
 import { UserStatusHeader } from "../SecretDerivation"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
 import dynamic from "next/dynamic"
+import PendingSwap from "../Swap/PendingSwap"
 
 const WalletsHeader = dynamic(() => import("../Wallet/ConnectedWallets.tsx").then((comp) => comp.WalletsHeader), {
    loading: () => <></>
 })
+
 function HeaderWithMenu({ goBack }: { goBack: (() => void) | undefined | null }) {
    const query = useQueryState()
    const { isMobile } = useWindowDimensions()
@@ -37,7 +39,10 @@ function HeaderWithMenu({ goBack }: { goBack: (() => void) | undefined | null })
          <div className="col-start-5 justify-self-end self-center flex items-center gap-x-2 sm:gap-x-1">
             {
                isMobile
-                  ? <UserStatusHeader />
+                  ? <>
+                     <PendingSwap />
+                     <UserStatusHeader />
+                  </>
                   : null
             }
             <WalletsHeader />
