@@ -9,7 +9,7 @@ import { useQueryState } from "../../../context/query";
 import useWallet from "../../../hooks/useWallet";
 import { SwapQuote } from "../../../lib/trainApiClient";
 import { dynamicWithRetries } from "../../../lib/dynamicWithRetries";
-import { useAtomicState } from "../../../context/atomicContext";
+import { useAtomicState, HTLCStatus } from "../../../context/atomicContext";
 import VaulDrawer from "../../Modal/vaulModal";
 import { Widget } from "../../Widget/Index";
 import { generateSwapInitialValues } from "../../../lib/generateSwapInitialValues";
@@ -41,10 +41,11 @@ export default function Form() {
     const [quote, setQuote] = useState<SwapQuote | undefined>()
     const [polling, setPolling] = useState(true)
     const { getProvider } = useWallet()
-    const { hashlock } = useAtomicState()
+    const { hashlock, htlcStatus } = useAtomicState()
     const settings = useSettingsState()
     const swapModalOpen = useSwapStore(s => s.swapModalOpen)
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
+    const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
     const clearTempSwap = useSwapStore(s => s.clearTempSwap)
     const setTempSwap = useSwapStore(s => s.setTempSwap)
 
@@ -68,8 +69,12 @@ export default function Form() {
     const handleDrawerAnimationEnd = useCallback((open: boolean) => {
         if (!open) {
             clearTempSwap();
+            const isTerminal = htlcStatus === HTLCStatus.RedeemCompleted || htlcStatus === HTLCStatus.Refunded
+            if (isTerminal) {
+                setActiveHashlock(null)
+            }
         }
-    }, [clearTempSwap]);
+    }, [clearTempSwap, htlcStatus, setActiveHashlock]);
 
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {

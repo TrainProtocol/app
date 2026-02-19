@@ -145,12 +145,6 @@ export function AtomicProvider({ children }) {
 
     const isTerminal = htlcStatus === HTLCStatus.RedeemCompleted || htlcStatus === HTLCStatus.Refunded
 
-    useEffect(() => {
-        if (isTerminal && activeHashlock) {
-            setActiveHashlock(null)
-        }
-    }, [isTerminal, activeHashlock, setActiveHashlock])
-
     const { provider } = useWallet(source_network, 'autofill')
 
     const { details: userLockPollData } = useUserLockPolling({

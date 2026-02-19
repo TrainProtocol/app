@@ -9,10 +9,11 @@ export default function PendingSwap() {
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
     const activeHashlock = useSwapStore(s => s.activeHashlock)
     const activeSwap = useSwapStore(s => activeHashlock ? s.swaps[activeHashlock] : null)
-    const { networks } = useSettingsState()
+    const settings = useSettingsState()
 
-    if (!activeHashlock || !activeSwap || swapModalOpen) return null
+    if (!activeHashlock || !activeSwap || swapModalOpen || !settings) return null
 
+    const { networks } = settings
     const source_network = networks.find(n => n.slug.toUpperCase() === activeSwap.source?.toUpperCase())
     const destination_network = networks.find(n => n.slug.toUpperCase() === activeSwap.destination?.toUpperCase())
 
