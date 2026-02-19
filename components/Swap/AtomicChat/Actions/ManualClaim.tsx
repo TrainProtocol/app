@@ -4,7 +4,7 @@ import useWallet from "@/hooks/useWallet";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
 
-export const ManualClaimAction: FC = () => {
+export const ManualClaimAction: FC<{ type: 'widget' | 'contained' }> = ({ type }) => {
     const {
         destination_network,
         destination_asset,
@@ -65,6 +65,7 @@ export const ManualClaimAction: FC = () => {
                 network={destination_network}
                 networkChainId={destination_network.chainId}
                 onClick={handleManualClaim}
+                type={type}
             >
                 Claim Assets
             </WalletActionButton>

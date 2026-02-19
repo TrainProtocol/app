@@ -1,4 +1,4 @@
-import { Config, useAccount, UseAccountReturnType } from "wagmi"
+import { Config, useAccount } from "wagmi"
 import { writeContract, simulateContract, readContract, waitForTransactionReceipt, getTransactionReceipt, getTransaction } from '@wagmi/core'
 import { ethers } from "ethers"
 import { createPublicClient, http, Chain, zeroAddress, toHex, parseEventLogs } from "viem"

@@ -139,6 +139,7 @@ type LockButtonProps = {
     activeChain: any,
     onClick: () => Promise<void>,
     children: ReactNode | undefined
+    type: 'widget' | 'contained'
 }
 
 export const Comp: FC<LockButtonProps> = (props) => {
@@ -175,7 +176,7 @@ export const Comp: FC<LockButtonProps> = (props) => {
 }
 
 export const WalletActionButton: FC<LockButtonProps> = (props) => {
-    return <ActionWrapper>
+    return <ActionWrapper type={props.type}>
         <Comp {...props} />
     </ActionWrapper>
 }

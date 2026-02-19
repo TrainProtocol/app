@@ -10,9 +10,10 @@ import { useSwapStore } from "@/stores/swapStore";
 
 type UserCommitActionProps = {
     quote?: SwapQuote
+    type: 'widget' | 'contained'
 }
 
-export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
+export const UserCommitAction: FC<UserCommitActionProps> = ({ quote, type }) => {
     const { source_network, destination_network, amount, address, source_asset, destination_asset, onUserLock: onCommit, hashlock, setError, srcAtomicContract } = useAtomicState();
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
@@ -109,13 +110,14 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote }) => {
                 network={source_network}
                 networkChainId={source_network.chainId}
                 onClick={handleCommit}
+                type={type}
             >
                 Confirm in wallet
             </WalletActionButton>
         </div>
 }
 
-export const UserRefundAction: FC = () => {
+export const UserRefundAction: FC<{type: 'widget' | 'contained'}> = ({type}) => {
     const { source_network, hashlock, sourceDetails, source_asset, setError, refundTxId, srcAtomicContract } = useAtomicState()
     const { provider: source_provider } = useWallet(source_network, 'withdrawal')
     const updateSwap = useSwapStore(s => s.updateSwap)
@@ -169,6 +171,7 @@ export const UserRefundAction: FC = () => {
                     network={source_network!}
                     networkChainId={Number(source_network?.chainId)}
                     onClick={handleRefundAssets}
+                    type={type}
                 >
                     Cancel & Refund
                 </WalletActionButton>

@@ -66,21 +66,21 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote, typ
         case HTLCStatus.Refunded:
             return <TerminalActions variant="refund" type={type} />
         case HTLCStatus.TimelockExpired:
-            return <UserRefundAction />
+            return <UserRefundAction type={type} />
         case HTLCStatus.ManualClaimRequired:
-            return <ManualClaimAction />
+            return <ManualClaimAction type={type} />
         case HTLCStatus.SecretRevealed:
             return <></>
         case HTLCStatus.SolverLockDetected:
-            return <SolverLockDetectedAction />
+            return <SolverLockDetectedAction type={type} />
         case HTLCStatus.UserLocked:
             return <></>
         default:
-            return <UserCommitAction quote={quote} />
+            return <UserCommitAction quote={quote} type={type} />
     }
 }
 
-const SolverLockDetectedAction: FC = () => {
+const SolverLockDetectedAction: FC<{ type: 'widget' | 'contained' }> = ({ type }) => {
     const { autoRevealSecret, hasSeenAutoRevealPrompt } = useSwapPreferencesStore()
     const { revealSecret } = useRevealSecret()
     const [autoRevealFailed, setAutoRevealFailed] = useState(false)
@@ -103,8 +103,8 @@ const SolverLockDetectedAction: FC = () => {
     return <RevealSecretAction showCheckbox={!hasSeenAutoRevealPrompt} />
 }
 
-export const ActionWrapper: FC<{ children: React.ReactNode }> = ({ children }) => {
-    return <Widget.Footer sticky={true} >
+export const ActionWrapper: FC<{ children: React.ReactNode, type: 'widget' | 'contained' }> = ({ children, type }) => {
+    return <Widget.Footer sticky={type === 'widget' ? true : false} >
         {children}
     </Widget.Footer>
 }
