@@ -27,7 +27,7 @@ const useSolverLockPolling = ({
     const shouldPoll = !!(network && hashlock && contractAddress && enabled)
 
     const key = shouldPoll
-        ? `/htlc/solverLock/${network!.slug}/${hashlock}/${contractAddress}/${type}`
+        ? `/htlc/solverLock/${network!.caip2Id}/${hashlock}/${contractAddress}/${type}`
         : null
 
     const { data, error, isLoading, mutate } = useSWR<LockDetails | null>(

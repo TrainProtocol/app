@@ -7,13 +7,13 @@ export abstract class BalanceProvider {
     abstract supportsNetwork: (network: Network) => boolean
     abstract fetchBalance: (address: string, network: Network, options?: { timeoutMs?: number, retryCount?: number }) => Promise<TokenBalance[] | null | undefined>
     protected resolveTokenBalanceFetchError = (err: Error, token: Token, network: Network, isNativeCurrency?: boolean) => {
-        console.error("balance_fetch_error", network.slug, err)
+        console.error("balance_fetch_error", network.caip2Id, err)
         
         const errorDetails = extractErrorDetails(err);
         const category = classifyNodeError(err);
         
         const tokenBalance: TokenBalance = {
-            network: network.slug,
+            network: network.caip2Id,
             token: token.symbol,
             amount: undefined,
             request_time: new Date().toJSON(),

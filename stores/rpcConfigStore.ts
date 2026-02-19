@@ -64,7 +64,7 @@ export const useRpcConfigStore = create<RpcConfigStore>()(
 
       getEffectiveRpcUrl: (network: Network) => {
         const state = get()
-        const config = state.rpcConfigs[network.slug]
+        const config = state.rpcConfigs[network.caip2Id]
 
         if (config?.useCustomRpc) {
           // Return first URL from array
@@ -82,7 +82,7 @@ export const useRpcConfigStore = create<RpcConfigStore>()(
 
       getEffectiveRpcUrls: (network: Network) => {
         const state = get()
-        const config = state.rpcConfigs[network.slug]
+        const config = state.rpcConfigs[network.caip2Id]
 
         if (config?.useCustomRpc) {
           // Return all URLs from array

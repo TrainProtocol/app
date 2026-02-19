@@ -11,8 +11,8 @@ export function addressFormat(props: AddressFormatProps): string {
     const { address, network, providerName } = props
 
     if (
-        network?.slug.toLowerCase().startsWith("starknet")
-        || network?.slug.toLowerCase().startsWith("paradex")
+        network?.caip2Id.toLowerCase().startsWith("starknet")
+        || network?.caip2Id.toLowerCase().startsWith("paradex")
         || providerName?.toLowerCase() == 'paradex'
         || providerName?.toLowerCase() == 'starknet'
     ) {
@@ -30,7 +30,7 @@ export function addressFormat(props: AddressFormatProps): string {
 
     }
     else if (
-        network?.slug.toLowerCase().startsWith("ton")
+        network?.caip2Id.toLowerCase().startsWith("ton")
         || providerName?.toLowerCase() == 'ton'
     ) {
         try {
@@ -40,11 +40,11 @@ export function addressFormat(props: AddressFormatProps): string {
         }
     }
     else if (
-        network?.slug.toLowerCase().startsWith("solana")
-        || network?.slug.toLowerCase().startsWith("eclipse")
-        || network?.slug.toLowerCase().startsWith("soon")
-        || network?.slug.toLowerCase().startsWith("tron")
-        || network?.slug.toLowerCase().startsWith("bitcoin")
+        network?.caip2Id.toLowerCase().startsWith("solana")
+        || network?.caip2Id.toLowerCase().startsWith("eclipse")
+        || network?.caip2Id.toLowerCase().startsWith("soon")
+        || network?.caip2Id.toLowerCase().startsWith("tron")
+        || network?.caip2Id.toLowerCase().startsWith("bitcoin")
         || providerName?.toLowerCase() == 'solana'
         || providerName?.toLowerCase() == 'tron'
         || providerName?.toLowerCase() == 'bitcoin'

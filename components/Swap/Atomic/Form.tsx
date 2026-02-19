@@ -16,7 +16,7 @@ import ReverseRouteButton from "./ReverseRouteButton";
 
 type SwapFormProps = {
     polling?: boolean
-    onQuoteChange?: (quote: SwapQuote | undefined) => void
+    onQuoteChange?: (quote: SwapQuote | undefined, solverId: string | undefined) => void
 }
 
 const SwapForm: FC<SwapFormProps> = ({ polling = true, onQuoteChange }) => {
@@ -31,11 +31,11 @@ const SwapForm: FC<SwapFormProps> = ({ polling = true, onQuoteChange }) => {
     const query = useQueryState()
 
     const params = useMemo(() => transformFormValuesToQuoteArgs(values), [values])
-    const { quote, isQuoteLoading } = useQuoteData(params, polling ? 42000 : 0)
+    const { quote, solverId, isQuoteLoading } = useQuoteData(params, polling ? 42000 : 0)
 
     useEffect(() => {
-        onQuoteChange?.(quote)
-    }, [quote, onQuoteChange])
+        onQuoteChange?.(quote, solverId)
+    }, [quote, solverId, onQuoteChange])
 
     const actionDisplayName = query?.buttonTextColor || "Swap now"
     const shouldConnectWallet = !wallets.length;

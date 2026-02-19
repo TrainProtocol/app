@@ -2,8 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
 import { parseUnits } from 'viem'
 import { SwapFormValues } from '../components/DTOs/SwapFormValues'
-import TrainApiClient, { SwapQuote, SwapQuoteResponse } from '../lib/trainApiClient'
-import { ApiResponse } from '../Models/ApiResponse'
+import TrainApiClient, { SwapQuote, AggregatedQuoteResponse } from '../lib/trainApiClient'
 import { Token } from '../Models/Network'
 import { create } from 'zustand'
 
@@ -11,6 +10,7 @@ const apiClient = new TrainApiClient()
 
 type UseQuoteData = {
     quote?: SwapQuote
+    solverId?: string
     quoteError?: QuoteError
     isQuoteLoading: boolean
     isDebouncing: boolean
@@ -62,20 +62,28 @@ export function buildQuoteUrl(args: QuoteUrlArgs): string {
         destinationTokenContract,
     } = args
 
+    const includeReward = 'true'
+
     const params = new URLSearchParams({
-        Amount: amount,
-        SourceNetwork: sourceNetwork,
-        DestinationNetwork: destinationNetwork,
+        amount,
+        sourceNetwork,
+        destinationNetwork,
+        includeReward,
     })
 
     if (sourceTokenContract) {
-        params.append('SourceTokenContract', sourceTokenContract)
+        params.append('sourceTokenContract', sourceTokenContract)
     }
     if (destinationTokenContract) {
-        params.append('DestinationTokenContract', destinationTokenContract)
+        params.append('destinationTokenContract', destinationTokenContract)
     }
 
     return `/quote?${params.toString()}`
+}
+
+type QuoteResult = {
+    quote: SwapQuote
+    solverId: string
 }
 
 export function useQuoteData(formValues: Props | undefined, refreshInterval?: number): UseQuoteData {
@@ -107,7 +115,6 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
         }
     }, [convertedAmount, debouncedAmount])
 
-
     const canGetQuote = from && to && fromCurrency && toCurrency && debouncedAmount
 
     const quoteURL = (canGetQuote && !isDebouncing)
@@ -122,43 +129,29 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
 
     const isQuoteLoading = useLoadingStore((state) => state.isLoading)
 
-    const quoteFetchWrapper = useCallback(async (url: string): Promise<ApiResponse<SwapQuote>> => {
+    const quoteFetchWrapper = useCallback(async (url: string): Promise<QuoteResult | null> => {
         const { setLoading, key, setKey } = useLoadingStore.getState()
         try {
             if (key !== url) {
                 setLoading(true)
             }
 
-            // Fetch the new SwapQuoteResponse structure
-            const response = await apiClient.fetcher(url) as SwapQuoteResponse
+            const response = await apiClient.fetcher(url) as { data?: AggregatedQuoteResponse; error?: { message: string } }
 
             setKey(url)
             setLoading(false)
 
-            // Handle API-level errors (in response.error field)
             if (response.error) {
-                return {
-                    error: {
-                        message: response.error.message,
-                        code: 'QUOTE_ERROR'
-                    }
-                } as ApiResponse<SwapQuote>
+                throw new Error(response.error.message)
             }
 
-            // Handle missing data or missing quoteWithReward
-            if (!response.data?.quoteWithReward) {
-                return {
-                    error: {
-                        message: 'Quote data not available',
-                        code: 'NO_QUOTE_DATA'
-                    }
-                } as ApiResponse<SwapQuote>
+            const best = response.data?.quotes?.find(q => q.isBest)
+
+            if (!best?.quote) {
+                throw new Error('No quote available')
             }
 
-            // Extract quoteWithReward and return in expected ApiResponse format
-            return {
-                data: response.data.quoteWithReward
-            } as ApiResponse<SwapQuote>
+            return { quote: best.quote, solverId: best.solver.id }
         }
         catch (error) {
             setLoading(false)
@@ -167,15 +160,20 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
         }
     }, [])
 
-    const { data: quote, mutate: mutateFee, error: quoteError } = useSWR<ApiResponse<SwapQuote>>(quoteURL, quoteFetchWrapper, {
-        refreshInterval: (refreshInterval !== undefined && refreshInterval !== null) ? refreshInterval : 42000,
-        dedupingInterval: 5000,
-        keepPreviousData: true,
-    })
+    const { data, mutate: mutateFee, error: quoteError } = useSWR<QuoteResult | null>(
+        quoteURL,
+        quoteFetchWrapper,
+        {
+            refreshInterval: (refreshInterval !== undefined && refreshInterval !== null) ? refreshInterval : 42000,
+            dedupingInterval: 5000,
+            keepPreviousData: true,
+        }
+    )
 
     return {
-        quote: (quoteError || !canGetQuote) ? undefined : quote?.data,
-        isQuoteLoading: isQuoteLoading,
+        quote: (quoteError || !canGetQuote) ? undefined : data?.quote,
+        solverId: (quoteError || !canGetQuote) ? undefined : data?.solverId,
+        isQuoteLoading,
         isDebouncing,
         quoteError: quoteError as QuoteError | undefined,
         mutateFee,
@@ -185,8 +183,8 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
 export function transformFormValuesToQuoteArgs(values: SwapFormValues): Props | undefined {
     return {
         amount: values.amount,
-        from: values.from?.slug,
-        to: values.to?.slug,
+        from: values.from?.caip2Id,
+        to: values.to?.caip2Id,
         fromCurrency: values.fromCurrency,
         toCurrency: values.toCurrency,
     }

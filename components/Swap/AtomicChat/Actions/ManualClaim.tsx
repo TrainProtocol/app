@@ -49,7 +49,7 @@ export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
 
             posthog.capture("ManualClaim", {
                 hashlock,
-                destinationNetwork: destination_network.slug,
+                destinationNetwork: destination_network.caip2Id,
             });
         } catch (e: any) {
             setError({ message: e.details || e.message });

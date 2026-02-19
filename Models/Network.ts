@@ -1,10 +1,10 @@
 export type NetworkTypeInfo = {
     name: string;           // "eip155"
-    displayName: string;    // "EVM"
-    nativeTokenAddress: string;
-    addressFormat: string;
-    addressLength: number;
-    curve: string;
+    displayName?: string;   // "EVM"
+    nativeTokenAddress?: string;
+    addressFormat?: string;
+    addressLength?: number;
+    curve?: string;
 }
 
 export type NetworkNode = {
@@ -17,9 +17,13 @@ export type NetworkContract = {
     address: string;
 }
 
+export type ExplorerUrlTemplate = {
+    transaction?: string;
+    address?: string;
+}
+
 export class Network {
     caip2Id: string;
-    slug: string;
     displayName: string;
     chainId: string;
     nativeTokenAddress: string;
@@ -28,6 +32,7 @@ export class Network {
     nodes: NetworkNode[];
     contracts: NetworkContract[];
     metadata: any[];
+    explorerUrlTemplate?: ExplorerUrlTemplate;
     /** Set by getSettings when resolving logo URL */
     logo?: string;
 }

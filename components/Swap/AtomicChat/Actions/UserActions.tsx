@@ -23,8 +23,9 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote, type }) => 
     const destLpAddress = quote?.destinationSolverAddress
     const srcLpAddress = quote?.sourceSolverAddress
 
-    const handleCommit = async () => {
+    const handleUserLock = async () => {
         try {
+            debugger
             if (!amount) {
                 throw new Error("No amount specified")
             }
@@ -70,10 +71,10 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote, type }) => 
                 chainId: source_network.chainId,
                 solverData: quote?.signature,
                 quoteExpiry: quote?.quoteExpirationTimestampInSeconds,
-                rewardToken: quote?.reward.rewardToken,
-                rewardRecipient: quote?.reward.rewardRecipientAddress,
-                rewardAmount: quote?.reward.amount,
-                rewardTimelockDelta: quote?.reward.rewardTimelockTimeSpanInSeconds,
+                rewardToken: quote?.reward ? quote?.reward.rewardToken : undefined,
+                rewardRecipient: quote?.reward ? quote?.reward.rewardRecipientAddress : undefined,
+                rewardAmount: quote?.reward ? quote?.reward.amount : undefined,
+                rewardTimelockDelta: quote?.reward ? quote?.reward.rewardTimelockTimeSpanInSeconds : undefined,
                 destinationAmount: quote?.receiveAmount,
                 timelockDelta: quote?.timelock.timelockTimeSpanInSeconds,
             })
@@ -86,8 +87,8 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote, type }) => 
                 posthog.capture("Commit", {
                     hashlock: result.hashlock,
                     amount: amount,
-                    sourceNetwork: source_network.slug,
-                    destinationNetwork: destination_network.slug,
+                    sourceNetwork: source_network.caip2Id,
+                    destinationNetwork: destination_network.caip2Id,
                     sourceAsset: source_asset.symbol,
                     destinationAsset: destination_asset.symbol,
                     userAddress: address,
@@ -110,7 +111,7 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote, type }) => 
                 isConnected={!!wallet}
                 network={source_network}
                 networkChainId={source_network.chainId}
-                onClick={handleCommit}
+                onClick={handleUserLock}
                 type={type}
             >
                 Confirm in wallet

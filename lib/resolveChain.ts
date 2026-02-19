@@ -12,7 +12,7 @@ export default function resolveChain(network: Network, customRpcUrl?: string) {
     const evm_multicall_contract = network.contracts?.find(c => c.type === "Multicall")?.address || undefined
 
     if (!nativeCurrency || !nativeToken) {
-        SendErrorMessage("UI Settings error", `env: ${process.env.NEXT_PUBLIC_VERCEL_ENV} %0A url: ${process.env.NEXT_PUBLIC_VERCEL_URL} %0A message: could not find native currency for ${network.slug} ${JSON.stringify(network)} %0A`)
+        SendErrorMessage("UI Settings error", `env: ${process.env.NEXT_PUBLIC_VERCEL_ENV} %0A url: ${process.env.NEXT_PUBLIC_VERCEL_URL} %0A message: could not find native currency for ${network.caip2Id} ${JSON.stringify(network)} %0A`)
         return
     }
 
@@ -47,8 +47,8 @@ export default function resolveChain(network: Network, customRpcUrl?: string) {
         ...opStackChainConfig,
     })
 
-    const defaultPriorityFee = NetworkSettings.KnownSettings[network.slug]?.DefaultPriorityFee?.toString()
-    const baseFeeMultiplier = NetworkSettings.KnownSettings[network.slug]?.BaseFeeMultiplier ?? 1.2
+    const defaultPriorityFee = NetworkSettings.KnownSettings[network.caip2Id]?.DefaultPriorityFee?.toString()
+    const baseFeeMultiplier = NetworkSettings.KnownSettings[network.caip2Id]?.BaseFeeMultiplier ?? 1.2
 
     if (defaultPriorityFee) {
         res.fees = {

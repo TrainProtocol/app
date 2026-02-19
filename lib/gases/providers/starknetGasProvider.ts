@@ -8,7 +8,7 @@ import { Provider } from "./types";
 
 export class StarknetGasProvider implements Provider {
     supportsNetwork(network: Network): boolean {
-        return (KnownInternalNames.Networks.StarkNetMainnet.includes(network.slug) || KnownInternalNames.Networks.StarkNetGoerli.includes(network.slug) || KnownInternalNames.Networks.StarkNetSepolia.includes(network.slug))
+        return (KnownInternalNames.Networks.StarkNetMainnet.includes(network.caip2Id) || KnownInternalNames.Networks.StarkNetGoerli.includes(network.caip2Id) || KnownInternalNames.Networks.StarkNetSepolia.includes(network.caip2Id))
     }
 
     getGas = async ({ address, network, token }: GasProps) => {

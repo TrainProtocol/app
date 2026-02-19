@@ -27,7 +27,7 @@ function WagmiComponent({ children }: Props) {
     const isChain = (c: Chain | undefined): c is Chain => c != undefined
 
     const settingsChains = settings?.networks
-        .sort((a, b) => (NetworkSettings.KnownSettings[a.slug]?.ChainOrder || Number(a.chainId)) - (NetworkSettings.KnownSettings[b.slug]?.ChainOrder || Number(b.chainId)))
+        .sort((a, b) => (NetworkSettings.KnownSettings[a.caip2Id]?.ChainOrder || Number(a.chainId)) - (NetworkSettings.KnownSettings[b.caip2Id]?.ChainOrder || Number(b.chainId)))
         .filter(net => net.type?.name === "eip155"
             && !isNaN(Number(net.chainId))
             && net.nodes?.[0]?.url
@@ -45,7 +45,7 @@ function WagmiComponent({ children }: Props) {
         // Find the original network to get all custom RPC URLs
         const network = settings?.networks?.find(n => Number(n.chainId) === chain.id)
 
-        if (network && isUsingCustomRpc(network.slug)) {
+        if (network && isUsingCustomRpc(network.caip2Id)) {
             // Get all custom RPC URLs for fallback support
             const customUrls = getEffectiveRpcUrls(network)
 

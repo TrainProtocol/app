@@ -1,10 +1,8 @@
-import { Context, createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { Context, createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router';
 import { useSettingsState } from './settings';
 import { LockDetails, LockStatus } from '../Models/phtlc/PHTLC';
 import { Network, Token } from '../Models/Network';
-import useSWR from 'swr';
-import { ApiResponse } from '../Models/ApiResponse';
 import { HTLCFromApi, HTLCTransaction } from '../lib/trainApiClient';
 import LightClient from '../lib/lightClient';
 import { useSwapStore } from '../stores/swapStore';
@@ -126,19 +124,63 @@ export function AtomicProvider({ children }) {
     const manualClaimRequired = hashlock ? htlcStates[hashlock]?.manualClaimRequired : false;
     const destinationDetailsByLightClient = hashlock ? htlcStates[hashlock]?.destinationDetailsByLightClient : undefined
 
-    const destinationRedeemTx = manualClaimTxId ?? htlcFromApi?.transactions.find(t => t.type === HTLCTransaction.HTLCRedeem && t.network === destination)?.hash
+    // const destinationRedeemTx = manualClaimTxId ?? htlcFromApi?.transactions.find(t => t.type === HTLCTransaction.HTLCRedeem && t.network === destination)?.hash
 
-    const source_network = networks.find(n => n.slug.toUpperCase() === (source as string)?.toUpperCase())
-    const destination_network = networks.find(n => n.slug.toUpperCase() === (destination as string)?.toUpperCase())
+    const source_network = networks.find(n => n.caip2Id.toUpperCase() === (source as string)?.toUpperCase())
+    const destination_network = networks.find(n => n.caip2Id.toUpperCase() === (destination as string)?.toUpperCase())
     const source_token = source_network?.tokens.find(t => t.symbol === source_asset)
     const destination_token = destination_network?.tokens.find(t => t.symbol === destination_asset)
 
     const destAtomicContract = destination_network?.chainId == '11155111' ? '0x9A0E4E619d391f6352E112cC4c452344a3EB4119' : '0xcf6d47cdd0cb259e78262832b4db3f4f4f909dcb' // commitFromApi?.destinationContractAddress || destAtomicContractfromQuery
     const srcAtomicContract = source_network?.chainId == '11155111' ? '0x9A0E4E619d391f6352E112cC4c452344a3EB4119' : '0xcf6d47cdd0cb259e78262832b4db3f4f4f909dcb' //commitFromApi?.sourceContractAddress || srcAtomicContractFromQuery
 
-    const fetcher = (args: string) => fetch(args).then(res => res.json())
-    const url = process.env.NEXT_PUBLIC_TRAIN_API
-    const { data } = useSWR<ApiResponse<HTLCFromApi>>((hashlock && !destinationRedeemTx) ? `${url}/api/${solverName}/swaps/${hashlock}` : null, fetcher, { refreshInterval: 2000 })
+    const TRAIN_API = process.env.NEXT_PUBLIC_TRAIN_API
+    const orderEsRef = useRef<EventSource | null>(null)
+
+    // useEffect(() => {
+    //     if (!hashlock || !solverName || destinationRedeemTx) {
+    //         orderEsRef.current?.close()
+    //         orderEsRef.current = null
+    //         return
+    //     }
+
+    //     orderEsRef.current?.close()
+    //     orderEsRef.current = null
+
+    //     const url = `${TRAIN_API}/api/v1/orders/${solverName}/${hashlock}/stream`
+    //     const es = new EventSource(url)
+    //     orderEsRef.current = es
+
+    //     es.addEventListener('order', (e: MessageEvent) => {
+    //         try {
+    //             const response = JSON.parse(e.data)
+    //             const order: HTLCFromApi = response.order ?? response
+    //             if (order) updateHTLCState(hashlock, { htlcFromApi: order })
+    //         } catch { /* ignore */ }
+    //     })
+
+    //     es.addEventListener('order_event', (e: MessageEvent) => {
+    //         try {
+    //             const { data: eventData } = JSON.parse(e.data)
+    //             if (eventData) updateHTLCState(hashlock, { htlcFromApi: eventData })
+    //         } catch { /* ignore */ }
+    //     })
+
+    //     es.addEventListener('done', () => {
+    //         es.close()
+    //         orderEsRef.current = null
+    //     })
+
+    //     es.onerror = () => {
+    //         es.close()
+    //         orderEsRef.current = null
+    //     }
+
+    //     return () => {
+    //         es.close()
+    //         orderEsRef.current = null
+    //     }
+    // }, [hashlock, solverName, destinationRedeemTx])
     const htlcStatus = useMemo(() =>
         statusResolver({ sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed, manualClaimRequired }),
         [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, manualClaimRequired])
@@ -177,12 +219,6 @@ export function AtomicProvider({ children }) {
             updateHTLCState(hashlock, { solverLockDetails: solverLockPollData })
         }
     }, [solverLockPollData, hashlock])
-
-    useEffect(() => {
-        if (data?.data) {
-            updateCommit('htlcFromApi', data.data)
-        }
-    }, [data])
 
     useEffect(() => {
         if (destination_network && htlcStatus !== HTLCStatus.TimelockExpired && htlcStatus !== HTLCStatus.RedeemCompleted) {
@@ -235,7 +271,7 @@ export function AtomicProvider({ children }) {
         if (!sourceDetails?.timelock || isTimelockExpired) return;
         if (sourceDetails.status === LockStatus.Redeemed || sourceDetails.status === LockStatus.Refunded) return;
 
-        const timeRemaining = (Number(sourceDetails.timelock) * 1000) - Date.now();
+        const timeRemaining = (Number(sourceDetails.timelock) * 60000) - Date.now();
 
         if (timeRemaining <= 0) {
             setIsTimelockExpired(true);
@@ -309,7 +345,7 @@ export function AtomicProvider({ children }) {
             htlcStatus,
             isTimelockExpired,
             refundTxId,
-            destRedeemTx: destinationRedeemTx,
+            // destRedeemTx: destinationRedeemTx,
             verifyingByLightClient,
             destinationDetailsByLightClient,
             srcAtomicContract,

@@ -53,7 +53,7 @@ export default function Row({
         case "suggested_token": {
             const token = item.data.token;
             const network = item.data.network;
-            const isSelected = selectedNetwork === network.slug && selectedToken === token.symbol;
+            const isSelected = selectedNetwork === network.caip2Id && selectedToken === token.symbol;
 
             return (
                 <NavigatableItem

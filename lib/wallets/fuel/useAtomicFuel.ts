@@ -152,17 +152,7 @@ export default function useAtomicFuel(params: UseAtomicFuelParams): BaseAtomicFu
 
         const signature = await wallet.signMessage(message);
 
-        try {
-            await apiClient.AddLockSig({
-                signature: signature,
-                timelock: timeLockS,
-            },
-                id,
-                solver
-            )
-        } catch (e) {
-            throw new Error("Failed to add lock")
-        }
+        // AddLockSig not supported in Station API — Fuel chain not yet migrated
 
         return { hash: signature, result: signature }
     }

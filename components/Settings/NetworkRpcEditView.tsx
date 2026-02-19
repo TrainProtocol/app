@@ -25,12 +25,12 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
 
     useEffect(() => {
         // Load existing URLs or start with one empty field
-        const existingConfig = rpcConfigs[network.slug]
+        const existingConfig = rpcConfigs[network.caip2Id]
         const urls = existingConfig?.customRpcUrls || []
         setCustomUrls(urls.length > 0 ? urls : [""])
         setValidationErrors({})
         setValidatedUrls({})
-    }, [network.slug, rpcConfigs])
+    }, [network.caip2Id, rpcConfigs])
 
     const validateUrl = async (url: string, index: number) => {
         if (!url) {
@@ -128,7 +128,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                 return
             }
 
-            setCustomRpc(network.slug, {
+            setCustomRpc(network.caip2Id, {
                 customRpcUrls: nonEmptyUrls,
                 useCustomRpc: true,
                 isValidated: true
@@ -136,7 +136,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
 
             toast.success(`Custom RPC URLs saved for ${network.displayName}`)
         } else {
-            removeCustomRpc(network.slug)
+            removeCustomRpc(network.caip2Id)
             toast.success(`Reverted to default RPC for ${network.displayName}`)
         }
 
@@ -144,7 +144,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
     }
 
     const handleReset = () => {
-        removeCustomRpc(network.slug)
+        removeCustomRpc(network.caip2Id)
         setCustomUrls([])
         toast.success(`Reset to default RPC for ${network.displayName}`)
         onSave()
@@ -257,7 +257,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                     </div>
                 ))}
 
-                {rpcConfigs[network.slug]?.useCustomRpc && (
+                {rpcConfigs[network.caip2Id]?.useCustomRpc && (
                     <SecondaryButton
                         onClick={handleReset}
                         className="flex items-center gap-2"

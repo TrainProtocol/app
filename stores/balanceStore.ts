@@ -7,7 +7,7 @@ import { BalanceResolver } from '../lib/balances/balanceResolver'
 export function getKey(address: string, network: Network): string
 export function getKey(address: string, networkName: string): string
 export function getKey(address: string, networkOrName: Network | string): string {
-  const name = typeof networkOrName === 'string' ? networkOrName : networkOrName.slug
+  const name = typeof networkOrName === 'string' ? networkOrName : networkOrName.caip2Id
   return `${address}:${name}`
 }
 
@@ -149,7 +149,7 @@ export const useBalanceStore = create<BalanceStore>()(
       const initiatedBalances = pairs.reduce<Record<string, string>>(
         (acc, { address, network }) => {
           const key = getKey(address, network)
-          acc[network.slug] = key
+          acc[network.caip2Id] = key
           return acc
         }, {})
       // const sortedpairs = pairs.sort((a, b) => Number(a.network.source_rank) - Number(b.network.source_rank))

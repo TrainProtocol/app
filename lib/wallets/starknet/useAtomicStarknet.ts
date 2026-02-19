@@ -258,17 +258,7 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Base
         }
         const signature = await starknetWallet?.metadata?.starknetAccount.signMessage(addlockData)
 
-        try {
-            await apiClient.AddLockSig({
-                signatureArray: signature,
-                timelock,
-            },
-                id,
-                solver
-            )
-        } catch (e) {
-            throw new Error("Failed to add lock")
-        }
+        // AddLockSig not supported in Station API — Starknet chain not yet migrated
 
         return { hash: signature as any, result: signature }
 

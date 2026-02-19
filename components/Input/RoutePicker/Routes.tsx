@@ -41,7 +41,7 @@ type NetworkTokenItemProps = {
 
 export const NetworkTokenTitle = (props: NetworkTokenItemProps) => {
     const { item, network, direction } = props
-    const selectedSourceAccount = useSelectedAccount("from", network?.slug);
+    const selectedSourceAccount = useSelectedAccount("from", network?.caip2Id);
 
     const address = direction === 'from' ? selectedSourceAccount?.address : undefined;
     const { balances } = useBalance(address, network);

@@ -56,7 +56,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
         const parsedAmount = ethers.utils.parseUnits(amount.toString(), decimals).toBigInt()
 
         if (!account) throw new Error("No account found")
-        if ((account.wallet.chainId !== chainId) && chainId && switchChain) await switchChain(account.wallet, chainId)
+        if ((account.wallet.chainId != chainId) && chainId && switchChain) await switchChain(account.wallet, chainId)
 
         const { secret, nonce: timestamp } = await deriveSecret({
             wallet: account.wallet,
@@ -106,10 +106,10 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
             sender: account.address as `0x${string}`,
             recipient: lpAddress as `0x${string}`,
             token: tokenAddress,
-            rewardAmount,
-            rewardToken: rewardToken as `0x${string}`,
-            rewardRecipient: rewardRecipient as `0x${string}`,
-            rewardTimelockDelta
+            rewardAmount: rewardAmount || 0n,
+            rewardToken: rewardToken ? rewardToken as `0x${string}` : zeroAddress,
+            rewardRecipient: rewardRecipient ? rewardRecipient as `0x${string}` : zeroAddress,
+            rewardTimelockDelta: rewardTimelockDelta ? rewardTimelockDelta : 0,
         }
 
         const destinationInfo = {
@@ -377,6 +377,6 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
 
 const getAccount = (source_network: Network, address: string, conectors: Wallet[]) => {
     if (!source_network || !address) return undefined
-    const wallet = conectors.find(w => w.withdrawalSupportedNetworks?.includes(source_network.slug) && Address.equals(w.address, address, source_network))
+    const wallet = conectors.find(w => w.withdrawalSupportedNetworks?.includes(source_network.caip2Id) && Address.equals(w.address, address, source_network))
     return wallet ? { wallet, address: wallet.address } : undefined
 }

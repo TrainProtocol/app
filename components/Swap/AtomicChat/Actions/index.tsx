@@ -115,7 +115,7 @@ const TerminalActions: FC<{ variant: 'success' | 'refund'; type: SwapViewType }>
 
     const isSuccess = variant === 'success'
     const isModal = type === 'contained'
-    const networkSlug = isSuccess ? destination_network?.slug : source_network?.slug
+    const networkSlug = isSuccess ? destination_network?.caip2Id : source_network?.caip2Id
     const txHash = isSuccess ? destRedeemTx : refundTxId
     const txLink = networkSlug && txHash
         ? getExplorerUrl(NetworkSettings.KnownSettings[networkSlug]?.TransactionExplorerTemplate, txHash)

@@ -23,13 +23,13 @@ const MinMax = (props: MinMaxProps) => {
     const { setFieldValue, values } = useFormikContext<SwapFormValues>();
     const { fromCurrency, from, limitsMinAmount, limitsMaxAmount, onActionHover } = props;
 
-    const selectedSourceAccount = useSelectedAccount("from", from?.slug);
+    const selectedSourceAccount = useSelectedAccount("from", from?.caip2Id);
     const { gas } = useSWRGas(selectedSourceAccount?.address, from, fromCurrency)
     const { balances, mutate: mutateBalances } = useBalance(selectedSourceAccount?.address, from)
 
     const walletBalance = useMemo(() => {
-        return selectedSourceAccount?.address ? balances?.find(b => b?.network === from?.slug && b?.token === fromCurrency?.symbol) : undefined
-    }, [selectedSourceAccount?.address, balances, from?.slug, fromCurrency?.symbol])
+        return selectedSourceAccount?.address ? balances?.find(b => b?.network === from?.caip2Id && b?.token === fromCurrency?.symbol) : undefined
+    }, [selectedSourceAccount?.address, balances, from?.caip2Id, fromCurrency?.symbol])
 
     const gasAmount = gas || 0;
 

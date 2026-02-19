@@ -16,9 +16,9 @@ export default function useSVM(): WalletProvider {
     const { networks } = useSettingsState()
     const isMobilePlatform = useMemo(() => isMobile(), []);
 
-    const network = networks.find(n => solanaNames.some(name => n.slug === name))
+    const network = networks.find(n => solanaNames.some(name => n.caip2Id === name))
     const commonSupportedNetworks = [
-        ...networks.filter(network => network.type?.name === "solana").map(l => l.slug)
+        ...networks.filter(network => network.type?.name === "solana").map(l => l.caip2Id)
     ]
 
     const name = 'Solana'
@@ -52,7 +52,7 @@ export default function useSVM(): WalletProvider {
                 asSourceSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
                 autofillSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
                 withdrawalSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
-                networkIcon: networks.find(n => solanaNames.some(name => name === n.slug))?.logo
+                networkIcon: networks.find(n => solanaNames.some(name => name === n.caip2Id))?.logo
             } : undefined
 
             if (wallet) {
@@ -86,7 +86,7 @@ export default function useSVM(): WalletProvider {
             asSourceSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
             autofillSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
             withdrawalSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
-            networkIcon: networks.find(n => solanaNames.some(name => name === n.slug))?.logo
+            networkIcon: networks.find(n => solanaNames.some(name => name === n.caip2Id))?.logo
         } : undefined
 
         return wallet
@@ -155,7 +155,7 @@ export default function useSVM(): WalletProvider {
         asSourceSupportedNetworks: commonSupportedNetworks,
         name,
         id,
-        providerIcon: networks.find(n => solanaNames.some(name => name === n.slug))?.logo,
+        providerIcon: networks.find(n => solanaNames.some(name => name === n.caip2Id))?.logo,
         ready: wallets.length > 0,
         ...atomicFunctions
     }

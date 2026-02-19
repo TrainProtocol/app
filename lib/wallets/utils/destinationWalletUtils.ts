@@ -9,7 +9,7 @@ import KnownInternalNames from "../../knownIds";
 export const destinationRequiresWallet = (network: Network | undefined): boolean => {
     if (!network) return false;
     // For now, only Aztec requires destination wallet connection
-    return network.slug === KnownInternalNames.Networks.AztecTestnet;
+    return network.caip2Id === KnownInternalNames.Networks.AztecTestnet;
 };
 
 /**
@@ -24,7 +24,7 @@ export const hasRequiredDestinationWallet = (network: Network | undefined, provi
     }
     
     const destinationProvider = network 
-        ? providers.find(p => p.withdrawalSupportedNetworks?.includes(network.slug)) 
+        ? providers.find(p => p.withdrawalSupportedNetworks?.includes(network.caip2Id)) 
         : undefined;
     
     return destinationProvider?.connectedWallets && destinationProvider.connectedWallets.length > 0;
