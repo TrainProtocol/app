@@ -1,73 +1,78 @@
-// import { Balance } from "../../../Models/Balance";
-// import { Network } from "../../../Models/Network";
-// import KnownInternalNames from "../../knownIds";
+import { BalanceProvider } from "@/Models/BalanceProvider";
+import { TokenBalance } from "@/Models/Balance";
+import { formatUnits } from "viem";
+import KnownInternalNames from "@/lib/knownIds";
 
-// export class SolanaBalanceProvider {
-//     supportsNetwork(network: Network): boolean {
-//         return (KnownInternalNames.Networks.SolanaMainnet.includes(network.name) || KnownInternalNames.Networks.SolanaDevnet.includes(network.name) || KnownInternalNames.Networks.SolanaTestnet.includes(network.name))
-//     }
+export class SolanaBalanceProvider extends BalanceProvider {
+    supportsNetwork: BalanceProvider['supportsNetwork'] = (network) => {
+        return network.slug === KnownInternalNames.Networks.SolanaMainnet
+            || network.slug === KnownInternalNames.Networks.SolanaDevnet
+            || network.slug === KnownInternalNames.Networks.SolanaTestnet
+    }
 
-//     fetchBalance = async (address: string, network: Network) => {
-//         if (!address) return
+    fetchBalance: BalanceProvider['fetchBalance'] = async (address, network, _options) => {
+        if (!address) return
 
-//         const SolanaWeb3 = await import("@solana/web3.js");
-//         const { PublicKey, Connection } = SolanaWeb3
-//         class SolanaConnection extends Connection { }
-//         const { getAssociatedTokenAddress } = await import('@solana/spl-token');
-//         const walletPublicKey = new PublicKey(address)
-//         let balances: Balance[] = []
+        const { PublicKey, Connection } = await import("@solana/web3.js")
+        class SolanaConnection extends Connection { }
+        const { getAssociatedTokenAddress } = await import('@solana/spl-token');
+        const walletPublicKey = new PublicKey(address)
+        let balances: TokenBalance[] = []
 
-//         if (!network?.tokens || !walletPublicKey) return
+        if (!network?.tokens || !walletPublicKey) return
 
-//         const connection = new SolanaConnection(
-//             `${network.rpcUrl}`,
-//             "confirmed"
-//         );
+        const connection = new SolanaConnection(
+            `${network.nodes?.[0]?.url}`,
+            "confirmed"
+        );
 
-//         async function getTokenBalanceWeb3(connection: SolanaConnection, tokenAccount) {
-//             const info = await connection.getTokenAccountBalance(tokenAccount);
-//             return info?.value?.uiAmount;
-//         }
+        async function getTokenBalanceWeb3(connection: SolanaConnection, tokenAccount) {
+            try {
+                const info = await connection.getTokenAccountBalance(tokenAccount);
+                return info?.value?.uiAmount;
+            } catch (error) {
+                if (error.message && error.message.includes("could not find account")) {
+                    return 0;
+                }
+                throw error;
+            }
+        }
 
-//         for (let i = 0; i < network.tokens.length; i++) {
-//             try {
-//                 const asset = network.tokens[i]
+        for (const token of network.tokens) {
+            try {
+                let result: number | null = null
 
-//                 let result: number | null = null
+                if (token.contractAddress !== network.nativeTokenAddress) {
+                    const sourceToken = new PublicKey(token.contractAddress);
+                    const associatedTokenFrom = await getAssociatedTokenAddress(
+                        sourceToken,
+                        walletPublicKey
+                    );
+                    if (!associatedTokenFrom) return
+                    result = await getTokenBalanceWeb3(connection, associatedTokenFrom)
+                } else {
+                    const res = await connection.getBalance(walletPublicKey)
+                    if (res) result = Number(formatUnits(BigInt(Number(res)), token.decimals))
+                }
 
-//                 if (asset.contract) {
-//                     const sourceToken = new PublicKey(asset?.contract!);
-//                     const associatedTokenFrom = await getAssociatedTokenAddress(
-//                         sourceToken,
-//                         walletPublicKey
-//                     );
-//                     if (!associatedTokenFrom) return
-//                     result = await getTokenBalanceWeb3(connection, associatedTokenFrom)
-//                 } else {
-//                     result = await connection.getBalance(walletPublicKey)
-//                 }
+                if (result != null && !isNaN(result)) {
+                    const balance: TokenBalance = {
+                        network: network.slug,
+                        token: token.symbol,
+                        amount: result,
+                        request_time: new Date().toJSON(),
+                        decimals: Number(token?.decimals),
+                        isNativeCurrency: token.contractAddress === network.nativeTokenAddress
+                    }
 
-//                 if (result != null && !isNaN(result)) {
-//                     const balance = {
-//                         network: network.name,
-//                         token: asset.symbol,
-//                         amount: result,
-//                         request_time: new Date().toJSON(),
-//                         decimals: Number(asset?.decimals),
-//                         isNativeCurrency: false
-//                     }
+                    balances.push(balance)
+                }
+            }
+            catch (e) {
+                balances.push(this.resolveTokenBalanceFetchError(e, token, network))
+            }
+        }
 
-//                     balances = [
-//                         ...balances,
-//                         balance
-//                     ]
-//                 }
-//             }
-//             catch (e) {
-//                 console.log(e)
-//             }
-//         }
-
-//         return balances
-//     }
-// }
+        return balances
+    }
+}
