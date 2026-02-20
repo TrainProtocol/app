@@ -124,7 +124,7 @@ export function AtomicProvider({ children }) {
     const manualClaimRequired = hashlock ? htlcStates[hashlock]?.manualClaimRequired : false;
     const destinationDetailsByLightClient = hashlock ? htlcStates[hashlock]?.destinationDetailsByLightClient : undefined
 
-    // const destinationRedeemTx = manualClaimTxId ?? htlcFromApi?.transactions.find(t => t.type === HTLCTransaction.HTLCRedeem && t.network === destination)?.hash
+    const destinationRedeemTx = manualClaimTxId ?? htlcFromApi?.transactions.find(t => t.type === HTLCTransaction.HTLCRedeem && t.network === destination)?.hash
 
     const source_network = networks.find(n => n.caip2Id.toUpperCase() === (source as string)?.toUpperCase())
     const destination_network = networks.find(n => n.caip2Id.toUpperCase() === (destination as string)?.toUpperCase())
@@ -137,50 +137,51 @@ export function AtomicProvider({ children }) {
     const TRAIN_API = process.env.NEXT_PUBLIC_TRAIN_API
     const orderEsRef = useRef<EventSource | null>(null)
 
-    // useEffect(() => {
-    //     if (!hashlock || !solverName || destinationRedeemTx) {
-    //         orderEsRef.current?.close()
-    //         orderEsRef.current = null
-    //         return
-    //     }
+    useEffect(() => {
+        if (!hashlock || !solverName || destinationRedeemTx) {
+            orderEsRef.current?.close()
+            orderEsRef.current = null
+            return
+        }
 
-    //     orderEsRef.current?.close()
-    //     orderEsRef.current = null
+        orderEsRef.current?.close()
+        orderEsRef.current = null
 
-    //     const url = `${TRAIN_API}/api/v1/orders/${solverName}/${hashlock}/stream`
-    //     const es = new EventSource(url)
-    //     orderEsRef.current = es
+        const url = `${TRAIN_API}/api/v1/orders/${solverName}/${hashlock}/stream`
+        const es = new EventSource(url)
+        orderEsRef.current = es
 
-    //     es.addEventListener('order', (e: MessageEvent) => {
-    //         try {
-    //             const response = JSON.parse(e.data)
-    //             const order: HTLCFromApi = response.order ?? response
-    //             if (order) updateHTLCState(hashlock, { htlcFromApi: order })
-    //         } catch { /* ignore */ }
-    //     })
+        es.addEventListener('order', (e: MessageEvent) => {
+            try {
+                ``
+                const response = JSON.parse(e.data)
+                const order: HTLCFromApi = response.order ?? response
+                if (order) updateHTLCState(hashlock, { htlcFromApi: order })
+            } catch { /* ignore */ }
+        })
 
-    //     es.addEventListener('order_event', (e: MessageEvent) => {
-    //         try {
-    //             const { data: eventData } = JSON.parse(e.data)
-    //             if (eventData) updateHTLCState(hashlock, { htlcFromApi: eventData })
-    //         } catch { /* ignore */ }
-    //     })
+        // es.addEventListener('order_event', (e: MessageEvent) => {
+        //     try {
+        //         const { data: eventData } = JSON.parse(e.data)
+        //         if (eventData) updateHTLCState(hashlock, { htlcFromApi: eventData })
+        //     } catch { /* ignore */ }
+        // })
 
-    //     es.addEventListener('done', () => {
-    //         es.close()
-    //         orderEsRef.current = null
-    //     })
+        es.addEventListener('done', () => {
+            es.close()
+            orderEsRef.current = null
+        })
 
-    //     es.onerror = () => {
-    //         es.close()
-    //         orderEsRef.current = null
-    //     }
+        es.onerror = () => {
+            es.close()
+            orderEsRef.current = null
+        }
 
-    //     return () => {
-    //         es.close()
-    //         orderEsRef.current = null
-    //     }
-    // }, [hashlock, solverName, destinationRedeemTx])
+        return () => {
+            es.close()
+            orderEsRef.current = null
+        }
+    }, [hashlock, solverName, destinationRedeemTx])
     const htlcStatus = useMemo(() =>
         statusResolver({ sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed, manualClaimRequired }),
         [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, manualClaimRequired])
@@ -289,19 +290,21 @@ export function AtomicProvider({ children }) {
     useEffect(() => {
         const sourceRedeemed = sourceDetails?.status === LockStatus.Redeemed;
         const hasSecret = sourceDetails?.secret && sourceDetails.secret !== 0n;
+        // Require the destination lock to actually exist before checking its status —
+        // solverLockDetails is undefined while polling hasn't returned yet, which would
+        // otherwise incorrectly satisfy the "not redeemed" condition.
+        const destLockExists = !!solverLockDetails?.sender;
         const destNotRedeemed = solverLockDetails?.status !== LockStatus.Redeemed;
 
-        if (!sourceRedeemed || !hasSecret || !destNotRedeemed || !hashlock) return;
-
-        // On page reload, source is already redeemed — skip the wait
+        if (!sourceRedeemed || !hasSecret || !destLockExists || !destNotRedeemed || !hashlock) return;
         if (manualClaimRequired) return;
 
         const timer = setTimeout(() => {
             updateHTLCState(hashlock, { manualClaimRequired: true });
-        }, 1000)//2 * 60 * 1000);
+        }, 2 * 60 * 1000);
 
         return () => clearTimeout(timer);
-    }, [sourceDetails?.status, sourceDetails?.secret, solverLockDetails?.status, hashlock])
+    }, [sourceDetails?.status, sourceDetails?.secret, solverLockDetails?.sender, solverLockDetails?.status, hashlock, manualClaimRequired])
 
     const handleCommited = (hashlock: string, txId: string) => {
         // Move tempSwap → swaps[hashlock] in the store (also sets activeHashlock)
@@ -345,7 +348,7 @@ export function AtomicProvider({ children }) {
             htlcStatus,
             isTimelockExpired,
             refundTxId,
-            // destRedeemTx: destinationRedeemTx,
+            destRedeemTx: destinationRedeemTx,
             verifyingByLightClient,
             destinationDetailsByLightClient,
             srcAtomicContract,
