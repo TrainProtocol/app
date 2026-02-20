@@ -15,13 +15,13 @@ const Swap: FC<ContainerProps> = ({ type }) => {
     const quoteParams = useMemo(() => {
         if (hashlock) return undefined;
         return buildQuoteParamsFromAtomic({
-            from: source_network?.slug,
-            to: destination_network?.slug,
+            from: source_network?.caip2Id,
+            to: destination_network?.caip2Id,
             fromCurrency: source_asset,
             toCurrency: destination_asset,
             amount: amount != null ? String(amount) : undefined,
         });
-    }, [hashlock, source_network?.slug, destination_network?.slug, source_asset, destination_asset, amount]);
+    }, [hashlock, source_network?.caip2Id, destination_network?.caip2Id, source_asset, destination_asset, amount]);
 
     const { quote, isQuoteLoading } = useQuoteData(quoteParams, 42000);
 

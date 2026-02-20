@@ -68,10 +68,9 @@ export default function useEVM(): WalletProvider {
     const { networks } = useSettingsState()
     const isMobilePlatform = useMemo(() => isMobile(), []);
     const { getEffectiveRpcUrls } = useRpcConfigStore();
-    const evmAccount = useAccount()
 
     const asSourceSupportedNetworks = useMemo(() => [
-        ...networks.filter(network => network.type?.name === "eip155").map(l => l.slug),
+        ...networks.filter(network => network.type?.name === "eip155").map(l => l.caip2Id),
         KnownInternalNames.Networks.ZksyncMainnet,
         KnownInternalNames.Networks.LoopringGoerli,
         KnownInternalNames.Networks.LoopringMainnet,
@@ -346,7 +345,7 @@ export default function useEVM(): WalletProvider {
     }
 
     const activeWallet = useMemo(() => resolvedConnectors.find(w => w.isActive), [resolvedConnectors])
-    const providerIcon = useMemo(() => networks.find(n => ethereumNames.some(name => name === n.slug))?.logo, [networks])
+    const providerIcon = useMemo(() => networks.find(n => ethereumNames.some(name => name === n.caip2Id))?.logo, [networks])
 
 
     const atomicFunctions = useAtomicEVM({
@@ -460,7 +459,7 @@ const ResolveWallet = (props: ResolveWalletProps): Wallet | undefined => {
         asSourceSupportedNetworks: resolveSupportedNetworks(supportedNetworks.asSource, walletId),
         autofillSupportedNetworks: resolveSupportedNetworks(supportedNetworks.autofill, walletId),
         withdrawalSupportedNetworks: resolveSupportedNetworks(supportedNetworks.withdrawal, walletId),
-        networkIcon: networks.find(n => walletId === "com.immutable.passport" ? immutableZKEvm.some(name => name === n.slug) : ethereumNames.some(name => name === n.slug))?.logo,
+        networkIcon: networks.find(n => walletId === "com.immutable.passport" ? immutableZKEvm.some(name => name === n.caip2Id) : ethereumNames.some(name => name === n.caip2Id))?.logo,
         metadata: {
             deepLink: (connector as LSConnector).deepLink
         }

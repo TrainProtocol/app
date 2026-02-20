@@ -56,7 +56,7 @@ const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selec
         count: rowElements.length,
         estimateSize: (index) => {
             const item = rowElements[index];
-            const key = (item as any)?.network?.slug || (item as any)?.symbol;
+            const key = (item as any)?.network?.name || (item as any)?.symbol;
             const isOpen = openValues.includes(key);
             // Better size estimation based on open state
             if (isOpen && (item.type === 'network' || item.type === 'grouped_token')) {
@@ -120,7 +120,7 @@ const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selec
                                     }}>
                                     {items.map((virtualRow) => {
                                         const data = rowElements?.[virtualRow.index]
-                                        const key = ((data as any)?.network as any)?.slug || virtualRow.key;
+                                        const key = ((data as any)?.network as any)?.name || virtualRow.key;
                                         return <div
                                             className="py-1 box-border w-full overflow-hidden select-none"
                                             key={key}

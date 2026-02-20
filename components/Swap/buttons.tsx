@@ -28,7 +28,7 @@ export const ConnectWalletButton: FC<ConnectProps> = (props) => {
     const clickHandler = useCallback(async () => {
         try {
 
-            if (!provider) throw new Error(`No provider from ${network?.slug}`)
+            if (!provider) throw new Error(`No provider from ${network?.caip2Id}`)
 
             await connect(provider)
         }
@@ -73,16 +73,16 @@ export const ChangeNetworkButton: FC<ChangeNetworkProps> = (props) => {
     const { provider } = useWallet(network, 'withdrawal')
     const [error, setError] = useState<Error | null>(null)
     const [isPending, setIsPending] = useState(false)
-    const selectedSourceAccount = useSelectedAccount("from", network?.slug);
+    const selectedSourceAccount = useSelectedAccount("from", network?.caip2Id);
     const { wallets } = useWallet(network, 'withdrawal')
 
     const clickHandler = useCallback(async () => {
         try {
             setIsPending(true)
             const selectedWallet = wallets.find(w => w.id === selectedSourceAccount?.id)
-            if (!selectedWallet) throw new Error(`No selectedWallet for ${network?.slug}`)
-            if (!selectedSourceAccount) throw new Error(`No selectedSourceAccount for ${network?.slug}`)
-            if (!selectedSourceAccount.provider.switchChain) throw new Error(`No switchChain from ${network?.slug}`)
+            if (!selectedWallet) throw new Error(`No selectedWallet for ${network?.caip2Id}`)
+            if (!selectedSourceAccount) throw new Error(`No selectedSourceAccount for ${network?.caip2Id}`)
+            if (!selectedSourceAccount.provider.switchChain) throw new Error(`No switchChain from ${network?.caip2Id}`)
 
             return await selectedSourceAccount.provider.switchChain(selectedWallet, chainId)
         } catch (e) {

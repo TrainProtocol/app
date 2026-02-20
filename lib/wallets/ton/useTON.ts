@@ -24,7 +24,7 @@ export default function useTON(): WalletProvider {
 
     const tonNetwork = networks?.find(n =>
         n.type?.name === "ton" &&
-        commonSupportedNetworks.some(name => name === n.slug)
+        commonSupportedNetworks.some(name => name === n.caip2Id)
     );
     const tonApiUrl = tonNetwork ? getEffectiveRpcUrl(tonNetwork) : 'https://testnet.toncenter.com';
 
@@ -43,7 +43,7 @@ export default function useTON(): WalletProvider {
         withdrawalSupportedNetworks: commonSupportedNetworks,
         autofillSupportedNetworks: commonSupportedNetworks,
         asSourceSupportedNetworks: commonSupportedNetworks,
-        networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.slug))?.logo
+        networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logo
     } : undefined
     const switchAccount = async (wallet: Wallet, address: string) => {
         // as we do not have multiple accounts management we will leave the method empty
@@ -100,7 +100,7 @@ export default function useTON(): WalletProvider {
                     withdrawalSupportedNetworks: commonSupportedNetworks,
                     autofillSupportedNetworks: commonSupportedNetworks,
                     asSourceSupportedNetworks: commonSupportedNetworks,
-                    networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.slug))?.logo
+                    networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logo
                 } : undefined
 
                 return wallet ? wallet : undefined

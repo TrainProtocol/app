@@ -3,6 +3,7 @@ import { useSettingsState } from "../../context/settings";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
+import { ImageWithFallback } from "../Common/ImageWithFallback";
 
 export default function PendingSwap() {
     const swapModalOpen = useSwapStore(s => s.swapModalOpen)
@@ -14,8 +15,8 @@ export default function PendingSwap() {
     if (!activeHashlock || !activeSwap || swapModalOpen || !settings) return null
 
     const { networks } = settings
-    const source_network = networks.find(n => n.slug.toUpperCase() === activeSwap.source?.toUpperCase())
-    const destination_network = networks.find(n => n.slug.toUpperCase() === activeSwap.destination?.toUpperCase())
+    const source_network = networks.find(n => n.caip2Id.toUpperCase() === activeSwap.source?.toUpperCase())
+    const destination_network = networks.find(n => n.caip2Id.toUpperCase() === activeSwap.destination?.toUpperCase())
 
     return (
         <AnimatePresence mode='wait'>
@@ -33,11 +34,11 @@ export default function PendingSwap() {
                         <div className="text-primary-text flex px-3 p-2 items-center space-x-2">
                             <div className="shrink-0 h-5 w-5 relative">
                                 {source_network ?
-                                    <Image
+                                    <ImageWithFallback
                                         src={source_network.logo ?? ''}
                                         alt="From Logo"
-                                        height="60"
-                                        width="60"
+                                        height="20"
+                                        width="20"
                                         className="rounded-md object-contain"
                                     /> : null
                                 }
@@ -45,11 +46,11 @@ export default function PendingSwap() {
                             <ChevronRight className="block h-4 w-4 mx-1" />
                             <div className="shrink-0 h-5 w-5 relative block">
                                 {destination_network ?
-                                    <Image
+                                    <ImageWithFallback
                                         src={destination_network.logo ?? ''}
                                         alt="To Logo"
-                                        height="60"
-                                        width="60"
+                                        height="20"
+                                        width="20"
                                         className="rounded-md object-contain"
                                     /> : null
                                 }

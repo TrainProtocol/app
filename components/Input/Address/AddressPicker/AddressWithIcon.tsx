@@ -186,7 +186,7 @@ export const ExtendedAddress: FC<ExtendedAddressProps> = ({ address, network, pr
             ...((network && !isNativeToken && isAddressValid) ? [{
                 title: 'View',
                 Icon: SquareArrowOutUpRight,
-                href: getExplorerUrl(NetworkSettings.KnownSettings[network.slug]?.AccountExplorerTemplate, addr.full)
+                href: getExplorerUrl(NetworkSettings.KnownSettings[network.caip2Id]?.AccountExplorerTemplate, addr.full)
             }] : []),
             ...(onDisconnect ? [{
                 title: 'Disconnect',

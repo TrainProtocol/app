@@ -36,7 +36,7 @@ export const CollapsibleRow = ({
   openValues,
   scrollContainerRef,
 }: GenericAccordionRowProps & { index: number }) => {
-  const groupName = item.type === "grouped_token" ? item.symbol : item.network.slug;
+  const groupName = item.type === "grouped_token" ? item.symbol : item.network.caip2Id;
   const [isSticky, setSticky] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -98,7 +98,7 @@ export const CollapsibleRow = ({
           <div className="has-[.token-item]:mt-1 bg-secondary-500 rounded-xl overflow-hidden">
             <div className="overflow-y-auto styled-scroll p-2">
               {childrenList?.map(({ token, network }, childIndex) => {
-                const isSelected = selectedNetwork === network.slug && selectedToken === token.symbol;
+                const isSelected = selectedNetwork === network.caip2Id && selectedToken === token.symbol;
 
                 return (
                   <NavigatableItem

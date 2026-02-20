@@ -19,7 +19,7 @@ export default class EVMLightClient extends _LightClient {
     ]
 
     supportsNetwork = (network: Network): boolean => {
-        return this.supportedNetworks.includes(network.slug)
+        return this.supportedNetworks.includes(network.caip2Id)
     }
 
     init({ network }: { network: Network }) {
@@ -35,9 +35,9 @@ export default class EVMLightClient extends _LightClient {
                         data: {
                             initConfigs: {
                                 hostname: window.location.origin,
-                                network: network.slug,
+                                network: network.caip2Id,
                                 alchemyKey: process.env.NEXT_PUBLIC_ALCHEMY_KEY,
-                                version: network.slug.toLowerCase().includes('sepolia') ? 'sandbox' : 'mainnet'
+                                version: network.caip2Id.toLowerCase().includes('sepolia') ? 'sandbox' : 'mainnet'
                             },
                         },
                     },

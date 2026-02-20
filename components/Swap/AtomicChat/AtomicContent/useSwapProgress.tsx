@@ -144,11 +144,11 @@ export function useSwapProgress(): SwapProgress {
     } = useAtomicState();
 
     return useMemo(() => {
-        const sourceTxLink = buildExplorerLink(source_network?.slug, lockTxId);
+        const sourceTxLink = buildExplorerLink(source_network?.caip2Id, lockTxId);
         const lpLockTx = htlcFromApi?.transactions.find(t => t.type === HTLCTransaction.HTLCLock as string);
-        const destTxLink = buildExplorerLink(destination_network?.slug, lpLockTx?.hash);
-        const redeemTxLink = buildExplorerLink(destination_network?.slug, destRedeemTx);
-        const refundTxLink = buildExplorerLink(source_network?.slug, refundTxId);
+        const destTxLink = buildExplorerLink(destination_network?.caip2Id, lpLockTx?.hash);
+        const redeemTxLink = buildExplorerLink(destination_network?.caip2Id, destRedeemTx);
+        const refundTxLink = buildExplorerLink(source_network?.caip2Id, refundTxId);
 
         const isRefunded = sourceDetails?.status === LockStatus.Refunded;
 

@@ -35,7 +35,7 @@ export default function useAztec(): WalletProvider {
             disconnect: () => disconnectWallets(),
             withdrawalSupportedNetworks: commonSupportedNetworks,
             asSourceSupportedNetworks: commonSupportedNetworks,
-            networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.slug))?.logo
+            networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logo
         }
     }, [wallet, connected, accountAddress, networks])
 
@@ -61,7 +61,7 @@ export default function useAztec(): WalletProvider {
                     disconnect: () => disconnectWallets(),
                     withdrawalSupportedNetworks: commonSupportedNetworks,
                     asSourceSupportedNetworks: commonSupportedNetworks,
-                    networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.slug))?.logo
+                    networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logo
                 }
 
                 return newWallet;

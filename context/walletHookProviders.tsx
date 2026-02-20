@@ -38,9 +38,9 @@ export const WalletProvidersProvider: React.FC<React.PropsWithChildren> = ({ chi
 
         return filteredProviders.filter(provider =>
             networks.some(net =>
-                provider.autofillSupportedNetworks?.includes(net.slug) ||
-                provider.withdrawalSupportedNetworks?.includes(net.slug) ||
-                provider.asSourceSupportedNetworks?.includes(net.slug)
+                provider.autofillSupportedNetworks?.includes(net.caip2Id) ||
+                provider.withdrawalSupportedNetworks?.includes(net.caip2Id) ||
+                provider.asSourceSupportedNetworks?.includes(net.caip2Id)
             )
         );
     }, [networks, evm, starknet, svm, ton, fuel, aztec, isMobilePlatform]);

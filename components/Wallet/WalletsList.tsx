@@ -33,7 +33,7 @@ const WalletsList: FC<Props> = (props) => {
     const connectWallet = useCallback(async () => {
         const result = await connect(provider)
 
-        if (result && onSelect && result.withdrawalSupportedNetworks?.some(n => n === network?.slug)) {
+        if (result && onSelect && result.withdrawalSupportedNetworks?.some(n => n === network?.caip2Id)) {
             onSelect({
                 providerName: result.providerName,
                 walletId: result.id,
@@ -43,7 +43,7 @@ const WalletsList: FC<Props> = (props) => {
 
     }, [provider, onSelect, network])
 
-    const selectedSourceAccount = useSelectedAccount("from", selectedDepositMethod == 'wallet' ? network?.slug : undefined);
+    const selectedSourceAccount = useSelectedAccount("from", selectedDepositMethod == 'wallet' ? network?.caip2Id : undefined);
 
     return (
         <div className="space-y-3">
@@ -86,7 +86,7 @@ type WalletItemProps = {
 }
 export const WalletItem: FC<WalletItemProps> = ({ selectable, account: wallet, network, onWalletSelect, token, selectedAddress, isCompatible = true }) => {
     const { networks } = useSettingsState()
-    const balanceNetwork = token ? networks.find(n => n.slug === network?.slug && n.tokens.some(t => t.symbol === token.symbol)) : undefined
+    const balanceNetwork = token ? networks.find(n => n.caip2Id === network?.caip2Id && n.tokens.some(t => t.symbol === token.symbol)) : undefined
 
     const { balances, isLoading: isBalanceLoading } = useBalance(
         isCompatible ? wallet.address : undefined,
@@ -240,7 +240,7 @@ type NestedWalletAddressProps = {
 
 const NestedWalletAddress: FC<NestedWalletAddressProps> = ({ selectable, address, network, onWalletSelect, token, wallet, selectedAddress, isCompatible }) => {
     const { networks } = useSettingsState()
-    const balanceNetwork = token ? networks.find(n => n.slug === network?.slug && n.tokens.some(t => t.symbol === token.symbol)) : undefined
+    const balanceNetwork = token ? networks.find(n => n.caip2Id === network?.caip2Id && n.tokens.some(t => t.symbol === token.symbol)) : undefined
     const { balances, isLoading: isBalanceLoading } = useBalance(
         isCompatible ? address : undefined,
         isCompatible ? balanceNetwork : undefined

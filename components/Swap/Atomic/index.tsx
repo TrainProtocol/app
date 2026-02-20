@@ -39,6 +39,7 @@ export default function Form() {
     const { isLoggedIn } = useSecretDerivation()
 
     const [quote, setQuote] = useState<SwapQuote | undefined>()
+    const [solverId, setSolverId] = useState<string | undefined>()
     const [polling, setPolling] = useState(true)
     const { getProvider } = useWallet()
     const { hashlock, htlcStatus } = useAtomicState()
@@ -110,11 +111,11 @@ export default function Form() {
             setTempSwap({
                 requestedAmount: values.amount,
                 address: values.destination_address,
-                source: values.from?.slug!,
-                destination: values.to?.slug!,
+                source: values.from?.caip2Id!,
+                destination: values.to?.caip2Id!,
                 source_asset: values.fromCurrency.symbol,
                 destination_asset: values.toCurrency.symbol,
-                solver: quote?.sourceSolverAddress,
+                solver: solverId,
                 srcContract: quote?.route?.source?.tokenContract ?? undefined,
                 destContract: quote?.route?.destination?.tokenContract ?? undefined,
                 receiveAmount: formattedReceiveAmount,
@@ -125,7 +126,7 @@ export default function Form() {
         catch (error) {
             console.log(error)
         }
-    }, [query, router, getProvider, isLoggedIn, quote])
+    }, [query, router, getProvider, isLoggedIn, quote, solverId])
 
     const initialValues: SwapFormValues = generateSwapInitialValues(settings, query)
 
@@ -150,7 +151,7 @@ export default function Form() {
                     <AtomicPage type='contained' />
                 </VaulDrawer>
                 <Widget>
-                    <SwapForm polling={polling} onQuoteChange={setQuote} />
+                    <SwapForm polling={polling} onQuoteChange={(q, id) => { setQuote(q); setSolverId(id) }} />
                 </Widget>
             </>
         </Formik>

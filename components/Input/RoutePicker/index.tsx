@@ -50,7 +50,7 @@ const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ dir
                             setSearchQuery={setSearchQuery}
                             rowElements={networkElements}
                             direction={direction}
-                            selectedNetwork={selectedNetwork?.slug}
+                            selectedNetwork={selectedNetwork?.caip2Id}
                             selectedToken={selectedToken?.symbol}
                         />
                     )}

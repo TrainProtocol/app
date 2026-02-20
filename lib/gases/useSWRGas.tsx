@@ -4,7 +4,7 @@ import { GasResolver } from "./gasResolver"
 
 const useSWRGas = (address: any, network: Network | undefined, token?: Token, contractMethod?: 'addLock' | 'commit',) => {
 
-    const { data: gasData, error: gasError, isLoading } = useSWR((network && address) ? `/gases/${address}/${network.slug}/${token?.symbol}` : null, () => {
+    const { data: gasData, error: gasError, isLoading } = useSWR((network && address) ? `/gases/${address}/${network.caip2Id}/${token?.symbol}` : null, () => {
         if (!network || !token || !address) return
         return new GasResolver().getGas({ address, network, token, contractMethod })
     }, { refreshInterval: 60000 })

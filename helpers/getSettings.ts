@@ -10,14 +10,14 @@ export async function getServerSideProps(context) {
         's-maxage=60, stale-while-revalidate'
     );
 
-    // const networks = await apiClient.GetNetworksAsync()
-    const networks = mockData.data
+    const networks = await apiClient.GetNetworksAsync()
 
     if (!networks.length) return
 
     const networksWithLogos = networks.map(network => ({
         ...network,
-        logo: `https://github.com/TrainProtocol/icons/blob/standardize-caip2-names/networks/${network.slug.toLowerCase().split('-')[0]}.png?raw=true`,
+        logo: `https://github.com/TrainProtocol/icons/blob/standardize-caip2-names/networks/${network.displayName.toLowerCase().split(' ')[0]}.png?raw=true`,
+        nodes: mockData.data.find(n => n.caip2Id === network.caip2Id)?.nodes ?? [],
     }))
 
     const settings = {
@@ -115,45 +115,45 @@ const mockData = {
             "chainId": "421614",
             "nativeTokenAddress": "0x0000000000000000000000000000000000000000"
         },
-        // {
-        //     "caip2Id": "eip155:421614",
-        //     "type": {
-        //         "name": "eip155",
-        //         "displayName": "EVM",
-        //         "nativeTokenAddress": "0x0000000000000000000000000000000000000000",
-        //         "addressFormat": "hex",
-        //         "addressLength": 20,
-        //         "curve": "secp256k1"
-        //     },
-        //     "tokens": [
-        //         {
-        //             "symbol": "ETH",
-        //             "contractAddress": "0x0000000000000000000000000000000000000000",
-        //             "decimals": 18
-        //         }
-        //     ],
-        //     "nodes": [
-        //         {
-        //             "providerName": "publicnode",
-        //             "url": "https://base-sepolia-rpc.publicnode.com",
-        //             "protocol": "Http"
-        //         }
-        //     ],
-        //     "contracts": [
-        //         {
-        //             "type": "Train",
-        //             "address": "0x625d93f90829f2cfd0c0c88ec9a05694fcc1ca81"
-        //         },
-        //         {
-        //             "type": "Multicall",
-        //             "address": "0xcA11bde05977b3631167028862bE2a173976CA11"
-        //         }
-        //     ],
-        //     "metadata": [],
-        //     "slug": "base-sepolia",
-        //     "displayName": "Base Sepolia",
-        //     "chainId": "84532",
-        //     "nativeTokenAddress": "0x0000000000000000000000000000000000000000"
-        // }
+        {
+            "caip2Id": "eip155:84532",
+            "type": {
+                "name": "eip155",
+                "displayName": "EVM",
+                "nativeTokenAddress": "0x0000000000000000000000000000000000000000",
+                "addressFormat": "hex",
+                "addressLength": 20,
+                "curve": "secp256k1"
+            },
+            "tokens": [
+                {
+                    "symbol": "ETH",
+                    "contractAddress": "0x0000000000000000000000000000000000000000",
+                    "decimals": 18
+                }
+            ],
+            "nodes": [
+                {
+                    "providerName": "publicnode",
+                    "url": "https://base-sepolia-rpc.publicnode.com",
+                    "protocol": "Http"
+                }
+            ],
+            "contracts": [
+                {
+                    "type": "Train",
+                    "address": "0x625d93f90829f2cfd0c0c88ec9a05694fcc1ca81"
+                },
+                {
+                    "type": "Multicall",
+                    "address": "0xcA11bde05977b3631167028862bE2a173976CA11"
+                }
+            ],
+            "metadata": [],
+            "slug": "base-sepolia",
+            "displayName": "Base Sepolia",
+            "chainId": "84532",
+            "nativeTokenAddress": "0x0000000000000000000000000000000000000000"
+        }
     ]
 }

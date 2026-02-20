@@ -2,7 +2,7 @@ import AppSettings from "./AppSettings";
 import { InitializeUnauthInstance } from "./axiosInterceptor"
 import { AxiosInstance, Method } from "axios";
 import { ApiResponse } from "../Models/ApiResponse";
-import { Network } from "../Models/Network";
+import { Network, Token } from "../Models/Network";
 
 export default class TrainApiClient {
     static apiBaseEndpoint?: string = AppSettings.TrainApiUri;
@@ -14,8 +14,8 @@ export default class TrainApiClient {
     fetcher = (url: string) => this.UnauthenticatedRequest<any>("GET", url)
 
     async GetNetworksAsync(): Promise<Network[]> {
-        const response = await this.UnauthenticatedRequest<{ data: Network[] }>("GET", `/networks`);
-        return response.data;
+        const response = await this.UnauthenticatedRequest<{ data: StationNetworkResponse[] }>("GET", `/networks`);
+        return (response.data ?? []).map(mapStationNetwork);
     }
 
     async GetSwapsAsync(addresses: string[], page?: number): Promise<ApiResponse<HTLCFromApi[]>> {
@@ -23,12 +23,8 @@ export default class TrainApiClient {
         return await this.UnauthenticatedRequest<ApiResponse<HTLCFromApi[]>>("GET", `/swaps?${addressesQuery}&page=${page ? page : 1}`);
     }
 
-    async AddLockSig(params: AddLockSig, hashlock: string, solver: string): Promise<ApiResponse<{}>> {
-        return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/${solver}/swaps/${hashlock}/addLockSig`, params);
-    }
-
-    async RevealSecret(params: RevealSecretParams, hashlock: string, solver: string): Promise<ApiResponse<{}>> {
-        return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/orders/${hashlock}/reveal-secret`, params);
+    async RevealSecret(params: RevealSecretParams, hashlock: string, solverId: string): Promise<ApiResponse<{}>> {
+        return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/orders/${solverId}/${hashlock}/reveal-secret`, params);
     }
 
     private async UnauthenticatedRequest<T>(method: Method, endpoint: string, data?: any, header?: {}): Promise<T> {
@@ -45,15 +41,6 @@ export default class TrainApiClient {
 
 export type RevealSecretParams = {
     secret: string
-}
-
-export type AddLockSig = {
-    r?: string
-    s?: string
-    v?: string
-    signature?: any,
-    signatureArray?: any,
-    timelock: number
 }
 
 export type HTLCFromApi = {
@@ -111,8 +98,18 @@ export enum HTLCTransaction {
     HTLCRedeem = 'HTLCRedeem',
 }
 
-export type Quote = {
-    quote?: SwapQuote,
+export type SolverProfile = {
+    id: string;
+    name: string;
+    description?: string;
+    logoUrl?: string;
+}
+
+export type SolverQuote = {
+    solver: SolverProfile;
+    isBest: boolean;
+    quote?: QuoteDetails;
+    quoteWithoutReward?: QuoteDetails;
 }
 
 type QuoteRouteEndpoint = {
@@ -148,15 +145,61 @@ type QuoteDetails = {
     };
 }
 
+// Station API aggregated quote response
+export type AggregatedQuoteResponse = {
+    quotes: SolverQuote[];
+    errors: { solverId: string; message: string }[];
+}
+
 export type SwapQuoteResponse = {
     error?: {
         message: string;
     };
-    data?: {
-        quoteWithReward: QuoteDetails;
-        quoteWithoutReward: QuoteDetails;
-    };
+    data?: AggregatedQuoteResponse;
 }
 
-// For backward compatibility - represents a single quote
+// Represents a single resolved quote (best quote's quoteWithReward)
 export type SwapQuote = QuoteDetails;
+
+// Station API network response shape
+type StationNetworkResponse = {
+    caip2Id: string;
+    displayName: string;
+    chainId: string;
+    networkType: string;
+    logoUrl?: string;
+    nativeTokenAddress: string;
+    explorerUrlTemplate?: {
+        transaction?: string;
+        address?: string;
+    };
+    tokens: {
+        symbol: string;
+        contract: string;
+        decimals: number;
+        logoUrl?: string;
+    }[];
+}
+
+function mapStationNetwork(n: StationNetworkResponse): Network {
+    const tokens: Token[] = n.tokens.map(t => ({
+        symbol: t.symbol,
+        contractAddress: t.contract,
+        decimals: t.decimals,
+        logo: t.logoUrl,
+    }))
+
+    return {
+        caip2Id: n.caip2Id,
+        displayName: n.displayName,
+        chainId: n.chainId,
+        nativeTokenAddress: n.nativeTokenAddress,
+        type: { name: n.networkType },
+        tokens,
+        nodes: [],
+        contracts: [],
+        metadata: [],
+        explorerUrlTemplate: n.explorerUrlTemplate,
+        logo: n.logoUrl,
+    }
+}

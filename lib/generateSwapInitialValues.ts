@@ -9,11 +9,11 @@ export function generateSwapInitialValues(settings: TrainAppSettings, queryParam
 
     // Find networks by slug (case-insensitive)
     const initialSource = from
-        ? networks?.find(n => n.slug.toUpperCase() === from.toUpperCase())
+        ? networks?.find(n => n.caip2Id.toUpperCase() === from.toUpperCase())
         : undefined
 
     const initialDestination = to
-        ? networks?.find(n => n.slug.toUpperCase() === to.toUpperCase())
+        ? networks?.find(n => n.caip2Id.toUpperCase() === to.toUpperCase())
         : undefined
 
     // Find tokens within the selected networks

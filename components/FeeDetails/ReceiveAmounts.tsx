@@ -1,20 +1,18 @@
 import { FC } from "react";
 import { Token } from "../../Models/Network";
-import { Quote } from "../../lib/trainApiClient";
+import { SwapQuote } from "../../lib/trainApiClient";
 import { truncateDecimals } from "../utils/RoundDecimals";
 import formatAmount from "@/lib/formatAmount";
 
 type WillReceiveProps = {
     destination_token: Token | undefined;
     source_token: Token | undefined;
-    fee: Quote | undefined;
+    fee: SwapQuote | undefined;
     isFeeLoading: boolean;
 }
 export const ReceiveAmounts: FC<WillReceiveProps> = ({ source_token, destination_token, fee, isFeeLoading }) => {
 
-    // const receiveAmountInUsd = fee?.quote?.receiveAmountInUsd ? fee?.quote.receiveAmountInUsd.toFixed(2) : undefined
-
-    const receive_amount_in_base_units = fee?.quote?.receiveAmount
+    const receive_amount_in_base_units = fee?.receiveAmount
     const receive_amount = formatAmount(receive_amount_in_base_units, destination_token?.decimals);
     const parsedReceiveAmount = truncateDecimals(receive_amount ?? 0, destination_token?.decimals);
 

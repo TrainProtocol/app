@@ -4,11 +4,11 @@ import { validateAndParseAddress } from "./starkNetAddressValidator";
 import { PublicKey } from '@solana/web3.js'
 import { Address } from "@ton/core";
 
-function getNetworkId(network: { name?: string; slug?: string } | null | undefined): string | undefined {
-    return network ? ((network as any).slug ?? (network as any).name) : undefined;
+function getNetworkId(network: { displayName?: string} | null | undefined): string | undefined {
+    return network ? (network.displayName) : undefined;
 }
 
-export function isValidAddress(address?: string, network?: { name?: string; slug?: string } | null): boolean {
+export function isValidAddress(address?: string, network?: { displayName?: string } | null): boolean {
     if (!address || isBlacklistedAddress(address)) {
         return false
     }

@@ -28,7 +28,7 @@ const useUserLockPolling = ({
     const shouldPoll = !!(network && hashlock && contractAddress && enabled)
 
     const key = shouldPoll
-        ? `/htlc/userLock/${network!.slug}/${hashlock}/${contractAddress}/${type}`
+        ? `/htlc/userLock/${network!.caip2Id}/${hashlock}/${contractAddress}/${type}`
         : null
 
     const { data, error, isLoading, mutate } = useSWR<LockDetails | null>(

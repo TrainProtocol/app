@@ -1,10 +1,10 @@
 export default class KnownInternalNames {
     static Networks = class {
-        public static readonly ArbitrumSepolia: string = "arb-sepolia";
+        public static readonly ArbitrumSepolia: string = "eip155:421614";
 
-        public static readonly EthereumSepolia: string = "eth-sepolia";
+        public static readonly EthereumSepolia: string = "eip155:11155111";
 
-        public static readonly BaseSepolia: string = "base-sepolia";
+        public static readonly BaseSepolia: string = "eip155:84532";
         
         
         public static readonly CronosMainnet: string = "CRONOS_MAINNET";

@@ -51,29 +51,29 @@ const resolveProvider = (network: Network | undefined, walletProviders: WalletPr
     let provider: WalletProvider | undefined = undefined
     switch (purpose) {
         case "withdrawal":
-            provider = walletProviders.find(provider => provider.withdrawalSupportedNetworks?.includes(network.slug))
+            provider = walletProviders.find(provider => provider.withdrawalSupportedNetworks?.includes(network.caip2Id))
             break;
         case "autofill":
-            provider = walletProviders.find(provider => provider.autofillSupportedNetworks?.includes(network.slug))
+            provider = walletProviders.find(provider => provider.autofillSupportedNetworks?.includes(network.caip2Id))
             break;
         case "asSource":
-            provider = walletProviders.find(provider => provider.asSourceSupportedNetworks?.includes(network.slug))
+            provider = walletProviders.find(provider => provider.asSourceSupportedNetworks?.includes(network.caip2Id))
             break;
     }
 
     if (provider?.isNotAvailableCondition && purpose) {
-        const availableWalletsForConnect = provider.availableWalletsForConnect?.filter(connector => (provider.isNotAvailableCondition && network?.slug) ? !provider.isNotAvailableCondition(connector.id, network?.slug, purpose) : true)
+        const availableWalletsForConnect = provider.availableWalletsForConnect?.filter(connector => (provider.isNotAvailableCondition && network?.caip2Id) ? !provider.isNotAvailableCondition(connector.id, network?.caip2Id, purpose) : true)
         const resolvedProvider = {
             ...provider,
             connectedWallets: provider.connectedWallets?.map(wallet => {
                 return {
                     ...wallet,
-                    isNotAvailable: (provider.isNotAvailableCondition && network?.slug && wallet.internalId) ? provider.isNotAvailableCondition(wallet.internalId, network?.slug, purpose) : false,
+                    isNotAvailable: (provider.isNotAvailableCondition && network?.caip2Id && wallet.internalId) ? provider.isNotAvailableCondition(wallet.internalId, network?.caip2Id, purpose) : false,
                 }
             }),
             activeWallet: provider.activeWallet ? {
                 ...provider.activeWallet,
-                isNotAvailable: (network?.slug) ? provider.isNotAvailableCondition(provider.activeWallet.id, network?.slug, purpose) : false,
+                isNotAvailable: (network?.caip2Id) ? provider.isNotAvailableCondition(provider.activeWallet.id, network?.caip2Id, purpose) : false,
             } : undefined,
             availableWalletsForConnect
         }
@@ -85,27 +85,27 @@ const resolveProvider = (network: Network | undefined, walletProviders: WalletPr
 
 const resolveWallet = (wallet: Wallet, network: Network | undefined, provider: WalletProvider, purpose?: WalletPurpose) => {
 
-    if (provider.isNotAvailableCondition && network?.slug && wallet.internalId && !purpose) {
+    if (provider.isNotAvailableCondition && network?.caip2Id && wallet.internalId && !purpose) {
         return {
             ...wallet,
-            isNotAvailable: provider.isNotAvailableCondition(wallet.internalId, network?.slug),
+            isNotAvailable: provider.isNotAvailableCondition(wallet.internalId, network?.caip2Id),
         }
     }
 
     if (purpose === "autofill") {
         return {
             ...wallet,
-            isNotAvailable: !wallet.autofillSupportedNetworks?.some(n => n.toLowerCase() === network?.slug.toLowerCase()),
+            isNotAvailable: !wallet.autofillSupportedNetworks?.some(n => n.toLowerCase() === network?.caip2Id.toLowerCase()),
         }
     } else if (purpose === "withdrawal") {
         return {
             ...wallet,
-            isNotAvailable: !wallet.withdrawalSupportedNetworks?.some(n => n.toLowerCase() === network?.slug.toLowerCase()),
+            isNotAvailable: !wallet.withdrawalSupportedNetworks?.some(n => n.toLowerCase() === network?.caip2Id.toLowerCase()),
         }
     } else if (purpose === "asSource") {
         return {
             ...wallet,
-            isNotAvailable: !wallet.asSourceSupportedNetworks?.some(n => n.toLowerCase() === network?.slug.toLowerCase()),
+            isNotAvailable: !wallet.asSourceSupportedNetworks?.some(n => n.toLowerCase() === network?.caip2Id.toLowerCase()),
         }
     }
 

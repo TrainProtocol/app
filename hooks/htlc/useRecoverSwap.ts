@@ -42,8 +42,8 @@ export default function useRecoverSwap(sourceNetwork: Network | null) {
             const swapData: SwapData = {
                 requestedAmount: formatAmount(data.amount, sourceToken?.decimals ?? 18).toString(),
                 address: data.dstAddress,
-                source: sourceNet.slug,
-                destination: destNet.slug,
+                source: sourceNet.caip2Id,
+                destination: destNet.caip2Id,
                 source_asset: sourceToken?.symbol ?? '',
                 destination_asset: destToken?.symbol ?? data.dstToken ?? '',
                 solver: data.recipient,

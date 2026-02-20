@@ -6,7 +6,7 @@ export const resolveNetworkRoutesURL = (direction: SwapDirection, values: SwapFo
 
     const selectednetwork = direction === "from" ? to : from
     const selectedToken = direction === "from" ? toCurrency?.symbol : fromCurrency?.symbol
-    return resolveRoutesURLForSelectedToken({ direction, network: selectednetwork?.slug, token: selectedToken, includes: { unmatched: true, unavailable: true } })
+    return resolveRoutesURLForSelectedToken({ direction, network: selectednetwork?.caip2Id, token: selectedToken, includes: { unmatched: true, unavailable: true } })
 }
 
 export const resolveRoutesURLForSelectedToken = ({ direction, network, token, includes }: { direction: SwapDirection, network: string | undefined, token: string | undefined, includes: { unavailable: boolean, unmatched: boolean } }) => {

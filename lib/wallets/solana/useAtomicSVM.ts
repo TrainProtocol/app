@@ -144,14 +144,7 @@ export default function useAtomicSVM(params: UseAtomicSVMParams): BaseAtomicFunc
                 const sigBase64 = Buffer.from(signature).toString("base64");
                 const apiClient = new TrainApiClient()
 
-                await apiClient.AddLockSig({
-                    signature: sigBase64,
-                    timelock: timelock,
-                },
-                    params.id,
-                    params.solver
-                )
-
+                // AddLockSig not supported in Station API — Solana chain not yet migrated
                 return { hash: sigBase64, result: hexLockId }
 
             } else {

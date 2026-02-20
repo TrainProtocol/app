@@ -58,19 +58,19 @@ export class BalanceResolver {
     async getBalance(network: Network, address?: string, options?: { timeoutMs?: number, retryCount?: number }): Promise<NetworkBalance> {
         try {
             if (!address)
-                throw new Error(`No address provided for network ${network.slug}`)
+                throw new Error(`No address provided for network ${network.caip2Id}`)
             const provider = this.providers.find(p => p.supportsNetwork(network))
             //TODO: create interface for balance providers in case of empty state they shoudl throw error 
             //never return undefined as SWR does not set loading state if undefined is returned
-            if (!provider) throw new Error(`No balance provider found for network ${network.slug}`)
+            if (!provider) throw new Error(`No balance provider found for network ${network.caip2Id}`)
             const balances = await provider.fetchBalance(address, network, { timeoutMs: options?.timeoutMs, retryCount: options?.retryCount })
 
             const errorBalances = balances?.filter(b => b.error)
             if (errorBalances?.length) {
-                const balanceError = new Error(`Could not fetch balance for ${errorBalances.map(t => t.token).join(", ")} in ${network.slug}`);
+                const balanceError = new Error(`Could not fetch balance for ${errorBalances.map(t => t.token).join(", ")} in ${network.caip2Id}`);
                 posthog.captureException(balanceError, {
                     $layerswap_exception_type: "Balance Error",
-                    network: network.slug,
+                    network: network.caip2Id,
                     node_url: network.nodes[0].url,
                     address: address,
                     failed_tokens: formatErrorBalances(errorBalances),
@@ -89,7 +89,7 @@ export class BalanceResolver {
             error.cause = e;
             posthog.captureException(error, {
                 $layerswap_exception_type: "Balance Error",
-                network: network.slug,
+                network: network.caip2Id,
                 node_url: network.nodes[0].url,
                 address: address,
                 error_category: classifyNodeError(e),

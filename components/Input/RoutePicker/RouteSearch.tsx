@@ -20,7 +20,7 @@ const RouteSearch: FC<RouteSearchProps> = ({ searchQuery, setSearchQuery, should
             .filter((network) => network.tokens?.length)
             .map((network) => {
                 const token = network.tokens[Math.floor(Math.random() * network.tokens.length)];
-                return `Try "${token.symbol} ${network.displayName || network.slug}"`;
+                return `Try "${token.symbol} ${network.displayName || network.caip2Id}"`;
             });
         return ["Search by token and network", ...routeTexts];
     }, [networks])

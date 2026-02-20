@@ -45,7 +45,7 @@ export const NetworkTokenTitle = (props: NetworkTokenItemProps) => {
     const { item, network, direction } = props
     const swapAccounts = useSwapAccounts(direction)
     const selectedAccount = swapAccounts.find(w =>
-        (direction === 'from' ? w.provider?.withdrawalSupportedNetworks : w.provider?.autofillSupportedNetworks)?.includes(network?.slug)
+        (direction === 'from' ? w.provider?.withdrawalSupportedNetworks : w.provider?.autofillSupportedNetworks)?.includes(network?.caip2Id)
     )
     const address = selectedAccount?.address;
     const { balances } = useBalance(address, network);
@@ -94,7 +94,7 @@ type NetworkItemProps = {
 export const NetworkRouteSelectItemDisplay = (props: NetworkItemProps) => {
     const { item, direction } = props
     const swapAccounts = useSwapAccounts(direction)
-    const selectedAccount = swapAccounts.find(w => (direction === 'from' ? w.provider?.withdrawalSupportedNetworks : w.provider?.autofillSupportedNetworks)?.includes(item.slug))
+    const selectedAccount = swapAccounts.find(w => (direction === 'from' ? w.provider?.withdrawalSupportedNetworks : w.provider?.autofillSupportedNetworks)?.includes(item.caip2Id))
     const address = selectedAccount?.address;
 
     const networkBalances = useBalance(address, item)

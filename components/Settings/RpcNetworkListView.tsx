@@ -30,7 +30,7 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
         const query = searchQuery.toLowerCase()
         return (
             network.displayName.toLowerCase().includes(query) ||
-            network.slug.toLowerCase().includes(query) ||
+            network.caip2Id.toLowerCase().includes(query) ||
             network.type?.displayName?.toLowerCase().includes(query)
         )
     })
@@ -60,12 +60,12 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
                     </div>
                 ) : (
                     filteredNetworks.map((network) => {
-                        const isCustom = isUsingCustomRpc(network.slug)
-                        const config = rpcConfigs[network.slug]
+                        const isCustom = isUsingCustomRpc(network.caip2Id)
+                        const config = rpcConfigs[network.caip2Id]
 
                         return (
                             <button
-                                key={network.slug}
+                                key={network.caip2Id}
                                 onClick={() => onNetworkSelect(network)}
                                 className="w-full flex items-center justify-between p-3 rounded-xl bg-secondary-700 hover:bg-secondary-600 cursor-pointer transition-colors"
                             >

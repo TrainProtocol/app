@@ -27,19 +27,19 @@ const ReverseRouteButton: FC = () => {
         }
 
         const sourceCanBeDestination = !source || networks.some(n =>
-            n.slug === source.slug && n.tokens.some(t => t.symbol === fromCurrency?.symbol)
+            n.caip2Id === source.caip2Id && n.tokens.some(t => t.symbol === fromCurrency?.symbol)
         );
         const destinationCanBeSource = !destination || networks.some(n =>
-            n.slug === destination.slug && n.tokens.some(t => t.symbol === toCurrency?.symbol)
+            n.caip2Id === destination.caip2Id && n.tokens.some(t => t.symbol === toCurrency?.symbol)
         );
 
         return !sourceCanBeDestination || !destinationCanBeSource;
     }, [query, source, destination, fromCurrency, toCurrency, networks]);
 
     const handleReverse = useCallback(async () => {
-        const newFrom = networks.find(n => n.slug === destination?.slug);
+        const newFrom = networks.find(n => n.caip2Id === destination?.caip2Id);
         const newFromToken = newFrom?.tokens.find(t => t.symbol === toCurrency?.symbol);
-        const newTo = networks.find(n => n.slug === source?.slug);
+        const newTo = networks.find(n => n.caip2Id === source?.caip2Id);
         const newToToken = newTo?.tokens.find(t => t.symbol === fromCurrency?.symbol);
 
         await setFieldValue('from', newFrom);

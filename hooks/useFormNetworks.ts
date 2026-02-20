@@ -101,7 +101,7 @@ function filterNetworksByQuery(
         : (lockToAsset ? toAsset : undefined);
 
     if (lockedNetworkSlug) {
-        const filtered = networks.filter(n => n.slug.toLowerCase() === lockedNetworkSlug);
+        const filtered = networks.filter(n => n.caip2Id.toLowerCase() === lockedNetworkSlug);
         if (lockedAssetSymbol) {
             return filtered.map(network => ({
                 ...network,
@@ -179,7 +179,7 @@ const searchInNetworks = (networks: Network[], search: string): NetworkElement[]
     const lower = search.toLowerCase().trim();
 
     return networks.filter(n => {
-        const slugMatch = n.slug.toLowerCase().includes(lower);
+        const slugMatch = n.caip2Id.toLowerCase().includes(lower);
         const displayNameMatch = n.displayName?.toLowerCase().includes(lower);
         return slugMatch || displayNameMatch;
     }).map(n => ({
@@ -206,9 +206,9 @@ const searchInTokens = (networks: Network[], search: string): NetworkTokenElemen
             const secondpart = splitted?.[1];
 
             const combo = (firstpart && secondpart) ? (
-                (token.symbol.toLowerCase().includes(firstpart) && network.slug.toLowerCase().includes(secondpart))
+                (token.symbol.toLowerCase().includes(firstpart) && network.caip2Id.toLowerCase().includes(secondpart))
                 ||
-                (token.symbol.toLowerCase().includes(secondpart) && network.slug.toLowerCase().includes(firstpart))
+                (token.symbol.toLowerCase().includes(secondpart) && network.caip2Id.toLowerCase().includes(firstpart))
                 ||
                 (token.symbol.toLowerCase().includes(firstpart) && network.displayName.toLowerCase().includes(secondpart))
                 ||

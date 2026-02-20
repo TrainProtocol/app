@@ -35,14 +35,14 @@ Contract reference: https://github.com/TrainProtocol/contracts/blob/main-add-evm
 UserLocked -> SolverLockDetected -> SecretRevealed -> RedeemCompleted
                       -> TimelockExpired -> Refunded
 ```
-Mapped to code enum (`CommitStatus`):
-- `Commit` = Initial (show lock button)
-- `Commited` = User locked on source (waiting for solver)
-- `SolverLockDetected` = Solver locked on destination (show reveal secret button)
-- `SecretRevealed` = User revealed secret via API (waiting for solver claim)
-- `RedeemCompleted` = Solver claimed on destination (swap done)
-- `TimelockExpired` = Timelock passed without redeem (show refund button)
-- `Refunded` = User refunded on source
+Mapped to code enum (`HTLCStatus`):
+- `Initial` = show lock button
+- `UserLocked` = user locked on source (waiting for solver)
+- `SolverLockDetected` = solver locked on destination (show reveal secret button)
+- `SecretRevealed` = user revealed secret via API (waiting for solver claim)
+- `RedeemCompleted` = solver claimed on destination (swap done)
+- `TimelockExpired` = timelock passed without redeem (show refund button)
+- `Refunded` = user refunded on source
 
 ## Secret & Nonce
 - Secret recoverable from nonce (timestamp): `deriveInitialKey()` + `deriveSecretFromTimelock(key, nonce)`
@@ -96,7 +96,7 @@ Mapped to code enum (`CommitStatus`):
 ### Models
 - `Models/phtlc/PHTLC.ts` - `Commit` type (legacy name, represents a lock), `LockStatus` enum
 - `Models/phtlc/index.ts` - `CreatePreHTLCParams`, `CommitmentParams`, `RefundParams`, `ClaimParams`
-- `Models/Network.ts` - `Network`, `Token` types
+- `Models/Network.ts` - `Network`, `Token`, `ExplorerUrlTemplate` types
 
 ### Wallet Hooks (chain-specific HTLC operations)
 Each chain has a `useAtomic*` hook implementing `BaseAtomicFunctions`:
@@ -112,11 +112,10 @@ Each chain has a `useAtomic*` hook implementing `BaseAtomicFunctions`:
 - `lib/wallets/utils/atomicHelpers.ts` - `generateRandomId()`, `toHexString()`, `assertWalletConnected()`
 
 ### Polling Hooks
-- `hooks/htlc/useCommitDetailsPolling.tsx` - Polls source chain until user lock confirmed
+- `hooks/htlc/useUserLockPolling.tsx` - Polls source chain until user lock confirmed
 - `hooks/htlc/useSolverLockPolling.tsx` - Polls destination chain for solver lock via `getSolverLockDetails`
 - `hooks/htlc/useSolverRedeemPolling.tsx` - Polls solver lock for redeem status (LockStatus.Redeemed)
 - `hooks/htlc/useRefundStatusPolling.tsx` - Polls source chain for refund status
-- `hooks/htlc/useSWRCommitDetails.tsx` - Base SWR hook for user lock polling
 
 ### UI Components (Swap Flow - Actions)
 - `components/Swap/AtomicChat/Actions/index.tsx` - Routes swap status to action component
@@ -129,16 +128,29 @@ Each chain has a `useAtomic*` hook implementing `BaseAtomicFunctions`:
 ### statusResolver Logic (`context/atomicContext.tsx`)
 Priority order (first match wins):
 1. `solverLockDetails.status === LockStatus.Redeemed` -> RedeemCompleted
-2. `timelockExpired && !redeemCompleted` -> TimelockExpired
-3. `secretRevealed` -> SecretRevealed
-4. `solverLockDetails.sender exists` -> SolverLockDetected
-5. `sourceDetails.sender exists` -> UserLocked (code: `Commited`)
-6. Default -> Initial (code: `Commit`)
+2. `manualClaimRequired` -> ManualClaimRequired
+3. `sourceDetails.status === LockStatus.Refunded` -> Refunded
+4. `timelockExpired && !redeemCompleted` -> TimelockExpired
+5. `secretRevealed || sourceDetails.secret` -> SecretRevealed
+6. `solverLockDetails.sender exists && !sourceDetails.secret` -> SolverLockDetected
+7. `sourceDetails.sender exists` -> UserLocked
+8. Default -> Initial
 
-### API Integration
-- `lib/trainApiClient.ts` - API client
-- SWR polling: `${TRAIN_API}/api/${solverName}/swaps/${lockId}` (2s interval)
-- `RevealSecret` method: `POST /{solver}/swaps/{lockId}/revealSecret` with `{ secret }`
+### Station API Integration
+- `lib/trainApiClient.ts` - API client (base: `NEXT_PUBLIC_TRAIN_API/api/v1`)
+- **Quote**: SWR polling `GET /quote?amount=&sourceNetwork=&sourceTokenContract=&destinationNetwork=&destinationTokenContract=&includeReward=true`
+  - Returns `AggregatedQuoteResponse { quotes: SolverQuote[], errors }` — find `quotes.find(q => q.isBest)`
+  - `hooks/useFee.ts` handles polling (42s interval), returns `{ quote, solverId }`
+  - Note: in the SSE stream (`/quote/stream`), `isBest` is NOT set on quote events — a separate `best` event carries that. Use the non-streaming `/quote` endpoint for polling.
+- **Order status**: SSE stream `GET /orders/{solverId}/{hashlock}/stream`
+  - Events: `order` (initial state), `order_event` (webhook-pushed updates), `done` (terminal)
+  - `context/atomicContext.tsx` opens `EventSource` when `hashlock` + `solverId` are known
+- **Reveal secret**: `POST /orders/{solverId}/{hashlock}/reveal-secret` with `{ secret }`
+- **Networks**: `GET /networks` → mapped via `mapStationNetwork()` in `trainApiClient.ts`
+  - `slug = caip2Id` (e.g. `"eip155:11155111"`) — Station API routes by caip2Id
+  - Token `contract` → `contractAddress`; `nodes` supplemented from local config in `getSettings.ts`
+- **`solver` in swapStore** = solverId string (e.g. `"plorex"`), not a wallet address
+- `helpers/getSettings.ts` fetches networks live from Station API; merges RPC node URLs from local mock by caip2Id
 
 ---
 
@@ -149,11 +161,13 @@ Priority order (first match wins):
 - `srcAtomicContract` is currently hardcoded for testing - needs to be dynamic before prod
 - Non-EVM chains still use old patterns; EVM is the primary focus
 - Code uses legacy "commit" naming everywhere (commitId, CommitStatus, etc.) - these all refer to locks now
+- `sourceNetwork`/`destinationNetwork` params must be `caip2Id` (e.g. `"eip155:11155111"`), not human slugs
 
 ## Remaining Work
-- [ ] Remove hardcoded `srcAtomicContract` - make dynamic
+- [ ] Remove hardcoded `srcAtomicContract` - make dynamic (use network contracts from chain config)
 - [ ] End-to-end testing on testnet
 - [ ] Handle `quoteExpiry` validation in UI
 - [ ] Implement `getSolverLockDetails` for other chains when ready
 - [ ] Clean up legacy polling hooks and old ABIs
 - [ ] Rename legacy "commit" naming to "lock" across codebase
+- [ ] RPC node URLs (`nodes`) not provided by Station API — needs separate config or user-set RPC

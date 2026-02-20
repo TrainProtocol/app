@@ -24,7 +24,7 @@ const SourceWalletPicker: FC = () => {
     const selectSourceAccount = useSelectSwapAccount("from");
 
     const { provider } = useWallet(values.from, "withdrawal")
-    const selectedSourceAccount = useSelectedAccount("from", values.from?.slug);
+    const selectedSourceAccount = useSelectedAccount("from", values.from?.caip2Id);
 
     const availableWallets = provider?.connectedWallets?.filter(w => !w.isNotAvailable) || []
 
