@@ -5,9 +5,9 @@ import KnownInternalNames from "@/lib/knownIds";
 
 export class SolanaBalanceProvider extends BalanceProvider {
     supportsNetwork: BalanceProvider['supportsNetwork'] = (network) => {
-        return network.slug === KnownInternalNames.Networks.SolanaMainnet
-            || network.slug === KnownInternalNames.Networks.SolanaDevnet
-            || network.slug === KnownInternalNames.Networks.SolanaTestnet
+        return network.caip2Id === KnownInternalNames.Networks.SolanaMainnet
+            || network.caip2Id === KnownInternalNames.Networks.SolanaDevnet
+            || network.caip2Id === KnownInternalNames.Networks.SolanaTestnet
     }
 
     fetchBalance: BalanceProvider['fetchBalance'] = async (address, network, _options) => {
@@ -57,7 +57,7 @@ export class SolanaBalanceProvider extends BalanceProvider {
 
                 if (result != null && !isNaN(result)) {
                     const balance: TokenBalance = {
-                        network: network.slug,
+                        network: network.caip2Id,
                         token: token.symbol,
                         amount: result,
                         request_time: new Date().toJSON(),

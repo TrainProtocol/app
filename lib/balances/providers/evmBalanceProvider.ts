@@ -90,8 +90,8 @@ export class EVMBalanceProvider extends BalanceProvider {
             })
         })
 
-        const contract = balanceGetterContracts.find(c => c.networks.includes(network.slug))
-        if (!contract) throw new Error(`No contract found for network ${network.slug}`)
+        const contract = balanceGetterContracts.find(c => c.networks.includes(network.caip2Id))
+        if (!contract) throw new Error(`No contract found for network ${network.caip2Id}`)
 
         const erc20Tokens = network.tokens?.filter(a => a.contractAddress !== network.nativeTokenAddress)
         const tokenContracts = erc20Tokens.map(a => a.contractAddress as `0x${string}`)
@@ -109,7 +109,7 @@ export class EVMBalanceProvider extends BalanceProvider {
             if (amount >= 0) {
                 const formattedAmount = formatUnits(BigInt(amount), token.decimals)
                 return {
-                    network: network.slug,
+                    network: network.caip2Id,
                     token: token.symbol,
                     amount: formattedAmount,
                     request_time: new Date().toJSON(),
@@ -123,7 +123,7 @@ export class EVMBalanceProvider extends BalanceProvider {
         const nativeTokenBalance = Number(balances?.[1]?.[balances?.[1]?.length - 1])
 
         const nativeTokenResolvedBalance: TokenBalance | undefined = nativeToken?.decimals ? {
-            network: network.slug,
+            network: network.caip2Id,
             token: nativeToken.symbol,
             amount: nativeTokenBalance >= 0 ? Number(formatUnits(BigInt(nativeTokenBalance), nativeToken.decimals)) : undefined,
             request_time: new Date().toJSON(),
@@ -147,7 +147,7 @@ export class EVMBalanceProvider extends BalanceProvider {
             const currency = assets[index]
             if (!d.error) {
                 return {
-                    network: network.slug,
+                    network: network.caip2Id,
                     token: currency.symbol,
                     amount: Number(formatUnits(BigInt(d.result as string | number), currency.decimals)),
                     request_time: new Date().toJSON(),
@@ -170,7 +170,7 @@ export class EVMBalanceProvider extends BalanceProvider {
         if (balanceData.error !== null) return this.resolveTokenBalanceFetchError(new Error(balanceData.error), token, network)
 
         const nativeBalance: TokenBalance = {
-            network: network.slug,
+            network: network.caip2Id,
             token: token.symbol,
             amount: Number(formatUnits(BigInt(balanceData?.value), token.decimals)),
             request_time: new Date().toJSON(),

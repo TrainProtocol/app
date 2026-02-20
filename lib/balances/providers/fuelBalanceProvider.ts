@@ -7,7 +7,7 @@ import { retryWithExponentialBackoff } from "@/lib/retry";
 
 export class FuelBalanceProvider extends BalanceProvider {
     supportsNetwork: BalanceProvider['supportsNetwork'] = (network) => {
-        return network.slug === KnownInternalNames.Networks.FuelMainnet || network.slug === KnownInternalNames.Networks.FuelTestnet
+        return network.caip2Id === KnownInternalNames.Networks.FuelMainnet || network.caip2Id === KnownInternalNames.Networks.FuelTestnet
     }
 
     fetchBalance: BalanceProvider['fetchBalance'] = async (address, network, options) => {
@@ -61,7 +61,7 @@ export class FuelBalanceProvider extends BalanceProvider {
                 const balance = json.data.balances.nodes.find(b => b?.assetId === token.contractAddress) || null
 
                 const balanceObj: TokenBalance = {
-                    network: network.slug,
+                    network: network.caip2Id,
                     amount: balance?.amount ? Number(formatUnits(BigInt(Number(balance?.amount)), token.decimals)) : undefined,
                     decimals: token.decimals,
                     isNativeCurrency: nativeToken?.symbol === token.symbol,
