@@ -1,4 +1,4 @@
-import { Context, createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { Context, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router';
 import { useSettingsState } from './settings';
 import { LockDetails, LockStatus } from '../Models/phtlc/PHTLC';
@@ -11,6 +11,7 @@ import { resolvePersistantQueryParams } from '../helpers/querryHelper';
 import useUserLockPolling from '../hooks/htlc/useUserLockPolling';
 import useSolverLockPolling from '../hooks/htlc/useSolverLockPolling';
 import useWallet from '@/hooks/useWallet';
+import useOrderStream from '../hooks/useOrderStream';
 
 export enum HTLCStatus {
     Initial = 'initial',
@@ -134,54 +135,17 @@ export function AtomicProvider({ children }) {
     const destAtomicContract = destination_network?.chainId == '11155111' ? '0x9A0E4E619d391f6352E112cC4c452344a3EB4119' : '0xcf6d47cdd0cb259e78262832b4db3f4f4f909dcb' // commitFromApi?.destinationContractAddress || destAtomicContractfromQuery
     const srcAtomicContract = source_network?.chainId == '11155111' ? '0x9A0E4E619d391f6352E112cC4c452344a3EB4119' : '0xcf6d47cdd0cb259e78262832b4db3f4f4f909dcb' //commitFromApi?.sourceContractAddress || srcAtomicContractFromQuery
 
-    const TRAIN_API = process.env.NEXT_PUBLIC_TRAIN_API
-    const orderEsRef = useRef<EventSource | null>(null)
+    const handleOrderUpdate = useCallback((order: HTLCFromApi) => {
+        if (hashlock && order.transactions.length > 0) updateHTLCState(hashlock, { htlcFromApi: order })
+    }, [hashlock])
 
-    useEffect(() => {
-        if (!hashlock || !solverName || destinationRedeemTx) {
-            orderEsRef.current?.close()
-            orderEsRef.current = null
-            return
-        }
+    useOrderStream({
+        solverId: solverName,
+        hashlock,
+        enabled: !!hashlock && !!solverName && !destinationRedeemTx,
+        onOrder: handleOrderUpdate,
+    })
 
-        orderEsRef.current?.close()
-        orderEsRef.current = null
-
-        const url = `${TRAIN_API}/api/v1/orders/${solverName}/${hashlock}/stream`
-        const es = new EventSource(url)
-        orderEsRef.current = es
-
-        es.addEventListener('order', (e: MessageEvent) => {
-            try {
-                ``
-                const response = JSON.parse(e.data)
-                const order: HTLCFromApi = response.order ?? response
-                if (order) updateHTLCState(hashlock, { htlcFromApi: order })
-            } catch { /* ignore */ }
-        })
-
-        // es.addEventListener('order_event', (e: MessageEvent) => {
-        //     try {
-        //         const { data: eventData } = JSON.parse(e.data)
-        //         if (eventData) updateHTLCState(hashlock, { htlcFromApi: eventData })
-        //     } catch { /* ignore */ }
-        // })
-
-        es.addEventListener('done', () => {
-            es.close()
-            orderEsRef.current = null
-        })
-
-        es.onerror = () => {
-            es.close()
-            orderEsRef.current = null
-        }
-
-        return () => {
-            es.close()
-            orderEsRef.current = null
-        }
-    }, [hashlock, solverName, destinationRedeemTx])
     const htlcStatus = useMemo(() =>
         statusResolver({ sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed, manualClaimRequired }),
         [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, manualClaimRequired])
@@ -272,7 +236,7 @@ export function AtomicProvider({ children }) {
         if (!sourceDetails?.timelock || isTimelockExpired) return;
         if (sourceDetails.status === LockStatus.Redeemed || sourceDetails.status === LockStatus.Refunded) return;
 
-        const timeRemaining = (Number(sourceDetails.timelock) * 60000) - Date.now();
+        const timeRemaining = (Number(sourceDetails.timelock) * 1000) - Date.now();
 
         if (timeRemaining <= 0) {
             setIsTimelockExpired(true);
@@ -365,15 +329,12 @@ const statusResolver = ({ sourceDetails, solverLockDetails, timelockExpired, sec
     const userLocked = !!sourceDetails?.sender;
     const solverLocked = !!solverLockDetails?.sender;
     const redeemCompleted = solverLockDetails?.status === LockStatus.Redeemed;
-    const isTimelockActuallyExpired = timelockExpired ||
-        (sourceDetails?.timelock ? (sourceDetails.timelock * 1000) < Date.now() : false);
-
     const refunded = sourceDetails?.status === LockStatus.Refunded;
 
     if (redeemCompleted) return HTLCStatus.RedeemCompleted
     else if (manualClaimRequired) return HTLCStatus.ManualClaimRequired
     else if (refunded) return HTLCStatus.Refunded
-    else if (isTimelockActuallyExpired && !redeemCompleted) return HTLCStatus.TimelockExpired
+    else if (timelockExpired && !redeemCompleted) return HTLCStatus.TimelockExpired
     else if (secretRevealed || sourceDetails?.secret) return HTLCStatus.SecretRevealed
     else if (solverLocked && !sourceDetails?.secret) return HTLCStatus.SolverLockDetected
     else if (userLocked) return HTLCStatus.UserLocked
