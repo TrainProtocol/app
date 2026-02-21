@@ -31,6 +31,7 @@
     "@fuels/react": "^0.40.0",
     "@imtbl/sdk": "1.45.10",
     "@metamask/jazzicon": "^2.0.0",
+    "@microsoft/fetch-event-source": "^2.0.1",
     "@noble/hashes": "^2.0.1",
     "@number-flow/react": "^0.5.11",
     "@paradex/sdk": "0.5.4",
