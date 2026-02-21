@@ -98,6 +98,22 @@ export function AtomicProvider({ children }) {
     const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
     const [verifyingByLightClient, setVerifyingByLightClient] = useState(false)
 
+    // Restore secretRevealed from persisted swap store on hydration
+    useEffect(() => {
+        if (activeHashlock && committedSwap?.secretRevealed) {
+            setHtlcStates(prev => {
+                if (prev[activeHashlock]?.secretRevealed) return prev;
+                return {
+                    ...prev,
+                    [activeHashlock]: {
+                        ...prev[activeHashlock],
+                        secretRevealed: true,
+                    },
+                };
+            });
+        }
+    }, [activeHashlock, committedSwap?.secretRevealed])
+
     const updateHTLCState = (hashlock: string, newState: Partial<HTLCState>) => {
         setHtlcStates((prev) => ({
             ...prev,

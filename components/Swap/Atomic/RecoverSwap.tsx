@@ -5,6 +5,7 @@ import useRecoverSwap from '../../../hooks/htlc/useRecoverSwap'
 import SubmitButton from '../../buttons/submitButton'
 import Image from 'next/image'
 import { ChevronDown } from 'lucide-react'
+import { useSwapStore } from '@/stores/swapStore'
 
 interface RecoverSwapProps {
     onRecovered: (hashlock: string) => void
@@ -16,6 +17,7 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
     const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null)
     const [showNetworkList, setShowNetworkList] = useState(false)
     const { recover, loading, error, setError } = useRecoverSwap(selectedNetwork)
+    const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
 
     const evmNetworks = networks.filter(n => n.type?.name === 'eip155')
 
@@ -27,6 +29,7 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
         setError(null)
         try {
             const hashlock = await recover(txHash)
+            setActiveHashlock(hashlock)
             onRecovered(hashlock)
         } catch {
             // error is already set in the hook

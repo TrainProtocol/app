@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { ImageWithFallback } from "../Common/ImageWithFallback";
+import { useRouter } from "next/router";
 
 export default function PendingSwap() {
     const swapModalOpen = useSwapStore(s => s.swapModalOpen)
@@ -11,8 +12,9 @@ export default function PendingSwap() {
     const activeHashlock = useSwapStore(s => s.activeHashlock)
     const activeSwap = useSwapStore(s => activeHashlock ? s.swaps[activeHashlock] : null)
     const settings = useSettingsState()
+    const router = useRouter()
 
-    if (!activeHashlock || !activeSwap || swapModalOpen || !settings) return null
+    if (!activeHashlock || !activeSwap || swapModalOpen || !settings || router.pathname !== "/") return null
 
     const { networks } = settings
     const source_network = networks.find(n => n.caip2Id.toUpperCase() === activeSwap.source?.toUpperCase())

@@ -5,6 +5,7 @@ import TrainApiClient from "@/lib/trainApiClient";
 import useWallet from "@/hooks/useWallet";
 import posthog from "posthog-js";
 import { useConfig } from "wagmi";
+import { useSwapStore } from "@/stores/swapStore";
 
 const apiClient = new TrainApiClient()
 
@@ -15,6 +16,7 @@ export function useRevealSecret() {
     const wallet = provider?.activeWallet
     const config = useConfig()
 
+    const updateSwap = useSwapStore(s => s.updateSwap)
     const [isRevealing, setIsRevealing] = useState(false)
 
     const revealSecret = useCallback(async () => {
@@ -41,6 +43,7 @@ export function useRevealSecret() {
             })
 
             updateCommit('secretRevealed', true)
+            updateSwap(hashlock, { secretRevealed: true })
         }
         catch (e: any) {
             setError({ message: e.details || e.message })
@@ -49,7 +52,7 @@ export function useRevealSecret() {
         finally {
             setIsRevealing(false)
         }
-    }, [hashlock, sourceDetails, wallet, config, solver, deriveSecret, updateCommit])
+    }, [hashlock, sourceDetails, wallet, config, solver, deriveSecret, updateCommit, updateSwap])
 
     return { revealSecret, isRevealing, source_network, wallet }
 }
