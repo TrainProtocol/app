@@ -7,7 +7,7 @@ type SelectItemWrapperProps = {
     children: JSX.Element | JSX.Element[];
 }
 const SelectItem = ({ children, className }: SelectItemWrapperProps) => {
-    return <div className={clsx("flex items-center justify-between pl-2 pr-3 overflow-hidden cursor-pointer relative gap-2 py-1.5", className)}>
+    return <div className={clsx("flex items-center justify-between pl-2 pr-3 overflow-hidden cursor-pointer relative gap-2 py-1.5 h-[52px]", className)}>
         {children}
     </div>
 }
