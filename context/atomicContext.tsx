@@ -2,27 +2,19 @@ import { Context, createContext, useContext, useEffect, useMemo, useState } from
 import { useRouter } from 'next/router';
 import { useSettingsState } from './settings';
 import { LockDetails, LockStatus } from '../Models/phtlc/PHTLC';
-import { Network, Token } from '../Models/Network';
-import { HTLCFromApi, HTLCTransaction } from '../lib/trainApiClient';
-import LightClient from '../lib/lightClient';
-import { useSwapStore } from '../stores/swapStore';
+import { Network, Token } from '@/Models/Network';
+import { HTLCFromApi, HTLCTransaction } from '@/lib/trainApiClient';
+import LightClient from '@/lib/lightClient';
+import { useSwapStore } from '@/stores/swapStore';
 import { useShallow } from 'zustand/react/shallow';
-import { resolvePersistantQueryParams } from '../helpers/querryHelper';
-import useUserLockPolling from '../hooks/htlc/useUserLockPolling';
-import useSolverLockPolling from '../hooks/htlc/useSolverLockPolling';
+import { resolvePersistantQueryParams } from '@/helpers/querryHelper';
+import useUserLockPolling from '@/hooks/htlc/useUserLockPolling';
+import useSolverLockPolling from '@/hooks/htlc/useSolverLockPolling';
 import useWallet from '@/hooks/useWallet';
 import useOrderPolling from '../hooks/useOrderPolling';
-
-export enum HTLCStatus {
-    Initial = 'initial',
-    UserLocked = 'userLocked',
-    SolverLockDetected = 'solverLockDetected',
-    SecretRevealed = 'secretRevealed',
-    ManualClaimRequired = 'manualClaimRequired',
-    RedeemCompleted = 'redeemCompleted',
-    TimelockExpired = 'timelockExpired',
-    Refunded = 'refunded',
-}
+import { HTLCStatus } from '@/Models/HTLCStatus';
+import { createPublicClient, http, Chain } from 'viem';
+import resolveChain from '@/lib/resolveChain';
 
 const AtomicStateContext = createContext<DataContextType | null>(null);
 
@@ -68,8 +60,9 @@ export function AtomicProvider({ children }) {
     const router = useRouter()
     const { networks } = useSettingsState()
 
-    const activeHashlockFromStore = useSwapStore(s => s.activeHashlock)
-    const activeHashlock = activeHashlockFromStore ?? router.query.hashlock as string | undefined
+    const activeHashlock = useSwapStore(s => s.activeHashlock)
+    const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
+    const updateSwap = useSwapStore(s => s.updateSwap)
 
     const tempSwap = useSwapStore(s => s.tempSwap)
     const commitSwap = useSwapStore(s => s.commitSwap)
@@ -97,6 +90,7 @@ export function AtomicProvider({ children }) {
     const [manualClaimTxId, setManualClaimTxId] = useState<string | undefined>(undefined);
     const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
     const [verifyingByLightClient, setVerifyingByLightClient] = useState(false)
+    const [destTxFromChain, setDestTxFromChain] = useState<string | undefined>(undefined)
 
     // Restore secretRevealed from persisted swap store on hydration
     useEffect(() => {
@@ -141,7 +135,9 @@ export function AtomicProvider({ children }) {
     const manualClaimRequired = hashlock ? htlcStates[hashlock]?.manualClaimRequired : false;
     const destinationDetailsByLightClient = hashlock ? htlcStates[hashlock]?.destinationDetailsByLightClient : undefined
 
-    const destinationRedeemTx = manualClaimTxId ?? htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem && t.network === destination)?.hash
+    const destinationRedeemTx = manualClaimTxId
+        ?? htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem)?.hash
+        ?? destTxFromChain
 
     const source_network = networks.find(n => n.caip2Id.toUpperCase() === (source as string)?.toUpperCase())
     const destination_network = networks.find(n => n.caip2Id.toUpperCase() === (destination as string)?.toUpperCase())
@@ -162,6 +158,53 @@ export function AtomicProvider({ children }) {
         [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, manualClaimRequired])
 
     const isTerminal = htlcStatus === HTLCStatus.RedeemCompleted || htlcStatus === HTLCStatus.Refunded
+
+    useEffect(() => {
+        if (activeHashlock && isTerminal) {
+            updateSwap(activeHashlock, { status: htlcStatus })
+        }
+    }, [htlcStatus, activeHashlock, isTerminal])
+
+    useEffect(() => {
+        if (activeHashlock && destinationRedeemTx) {
+            updateSwap(activeHashlock, { destTxId: destinationRedeemTx })
+        }
+    }, [destinationRedeemTx, activeHashlock])
+
+    // Fetch solver redeem tx hash directly from chain events as a reliable fallback
+    useEffect(() => {
+        if (
+            !hashlock ||
+            !destination_network ||
+            !destAtomicContract ||
+            solverLockDetails?.status !== LockStatus.Redeemed ||
+            destTxFromChain
+        ) return
+
+        const nodeUrl = destination_network.nodes?.[0]?.url
+        if (!nodeUrl) return
+
+        const chain = resolveChain(destination_network, nodeUrl) as Chain
+        const client = createPublicClient({ transport: http(nodeUrl), chain })
+
+        client.getLogs({
+            address: destAtomicContract as `0x${string}`,
+            event: {
+                type: 'event',
+                name: 'SolverRedeemed',
+                inputs: [
+                    { indexed: true, name: 'hashlock', type: 'bytes32' },
+                    { indexed: true, name: 'index', type: 'uint256' },
+                    { indexed: false, name: 'redeemer', type: 'address' },
+                    { indexed: false, name: 'secret', type: 'uint256' },
+                ],
+            } as const,
+            args: { hashlock: hashlock as `0x${string}` },
+            fromBlock: 0n,
+        }).then(logs => {
+            if (logs[0]) setDestTxFromChain(logs[0].transactionHash)
+        }).catch(console.error)
+    }, [solverLockDetails?.status, hashlock, destination_network?.caip2Id, destAtomicContract, destTxFromChain])
 
     const { provider } = useWallet(source_network, 'autofill')
 

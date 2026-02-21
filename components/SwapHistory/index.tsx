@@ -1,0 +1,120 @@
+import { FC, useMemo, useState } from 'react'
+import { ChevronUp } from 'lucide-react'
+import { useSwapStore } from '@/stores/swapStore'
+import { useSettingsState } from '@/context/settings'
+import { HTLCStatus } from '@/Models/HTLCStatus'
+import HistorySummaryCard from './HistorySummaryCard'
+import SwapDetailsPanel from './SwapDetailsPanel'
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/shadcn/accordion'
+
+const SwapHistory: FC = () => {
+    const swaps = useSwapStore(s => s.swaps)
+    const { networks } = useSettingsState()
+    const [expanded, setExpanded] = useState<string | undefined>(undefined)
+
+    const terminalSwaps = useMemo(() => {
+        return Object.entries(swaps)
+            .filter(([, swap]) =>
+                swap.status === HTLCStatus.RedeemCompleted || swap.status === HTLCStatus.Refunded
+            )
+            .reverse()
+    }, [swaps])
+
+    if (terminalSwaps.length === 0) {
+        return <EmptyState />
+    }
+
+    return (
+        <Accordion
+            type="single"
+            collapsible
+            value={expanded}
+            onValueChange={(v: string | undefined) => setExpanded(v)}
+            className="w-full flex flex-col gap-3"
+        >
+            {terminalSwaps.map(([hashlock, swap]) => {
+                const sourceNetwork = networks.find(
+                    n => n.caip2Id.toUpperCase() === swap.source?.toUpperCase()
+                )
+                const destNetwork = networks.find(
+                    n => n.caip2Id.toUpperCase() === swap.destination?.toUpperCase()
+                )
+                return (
+                    <AccordionItem
+                        key={hashlock}
+                        value={hashlock}
+                        className={`border-none bg-secondary-500 rounded-3xl transition-shadow ${expanded === hashlock ? 'shadow-accordion-open' : ''}`}
+                    >
+                        <AccordionTrigger className="rounded-3xl w-full">
+                            <HistorySummaryCard
+                                swap={swap}
+                                sourceNetwork={sourceNetwork}
+                                destNetwork={destNetwork}
+                            />
+                        </AccordionTrigger>
+                        <AccordionContent className="-mt-3">
+                            <div className="flex items-center justify-center px-4 pt-3 pb-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setExpanded(undefined)}
+                                    className="inline-flex items-center gap-1 leading-5 text-sm text-secondary-text hover:text-primary-text transition-colors"
+                                >
+                                    <span>Hide details</span>
+                                    <ChevronUp className="w-4 h-4" />
+                                </button>
+                            </div>
+                            <div className="px-4 pb-4">
+                                <SwapDetailsPanel
+                                    swap={swap}
+                                    sourceNetwork={sourceNetwork}
+                                    destNetwork={destNetwork}
+                                />
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+                )
+            })}
+        </Accordion>
+    )
+}
+
+const EmptyState = () => (
+    <div className="w-full flex flex-col justify-center items-center py-10 gap-6">
+        <div className="relative">
+            <SkeletonCard className="scale-[.63] w-72 shadow-card mr-7" />
+            <SkeletonCard className="scale-[.63] -mt-12 shadow-card ml-7 w-72" />
+        </div>
+        <div className="text-center space-y-2">
+            <h1 className="text-secondary-text text-2xl font-bold tracking-wide">
+                No Swap History
+            </h1>
+            <p className="max-w-xs text-center text-primary-text-tertiary text-sm font-normal mx-auto">
+                Completed and refunded swaps will appear here.
+            </p>
+        </div>
+    </div>
+)
+
+const SkeletonCard = ({ className }: { className?: string }) => (
+    <div className={`${className ?? ''} bg-secondary-700 rounded-xl overflow-hidden animate-pulse`}>
+        <div className="grid grid-cols-12 items-center gap-2">
+            <div className="col-span-6 flex items-center gap-2 p-3">
+                <div className="w-8 h-8 rounded-full bg-secondary-500 shrink-0" />
+                <div className="flex flex-col gap-1.5 flex-1">
+                    <div className="h-3 rounded bg-secondary-500 w-3/4" />
+                    <div className="h-2.5 rounded bg-secondary-500 w-1/2" />
+                </div>
+            </div>
+            <div className="col-span-6 flex items-center justify-end gap-2 bg-secondary-600 p-3 rounded-xl">
+                <div className="flex flex-col gap-1.5 items-end flex-1">
+                    <div className="h-3 rounded bg-secondary-500 w-3/4" />
+                    <div className="h-2.5 rounded bg-secondary-500 w-1/2" />
+                </div>
+                <div className="w-8 h-8 rounded-full bg-secondary-500 shrink-0" />
+            </div>
+        </div>
+        <div className="h-8 bg-secondary-600 w-full" />
+    </div>
+)
+
+export default SwapHistory

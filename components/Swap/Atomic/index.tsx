@@ -2,23 +2,24 @@ import { Formik, FormikProps } from "formik";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import React from "react";
-import MainStepValidation from "../../../lib/mainStepValidator";
+import MainStepValidation from "@/lib/mainStepValidator";
 import SwapForm from "./Form";
 import { NextRouter, useRouter } from "next/router";
-import { useQueryState } from "../../../context/query";
-import useWallet from "../../../hooks/useWallet";
-import { SwapQuote } from "../../../lib/trainApiClient";
-import { dynamicWithRetries } from "../../../lib/dynamicWithRetries";
-import { useAtomicState, HTLCStatus } from "../../../context/atomicContext";
+import { useQueryState } from "@/context/query";
+import useWallet from "@/hooks/useWallet";
+import { SwapQuote } from "@/lib/trainApiClient";
+import { dynamicWithRetries } from "@/lib/dynamicWithRetries";
+import { useAtomicState } from "@/context/atomicContext";
 import VaulDrawer from "../../Modal/vaulModal";
 import { Widget } from "../../Widget/Index";
-import { generateSwapInitialValues } from "../../../lib/generateSwapInitialValues";
-import { useSettingsState } from "../../../context/settings";
-import { resolvePersistantQueryParams } from "../../../helpers/querryHelper";
-import { useSecretDerivation } from "../../../context/secretDerivationContext";
-import { useSwapStore } from "../../../stores/swapStore";
+import { generateSwapInitialValues } from "@/lib/generateSwapInitialValues";
+import { useSettingsState } from "@/context/settings";
+import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
+import { useSecretDerivation } from "@/context/secretDerivationContext";
+import { useSwapStore } from "@/stores/swapStore";
 import { formatUnits } from "viem";
 import { NetworkContractType } from "@/Models/Network";
+import { HTLCStatus } from "@/Models/HTLCStatus";
 
 const AtomicPage = dynamicWithRetries(
     () => import("../AtomicChat/index.tsx") as unknown as Promise<{ default: React.ComponentType<any> }>,

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import { HTLCStatus } from '@/Models/HTLCStatus'
 
 export interface SwapData {
     requestedAmount: string
@@ -15,7 +16,9 @@ export interface SwapData {
     hashlock?: string
     txId?: string
     refundTxId?: string
+    destTxId?: string
     secretRevealed?: boolean
+    status?: HTLCStatus
 }
 
 interface SwapStoreState {

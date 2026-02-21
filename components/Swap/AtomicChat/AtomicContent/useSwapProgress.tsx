@@ -1,11 +1,12 @@
 import React, { FC, useMemo } from "react";
-import { HTLCStatus, useAtomicState } from "../../../../context/atomicContext";
+import { useAtomicState } from "@/context/atomicContext";
 import { StepStatus, TimelineStep } from "./progressTypes";
-import { LockStatus } from "../../../../Models/phtlc/PHTLC";
+import { LockStatus } from "@/Models/phtlc/PHTLC";
 import { getExplorerUrl } from "@/lib/address";
 import NetworkSettings from "@/lib/NetworkSettings";
-import { HTLCTransaction } from "../../../../lib/trainApiClient";
-import LockIcon from "../../../Icons/LockIcon";
+import { HTLCTransaction } from "@/lib/trainApiClient";
+import LockIcon from "@/components/Icons/LockIcon";
+import { HTLCStatus } from "@/Models/HTLCStatus";
 
 // --- Types ---
 

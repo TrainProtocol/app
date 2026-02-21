@@ -1,4 +1,4 @@
-import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info, Settings2, Zap, RotateCcw } from "lucide-react";
+import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info, Settings2, Zap, RotateCcw, ScrollText } from "lucide-react";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
@@ -59,6 +59,10 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
                         Recover Swap
                     </Menu.Item>
 
+                    <Menu.Item onClick={() => goToStep(MenuStep.Transactions)} icon={<ScrollText className="h-5 w-5" />} >
+                        Transactions
+                    </Menu.Item>
+
                     <Menu.ToggleItem
                         icon={<Zap className="h-5 w-5" />}
                         checked={autoRevealSecret}
@@ -68,14 +72,6 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
                     </Menu.ToggleItem>
 
                 </>
-                {/* <>
-                    {router.pathname != '/transactions' &&
-                        <Menu.Item onClick={() => goToStep(MenuStep.Transactions, "/transactions")} icon={<ScrollText className="h-5 w-5" />} >
-                            Transactions
-                        </Menu.Item>
-                    }
-                </>
-              */}
             </Menu.Group>
             <Menu.Group>
                 <Menu.Item onClick={() => {
