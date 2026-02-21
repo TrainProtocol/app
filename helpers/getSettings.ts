@@ -10,7 +10,10 @@ export async function getServerSideProps(context) {
         's-maxage=60, stale-while-revalidate'
     );
 
-    const networks = await apiClient.GetNetworksAsync()
+    const [networks, prices] = await Promise.all([
+        apiClient.GetNetworksAsync(),
+        apiClient.GetPricesAsync(),
+    ])
 
     if (!networks.length) return
 
@@ -18,6 +21,10 @@ export async function getServerSideProps(context) {
         ...network,
         logo: `https://github.com/TrainProtocol/icons/blob/standardize-caip2-names/networks/${network.displayName.toLowerCase().split(' ')[0]}.png?raw=true`,
         nodes: mockData.data.find(n => n.caip2Id === network.caip2Id)?.nodes ?? [],
+        tokens: network.tokens.map(token => ({
+            ...token,
+            priceInUsd: prices[`${network.caip2Id}:${token.contractAddress}`],
+        })),
     }))
 
     const settings = {
