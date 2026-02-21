@@ -2,10 +2,10 @@ import { useFormikContext } from "formik";
 import { forwardRef, useEffect, useMemo, useRef } from "react";
 import { SwapFormValues } from "../DTOs/SwapFormValues";
 import NumericInput from "./NumericInput";
-import { formatUsd } from "../utils/formatUsdAmount";
+import { formatUsd } from "@/components/utils/formatUsdAmount";
 import clsx from "clsx";
-import { resolveTokenUsdPrice } from "../../helpers/tokenHelper";
-import { SwapQuote } from "../../lib/trainApiClient";
+import { resolveTokenUsdPrice } from "@/helpers/tokenHelper";
+import { SwapQuote } from "@/lib/trainApiClient";
 
 interface AmountFieldProps {
     usdPosition?: "right" | "bottom";

@@ -11,22 +11,29 @@ export async function getServerSideProps(context) {
         's-maxage=60, stale-while-revalidate'
     );
 
-    const networks = await apiClient.GetNetworksAsync()
+    const [networks, prices] = await Promise.all([
+        apiClient.GetNetworksAsync(),
+        apiClient.GetPricesAsync(),
+    ])
 
     if (!networks.length) return
 
-    const networksWithLogos = networks.map(network => {
+    const resolvedNetworks = networks.map(network => {
         const _network = mockData.data.find(n => n.caip2Id === network.caip2Id)
 
         return {
             ...network,
             nodes: _network?.nodes ?? [],
             contracts: (_network?.contracts as NetworkContract[]) ?? [],
+            tokens: network.tokens.map(token => ({
+                ...token,
+                priceInUsd: prices[`${network.caip2Id}:${token.contractAddress}`],
+            })),
         }
     })
 
     const settings = {
-        networks: networksWithLogos,
+        networks: resolvedNetworks,
     }
 
     const themeData = await getThemeData(context.query)
