@@ -1,10 +1,12 @@
 import formatAmount from "../../../formatAmount"
 import _LightClient from "../../types/lightClient"
-import EVM_PHTLC from '../../../abis/atomic/EVM_PHTLC.json'
+import EVM_HTLC from '../../../abis/atomic/EVM_HTLC.json'
 import { LockDetails } from "../../../../Models/phtlc/PHTLC"
 import KnownInternalNames from "../../../knownIds"
 import { Network, Token } from "../../../../Models/Network"
 import { hexToBigInt } from "viem"
+
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 export default class EVMLightClient extends _LightClient {
 
@@ -82,10 +84,11 @@ export default class EVMLightClient extends _LightClient {
                     type: 'getDetails',
                     payload: {
                         data: {
-                            commitConfigs: {
+                            lockConfigs: {
                                 hashlock,
-                                abi: EVM_PHTLC,
+                                abi: EVM_HTLC,
                                 contractAddress: atomicContract,
+                                index: 1,
                             },
                         },
                     },
@@ -94,6 +97,8 @@ export default class EVMLightClient extends _LightClient {
                 this.worker.postMessage(workerMessage)
 
                 this.worker.onmessage = async (event) => {
+                    if (event.data.type !== 'solverLockDetails') return
+
                     const result = event.data.data
                     if (attempts > 15) {
                         reject('Could not get details via light client')
@@ -101,13 +106,23 @@ export default class EVMLightClient extends _LightClient {
                         return
                     }
 
-                    if (result?.hashlock && result?.hashlock !== "0x0100000000000000000000000000000000000000000000000000000000000000" && result?.hashlock !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
-                        const parsedResult: LockDetails = result ? {
-                            ...result,
-                            secret: Number(result.secret) !== 1 ? Number(result.secret) : null,
+                    if (result?.sender && result.sender !== ZERO_ADDRESS) {
+                        const parsedResult: LockDetails = {
+                            hashlock,
+                            sender: result.sender,
+                            recipient: result.recipient !== ZERO_ADDRESS ? result.recipient : undefined,
+                            token: result.token !== ZERO_ADDRESS ? result.token : undefined,
                             amount: formatAmount(Number(hexToBigInt(result.amount._hex)), token.decimals),
-                            timelock: Number(result.timelock)
-                        } : undefined
+                            secret: Number(result.secret?._hex) !== 0 ? hexToBigInt(result.secret._hex) : undefined,
+                            timelock: result.timelock.toNumber(),
+                            reward: formatAmount(Number(hexToBigInt(result.reward._hex)), token.decimals),
+                            rewardTimelock: result.rewardTimelock.toNumber(),
+                            rewardRecipient: result.rewardRecipient !== ZERO_ADDRESS ? result.rewardRecipient : undefined,
+                            rewardToken: result.rewardToken !== ZERO_ADDRESS ? result.rewardToken : undefined,
+                            status: result.status,
+                            claimed: Number(result.status),
+                            index: 1,
+                        }
                         resolve(parsedResult)
                         this.worker.terminate()
                         return
@@ -132,6 +147,6 @@ export default class EVMLightClient extends _LightClient {
     }
 }
 
-function sleep(ms) {
+function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }

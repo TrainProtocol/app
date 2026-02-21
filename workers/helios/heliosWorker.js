@@ -6,7 +6,7 @@ self.onmessage = (e) => {
             initWorker(e.data.payload.data.initConfigs);
             break;
         case 'getDetails':
-            getCommit(e.data.payload.data.commitConfigs);
+            getSolverLock(e.data.payload.data.lockConfigs);
             break;
         default:
             // Handle any cases that are not explicitly mentioned
@@ -15,10 +15,10 @@ self.onmessage = (e) => {
 };
 async function initWorker(initConfigs) {
     try {
-        const ethCheckpoint = initConfigs.network?.toLowerCase().includes('ethereum') && await fetch(initConfigs.hostname + '/api/getCheckpoint').then(res => res.json());
+        const ethCheckpoint = initConfigs.network?.toLowerCase().includes('eip155:11155111') && await fetch(initConfigs.hostname + '/api/getCheckpoint').then(res => res.json());
         const configs = [
             {
-                name: 'ethereum',
+                name: 'eip155:11155111',
                 cnfg: {
                     executionRpc: `${initConfigs.version == 'sandbox' ? 'https://eth-sepolia.g.alchemy.com/v2/' : 'https://eth-mainnet.g.alchemy.com/v2/'}${initConfigs.alchemyKey}`,
                     consensusRpc: initConfigs.version == 'sandbox' ? initConfigs.hostname + '/api/consensusRpc' : undefined,
@@ -64,15 +64,15 @@ async function initWorker(initConfigs) {
         console.log(e);
     }
 }
-async function getCommit(commitConfigs) {
+async function getSolverLock(lockConfigs) {
     try {
-        const { abi, contractAddress, commitId } = commitConfigs;
-        async function getCommitDetails(provider) {
+        const { abi, contractAddress, hashlock, index = 1 } = lockConfigs;
+        async function fetchSolverLock(provider) {
             if (provider) {
                 try {
                     await self.heliosProvider.waitSynced();
                     const contract = new ethers.Contract(contractAddress, abi, provider);
-                    const res = await contract.getHTLCDetails(commitId);
+                    const res = await contract.getSolverLock(hashlock, index);
                     return res;
                 }
                 catch (e) {
@@ -82,18 +82,18 @@ async function getCommit(commitConfigs) {
         }
         (async () => {
             try {
-                const data = await getCommitDetails(self.web3Provider);
-                self.postMessage({ type: 'commitDetails', data: data });
+                const data = await fetchSolverLock(self.web3Provider);
+                self.postMessage({ type: 'solverLockDetails', data: data });
                 return;
             }
             catch (e) {
                 console.log(e);
-                self.postMessage({ type: 'commitDetails', data: undefined });
+                self.postMessage({ type: 'solverLockDetails', data: undefined });
             }
         })();
     }
     catch (e) {
-        self.postMessage({ type: 'commitDetails', data: undefined });
+        self.postMessage({ type: 'solverLockDetails', data: undefined });
         console.log(e);
     }
 }

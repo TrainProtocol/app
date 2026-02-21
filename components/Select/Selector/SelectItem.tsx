@@ -55,7 +55,7 @@ type SelectItemDetailedTitleProps = {
 }
 
 const DetailedTitle = ({ children, className, title, secondary, secondaryImageAlt, secondaryLogoSrc, logoClassName }: SelectItemDetailedTitleProps) => {
-    return <Title className={clsx("w-full grid grid-cols-9", className)}>
+    return <Title className={clsx("w-full grid grid-cols-9 h-[40px]", className)}>
         <div className="col-span-9 flex flex-col gap-1 leading-5 align-middle font-medium">
             <div className="align-middle leading-5 text-base flex items-center justify-between w-full min-w-0">{title}</div>
         </div>
