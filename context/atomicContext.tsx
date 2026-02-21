@@ -1,4 +1,4 @@
-import { Context, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { Context, createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router';
 import { useSettingsState } from './settings';
 import { LockDetails, LockStatus } from '../Models/phtlc/PHTLC';
@@ -11,7 +11,7 @@ import { resolvePersistantQueryParams } from '../helpers/querryHelper';
 import useUserLockPolling from '../hooks/htlc/useUserLockPolling';
 import useSolverLockPolling from '../hooks/htlc/useSolverLockPolling';
 import useWallet from '@/hooks/useWallet';
-import useOrderStream from '../hooks/useOrderStream';
+import useOrderPolling from '../hooks/useOrderPolling';
 
 export enum HTLCStatus {
     Initial = 'initial',
@@ -68,8 +68,8 @@ export function AtomicProvider({ children }) {
     const router = useRouter()
     const { networks } = useSettingsState()
 
-    const activeHashlock = useSwapStore(s => s.activeHashlock)
-    const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
+    const activeHashlockFromStore = useSwapStore(s => s.activeHashlock)
+    const activeHashlock = activeHashlockFromStore ?? router.query.hashlock as string | undefined
 
     const tempSwap = useSwapStore(s => s.tempSwap)
     const commitSwap = useSwapStore(s => s.commitSwap)
@@ -89,14 +89,30 @@ export function AtomicProvider({ children }) {
     const refundTxId = currentSwap?.refundTxId
     const lockTxId = currentSwap?.txId
     const solverName = currentSwap?.solver
-    const srcAtomicContractFromStore = currentSwap?.srcContract
-    const destAtomicContractFromStore = currentSwap?.destContract
+    const srcAtomicContract = currentSwap?.srcContract
+    const destAtomicContract = currentSwap?.destContract
 
     const [htlcStates, setHtlcStates] = useState<CommitStatesDict>({});
     const [error, setError] = useState<{ message: string, buttonText?: string } | undefined>(undefined);
     const [manualClaimTxId, setManualClaimTxId] = useState<string | undefined>(undefined);
     const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
     const [verifyingByLightClient, setVerifyingByLightClient] = useState(false)
+
+    // Restore secretRevealed from persisted swap store on hydration
+    useEffect(() => {
+        if (activeHashlock && committedSwap?.secretRevealed) {
+            setHtlcStates(prev => {
+                if (prev[activeHashlock]?.secretRevealed) return prev;
+                return {
+                    ...prev,
+                    [activeHashlock]: {
+                        ...prev[activeHashlock],
+                        secretRevealed: true,
+                    },
+                };
+            });
+        }
+    }, [activeHashlock, committedSwap?.secretRevealed])
 
     const updateHTLCState = (hashlock: string, newState: Partial<HTLCState>) => {
         setHtlcStates((prev) => ({
@@ -125,25 +141,20 @@ export function AtomicProvider({ children }) {
     const manualClaimRequired = hashlock ? htlcStates[hashlock]?.manualClaimRequired : false;
     const destinationDetailsByLightClient = hashlock ? htlcStates[hashlock]?.destinationDetailsByLightClient : undefined
 
-    const destinationRedeemTx = manualClaimTxId ?? htlcFromApi?.transactions.find(t => t.type === HTLCTransaction.HTLCRedeem && t.network === destination)?.hash
+    const destinationRedeemTx = manualClaimTxId ?? htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem && t.network === destination)?.hash
 
     const source_network = networks.find(n => n.caip2Id.toUpperCase() === (source as string)?.toUpperCase())
     const destination_network = networks.find(n => n.caip2Id.toUpperCase() === (destination as string)?.toUpperCase())
     const source_token = source_network?.tokens.find(t => t.symbol === source_asset)
     const destination_token = destination_network?.tokens.find(t => t.symbol === destination_asset)
 
-    const destAtomicContract = destination_network?.chainId == '11155111' ? '0x9A0E4E619d391f6352E112cC4c452344a3EB4119' : '0xcf6d47cdd0cb259e78262832b4db3f4f4f909dcb' // commitFromApi?.destinationContractAddress || destAtomicContractfromQuery
-    const srcAtomicContract = source_network?.chainId == '11155111' ? '0x9A0E4E619d391f6352E112cC4c452344a3EB4119' : '0xcf6d47cdd0cb259e78262832b4db3f4f4f909dcb' //commitFromApi?.sourceContractAddress || srcAtomicContractFromQuery
-
-    const handleOrderUpdate = useCallback((order: HTLCFromApi) => {
-        if (hashlock && order.transactions.length > 0) updateHTLCState(hashlock, { htlcFromApi: order })
-    }, [hashlock])
-
-    useOrderStream({
+    useOrderPolling({
         solverId: solverName,
         hashlock,
         enabled: !!hashlock && !!solverName && !destinationRedeemTx,
-        onOrder: handleOrderUpdate,
+        onOrder: (order) => {
+            if (hashlock) updateHTLCState(hashlock, { htlcFromApi: order })
+        },
     })
 
     const htlcStatus = useMemo(() =>

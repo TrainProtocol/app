@@ -34,7 +34,7 @@ const Confirmed: FC = () => {
 const AssetsReady: FC = () => {
     const { destination_network, htlcFromApi: htlcFromApi, destinationDetails, destinationDetailsByLightClient } = useAtomicState()
 
-    const lpLockTx = htlcFromApi?.transactions.find(t => t.type === HTLCTransaction.HTLCLock)
+    const lpLockTx = htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCLock)
     const description = (lpLockTx && destination_network) ? <p><span>Transaction ID:</span> <Link className="underline hover:no-underline" target="_blank" href={getExplorerUrl(NetworkSettings.KnownSettings[destination_network.caip2Id]?.TransactionExplorerTemplate, lpLockTx?.hash)}>{shortenString(lpLockTx.hash)}</Link></p> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />
 
     return (

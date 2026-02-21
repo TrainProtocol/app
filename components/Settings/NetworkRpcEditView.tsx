@@ -156,7 +156,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                 {/* Network Info */}
                 <div className="flex items-center space-x-3">
                     <Image
-                        src={network.logo ?? ''}
+                        src={network.logoUrl ?? ''}
                         alt={network.displayName}
                         height="40"
                         width="40"

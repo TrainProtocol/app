@@ -144,7 +144,7 @@ export default function useStarknet(): WalletProvider {
         availableWalletsForConnect,
         name,
         id,
-        providerIcon: networks.find(n => starknetNames.some(name => name === n.caip2Id))?.logo,
+        providerIcon: networks.find(n => starknetNames.some(name => name === n.caip2Id))?.logoUrl,
         ready: connectors.length > 0,
         ...atomicFunctions
     }
@@ -191,7 +191,7 @@ export async function resolveStarknetWallet(props: ResolveStarknetWalletProps): 
             isActive: true,
             withdrawalSupportedNetworks,
             disconnect: () => disconnectWallets(connector.name, account),
-            networkIcon: starknetNames.includes(network?.caip2Id || '') ? network?.logo : undefined,
+            networkIcon: starknetNames.includes(network?.caip2Id || '') ? network?.logoUrl : undefined,
             autofillSupportedNetworks,
             asSourceSupportedNetworks
         };

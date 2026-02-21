@@ -43,7 +43,7 @@ export default function useTON(): WalletProvider {
         withdrawalSupportedNetworks: commonSupportedNetworks,
         autofillSupportedNetworks: commonSupportedNetworks,
         asSourceSupportedNetworks: commonSupportedNetworks,
-        networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logo
+        networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logoUrl
     } : undefined
     const switchAccount = async (wallet: Wallet, address: string) => {
         // as we do not have multiple accounts management we will leave the method empty
@@ -100,7 +100,7 @@ export default function useTON(): WalletProvider {
                     withdrawalSupportedNetworks: commonSupportedNetworks,
                     autofillSupportedNetworks: commonSupportedNetworks,
                     asSourceSupportedNetworks: commonSupportedNetworks,
-                    networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logo
+                    networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logoUrl
                 } : undefined
 
                 return wallet ? wallet : undefined

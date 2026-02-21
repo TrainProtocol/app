@@ -18,6 +18,7 @@ import { resolvePersistantQueryParams } from "../../../helpers/querryHelper";
 import { useSecretDerivation } from "../../../context/secretDerivationContext";
 import { useSwapStore } from "../../../stores/swapStore";
 import { formatUnits } from "viem";
+import { NetworkContractType } from "@/Models/Network";
 
 const AtomicPage = dynamicWithRetries(
     () => import("../AtomicChat/index.tsx") as unknown as Promise<{ default: React.ComponentType<any> }>,
@@ -99,6 +100,8 @@ export default function Form() {
 
             const source_provider = values.from && getProvider(values.from, 'withdrawal')
             const destination_provider = values.to && getProvider(values.to, 'withdrawal')
+            const source_contract = values.from?.contracts?.find(c => c.type === NetworkContractType.Train)?.address
+            const destination_contract = values.to?.contracts?.find(c => c.type === NetworkContractType.Train)?.address
 
             if (!source_provider) {
                 throw new Error("No source_provider")
@@ -116,8 +119,8 @@ export default function Form() {
                 source_asset: values.fromCurrency.symbol,
                 destination_asset: values.toCurrency.symbol,
                 solver: solverId,
-                srcContract: quote?.route?.source?.tokenContract ?? undefined,
-                destContract: quote?.route?.destination?.tokenContract ?? undefined,
+                srcContract: source_contract,
+                destContract: destination_contract,
                 receiveAmount: formattedReceiveAmount,
             })
             setSwapModalOpen(true)

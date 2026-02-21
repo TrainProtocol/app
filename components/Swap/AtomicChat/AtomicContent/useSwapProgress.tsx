@@ -145,7 +145,7 @@ export function useSwapProgress(): SwapProgress {
 
     return useMemo(() => {
         const sourceTxLink = buildExplorerLink(source_network?.caip2Id, lockTxId);
-        const lpLockTx = htlcFromApi?.transactions.find(t => t.type === HTLCTransaction.HTLCLock as string);
+        const lpLockTx = htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCLock as string);
         const destTxLink = buildExplorerLink(destination_network?.caip2Id, lpLockTx?.hash);
         const redeemTxLink = buildExplorerLink(destination_network?.caip2Id, destRedeemTx);
         const refundTxLink = buildExplorerLink(source_network?.caip2Id, refundTxId);
@@ -227,7 +227,7 @@ export function useSwapProgress(): SwapProgress {
                 gaugeValue: 100, gaugeIcon: "check",
                 title: "Swap complete",
                 subtitle: "Your assets have been sent to your address.",
-                steps: buildSteps(HAPPY_STEPS, -1, { redeem: redeemTxLink, source: sourceTxLink }),
+                steps: buildSteps(HAPPY_STEPS, -1, { redeem: redeemTxLink, source: sourceTxLink, dest: destTxLink }),
             };
         }
 

@@ -52,7 +52,7 @@ export default function useSVM(): WalletProvider {
                 asSourceSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
                 autofillSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
                 withdrawalSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
-                networkIcon: networks.find(n => solanaNames.some(name => name === n.caip2Id))?.logo
+                networkIcon: networks.find(n => solanaNames.some(name => name === n.caip2Id))?.logoUrl
             } : undefined
 
             if (wallet) {
@@ -86,7 +86,7 @@ export default function useSVM(): WalletProvider {
             asSourceSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
             autofillSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
             withdrawalSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
-            networkIcon: networks.find(n => solanaNames.some(name => name === n.caip2Id))?.logo
+            networkIcon: networks.find(n => solanaNames.some(name => name === n.caip2Id))?.logoUrl
         } : undefined
 
         return wallet
@@ -155,7 +155,7 @@ export default function useSVM(): WalletProvider {
         asSourceSupportedNetworks: commonSupportedNetworks,
         name,
         id,
-        providerIcon: networks.find(n => solanaNames.some(name => name === n.caip2Id))?.logo,
+        providerIcon: networks.find(n => solanaNames.some(name => name === n.caip2Id))?.logoUrl,
         ready: wallets.length > 0,
         ...atomicFunctions
     }

@@ -345,7 +345,7 @@ export default function useEVM(): WalletProvider {
     }
 
     const activeWallet = useMemo(() => resolvedConnectors.find(w => w.isActive), [resolvedConnectors])
-    const providerIcon = useMemo(() => networks.find(n => ethereumNames.some(name => name === n.caip2Id))?.logo, [networks])
+    const providerIcon = useMemo(() => networks.find(n => ethereumNames.some(name => name === n.caip2Id))?.logoUrl, [networks])
 
 
     const atomicFunctions = useAtomicEVM({
@@ -459,7 +459,7 @@ const ResolveWallet = (props: ResolveWalletProps): Wallet | undefined => {
         asSourceSupportedNetworks: resolveSupportedNetworks(supportedNetworks.asSource, walletId),
         autofillSupportedNetworks: resolveSupportedNetworks(supportedNetworks.autofill, walletId),
         withdrawalSupportedNetworks: resolveSupportedNetworks(supportedNetworks.withdrawal, walletId),
-        networkIcon: networks.find(n => walletId === "com.immutable.passport" ? immutableZKEvm.some(name => name === n.caip2Id) : ethereumNames.some(name => name === n.caip2Id))?.logo,
+        networkIcon: networks.find(n => walletId === "com.immutable.passport" ? immutableZKEvm.some(name => name === n.caip2Id) : ethereumNames.some(name => name === n.caip2Id))?.logoUrl,
         metadata: {
             deepLink: (connector as LSConnector).deepLink
         }

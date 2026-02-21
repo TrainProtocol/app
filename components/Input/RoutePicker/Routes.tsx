@@ -71,7 +71,7 @@ export const NetworkTokenTitle = (props: NetworkTokenItemProps) => {
                 <span className="truncate">{network.displayName}</span>
             </div>
         }
-        secondaryLogoSrc={network.logo}
+        secondaryLogoSrc={network.logoUrl}
     >
         {(tokenBalance && Number(tokenBalance?.amount) > 0) ? (
             <span className="text-sm text-secondary-text text-right my-auto font-medium block">
@@ -106,7 +106,7 @@ export const NetworkRouteSelectItemDisplay = (props: NetworkItemProps) => {
 
     return (
         <SelectItem className="accordion-item-focused bg-secondary-500 group rounded-xl hover:bg-secondary-400 group/item relative pr-7 py-2 ring-hidden">
-            <SelectItem.Logo imgSrc={item.logo} altText={`${item.displayName} logo`} className="rounded-md" />
+            <SelectItem.Logo imgSrc={item.logoUrl} altText={`${item.displayName} logo`} className="rounded-md" />
             <SelectItem.Title>
                 <>
                     <span>
@@ -179,7 +179,7 @@ export const SelectedRouteDisplay = ({ network, token, placeholder }: SelectedRo
                         </div>
                         <div className="absolute left-[13px] top-3.5 h-4 w-4 rounded border border-secondary-500 bg-secondary-400 overflow-hidden">
                             <ImageWithFallback
-                                src={network.logo || ''}
+                                src={network.logoUrl || ''}
                                 alt="Network Logo"
                                 height="14"
                                 width="14"

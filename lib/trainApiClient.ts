@@ -28,6 +28,10 @@ export default class TrainApiClient {
         return await this.UnauthenticatedRequest<ApiResponse<HTLCFromApi[]>>("GET", `/swaps?${addressesQuery}&page=${page ? page : 1}`);
     }
 
+    async GetOrder(solverId: string, hashlock: string): Promise<ApiResponse<HTLCFromApiResponse>> {
+        return await this.UnauthenticatedRequest<ApiResponse<HTLCFromApiResponse>>("GET", `/orders/${solverId}/${hashlock}`);
+    }
+
     async RevealSecret(params: RevealSecretParams, hashlock: string, solverId: string): Promise<ApiResponse<{}>> {
         return await this.UnauthenticatedRequest<ApiResponse<{}>>("POST", `/orders/${solverId}/${hashlock}/reveal-secret`, params);
     }
@@ -46,6 +50,11 @@ export default class TrainApiClient {
 
 export type RevealSecretParams = {
     secret: string
+}
+
+export type HTLCFromApiResponse = {
+    order: HTLCFromApi;
+    solver: SolverProfile;
 }
 
 export type HTLCFromApi = {
@@ -205,6 +214,6 @@ function mapStationNetwork(n: StationNetworkResponse): Network {
         contracts: [],
         metadata: [],
         explorerUrlTemplate: n.explorerUrlTemplate,
-        logo: n.logoUrl,
+        logoUrl: n.logoUrl,
     }
 }

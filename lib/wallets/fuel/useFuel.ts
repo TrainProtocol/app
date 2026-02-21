@@ -71,7 +71,7 @@ export default function useFuel(): WalletProvider {
                         disconnectWallet,
                         name,
                         commonSupportedNetworks,
-                        networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logo
+                        networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logoUrl
                     })
 
                     addWallet(result)
@@ -170,7 +170,7 @@ export default function useFuel(): WalletProvider {
                         disconnectWallet,
                         name,
                         commonSupportedNetworks: commonSupportedNetworks,
-                        networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logo
+                        networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logoUrl
                     })
                     addWallet(w)
                 }

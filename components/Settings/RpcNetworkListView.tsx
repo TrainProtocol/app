@@ -71,7 +71,7 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
                             >
                                 <div className="flex items-center space-x-3 overflow-hidden">
                                     <Image
-                                        src={network.logo ?? ''}
+                                        src={network.logoUrl ?? ''}
                                         alt={network.displayName}
                                         height="40"
                                         width="40"

@@ -3,7 +3,6 @@ import useWallet from "@/hooks/useWallet";
 import { useAtomicState } from "@/context/atomicContext";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
-import ButtonStatus from "./Status/ButtonStatus";
 import { LockStatus } from "@/Models/phtlc/PHTLC";
 import { SwapQuote } from "@/lib/trainApiClient";
 import { useSwapStore } from "@/stores/swapStore";
@@ -25,7 +24,6 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote, type }) => 
 
     const handleUserLock = async () => {
         try {
-            debugger
             if (!amount) {
                 throw new Error("No amount specified")
             }

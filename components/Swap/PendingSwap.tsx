@@ -1,9 +1,9 @@
 import { useSwapStore } from "../../stores/swapStore";
 import { useSettingsState } from "../../context/settings";
 import { AnimatePresence, motion } from "framer-motion";
-import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { ImageWithFallback } from "../Common/ImageWithFallback";
+import { useRouter } from "next/router";
 
 export default function PendingSwap() {
     const swapModalOpen = useSwapStore(s => s.swapModalOpen)
@@ -11,8 +11,9 @@ export default function PendingSwap() {
     const activeHashlock = useSwapStore(s => s.activeHashlock)
     const activeSwap = useSwapStore(s => activeHashlock ? s.swaps[activeHashlock] : null)
     const settings = useSettingsState()
+    const router = useRouter()
 
-    if (!activeHashlock || !activeSwap || swapModalOpen || !settings) return null
+    if (!activeHashlock || !activeSwap || swapModalOpen || !settings || router.pathname !== "/") return null
 
     const { networks } = settings
     const source_network = networks.find(n => n.caip2Id.toUpperCase() === activeSwap.source?.toUpperCase())
@@ -35,7 +36,7 @@ export default function PendingSwap() {
                             <div className="shrink-0 h-5 w-5 relative">
                                 {source_network ?
                                     <ImageWithFallback
-                                        src={source_network.logo ?? ''}
+                                        src={source_network.logoUrl ?? ''}
                                         alt="From Logo"
                                         height="20"
                                         width="20"
@@ -47,7 +48,7 @@ export default function PendingSwap() {
                             <div className="shrink-0 h-5 w-5 relative block">
                                 {destination_network ?
                                     <ImageWithFallback
-                                        src={destination_network.logo ?? ''}
+                                        src={destination_network.logoUrl ?? ''}
                                         alt="To Logo"
                                         height="20"
                                         width="20"

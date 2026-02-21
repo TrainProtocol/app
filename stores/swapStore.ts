@@ -15,6 +15,7 @@ export interface SwapData {
     hashlock?: string
     txId?: string
     refundTxId?: string
+    secretRevealed?: boolean
 }
 
 interface SwapStoreState {
