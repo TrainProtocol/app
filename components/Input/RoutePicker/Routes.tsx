@@ -60,10 +60,8 @@ export const NetworkTokenTitle = (props: NetworkTokenItemProps) => {
         title={
             <div className="flex items-center justify-between w-full gap-2">
                 <span className="font-medium">{item.symbol}</span>
-                {usdAmount && usdAmount > 0.01 && (
-                    <span className="text-xs text-secondary-text">
-                        ${usdAmount.toFixed(2)}
-                    </span>
+                {(tokenBalance && Number(tokenBalance?.amount) > 0 && Number(usdAmount) > 0) && (
+                    <div className="text-primary-text text-lg leading-[22px] font-medium">{formatUsd(usdAmount)}</div>
                 )}
             </div>
         }
