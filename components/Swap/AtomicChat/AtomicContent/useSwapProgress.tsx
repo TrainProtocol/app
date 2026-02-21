@@ -145,7 +145,7 @@ export function useSwapProgress(): SwapProgress {
 
     return useMemo(() => {
         const sourceTxLink = buildExplorerLink(source_network?.caip2Id, lockTxId);
-        const lpLockTx = htlcFromApi?.transactions.find(t => t.type === HTLCTransaction.HTLCLock as string);
+        const lpLockTx = htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCLock as string);
         const destTxLink = buildExplorerLink(destination_network?.caip2Id, lpLockTx?.hash);
         const redeemTxLink = buildExplorerLink(destination_network?.caip2Id, destRedeemTx);
         const refundTxLink = buildExplorerLink(source_network?.caip2Id, refundTxId);

@@ -13,8 +13,13 @@ export type NetworkNode = {
 }
 
 export type NetworkContract = {
-    type: string;   // "Train", "Multicall"
+    type: NetworkContractType;
     address: string;
+}
+
+export enum NetworkContractType {
+    Train = "Train",
+    Multicall = "Multicall",
 }
 
 export type ExplorerUrlTemplate = {
@@ -33,8 +38,7 @@ export class Network {
     contracts: NetworkContract[];
     metadata: any[];
     explorerUrlTemplate?: ExplorerUrlTemplate;
-    /** Set by getSettings when resolving logo URL */
-    logo?: string;
+    logoUrl?: string;
 }
 
 export const getNativeToken = (network: Network | undefined | null): Token | undefined =>

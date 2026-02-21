@@ -1,3 +1,4 @@
+import { NetworkContract } from "@/Models/Network";
 import TrainApiClient from "../lib/trainApiClient";
 import { getThemeData } from "./settingsHelper";
 
@@ -14,11 +15,15 @@ export async function getServerSideProps(context) {
 
     if (!networks.length) return
 
-    const networksWithLogos = networks.map(network => ({
-        ...network,
-        logo: `https://github.com/TrainProtocol/icons/blob/standardize-caip2-names/networks/${network.displayName.toLowerCase().split(' ')[0]}.png?raw=true`,
-        nodes: mockData.data.find(n => n.caip2Id === network.caip2Id)?.nodes ?? [],
-    }))
+    const networksWithLogos = networks.map(network => {
+        const _network = mockData.data.find(n => n.caip2Id === network.caip2Id)
+
+        return {
+            ...network,
+            nodes: _network?.nodes ?? [],
+            contracts: (_network?.contracts as NetworkContract[]) ?? [],
+        }
+    })
 
     const settings = {
         networks: networksWithLogos,
@@ -35,22 +40,6 @@ const mockData = {
     "data": [
         {
             "caip2Id": "eip155:11155111",
-            "type": {
-                "name": "eip155",
-                "displayName": "EVM",
-                "nativeTokenAddress": "0x0000000000000000000000000000000000000000",
-                "addressFormat": "hex",
-                "addressLength": 20,
-                "curve": "secp256k1"
-            },
-            "tokens": [
-                {
-                    "symbol": "ETH",
-                    "contractAddress": "0x0000000000000000000000000000000000000000",
-                    "priceInUsd": 1969,
-                    "decimals": 18
-                }
-            ],
             "nodes": [
                 {
                     "providerName": "publicnode",
@@ -61,37 +50,16 @@ const mockData = {
             "contracts": [
                 {
                     "type": "Train",
-                    "address": "0x63B8b33f9b12296121eD0365Db178E400cC86384"
+                    "address": "0x9A0E4E619d391f6352E112cC4c452344a3EB4119"
                 },
                 {
                     "type": "Multicall",
                     "address": "0xcA11bde05977b3631167028862bE2a173976CA11"
                 }
             ],
-            "metadata": [],
-            "slug": "eth-sepolia",
-            "displayName": "Ethereum Sepolia",
-            "chainId": "11155111",
-            "nativeTokenAddress": "0x0000000000000000000000000000000000000000"
         },
         {
             "caip2Id": "eip155:421614",
-            "type": {
-                "name": "eip155",
-                "displayName": "EVM",
-                "nativeTokenAddress": "0x0000000000000000000000000000000000000000",
-                "addressFormat": "hex",
-                "addressLength": 20,
-                "curve": "secp256k1"
-            },
-            "tokens": [
-                {
-                    "symbol": "ETH",
-                    "contractAddress": "0x0000000000000000000000000000000000000000",
-                    "priceInUsd": 1969,
-                    "decimals": 18
-                }
-            ],
             "nodes": [
                 {
                     "providerName": "publicnode",
@@ -102,36 +70,16 @@ const mockData = {
             "contracts": [
                 {
                     "type": "Train",
-                    "address": "0x0cb5a831bc95209995e9493e93648d3b64c27f16"
+                    "address": "0xcf6d47cdd0cb259e78262832b4db3f4f4f909dcb"
                 },
                 {
                     "type": "Multicall",
                     "address": "0xcA11bde05977b3631167028862bE2a173976CA11"
                 }
             ],
-            "metadata": [],
-            "slug": "arb-sepolia",
-            "displayName": "Arbitrum Sepolia",
-            "chainId": "421614",
-            "nativeTokenAddress": "0x0000000000000000000000000000000000000000"
         },
         {
             "caip2Id": "eip155:84532",
-            "type": {
-                "name": "eip155",
-                "displayName": "EVM",
-                "nativeTokenAddress": "0x0000000000000000000000000000000000000000",
-                "addressFormat": "hex",
-                "addressLength": 20,
-                "curve": "secp256k1"
-            },
-            "tokens": [
-                {
-                    "symbol": "ETH",
-                    "contractAddress": "0x0000000000000000000000000000000000000000",
-                    "decimals": 18
-                }
-            ],
             "nodes": [
                 {
                     "providerName": "publicnode",
@@ -149,11 +97,6 @@ const mockData = {
                     "address": "0xcA11bde05977b3631167028862bE2a173976CA11"
                 }
             ],
-            "metadata": [],
-            "slug": "base-sepolia",
-            "displayName": "Base Sepolia",
-            "chainId": "84532",
-            "nativeTokenAddress": "0x0000000000000000000000000000000000000000"
         }
     ]
 }

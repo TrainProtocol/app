@@ -87,7 +87,7 @@ const RouteTokenPair: FC<RouteTokenPairProps> = ({ route, token }) => {
                 />
                 <div className="absolute -right-0.5 -bottom-0.5 rounded border border-secondary-500 bg-secondary-400 overflow-hidden">
                     <ImageWithFallback
-                        src={route.logo ?? ''}
+                        src={route.logoUrl ?? ''}
                         alt="Route Logo"
                         height="16"
                         width="16"

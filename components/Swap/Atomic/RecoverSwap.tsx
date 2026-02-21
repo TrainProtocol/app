@@ -48,9 +48,9 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
                     >
                         {selectedNetwork ? (
                             <div className="flex items-center space-x-2">
-                                {selectedNetwork.logo && (
+                                {selectedNetwork.logoUrl && (
                                     <Image
-                                        src={selectedNetwork.logo}
+                                        src={selectedNetwork.logoUrl}
                                         alt={selectedNetwork.displayName}
                                         width={20}
                                         height={20}
@@ -76,9 +76,9 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
                                     }}
                                     className="w-full flex items-center space-x-2 px-3 py-2 hover:bg-secondary-500 transition text-left text-primary-text"
                                 >
-                                    {network.logo && (
+                                    {network.logoUrl && (
                                         <Image
-                                            src={network.logo}
+                                            src={network.logoUrl}
                                             alt={network.displayName}
                                             width={20}
                                             height={20}
