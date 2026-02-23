@@ -9,6 +9,7 @@ import { Network, Token } from "@/Models/Network";
 import clsx from "clsx";
 import useWallet from "@/hooks/useWallet";
 import useSuggestionsLimit from "@/hooks/useSuggestionsLimit";
+import Balance from "@/components/Input/Amount/Balance";
 
 const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ direction, className }) => {
     const {
@@ -56,6 +57,7 @@ const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ dir
                     )}
                 </SelectorContent>
             </Selector>
+            <Balance values={values} direction={direction} />
         </div>
     )
 };

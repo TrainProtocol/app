@@ -5,10 +5,12 @@ import { SelectItem } from "@/components/Select/Selector/SelectItem";
 import { ChevronDown } from "lucide-react";
 import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
 import { useBalance } from "@/lib/balances/useBalance";
-import { useSelectedAccount } from "@/context/swapAccounts";
-import { memo } from "react";
+import { useSwapAccounts } from "@/context/swapAccounts";
+import { memo, useMemo } from "react";
 import { RowElement } from "@/Models/Route";
 import { resolveTokenLogoUrl } from "@/components/utils/resolveTokenLogoUrl";
+import { formatUsd } from "@/components/utils/formatUsdAmount";
+import { getTotalBalanceInUSD } from "@/helpers/balanceHelper";
 
 type TokenItemProps = {
     network: Network;
@@ -41,9 +43,11 @@ type NetworkTokenItemProps = {
 
 export const NetworkTokenTitle = (props: NetworkTokenItemProps) => {
     const { item, network, direction } = props
-    const selectedSourceAccount = useSelectedAccount("from", network?.caip2Id);
-
-    const address = direction === 'from' ? selectedSourceAccount?.address : undefined;
+    const swapAccounts = useSwapAccounts(direction)
+    const selectedAccount = swapAccounts.find(w =>
+        (direction === 'from' ? w.provider?.withdrawalSupportedNetworks : w.provider?.autofillSupportedNetworks)?.includes(network?.caip2Id)
+    )
+    const address = selectedAccount?.address;
     const { balances } = useBalance(address, network);
 
     const tokenBalance = balances?.find(b => b.token === item.symbol);
@@ -56,10 +60,8 @@ export const NetworkTokenTitle = (props: NetworkTokenItemProps) => {
         title={
             <div className="flex items-center justify-between w-full gap-2">
                 <span className="font-medium">{item.symbol}</span>
-                {usdAmount && usdAmount > 0.01 && (
-                    <span className="text-xs text-secondary-text">
-                        ${usdAmount.toFixed(2)}
-                    </span>
+                {(tokenBalance && Number(tokenBalance?.amount) > 0 && Number(usdAmount) > 0) && (
+                    <div className="text-primary-text text-lg leading-[22px] font-medium">{formatUsd(usdAmount)}</div>
                 )}
             </div>
         }
@@ -88,7 +90,19 @@ type NetworkItemProps = {
 }
 
 export const NetworkRouteSelectItemDisplay = (props: NetworkItemProps) => {
-    const { item } = props
+    const { item, direction } = props
+    const swapAccounts = useSwapAccounts(direction)
+    const selectedAccount = swapAccounts.find(w => (direction === 'from' ? w.provider?.withdrawalSupportedNetworks : w.provider?.autofillSupportedNetworks)?.includes(item.caip2Id))
+    const address = selectedAccount?.address;
+
+    const networkBalances = useBalance(address, item)
+    const totalInUSD = useMemo(() => getTotalBalanceInUSD(networkBalances, item), [networkBalances.balances, item])
+
+    const tokensWithBalance = networkBalances.balances?.filter(b => b.amount && b.amount > 0).map(b => b.token);
+    const filteredNetworkTokens = item.tokens?.filter(t => tokensWithBalance?.includes(t.symbol));
+
+    const hasLoadedBalances = totalInUSD !== null && totalInUSD > 0;
+    const showTokenLogos = hasLoadedBalances && filteredNetworkTokens?.length;
 
     return (
         <SelectItem className="accordion-item-focused bg-secondary-500 group rounded-xl hover:bg-secondary-400 group/item relative pr-7 py-2 ring-hidden">
@@ -98,6 +112,35 @@ export const NetworkRouteSelectItemDisplay = (props: NetworkItemProps) => {
                     <span>
                         {item.displayName}
                     </span>
+
+                    {hasLoadedBalances ? (
+                        <div className={showTokenLogos ? "flex flex-col space-y-0.5" : ""}>
+                            <span className="text-secondary-text text-sm leading-4 font-medium">
+                                {formatUsd(totalInUSD)}
+                            </span>
+                            {showTokenLogos ? (
+                                <div className="flex justify-end items-center -space-x-2 relative h-4">
+                                    {filteredNetworkTokens.slice(0, 3).map((t, index) => (
+                                        <ImageWithFallback
+                                            key={`${t.symbol}-${index}`}
+                                            src={t.logo || resolveTokenLogoUrl(t.symbol)}
+                                            alt={`${t.symbol} logo`}
+                                            height="16"
+                                            width="16"
+                                            loading="eager"
+                                            fetchPriority="high"
+                                            className="rounded-full object-contain"
+                                        />
+                                    ))}
+                                    {filteredNetworkTokens.length > 3 && (
+                                        <div className="w-4 h-4 bg-secondary-600 text-primary-text text-[8px] rounded-full flex items-center justify-center border-2 border-background">
+                                            <span>+{filteredNetworkTokens.length - 3}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : <></>}
+                        </div>
+                    ) : <></>}
 
                     <ChevronDown
                         className="w-3.5! h-3.5! absolute right-2 top-1/2 -translate-y-1/2 text-secondary-text transition-opacity duration-200 opacity-0 group-hover/item:opacity-100"

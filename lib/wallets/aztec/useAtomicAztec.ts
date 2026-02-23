@@ -1,108 +1,158 @@
 import { AztecAddress } from "@aztec/aztec.js/addresses"
-import { Fr } from "@aztec/aztec.js/fields"
 import { AztecNode, createAztecNodeClient } from "@aztec/aztec.js/node"
-import { CreateHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
-import { LockDetails } from "../../../Models/phtlc/PHTLC"
-import { getAztecSecret } from "./secretUtils"
-import { combineHighLow, highLowToHexValidated, trimTo30Bytes } from "./utils"
+import { CreateHTLCParams, LockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
+import { LockDetails, LockStatus } from "../../../Models/phtlc/PHTLC"
+import { hexToBytes, bytesToHex } from "./utils"
 import formatAmount from "../../formatAmount"
 import { TrainContract } from "./Train"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { secretToHashlock } from "@/lib/htlc/secretDerivation"
-import { calculateEpochTimelock } from "../utils/calculateTimelock"
 import { BaseAtomicFunctions } from "../utils/atomicTypes"
 
 export interface UseAtomicAztecParams {
     wallet: any
     accountAddress: string | undefined | null
     aztecNodeUrl: string
+    sponsorAddress: string
 }
 
 export default function useAtomicAztec(params: UseAtomicAztecParams): BaseAtomicFunctions {
-    const { wallet, accountAddress, aztecNodeUrl } = params
+    const { wallet, accountAddress, aztecNodeUrl, sponsorAddress } = params
     const { deriveSecret } = useSecretDerivation()
 
     const createHTLC = async (params: CreateHTLCParams) => {
         if (!wallet) throw new Error("No wallet connected");
-        
-        // Secret derivation for HTLC with hashlock
-        const chainId = params.chainId || 'aztec-mainnet';
-        const timelock = calculateEpochTimelock(40);
-        const secret = await deriveSecret({
+
+        const { secret, nonce: timestamp } = await deriveSecret({
             wallet: { metadata: { wallet }, providerName: 'aztec' } as any
         });
-        // const hashlock = secretToHashlock(secret);
 
-        const { commitTransactionBuilder } = await import('./transactionBuilder.ts')
+        const hashlock = secretToHashlock(secret);
 
-        // Note: Add hashlock to transaction params when contract supports it
-        const tx = await commitTransactionBuilder({
+        const parsedAmount = BigInt(
+            Math.round(Math.pow(10, params.sourceAsset.decimals) * Number(params.amount))
+        );
+
+        const { userLockTransactionBuilder } = await import('./transactionBuilder.ts')
+
+        const tx = await userLockTransactionBuilder({
             senderWallet: wallet,
             aztecNodeUrl,
-            ...params
+            atomicContract: params.atomicContract,
+            tokenContractAddress: params.tokenContractAddress!,
+            amount: parsedAmount,
+            hashlock,
+            sourceChain: params.sourceChain,
+            destinationChain: params.destinationChain,
+            destinationAsset: params.destinationAsset,
+            destinationAmount: params.destinationAmount,
+            address: params.address,
+            srcLpAddress: params.srcLpAddress,
+            timelockDelta: params.timelockDelta,
+            rewardAmount: params.rewardAmount ? BigInt(params.rewardAmount) : undefined,
+            rewardToken: params.rewardToken,
+            rewardRecipient: params.rewardRecipient,
+            rewardTimelockDelta: params.rewardTimelockDelta,
+            quoteExpiry: params.quoteExpiry,
+            solverData: params.solverData,
+            nonce: timestamp,
+            sponsorAddress,
         })
 
-        return { hash: tx.hash, hashlock: tx.hashlock }
+        return { hash: tx.hash, hashlock, nonce: timestamp }
     }
 
-    const getDetails = async (params: LockParams): Promise<LockDetails> => {
-        let { id, contractAddress } = params;
-        const id30Bytes = trimTo30Bytes(id);
-
+    const getContractInstance = async (contractAddress: string) => {
         if (!wallet || !accountAddress) throw new Error("No wallet connected");
 
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
-
         const node: AztecNode = createAztecNodeClient(aztecNodeUrl);
         const trainInstance = await node.getContract(aztecAtomicContract);
 
-        if (!trainInstance) {
-            throw new Error("Train contract not found");
-        }
+        if (!trainInstance) throw new Error("Train contract not found");
 
         await wallet.registerContract(trainInstance, TrainContract.artifact);
-
-        const atomicContract = await TrainContract.at(
-            aztecAtomicContract,
-            wallet,
-        );
-
+        const contract = TrainContract.at(aztecAtomicContract, wallet);
         const userAztecAddress = AztecAddress.fromString(accountAddress);
 
-
-        const commitRaw: any = await atomicContract.methods
-            .get_htlc_public(Fr.fromString(id30Bytes))
-            .simulate({ from: userAztecAddress });
-
-        const hashlock = highLowToHexValidated(commitRaw.hashlock_high, commitRaw.hashlock_low);
-        if (!Number(commitRaw.timelock)) {
-            throw new Error("No result")
-        }
-
-        const commit: LockDetails = {
-            amount: formatAmount(Number(commitRaw.amount), 8),
-            claimed: Number(commitRaw.claimed),
-            timelock: Number(commitRaw.timelock),
-            // srcReceiver: commitRaw.src_receiver,
-            hashlock: (hashlock == "0x00000000000000000000000000000000" || hashlock == '0x0000000000000000000000000000000000000000000000000000000000000000') ? undefined : hashlock,
-            secret: combineHighLow({ high: commitRaw.secret_high, low: commitRaw.secret_low }),
-            ownership: commitRaw.ownership_high ? highLowToHexValidated(commitRaw.ownership_high, commitRaw.ownership_low) : undefined
-        }
-
-        return commit
+        return { contract, userAztecAddress };
     }
 
-    const addLock = async (params: LockParams & OldLockParams) => {
-        if (!wallet) throw new Error("No wallet connected");
+    const getUserLockDetails = async (params: LockParams): Promise<LockDetails | null> => {
+        const { id, contractAddress } = params;
 
-        const { addLockTransactionBuilder } = await import('./transactionBuilder.ts')
+        const { contract, userAztecAddress } = await getContractInstance(contractAddress);
 
-        const tx = await addLockTransactionBuilder({
-            senderWallet: wallet,
-            ...params
-        })
+        const hashlockBytes = hexToBytes(id, 32);
+        const result: any = await contract.methods
+            .get_user_lock(hashlockBytes)
+            .simulate({ from: userAztecAddress });
 
-        return { hash: tx.lockCommit, result: tx.lockId }
+        const status = Number(result.status) as LockStatus;
+        if (status === LockStatus.Empty) return null;
+
+        // Convert secret bytes to bigint (all-zero = not revealed yet)
+        const secretBytes: number[] = Array.from(result.secret || []);
+        const secretHex = secretBytes.length > 0 ? bytesToHex(secretBytes) : '0x0';
+        const secretBigInt = BigInt(secretHex);
+        const secret = secretBigInt !== 0n ? secretBigInt : undefined;
+
+        return {
+            hashlock: id,
+            amount: formatAmount(Number(result.amount), 8),
+            sender: result.sender?.toString(),
+            recipient: result.recipient?.toString(),
+            token: result.token?.toString(),
+            timelock: Number(result.timelock),
+            secret,
+            status,
+            claimed: Number(result.status),
+        }
+    }
+
+    const getSolverLockDetails = async (params: LockParams): Promise<LockDetails | null> => {
+        const { id, contractAddress } = params;
+
+        const { contract, userAztecAddress } = await getContractInstance(contractAddress);
+
+        const hashlockBytes = hexToBytes(id, 32);
+
+        // Check solver lock count first
+        const count = await contract.methods
+            .get_solver_lock_count(hashlockBytes)
+            .simulate({ from: userAztecAddress });
+
+        if (Number(count) === 0) return null;
+
+        // Get the first solver lock (index 1, 1-based)
+        const result: any = await contract.methods
+            .get_solver_lock(hashlockBytes, BigInt(1))
+            .simulate({ from: userAztecAddress });
+
+        const status = Number(result.status) as LockStatus;
+        if (status === LockStatus.Empty) return null;
+
+        const secretBytes: number[] = Array.from(result.secret || []);
+        const secretHex = secretBytes.length > 0 ? bytesToHex(secretBytes) : '0x0';
+        const secretBigInt = BigInt(secretHex);
+        const secret = secretBigInt !== 0n ? secretBigInt : undefined;
+
+        return {
+            hashlock: id,
+            amount: formatAmount(Number(result.amount), 8),
+            sender: result.sender?.toString(),
+            recipient: result.recipient?.toString(),
+            token: result.token?.toString(),
+            timelock: Number(result.timelock),
+            reward: formatAmount(Number(result.reward), 8),
+            rewardTimelock: Number(result.reward_timelock),
+            rewardRecipient: result.reward_recipient?.toString(),
+            rewardToken: result.reward_token?.toString(),
+            status,
+            claimed: Number(result.status),
+            secret,
+            index: 0,
+        }
     }
 
     const refund = async (params: RefundParams) => {
@@ -110,38 +160,36 @@ export default function useAtomicAztec(params: UseAtomicAztecParams): BaseAtomic
 
         const { refundTransactionBuilder } = await import('./transactionBuilder.ts')
 
-        const refundTx = await refundTransactionBuilder({
+        return await refundTransactionBuilder({
             senderWallet: wallet,
-            ...params
+            aztecNodeUrl,
+            hashlock: params.id,
+            contractAddress: params.contractAddress,
+            sponsorAddress,
         })
-
-        return refundTx;
     }
 
     const claim = async (params: ClaimParams) => {
         if (!wallet) throw new Error("No wallet connected");
-        const { claimTransactionBuilder } = await import('./transactionBuilder.ts')
 
-        // Get the stored Aztec secret for this swap
-        const aztecSecret = params.destinationAddress && getAztecSecret(params.destinationAddress);
-        if (!aztecSecret) {
-            throw new Error("No Aztec secret found for this swap");
-        }
+        const { redeemSolverTransactionBuilder } = await import('./transactionBuilder.ts')
 
-        const claimTx = await claimTransactionBuilder({
+        return await redeemSolverTransactionBuilder({
             senderWallet: wallet,
-            ownershipKey: aztecSecret.secret,
             aztecNodeUrl,
-            ...params
+            hashlock: params.id,
+            index: params.index ?? 1,
+            secret: params.secret,
+            contractAddress: params.contractAddress,
+            tokenContractAddress: params.destinationAsset?.contractAddress,
+            sponsorAddress,
         })
-
-        return claimTx;
     }
 
     return {
         createHTLC,
-        getUserLockDetails: getDetails,
-        getSolverLockDetails: getDetails,
+        getUserLockDetails,
+        getSolverLockDetails,
         refund,
         claim
     }

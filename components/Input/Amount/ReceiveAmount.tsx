@@ -38,7 +38,7 @@ export const ReceiveAmount: FC<ReceiveAmountProps> = ({ destination_token, quote
                         className="p-0"
                         value={receiveAmountInUsd ? parseFloat(receiveAmountInUsd) : 0}
                         prefix="$"
-                        format={{ maximumFractionDigits: receiveAmountInUsd ? 2 : 0 }}
+                        format={{ minimumFractionDigits: receiveAmountInUsd ? 2 : 0, maximumFractionDigits: receiveAmountInUsd ? 2 : 0 }}
                     />
                 </span>
             </div>

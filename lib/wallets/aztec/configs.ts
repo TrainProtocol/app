@@ -46,3 +46,20 @@ export const dappMetadata = {
 
 // Chain configuration - using devnet for testnet
 export const aztecChain = "devnet";
+
+// Sponsored fee payment contract address
+const DEFAULT_SPONSOR_ADDRESS = '0x280e5686a148059543f4d0968f9a18cd4992520fcd887444b8689bf2726a1f97';
+
+export const useAztecSponsorAddress = () => {
+    if (typeof window === 'undefined') {
+        return DEFAULT_SPONSOR_ADDRESS;
+    }
+    const { networks } = useSettingsState();
+    const aztecNetwork = networks?.find(
+        n => n.caip2Id === KnownInternalNames.Networks.AztecTestnet ||
+             n.caip2Id.toLowerCase().includes('aztec')
+    );
+
+    // Use sponsor address from network config if available, otherwise default
+    return (aztecNetwork as any)?.sponsorAddress || DEFAULT_SPONSOR_ADDRESS;
+}

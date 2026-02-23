@@ -1,82 +1,81 @@
-// import { Balance } from "../../../Models/Balance";
-// import { Network } from "../../../Models/Network";
-// import formatAmount from "../../formatAmount";
-// import KnownInternalNames from "../../knownIds";
-// import { retryWithExponentialBackoff } from "../../retry";
+import { BalanceProvider } from "@/Models/BalanceProvider";
+import { TokenBalance } from "@/Models/Balance";
+import { getNativeToken } from "@/Models/Network";
+import { formatUnits } from "viem";
+import KnownInternalNames from "@/lib/knownIds";
+import { retryWithExponentialBackoff } from "@/lib/retry";
 
-// export class FuelBalanceProvider {
-//     supportsNetwork(network: Network): boolean {
-//         return KnownInternalNames.Networks.FuelMainnet.includes(network.name) || KnownInternalNames.Networks.FuelTestnet.includes(network.name)
-//     }
+export class FuelBalanceProvider extends BalanceProvider {
+    supportsNetwork: BalanceProvider['supportsNetwork'] = (network) => {
+        return network.caip2Id === KnownInternalNames.Networks.FuelMainnet || network.caip2Id === KnownInternalNames.Networks.FuelTestnet
+    }
 
-//     fetchBalance = async (address: string, network: Network) => {
-//         let balances: Balance[] = []
+    fetchBalance: BalanceProvider['fetchBalance'] = async (address, network, options) => {
+        let balances: TokenBalance[] = []
 
-//         if (!network?.tokens) return
+        if (!network?.tokens) return
 
-//         const BALANCES_QUERY = `query Balances($filter: BalanceFilterInput) {
-//             balances(filter: $filter, first: 5) {
-//               nodes {
-//                 amount
-//                 assetId
-//               }
-//             }
-//           }`;
+        const BALANCES_QUERY = `query Balances($filter: BalanceFilterInput) {
+            balances(filter: $filter, first: 5) {
+              nodes {
+                amount
+                assetId
+              }
+            }
+          }`;
 
-//         const BALANCES_ARGS = {
-//             filter: {
-//                 owner: address,
-//             },
-//         };
+        const BALANCES_ARGS = {
+            filter: {
+                owner: address,
+            },
+        };
 
-//         try {
-//             const response = await retryWithExponentialBackoff(async () => await fetch(network.rpcUrl, {
-//                 method: 'POST',
-//                 headers: {
-//                     'Content-Type': 'application/json',
-//                     Accept: 'application/json',
-//                 },
-//                 body: JSON.stringify({
-//                     query: BALANCES_QUERY,
-//                     variables: BALANCES_ARGS,
-//                 }),
-//             }));
-//             const json: {
-//                 data: {
-//                     balances: {
-//                         nodes: {
-//                             amount: string,
-//                             assetId: string
-//                         }[]
-//                     }
-//                 }
-//             } = await response.json();
+        try {
+            const response = await retryWithExponentialBackoff(async () => await fetch(network.nodes?.[0]?.url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify({
+                    query: BALANCES_QUERY,
+                    variables: BALANCES_ARGS,
+                }),
+            }), options?.retryCount ?? 3);
 
-//             for (let i = 0; i < network.tokens.length; i++) {
+            const json: {
+                data: {
+                    balances: {
+                        nodes: {
+                            amount: string,
+                            assetId: string
+                        }[]
+                    }
+                }
+            } = await response.json();
 
-//                 const token = network.tokens[i]
-//                 const balance = json.data.balances.nodes.find(b => b?.assetId === token.contract) || null
+            const nativeToken = getNativeToken(network)
 
-//                 const balanceObj: Balance = {
-//                     network: network.name,
-//                     amount: formatAmount(Number(balance?.amount || 0), token.decimals),
-//                     decimals: token.decimals,
-//                     isNativeCurrency: network.nativeTokenSymbol === token.symbol,
-//                     token: token.symbol,
-//                     request_time: new Date().toJSON()
-//                 }
+            for (let i = 0; i < network.tokens.length; i++) {
+                const token = network.tokens[i]
+                const balance = json.data.balances.nodes.find(b => b?.assetId === token.contractAddress) || null
 
-//                 balances = [
-//                     ...balances,
-//                     balanceObj,
-//                 ]
+                const balanceObj: TokenBalance = {
+                    network: network.caip2Id,
+                    amount: balance?.amount ? Number(formatUnits(BigInt(Number(balance?.amount)), token.decimals)) : undefined,
+                    decimals: token.decimals,
+                    isNativeCurrency: nativeToken?.symbol === token.symbol,
+                    token: token.symbol,
+                    request_time: new Date().toJSON()
+                }
 
-//             }
+                balances.push(balanceObj)
+            }
 
-//         } catch (e) {
-//             console.log(e)
-//         }
+        } catch (e) {
+            throw e
+        }
 
-//         return balances
-//     }
-// }
+        return balances
+    }
+}

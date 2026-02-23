@@ -2,9 +2,7 @@ import { GasProps } from "../../../Models/Balance";
 import { Network, getNativeToken } from "../../../Models/Network";
 import formatAmount from "../../formatAmount";
 import KnownInternalNames from "../../knownIds";
-import { Provider } from "./types";
-
-export class SolanaGasProvider implements Provider {
+export class SolanaGasProvider {
     supportsNetwork(network: Network): boolean {
         return KnownInternalNames.Networks.SolanaMainnet.includes(network.caip2Id)
     }

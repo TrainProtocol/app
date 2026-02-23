@@ -4,20 +4,20 @@ import { BalanceProvider } from "@/Models/BalanceProvider";
 import { Network } from "@/Models/Network";
 import { classifyNodeError } from "./nodeErrorClassifier";
 import { extractErrorDetails } from "./errorUtils";
-// import {
-//     BitcoinBalanceProvider,
-//     EVMBalanceProvider,
-//     FuelBalanceProvider,
-//     LoopringBalanceProvider,
-//     ParadexBalanceProvider,
-//     QueryBalanceProvider,
-//     SolanaBalanceProvider,
-//     StarknetBalanceProvider,
-//     TonBalanceProvider,
-//     TronBalanceProvider,
-//     ZkSyncBalanceProvider,
-//     HyperliquidBalanceProvider
-// } from "./providers";
+import {
+    EVMBalanceProvider,
+    FuelBalanceProvider,
+    SolanaBalanceProvider
+    //BitcoinBalanceProvider,
+    //LoopringBalanceProvider,
+    //ParadexBalanceProvider,
+    //QueryBalanceProvider,
+    //StarknetBalanceProvider,
+    //TonBalanceProvider,
+    //TronBalanceProvider,
+    //ZkSyncBalanceProvider,
+    //HyperliquidBalanceProvider
+} from "./providers";
 
 function formatErrorBalances(errorBalances: TokenBalance[]) {
     return errorBalances.map(b => ({
@@ -32,7 +32,7 @@ function formatErrorBalances(errorBalances: TokenBalance[]) {
         // Include first 500 chars of stack trace for debugging
         error_stack: b.error?.stack?.substring(0, 500),
         // Include response data if available (truncated for size)
-        response_data: b.error?.responseData 
+        response_data: b.error?.responseData
             ? JSON.stringify(b.error.responseData).substring(0, 1000)
             : undefined
     }));
@@ -43,10 +43,10 @@ export class BalanceResolver {
     private providers: BalanceProvider[] = [
         // new QueryBalanceProvider(),
         // new StarknetBalanceProvider(),
-        // new EVMBalanceProvider(),
-        // new FuelBalanceProvider(),
+        new EVMBalanceProvider(),
+        new FuelBalanceProvider(),
         // new LoopringBalanceProvider(),
-        // new SolanaBalanceProvider(),
+        new SolanaBalanceProvider(),
         // new TonBalanceProvider(),
         // new ZkSyncBalanceProvider(),
         // new TronBalanceProvider(),

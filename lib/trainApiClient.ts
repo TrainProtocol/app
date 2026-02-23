@@ -18,6 +18,11 @@ export default class TrainApiClient {
         return (response.data ?? []).map(mapStationNetwork);
     }
 
+    async GetPricesAsync(): Promise<Record<string, number>> {
+        const response = await this.UnauthenticatedRequest<{ data: Record<string, number> }>("GET", `/prices`);
+        return response.data ?? {};
+    }
+
     async GetSwapsAsync(addresses: string[], page?: number): Promise<ApiResponse<HTLCFromApi[]>> {
         const addressesQuery = addresses.map(a => `addresses=${a}`).join('&');
         return await this.UnauthenticatedRequest<ApiResponse<HTLCFromApi[]>>("GET", `/swaps?${addressesQuery}&page=${page ? page : 1}`);

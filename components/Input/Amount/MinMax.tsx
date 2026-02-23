@@ -24,16 +24,16 @@ const MinMax = (props: MinMaxProps) => {
     const { fromCurrency, from, limitsMinAmount, limitsMaxAmount, onActionHover } = props;
 
     const selectedSourceAccount = useSelectedAccount("from", from?.caip2Id);
-    const { gas } = useSWRGas(selectedSourceAccount?.address, from, fromCurrency)
+    const { gasData } = useSWRGas(selectedSourceAccount?.address, from, fromCurrency)
     const { balances, mutate: mutateBalances } = useBalance(selectedSourceAccount?.address, from)
 
     const walletBalance = useMemo(() => {
         return selectedSourceAccount?.address ? balances?.find(b => b?.network === from?.caip2Id && b?.token === fromCurrency?.symbol) : undefined
     }, [selectedSourceAccount?.address, balances, from?.caip2Id, fromCurrency?.symbol])
 
-    const gasAmount = gas || 0;
+    const gasAmount = gasData?.gas || 0;
 
-    const native_currency = getNativeToken(from)
+    const native_currency = gasData?.token || getNativeToken(from)
 
     const shouldPayGasWithTheToken = (native_currency?.symbol === fromCurrency?.symbol) || !native_currency
 
