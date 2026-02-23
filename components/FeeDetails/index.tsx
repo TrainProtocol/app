@@ -67,9 +67,9 @@ export const DetailsButton: FC<QuoteComponentProps> = ({ quote, isQuoteLoading, 
     const { wallets } = useWallet(values.from, 'withdrawal')
     const wallet = wallets?.[0]
 
-    const { gas } = useSWRGas(wallet?.address, values.from, values.fromCurrency)
-    const gasTokenPriceInUsd = resolveTokenUsdPrice(values.fromCurrency)
-    const gasFeeInUsd = gas && gasTokenPriceInUsd ? gas * gasTokenPriceInUsd : null
+    const { gasData } = useSWRGas(wallet?.address, values.from, values.fromCurrency)
+    const gasTokenPriceInUsd = resolveTokenUsdPrice(gasData?.token)
+    const gasFeeInUsd = gasData && gasTokenPriceInUsd ? gasData.gas * gasTokenPriceInUsd : null
 
     // Fee display in collapsed view
     const fromCurrency = values.fromCurrency

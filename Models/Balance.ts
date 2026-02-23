@@ -9,7 +9,6 @@ export type GasProps = {
     recipientAddress?: string,
     wallet?: Wallet,
     amount?: number,
-    contractMethod?: 'commit' | 'addLock',
 }
 
 export type TokenBalanceError = {

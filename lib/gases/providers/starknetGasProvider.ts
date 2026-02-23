@@ -4,9 +4,7 @@ import formatAmount from "../../formatAmount";
 import KnownInternalNames from "../../knownIds";
 import { ApiResponse } from "../../../Models/ApiResponse";
 import { useRouter } from "next/router";
-import { Provider } from "./types";
-
-export class StarknetGasProvider implements Provider {
+export class StarknetGasProvider {
     supportsNetwork(network: Network): boolean {
         return (KnownInternalNames.Networks.StarkNetMainnet.includes(network.caip2Id) || KnownInternalNames.Networks.StarkNetGoerli.includes(network.caip2Id) || KnownInternalNames.Networks.StarkNetSepolia.includes(network.caip2Id))
     }

@@ -1,6 +1,5 @@
 import { FC, useMemo } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../shadcn/tooltip'
-import AverageCompletionTime from '../../Common/AverageCompletionTime'
 import { RateElement } from '../Rate'
 import { SwapQuote } from '@/lib/trainApiClient'
 import { SwapFormValues } from '../../DTOs/SwapFormValues'
@@ -48,10 +47,11 @@ export const GasFee = ({ values, quote }: { values: SwapFormValues, quote: SwapQ
     const { wallets } = useWallet(values.from, 'withdrawal')
     const wallet = wallets?.[0]
 
-    const { gas, isGasLoading } = useSWRGas(wallet?.address, values.from, values.fromCurrency)
-    const gasTokenPriceInUsd = resolveTokenUsdPrice(values.fromCurrency)
-    const gasFeeInUsd = gas && gasTokenPriceInUsd ? gas * gasTokenPriceInUsd : null
+    const { gasData, isGasLoading } = useSWRGas(wallet?.address, values.from, values.fromCurrency)
+    const gasTokenPriceInUsd = resolveTokenUsdPrice(gasData?.token)
+    const gasFeeInUsd = gasData && gasTokenPriceInUsd ? gasData.gas * gasTokenPriceInUsd : null
     const displayGasFeeInUsd = gasFeeInUsd != null ? (gasFeeInUsd < 0.01 ? '<$0.01' : `$${gasFeeInUsd.toFixed(2)}`) : null
+    const truncatedGas = gasData?.gas ? truncateDecimals(gasData.gas, Math.min(gasData.token?.decimals, 8)) : null
 
     if (!gasFeeInUsd) return null
 
@@ -61,15 +61,15 @@ export const GasFee = ({ values, quote }: { values: SwapFormValues, quote: SwapQ
         ) : <div>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    {gas !== undefined && (
+                    {gasData !== undefined && (
                         <span className="text-sm ml-1 font-small">
                             {displayGasFeeInUsd}
                         </span>
                     )}
                 </TooltipTrigger>
-                <TooltipContent className="bg-secondary-300! border-secondary-300! text-primary-text!">
-                    <span>{gas || '-'} </span>
-                    <span>{gas ? values.fromCurrency?.symbol : ''}</span>
+                <TooltipContent className="bg-secondary-400! border-secondary-400! text-primary-text!">
+                    <span>{truncatedGas || '-'} </span>
+                    <span>{gasData ? gasData.token.symbol : ''}</span>
                 </TooltipContent>
             </Tooltip>
         </div>}
@@ -114,7 +114,7 @@ const Fees = ({ quote, values }: { quote: SwapQuote | undefined, values: SwapFor
                     </span>
                 )}
             </TooltipTrigger>
-            <TooltipContent className="bg-secondary-300! border-secondary-300! text-primary-text!">
+            <TooltipContent className="bg-secondary-400! border-secondary-400! text-primary-text!">
                 <span>{displayFee || '-'} </span>
                 <span>{displayFee && displayFee !== 'Free' ? currencyName : ''}</span>
             </TooltipContent>
