@@ -7,12 +7,7 @@ import { getExplorerUrl } from '@/lib/address'
 import shortenString from '@/components/utils/ShortenString'
 import NetworkSettings from '@/lib/NetworkSettings'
 import CopyButton from '@/components/buttons/copyButton'
-
-const CheckIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 6 9 17l-5-5" />
-    </svg>
-)
+import StatusIcons from './StatusIcons'
 
 type Props = {
     swap: SwapData
@@ -54,19 +49,7 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
                 {/* Status */}
                 <div className="flex justify-between items-center">
                     <p className="text-secondary-text">Status</p>
-                    {swap.status === HTLCStatus.RedeemCompleted ? (
-                        <span className="inline-flex items-center gap-1 font-bold rounded-md px-1.5 py-0.5 text-sm bg-success-background text-success-foreground">
-                            <CheckIcon />
-                            Completed
-                        </span>
-                    ) : swap.status === HTLCStatus.Refunded ? (
-                        <span className="inline-flex items-center gap-1 font-bold rounded-md px-1.5 py-0.5 text-sm bg-success-background text-success-foreground">
-                            <CheckIcon />
-                            Refund Completed
-                        </span>
-                    ) : (
-                        <span className="text-primary-text-tertiary">—</span>
-                    )}
+                    <StatusIcons status={swap.status} />
                 </div>
             </div>
 

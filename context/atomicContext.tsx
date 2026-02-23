@@ -171,41 +171,6 @@ export function AtomicProvider({ children }) {
         }
     }, [destinationRedeemTx, activeHashlock])
 
-    // Fetch solver redeem tx hash directly from chain events as a reliable fallback
-    useEffect(() => {
-        if (
-            !hashlock ||
-            !destination_network ||
-            !destAtomicContract ||
-            solverLockDetails?.status !== LockStatus.Redeemed ||
-            destTxFromChain
-        ) return
-
-        const nodeUrl = destination_network.nodes?.[0]?.url
-        if (!nodeUrl) return
-
-        const chain = resolveChain(destination_network, nodeUrl) as Chain
-        const client = createPublicClient({ transport: http(nodeUrl), chain })
-
-        client.getLogs({
-            address: destAtomicContract as `0x${string}`,
-            event: {
-                type: 'event',
-                name: 'SolverRedeemed',
-                inputs: [
-                    { indexed: true, name: 'hashlock', type: 'bytes32' },
-                    { indexed: true, name: 'index', type: 'uint256' },
-                    { indexed: false, name: 'redeemer', type: 'address' },
-                    { indexed: false, name: 'secret', type: 'uint256' },
-                ],
-            } as const,
-            args: { hashlock: hashlock as `0x${string}` },
-            fromBlock: 0n,
-        }).then(logs => {
-            if (logs[0]) setDestTxFromChain(logs[0].transactionHash)
-        }).catch(console.error)
-    }, [solverLockDetails?.status, hashlock, destination_network?.caip2Id, destAtomicContract, destTxFromChain])
-
     const { provider } = useWallet(source_network, 'autofill')
 
     const { details: userLockPollData } = useUserLockPolling({

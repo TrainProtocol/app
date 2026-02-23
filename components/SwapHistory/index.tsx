@@ -1,4 +1,4 @@
-import { FC, useMemo, useState } from 'react'
+import { FC, useEffect, useMemo, useState } from 'react'
 import { ChevronUp } from 'lucide-react'
 import { useSwapStore } from '@/stores/swapStore'
 import { useSettingsState } from '@/context/settings'
@@ -6,9 +6,13 @@ import { HTLCStatus } from '@/Models/HTLCStatus'
 import HistorySummaryCard from './HistorySummaryCard'
 import SwapDetailsPanel from './SwapDetailsPanel'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/shadcn/accordion'
+import TrainApiClient, { HTLCTransaction } from '@/lib/trainApiClient'
+
+const apiClient = new TrainApiClient()
 
 const SwapHistory: FC = () => {
     const swaps = useSwapStore(s => s.swaps)
+    const updateSwap = useSwapStore(s => s.updateSwap)
     const { networks } = useSettingsState()
     const [expanded, setExpanded] = useState<string | undefined>(undefined)
 
@@ -19,6 +23,16 @@ const SwapHistory: FC = () => {
             )
             .reverse()
     }, [swaps])
+
+    useEffect(() => {
+        terminalSwaps.forEach(([hashlock, swap]) => {
+            if (swap.status !== HTLCStatus.RedeemCompleted || swap.destTxId || !swap.solver) return
+            apiClient.GetOrder(swap.solver, hashlock).then(res => {
+                const redeemTx = res?.data?.order?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem)?.hash
+                if (redeemTx) updateSwap(hashlock, { destTxId: redeemTx })
+            }).catch(() => {})
+        })
+    }, [])
 
     if (terminalSwaps.length === 0) {
         return <EmptyState />
@@ -43,9 +57,9 @@ const SwapHistory: FC = () => {
                     <AccordionItem
                         key={hashlock}
                         value={hashlock}
-                        className={`border-none bg-secondary-500 rounded-3xl transition-shadow ${expanded === hashlock ? 'shadow-accordion-open' : ''}`}
+                        className="border-none bg-secondary-500 rounded-3xl"
                     >
-                        <AccordionTrigger className="rounded-3xl w-full">
+                        <AccordionTrigger className={`rounded-3xl w-full transition-shadow ${expanded === hashlock ? 'shadow-accordion-open' : ''}`}>
                             <HistorySummaryCard
                                 swap={swap}
                                 sourceNetwork={sourceNetwork}
