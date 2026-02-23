@@ -13,8 +13,6 @@ import useSolverLockPolling from '@/hooks/htlc/useSolverLockPolling';
 import useWallet from '@/hooks/useWallet';
 import useOrderPolling from '../hooks/useOrderPolling';
 import { HTLCStatus } from '@/Models/HTLCStatus';
-import { createPublicClient, http, Chain } from 'viem';
-import resolveChain from '@/lib/resolveChain';
 
 const AtomicStateContext = createContext<DataContextType | null>(null);
 
@@ -160,10 +158,10 @@ export function AtomicProvider({ children }) {
     const isTerminal = htlcStatus === HTLCStatus.RedeemCompleted || htlcStatus === HTLCStatus.Refunded
 
     useEffect(() => {
-        if (activeHashlock && isTerminal) {
+        if (activeHashlock && htlcStatus !== HTLCStatus.Initial) {
             updateSwap(activeHashlock, { status: htlcStatus })
         }
-    }, [htlcStatus, activeHashlock, isTerminal])
+    }, [htlcStatus, activeHashlock])
 
     useEffect(() => {
         if (activeHashlock && destinationRedeemTx) {

@@ -16,25 +16,27 @@ const SwapHistory: FC = () => {
     const { networks } = useSettingsState()
     const [expanded, setExpanded] = useState<string | undefined>(undefined)
 
-    const terminalSwaps = useMemo(() => {
-        return Object.entries(swaps)
-            .filter(([, swap]) =>
-                swap.status === HTLCStatus.RedeemCompleted || swap.status === HTLCStatus.Refunded
-            )
-            .reverse()
+    const isTerminal = (status: HTLCStatus | undefined) =>
+        status === HTLCStatus.RedeemCompleted || status === HTLCStatus.Refunded
+
+    const sortedSwaps = useMemo(() => {
+        const entries = Object.entries(swaps)
+        const inProgress = entries.filter(([, s]) => s.status && !isTerminal(s.status))
+        const terminal = entries.filter(([, s]) => isTerminal(s.status)).reverse()
+        return [...inProgress, ...terminal]
     }, [swaps])
 
     useEffect(() => {
-        terminalSwaps.forEach(([hashlock, swap]) => {
+        sortedSwaps.forEach(([hashlock, swap]) => {
             if (swap.status !== HTLCStatus.RedeemCompleted || swap.destTxId || !swap.solver) return
             apiClient.GetOrder(swap.solver, hashlock).then(res => {
                 const redeemTx = res?.data?.order?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem)?.hash
                 if (redeemTx) updateSwap(hashlock, { destTxId: redeemTx })
-            }).catch(() => {})
+            }).catch(() => { })
         })
     }, [])
 
-    if (terminalSwaps.length === 0) {
+    if (sortedSwaps.length === 0) {
         return <EmptyState />
     }
 
@@ -46,7 +48,7 @@ const SwapHistory: FC = () => {
             onValueChange={(v: string | undefined) => setExpanded(v)}
             className="w-full flex flex-col gap-3"
         >
-            {terminalSwaps.map(([hashlock, swap]) => {
+            {sortedSwaps.map(([hashlock, swap]) => {
                 const sourceNetwork = networks.find(
                     n => n.caip2Id.toUpperCase() === swap.source?.toUpperCase()
                 )
@@ -103,7 +105,7 @@ const EmptyState = () => (
                 No Swap History
             </h1>
             <p className="max-w-xs text-center text-primary-text-tertiary text-sm font-normal mx-auto">
-                Completed and refunded swaps will appear here.
+                Your swaps will appear here.
             </p>
         </div>
     </div>

@@ -1,6 +1,6 @@
 import { FC } from 'react'
-import { ExternalLink } from 'lucide-react'
-import { SwapData } from '@/stores/swapStore'
+import { ExternalLink, RefreshCw } from 'lucide-react'
+import { SwapData, useSwapStore } from '@/stores/swapStore'
 import { Network } from '@/Models/Network'
 import { HTLCStatus } from '@/Models/HTLCStatus'
 import { getExplorerUrl } from '@/lib/address'
@@ -8,6 +8,8 @@ import shortenString from '@/components/utils/ShortenString'
 import NetworkSettings from '@/lib/NetworkSettings'
 import CopyButton from '@/components/buttons/copyButton'
 import StatusIcons from './StatusIcons'
+import { useRouter } from 'next/router'
+import { resolvePersistantQueryParams } from '@/helpers/querryHelper'
 
 type Props = {
     swap: SwapData
@@ -16,6 +18,10 @@ type Props = {
 }
 
 const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
+    const router = useRouter()
+    const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
+    const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
+
     const srcExplorerTemplate = sourceNetwork
         ? NetworkSettings.KnownSettings[sourceNetwork.caip2Id]?.TransactionExplorerTemplate
         : undefined
@@ -25,6 +31,29 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
         : undefined
 
     const isRefunded = swap.status === HTLCStatus.Refunded
+    const isCompleted = swap.status === HTLCStatus.RedeemCompleted
+    const isInProgress = swap.status && swap.status !== HTLCStatus.RedeemCompleted && swap.status !== HTLCStatus.Refunded
+
+    const handleViewSwap = () => {
+        if (swap.hashlock) {
+            setActiveHashlock(swap.hashlock)
+            setSwapModalOpen(true)
+        }
+    }
+
+    const handleRepeatSwap = () => {
+        router.push({
+            pathname: '/',
+            query: {
+                from: swap.source,
+                to: swap.destination,
+                fromAsset: swap.source_asset,
+                toAsset: swap.destination_asset,
+                destAddress: swap.address,
+                ...resolvePersistantQueryParams(router.query),
+            },
+        })
+    }
 
     return (
         <div className="space-y-3">
@@ -102,6 +131,27 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
                     )}
                 </div>
             </div>
+
+            {isInProgress && (
+                <button
+                    type="button"
+                    onClick={handleViewSwap}
+                    className="w-full py-3 px-4 rounded-xl bg-primary-500 text-primary-buttonTextColor font-semibold text-sm hover:bg-primary-500/80 transition-colors"
+                >
+                    View Swap
+                </button>
+            )}
+
+            {isCompleted && (
+                <button
+                    type="button"
+                    onClick={handleRepeatSwap}
+                    className="w-full py-3 px-4 rounded-xl bg-secondary-700 text-primary-text font-semibold text-sm hover:bg-secondary-600 transition-colors flex items-center justify-center gap-2"
+                >
+                    <RefreshCw className="h-4 w-4" />
+                    Repeat Swap
+                </button>
+            )}
         </div>
     )
 }
