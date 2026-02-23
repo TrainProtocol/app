@@ -3,7 +3,7 @@ import { useSettingsState } from "../../../context/settings";
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider";
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
 import { useMemo } from "react";
-import { useAztecNodeUrl } from "./configs";
+import { useAztecNodeUrl, useAztecSponsorAddress } from "./configs";
 import { useAztecWalletContext } from "./AztecWalletProvider";
 import useAtomicAztec from "./useAtomicAztec";
 
@@ -15,6 +15,7 @@ export default function useAztec(): WalletProvider {
     const { networks } = useSettingsState()
 
     const aztecNodeUrl = useAztecNodeUrl();
+    const sponsorAddress = useAztecSponsorAddress();
 
     const name = 'Aztec'
     const id = 'aztec'
@@ -79,7 +80,8 @@ export default function useAztec(): WalletProvider {
     const atomicFunctions = useAtomicAztec({
         wallet,
         accountAddress,
-        aztecNodeUrl
+        aztecNodeUrl,
+        sponsorAddress,
     })
 
     // AzguardWallet is a single wallet, so we provide a single connector option

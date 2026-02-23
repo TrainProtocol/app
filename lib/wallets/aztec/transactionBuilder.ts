@@ -1,254 +1,289 @@
 import { AztecAddress } from '@aztec/aztec.js/addresses';
 import { Wallet } from '@aztec/aztec.js/wallet';
-import { TrainContract } from "./Train";
-import { ClaimParams, LockParams, CreateHTLCParams, OldLockParams, RefundParams } from "../../../Models/phtlc";
-import { generateId, getFunctionAbi, getSelector, hexToHighLowValidated, hexToU128Limbs, padTo32Bytes } from './utils';
-import { calculateEpochTimelock } from '../utils/calculateTimelock';
-import { toHex } from 'viem';
-import { TokenContract, TokenContractArtifact } from '@aztec/noir-contracts.js/Token';
-import { Fr } from '@aztec/aztec.js/fields';
-import { CallIntent } from '@aztec/aztec.js/authorization';
-import { encodeArguments, FunctionType } from '@aztec/aztec.js/abi';
 import { AztecNode, createAztecNodeClient } from '@aztec/aztec.js/node';
 import { SponsoredFeePaymentMethod } from '@aztec/aztec.js/fee';
+import { SetPublicAuthwitContractInteraction } from '@aztec/aztec.js/authorization';
+import { Fr } from '@aztec/aztec.js/fields';
+import { TrainContract } from './Train';
+import { TokenContract, TokenContractArtifact } from './Token';
+import { hexToBytes, stringToBytes } from './utils';
 
-// const TrainContractArtifact = TrainContract.artifact;
+const TX_TIMEOUT = 120000;
 
-const feeOptions = {
-    paymentMethod: new SponsoredFeePaymentMethod(AztecAddress.fromString('0x280e5686a148059543f4d0968f9a18cd4992520fcd887444b8689bf2726a1f97')),
-};
+function createFeeOptions(sponsorAddress: string) {
+    return {
+        paymentMethod: new SponsoredFeePaymentMethod(AztecAddress.fromString(sponsorAddress)),
+    };
+}
 
-export const commitTransactionBuilder = async (props: CreateHTLCParams & { senderWallet: Wallet, aztecNodeUrl: string }) => {
-    let { tokenContractAddress, srcLpAddress: lpAddress, atomicContract, sourceAsset, senderWallet, address, destinationChain, destinationAsset, amount, aztecNodeUrl } = props;
+export interface UserLockParams {
+    senderWallet: Wallet;
+    aztecNodeUrl: string;
+    atomicContract: string;
+    tokenContractAddress: string;
+    amount: bigint;
+    hashlock: string;
+    sourceChain: string;
+    destinationChain: string;
+    destinationAsset: string;
+    destinationAmount: string;
+    address: string;
+    srcLpAddress: string;
+    timelockDelta?: number;
+    rewardAmount?: bigint;
+    rewardToken?: string;
+    rewardRecipient?: string;
+    rewardTimelockDelta?: number;
+    quoteExpiry?: number;
+    solverData?: string;
+    nonce?: number;
+    sponsorAddress: string;
+}
 
-    if (!tokenContractAddress || !lpAddress || !atomicContract || !sourceAsset || !senderWallet) throw new Error("Missing required parameters");
+export const userLockTransactionBuilder = async (props: UserLockParams) => {
+    const {
+        senderWallet, aztecNodeUrl, atomicContract, tokenContractAddress,
+        amount, hashlock, sourceChain, destinationChain, destinationAsset,
+        destinationAmount, address, srcLpAddress, timelockDelta,
+        rewardAmount, rewardToken, rewardRecipient, rewardTimelockDelta,
+        quoteExpiry, solverData, nonce, sponsorAddress,
+    } = props;
 
-    const id = generateId();
-    const timelock = calculateEpochTimelock(40);
-    const parsedAmount = Math.pow(10, sourceAsset.decimals) * Number(amount);
+    const feeOptions = createFeeOptions(sponsorAddress);
 
     try {
         const accounts = await senderWallet.getAccounts();
         const senderAddress = accounts[0].item;
 
-        const contractAddress = AztecAddress.fromString(atomicContract);
+        const trainAddress = AztecAddress.fromString(atomicContract);
         const tokenAddress = AztecAddress.fromString(tokenContractAddress);
 
+        // Register Train contract
         const node: AztecNode = createAztecNodeClient(aztecNodeUrl);
-        const trainInstance = await node.getContract(contractAddress);
-
-        if (!trainInstance) {
-            throw new Error("Train contract not found");
-        }
+        const trainInstance = await node.getContract(trainAddress);
+        if (!trainInstance) throw new Error("Train contract not found");
 
         await senderWallet.registerContract(trainInstance, TrainContract.artifact);
-        const contract = await TrainContract.at(
-            contractAddress,
-            senderWallet,
+        const train = TrainContract.at(trainAddress, senderWallet);
+
+        // Register Token contract
+        const tokenInstance = await node.getContract(tokenAddress);
+        if (tokenInstance) {
+            await senderWallet.registerContract(tokenInstance, TokenContractArtifact);
+        }
+        const token = TokenContract.at(tokenAddress, senderWallet);
+
+        // Authorize public token transfer
+        const transferNonce = Fr.random();
+        const publicAction = token.methods.transfer_public_to_public(
+            senderAddress,
+            trainAddress,
+            amount,
+            transferNonce,
         );
 
-        const is_contract_initialized = await contract.methods
-            .is_contract_initialized(Fr.fromString(id))
-            .simulate({ from: senderAddress });
+        const setPublicAuthwit = await SetPublicAuthwitContractInteraction.create(
+            senderWallet,
+            senderAddress,
+            { caller: trainAddress, action: publicAction },
+            true,
+        );
+        await setPublicAuthwit.send({
+            fee: feeOptions,
+            wait: { timeout: TX_TIMEOUT },
+        });
 
-        if (is_contract_initialized) {
-            throw new Error(`Contract with ID ${id} is already initialized.`);
+        // Get current block timestamp for quote expiry
+        const latestHeader = await node.getBlockHeader('latest');
+        const now = latestHeader ? Number(latestHeader.globalVariables.timestamp) : Math.floor(Date.now() / 1000);
+        const effectiveQuoteExpiry = quoteExpiry ?? (now + 300);
+
+        // Prepare byte arrays
+        const hashlockBytes = hexToBytes(hashlock, 32);
+        const srcChainBytes = stringToBytes(sourceChain, 30);
+        const dstChainBytes = stringToBytes(destinationChain, 30);
+        const dstAddressBytes = stringToBytes(address, 90);
+        const dstTokenBytes = stringToBytes(destinationAsset, 90);
+        const rewardRecipientBytes = stringToBytes(rewardRecipient || '', 90);
+        const rewardTokenAddress = rewardToken
+            ? AztecAddress.fromString(rewardToken)
+            : AztecAddress.ZERO;
+        const recipientAddress = AztecAddress.fromString(srcLpAddress);
+
+        // Encode nonce/timestamp into userData (first 32 bytes, rest zeros)
+        const userData = new Array(256).fill(0);
+        if (nonce) {
+            const nonceHex = nonce.toString(16).padStart(64, '0');
+            for (let i = 0; i < 32; i++) {
+                userData[i] = parseInt(nonceHex.substring(i * 2, i * 2 + 2), 16);
+            }
         }
 
-        const randomness = Fr.random();
-
-        const intentCallSelector = await getSelector("transfer_to_public", TokenContractArtifact);
-        const intentCallArgs = [senderAddress, contractAddress, parsedAmount, randomness];
-        const encodedIntentCallArgs = encodeArguments(getFunctionAbi(TokenContractArtifact, "transfer_to_public"), intentCallArgs)
-
-        const intent: CallIntent = {
-            caller: contractAddress,
-            call: {
-                to: tokenAddress,
-                name: "transfer_to_public",
-                args: encodedIntentCallArgs,
-                selector: intentCallSelector,
-                hideMsgSender: true,
-                type: FunctionType.PUBLIC,
-                isStatic: false,
-                returnTypes: [],
-            },
-        };
-
-        const witness = await senderWallet.createAuthWit(senderAddress, intent);
-
-        const tx = await contract.methods
-            .commit_private_user(
-                Fr.fromString(id),
-                AztecAddress.fromString(lpAddress),
-                timelock,
-                tokenAddress,
-                parsedAmount,
-                sourceAsset.symbol,
-                destinationChain,
-                destinationAsset,
-                address,
-                randomness
-            )
-            .send({
-                from: senderAddress,
-                authWitnesses: [witness],
-                fee: feeOptions,
-            })
-            .wait({ timeout: 120000 });
-
-        if (!tx) {
-            throw new Error("Transaction failed or timed out");
+        const solverDataBytes = new Array(256).fill(0);
+        if (solverData) {
+            const sdClean = solverData.replace(/^0x/i, '');
+            for (let i = 0; i < Math.min(sdClean.length / 2, 256); i++) {
+                solverDataBytes[i] = parseInt(sdClean.substring(i * 2, i * 2 + 2), 16);
+            }
         }
 
-        return { hash: tx.txHash.toString(), hashlock: padTo32Bytes(id.toString()) };
+        // Call user_lock
+        const tx = await train.methods.user_lock(
+            hashlockBytes,
+            amount,
+            transferNonce,
+            rewardAmount ?? 0n,
+            timelockDelta ?? 40,
+            rewardTimelockDelta ?? 0,
+            effectiveQuoteExpiry,
+            senderAddress,
+            recipientAddress,
+            tokenAddress,
+            rewardTokenAddress,
+            rewardRecipientBytes,
+            srcChainBytes,
+            dstChainBytes,
+            dstAddressBytes,
+            BigInt(destinationAmount || '0'),
+            dstTokenBytes,
+            userData,
+            solverDataBytes,
+        ).send({
+            from: senderAddress,
+            fee: feeOptions,
+            wait: { timeout: TX_TIMEOUT, dontThrowOnRevert: true },
+        });
+
+        if (tx.hasExecutionReverted?.()) {
+            throw new Error(`user_lock reverted: ${tx.error ?? 'unknown error'}`);
+        }
+
+        return { hash: tx.txHash?.toString() ?? String(tx), hashlock };
 
     } catch (error) {
-        console.error("Error building commit transaction:", error);
+        console.error("Error in userLockTransactionBuilder:", error);
         throw error;
     }
+};
+
+export interface RefundParams {
+    senderWallet: Wallet;
+    aztecNodeUrl: string;
+    hashlock: string;
+    contractAddress: string;
+    sponsorAddress: string;
 }
 
-export const addLockTransactionBuilder = async (params: LockParams & OldLockParams & { senderWallet: Wallet }) => {
+export const refundTransactionBuilder = async (params: RefundParams) => {
+    const { senderWallet, aztecNodeUrl, hashlock, contractAddress, sponsorAddress } = params;
 
-    const { id, senderWallet, contractAddress, hashlock } = params;
-
-    const timelock = calculateEpochTimelock(40);
-
-    if (!senderWallet || !contractAddress || !hashlock) {
+    if (!hashlock || !contractAddress || !senderWallet) {
         throw new Error("Missing required parameters");
     }
 
-    const accounts = await senderWallet.getAccounts();
-    const senderAddress = accounts[0].item;
-
-    try {
-        const aztecAtomicContract = AztecAddress.fromString(contractAddress);
-
-        // Use standard TrainContract.at() instead of custom Contract
-        const atomicContract = await TrainContract.at(
-            aztecAtomicContract,
-            senderWallet,
-        );
-
-        const { high, low } = hexToHighLowValidated(hashlock)
-
-        // Use standard contract method .send() and .wait()
-        const addLockTx = await atomicContract.methods
-            .add_lock_private_user(BigInt(id), high, low, timelock)
-            .send({ from: senderAddress, fee: feeOptions })
-            .wait({ timeout: 120000 });
-
-        return { lockCommit: addLockTx.txHash.toString(), lockId: hashlock, timelock }
-
-    } catch (error) {
-        console.error("Error building add lock transaction:", error);
-        throw error;
-    }
-}
-
-export const refundTransactionBuilder = async (params: RefundParams & { senderWallet: Wallet }) => {
-
-    const { id, contractAddress, senderWallet } = params;
-
-    if (!id || !contractAddress || !senderWallet) {
-        throw new Error("Missing required parameters");
-    }
+    const feeOptions = createFeeOptions(sponsorAddress);
 
     try {
         const aztecAtomicContract = AztecAddress.fromString(contractAddress);
         const accounts = await senderWallet.getAccounts();
         const senderAddress = accounts[0].item;
-
-        const contract = await TrainContract.at(
-            aztecAtomicContract,
-            senderWallet,
-        );
-
-        const tx = await contract.methods
-            .refund_private(
-                Fr.fromString(id),
-            )
-            .send({
-                from: senderAddress,
-                fee: feeOptions,
-            })
-            .wait({ timeout: 120000 });
-
-        return tx.txHash.toString();
-
-    } catch (error) {
-        console.error("Error building refund transaction:", error);
-        throw error;
-    }
-}
-
-export const claimTransactionBuilder = async (params: ClaimParams & { senderWallet: Wallet, ownershipKey: string, aztecNodeUrl: string }) => {
-    const { id, contractAddress, secret, senderWallet, ownershipKey, destinationAsset, aztecNodeUrl } = params;
-
-    if (!id || !contractAddress || !secret || !senderWallet || !ownershipKey || !destinationAsset?.contractAddress) {
-        throw new Error("Missing required parameters");
-    }
-
-    const aztecTokenAddress = AztecAddress.fromString(destinationAsset.contractAddress);
-
-    const accounts = await senderWallet.getAccounts();
-    const senderAddress = accounts[0].item;
-
-    const hexSecret = toHex(secret);
-
-    const [secretHigh, secretLow] = hexToU128Limbs(hexSecret);
-    const [ownershipHigh, ownershipLow] = hexToU128Limbs(ownershipKey);
-
-    try {
-        const aztecAtomicContract = AztecAddress.fromString(contractAddress);
-
-        const tokenAddress = AztecAddress.fromString(destinationAsset.contractAddress);
 
         const node: AztecNode = createAztecNodeClient(aztecNodeUrl);
         const trainInstance = await node.getContract(aztecAtomicContract);
-        const tokenInstance = await node.getContract(tokenAddress);
-
-        if (!trainInstance) {
-            throw new Error("Train contract not found");
-        }
-
-        if (!tokenInstance) {
-            throw new Error("Token contract not found");
-        }
+        if (!trainInstance) throw new Error("Train contract not found");
 
         await senderWallet.registerContract(trainInstance, TrainContract.artifact);
-        await senderWallet.registerSender(aztecAtomicContract);
-        await senderWallet.registerContract(tokenInstance, TokenContractArtifact);
+        const contract = TrainContract.at(aztecAtomicContract, senderWallet);
 
-        const contract = await TrainContract.at(
-            aztecAtomicContract,
-            senderWallet,
-        );
-
-        await TokenContract.at(
-            aztecTokenAddress,
-            senderWallet
-        );
+        const hashlockBytes = hexToBytes(hashlock, 32);
 
         const tx = await contract.methods
-            .redeem_private(
-                Fr.fromString(id),
-                secretHigh,
-                secretLow,
-                ownershipHigh,
-                ownershipLow
-            )
+            .refund_user(hashlockBytes)
             .send({
                 from: senderAddress,
                 fee: feeOptions,
-            })
-            .wait({ timeout: 120000 });
+                wait: { timeout: TX_TIMEOUT, dontThrowOnRevert: true },
+            });
 
-        return tx.txHash.toString();
+        if (tx.hasExecutionReverted?.()) {
+            throw new Error(`refund_user reverted: ${tx.error ?? 'unknown error'}`);
+        }
+
+        return tx.txHash?.toString() ?? String(tx);
 
     } catch (error) {
-        console.error("Error building claim transaction:", error);
+        console.error("Error in refundTransactionBuilder:", error);
         throw error;
     }
+};
+
+export interface RedeemSolverParams {
+    senderWallet: Wallet;
+    aztecNodeUrl: string;
+    hashlock: string;
+    index: number;
+    secret: string | bigint;
+    contractAddress: string;
+    tokenContractAddress?: string;
+    sponsorAddress: string;
 }
+
+export const redeemSolverTransactionBuilder = async (params: RedeemSolverParams) => {
+    const { senderWallet, aztecNodeUrl, hashlock, index, secret, contractAddress, tokenContractAddress, sponsorAddress } = params;
+
+    if (!hashlock || !contractAddress || !secret || !senderWallet) {
+        throw new Error("Missing required parameters");
+    }
+
+    const feeOptions = createFeeOptions(sponsorAddress);
+
+    const accounts = await senderWallet.getAccounts();
+    const senderAddress = accounts[0].item;
+
+    // Convert secret to hex string if bigint
+    const secretHex = typeof secret === 'bigint'
+        ? '0x' + secret.toString(16).padStart(64, '0')
+        : String(secret);
+
+    try {
+        const aztecAtomicContract = AztecAddress.fromString(contractAddress);
+
+        const node: AztecNode = createAztecNodeClient(aztecNodeUrl);
+        const trainInstance = await node.getContract(aztecAtomicContract);
+        if (!trainInstance) throw new Error("Train contract not found");
+
+        await senderWallet.registerContract(trainInstance, TrainContract.artifact);
+
+        if (tokenContractAddress) {
+            const tokenAddress = AztecAddress.fromString(tokenContractAddress);
+            const tokenInstance = await node.getContract(tokenAddress);
+            if (tokenInstance) {
+                await senderWallet.registerContract(tokenInstance, TokenContractArtifact);
+            }
+            await senderWallet.registerSender(aztecAtomicContract);
+        }
+
+        const contract = TrainContract.at(aztecAtomicContract, senderWallet);
+
+        const hashlockBytes = hexToBytes(hashlock, 32);
+        const secretBytes = hexToBytes(secretHex, 32);
+
+        const tx = await contract.methods
+            .redeem_solver(hashlockBytes, BigInt(index), secretBytes)
+            .send({
+                from: senderAddress,
+                fee: feeOptions,
+                wait: { timeout: TX_TIMEOUT, dontThrowOnRevert: true },
+            });
+
+        if (tx.hasExecutionReverted?.()) {
+            throw new Error(`redeem_solver reverted: ${tx.error ?? 'unknown error'}`);
+        }
+
+        return tx.txHash?.toString() ?? String(tx);
+
+    } catch (error) {
+        console.error("Error in redeemSolverTransactionBuilder:", error);
+        throw error;
+    }
+};
