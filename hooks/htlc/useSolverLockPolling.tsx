@@ -40,7 +40,8 @@ const useSolverLockPolling = ({
                 type,
                 chainId: network.chainId,
                 id: hashlock,
-                contractAddress
+                contractAddress,
+                decimals: destinationAsset?.decimals,
             }
 
             try {

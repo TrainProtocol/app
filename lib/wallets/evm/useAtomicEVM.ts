@@ -229,7 +229,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
 
         return {
             hashlock: id,
-            amount: formatAmount(Number(firstResult.amount), 18),
+            amount: formatAmount(Number(firstResult.amount), params.decimals ?? 18),
             secret: firstResult.secret != 0n ? BigInt(firstResult.secret) : undefined,
             sender: firstResult.sender !== zeroAddress ? firstResult.sender : undefined,
             recipient: firstResult.recipient !== zeroAddress ? firstResult.recipient : undefined,
@@ -267,13 +267,13 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
 
         return {
             hashlock: id,
-            amount: formatAmount(Number(result.amount), 18),
+            amount: formatAmount(Number(result.amount), params.decimals ?? 18),
             secret: result.secret != 0n ? BigInt(result.secret) : undefined,
             sender: result.sender,
             recipient: result.recipient !== zeroAddress ? result.recipient : undefined,
             token: result.token !== zeroAddress ? result.token : undefined,
             timelock: Number(result.timelock),
-            reward: formatAmount(Number(result.reward), 18),
+            reward: formatAmount(Number(result.reward), params.decimals ?? 18),
             rewardTimelock: Number(result.rewardTimelock),
             rewardRecipient: result.rewardRecipient !== zeroAddress ? result.rewardRecipient : undefined,
             rewardToken: result.rewardToken !== zeroAddress ? result.rewardToken : undefined,

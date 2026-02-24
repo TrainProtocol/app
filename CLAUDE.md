@@ -38,7 +38,7 @@ UserLocked -> SolverLockDetected -> SecretRevealed -> RedeemCompleted
 Mapped to code enum (`HTLCStatus`):
 - `Initial` = show lock button
 - `UserLocked` = user locked on source (waiting for solver)
-- `SolverLockDetected` = solver locked on destination (show reveal secret button)
+- `SolverLockDetected` = solver locked on destination (verify lock matches quote, then show reveal secret button)
 - `SecretRevealed` = user revealed secret via API (waiting for solver claim)
 - `RedeemCompleted` = solver claimed on destination (swap done)
 - `TimelockExpired` = timelock passed without redeem (show refund button)
@@ -111,11 +111,12 @@ Each chain has a `useAtomic*` hook implementing `BaseAtomicFunctions`:
 - `lib/wallets/utils/atomicTypes.ts` - All type interfaces (BaseAtomicFunctions, AtomicEVMFunctions with getSolverLockDetails)
 - `lib/wallets/utils/atomicHelpers.ts` - `generateRandomId()`, `toHexString()`, `assertWalletConnected()`
 
-### Polling Hooks
-- `hooks/htlc/useUserLockPolling.tsx` - Polls source chain until user lock confirmed
-- `hooks/htlc/useSolverLockPolling.tsx` - Polls destination chain for solver lock via `getSolverLockDetails`
-- `hooks/htlc/useSolverRedeemPolling.tsx` - Polls solver lock for redeem status (LockStatus.Redeemed)
-- `hooks/htlc/useRefundStatusPolling.tsx` - Polls source chain for refund status
+### HTLC Hooks (`hooks/htlc/`)
+- `hooks/htlc/useUserLockPolling.tsx` - SWR poll (3s) for user lock on source chain via `getUserLockDetails`
+- `hooks/htlc/useSolverLockPolling.tsx` - SWR poll (3s) for solver lock on destination chain via `getSolverLockDetails`
+- `hooks/htlc/useSolverLockVerification.ts` - Verifies solver lock matches quote (amount, recipient, token). Blocks reveal on mismatch.
+- `hooks/htlc/useRevealSecret.ts` - Re-derives secret from on-chain `userData` timestamp, calls `RevealSecret` API, updates swap state
+- `hooks/htlc/useRecoverSwap.ts` - Recovers an in-progress swap from a tx hash via `provider.recoverSwap`, rebuilds SwapData and restores to store
 
 ### UI Components (Swap Flow - Actions)
 - `components/Swap/AtomicChat/Actions/index.tsx` - Routes swap status to action component
@@ -124,6 +125,16 @@ Each chain has a `useAtomic*` hook implementing `BaseAtomicFunctions`:
 - `components/Swap/AtomicChat/Actions/RevealSecret.tsx` - "Reveal Secret" button (re-derives secret, calls API)
 - `components/Swap/AtomicChat/Actions/WaitForSolverRedeem.tsx` - "Waiting for solver to claim" (polls redeem)
 - `components/Swap/AtomicChat/AtomicContent/Steps/Steps.tsx` - Step visualization
+
+### Solver Lock Verification (`hooks/htlc/useSolverLockVerification.ts`)
+When solver lock is detected, `useSolverLockVerification` compares on-chain lock data against expected values:
+1. **Amount**: `solverLockDetails.amount >= receiveAmount` from SwapData (0.1% tolerance)
+2. **Recipient**: `solverLockDetails.recipient` must equal user's destination `address`
+3. **Token**: `solverLockDetails.token` must match `destination_asset.contractAddress` (native token normalized)
+
+If mismatch: progress shows "Solver lock mismatch" with failed step, reveal button is hidden, user waits for timelock refund.
+If skipped (recovered swap, no quote data): yellow warning shown, manual reveal still available, auto-reveal blocked.
+Consumed by both `useSwapProgress` (progress UI) and `SolverLockDetectedAction` (gates reveal).
 
 ### statusResolver Logic (`context/atomicContext.tsx`)
 Priority order (first match wins):
@@ -162,12 +173,3 @@ Priority order (first match wins):
 - Non-EVM chains still use old patterns; EVM is the primary focus
 - Code uses legacy "commit" naming everywhere (commitId, CommitStatus, etc.) - these all refer to locks now
 - `sourceNetwork`/`destinationNetwork` params must be `caip2Id` (e.g. `"eip155:11155111"`), not human slugs
-
-## Remaining Work
-- [ ] Remove hardcoded `srcAtomicContract` - make dynamic (use network contracts from chain config)
-- [ ] End-to-end testing on testnet
-- [ ] Handle `quoteExpiry` validation in UI
-- [ ] Implement `getSolverLockDetails` for other chains when ready
-- [ ] Clean up legacy polling hooks and old ABIs
-- [ ] Rename legacy "commit" naming to "lock" across codebase
-- [ ] RPC node URLs (`nodes`) not provided by Station API — needs separate config or user-set RPC
