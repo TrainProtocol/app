@@ -2,7 +2,7 @@ import { FC, useEffect, useMemo, useState } from 'react'
 import { ChevronUp } from 'lucide-react'
 import { useSwapStore } from '@/stores/swapStore'
 import { useSettingsState } from '@/context/settings'
-import { HTLCStatus } from '@/Models/HTLCStatus'
+import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus'
 import HistorySummaryCard from './HistorySummaryCard'
 import SwapDetailsPanel from './SwapDetailsPanel'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/shadcn/accordion'
@@ -16,13 +16,15 @@ const SwapHistory: FC = () => {
     const { networks } = useSettingsState()
     const [expanded, setExpanded] = useState<string | undefined>(undefined)
 
-    const isTerminal = (status: HTLCStatus | undefined) =>
-        status === HTLCStatus.RedeemCompleted || status === HTLCStatus.Refunded
+    const networkByCaip2Id = useMemo(() =>
+        new Map(networks.map(n => [n.caip2Id.toUpperCase(), n])),
+        [networks]
+    )
 
     const sortedSwaps = useMemo(() => {
         const entries = Object.entries(swaps)
-        const inProgress = entries.filter(([, s]) => s.status && !isTerminal(s.status))
-        const terminal = entries.filter(([, s]) => isTerminal(s.status)).reverse()
+        const inProgress = entries.filter(([, s]) => s.status && !isTerminalStatus(s.status))
+        const terminal = entries.filter(([, s]) => isTerminalStatus(s.status)).reverse()
         return [...inProgress, ...terminal]
     }, [swaps])
 
@@ -32,9 +34,11 @@ const SwapHistory: FC = () => {
             apiClient.GetOrder(swap.solver, hashlock).then(res => {
                 const redeemTx = res?.data?.order?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem)?.hash
                 if (redeemTx) updateSwap(hashlock, { destTxId: redeemTx })
-            }).catch(() => { })
+            }).catch((err) => {
+                console.error(`Failed to fetch redeem tx for ${hashlock}:`, err)
+            })
         })
-    }, [])
+    }, [sortedSwaps, updateSwap])
 
     if (sortedSwaps.length === 0) {
         return <EmptyState />
@@ -49,12 +53,8 @@ const SwapHistory: FC = () => {
             className="w-full flex flex-col gap-3"
         >
             {sortedSwaps.map(([hashlock, swap]) => {
-                const sourceNetwork = networks.find(
-                    n => n.caip2Id.toUpperCase() === swap.source?.toUpperCase()
-                )
-                const destNetwork = networks.find(
-                    n => n.caip2Id.toUpperCase() === swap.destination?.toUpperCase()
-                )
+                const sourceNetwork = networkByCaip2Id.get(swap.source?.toUpperCase() ?? '')
+                const destNetwork = networkByCaip2Id.get(swap.destination?.toUpperCase() ?? '')
                 return (
                     <AccordionItem
                         key={hashlock}

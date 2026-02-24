@@ -12,7 +12,7 @@ import useUserLockPolling from '@/hooks/htlc/useUserLockPolling';
 import useSolverLockPolling from '@/hooks/htlc/useSolverLockPolling';
 import useWallet from '@/hooks/useWallet';
 import useOrderPolling from '../hooks/useOrderPolling';
-import { HTLCStatus } from '@/Models/HTLCStatus';
+import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus';
 
 const AtomicStateContext = createContext<DataContextType | null>(null);
 
@@ -88,7 +88,6 @@ export function AtomicProvider({ children }) {
     const [manualClaimTxId, setManualClaimTxId] = useState<string | undefined>(undefined);
     const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
     const [verifyingByLightClient, setVerifyingByLightClient] = useState(false)
-    const [destTxFromChain, setDestTxFromChain] = useState<string | undefined>(undefined)
 
     // Restore secretRevealed from persisted swap store on hydration
     useEffect(() => {
@@ -133,9 +132,7 @@ export function AtomicProvider({ children }) {
     const manualClaimRequired = hashlock ? htlcStates[hashlock]?.manualClaimRequired : false;
     const destinationDetailsByLightClient = hashlock ? htlcStates[hashlock]?.destinationDetailsByLightClient : undefined
 
-    const destinationRedeemTx = manualClaimTxId
-        ?? htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem)?.hash
-        ?? destTxFromChain
+    const destinationRedeemTx = manualClaimTxId ?? htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem && t.network === destination)?.hash
 
     const source_network = networks.find(n => n.caip2Id.toUpperCase() === (source as string)?.toUpperCase())
     const destination_network = networks.find(n => n.caip2Id.toUpperCase() === (destination as string)?.toUpperCase())
@@ -155,19 +152,19 @@ export function AtomicProvider({ children }) {
         statusResolver({ sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed, manualClaimRequired }),
         [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, manualClaimRequired])
 
-    const isTerminal = htlcStatus === HTLCStatus.RedeemCompleted || htlcStatus === HTLCStatus.Refunded
+    const isTerminal = isTerminalStatus(htlcStatus)
 
     useEffect(() => {
         if (activeHashlock && htlcStatus !== HTLCStatus.Initial) {
             updateSwap(activeHashlock, { status: htlcStatus })
         }
-    }, [htlcStatus, activeHashlock])
+    }, [htlcStatus, activeHashlock, updateSwap])
 
     useEffect(() => {
         if (activeHashlock && destinationRedeemTx) {
             updateSwap(activeHashlock, { destTxId: destinationRedeemTx })
         }
-    }, [destinationRedeemTx, activeHashlock])
+    }, [destinationRedeemTx, activeHashlock, updateSwap])
 
     const { provider } = useWallet(source_network, 'autofill')
 

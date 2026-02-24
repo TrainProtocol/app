@@ -2,7 +2,7 @@ import { FC } from 'react'
 import { ExternalLink, RefreshCw } from 'lucide-react'
 import { SwapData, useSwapStore } from '@/stores/swapStore'
 import { Network } from '@/Models/Network'
-import { HTLCStatus } from '@/Models/HTLCStatus'
+import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus'
 import { getExplorerUrl } from '@/lib/address'
 import shortenString from '@/components/utils/ShortenString'
 import NetworkSettings from '@/lib/NetworkSettings'
@@ -32,7 +32,7 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
 
     const isRefunded = swap.status === HTLCStatus.Refunded
     const isCompleted = swap.status === HTLCStatus.RedeemCompleted
-    const isInProgress = swap.status && swap.status !== HTLCStatus.RedeemCompleted && swap.status !== HTLCStatus.Refunded
+    const isInProgress = swap.status && !isTerminalStatus(swap.status)
 
     const handleViewSwap = () => {
         if (swap.hashlock) {
