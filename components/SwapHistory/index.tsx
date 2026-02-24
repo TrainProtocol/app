@@ -1,12 +1,66 @@
 import { FC, useEffect, useMemo, useState } from 'react'
 import { ChevronUp } from 'lucide-react'
-import { useSwapStore } from '@/stores/swapStore'
+import { SwapData, useSwapStore } from '@/stores/swapStore'
 import { useSettingsState } from '@/context/settings'
 import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus'
+import { Network } from '@/Models/Network'
 import HistorySummaryCard from './HistorySummaryCard'
 import SwapDetailsPanel from './SwapDetailsPanel'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/shadcn/accordion'
 import TrainApiClient, { HTLCTransaction } from '@/lib/trainApiClient'
+import { getDaysAgoLabel } from '@/components/utils/dateDifference'
+
+type DateGroup = {
+    dateKey: string
+    label: string
+    items: [string, SwapData][]
+}
+
+function buildDateGroups(allEntries: [string, SwapData][]): DateGroup[] {
+    const todayKey = new Date().toLocaleDateString()
+
+    const sorted = [...allEntries].sort(([, a], [, b]) => {
+        const aIsTerminal = isTerminalStatus(a.status)
+        const bIsTerminal = isTerminalStatus(b.status)
+
+        // Date bucket (midnight ms): in-progress without date → today, terminal without date → epoch
+        const aBucket = a.createdAt
+            ? new Date(a.createdAt).setHours(0, 0, 0, 0)
+            : aIsTerminal ? 0 : new Date().setHours(0, 0, 0, 0)
+        const bBucket = b.createdAt
+            ? new Date(b.createdAt).setHours(0, 0, 0, 0)
+            : bIsTerminal ? 0 : new Date().setHours(0, 0, 0, 0)
+
+        // Newest date first
+        if (bBucket !== aBucket) return bBucket - aBucket
+
+        // Same date: in-progress before terminal
+        if (aIsTerminal !== bIsTerminal) return aIsTerminal ? 1 : -1
+
+        // Same status + same date: newest time first
+        return (b.createdAt ?? 0) - (a.createdAt ?? 0)
+    })
+
+    const groups: DateGroup[] = []
+    for (const entry of sorted) {
+        const [, swap] = entry
+        const isTerminal = isTerminalStatus(swap.status)
+        const dateKey = swap.createdAt
+            ? new Date(swap.createdAt).toLocaleDateString()
+            : isTerminal ? '__older__' : todayKey
+        const label = swap.createdAt
+            ? getDaysAgoLabel(swap.createdAt)
+            : isTerminal ? 'Older' : getDaysAgoLabel(Date.now())
+
+        const last = groups[groups.length - 1]
+        if (last && last.dateKey === dateKey) {
+            last.items.push(entry)
+        } else {
+            groups.push({ dateKey, label, items: [entry] })
+        }
+    }
+    return groups
+}
 
 const apiClient = new TrainApiClient()
 
@@ -21,15 +75,15 @@ const SwapHistory: FC = () => {
         [networks]
     )
 
-    const sortedSwaps = useMemo(() => {
-        const entries = Object.entries(swaps)
-        const inProgress = entries.filter(([, s]) => s.status && !isTerminalStatus(s.status))
-        const terminal = entries.filter(([, s]) => isTerminalStatus(s.status)).reverse()
-        return [...inProgress, ...terminal]
-    }, [swaps])
+    const entries = useMemo(() => Object.entries(swaps), [swaps])
+
+    const dateGroups = useMemo(
+        () => buildDateGroups(entries.filter(([, s]) => !!s.status)),
+        [entries]
+    )
 
     useEffect(() => {
-        sortedSwaps.forEach(([hashlock, swap]) => {
+        entries.forEach(([hashlock, swap]) => {
             if (swap.status !== HTLCStatus.RedeemCompleted || swap.destTxId || !swap.solver) return
             apiClient.GetOrder(swap.solver, hashlock).then(res => {
                 const redeemTx = res?.data?.order?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem)?.hash
@@ -38,9 +92,9 @@ const SwapHistory: FC = () => {
                 console.error(`Failed to fetch redeem tx for ${hashlock}:`, err)
             })
         })
-    }, [sortedSwaps, updateSwap])
+    }, [entries, updateSwap])
 
-    if (sortedSwaps.length === 0) {
+    if (entries.length === 0) {
         return <EmptyState />
     }
 
@@ -52,47 +106,74 @@ const SwapHistory: FC = () => {
             onValueChange={(v: string | undefined) => setExpanded(v)}
             className="w-full flex flex-col gap-3"
         >
-            {sortedSwaps.map(([hashlock, swap]) => {
-                const sourceNetwork = networkByCaip2Id.get(swap.source?.toUpperCase() ?? '')
-                const destNetwork = networkByCaip2Id.get(swap.destination?.toUpperCase() ?? '')
-                return (
-                    <AccordionItem
-                        key={hashlock}
-                        value={hashlock}
-                        className="border-none bg-secondary-500 rounded-3xl"
-                    >
-                        <AccordionTrigger className={`rounded-3xl w-full transition-shadow ${expanded === hashlock ? 'shadow-accordion-open' : ''}`}>
-                            <HistorySummaryCard
+            {dateGroups.map(({ dateKey, label, items }) => (
+                <div key={dateKey} className="flex flex-col gap-3">
+                    <p className="text-sm text-secondary-text font-normal pl-2 mt-3 first:mt-0">
+                        {label}
+                    </p>
+                    {items.map(([hashlock, swap]) => {
+                        const sourceNetwork = networkByCaip2Id.get(swap.source?.toUpperCase() ?? '')
+                        const destNetwork = networkByCaip2Id.get(swap.destination?.toUpperCase() ?? '')
+                        return (
+                            <SwapAccordionItem
+                                key={hashlock}
+                                hashlock={hashlock}
                                 swap={swap}
                                 sourceNetwork={sourceNetwork}
                                 destNetwork={destNetwork}
+                                expanded={expanded}
+                                setExpanded={setExpanded}
                             />
-                        </AccordionTrigger>
-                        <AccordionContent className="-mt-3">
-                            <div className="flex items-center justify-center px-4 pt-3 pb-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setExpanded(undefined)}
-                                    className="inline-flex items-center gap-1 leading-5 text-sm text-secondary-text hover:text-primary-text transition-colors"
-                                >
-                                    <span>Hide details</span>
-                                    <ChevronUp className="w-4 h-4" />
-                                </button>
-                            </div>
-                            <div className="px-4 pb-4">
-                                <SwapDetailsPanel
-                                    swap={swap}
-                                    sourceNetwork={sourceNetwork}
-                                    destNetwork={destNetwork}
-                                />
-                            </div>
-                        </AccordionContent>
-                    </AccordionItem>
-                )
-            })}
+                        )
+                    })}
+                </div>
+            ))}
         </Accordion>
     )
 }
+
+type SwapAccordionItemProps = {
+    hashlock: string
+    swap: SwapData
+    sourceNetwork: Network | undefined
+    destNetwork: Network | undefined
+    expanded: string | undefined
+    setExpanded: (v: string | undefined) => void
+}
+
+const SwapAccordionItem: FC<SwapAccordionItemProps> = ({ hashlock, swap, sourceNetwork, destNetwork, expanded, setExpanded }) => (
+    <AccordionItem
+        value={hashlock}
+        className="border-none bg-secondary-500 rounded-3xl"
+    >
+        <AccordionTrigger className={`rounded-3xl w-full transition-shadow ${expanded === hashlock ? 'shadow-accordion-open' : ''}`}>
+            <HistorySummaryCard
+                swap={swap}
+                sourceNetwork={sourceNetwork}
+                destNetwork={destNetwork}
+            />
+        </AccordionTrigger>
+        <AccordionContent className="-mt-3">
+            <div className="flex items-center justify-center px-4 pt-3 pb-2">
+                <button
+                    type="button"
+                    onClick={() => setExpanded(undefined)}
+                    className="inline-flex items-center gap-1 leading-5 text-sm text-secondary-text hover:text-primary-text transition-colors"
+                >
+                    <span>Hide details</span>
+                    <ChevronUp className="w-4 h-4" />
+                </button>
+            </div>
+            <div className="px-4 pb-4">
+                <SwapDetailsPanel
+                    swap={swap}
+                    sourceNetwork={sourceNetwork}
+                    destNetwork={destNetwork}
+                />
+            </div>
+        </AccordionContent>
+    </AccordionItem>
+)
 
 const EmptyState = () => (
     <div className="w-full flex flex-col justify-center items-center py-10 gap-6">

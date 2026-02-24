@@ -1,5 +1,5 @@
 import { Config, useAccount } from "wagmi"
-import { writeContract, simulateContract, readContract, waitForTransactionReceipt, getTransactionReceipt, getTransaction } from '@wagmi/core'
+import { writeContract, simulateContract, readContract, waitForTransactionReceipt, getTransactionReceipt, getTransaction, getBlock } from '@wagmi/core'
 import { ethers } from "ethers"
 import { createPublicClient, http, Chain, zeroAddress, toHex, parseEventLogs } from "viem"
 import { Network } from "../../../Models/Network"
@@ -160,6 +160,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
         const lockExists = result.sender !== zeroAddress
 
         let userData: string | undefined
+        let blockTimestamp: number | undefined
         if (lockExists && txId) {
             try {
                 const receipt = await getTransactionReceipt(config, {
@@ -176,6 +177,11 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
                     const decoded = BigInt(lockEvent.args.userData)
                     userData = decoded.toString()
                 }
+                const block = await getBlock(config, {
+                    blockNumber: receipt.blockNumber,
+                    chainId: Number(chainId),
+                })
+                blockTimestamp = Number(block.timestamp)
             } catch (e) {
                 console.error('Error fetching userData from tx receipt:', e)
             }
@@ -192,6 +198,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
             status: lockExists ? Number(result.status) as LockStatus : undefined,
             claimed: Number(result.status),
             userData,
+            blockTimestamp,
         }
     }
 

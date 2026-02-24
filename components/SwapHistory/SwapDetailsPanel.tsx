@@ -10,6 +10,7 @@ import CopyButton from '@/components/buttons/copyButton'
 import StatusIcons from './StatusIcons'
 import { useRouter } from 'next/router'
 import { resolvePersistantQueryParams } from '@/helpers/querryHelper'
+import { getDateDifferenceString } from '@/components/utils/dateDifference'
 
 type Props = {
     swap: SwapData
@@ -74,6 +75,21 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
                         <span className="text-primary-text-tertiary">—</span>
                     )}
                 </div>
+
+                {/* Date & Time */}
+                {swap.createdAt && (
+                    <div className="flex justify-between items-baseline gap-2">
+                        <p className="text-secondary-text shrink-0">Date & Time</p>
+                        <span className="text-primary-text text-right text-xs">
+                            {new Date(swap.createdAt).toLocaleString()}
+                            {getDateDifferenceString(swap.createdAt) && (
+                                <span className="text-primary-text-tertiary ml-1">
+                                    {getDateDifferenceString(swap.createdAt)}
+                                </span>
+                            )}
+                        </span>
+                    </div>
+                )}
 
                 {/* Status */}
                 <div className="flex justify-between items-center">

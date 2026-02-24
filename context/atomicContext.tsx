@@ -194,6 +194,12 @@ export function AtomicProvider({ children }) {
     }, [userLockPollData, hashlock])
 
     useEffect(() => {
+        if (userLockPollData?.blockTimestamp && hashlock) {
+            updateSwap(hashlock, { createdAt: userLockPollData.blockTimestamp * 1000 })
+        }
+    }, [userLockPollData?.blockTimestamp, hashlock])
+
+    useEffect(() => {
         if (solverLockPollData && hashlock) {
             updateHTLCState(hashlock, { solverLockDetails: solverLockPollData })
         }

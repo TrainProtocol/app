@@ -19,6 +19,7 @@ export interface SwapData {
     destTxId?: string
     secretRevealed?: boolean
     status?: HTLCStatus
+    createdAt?: number
 }
 
 interface SwapStoreState {
@@ -64,6 +65,7 @@ export const useSwapStore = create<SwapStoreState>()(
                             ...tempSwap,
                             hashlock,
                             txId,
+                            createdAt: Date.now(),
                         },
                     },
                 })
