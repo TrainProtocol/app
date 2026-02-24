@@ -59,7 +59,6 @@ export function AtomicProvider({ children }) {
     const { networks } = useSettingsState()
 
     const activeHashlock = useSwapStore(s => s.activeHashlock)
-    const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
     const updateSwap = useSwapStore(s => s.updateSwap)
 
     const tempSwap = useSwapStore(s => s.tempSwap)
