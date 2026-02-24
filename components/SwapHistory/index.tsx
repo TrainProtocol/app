@@ -18,6 +18,7 @@ type DateGroup = {
 
 function buildDateGroups(allEntries: [string, SwapData][]): DateGroup[] {
     const todayKey = new Date().toLocaleDateString()
+    const todayMidnight = new Date().setHours(0, 0, 0, 0)
 
     const sorted = [...allEntries].sort(([, a], [, b]) => {
         const aIsTerminal = isTerminalStatus(a.status)
@@ -26,10 +27,10 @@ function buildDateGroups(allEntries: [string, SwapData][]): DateGroup[] {
         // Date bucket (midnight ms): in-progress without date → today, terminal without date → epoch
         const aBucket = a.createdAt
             ? new Date(a.createdAt).setHours(0, 0, 0, 0)
-            : aIsTerminal ? 0 : new Date().setHours(0, 0, 0, 0)
+            : aIsTerminal ? 0 : todayMidnight
         const bBucket = b.createdAt
             ? new Date(b.createdAt).setHours(0, 0, 0, 0)
-            : bIsTerminal ? 0 : new Date().setHours(0, 0, 0, 0)
+            : bIsTerminal ? 0 : todayMidnight
 
         // Newest date first
         if (bBucket !== aBucket) return bBucket - aBucket
@@ -94,7 +95,7 @@ const SwapHistory: FC = () => {
         })
     }, [entries, updateSwap])
 
-    if (entries.length === 0) {
+    if (dateGroups.length === 0) {
         return <EmptyState />
     }
 

@@ -5,7 +5,7 @@ import { LockDetails, LockStatus } from '../Models/phtlc/PHTLC';
 import { Network, Token } from '@/Models/Network';
 import { HTLCFromApi, HTLCTransaction } from '@/lib/trainApiClient';
 import LightClient from '@/lib/lightClient';
-import { useSwapStore } from '@/stores/swapStore';
+import { SwapData, useSwapStore } from '@/stores/swapStore';
 import { useShallow } from 'zustand/react/shallow';
 import { resolvePersistantQueryParams } from '@/helpers/querryHelper';
 import useUserLockPolling from '@/hooks/htlc/useUserLockPolling';
@@ -156,28 +156,32 @@ export function AtomicProvider({ children }) {
 
     useEffect(() => {
         if (!activeHashlock) return
-        const updates: Record<string, any> = {}
-        if (htlcStatus !== HTLCStatus.Initial) updates.status = htlcStatus
-        if (destinationRedeemTx) updates.destTxId = destinationRedeemTx
+        const currentSwapData = useSwapStore.getState().swaps[activeHashlock]
+        if (!currentSwapData) return
+
+        const updates: Partial<SwapData> = {}
+        if (htlcStatus !== HTLCStatus.Initial && currentSwapData.status !== htlcStatus) updates.status = htlcStatus
+        if (destinationRedeemTx && currentSwapData.destTxId !== destinationRedeemTx) updates.destTxId = destinationRedeemTx
         if (Object.keys(updates).length > 0) updateSwap(activeHashlock, updates)
     }, [htlcStatus, destinationRedeemTx, activeHashlock, updateSwap])
 
-    const { provider } = useWallet(source_network, 'autofill')
+    const { provider: sourceProvider } = useWallet(source_network, 'withdrawal')
+    const { provider: destinationProvider } = useWallet(destination_network, 'autofill')
 
     const handleUserLockSuccess = useCallback((details: LockDetails) => {
         if (hashlock) {
             updateHTLCState(hashlock, { sourceDetails: details })
-            if (details.blockTimestamp) {
+            if (details.blockTimestamp && !useSwapStore.getState().swaps[hashlock]?.createdAt) {
                 updateSwap(hashlock, { createdAt: details.blockTimestamp })
             }
         }
-    }, [hashlock, updateSwap])
+    }, [hashlock, updateSwap, updateHTLCState])
 
     const handleSolverLockSuccess = useCallback((details: LockDetails) => {
         if (hashlock) {
             updateHTLCState(hashlock, { solverLockDetails: details })
         }
-    }, [hashlock])
+    }, [hashlock, updateHTLCState])
 
     useUserLockPolling({
         network: source_network,
@@ -185,7 +189,7 @@ export function AtomicProvider({ children }) {
         contractAddress: srcAtomicContract,
         sourceAsset: source_token,
         enabled: !!hashlock && !isTerminal,
-        provider,
+        provider: sourceProvider,
         txId: lockTxId as string | undefined,
         onSuccess: handleUserLockSuccess,
     })
@@ -196,7 +200,7 @@ export function AtomicProvider({ children }) {
         contractAddress: destAtomicContract,
         destinationAsset: destination_token,
         enabled: !!hashlock && !isTerminal,
-        provider,
+        provider: destinationProvider,
         onSuccess: handleSolverLockSuccess,
     })
 

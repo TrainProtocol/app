@@ -35,6 +35,8 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
     const isCompleted = swap.status === HTLCStatus.RedeemCompleted
     const isInProgress = swap.status && !isTerminalStatus(swap.status)
 
+    const dateDifferenceString = swap.createdAt ? getDateDifferenceString(swap.createdAt) : undefined
+
     const handleViewSwap = () => {
         if (swap.hashlock) {
             setActiveHashlock(swap.hashlock)
@@ -82,9 +84,9 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
                         <p className="text-secondary-text shrink-0">Date & Time</p>
                         <span className="text-primary-text text-right text-xs">
                             {new Date(swap.createdAt).toLocaleString()}
-                            {getDateDifferenceString(swap.createdAt) && (
+                            {dateDifferenceString && (
                                 <span className="text-primary-text-tertiary ml-1">
-                                    {getDateDifferenceString(swap.createdAt)}
+                                    {dateDifferenceString}
                                 </span>
                             )}
                         </span>
