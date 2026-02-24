@@ -5,7 +5,7 @@ import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { Checkbox } from "@/components/shadcn/checkbox";
 import { SwapViewType } from ".";
 
-export const RevealSecretAction: FC<{ showCheckbox?: boolean, type: SwapViewType }> = ({ showCheckbox = false, type }) => {
+export const RevealSecretAction: FC<{ showCheckbox?: boolean, type: SwapViewType, verificationSkipped?: boolean }> = ({ showCheckbox = false, type, verificationSkipped = false }) => {
     const { revealSecret, isRevealing, source_network, wallet } = useRevealSecret()
     const { autoRevealSecret, setAutoRevealSecret, setHasSeenAutoRevealPrompt } = useSwapPreferencesStore()
     const [checked, setChecked] = useState(autoRevealSecret)
@@ -21,6 +21,11 @@ export const RevealSecretAction: FC<{ showCheckbox?: boolean, type: SwapViewType
     if (!source_network || isRevealing) return <></>
 
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
+        {verificationSkipped && (
+            <div className="text-sm text-yellow-500 bg-yellow-500/10 rounded-lg p-3">
+                Could not verify solver lock against original quote. Proceed with caution.
+            </div>
+        )}
         {showCheckbox && (
             <label className="flex items-center gap-2 cursor-pointer text-sm text-primary-text-muted">
                 <Checkbox

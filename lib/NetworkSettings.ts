@@ -10,14 +10,6 @@ export enum GasCalculation {
     OptimismType = 'optimismType'
 }
 
-type NetworkItemSettings = {
-    [network: string]: {
-        apiUri: string,
-        appUri?: string,
-        linkUri?: string
-    }
-}
-
 const destinationOrder = [
     KnownInternalNames.Networks.StarkNetMainnet,
     KnownInternalNames.Networks.ZksyncEraMainnet,
@@ -102,7 +94,7 @@ export default class NetworkSettings {
             TransactionExplorerTemplate: 'https://sepolia.etherscan.io/tx/{0}',
             AccountExplorerTemplate: 'https://sepolia.etherscan.io/address/{0}'
         };
-        NetworkSettings.KnownSettings[KnownInternalNames.Networks.BaseTestnet] = {
+        NetworkSettings.KnownSettings[KnownInternalNames.Networks.BaseSepolia] = {
             ChainId: 84532,
             GasCalculationType: GasCalculation.OptimismType,
             TransactionExplorerTemplate: 'https://sepolia.basescan.org/tx/{0}',

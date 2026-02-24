@@ -44,6 +44,7 @@ const useUserLockPolling = ({
                 id: hashlock,
                 contractAddress,
                 txId,
+                decimals: sourceAsset?.decimals,
             }
 
             try {

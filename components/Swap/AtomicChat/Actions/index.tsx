@@ -15,6 +15,7 @@ import NetworkSettings from "@/lib/NetworkSettings";
 import { Widget } from "@/components/Widget/Index";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
+import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
 import { Drawer } from "@/components/Modal/vaul";
 import { HTLCStatus } from "@/Models/HTLCStatus";
 
@@ -86,8 +87,9 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const { revealSecret } = useRevealSecret()
     const [autoRevealFailed, setAutoRevealFailed] = useState(false)
     const attemptedRef = useRef(false)
+    const { verified, skipped, mismatches } = useSolverLockVerification()
 
-    const shouldAutoReveal = autoRevealSecret && hasSeenAutoRevealPrompt && !autoRevealFailed
+    const shouldAutoReveal = autoRevealSecret && hasSeenAutoRevealPrompt && !autoRevealFailed && verified
 
     useEffect(() => {
         if (shouldAutoReveal && !attemptedRef.current) {
@@ -100,8 +102,13 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
 
     if (shouldAutoReveal) return <></>
 
+    // Verification failed — hide reveal button, progress panel shows the error
+    if (!verified && !skipped && mismatches.length > 0) {
+        return <></>
+    }
+
     // First time: show checkbox. After that (or on auto-reveal failure): just the button
-    return <RevealSecretAction showCheckbox={!hasSeenAutoRevealPrompt} type={type} />
+    return <RevealSecretAction showCheckbox={!hasSeenAutoRevealPrompt} type={type} verificationSkipped={skipped} />
 }
 
 export const ActionWrapper: FC<{ children: React.ReactNode, type: SwapViewType }> = ({ children, type }) => {

@@ -31,6 +31,7 @@ export type LockParams = {
     contractAddress: string,
     index?: number,
     txId?: string,
+    decimals?: number,
 }
 
 export type OldLockParams = {

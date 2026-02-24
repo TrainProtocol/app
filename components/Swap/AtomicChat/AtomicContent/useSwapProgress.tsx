@@ -7,6 +7,7 @@ import NetworkSettings from "@/lib/NetworkSettings";
 import { HTLCTransaction } from "@/lib/trainApiClient";
 import LockIcon from "@/components/Icons/LockIcon";
 import { HTLCStatus } from "@/Models/HTLCStatus";
+import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
 
 // --- Types ---
 
@@ -144,6 +145,8 @@ export function useSwapProgress(): SwapProgress {
         htlcFromApi,
     } = useAtomicState();
 
+    const { verified, skipped, mismatches } = useSolverLockVerification();
+
     return useMemo(() => {
         const sourceTxLink = buildExplorerLink(source_network?.caip2Id, lockTxId);
         const lpLockTx = htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCLock as string);
@@ -179,6 +182,20 @@ export function useSwapProgress(): SwapProgress {
                 steps: buildSteps(HAPPY_STEPS, 1, { source: sourceTxLink }, {
                     0: { description: "Transaction confirmed", timelock: sourceDetails?.timelock },
                     1: { description: "Solver is reserving assets on destination" },
+                }),
+            };
+        }
+
+        // Solver lock detected but verification failed — show mismatch error
+        if (htlcStatus === HTLCStatus.SolverLockDetected && !verified && !skipped && mismatches.length > 0) {
+            return {
+                gaugeValue: 50, gaugeIcon: "x",
+                title: "Solver lock mismatch",
+                subtitle: "Do not reveal your secret. Wait for the timelock to expire, then refund.",
+                steps: buildSteps(HAPPY_STEPS, 1, { source: sourceTxLink, dest: destTxLink }, {
+                    0: { timelock: sourceDetails?.timelock },
+                    1: { name: "Reservation mismatch", status: StepStatus.Failed, description: mismatches.join('. ') },
+                    2: { status: StepStatus.Upcoming },
                 }),
             };
         }
@@ -277,5 +294,8 @@ export function useSwapProgress(): SwapProgress {
         source_network,
         destination_network,
         htlcFromApi,
+        verified,
+        skipped,
+        mismatches,
     ]);
 }
