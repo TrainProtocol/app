@@ -12,6 +12,7 @@ interface UseSolverLockPollingParams {
     destinationAsset: Token | undefined
     enabled?: boolean
     provider: WalletProvider | undefined
+    onSuccess?: (details: LockDetails) => void
 }
 
 const useSolverLockPolling = ({
@@ -20,7 +21,8 @@ const useSolverLockPolling = ({
     contractAddress,
     destinationAsset,
     enabled = true,
-    provider
+    provider,
+    onSuccess,
 }: UseSolverLockPollingParams) => {
     const type: 'erc20' | 'native' = destinationAsset?.contractAddress && destinationAsset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
 
@@ -56,7 +58,8 @@ const useSolverLockPolling = ({
             revalidateOnReconnect: true,
             shouldRetryOnError: true,
             errorRetryInterval: 3000,
-            dedupingInterval: 1000
+            dedupingInterval: 1000,
+            onSuccess: (data) => data && onSuccess?.(data),
         }
     )
 

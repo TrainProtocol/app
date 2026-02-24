@@ -181,7 +181,7 @@ export default function useAtomicEVM(params: UseAtomicEVMParams): BaseAtomicFunc
                     blockNumber: receipt.blockNumber,
                     chainId: Number(chainId),
                 })
-                blockTimestamp = Number(block.timestamp)
+                blockTimestamp = Number(block.timestamp) * 1000
             } catch (e) {
                 console.error('Error fetching userData from tx receipt:', e)
             }

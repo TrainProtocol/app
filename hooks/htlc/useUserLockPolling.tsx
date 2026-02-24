@@ -12,6 +12,7 @@ interface UseUserLockPollingParams {
     enabled?: boolean
     provider: WalletProvider | undefined
     txId?: string
+    onSuccess?: (details: LockDetails) => void
 }
 
 const useUserLockPolling = ({
@@ -22,6 +23,7 @@ const useUserLockPolling = ({
     enabled = true,
     provider,
     txId,
+    onSuccess,
 }: UseUserLockPollingParams) => {
     const type: 'erc20' | 'native' = sourceAsset?.contractAddress && sourceAsset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
 
@@ -57,7 +59,8 @@ const useUserLockPolling = ({
             revalidateOnReconnect: true,
             shouldRetryOnError: true,
             errorRetryInterval: 3000,
-            dedupingInterval: 1000
+            dedupingInterval: 1000,
+            onSuccess: (data) => data && onSuccess?.(data),
         }
     )
 
