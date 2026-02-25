@@ -84,7 +84,7 @@ export const ModalContent = forwardRef<HTMLDivElement, ModalContentProps>((props
                 </div>
             )}
 
-            <div ref={ref} className="flex flex-col w-full h-full max-h-[90dvh] px-4 styled-scroll overflow-x-hidden overflow-y-auto pb-6 z-0 openpicker">
+            <div ref={ref} className="flex flex-col w-full h-full max-h-[90dvh] px-4 styled-scroll overflow-x-hidden overflow-y-auto pb-4 z-0 openpicker">
                 {typeof children === 'function' ? children({ closeModal, shouldFocus }) : children}
             </div>
         </div>

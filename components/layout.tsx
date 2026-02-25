@@ -17,7 +17,6 @@ import ColorSchema from "./ColorSchema";
 import { IsExtensionError } from "../helpers/errorHelper";
 import { AsyncModalProvider } from "../context/asyncModal";
 import WalletsProviders from "./WalletProviders";
-import { PulsatingCirclesProvider } from "../context/PulsatingCirclesContext";
 import { AtomicProvider } from "../context/atomicContext";
 import { SwapAccountsProvider } from "@/context/swapAccounts";
 
@@ -105,8 +104,7 @@ export default function Layout({ children, settings, themeData }: Props) {
       themeData &&
       <ColorSchema themeData={themeData} />
     }
-    <PulsatingCirclesProvider>
-      <QueryProvider query={query}>
+    <QueryProvider query={query}>
         <SettingsProvider data={appSettings}>
           <TooltipProvider delayDuration={500}>
             <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
@@ -127,6 +125,5 @@ export default function Layout({ children, settings, themeData }: Props) {
           </TooltipProvider>
         </SettingsProvider >
       </QueryProvider >
-    </PulsatingCirclesProvider>
   </>)
 }

@@ -1,7 +1,7 @@
 import { FC, useEffect } from "react";
 import { useAtomicState } from "@/context/atomicContext";
 import Summary from "./Summary";
-import { usePulsatingCircles } from "@/context/PulsatingCirclesContext";
+import { usePulsatingCircles } from "@/stores/pulsatingCirclesStore";
 import { SwapQuote } from "@/lib/trainApiClient";
 import SwapQuoteComp from "@/components/FeeDetails/SwapQuote";
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues";

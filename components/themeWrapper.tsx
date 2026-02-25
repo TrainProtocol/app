@@ -2,7 +2,7 @@ import { X } from "lucide-react";
 import toast, { ToastBar, Toaster } from "react-hot-toast"
 import Navbar from "./navbar"
 import GlobalFooter from "./globalFooter";
-import { usePulsatingCircles } from "../context/PulsatingCirclesContext";
+import { usePulsatingCircles } from "../stores/pulsatingCirclesStore";
 import { useState, useEffect } from "react";
 import { useRive } from '@rive-app/react-canvas';
 

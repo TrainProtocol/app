@@ -20,6 +20,7 @@ import { useSwapStore } from "@/stores/swapStore";
 import { formatUnits } from "viem";
 import { NetworkContractType } from "@/Models/Network";
 import { HTLCStatus } from "@/Models/HTLCStatus";
+import { usePulsatingCircles } from "@/stores/pulsatingCirclesStore";
 
 const AtomicPage = dynamicWithRetries(
     () => import("../AtomicChat/index.tsx") as unknown as Promise<{ default: React.ComponentType<any> }>,
@@ -51,7 +52,7 @@ export default function Form() {
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
     const clearTempSwap = useSwapStore(s => s.clearTempSwap)
     const setTempSwap = useSwapStore(s => s.setTempSwap)
-
+    const { setPulseState } = usePulsatingCircles();
 
     useEffect(() => {
         if (swapModalOpen) {
@@ -75,6 +76,7 @@ export default function Form() {
             const isTerminal = htlcStatus === HTLCStatus.RedeemCompleted || htlcStatus === HTLCStatus.Refunded
             if (isTerminal) {
                 setActiveHashlock(null)
+                setPulseState("initial");
             }
         }
     }, [clearTempSwap, htlcStatus, setActiveHashlock]);

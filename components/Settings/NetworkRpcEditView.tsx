@@ -151,7 +151,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
     }
 
     return (
-        <div className="flex flex-col justify-between h-full gap-3">
+        <div className="flex flex-col h-full gap-3">
             <div className="flex flex-col gap-2">
                 {/* Network Info */}
                 <div className="flex items-center space-x-3">

@@ -1,5 +1,5 @@
 import React from "react";
-import { usePulsatingCircles } from "../../context/PulsatingCirclesContext"
+import { usePulsatingCircles } from "../../stores/pulsatingCirclesStore"
 
 const PulsatingCircles: React.FC = () => {
     const { pulseState } = usePulsatingCircles()
