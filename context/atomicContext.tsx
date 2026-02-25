@@ -174,7 +174,7 @@ export function AtomicProvider({ children }) {
             const stored = useSwapStore.getState().swaps[hashlock]
             const updates: Partial<SwapData> = {}
             if (details.blockTimestamp && !stored?.createdAt) {
-                updates.createdAt = details.blockTimestamp * 1000
+                updates.createdAt = details.blockTimestamp
             }
             if (details.timelock && !stored?.timelock) {
                 updates.timelock = details.timelock
