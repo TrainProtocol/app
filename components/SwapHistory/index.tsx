@@ -82,6 +82,7 @@ const SwapHistory: FC = () => {
                 swap.timelock &&
                 !isTerminalStatus(swap.status) &&
                 swap.status !== HTLCStatus.TimelockExpired &&
+                swap.status !== HTLCStatus.ManualClaimRequired &&
                 now > swap.timelock * 1000
             ) {
                 updateSwap(hashlock, { status: HTLCStatus.TimelockExpired })
