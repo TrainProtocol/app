@@ -1,28 +1,18 @@
-import { Context, createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { Context, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router';
 import { useSettingsState } from './settings';
 import { LockDetails, LockStatus } from '../Models/phtlc/PHTLC';
-import { Network, Token } from '../Models/Network';
-import { HTLCFromApi, HTLCTransaction } from '../lib/trainApiClient';
-import LightClient from '../lib/lightClient';
-import { useSwapStore } from '../stores/swapStore';
+import { Network, Token } from '@/Models/Network';
+import { HTLCFromApi, HTLCTransaction } from '@/lib/trainApiClient';
+import LightClient from '@/lib/lightClient';
+import { SwapData, useSwapStore } from '@/stores/swapStore';
 import { useShallow } from 'zustand/react/shallow';
-import { resolvePersistantQueryParams } from '../helpers/querryHelper';
-import useUserLockPolling from '../hooks/htlc/useUserLockPolling';
-import useSolverLockPolling from '../hooks/htlc/useSolverLockPolling';
+import { resolvePersistantQueryParams } from '@/helpers/querryHelper';
+import useUserLockPolling from '@/hooks/htlc/useUserLockPolling';
+import useSolverLockPolling from '@/hooks/htlc/useSolverLockPolling';
 import useWallet from '@/hooks/useWallet';
 import useOrderPolling from '../hooks/useOrderPolling';
-
-export enum HTLCStatus {
-    Initial = 'initial',
-    UserLocked = 'userLocked',
-    SolverLockDetected = 'solverLockDetected',
-    SecretRevealed = 'secretRevealed',
-    ManualClaimRequired = 'manualClaimRequired',
-    RedeemCompleted = 'redeemCompleted',
-    TimelockExpired = 'timelockExpired',
-    Refunded = 'refunded',
-}
+import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus';
 
 const AtomicStateContext = createContext<DataContextType | null>(null);
 
@@ -70,6 +60,7 @@ export function AtomicProvider({ children }) {
 
     const activeHashlockFromStore = useSwapStore(s => s.activeHashlock)
     const activeHashlock = activeHashlockFromStore ?? router.query.hashlock as string | undefined
+    const updateSwap = useSwapStore(s => s.updateSwap)
 
     const tempSwap = useSwapStore(s => s.tempSwap)
     const commitSwap = useSwapStore(s => s.commitSwap)
@@ -161,40 +152,57 @@ export function AtomicProvider({ children }) {
         statusResolver({ sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed, manualClaimRequired }),
         [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, manualClaimRequired])
 
-    const isTerminal = htlcStatus === HTLCStatus.RedeemCompleted || htlcStatus === HTLCStatus.Refunded
+    const isTerminal = isTerminalStatus(htlcStatus)
 
-    const { provider } = useWallet(source_network, 'autofill')
+    useEffect(() => {
+        if (!activeHashlock) return
+        const currentSwapData = useSwapStore.getState().swaps[activeHashlock]
+        if (!currentSwapData) return
 
-    const { details: userLockPollData } = useUserLockPolling({
+        const updates: Partial<SwapData> = {}
+        if (htlcStatus !== HTLCStatus.Initial && currentSwapData.status !== htlcStatus) updates.status = htlcStatus
+        if (destinationRedeemTx && currentSwapData.destTxId !== destinationRedeemTx) updates.destTxId = destinationRedeemTx
+        if (Object.keys(updates).length > 0) updateSwap(activeHashlock, updates)
+    }, [htlcStatus, destinationRedeemTx, activeHashlock, updateSwap])
+
+    const { provider: sourceProvider } = useWallet(source_network, 'withdrawal')
+    const { provider: destinationProvider } = useWallet(destination_network, 'autofill')
+
+    const handleUserLockSuccess = useCallback((details: LockDetails) => {
+        if (hashlock) {
+            updateHTLCState(hashlock, { sourceDetails: details })
+            if (details.blockTimestamp && !useSwapStore.getState().swaps[hashlock]?.createdAt) {
+                updateSwap(hashlock, { createdAt: details.blockTimestamp })
+            }
+        }
+    }, [hashlock, updateSwap, updateHTLCState])
+
+    const handleSolverLockSuccess = useCallback((details: LockDetails) => {
+        if (hashlock) {
+            updateHTLCState(hashlock, { solverLockDetails: details })
+        }
+    }, [hashlock, updateHTLCState])
+
+    useUserLockPolling({
         network: source_network,
         hashlock,
         contractAddress: srcAtomicContract,
         sourceAsset: source_token,
         enabled: !!hashlock && !isTerminal,
-        provider,
+        provider: sourceProvider,
         txId: lockTxId as string | undefined,
+        onSuccess: handleUserLockSuccess,
     })
 
-    const { details: solverLockPollData } = useSolverLockPolling({
+    useSolverLockPolling({
         network: destination_network,
         hashlock,
         contractAddress: destAtomicContract,
         destinationAsset: destination_token,
         enabled: !!hashlock && !isTerminal,
-        provider
+        provider: destinationProvider,
+        onSuccess: handleSolverLockSuccess,
     })
-
-    useEffect(() => {
-        if (userLockPollData && hashlock) {
-            updateHTLCState(hashlock, { sourceDetails: userLockPollData })
-        }
-    }, [userLockPollData, hashlock])
-
-    useEffect(() => {
-        if (solverLockPollData && hashlock) {
-            updateHTLCState(hashlock, { solverLockDetails: solverLockPollData })
-        }
-    }, [solverLockPollData, hashlock])
 
     useEffect(() => {
         if (destination_network && htlcStatus !== HTLCStatus.TimelockExpired && htlcStatus !== HTLCStatus.RedeemCompleted) {

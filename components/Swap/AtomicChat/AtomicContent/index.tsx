@@ -1,14 +1,15 @@
 import { FC, useEffect } from "react";
-import { HTLCStatus, useAtomicState } from "../../../../context/atomicContext";
+import { useAtomicState } from "@/context/atomicContext";
 import Summary from "./Summary";
-import { usePulsatingCircles } from "../../../../context/PulsatingCirclesContext";
-import { SwapQuote } from "../../../../lib/trainApiClient";
+import { usePulsatingCircles } from "@/context/PulsatingCirclesContext";
+import { SwapQuote } from "@/lib/trainApiClient";
 import SwapQuoteComp from "@/components/FeeDetails/SwapQuote";
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import { Gauge } from "./Gauge";
 import Timeline from "./Timeline";
 import { useSwapProgress } from "./useSwapProgress";
 import { CircleCheck, Undo2, X } from "lucide-react";
+import { HTLCStatus } from "@/Models/HTLCStatus";
 
 type AtomicContentProps = {
     quote?: SwapQuote

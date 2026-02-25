@@ -24,4 +24,5 @@ export type LockDetails = {
     rewardRecipient?: string,
     rewardToken?: string,
     userData?: string,
+    blockTimestamp?: number,
 }

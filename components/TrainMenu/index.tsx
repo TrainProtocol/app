@@ -13,6 +13,7 @@ import RpcNetworkListView from "@/components/Settings/RpcNetworkListView";
 import NetworkRpcEditView from "@/components/Settings/NetworkRpcEditView";
 import { Network } from "@/Models/Network";
 import RecoverSwap from "@/components/Swap/Atomic/RecoverSwap";
+import SwapHistory from "@/components/SwapHistory";
 
 const Comp = () => {
     const router = useRouter();
@@ -98,6 +99,9 @@ const Comp = () => {
                                 </WizardItem>
                                 <WizardItem StepName={MenuStep.RecoverSwap} GoBack={goBackToMenuStep} inModal>
                                     <RecoverSwap onRecovered={handleRecoverSwap} />
+                                </WizardItem>
+                                <WizardItem StepName={MenuStep.Transactions} GoBack={goBackToMenuStep} inModal>
+                                    <SwapHistory />
                                 </WizardItem>
                             </Wizard>
                         </div>

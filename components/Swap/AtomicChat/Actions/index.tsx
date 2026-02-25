@@ -1,12 +1,12 @@
 import { FC, useEffect, useRef, useState } from "react";
-import { HTLCStatus, useAtomicState } from "../../../../context/atomicContext";
+import { useAtomicState } from "../../../../context/atomicContext";
 import { RevealSecretAction } from "./RevealSecret";
 import { ManualClaimAction } from "./ManualClaim";
 import { UserRefundAction, UserCommitAction } from "./UserActions";
 import TransactionMessages from "../../messages/TransactionMessages";
 import WalletMessage from "../../messages/Message";
 import DestinationWalletWrapper from "./DestinationWalletWrapper";
-import { SwapQuote } from "../../../../lib/trainApiClient";
+import { SwapQuote } from "@/lib/trainApiClient";
 import SubmitButton from "@/components/buttons/submitButton";
 import { ExternalLink, Home } from "lucide-react";
 import { useGoHome } from "@/hooks/useGoHome";
@@ -17,6 +17,7 @@ import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
 import { Drawer } from "@/components/Modal/vaul";
+import { HTLCStatus } from "@/Models/HTLCStatus";
 
 export type SwapViewType = "widget" | "contained"
 
