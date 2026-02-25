@@ -20,6 +20,7 @@ export interface SwapData {
     secretRevealed?: boolean
     status?: HTLCStatus
     createdAt?: number
+    timelock?: number
 }
 
 interface SwapStoreState {

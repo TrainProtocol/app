@@ -17,41 +17,32 @@ type DateGroup = {
 }
 
 function buildDateGroups(allEntries: [string, SwapData][]): DateGroup[] {
-    const todayKey = new Date().toLocaleDateString()
-    const todayMidnight = new Date().setHours(0, 0, 0, 0)
-
     const sorted = [...allEntries].sort(([, a], [, b]) => {
-        const aIsTerminal = isTerminalStatus(a.status)
-        const bIsTerminal = isTerminalStatus(b.status)
-
-        // Date bucket (midnight ms): in-progress without date → today, terminal without date → epoch
-        const aBucket = a.createdAt
-            ? new Date(a.createdAt).setHours(0, 0, 0, 0)
-            : aIsTerminal ? 0 : todayMidnight
-        const bBucket = b.createdAt
-            ? new Date(b.createdAt).setHours(0, 0, 0, 0)
-            : bIsTerminal ? 0 : todayMidnight
+        // No createdAt → oldest bucket (0)
+        const aBucket = a.createdAt ? new Date(a.createdAt).setHours(0, 0, 0, 0) : 0
+        const bBucket = b.createdAt ? new Date(b.createdAt).setHours(0, 0, 0, 0) : 0
 
         // Newest date first
         if (bBucket !== aBucket) return bBucket - aBucket
 
-        // Same date: in-progress before terminal
+        // Same date: non-terminal before terminal
+        const aIsTerminal = isTerminalStatus(a.status)
+        const bIsTerminal = isTerminalStatus(b.status)
         if (aIsTerminal !== bIsTerminal) return aIsTerminal ? 1 : -1
 
-        // Same status + same date: newest time first
+        // Same status class + same date: newest time first
         return (b.createdAt ?? 0) - (a.createdAt ?? 0)
     })
 
     const groups: DateGroup[] = []
     for (const entry of sorted) {
         const [, swap] = entry
-        const isTerminal = isTerminalStatus(swap.status)
         const dateKey = swap.createdAt
             ? new Date(swap.createdAt).toLocaleDateString()
-            : isTerminal ? '__older__' : todayKey
+            : '__older__'
         const label = swap.createdAt
             ? getDaysAgoLabel(swap.createdAt)
-            : isTerminal ? 'Older' : getDaysAgoLabel(Date.now())
+            : 'Older'
 
         const last = groups[groups.length - 1]
         if (last && last.dateKey === dateKey) {
@@ -84,7 +75,21 @@ const SwapHistory: FC = () => {
     )
 
     useEffect(() => {
+        const now = Date.now()
         entries.forEach(([hashlock, swap]) => {
+            // Fix stale expired status: if we know the timelock and it has passed, update status
+            if (
+                swap.timelock &&
+                !isTerminalStatus(swap.status) &&
+                swap.status !== HTLCStatus.TimelockExpired &&
+                swap.status !== HTLCStatus.ManualClaimRequired &&
+                now > swap.timelock * 1000
+            ) {
+                updateSwap(hashlock, { status: HTLCStatus.TimelockExpired })
+                return
+            }
+
+            // Fetch destTxId for completed swaps that don't have it yet
             if (swap.status !== HTLCStatus.RedeemCompleted || swap.destTxId || !swap.solver) return
             apiClient.GetOrder(swap.solver, hashlock).then(res => {
                 const redeemTx = res?.data?.order?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem)?.hash

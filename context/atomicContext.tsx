@@ -171,9 +171,15 @@ export function AtomicProvider({ children }) {
     const handleUserLockSuccess = useCallback((details: LockDetails) => {
         if (hashlock) {
             updateHTLCState(hashlock, { sourceDetails: details })
-            if (details.blockTimestamp && !useSwapStore.getState().swaps[hashlock]?.createdAt) {
-                updateSwap(hashlock, { createdAt: details.blockTimestamp })
+            const stored = useSwapStore.getState().swaps[hashlock]
+            const updates: Partial<SwapData> = {}
+            if (details.blockTimestamp && !stored?.createdAt) {
+                updates.createdAt = details.blockTimestamp
             }
+            if (details.timelock && !stored?.timelock) {
+                updates.timelock = details.timelock
+            }
+            if (Object.keys(updates).length > 0) updateSwap(hashlock, updates)
         }
     }, [hashlock, updateSwap, updateHTLCState])
 
