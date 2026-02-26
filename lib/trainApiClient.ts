@@ -103,7 +103,7 @@ export type HTLCFromApi = {
     transactions: {
         type: HTLCTransaction,
         hash: string,
-        network: string
+        networkId: string
     }[]
 }
 
