@@ -52,8 +52,6 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote, type }) => 
                 throw new Error("No lp address")
             }
 
-            if (provider.activeWallet && (provider.activeWallet.chainId != source_network.chainId) && provider.switchChain)
-                await provider.switchChain(provider.activeWallet, source_network.chainId)
             const result = await provider.createHTLC({
                 address,
                 amount: amount.toString(),

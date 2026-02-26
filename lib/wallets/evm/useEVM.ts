@@ -17,9 +17,6 @@ import { useEvmConnectors, HIDDEN_WALLETCONNECT_ID } from "@/context/evmConnecto
 import { useActiveEvmAccount } from "@/components/WalletProviders/ActiveEvmAccount"
 import useAtomicEVM from "./useAtomicEVM"
 import { useRpcConfigStore } from "@/stores/rpcConfigStore"
-import { useAtomicState } from "@/context/atomicContext"
-import { useSelectedAccount } from "@/context/swapAccounts"
-import { Address } from "@/lib/address/Address"
 
 // Storage key for dynamic wallet metadata
 const DYNAMIC_WALLET_METADATA_KEY = 'ls_dynamic_wallet_metadata'
@@ -109,6 +106,7 @@ export default function useEVM(): WalletProvider {
     const { disconnectAsync } = useDisconnect()
     const { switchAccountAsync } = useSwitchAccount()
     const { activeConnection, setActiveAddress } = useActiveEvmAccount()
+    const { chainId: activeChainId } = useAccount()
     const allConnectors = useConnectors()
     const config = useConfig()
     const { connectAsync } = useConnect();
@@ -319,7 +317,7 @@ export default function useEVM(): WalletProvider {
 
             return wallet
         }).filter(w => w !== undefined)
-    }, [activeConnection, config, connectedWalletsKey])
+    }, [activeConnection, config, connectedWalletsKey, activeChainId])
 
     const switchAccount = useCallback(async (wallet: Wallet, address: string) => {
         const connector = getConnections(config).find(c => c.connector.name === wallet.id)?.connector
