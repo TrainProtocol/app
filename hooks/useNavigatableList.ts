@@ -35,6 +35,8 @@ export interface UseNavigatableListOptions {
     keyboardNavigatingClass?: string;
     /** Callback to trigger click on item by nav-index string (e.g., "0" or "1.2") */
     onEnter?: (navIndex: string) => void;
+    /** When true, navigate to first child of first item once children are registered */
+    navigateToFirstChild?: boolean;
 }
 
 export const useNavigatableList = ({
@@ -42,10 +44,12 @@ export const useNavigatableList = ({
     enabled = true,
     onReset,
     keyboardNavigatingClass = 'keyboard-navigating',
-    onEnter
+    onEnter,
+    navigateToFirstChild
 }: UseNavigatableListOptions) => {
     const [focusedIndex, setFocusedIndex] = useState<FocusedIndex | null>(null);
     const [isKeyboardNavigating, setIsKeyboardNavigating] = useState(false);
+    const [pendingFirstChild, setPendingFirstChild] = useState(false);
 
     // Use refs for transient state to keep callbacks stable and avoid unnecessary re-renders
     const isMouseMovingRef = useRef(false);
@@ -56,13 +60,32 @@ export const useNavigatableList = ({
         isKeyboardNavigatingRef.current = isKeyboardNavigating;
     }, [isKeyboardNavigating]);
 
-    // Reset focus only when explicitly requested (e.g., search query changes)
+    const navigateToFirstChildRef = useRef(navigateToFirstChild);
+    navigateToFirstChildRef.current = navigateToFirstChild;
+
+    // Reset focus when explicitly requested (e.g., search query changes) - default to first item
     useEffect(() => {
         if (onReset) {
             onReset();
-            setFocusedIndex(null);
+            setPendingFirstChild(!!navigateToFirstChildRef.current);
+            setFocusedIndex(navigableItems.length > 0 ? { parent: 0 } : null);
         }
     }, [onReset]);
+
+    // When pending first child and children are registered, navigate to first child
+    useEffect(() => {
+        if (pendingFirstChild && (navigableItems[0]?.childCount ?? 0) > 0) {
+            setPendingFirstChild(false);
+            setFocusedIndex({ parent: 0, child: 0 });
+        }
+    }, [pendingFirstChild, navigableItems]);
+
+    // Default to first item on mount when items become available
+    useEffect(() => {
+        if (focusedIndex === null && navigableItems.length > 0) {
+            setFocusedIndex({ parent: 0 });
+        }
+    }, [navigableItems.length]);
 
     const handleArrowDown = useCallback(() => {
         setIsKeyboardNavigating(true);
@@ -99,8 +122,14 @@ export const useNavigatableList = ({
             if (child < navItem.childCount - 1) {
                 setFocusedIndex({ parent, child: child + 1 });
             } else {
-                if (parent < navigableItems.length - 1) {
-                    setFocusedIndex({ parent: parent + 1 });
+                const nextParent = parent + 1;
+                if (nextParent < navigableItems.length) {
+                    const nextNavItem = navigableItems[nextParent];
+                    if (nextNavItem.childCount > 0) {
+                        setFocusedIndex({ parent: nextParent, child: 0 });
+                    } else {
+                        setFocusedIndex({ parent: nextParent });
+                    }
                 }
             }
         } else {
@@ -144,7 +173,20 @@ export const useNavigatableList = ({
             if (child > 0) {
                 setFocusedIndex({ parent, child: child - 1 });
             } else {
-                setFocusedIndex({ parent });
+                const prevParent = parent - 1;
+                if (prevParent >= 0) {
+                    const prevNavItem = navigableItems[prevParent];
+                    if (prevNavItem.childCount > 0) {
+                        // Previous parent is a group header — skip it, go to its last child
+                        setFocusedIndex({ parent: prevParent, child: prevNavItem.childCount - 1 });
+                    } else {
+                        // Previous parent is a flat item — land on it
+                        setFocusedIndex({ parent: prevParent });
+                    }
+                } else {
+                    // At first group's first child — navigate up to the group header
+                    setFocusedIndex({ parent });
+                }
             }
         } else {
             if (parent > 0) {
