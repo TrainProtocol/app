@@ -103,6 +103,7 @@ export type HTLCFromApi = {
     transactions: {
         type: HTLCTransaction,
         hash: string,
+        network: string,
         networkId: string
     }[]
 }
@@ -128,6 +129,7 @@ export type OrderCreatedEventData = {
 
 export type TransactionCreatedEventData = {
     hashlock: string
+    network: string
     networkId: string
     transactionType: string
     transactionHash: string

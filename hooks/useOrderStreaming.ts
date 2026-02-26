@@ -29,10 +29,10 @@ export default function useOrderStreaming({ solverId, hashlock, enabled, onOrder
         const handleOrderEvent = (e: MessageEvent) => {
             const event = JSON.parse(e.data) as OrderStreamEvent
             if (event.eventType === 'order.transaction_created') {
-                const { networkId, transactionType, transactionHash } = event.data as TransactionCreatedEventData
+                const { network, networkId, transactionType, transactionHash } = event.data as TransactionCreatedEventData
                 accumulatedTransactionsRef.current = [
                     ...accumulatedTransactionsRef.current,
-                    { type: transactionType as HTLCTransaction, hash: transactionHash, networkId },
+                    { type: transactionType as HTLCTransaction, hash: transactionHash, network, networkId },
                 ]
                 const updated = { transactions: accumulatedTransactionsRef.current } as HTLCFromApi
                 setOrder(updated)
@@ -41,14 +41,17 @@ export default function useOrderStreaming({ solverId, hashlock, enabled, onOrder
         }
 
         const handleOrder = (e: MessageEvent) => {
-            const data = JSON.parse(e.data) as HTLCFromApi
+            const raw = JSON.parse(e.data)
+            const data: HTLCFromApi = raw.order ?? raw
+            if (data.transactions?.length) {
+                accumulatedTransactionsRef.current = data.transactions
+            }
             setOrder(data)
             onOrderRef.current(data)
         }
 
         es.addEventListener('order', handleOrder)
         es.addEventListener('order_event', handleOrderEvent)
-        es.addEventListener('done', () => es.close())
         es.onerror = () => setError(true)
 
         return () => es.close()
