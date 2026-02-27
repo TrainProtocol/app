@@ -16,23 +16,10 @@ type DateGroup = {
     items: [string, SwapData][]
 }
 
-function buildDateGroups(allEntries: [string, SwapData][]): DateGroup[] {
-    const sorted = [...allEntries].sort(([, a], [, b]) => {
-        // No createdAt → oldest bucket (0)
-        const aBucket = a.createdAt ? new Date(a.createdAt).setHours(0, 0, 0, 0) : 0
-        const bBucket = b.createdAt ? new Date(b.createdAt).setHours(0, 0, 0, 0) : 0
-
-        // Newest date first
-        if (bBucket !== aBucket) return bBucket - aBucket
-
-        // Same date: non-terminal before terminal
-        const aIsTerminal = isTerminalStatus(a.status)
-        const bIsTerminal = isTerminalStatus(b.status)
-        if (aIsTerminal !== bIsTerminal) return aIsTerminal ? 1 : -1
-
-        // Same status class + same date: newest time first
-        return (b.createdAt ?? 0) - (a.createdAt ?? 0)
-    })
+function buildCompletedDateGroups(terminalEntries: [string, SwapData][]): DateGroup[] {
+    const sorted = [...terminalEntries].sort(([, a], [, b]) =>
+        (b.createdAt ?? 0) - (a.createdAt ?? 0)
+    )
 
     const groups: DateGroup[] = []
     for (const entry of sorted) {
@@ -61,35 +48,56 @@ const SwapHistory: FC = () => {
     const updateSwap = useSwapStore(s => s.updateSwap)
     const { networks } = useSettingsState()
     const [expanded, setExpanded] = useState<string | undefined>(undefined)
+    const [showAllOngoing, setShowAllOngoing] = useState(false)
 
     const networkByCaip2Id = useMemo(() =>
         new Map(networks.map(n => [n.caip2Id.toUpperCase(), n])),
         [networks]
     )
 
-    const entries = useMemo(() => Object.entries(swaps), [swaps])
+    const entries = useMemo(() => Object.entries(swaps).filter(([, s]) => !!s.status), [swaps])
 
-    const dateGroups = useMemo(
-        () => buildDateGroups(entries.filter(([, s]) => !!s.status)),
+    const ongoingEntries = useMemo(() =>
+        entries
+            .filter(([, s]) => !isTerminalStatus(s.status))
+            .sort(([, a], [, b]) => (b.createdAt ?? 0) - (a.createdAt ?? 0)),
         [entries]
     )
 
-    useEffect(() => {
-        const now = Date.now()
-        entries.forEach(([hashlock, swap]) => {
-            // Fix stale expired status: if we know the timelock and it has passed, update status
-            if (
-                swap.timelock &&
-                !isTerminalStatus(swap.status) &&
-                swap.status !== HTLCStatus.TimelockExpired &&
-                swap.status !== HTLCStatus.ManualClaimRequired &&
-                now > swap.timelock * 1000
-            ) {
-                updateSwap(hashlock, { status: HTLCStatus.TimelockExpired })
-                return
-            }
+    const dateGroups = useMemo(() =>
+        buildCompletedDateGroups(entries.filter(([, s]) => isTerminalStatus(s.status))),
+        [entries]
+    )
 
-            // Fetch destTxId for completed swaps that don't have it yet
+    const hiddenOngoingCount = Math.max(0, ongoingEntries.length - 1)
+    const visibleOngoing = showAllOngoing ? ongoingEntries : ongoingEntries.slice(0, 1)
+
+    useEffect(() => {
+        if (ongoingEntries.length === 0) return
+
+        const checkExpiry = () => {
+            const now = Date.now()
+            const { swaps: currentSwaps } = useSwapStore.getState()
+            Object.entries(currentSwaps).forEach(([hashlock, swap]) => {
+                if (
+                    swap.timelock &&
+                    !isTerminalStatus(swap.status) &&
+                    swap.status !== HTLCStatus.TimelockExpired &&
+                    swap.status !== HTLCStatus.ManualClaimRequired &&
+                    now > swap.timelock * 1000
+                ) {
+                    updateSwap(hashlock, { status: HTLCStatus.TimelockExpired })
+                }
+            })
+        }
+
+        checkExpiry()
+        const id = setInterval(checkExpiry, 10_000)
+        return () => clearInterval(id)
+    }, [ongoingEntries.length, updateSwap])
+
+    useEffect(() => {
+        entries.forEach(([hashlock, swap]) => {
             if (swap.status !== HTLCStatus.RedeemCompleted || swap.destTxId || !swap.solver) return
             apiClient.GetOrder(swap.solver, hashlock).then(res => {
                 const redeemTx = res?.data?.order?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem)?.hash
@@ -100,7 +108,7 @@ const SwapHistory: FC = () => {
         })
     }, [entries, updateSwap])
 
-    if (dateGroups.length === 0) {
+    if (ongoingEntries.length === 0 && dateGroups.length === 0) {
         return <EmptyState />
     }
 
@@ -112,6 +120,40 @@ const SwapHistory: FC = () => {
             onValueChange={(v: string | undefined) => setExpanded(v)}
             className="w-full flex flex-col gap-3"
         >
+            {visibleOngoing.map(([hashlock, swap], idx) => {
+                const sourceNetwork = networkByCaip2Id.get(swap.source?.toUpperCase() ?? '')
+                const destNetwork = networkByCaip2Id.get(swap.destination?.toUpperCase() ?? '')
+                const isLastVisible = idx === visibleOngoing.length - 1
+                const shouldShowToggle = hiddenOngoingCount > 0 && isLastVisible
+                return (
+                    <div key={hashlock} className="flex flex-col gap-3">
+                        <SwapAccordionItem
+                            hashlock={hashlock}
+                            swap={swap}
+                            sourceNetwork={sourceNetwork}
+                            destNetwork={destNetwork}
+                            expanded={expanded}
+                            setExpanded={setExpanded}
+                        />
+                        {shouldShowToggle && (
+                            <div className="w-full flex justify-center my-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAllOngoing(prev => !prev)}
+                                    className="flex items-center gap-1 text-sm font-normal text-secondary-text hover:text-primary-text px-3 py-1 rounded-lg bg-secondary-500"
+                                >
+                                    {showAllOngoing ? (
+                                        <ChevronUp className="transition-transform duration-200 w-6 h-6" />
+                                    ) : (
+                                        <span className="select-none">+{hiddenOngoingCount} more</span>
+                                    )}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )
+            })}
+
             {dateGroups.map(({ dateKey, label, items }) => (
                 <div key={dateKey} className="flex flex-col gap-3">
                     <p className="text-sm text-secondary-text font-normal pl-2 mt-3 first:mt-0">
