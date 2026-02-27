@@ -55,6 +55,9 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote, type }) => 
             if (!destination_asset) {
                 throw new Error("No destination asset")
             }
+            if (!provider) {
+                throw new Error("No source_provider")
+            }
             if (!atomicContract) {
                 throw new Error("No atomic contract")
             }

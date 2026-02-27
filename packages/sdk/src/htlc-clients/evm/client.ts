@@ -128,10 +128,15 @@ export class EvmHTLCClient implements IHTLCClient {
             simulationData.value = parsedAmount;
         }
 
-        const { request } = await this.publicClient.simulateContract(simulationData);
-        const hash = await this.walletClient.writeContract(request as any);
+        try {
+            const { request } = await this.publicClient.simulateContract(simulationData);
+            const hash = await this.walletClient.writeContract(request as any);
 
-        return { hash, hashlock, nonce: timestamp };
+            return { hash, hashlock, nonce: timestamp };
+        } catch (error) {
+            console.error('Error in createHTLC:', error);
+            throw error;
+        }
     }
 
     async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
@@ -273,16 +278,21 @@ export class EvmHTLCClient implements IHTLCClient {
         if (!this.walletClient) throw new Error('WalletClient required for refund');
         const { id, contractAddress } = params;
 
-        const { request } = await this.publicClient.simulateContract({
-            account: this.walletClient.account?.address as `0x${string}`,
-            abi: HTLCAbi,
-            address: contractAddress as `0x${string}`,
-            functionName: 'refundUser',
-            args: [id],
-            chain: this.publicClient.chain,
-        });
+        try {
+            const { request } = await this.publicClient.simulateContract({
+                account: this.walletClient.account?.address as `0x${string}`,
+                abi: HTLCAbi,
+                address: contractAddress as `0x${string}`,
+                functionName: 'refundUser',
+                args: [id],
+                chain: this.publicClient.chain,
+            });
 
-        return await this.walletClient.writeContract(request as any);
+            return await this.walletClient.writeContract(request as any);
+        } catch (error) {
+            console.error('Error in refund:', error);
+            throw error;
+        }
     }
 
     async claim(params: ClaimParams): Promise<string> {
@@ -291,16 +301,21 @@ export class EvmHTLCClient implements IHTLCClient {
 
         const account = (destinationAddress ?? this.walletClient.account?.address) as `0x${string}`;
 
-        const { request } = await this.publicClient.simulateContract({
-            account,
-            abi: HTLCAbi,
-            address: contractAddress as `0x${string}`,
-            functionName: 'redeemSolver',
-            args: [id, 1, BigInt(secret)],
-            chain: this.publicClient.chain,
-        });
+        try {
+            const { request } = await this.publicClient.simulateContract({
+                account,
+                abi: HTLCAbi,
+                address: contractAddress as `0x${string}`,
+                functionName: 'redeemSolver',
+                args: [id, 1, BigInt(secret)],
+                chain: this.publicClient.chain,
+            });
 
-        return await this.walletClient.writeContract(request as any);
+            return await this.walletClient.writeContract(request as any);
+        } catch (error) {
+            console.error('Error in claim:', error);
+            throw error;
+        }
     }
 
     async recoverSwap(txHash: `0x${string}`): Promise<RecoveredSwapData> {
