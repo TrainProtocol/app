@@ -1,5 +1,5 @@
 export * from './types'
 export * from './login'
-export * from './htlc-clients'
 export * from './api'
 export * from './verification'
+export * from './registry'

@@ -1,7 +1,7 @@
 {
-  "name": "@train-protocol/sdk",
+  "name": "@train-protocol/sdk-evm",
   "version": "0.1.0",
-  "description": "Train Protocol SDK — core HTLC protocol logic",
+  "description": "Train Protocol SDK — EVM HTLC client",
   "type": "module",
   "main": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
@@ -23,11 +23,14 @@
     "dev": "tsc --project tsconfig.json --rootDir ./src --outDir ./dist/esm --declaration --declarationMap --declarationDir ./dist/types --watch",
     "check:types": "tsc --noEmit"
   },
+  "dependencies": {
+    "ox": "^0.13.2"
+  },
   "peerDependencies": {
-    "@noble/hashes": "catalog:"
+    "@train-protocol/sdk": "workspace:^"
   },
   "devDependencies": {
-    "@noble/hashes": "catalog:",
+    "@train-protocol/sdk": "workspace:^",
     "@types/node": "^20",
     "rimraf": "^6.0.1",
     "typescript": "catalog:"

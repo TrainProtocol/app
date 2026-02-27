@@ -58,6 +58,7 @@
     "@ton/ton": "^13.11.1",
     "@tonconnect/ui-react": "^2.0.0-beta.4",
     "@train-protocol/sdk": "workspace:^",
+    "@train-protocol/sdk-evm": "workspace:^",
     "@uidotdev/usehooks": "^2.4.1",
     "@vercel/analytics": "^1.5.0",
     "@walletconnect/ethereum-provider": "2.21.8",

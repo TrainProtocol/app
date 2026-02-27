@@ -22,6 +22,8 @@ export type CreateHTLCParams = {
     rewardAmount?: string;
     rewardTimelockDelta?: number;
     timelockDelta?: number;
+    hashlock: string; 
+    nonce: number
 }
 
 export type LockParams = {
