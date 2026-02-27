@@ -27,7 +27,7 @@ export const ProviderPicker: FC<{ providers: WalletProvider[], selectedProviderN
         <Popover open={open} onOpenChange={() => setOpen(!open)}>
             <PopoverTrigger
                 className={clsx('p-2 border border-secondary-500 rounded-lg bg-secondary-600 hover:brightness-125  relative overflow-visible z-50', {
-                    'bg-secondary-300! brightness-125': selectedProviderNames.length > 0,
+                    'bg-secondary-400! brightness-125': selectedProviderNames.length > 0,
                 })}
             >
                 <MenuIcon className="h-6 w-6 text-secondary-text" />
@@ -56,7 +56,7 @@ export const ProviderPicker: FC<{ providers: WalletProvider[], selectedProviderN
                 {selectedProviderNames.length > 0 && (
                     <button
                         onClick={handleClear}
-                        className="w-full px-3 py-1 mt-1 text-sm font-medium text-secondary-text hover:text-primary-text bg-secondary-300 hover:bg-secondary-200 rounded-lg transition-colors duration-200"
+                        className="w-full px-3 py-1 mt-1 text-sm font-medium text-secondary-text hover:text-primary-text bg-secondary-400 hover:bg-secondary-500 rounded-lg transition-colors duration-200"
                     >
                         Clear
                     </button>

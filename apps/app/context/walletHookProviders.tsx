@@ -34,7 +34,8 @@ export const WalletProvidersProvider: React.FC<React.PropsWithChildren> = ({ chi
         ];
         const filteredProviders = allProviders.filter(provider => isMobilePlatform ? !provider.unsupportedPlatforms?.includes('mobile') : !provider.unsupportedPlatforms?.includes('desktop'));
 
-        return filteredProviders.filter(provider =>
+        return filteredProviders
+        .filter(provider =>
             networks.some(net =>
                 provider.autofillSupportedNetworks?.includes(net.caip2Id) ||
                 provider.withdrawalSupportedNetworks?.includes(net.caip2Id) ||
