@@ -13,9 +13,8 @@ type WillReceiveProps = {
 export const ReceiveAmounts: FC<WillReceiveProps> = ({ source_token, destination_token, fee, isFeeLoading }) => {
 
     const receive_amount_in_base_units = fee?.receiveAmount
-    const receive_amount = formatAmount(receive_amount_in_base_units, destination_token?.decimals);
-    const parsedReceiveAmount = truncateDecimals(receive_amount ?? 0, destination_token?.decimals);
-
+    const receive_amount = destination_token ? formatAmount(BigInt(receive_amount_in_base_units ?? 0), destination_token?.decimals) : null;
+    const parsedReceiveAmount = receive_amount ? truncateDecimals(Number(receive_amount), destination_token?.decimals) : null;
 
     return <div className="w-full h-full">
         <div className="flex items-center justify-between w-full">

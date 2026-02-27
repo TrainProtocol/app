@@ -93,11 +93,11 @@ const FormButton = ({
 };
 
 function ActionText(errors: FormikErrors<SwapFormValues>, actionDisplayName: string): string {
-    return errors.from?.toString()
-        || errors.to?.toString()
-        || errors.fromCurrency
-        || errors.toCurrency
-        || errors.amount
+    return errors.from?.toString() as string
+        || errors.to?.toString() as string
+        || errors.fromCurrency as string
+        || errors.toCurrency as string
+        || errors.amount as string
         || (actionDisplayName)
 }
 

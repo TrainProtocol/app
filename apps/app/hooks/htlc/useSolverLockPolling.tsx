@@ -2,7 +2,7 @@ import useSWR from "swr"
 import { Network, Token } from "../../Models/Network"
 import { LockDetails } from "../../Models/phtlc/PHTLC"
 import { LockParams } from "../../Models/phtlc"
-import { IHTLCClient } from "@/apps/app/lib/htlc/HTLCClient"
+import { IHTLCClient } from "@train-protocol/sdk"
 
 interface UseSolverLockPollingParams {
     network: Network | undefined

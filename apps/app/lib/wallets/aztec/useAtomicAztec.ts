@@ -99,7 +99,7 @@ export default function useAtomicAztec(params: UseAtomicAztecParams): BaseAtomic
 
         return {
             hashlock: id,
-            amount: formatAmount(Number(result.amount), 8),
+            amount: Number(formatAmount(BigInt(result.amount), 8)),
             sender: result.sender?.toString(),
             recipient: result.recipient?.toString(),
             token: result.token?.toString(),
@@ -139,12 +139,12 @@ export default function useAtomicAztec(params: UseAtomicAztecParams): BaseAtomic
 
         return {
             hashlock: id,
-            amount: formatAmount(Number(result.amount), 8),
+            amount: Number(formatAmount(BigInt(result.amount), 8)),
             sender: result.sender?.toString(),
             recipient: result.recipient?.toString(),
             token: result.token?.toString(),
             timelock: Number(result.timelock),
-            reward: formatAmount(Number(result.reward), 8),
+            reward: Number(formatAmount(BigInt(result.reward), 8)),
             rewardTimelock: Number(result.reward_timelock),
             rewardRecipient: result.reward_recipient?.toString(),
             rewardToken: result.reward_token?.toString(),

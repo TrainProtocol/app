@@ -75,14 +75,14 @@ export const DetailsButton: FC<QuoteComponentProps> = ({ quote, isQuoteLoading, 
     const fromCurrency = values.fromCurrency
     const feeAmount = useMemo(() => {
         if (!quote?.totalFee || !fromCurrency) return null
-        return formatAmount(quote.totalFee, fromCurrency.decimals)
+        return formatAmount(BigInt(quote.totalFee), fromCurrency.decimals)
     }, [quote?.totalFee, fromCurrency])
 
     const feeInUsd = useMemo(() => {
         if (feeAmount === null || feeAmount === undefined) return null
         const priceInUsd = resolveTokenUsdPrice(fromCurrency)
         if (!priceInUsd) return null
-        return feeAmount * priceInUsd
+        return Number(feeAmount) * priceInUsd
     }, [feeAmount, fromCurrency, quote])
 
     const displayFeeInUsd = feeInUsd != null
@@ -90,7 +90,7 @@ export const DetailsButton: FC<QuoteComponentProps> = ({ quote, isQuoteLoading, 
         : null
 
     const displayFee = feeAmount !== null && feeAmount !== undefined
-        ? (feeAmount === 0 ? 'Free' : `${truncateDecimals(feeAmount, Math.min(fromCurrency?.decimals || 8, 8))} ${fromCurrency?.symbol || ''}`)
+        ? (Number(feeAmount) === 0 ? 'Free' : `${truncateDecimals(Number(feeAmount), Math.min(fromCurrency?.decimals || 8, 8))} ${fromCurrency?.symbol || ''}`)
         : null
 
     // Train doesn't have avg_completion_time yet

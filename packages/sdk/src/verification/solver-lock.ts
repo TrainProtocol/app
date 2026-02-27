@@ -1,5 +1,4 @@
 import { LockDetails } from '../types/lock'
-import { addressEquals } from '../utils/address'
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
@@ -59,4 +58,9 @@ export function verifySolverLock(params: VerifySolverLockParams): VerificationRe
         skipped: false,
         mismatches,
     }
+}
+
+function addressEquals(addr1: string | undefined | null, addr2: string | undefined | null): boolean {
+    if (!addr1 || !addr2) return false
+    return addr1.toLowerCase() === addr2.toLowerCase()
 }

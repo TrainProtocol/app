@@ -5,7 +5,6 @@ import { ThemeData } from "../../Models/Theme"
 import Wagmi from "./Wagmi";
 import StarknetProvider from "./StarknetProvider";
 import { ImtblPassportProvider } from "./ImtblPassportProvider";
-import FuelProviderWrapper from "./FuelProvider";
 import { WalletModalProvider } from "../WalletModal";
 import { WalletProvidersProvider } from "../../context/walletHookProviders";
 import { AztecWalletProvider } from "../../lib/wallets/aztec/AztecWalletProvider";
@@ -22,13 +21,11 @@ const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], basePath: st
                             <Wagmi>
                                 <WalletModalProvider>
                                     <AztecWalletProvider>
-                                        <FuelProviderWrapper>
-                                            <ImtblPassportProvider>
-                                                <WalletProvidersProvider>
-                                                    {children}
-                                                </WalletProvidersProvider>
-                                            </ImtblPassportProvider>
-                                        </FuelProviderWrapper>
+                                        <ImtblPassportProvider>
+                                            <WalletProvidersProvider>
+                                                {children}
+                                            </WalletProvidersProvider>
+                                        </ImtblPassportProvider>
                                     </AztecWalletProvider>
                                 </WalletModalProvider>
                             </Wagmi>

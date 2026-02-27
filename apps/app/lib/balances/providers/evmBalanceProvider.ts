@@ -36,7 +36,7 @@ export class EVMBalanceProvider extends BalanceProvider {
     getBalances = async (address: string, chain: Chain, network: Network, options?: { timeoutMs?: number, retryCount?: number }): Promise<TokenBalance[] | undefined> => {
         try {
             const { createPublicClient } = await import("viem")
-            const publicClient = createPublicClient({
+            const publicClient: PublicClient = createPublicClient({
                 chain,
                 transport: http(network.nodes?.[0]?.url, {
                     timeout: options?.timeoutMs,

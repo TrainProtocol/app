@@ -1,8 +1,7 @@
 import { GasProps } from "../../../Models/Balance"
 import { Network, getNativeToken, NetworkContractType } from "../../../Models/Network"
 import { GasProvider } from "./types"
-import { PublicClient, TransactionSerializedEIP1559, encodeFunctionData, serializeTransaction, zeroAddress, getContract } from "viem"
-import formatAmount from "../../formatAmount"
+import { PublicClient, TransactionSerializedEIP1559, encodeFunctionData, serializeTransaction, zeroAddress, getContract, formatUnits } from "viem"
 import HTLCAbi from "../../abis/atomic/EVM_HTLC.json"
 import resolveChain from "../../resolveChain"
 import {
@@ -94,7 +93,7 @@ class EthereumGasCalculator {
         if (!multiplier) return undefined
 
         const totalGas = multiplier * totalGasLimit
-        return formatAmount(totalGas, this.nativeTokenDecimals)
+        return Number(formatUnits(totalGas, this.nativeTokenDecimals))
     }
 
     protected encodeUserLockCallData() {
@@ -186,7 +185,7 @@ class OptimismGasCalculator extends EthereumGasCalculator {
         const l1Fee = await this.getL1Fee()
         const totalGas = (multiplier * totalGasLimit) + l1Fee
 
-        return formatAmount(totalGas, this.nativeTokenDecimals)
+        return Number(formatUnits(totalGas, this.nativeTokenDecimals))
     }
 
     private async getL1Fee(): Promise<bigint> {

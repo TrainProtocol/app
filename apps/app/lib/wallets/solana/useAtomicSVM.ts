@@ -9,7 +9,6 @@ import TrainApiClient from "../../trainApiClient"
 import { toHex } from "viem"
 import { AnchorWallet } from "@solana/wallet-adapter-react"
 import { useSecretDerivation } from "@/apps/app/context/secretDerivationContext"
-import { calculateEpochTimelock } from "../utils/calculateTimelock"
 import { BaseAtomicFunctions } from "../utils/atomicTypes"
 import { LockDetails } from "@/apps/app/Models/phtlc/PHTLC"
 
@@ -33,7 +32,6 @@ export default function useAtomicSVM(params: UseAtomicSVMParams): BaseAtomicFunc
         if (!program || !publicKey || !network) return null
 
         // Secret derivation for HTLC with hashlock
-        const timelock = calculateEpochTimelock(40);
         const solanaWallet = { signMessage };
         const secret = await deriveSecret({
             wallet: { metadata: { wallet: solanaWallet }, providerName: 'solana' } as any

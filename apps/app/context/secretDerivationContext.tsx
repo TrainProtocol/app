@@ -3,15 +3,14 @@
 import { createContext, useContext, useEffect, useCallback, ReactNode } from 'react';
 import { Wallet } from '@/apps/app/Models/WalletProvider';
 import {
-  DerivationMethod,
   checkPrfSupport,
   deriveKeyWithPasskey,
   registerPasskey,
-  deriveSecretFromTimelock,
   PrfSupportResult
 } from '@/apps/app/lib/htlc/secretDerivation';
 import { deriveKeyFromEvmSignature } from '@/apps/app/lib/htlc/secretDerivation/walletSign/evm';
 import { useSecretDerivationStore, DerivationStatus } from '@/apps/app/stores/secretDerivationStore';
+import { DerivationMethod, deriveSecretFromTimelock } from '@train-protocol/sdk';
 
 interface SecretDerivationContextValue {
   method: DerivationMethod | null;

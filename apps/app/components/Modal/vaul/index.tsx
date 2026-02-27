@@ -45,7 +45,7 @@ export interface WithoutFadeFromProps {
    * You can also use px values, which doesn't take screen height into account.
    */
   snapPoints?: (number | string)[];
-  fadeFromIndex?: never;
+  fadeFromIndex?: number;
 }
 
 export type DialogProps = {

@@ -46,7 +46,7 @@ const Comp: FC<VaulDrawerProps> = ({ children, show, setShow, header, descriptio
             snapPoints: snapPointsHeight,
             activeSnapPoint: snap,
             setActiveSnapPoint: setSnap,
-            fadeFromIndex: 0 as const,
+            fadeFromIndex: 0,
             onDrag: (e: any) => { if (e.movementY < 0 && !expandRef.current?.classList.contains('hidden')) expandRef.current?.classList.add('hidden') }
         };
     }, [mode, snapPointsHeight, snap]);

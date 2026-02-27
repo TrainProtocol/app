@@ -14,7 +14,7 @@ import useOrderPolling from '../hooks/useOrderPolling';
 import { HTLCStatus, isTerminalStatus } from '@/apps/app/Models/HTLCStatus';
 import { resolveHTLCStatus } from '@train-protocol/sdk';
 import { createHTLCClient } from '@/apps/app/lib/htlc/createHTLCClient';
-import { IHTLCClient } from '@/apps/app/lib/htlc/HTLCClient';
+import { IHTLCClient } from '@train-protocol/sdk';
 import { useRpcConfigStore } from '@/apps/app/stores/rpcConfigStore';
 
 const AtomicStateContext = createContext<DataContextType | null>(null);

@@ -13,9 +13,9 @@ type ReceiveAmountProps = {
 
 export const ReceiveAmount: FC<ReceiveAmountProps> = ({ destination_token, quote, isQuoteLoading }) => {
     const receive_amount_in_base_units = quote?.receiveAmount
-    const receive_amount = parseFloat(formatAmount(receive_amount_in_base_units, destination_token?.decimals).toString());
+    const receive_amount = destination_token ? formatAmount(BigInt(receive_amount_in_base_units ?? 0), destination_token?.decimals) : null;
     const receiveAmountInUsd = receive_amount && destination_token?.priceInUsd
-        ? (receive_amount * destination_token.priceInUsd).toFixed(2)
+        ? (Number(receive_amount) * destination_token.priceInUsd).toFixed(2)
         : undefined;
 
     return (
@@ -27,7 +27,7 @@ export const ReceiveAmount: FC<ReceiveAmountProps> = ({ destination_token, quote
                     { "text-secondary-text": !receive_amount }
                 )}>
                     <NumberFlow
-                        value={receive_amount || 0}
+                        value={receive_amount ? Number(receive_amount) : 0}
                         format={{ maximumFractionDigits: destination_token?.decimals || 2 }}
                     />
                 </div>

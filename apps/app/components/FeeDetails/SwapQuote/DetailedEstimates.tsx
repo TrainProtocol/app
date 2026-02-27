@@ -81,14 +81,14 @@ const Fees = ({ quote, values }: { quote: SwapQuote | undefined, values: SwapFor
 
     const fee_amount = useMemo(() => {
         if (!quote?.totalFee || !fromCurrency) return null
-        return formatAmount(quote.totalFee, fromCurrency.decimals)
+        return formatAmount(BigInt(quote.totalFee), fromCurrency.decimals)
     }, [quote?.totalFee, fromCurrency])
 
     const feeInUsd = useMemo(() => {
         if (fee_amount === null || fee_amount === undefined) return null
         const priceInUsd = resolveTokenUsdPrice(fromCurrency)
         if (!priceInUsd) return null
-        return fee_amount * priceInUsd
+        return Number(fee_amount) * priceInUsd
     }, [fee_amount, fromCurrency, quote])
 
     const displayFeeInUsd = feeInUsd != null
@@ -96,7 +96,7 @@ const Fees = ({ quote, values }: { quote: SwapQuote | undefined, values: SwapFor
         : null
 
     const displayFee = fee_amount !== null && fee_amount !== undefined
-        ? (fee_amount === 0 ? 'Free' : truncateDecimals(fee_amount, Math.min(fromCurrency?.decimals || 8, 8)))
+        ? (Number(fee_amount) === 0 ? 'Free' : truncateDecimals(Number(fee_amount), Math.min(fromCurrency?.decimals || 8, 8)))
         : undefined
 
     const currencyName = fromCurrency?.symbol || ''
@@ -130,9 +130,9 @@ const Rate = ({ quote, values }: { quote: SwapQuote | undefined, values: SwapFor
         if (!quote?.receiveAmount || !values.amount || !fromAsset || !toAsset) return null
         const sendAmount = parseFloat(values.amount)
         if (!sendAmount || sendAmount === 0) return null
-        const receiveAmount = formatAmount(quote.receiveAmount, toAsset.decimals)
-        if (!receiveAmount || receiveAmount === 0) return null
-        return receiveAmount / sendAmount
+        const receiveAmount = toAsset ? formatAmount(BigInt(quote.receiveAmount), toAsset.decimals) : null
+        if (!receiveAmount || Number(receiveAmount) === 0) return null
+        return Number(receiveAmount) / sendAmount
     }, [quote?.receiveAmount, values.amount, fromAsset, toAsset])
 
     if (!fromAsset || !toAsset || !rate) return null

@@ -7,7 +7,6 @@ import PHTLCAbi from "../../abis/atomic/STARKNET_PHTLC.json"
 import ETHABbi from "../../abis/STARKNET_ETH.json"
 import formatAmount from "../../formatAmount"
 import TrainApiClient from "../../trainApiClient"
-import { calculateEpochTimelock } from "../utils/calculateTimelock"
 import { useSecretDerivation } from "@/apps/app/context/secretDerivationContext"
 import { BaseAtomicFunctions } from "../utils/atomicTypes"
 
@@ -44,7 +43,7 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Base
             const increaseAllowanceCall: Call = erc20Contract.populate("increaseAllowance", [atomicAddress, parsedAmount])
 
             const id = ''
-            const timelock = calculateEpochTimelock(20);
+            const timelock = 0;
             
             // Secret derivation for HTLC with hashlock
             const secret = await deriveSecret({
@@ -164,7 +163,7 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Base
             const parsedResult: LockDetails = {
                 ...result,
                 sender: toHex(result.sender),
-                amount: formatAmount(result.amount, 18), //networkToken?.decimals
+                amount: Number(formatAmount(BigInt(result.amount), 18)), //networkToken?.decimals
                 hashlock: result.hashlock && toHex(result.hashlock, { size: 32 }),
                 claimed: Number(result.claimed),
                 secret: BigInt(result.secret),
@@ -182,7 +181,7 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Base
 
     const addLock = async (params: LockParams & OldLockParams) => {
         const { id, hashlock, contractAddress } = params
-        const timelock = calculateEpochTimelock(20)
+        const timelock = 0
 
         if (!starknetWallet?.metadata?.starknetAccount) {
             throw new Error('Wallet not connected')
@@ -211,7 +210,7 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Base
         if (!starknetWallet?.metadata?.starknetAccount) {
             throw new Error('Wallet not connected')
         }
-        const timelock = calculateEpochTimelock(20);
+        const timelock = 0;
         const u256Id = cairo.uint256(id);
         const u256Hashlock = cairo.uint256(hashlock);
         const u256TimeLock = cairo.uint256(timelock);

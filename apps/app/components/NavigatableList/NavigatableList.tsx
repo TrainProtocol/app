@@ -8,7 +8,8 @@ import {
     NavigatableListStateContextType,
     NavigatableListUpdateContextType,
     NavigatableRegistrationContextType,
-    focusedIndexToString
+    focusedIndexToString,
+    FocusedIndex
 } from './context';
 import NavigatableItemComponent from './NavigatableItem';
 
@@ -91,13 +92,13 @@ function createAutoDetectionStore() {
             return cachedSnapshot.indexMap.get(index) ?? -1;
         },
         // Click handler registry - avoids DOM querySelector
-        registerClickHandler(index: { parent: number; child?: number }, handler: () => void) {
+        registerClickHandler(index: FocusedIndex, handler: () => void) {
             clickHandlers.set(focusedIndexToString(index), handler);
         },
-        unregisterClickHandler(index: { parent: number; child?: number }) {
+        unregisterClickHandler(index: FocusedIndex) {
             clickHandlers.delete(focusedIndexToString(index));
         },
-        triggerClick(index: { parent: number; child?: number }) {
+        triggerClick(index: FocusedIndex) {
             const handler = clickHandlers.get(focusedIndexToString(index));
             if (handler) handler();
         },

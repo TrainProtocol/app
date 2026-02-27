@@ -7,16 +7,14 @@ import {
     toHex,
     parseEventLogs,
     parseUnits,
+    formatUnits
 } from 'viem';
-import { CreateHTLCParams, LockParams, RefundParams, ClaimParams } from '../types/params';
-import { LockDetails, LockStatus } from '../types/lock';
-import { AtomicResult, RecoveredSwapData } from '../types/atomic';
-import { Network } from '../types/network';
-import formatAmount from '../utils/format-amount';
-import resolveChain, { ChainFeeConfig } from './resolve-chain';
-import HTLCAbi from '../abis/EVM_HTLC.json';
-import ERC20Abi from '../abis/ERC20.json';
-import { IHTLCClient } from '../types/htlc-client';
+import { CreateHTLCParams, LockParams, RefundParams, ClaimParams } from '../../types/params';
+import { LockDetails, LockStatus } from '../../types/lock';
+import { AtomicResult, RecoveredSwapData } from '../../types/atomic';
+import HTLCAbi from './abis/EVM_HTLC.json';
+import ERC20Abi from './abis/ERC20.json';
+import { IHTLCClient } from '../../types/htlc-client';
 
 export interface EvmHTLCClientConfig {
     rpcUrl: string
@@ -174,7 +172,7 @@ export class EvmHTLCClient implements IHTLCClient {
 
         return {
             hashlock: lockExists ? id : undefined,
-            amount: formatAmount(Number(result.amount), 18),
+            amount: Number(formatUnits(BigInt(result.amount), 18)),
             secret: result.secret != 0n ? BigInt(result.secret) : undefined,
             sender: lockExists ? result.sender : undefined,
             recipient: result.recipient !== zeroAddress ? result.recipient : undefined,
@@ -211,13 +209,13 @@ export class EvmHTLCClient implements IHTLCClient {
 
         return {
             hashlock: id,
-            amount: formatAmount(Number(result.amount), params.decimals ?? 18),
+            amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
             secret: result.secret != 0n ? BigInt(result.secret) : undefined,
             sender: result.sender,
             recipient: result.recipient !== zeroAddress ? result.recipient : undefined,
             token: result.token !== zeroAddress ? result.token : undefined,
             timelock: Number(result.timelock),
-            reward: formatAmount(Number(result.reward), params.decimals ?? 18),
+            reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? 18)),
             rewardTimelock: Number(result.rewardTimelock),
             rewardRecipient: result.rewardRecipient !== zeroAddress ? result.rewardRecipient : undefined,
             rewardToken: result.rewardToken !== zeroAddress ? result.rewardToken : undefined,
@@ -233,16 +231,11 @@ export class EvmHTLCClient implements IHTLCClient {
     async secureGetDetails(
         params: LockParams,
         nodeUrls: string[],
-        network: Network,
-        feeConfig?: ChainFeeConfig
     ): Promise<LockDetails | null> {
         const { id, contractAddress } = params;
 
-        const chain = resolveChain(network, nodeUrls[0], feeConfig);
-        if (!chain) throw new Error('Could not resolve chain for network');
-
         const clients = nodeUrls.map(url =>
-            createPublicClient({ transport: http(url), chain })
+            createPublicClient({ transport: http(url) })
         );
 
         const results = await Promise.all(clients.map(client =>
@@ -264,7 +257,7 @@ export class EvmHTLCClient implements IHTLCClient {
 
         return {
             hashlock: id,
-            amount: formatAmount(Number(firstResult.amount), params.decimals ?? 18),
+            amount: Number(formatUnits(BigInt(firstResult.amount), params.decimals ?? 18)),
             secret: firstResult.secret != 0n ? BigInt(firstResult.secret) : undefined,
             sender: firstResult.sender !== zeroAddress ? firstResult.sender : undefined,
             recipient: firstResult.recipient !== zeroAddress ? firstResult.recipient : undefined,

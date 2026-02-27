@@ -6,7 +6,6 @@ import { LockDetails } from "../../../Models/phtlc/PHTLC"
 import { commitTransactionBuilder } from "./transactionBuilder"
 import { retryUntilFecth } from "../../retry"
 import { getTONDetails } from "./getters"
-import { calculateEpochTimelock } from "../utils/calculateTimelock"
 import { useSecretDerivation } from "@/apps/app/context/secretDerivationContext"
 import { AtomicResult, BaseAtomicFunctions } from "../utils/atomicTypes"
 
@@ -26,7 +25,6 @@ export default function useAtomicTON(params: UseAtomicTONParams): BaseAtomicFunc
         if (!tonWallet?.account.publicKey) return
 
         // Secret derivation for HTLC with hashlock
-        const timelock = calculateEpochTimelock(40);
         const secret = await deriveSecret({
             wallet: { providerName: 'ton', tonConnectUI } as any
         });
@@ -98,7 +96,7 @@ export default function useAtomicTON(params: UseAtomicTONParams): BaseAtomicFunc
     const addLock = async (params: LockParams & OldLockParams) => {
         const { id, hashlock, contractAddress } = params
 
-        const timelock = BigInt(calculateEpochTimelock(20))
+        const timelock = BigInt(0)
 
         const body = beginCell()
             .storeUint(1558004185, 32)

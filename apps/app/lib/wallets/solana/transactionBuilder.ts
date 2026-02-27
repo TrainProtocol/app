@@ -4,7 +4,6 @@ import { Network, Token } from "../../../Models/Network";
 import { LockParams, CreateHTLCParams, OldLockParams } from "../../../Models/phtlc";
 import { BN, Idl, Program } from "@coral-xyz/anchor";
 import { createHash } from "crypto";
-import { calculateEpochTimelock } from "../utils/calculateTimelock";
 
 export const transactionBuilder = async (network: Network, token: Token, walletPublicKey: PublicKey, recipientAddress?: string | undefined) => {
 
@@ -89,7 +88,7 @@ export const phtlcTransactionBuilder = async (params: CreateHTLCParams & { progr
         throw Error("No contract address")
     }
 
-    const bnTimelock = new BN(calculateEpochTimelock(20));
+    const bnTimelock = new BN(0);
 
     const lpAddressPublicKey = new PublicKey(lpAddress);
 
@@ -178,7 +177,7 @@ export const lockTransactionBuilder = async (params: LockParams & OldLockParams 
         throw Error("No Wallet public key")
     }
 
-    const timelock = calculateEpochTimelock(20);
+    const timelock = 0;
     const bnTimelock = new BN(timelock);
 
     const commitIdBuffer = Buffer.from(id.replace('0x', ''), 'hex');
