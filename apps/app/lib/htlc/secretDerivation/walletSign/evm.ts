@@ -1,10 +1,9 @@
-// Compatibility shim — wraps @train-protocol/sdk deriveKeyFromEvmSignature with the old wagmi Config API
+// Compatibility shim — wraps SDK wallet sign registry with the Wagmi Config API
 import { getAccount } from '@wagmi/core'
 import { Config } from 'wagmi'
-import {
-    deriveKeyFromEvmSignature as sdkDeriveKey,
-    getEvmTypedData as sdkGetEvmTypedData,
-} from '@train-protocol/sdk'
+import { deriveKeyFromWallet } from '@train-protocol/sdk'
+import '@train-protocol/sdk-evm' // side-effect: registers evm wallet sign
+import { getEvmTypedData as sdkGetEvmTypedData } from '@train-protocol/sdk-evm'
 
 const isSandbox = process.env.NEXT_PUBLIC_API_VERSION === 'sandbox'
 
@@ -21,8 +20,9 @@ export const deriveKeyFromEvmSignature = async (
         request: (args: { method: string; params: unknown[] }) => Promise<unknown>
     }
 
-    return sdkDeriveKey(provider, address, {
-        sandbox: isSandbox,
-        currentChainId: account.chainId,
+    return deriveKeyFromWallet('eip155', {
+        provider,
+        address,
+        options: { sandbox: isSandbox, currentChainId: account.chainId },
     })
 }

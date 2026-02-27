@@ -8,9 +8,9 @@ import {
   registerPasskey,
   PrfSupportResult
 } from '@/lib/htlc/secretDerivation';
-import { deriveKeyFromEvmSignature } from '@/lib/htlc/secretDerivation/walletSign/evm';
 import { useSecretDerivationStore, DerivationStatus } from '@/stores/secretDerivationStore';
 import { DerivationMethod, deriveSecretFromTimelock } from '@train-protocol/sdk';
+import { deriveKeyFromEvmSignature } from '@/lib/htlc/secretDerivation/walletSign/evm';
 
 interface SecretDerivationContextValue {
   method: DerivationMethod | null;

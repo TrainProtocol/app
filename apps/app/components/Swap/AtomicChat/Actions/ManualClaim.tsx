@@ -4,9 +4,7 @@ import useWallet from "@/hooks/useWallet";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
 import { SwapViewType } from ".";
-import { useWalletClient } from "wagmi";
-import { createHTLCClient } from "@/lib/htlc/createHTLCClient";
-import { useRpcConfigStore } from "@/stores/rpcConfigStore";
+import { useHTLCWriteClient } from "@/hooks/htlc/useHTLCWriteClient";
 
 export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const {
@@ -24,8 +22,7 @@ export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
 
     const { provider } = useWallet(destination_network, 'withdrawal');
     const wallet = provider?.activeWallet;
-    const { data: walletClient } = useWalletClient();
-    const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls);
+    const createWriteClient = useHTLCWriteClient();
 
     const handleManualClaim = async () => {
         try {
@@ -35,12 +32,10 @@ export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
             if (!destination_asset) throw new Error("No destination asset");
             if (!destAtomicContract) throw new Error("No destination contract");
             if (!address) throw new Error("No destination address");
-            if (!walletClient) throw new Error("No wallet client");
-
             if (provider?.activeWallet && (provider.activeWallet.chainId != destination_network.chainId) && provider.switchChain)
                 await provider.switchChain(provider.activeWallet, destination_network.chainId);
 
-            const writeClient = createHTLCClient(destination_network, getEffectiveRpcUrls, walletClient);
+            const writeClient = await createWriteClient(destination_network, wallet);
 
             const txHash = await writeClient.claim({
                 type: destination_asset.contractAddress ? 'erc20' : 'native',

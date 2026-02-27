@@ -1,4 +1,4 @@
-import { deriveKeyMaterial, IDENTITY_SALT } from '../key-derivation';
+import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/sdk';
 
 export interface Eip1193Provider {
     request(args: { method: string; params: unknown[] }): Promise<unknown>
