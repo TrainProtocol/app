@@ -175,13 +175,13 @@ export function AtomicProvider({ children }) {
     const sourceClient = useMemo(() => {
         if (!source_network) return undefined
         try { return createHTLCClient(source_network, getEffectiveRpcUrls) }
-        catch { return undefined }
+        catch (e) { console.error('Error creating source HTLC client:', e); return undefined }
     }, [source_network, getEffectiveRpcUrls])
 
     const destinationClient = useMemo(() => {
         if (!destination_network) return undefined
         try { return createHTLCClient(destination_network, getEffectiveRpcUrls) }
-        catch { return undefined }
+        catch (e) { console.error('Error creating destination HTLC client:', e); return undefined }
     }, [destination_network, getEffectiveRpcUrls])
 
     const handleUserLockSuccess = useCallback((details: LockDetails) => {
