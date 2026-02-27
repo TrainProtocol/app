@@ -1,4 +1,4 @@
-import { Network } from "@/apps/app/Models/Network";
+import { Network } from "@/Models/Network";
 import { Address } from "@ton/core";
 
 type AddressFormatProps = {

@@ -1,5 +1,5 @@
 import WalletIcon from "../Icons/WalletIcon"
-import { Address } from "@/apps/app/lib/address"
+import { Address } from "@/lib/address"
 import useWallet from "../../hooks/useWallet"
 import ConnectButton from "../buttons/connectButton"
 import { useState } from "react"

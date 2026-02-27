@@ -1,5 +1,5 @@
 import SubmitButton from '../../buttons/submitButton';
-import { usePasskeyCredentialIds } from '@/apps/app/stores/secretDerivationStore';
+import { usePasskeyCredentialIds } from '@/stores/secretDerivationStore';
 import { AlertTriangle, Fingerprint, Wallet as WalletIcon } from 'lucide-react';
 
 interface PasskeyChoiceProps {

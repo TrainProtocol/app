@@ -8,8 +8,8 @@ import { ImtblPassportProvider } from "./ImtblPassportProvider";
 import { WalletModalProvider } from "../WalletModal";
 import { WalletProvidersProvider } from "../../context/walletHookProviders";
 import { AztecWalletProvider } from "../../lib/wallets/aztec/AztecWalletProvider";
-import { EvmConnectorsProvider } from "@/apps/app/context/evmConnectorsContext";
-import { SecretDerivationProvider } from "@/apps/app/context/secretDerivationContext";
+import { EvmConnectorsProvider } from "@/context/evmConnectorsContext";
+import { SecretDerivationProvider } from "@/context/secretDerivationContext";
 
 const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], basePath: string, themeData: ThemeData, appName: string | undefined }> = ({ children, basePath, themeData, appName }) => {
     return (

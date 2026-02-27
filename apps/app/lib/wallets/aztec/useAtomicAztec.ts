@@ -5,7 +5,7 @@ import { LockDetails, LockStatus } from "../../../Models/phtlc/PHTLC"
 import { hexToBytes, bytesToHex } from "./utils"
 import formatAmount from "../../formatAmount"
 import { TrainContract } from "./Train"
-import { useSecretDerivation } from "@/apps/app/context/secretDerivationContext"
+import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { BaseAtomicFunctions } from "../utils/atomicTypes"
 import { secretToHashlock } from "@train-protocol/sdk"
 

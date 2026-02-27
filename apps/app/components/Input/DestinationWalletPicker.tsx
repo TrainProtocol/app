@@ -1,11 +1,11 @@
 import { ChevronDown, PlusIcon } from "lucide-react";
 import { AddressGroup, AddressItem, AddressTriggerProps } from "./Address/AddressPicker";
-import { Partner } from "@/apps/app/Models/Partner";
+import { Partner } from "@/Models/Partner";
 import AddressIcon from "../AddressIcon";
-import { Wallet } from "@/apps/app/Models/WalletProvider";
-import { ImageWithFallback } from "@/apps/app/components/Common/ImageWithFallback";
+import { Wallet } from "@/Models/WalletProvider";
+import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
 import clsx from 'clsx';
-import { Address } from "@/apps/app/lib/address";
+import { Address } from "@/lib/address";
 
 const DestinationWalletPicker = (props: AddressTriggerProps) => {
     const { addressItem, connectedWallet, partner, destination } = props

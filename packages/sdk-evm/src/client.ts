@@ -93,20 +93,25 @@ export class EvmHTLCClient implements IHTLCClient {
             hex(solverData || '0x'),
         ])
 
-        await this.rpc.ethCall(
-            atomicContract,
-            calldata,
-            address,
-            isNativeToken ? parsedAmount : undefined,
-        )
+        try {
+            await this.rpc.ethCall(
+                atomicContract,
+                calldata,
+                address,
+                isNativeToken ? parsedAmount : undefined,
+            )
 
-        const hash = await signer.sendTransaction({
-            to: atomicContract,
-            data: calldata,
-            value: isNativeToken ? parsedAmount : undefined,
-        })
+            const hash = await signer.sendTransaction({
+                to: atomicContract,
+                data: calldata,
+                value: isNativeToken ? parsedAmount : undefined,
+            })
 
-        return { hash, hashlock, nonce: timestamp }
+            return { hash, hashlock, nonce: timestamp };
+        } catch (error) {
+            console.error('Error in createHTLC:', error);
+            throw error;
+        }
     }
 
     async refund(params: RefundParams): Promise<string> {
@@ -115,9 +120,14 @@ export class EvmHTLCClient implements IHTLCClient {
 
         const calldata = AbiFunction.encodeData(htlcFunctions.refundUser, [hex(id)])
 
-        await this.rpc.ethCall(contractAddress, calldata, signer.address)
+        try {
+            await this.rpc.ethCall(contractAddress, calldata, signer.address)
 
-        return signer.sendTransaction({ to: contractAddress, data: calldata })
+            return signer.sendTransaction({ to: contractAddress, data: calldata })
+        } catch (error) {
+            console.error('Error in createHTLC:', error);
+            throw error;
+        }
     }
 
     async claim(params: ClaimParams): Promise<string> {
@@ -131,9 +141,14 @@ export class EvmHTLCClient implements IHTLCClient {
             BigInt(secret),
         ])
 
-        await this.rpc.ethCall(contractAddress, calldata, caller)
+        try {
+            await this.rpc.ethCall(contractAddress, calldata, caller)
 
-        return signer.sendTransaction({ to: contractAddress, data: calldata })
+            return signer.sendTransaction({ to: contractAddress, data: calldata })
+        } catch (error) {
+            console.error('Error in createHTLC:', error);
+            throw error;
+        }
     }
 
     // ── Read Operations ────────────────────────────────────────────────

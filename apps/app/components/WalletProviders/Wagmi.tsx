@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Chain, http, fallback, Transport } from 'viem';
 import { useEvmConnectors } from "../../context/evmConnectorsContext";
 import { ActiveEvmAccountProvider } from "./ActiveEvmAccount";
-import { useRpcConfigStore } from "@/apps/app/stores/rpcConfigStore";
+import { useRpcConfigStore } from "@/stores/rpcConfigStore";
 import { getNativeToken } from "../../Models/Network";
 type Props = {
     children: JSX.Element | JSX.Element[]

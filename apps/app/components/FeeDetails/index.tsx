@@ -4,16 +4,16 @@ import { FC, useMemo, useState } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../shadcn/accordion';
 import clsx from 'clsx';
 import { ChevronDown } from 'lucide-react';
-import { SwapQuote } from '@/apps/app/lib/trainApiClient';
+import { SwapQuote } from '@/lib/trainApiClient';
 import GasIcon from '../Icons/GasIcon';
 import Clock from '../Icons/Clock';
 import AverageCompletionTime from '../Common/AverageCompletionTime';
-import useWallet from '@/apps/app/hooks/useWallet';
-import useSWRGas from '@/apps/app/lib/gases/useSWRGas';
+import useWallet from '@/hooks/useWallet';
+import useSWRGas from '@/lib/gases/useSWRGas';
 import NumberFlow from '@number-flow/react';
-import { resolveTokenUsdPrice } from '@/apps/app/helpers/tokenHelper';
+import { resolveTokenUsdPrice } from '@/helpers/tokenHelper';
 import { DetailedEstimates } from './SwapQuote/DetailedEstimates';
-import formatAmount from '@/apps/app/lib/formatAmount';
+import formatAmount from '@/lib/formatAmount';
 import { truncateDecimals } from '../utils/RoundDecimals';
 
 export interface QuoteComponentProps {

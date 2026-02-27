@@ -1,19 +1,19 @@
 import { MenuIcon, ChevronLeft } from "lucide-react";
 import { FC, useEffect, useState } from "react";
-import IconButton from "@/apps/app/components/buttons/iconButton";
-import { FormWizardProvider, useFormWizardaUpdate, useFormWizardState } from "@/apps/app/context/formWizardProvider";
-import { MenuStep } from "@/apps/app/Models/Wizard";
+import IconButton from "@/components/buttons/iconButton";
+import { FormWizardProvider, useFormWizardaUpdate, useFormWizardState } from "@/context/formWizardProvider";
+import { MenuStep } from "@/Models/Wizard";
 import MenuList from "./MenuList";
-import Wizard from "@/apps/app/components/Wizard/Wizard";
+import Wizard from "@/components/Wizard/Wizard";
 import WizardItem from "../Wizard/WizardItem";
 import { NextRouter, useRouter } from "next/router";
-import { resolvePersistantQueryParams } from "@/apps/app/helpers/querryHelper";
-import { Modal, ModalContent } from "@/apps/app/components/Modal/modalWithoutAnimation";
-import RpcNetworkListView from "@/apps/app/components/Settings/RpcNetworkListView";
-import NetworkRpcEditView from "@/apps/app/components/Settings/NetworkRpcEditView";
-import { Network } from "@/apps/app/Models/Network";
-import RecoverSwap from "@/apps/app/components/Swap/Atomic/RecoverSwap";
-import SwapHistory from "@/apps/app/components/SwapHistory";
+import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
+import { Modal, ModalContent } from "@/components/Modal/modalWithoutAnimation";
+import RpcNetworkListView from "@/components/Settings/RpcNetworkListView";
+import NetworkRpcEditView from "@/components/Settings/NetworkRpcEditView";
+import { Network } from "@/Models/Network";
+import RecoverSwap from "@/components/Swap/Atomic/RecoverSwap";
+import SwapHistory from "@/components/SwapHistory";
 
 const Comp = () => {
     const router = useRouter();

@@ -8,9 +8,9 @@ import { lockTransactionBuilder, phtlcTransactionBuilder } from "./transactionBu
 import TrainApiClient from "../../trainApiClient"
 import { toHex } from "viem"
 import { AnchorWallet } from "@solana/wallet-adapter-react"
-import { useSecretDerivation } from "@/apps/app/context/secretDerivationContext"
+import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { BaseAtomicFunctions } from "../utils/atomicTypes"
-import { LockDetails } from "@/apps/app/Models/phtlc/PHTLC"
+import { LockDetails } from "@/Models/phtlc/PHTLC"
 
 export interface UseAtomicSVMParams {
     connection: Connection

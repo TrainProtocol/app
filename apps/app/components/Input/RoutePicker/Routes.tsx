@@ -1,16 +1,16 @@
-import { Network, Token } from "@/apps/app/Models/Network";
-import { SwapDirection } from "@/apps/app/components/DTOs/SwapFormValues";
-import { truncateDecimals } from "@/apps/app/components/utils/RoundDecimals";
-import { SelectItem } from "@/apps/app/components/Select/Selector/SelectItem";
+import { Network, Token } from "@/Models/Network";
+import { SwapDirection } from "@/components/DTOs/SwapFormValues";
+import { truncateDecimals } from "@/components/utils/RoundDecimals";
+import { SelectItem } from "@/components/Select/Selector/SelectItem";
 import { ChevronDown } from "lucide-react";
-import { ImageWithFallback } from "@/apps/app/components/Common/ImageWithFallback";
-import { useBalance } from "@/apps/app/lib/balances/useBalance";
-import { useSwapAccounts } from "@/apps/app/context/swapAccounts";
+import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
+import { useBalance } from "@/lib/balances/useBalance";
+import { useSwapAccounts } from "@/context/swapAccounts";
 import { memo, useMemo } from "react";
-import { RowElement } from "@/apps/app/Models/Route";
-import { resolveTokenLogoUrl } from "@/apps/app/components/utils/resolveTokenLogoUrl";
-import { formatUsd } from "@/apps/app/components/utils/formatUsdAmount";
-import { getTotalBalanceInUSD } from "@/apps/app/helpers/balanceHelper";
+import { RowElement } from "@/Models/Route";
+import { resolveTokenLogoUrl } from "@/components/utils/resolveTokenLogoUrl";
+import { formatUsd } from "@/components/utils/formatUsdAmount";
+import { getTotalBalanceInUSD } from "@/helpers/balanceHelper";
 
 type TokenItemProps = {
     network: Network;

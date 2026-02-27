@@ -1,16 +1,16 @@
 import { FC, useState } from "react";
-import useWallet from "@/apps/app/hooks/useWallet";
-import { useAtomicState } from "@/apps/app/context/atomicContext";
+import useWallet from "@/hooks/useWallet";
+import { useAtomicState } from "@/context/atomicContext";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
-import { LockStatus } from "@/apps/app/Models/phtlc/PHTLC";
-import { SwapQuote } from "@/apps/app/lib/trainApiClient";
-import { useSwapStore } from "@/apps/app/stores/swapStore";
+import { LockStatus } from "@/Models/phtlc/PHTLC";
+import { SwapQuote } from "@/lib/trainApiClient";
+import { useSwapStore } from "@/stores/swapStore";
 import { SwapViewType } from ".";
 import { useConfig } from "wagmi";
-import { useSecretDerivation } from "@/apps/app/context/secretDerivationContext";
+import { useSecretDerivation } from "@/context/secretDerivationContext";
 import { secretToHashlock } from "@train-protocol/sdk";
-import { useHTLCWriteClient } from "@/apps/app/hooks/htlc/useHTLCWriteClient";
+import { useHTLCWriteClient } from "@/hooks/htlc/useHTLCWriteClient";
 import { useSelectedAccount } from "@/context/swapAccounts";
 import { Address } from "@/lib/address";
 

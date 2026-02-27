@@ -8,7 +8,7 @@ import {
     deriveKeyWithPasskey as sdkDeriveKeyWithPasskey,
     PasskeyCredentialStorage,
 } from '@train-protocol/sdk'
-import { useSecretDerivationStore } from '@/apps/app/stores/secretDerivationStore'
+import { useSecretDerivationStore } from '@/stores/secretDerivationStore'
 
 // Re-export pure functions & types
 export {

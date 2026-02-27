@@ -1,15 +1,15 @@
 import { useFormikContext } from "formik";
 import { FC, useCallback, useState } from "react";
-import { SwapDirection, SwapFormValues } from "@/apps/app/components/DTOs/SwapFormValues";
-import { Selector, SelectorContent, SelectorTrigger } from "@/apps/app/components/Select/Selector/Index";
+import { SwapDirection, SwapFormValues } from "@/components/DTOs/SwapFormValues";
+import { Selector, SelectorContent, SelectorTrigger } from "@/components/Select/Selector/Index";
 import { SelectedRouteDisplay } from "./Routes";
-import useFormNetworks from "@/apps/app/hooks/useFormNetworks";
+import useFormNetworks from "@/hooks/useFormNetworks";
 import { Content } from "./Content";
-import { Network, Token } from "@/apps/app/Models/Network";
+import { Network, Token } from "@/Models/Network";
 import clsx from "clsx";
-import useWallet from "@/apps/app/hooks/useWallet";
-import useSuggestionsLimit from "@/apps/app/hooks/useSuggestionsLimit";
-import Balance from "@/apps/app/components/Input/Amount/Balance";
+import useWallet from "@/hooks/useWallet";
+import useSuggestionsLimit from "@/hooks/useSuggestionsLimit";
+import Balance from "@/components/Input/Amount/Balance";
 
 const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ direction, className }) => {
     const {

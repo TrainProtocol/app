@@ -1,7 +1,7 @@
 import { TokenBalance } from "./Balance";
 import { Network, Token } from "./Network";
-import { extractErrorDetails } from "@/apps/app/lib/balances/errorUtils";
-import { classifyNodeError } from "@/apps/app/lib/balances/nodeErrorClassifier";
+import { extractErrorDetails } from "@/lib/balances/errorUtils";
+import { classifyNodeError } from "@/lib/balances/nodeErrorClassifier";
 
 export abstract class BalanceProvider {
     abstract supportsNetwork: (network: Network) => boolean

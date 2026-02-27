@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { InternalConnector, WalletProvider } from "../Models/WalletProvider";
 import { removeDuplicatesWithKey, sortRecentConnectors } from "../components/WalletModal/utils";
-import { featuredWalletsIds } from "@/apps/app/context/evmConnectorsContext";
+import { featuredWalletsIds } from "@/context/evmConnectorsContext";
 
 type UseConnectorsParams = {
     searchValue?: string;

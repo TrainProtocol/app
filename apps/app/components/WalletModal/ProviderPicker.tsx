@@ -3,7 +3,7 @@ import { WalletProvider } from "../../Models/WalletProvider";
 import clsx from "clsx";
 import { Popover, PopoverContent, PopoverTrigger } from "../shadcn/popover";
 import { Checkbox } from "../shadcn/checkbox";
-import MenuIcon from "@/apps/app/components/Icons/MenuIcon";
+import MenuIcon from "@/components/Icons/MenuIcon";
 
 export const ProviderPicker: FC<{ providers: WalletProvider[], selectedProviderNames: string[], setSelectedProviderNames: (providerNames: string[]) => void }> = ({ providers, selectedProviderNames, setSelectedProviderNames }) => {
     const values = useMemo(() => providers.map(p => p.name).sort(), [providers])

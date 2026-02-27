@@ -1,4 +1,4 @@
-import { ImageWithFallback } from "@/apps/app/components/Common/ImageWithFallback";
+import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
 import { ISelectMenuItem } from "./Props/selectMenuItem";
 
 export default function SelectItem({ item }: { item: ISelectMenuItem }) {

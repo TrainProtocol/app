@@ -14,7 +14,7 @@ import { InjectedConnector } from "starknetkit/injected"
 import { WebWalletConnector } from "starknetkit/webwallet"
 // @ts-ignore
 import { ControllerConnector } from "starknetkit/controller"
-import { useRpcConfigStore } from "@/apps/app/stores/rpcConfigStore";
+import { useRpcConfigStore } from "@/stores/rpcConfigStore";
 
 const WALLETCONNECT_PROJECT_ID = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '28168903b2d30c75e5f7f2d71902581b';
 class DiscoveryConnector extends Connector {

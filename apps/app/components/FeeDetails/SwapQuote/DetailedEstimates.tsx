@@ -1,13 +1,13 @@
 import { FC, useMemo } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../shadcn/tooltip'
 import { RateElement } from '../Rate'
-import { SwapQuote } from '@/apps/app/lib/trainApiClient'
+import { SwapQuote } from '@/lib/trainApiClient'
 import { SwapFormValues } from '../../DTOs/SwapFormValues'
-import useWallet from '@/apps/app/hooks/useWallet'
-import useSWRGas from '@/apps/app/lib/gases/useSWRGas'
-import { resolveTokenUsdPrice } from '@/apps/app/helpers/tokenHelper'
-import formatAmount from '@/apps/app/lib/formatAmount'
-import { truncateDecimals } from '@/apps/app/components/utils/RoundDecimals'
+import useWallet from '@/hooks/useWallet'
+import useSWRGas from '@/lib/gases/useSWRGas'
+import { resolveTokenUsdPrice } from '@/helpers/tokenHelper'
+import formatAmount from '@/lib/formatAmount'
+import { truncateDecimals } from '@/components/utils/RoundDecimals'
 
 type DetailedEstimatesProps = {
     quote: SwapQuote | undefined,

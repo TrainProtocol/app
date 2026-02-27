@@ -1,9 +1,9 @@
-import { BalanceProvider } from "@/apps/app/Models/BalanceProvider";
-import { TokenBalance } from "@/apps/app/Models/Balance";
-import { getNativeToken } from "@/apps/app/Models/Network";
+import { BalanceProvider } from "@/Models/BalanceProvider";
+import { TokenBalance } from "@/Models/Balance";
+import { getNativeToken } from "@/Models/Network";
 import { formatUnits } from "viem";
-import KnownInternalNames from "@/apps/app/lib/knownIds";
-import { retryWithExponentialBackoff } from "@/apps/app/lib/retry";
+import KnownInternalNames from "@/lib/knownIds";
+import { retryWithExponentialBackoff } from "@/lib/retry";
 
 export class FuelBalanceProvider extends BalanceProvider {
     supportsNetwork: BalanceProvider['supportsNetwork'] = (network) => {

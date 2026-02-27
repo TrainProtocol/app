@@ -1,4 +1,4 @@
-import { Token } from "@/apps/app/Models/Network"
+import { Token } from "@/Models/Network"
 
 /**
  * Resolves token USD price from token object

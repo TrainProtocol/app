@@ -18,7 +18,7 @@ import { IsExtensionError } from "../helpers/errorHelper";
 import { AsyncModalProvider } from "../context/asyncModal";
 import WalletsProviders from "./WalletProviders";
 import { AtomicProvider } from "../context/atomicContext";
-import { SwapAccountsProvider } from "@/apps/app/context/swapAccounts";
+import { SwapAccountsProvider } from "@/context/swapAccounts";
 import AppSettings from "@/lib/AppSettings";
 
 type Props = {

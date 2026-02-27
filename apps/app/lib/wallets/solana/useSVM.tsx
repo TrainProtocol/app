@@ -6,8 +6,8 @@ import { useAnchorWallet, useConnection, useWallet } from "@solana/wallet-adapte
 import { AnchorProvider, setProvider } from '@coral-xyz/anchor'
 import { useSettingsState } from "../../../context/settings"
 import { isSolanaAdapterSupported } from "./utils"
-import { WalletModalConnector } from "@/apps/app/components/WalletModal"
-import { isMobile } from "@/apps/app/lib/wallets/utils/isMobile"
+import { WalletModalConnector } from "@/components/WalletModal"
+import { isMobile } from "@/lib/wallets/utils/isMobile"
 
 const solanaNames = [KnownInternalNames.Networks.SolanaMainnet, KnownInternalNames.Networks.SolanaDevnet, KnownInternalNames.Networks.SolanaTestnet]
 

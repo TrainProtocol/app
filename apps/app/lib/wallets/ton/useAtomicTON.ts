@@ -6,7 +6,7 @@ import { LockDetails } from "../../../Models/phtlc/PHTLC"
 import { commitTransactionBuilder } from "./transactionBuilder"
 import { retryUntilFecth } from "../../retry"
 import { getTONDetails } from "./getters"
-import { useSecretDerivation } from "@/apps/app/context/secretDerivationContext"
+import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { AtomicResult, BaseAtomicFunctions } from "../utils/atomicTypes"
 
 export interface UseAtomicTONParams {

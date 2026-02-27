@@ -1,8 +1,8 @@
 import { FC, useEffect, useRef } from 'react'
-import { useFormWizardaUpdate, useFormWizardState } from '@/apps/app/context/formWizardProvider';
+import { useFormWizardaUpdate, useFormWizardState } from '@/context/formWizardProvider';
 import { AnimatePresence } from 'framer-motion';
 import HeaderWithMenu from '../HeaderWithMenu';
-import AppSettings from '@/apps/app/lib/AppSettings';
+import AppSettings from '@/lib/AppSettings';
 
 type Props = {
    children: JSX.Element | JSX.Element[];

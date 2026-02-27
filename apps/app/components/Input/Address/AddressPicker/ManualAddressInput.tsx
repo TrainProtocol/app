@@ -1,13 +1,13 @@
 import { ChangeEvent, FC, useCallback, useState } from "react";
-import { SwapFormValues } from "@/apps/app/components/DTOs/SwapFormValues";
+import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import { Pencil } from "lucide-react";
-import { Partner } from "@/apps/app/Models/Partner";
-import { Network } from "@/apps/app/Models/Network";
-import FilledX from "@/apps/app/components/Icons/FilledX";
+import { Partner } from "@/Models/Partner";
+import { Network } from "@/Models/Network";
+import FilledX from "@/components/Icons/FilledX";
 import { AddressGroup, AddressItem } from ".";
-import { Address } from "@/apps/app/lib/address";
+import { Address } from "@/lib/address";
 import AddressWithIcon from "./AddressWithIcon";
-import { Wallet } from "@/apps/app/Models/WalletProvider";
+import { Wallet } from "@/Models/WalletProvider";
 import { FormikHelpers } from "formik";
 
 type AddressInput = {

@@ -3,8 +3,8 @@ import { useRouter } from "next/router"
 import { default as Content } from './Content';
 import { default as Footer } from './Footer';
 import { useCallback, useRef } from "react";
-import { resolvePersistantQueryParams } from "@/apps/app/helpers/querryHelper";
-import AppSettings from "@/apps/app/lib/AppSettings";
+import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
+import AppSettings from "@/lib/AppSettings";
 
 type Props = {
    children: JSX.Element | JSX.Element[];

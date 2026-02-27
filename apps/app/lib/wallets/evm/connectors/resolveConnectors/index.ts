@@ -1,7 +1,7 @@
 import { walletConnect } from "./walletConnect"
 import walletsData from "@/public/walletsData.json"
-import { resolveWalletConnectorIndex } from "@/apps/app/lib/wallets/utils/resolveWalletIcon"
-import { InternalConnector } from "@/apps/app/Models/WalletProvider"
+import { resolveWalletConnectorIndex } from "@/lib/wallets/utils/resolveWalletIcon"
+import { InternalConnector } from "@/Models/WalletProvider"
 
 const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '28168903b2d30c75e5f7f2d71902581b'
 const wallets = Object.values(walletsData.listings)

@@ -4,8 +4,8 @@ import { useSettingsState } from "../../../context/settings";
 import { Connector, useConnect, useDisconnect } from "@starknet-react/core";
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider";
 import { useRpcConfigStore } from "../../../stores/rpcConfigStore";
-import { useStarknetStore } from "@/apps/app/stores/starknetWalletStore";
-import { Network } from "@/apps/app/Models/Network";
+import { useStarknetStore } from "@/stores/starknetWalletStore";
+import { Network } from "@/Models/Network";
 
 export const starknetNames = [KnownInternalNames.Networks.StarkNetGoerli, KnownInternalNames.Networks.StarkNetMainnet, KnownInternalNames.Networks.StarkNetSepolia]
 export default function useStarknet(): WalletProvider {

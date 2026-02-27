@@ -11,8 +11,8 @@ import { truncateDecimals } from "../utils/RoundDecimals";
 import { useSettingsState } from "../../context/settings";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../shadcn/tooltip";
 import { ImageWithFallback } from "../Common/ImageWithFallback";
-import { AccountIdentity, useSelectedAccount } from "@/apps/app/context/swapAccounts";
-import { useBalance } from "@/apps/app/lib/balances/useBalance";
+import { AccountIdentity, useSelectedAccount } from "@/context/swapAccounts";
+import { useBalance } from "@/lib/balances/useBalance";
 
 type Props = {
     selectable?: boolean;

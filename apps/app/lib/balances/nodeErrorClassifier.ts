@@ -1,4 +1,4 @@
-import { TokenBalanceError } from "@/apps/app/Models/Balance";
+import { TokenBalanceError } from "@/Models/Balance";
 
 export type NodeErrorCategory =
     | 'timeout'

@@ -1,7 +1,7 @@
-import { BalanceProvider } from "@/apps/app/Models/BalanceProvider";
-import { TokenBalance } from "@/apps/app/Models/Balance";
+import { BalanceProvider } from "@/Models/BalanceProvider";
+import { TokenBalance } from "@/Models/Balance";
 import { formatUnits } from "viem";
-import KnownInternalNames from "@/apps/app/lib/knownIds";
+import KnownInternalNames from "@/lib/knownIds";
 
 export class SolanaBalanceProvider extends BalanceProvider {
     supportsNetwork: BalanceProvider['supportsNetwork'] = (network) => {

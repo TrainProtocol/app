@@ -1,7 +1,7 @@
 import { createContext, DetailedHTMLProps, forwardRef, HTMLAttributes, ReactNode, SetStateAction, useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import useWindowDimensions from "@/apps/app/hooks/useWindowDimensions";
-import IconButton from "@/apps/app/components/buttons/iconButton";
+import useWindowDimensions from "@/hooks/useWindowDimensions";
+import IconButton from "@/components/buttons/iconButton";
 import { X } from 'lucide-react';
 import clsx from "clsx";
 

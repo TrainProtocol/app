@@ -1,10 +1,10 @@
 import { FC } from "react";
 import { useAtomicState } from "../../../../context/atomicContext";
-import useWallet from "@/apps/app/hooks/useWallet";
+import useWallet from "@/hooks/useWallet";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
 import { SwapViewType } from ".";
-import { useHTLCWriteClient } from "@/apps/app/hooks/htlc/useHTLCWriteClient";
+import { useHTLCWriteClient } from "@/hooks/htlc/useHTLCWriteClient";
 
 export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const {

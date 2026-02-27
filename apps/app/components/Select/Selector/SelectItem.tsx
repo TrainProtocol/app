@@ -1,4 +1,4 @@
-import { ImageWithFallback } from '@/apps/app/components/Common/ImageWithFallback';
+import { ImageWithFallback } from '@/components/Common/ImageWithFallback';
 import clsx from 'clsx';
 import { ReactNode } from 'react';
 

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Partner } from "@/apps/app/Models/Partner"
+import { Partner } from "@/Models/Partner"
 import AddressPicker, { AddressTriggerProps } from "./AddressPicker"
 type AddressProps = {
     children: (props: AddressTriggerProps) => JSX.Element;

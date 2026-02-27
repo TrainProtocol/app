@@ -6,18 +6,18 @@ import { UserRefundAction, UserCommitAction } from "./UserActions";
 import TransactionMessages from "../../messages/TransactionMessages";
 import WalletMessage from "../../messages/Message";
 import DestinationWalletWrapper from "./DestinationWalletWrapper";
-import { SwapQuote } from "@/apps/app/lib/trainApiClient";
-import SubmitButton from "@/apps/app/components/buttons/submitButton";
+import { SwapQuote } from "@/lib/trainApiClient";
+import SubmitButton from "@/components/buttons/submitButton";
 import { ExternalLink, Home } from "lucide-react";
-import { useGoHome } from "@/apps/app/hooks/useGoHome";
-import { getExplorerUrl } from "@/apps/app/lib/address";
-import NetworkSettings from "@/apps/app/lib/NetworkSettings";
-import { Widget } from "@/apps/app/components/Widget/Index";
-import { useSwapPreferencesStore } from "@/apps/app/stores/swapPreferencesStore";
-import { useRevealSecret } from "@/apps/app/hooks/htlc/useRevealSecret";
-import { useSolverLockVerification } from "@/apps/app/hooks/htlc/useSolverLockVerification";
-import { Drawer } from "@/apps/app/components/Modal/vaul";
-import { HTLCStatus } from "@/apps/app/Models/HTLCStatus";
+import { useGoHome } from "@/hooks/useGoHome";
+import { getExplorerUrl } from "@/lib/address";
+import NetworkSettings from "@/lib/NetworkSettings";
+import { Widget } from "@/components/Widget/Index";
+import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
+import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
+import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
+import { Drawer } from "@/components/Modal/vaul";
+import { HTLCStatus } from "@/Models/HTLCStatus";
 
 export type SwapViewType = "widget" | "contained"
 

@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { ChevronDown } from "lucide-react";
 import FailIcon from "../../Icons/FailIcon";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/apps/app/components/shadcn/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/shadcn/accordion";
 
 export type WalletMessageProps = {
     header: string;

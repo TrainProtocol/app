@@ -11,7 +11,7 @@ import useWallet from "../../../hooks/useWallet";
 import FormButton from "../FormButton";
 import { hasRequiredDestinationWallet } from "../../../lib/wallets/utils/destinationWalletUtils";
 import { SwapQuote } from "../../../lib/trainApiClient";
-import QuoteDetails from "@/apps/app/components/FeeDetails";
+import QuoteDetails from "@/components/FeeDetails";
 import ReverseRouteButton from "./ReverseRouteButton";
 
 type SwapFormProps = {
