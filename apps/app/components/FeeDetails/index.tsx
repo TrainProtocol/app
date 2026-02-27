@@ -42,7 +42,7 @@ export default function QuoteDetails({ values, quote, isQuoteLoading }: QuoteCom
                         }
                     )}>
                     {isAccordionOpen ? (
-                        <p className='text-sm'>Details</p>
+                        <p className='text-sm h-[22px]'>Details</p>
                     ) : (
                         <DetailsButton quote={quote} isQuoteLoading={isQuoteLoading} values={values} />
                     )}
@@ -104,9 +104,7 @@ export const DetailsButton: FC<QuoteComponentProps> = ({ quote, isQuoteLoading, 
                         "inline-flex items-center gap-1",
                         { "animate-pulse-strong": isQuoteLoading }
                     )}>
-                        <div className='p-0.5'>
                             <GasIcon className='h-4 w-4 text-secondary-text' />
-                        </div>
                         <NumberFlow className="text-primary-text text-sm leading-6" value={gasFeeInUsd < 0.01 ? 0.01 : gasFeeInUsd} prefix={gasFeeInUsd < 0.01 ? '<$' : '$'} />
                     </div>
                     <div className="w-px h-3 bg-primary-text-tertiary rounded-2xl" />

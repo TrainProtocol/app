@@ -2,20 +2,20 @@ import { Context, createContext, useCallback, useContext, useEffect, useMemo, us
 import { useRouter } from 'next/router';
 import { useSettingsState } from './settings';
 import { LockDetails, LockStatus } from '../Models/phtlc/PHTLC';
-import { Network, Token } from '@/apps/app/Models/Network';
-import { HTLCFromApi, HTLCTransaction } from '@/apps/app/lib/trainApiClient';
-import LightClient from '@/apps/app/lib/lightClient';
-import { SwapData, useSwapStore } from '@/apps/app/stores/swapStore';
+import { Network, Token } from '@/Models/Network';
+import { HTLCFromApi, HTLCTransaction } from '@train-protocol/sdk';
+import LightClient from '@/lib/lightClient';
+import { SwapData, useSwapStore } from '@/stores/swapStore';
 import { useShallow } from 'zustand/react/shallow';
-import { resolvePersistantQueryParams } from '@/apps/app/helpers/querryHelper';
-import useUserLockPolling from '@/apps/app/hooks/htlc/useUserLockPolling';
-import useSolverLockPolling from '@/apps/app/hooks/htlc/useSolverLockPolling';
-import useOrderPolling from '../hooks/useOrderPolling';
-import { HTLCStatus, isTerminalStatus } from '@/apps/app/Models/HTLCStatus';
+import { resolvePersistantQueryParams } from '@/helpers/querryHelper';
+import useUserLockPolling from '@/hooks/htlc/useUserLockPolling';
+import useSolverLockPolling from '@/hooks/htlc/useSolverLockPolling';
 import { resolveHTLCStatus } from '@train-protocol/sdk';
-import { createHTLCClient } from '@/apps/app/lib/htlc/createHTLCClient';
+import { createHTLCClient } from '@/lib/htlc/createHTLCClient';
 import { IHTLCClient } from '@train-protocol/sdk';
-import { useRpcConfigStore } from '@/apps/app/stores/rpcConfigStore';
+import { useRpcConfigStore } from '@/stores/rpcConfigStore';
+import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus';
+import useOrderStreaming from '@/hooks/useOrderStreaming';
 
 const AtomicStateContext = createContext<DataContextType | null>(null);
 
@@ -144,7 +144,7 @@ export function AtomicProvider({ children }) {
     const source_token = source_network?.tokens.find(t => t.symbol === source_asset)
     const destination_token = destination_network?.tokens.find(t => t.symbol === destination_asset)
 
-    useOrderPolling({
+    useOrderStreaming({
         solverId: solverName,
         hashlock,
         enabled: !!hashlock && !!solverName && !destinationRedeemTx,

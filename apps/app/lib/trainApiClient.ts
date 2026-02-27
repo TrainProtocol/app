@@ -17,6 +17,10 @@ export type {
     SwapQuoteResponse,
     SwapQuote,
     RevealSecretParams,
+    OrderCreatedEventData, 
+    OrderStreamEvent,
+    TransactionCreatedEventData,
+    StatusChangedEventData
 } from '@train-protocol/sdk'
 export { HTLCTransaction } from '@train-protocol/sdk'
 

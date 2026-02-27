@@ -121,3 +121,32 @@ export type SwapQuoteResponse = {
 
 /** Resolved best quote */
 export type SwapQuote = QuoteDetails;
+
+
+export type OrderStreamEvent = {
+    eventType: 'order.created' | 'order.transaction_created' | 'order.status_changed'
+    data: OrderCreatedEventData | TransactionCreatedEventData | StatusChangedEventData
+}
+
+export type OrderCreatedEventData = {
+    hashlock: string
+    routeId: number
+    sourceAddress: string
+    destinationAddress: string
+    sourceAmount: string
+    destinationAmount: string
+}
+
+export type TransactionCreatedEventData = {
+    hashlock: string
+    network: string
+    networkId: string
+    transactionType: string
+    transactionHash: string
+}
+
+export type StatusChangedEventData = {
+    hashlock: string
+    status: string
+    failureReason: string | null
+}
