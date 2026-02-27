@@ -8,7 +8,6 @@ import { NextRouter, useRouter } from "next/router";
 import { useQueryState } from "@/apps/app/context/query";
 import useWallet from "@/apps/app/hooks/useWallet";
 import { SwapQuote } from "@/apps/app/lib/trainApiClient";
-import { dynamicWithRetries } from "@/apps/app/lib/dynamicWithRetries";
 import { useAtomicState } from "@/apps/app/context/atomicContext";
 import VaulDrawer from "../../Modal/vaulModal";
 import { Widget } from "../../Widget/Index";
@@ -21,19 +20,7 @@ import { formatUnits } from "viem";
 import { NetworkContractType } from "@/apps/app/Models/Network";
 import { HTLCStatus } from "@/apps/app/Models/HTLCStatus";
 import { usePulsatingCircles } from "@/apps/app/stores/pulsatingCirclesStore";
-
-const AtomicPage = dynamicWithRetries(
-    () => import("../AtomicChat") as unknown as Promise<{ default: React.ComponentType<any> }>,
-    <div className="w-full h-[450px]">
-        <div className="animate-pulse flex space-x-4">
-            <div className="flex-1 space-y-6 py-1">
-                <div className="h-32 bg-secondary-700 rounded-lg"></div>
-                <div className="h-40 bg-secondary-700 rounded-lg"></div>
-                <div className="h-12 bg-secondary-700 rounded-lg"></div>
-            </div>
-        </div>
-    </div>
-)
+import AtomicPage from "../AtomicChat";
 
 export default function Form() {
     const formikRef = useRef<FormikProps<SwapFormValues>>(null);
