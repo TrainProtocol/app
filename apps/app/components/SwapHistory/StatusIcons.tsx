@@ -1,5 +1,5 @@
-import { HTLCStatus } from '@/apps/app/Models/HTLCStatus'
-import CircleCheckIcon from '@/apps/app/components/Icons/CircleCheckIcon'
+import { HTLCStatus } from '@/Models/HTLCStatus'
+import CircleCheckIcon from '@/components/Icons/CircleCheckIcon'
 
 export default function StatusIcons({ status }: { status: HTLCStatus | undefined }) {
     switch (status) {

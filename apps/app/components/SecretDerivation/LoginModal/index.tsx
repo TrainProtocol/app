@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useConfig } from 'wagmi';
 import { Loader2, ChevronLeft, CircleX } from 'lucide-react';
-import VaulModal from '@/apps/app/components/Modal/vaulModal';
-import { useSecretDerivation } from '@/apps/app/context/secretDerivationContext';
-import { mapPasskeyError } from '@/apps/app/lib/htlc/secretDerivation/passkeyService';
+import VaulModal from '@/components/Modal/vaulModal';
+import { useSecretDerivation } from '@/context/secretDerivationContext';
+import { mapPasskeyError } from '@/lib/htlc/secretDerivation/passkeyService';
 import { PasskeyChoice } from './PasskeyChoice';
-import { Wallet } from '@/apps/app/Models/WalletProvider';
-import { useSteps } from '@/apps/app/hooks/useSteps';
-import { Steps, Step } from '@/apps/app/components/Step';
+import { Wallet } from '@/Models/WalletProvider';
+import { useSteps } from '@/hooks/useSteps';
+import { Steps, Step } from '@/components/Step';
 import OptionSelect from './OptionSelect';
-import IconButton from '@/apps/app/components/buttons/iconButton';
+import IconButton from '@/components/buttons/iconButton';
 import WalletSelect from './SelectWallet';
-import { usePasskeyCredentialIds } from '@/apps/app/stores/secretDerivationStore';
+import { usePasskeyCredentialIds } from '@/stores/secretDerivationStore';
 
 type LoginStep = 'pick' | 'passkey_recovery' | 'wallet_select' | 'signing';
 

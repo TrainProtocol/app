@@ -1,8 +1,8 @@
 import { FC } from "react"
 import { AddressItem } from ".";
-import { Partner } from "@/apps/app/Models/Partner";
-import { Network } from "@/apps/app/Models/Network";
-import { Wallet } from "@/apps/app/Models/WalletProvider";
+import { Partner } from "@/Models/Partner";
+import { Network } from "@/Models/Network";
+import { Wallet } from "@/Models/WalletProvider";
 
 type AddressButtonProps = {
     openAddressModal: () => void;

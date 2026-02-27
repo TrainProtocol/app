@@ -1,9 +1,9 @@
 import { FC } from "react";
-import { Token } from "@/apps/app/Models/Network";
-import { SwapQuote } from "@/apps/app/lib/trainApiClient";
+import { Token } from "@/Models/Network";
+import { SwapQuote } from "@/lib/trainApiClient";
 import NumberFlow from "@number-flow/react";
 import clsx from "clsx";
-import formatAmount from "@/apps/app/lib/formatAmount";
+import formatAmount from "@/lib/formatAmount";
 
 type ReceiveAmountProps = {
     destination_token: Token | undefined;

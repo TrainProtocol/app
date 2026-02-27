@@ -1,7 +1,7 @@
 // components/SecretDerivation/SignFlowModal.tsx
 // Single flow: choose method (if needed) → signing state until commit completes
 
-import { useSecretDerivation } from '@/apps/app/context/secretDerivationContext';
+import { useSecretDerivation } from '@/context/secretDerivationContext';
 import VaulModal from '../Modal/vaulModal';
 import { Loader2 } from 'lucide-react';
 

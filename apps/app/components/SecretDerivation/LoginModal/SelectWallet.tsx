@@ -1,8 +1,8 @@
-import WalletIcon from "@/apps/app/components/Icons/WalletIcon";
-import { Address } from "@/apps/app/lib/address";
-import { useConnectModal } from "@/apps/app/components/WalletModal";
-import useWallet from "@/apps/app/hooks/useWallet";
-import { Wallet } from "@/apps/app/Models/WalletProvider";
+import WalletIcon from "@/components/Icons/WalletIcon";
+import { Address } from "@/lib/address";
+import { useConnectModal } from "@/components/WalletModal";
+import useWallet from "@/hooks/useWallet";
+import { Wallet } from "@/Models/WalletProvider";
 import { Plus } from "lucide-react";
 
 interface WalletSelectProps {

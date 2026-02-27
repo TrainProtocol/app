@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
-import { useAtomicState } from '@/apps/app/context/atomicContext'
-import { useSwapStore } from '@/apps/app/stores/swapStore'
+import { useAtomicState } from '@/context/atomicContext'
+import { useSwapStore } from '@/stores/swapStore'
 import { useShallow } from 'zustand/react/shallow'
-import { Address } from '@/apps/app/lib/address'
+import { Address } from '@/lib/address'
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 

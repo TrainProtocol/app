@@ -1,15 +1,15 @@
 // context/secretDerivationContext.tsx
 
 import { createContext, useContext, useEffect, useCallback, ReactNode } from 'react';
-import { Wallet } from '@/apps/app/Models/WalletProvider';
+import { Wallet } from '@/Models/WalletProvider';
 import {
   checkPrfSupport,
   deriveKeyWithPasskey,
   registerPasskey,
   PrfSupportResult
-} from '@/apps/app/lib/htlc/secretDerivation';
-import { deriveKeyFromEvmSignature } from '@/apps/app/lib/htlc/secretDerivation/walletSign/evm';
-import { useSecretDerivationStore, DerivationStatus } from '@/apps/app/stores/secretDerivationStore';
+} from '@/lib/htlc/secretDerivation';
+import { deriveKeyFromEvmSignature } from '@/lib/htlc/secretDerivation/walletSign/evm';
+import { useSecretDerivationStore, DerivationStatus } from '@/stores/secretDerivationStore';
 import { DerivationMethod, deriveSecretFromTimelock } from '@train-protocol/sdk';
 
 interface SecretDerivationContextValue {

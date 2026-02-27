@@ -1,19 +1,19 @@
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import useWallet from "@/apps/app/hooks/useWallet";
-import { useConnectModal, WalletModalConnector } from "@/apps/app/components/WalletModal";
-import { InternalConnector, Wallet, WalletProvider } from "@/apps/app/Models/WalletProvider";
+import useWallet from "@/hooks/useWallet";
+import { useConnectModal, WalletModalConnector } from "@/components/WalletModal";
+import { InternalConnector, Wallet, WalletProvider } from "@/Models/WalletProvider";
 import clsx from "clsx";
 import Connector from "./Connector";
-import { usePersistedState } from "@/apps/app/hooks/usePersistedState";
-import { useConnectors } from "@/apps/app/hooks/useConnectors";
-import { SearchComponent } from "@/apps/app/components/Input/Search";
-import CircularLoader from "@/apps/app/components/Icons/CircularLoader";
+import { usePersistedState } from "@/hooks/usePersistedState";
+import { useConnectors } from "@/hooks/useConnectors";
+import { SearchComponent } from "@/components/Input/Search";
+import CircularLoader from "@/components/Icons/CircularLoader";
 import { MultichainConnectorPicker } from "./MultichainConnectorPicker";
 import { ProviderPicker } from "./ProviderPicker";
 import { InstalledExtensionNotFound } from "./InstalledExtensionNotFound";
 import { WalletQrCode } from "./WalletQrCode";
 import { LoadingConnect } from "./LoadingConnect";
-import { isMobile } from "@/apps/app/lib/wallets/utils/isMobile";
+import { isMobile } from "@/lib/wallets/utils/isMobile";
 
 const LAZY_LOAD_CONFIG = {
     itemsPerLoad: 20,

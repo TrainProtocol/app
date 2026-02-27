@@ -3,7 +3,7 @@ import Image from 'next/image'
 import { ChevronDown } from 'lucide-react'
 import { ISelectMenuItem, SelectMenuItem } from '../Shared/Props/selectMenuItem'
 import CommandSelect, { SelectMenuItemGroup } from './commandSelect'
-import { ImageWithFallback } from '@/apps/app/components/Common/ImageWithFallback'
+import { ImageWithFallback } from '@/components/Common/ImageWithFallback'
 
 type CommandSelectWrapperProps = {
     setValue: (value: ISelectMenuItem) => void;

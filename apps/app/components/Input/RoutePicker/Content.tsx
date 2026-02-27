@@ -1,12 +1,12 @@
 import { FC, useEffect, useMemo, useRef, useState } from "react";
-import { NetworkElement, RowElement } from "@/apps/app/Models/Route";
-import { SwapDirection } from "@/apps/app/components/DTOs/SwapFormValues";
-import { useVirtualizer } from "@/apps/app/lib/virtual";
-import { Accordion } from "@/apps/app/components/shadcn/accordion";
+import { NetworkElement, RowElement } from "@/Models/Route";
+import { SwapDirection } from "@/components/DTOs/SwapFormValues";
+import { useVirtualizer } from "@/lib/virtual";
+import { Accordion } from "@/components/shadcn/accordion";
 import Row from "./Rows";
-import { Network, Token } from "@/apps/app/Models/Network";
+import { Network, Token } from "@/Models/Network";
 import RouteSearch from "./RouteSearch";
-import NavigatableList from "@/apps/app/components/NavigatableList";
+import NavigatableList from "@/components/NavigatableList";
 
 type ContentProps = {
     onSelect: (network: Network, token: Token) => Promise<void> | void;

@@ -1,14 +1,14 @@
 import { useFormikContext } from "formik";
-import { SwapFormValues } from "@/apps/app/components/DTOs/SwapFormValues";
-import useSWRGas from "@/apps/app/lib/gases/useSWRGas";
-import { Token } from "@/apps/app/Models/Network";
-import { Network } from "@/apps/app/Models/Network";
+import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
+import useSWRGas from "@/lib/gases/useSWRGas";
+import { Token } from "@/Models/Network";
+import { Network } from "@/Models/Network";
 import React, { FC, useMemo } from "react";
 import { resolveMaxAllowedAmount } from "./helpers";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/apps/app/components/shadcn/tooltip";
-import { useSelectedAccount } from "@/apps/app/context/swapAccounts";
-import { useBalance } from "@/apps/app/lib/balances/useBalance";
-import { getNativeToken } from "@/apps/app/Models/Network";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip";
+import { useSelectedAccount } from "@/context/swapAccounts";
+import { useBalance } from "@/lib/balances/useBalance";
+import { getNativeToken } from "@/Models/Network";
 
 type MinMaxProps = {
     fromCurrency: Token,

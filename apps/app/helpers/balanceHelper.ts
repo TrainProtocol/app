@@ -1,5 +1,5 @@
-import { NetworkBalance } from "@/apps/app/Models/Balance";
-import { Network } from "@/apps/app/Models/Network";
+import { NetworkBalance } from "@/Models/Balance";
+import { Network } from "@/Models/Network";
 
 export function getTotalBalanceInUSD(networkBalance: NetworkBalance, network: Network): number | null {
     if (!networkBalance.balances?.length) return null;

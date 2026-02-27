@@ -11,7 +11,7 @@ import useWallet from "../../hooks/useWallet";
 import { useConnectModal } from "../WalletModal";
 import { useSecretDerivation } from "../../context/secretDerivationContext";
 import { LoginModal } from "../SecretDerivation";
-import { useLoginModalStore } from "@/apps/app/stores/loginModalStore";
+import { useLoginModalStore } from "@/stores/loginModalStore";
 import SubmitButton from "../buttons/submitButton";
 
 const Address = dynamic(

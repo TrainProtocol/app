@@ -11,8 +11,8 @@ import useTON from "../lib/wallets/ton/useTON";
 import useSVM from "../lib/wallets/solana/useSVM";
 import VaulDrawer from "../components/Modal/vaulModal";
 import useAztec from "../lib/wallets/aztec/useAztec";
-import useWindowDimensions from "@/apps/app/hooks/useWindowDimensions";
-import { isMobile } from "@/apps/app/lib/wallets/utils/isMobile";
+import useWindowDimensions from "@/hooks/useWindowDimensions";
+import { isMobile } from "@/lib/wallets/utils/isMobile";
 
 const WalletProvidersContext = createContext<WalletProvider[]>([]);
 

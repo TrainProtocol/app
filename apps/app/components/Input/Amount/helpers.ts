@@ -1,5 +1,5 @@
-import { TokenBalance } from "@/apps/app/Models/Balance"
-import { Token } from "@/apps/app/Models/Network"
+import { TokenBalance } from "@/Models/Balance"
+import { Token } from "@/Models/Network"
 
 
 type ResoleMaxAllowedAmountProps = {

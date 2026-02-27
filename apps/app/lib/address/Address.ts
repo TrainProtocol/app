@@ -1,6 +1,6 @@
-import { isValidAddress } from '@/apps/app/lib/address/validator';
-import { addressFormat } from '@/apps/app/lib/address/formatter';
-import { Network } from '@/apps/app/Models/Network';
+import { isValidAddress } from '@/lib/address/validator';
+import { addressFormat } from '@/lib/address/formatter';
+import { Network } from '@/Models/Network';
 
 export type AddressDisplayFormat = 'short' | 'ending' | 'full' | 'emphasized';
 

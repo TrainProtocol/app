@@ -1,12 +1,12 @@
 import { useMemo, memo, useRef, useState } from "react";
-import { AccordionContent, AccordionItem, AccordionTrigger } from "@/apps/app/components/shadcn/accordion";
-import { NetworkElement, GroupedTokenElement } from "@/apps/app/Models/Route";
-import { SwapDirection } from "@/apps/app/components/DTOs/SwapFormValues";
-import { Network, Token } from "@/apps/app/Models/Network";
+import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/shadcn/accordion";
+import { NetworkElement, GroupedTokenElement } from "@/Models/Route";
+import { SwapDirection } from "@/components/DTOs/SwapFormValues";
+import { Network, Token } from "@/Models/Network";
 import { CollapsableHeader } from "./CollapsableHeader";
 import { CurrencySelectItemDisplay } from "../Routes";
 import clsx from "clsx";
-import { NavigatableItem } from "@/apps/app/components/NavigatableList";
+import { NavigatableItem } from "@/components/NavigatableList";
 import { StickyHeader } from "./StickyHeader";
 
 type GenericAccordionRowProps = {

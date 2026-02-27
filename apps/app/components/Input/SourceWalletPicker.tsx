@@ -1,16 +1,16 @@
 import { useFormikContext } from "formik";
 import { SwapFormValues } from "../DTOs/SwapFormValues";
 import { Dispatch, FC, SetStateAction, useCallback, useState } from "react";
-import useWallet from "@/apps/app/hooks/useWallet";
-import { Address } from "@/apps/app/lib/address";
+import useWallet from "@/hooks/useWallet";
+import { Address } from "@/lib/address";
 import { ChevronDown } from "lucide-react";
 import VaulDrawer from "../Modal/vaulModal";
-import { SelectAccountProps, Wallet } from "@/apps/app/Models/WalletProvider";
-import WalletIcon from "@/apps/app/components/Icons/WalletIcon";
-import SubmitButton from "@/apps/app/components/buttons/submitButton";
+import { SelectAccountProps, Wallet } from "@/Models/WalletProvider";
+import WalletIcon from "@/components/Icons/WalletIcon";
+import SubmitButton from "@/components/buttons/submitButton";
 import { useConnectModal } from "../WalletModal";
-import WalletsList from "@/apps/app/components/Wallet/WalletsList";
-import { useSelectedAccount, useSelectSwapAccount } from "@/apps/app/context/swapAccounts";
+import WalletsList from "@/components/Wallet/WalletsList";
+import { useSelectedAccount, useSelectSwapAccount } from "@/context/swapAccounts";
 
 const SourceWalletPicker: FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false)

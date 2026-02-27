@@ -1,18 +1,18 @@
 import { useFormikContext } from "formik";
 import { FC, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SwapFormValues } from "@/apps/app/components/DTOs/SwapFormValues";
-import { Partner } from "@/apps/app/Models/Partner";
-import useWallet from "@/apps/app/hooks/useWallet";
-import { Address as AddressClass } from "@/apps/app/lib/address";
+import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
+import { Partner } from "@/Models/Partner";
+import useWallet from "@/hooks/useWallet";
+import { Address as AddressClass } from "@/lib/address";
 import ManualAddressInput from "./ManualAddressInput";
-import Modal from "@/apps/app/components/Modal/modal";
-import { Network } from "@/apps/app/Models/Network";
+import Modal from "@/components/Modal/modal";
+import { Network } from "@/Models/Network";
 import AddressBook from "./AddressBook";
 import AddressButton from "./AddressButton";
-import { useQueryState } from "@/apps/app/context/query";
+import { useQueryState } from "@/context/query";
 import ConnectedWallets from "./ConnectedWallets";
-import { Wallet } from "@/apps/app/Models/WalletProvider";
-import { useSelectedAccount, useSelectSwapAccount } from "@/apps/app/context/swapAccounts";
+import { Wallet } from "@/Models/WalletProvider";
+import { useSelectedAccount, useSelectSwapAccount } from "@/context/swapAccounts";
 import ConnectWalletButton from "./ConnectedWallets/ConnectWalletButton";
 
 export enum AddressGroup {

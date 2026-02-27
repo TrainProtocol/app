@@ -1,12 +1,12 @@
-import { CommandGroup, CommandList, CommandWrapper } from "@/apps/app/components/shadcn/command";
-import { Address } from "@/apps/app/lib/address";
-import FilledCheck from "@/apps/app/components/Icons/FilledCheck";
+import { CommandGroup, CommandList, CommandWrapper } from "@/components/shadcn/command";
+import { Address } from "@/lib/address";
+import FilledCheck from "@/components/Icons/FilledCheck";
 import { AddressGroup, AddressItem } from ".";
-import { Network } from "@/apps/app/Models/Network";
+import { Network } from "@/Models/Network";
 import { FC } from "react";
 import AddressWithIcon from "./AddressWithIcon";
-import { Partner } from "@/apps/app/Models/Partner";
-import { Wallet } from "@/apps/app/Models/WalletProvider";
+import { Partner } from "@/Models/Partner";
+import { Wallet } from "@/Models/WalletProvider";
 import { BookOpen } from "lucide-react";
 
 type AddressBookProps = {

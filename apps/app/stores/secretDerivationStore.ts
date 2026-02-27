@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { Wallet } from '@/apps/app/Models/WalletProvider';
-import { PrfSupportResult } from '@/apps/app/lib/htlc/secretDerivation';
+import { Wallet } from '@/Models/WalletProvider';
+import { PrfSupportResult } from '@/lib/htlc/secretDerivation';
 import { DerivationMethod } from '@train-protocol/sdk';
 
 export type DerivationStatus = 'idle' | 'signing';

@@ -1,6 +1,6 @@
 import { useCallback, useState, useEffect, useRef } from 'react';
-import { useKeyboardNavigation } from '@/apps/app/hooks/useKeyboardNavigation';
-import { FocusedIndex, focusedIndexToString } from '@/apps/app/components/NavigatableList/context';
+import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation';
+import { FocusedIndex, focusedIndexToString } from '@/components/NavigatableList/context';
 
 export interface NavigableItem {
     childCount: number;

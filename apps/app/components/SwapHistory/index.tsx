@@ -1,14 +1,14 @@
 import { FC, useEffect, useMemo, useState } from 'react'
 import { ChevronUp } from 'lucide-react'
-import { SwapData, useSwapStore } from '@/apps/app/stores/swapStore'
-import { useSettingsState } from '@/apps/app/context/settings'
-import { HTLCStatus, isTerminalStatus } from '@/apps/app/Models/HTLCStatus'
-import { Network } from '@/apps/app/Models/Network'
+import { SwapData, useSwapStore } from '@/stores/swapStore'
+import { useSettingsState } from '@/context/settings'
+import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus'
+import { Network } from '@/Models/Network'
 import HistorySummaryCard from './HistorySummaryCard'
 import SwapDetailsPanel from './SwapDetailsPanel'
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/apps/app/components/shadcn/accordion'
-import TrainApiClient, { HTLCTransaction } from '@/apps/app/lib/trainApiClient'
-import { getDaysAgoLabel } from '@/apps/app/components/utils/dateDifference'
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/shadcn/accordion'
+import TrainApiClient, { HTLCTransaction } from '@/lib/trainApiClient'
+import { getDaysAgoLabel } from '@/components/utils/dateDifference'
 
 type DateGroup = {
     dateKey: string

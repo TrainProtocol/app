@@ -1,7 +1,7 @@
 import { FC, useMemo } from "react";
 import { SearchComponent } from "../Search";
-import { useSettingsState } from "@/apps/app/context/settings";
-import { SwapDirection } from "@/apps/app/components/DTOs/SwapFormValues";
+import { useSettingsState } from "@/context/settings";
+import { SwapDirection } from "@/components/DTOs/SwapFormValues";
 
 type RouteSearchProps = {
     searchQuery: string,

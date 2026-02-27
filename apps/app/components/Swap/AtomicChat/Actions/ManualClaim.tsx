@@ -1,12 +1,12 @@
 import { FC } from "react";
 import { useAtomicState } from "../../../../context/atomicContext";
-import useWallet from "@/apps/app/hooks/useWallet";
+import useWallet from "@/hooks/useWallet";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
 import { SwapViewType } from ".";
 import { useWalletClient } from "wagmi";
-import { createHTLCClient } from "@/apps/app/lib/htlc/createHTLCClient";
-import { useRpcConfigStore } from "@/apps/app/stores/rpcConfigStore";
+import { createHTLCClient } from "@/lib/htlc/createHTLCClient";
+import { useRpcConfigStore } from "@/stores/rpcConfigStore";
 
 export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const {

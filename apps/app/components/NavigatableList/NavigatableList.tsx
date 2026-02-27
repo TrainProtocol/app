@@ -1,6 +1,6 @@
 import React, { ReactNode, useMemo, useRef, useState, useEffect } from 'react';
 import { useSyncExternalStore } from 'react';
-import { useNavigatableList, NavigableItem } from '@/apps/app/hooks/useNavigatableList';
+import { useNavigatableList, NavigableItem } from '@/hooks/useNavigatableList';
 import {
     NavigatableListStateContext,
     NavigatableListUpdateContext,
