@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo, useRef } from 'react';
+import React, { ReactNode, useMemo, useRef, useState, useEffect } from 'react';
 import { useSyncExternalStore } from 'react';
 import { useNavigatableList, NavigableItem } from '@/apps/app/hooks/useNavigatableList';
 import {
@@ -14,6 +14,7 @@ import NavigatableItemComponent from './NavigatableItem';
 
 interface RegisteredItem {
     children: Set<number>;
+    version: number;
 }
 
 interface StoreSnapshot {
@@ -26,9 +27,12 @@ function createAutoDetectionStore() {
     let clickHandlers = new Map<string, () => void>();
     let listeners = new Set<() => void>();
     let cachedSnapshot: StoreSnapshot = { items: [], indexMap: new Map() };
+    let currentVersion = 0;
 
     const rebuild = () => {
-        const sorted = Array.from(registeredItems.entries()).sort((a, b) => a[0] - b[0]);
+        const sorted = Array.from(registeredItems.entries())
+            .filter(([, item]) => item.version === currentVersion)
+            .sort((a, b) => a[0] - b[0]);
         const items = sorted.map(([, item]) => ({ childCount: item.children.size }));
         const indexMap = new Map(sorted.map(([originalIndex], idx) => [originalIndex, idx]));
         cachedSnapshot = { items, indexMap };
@@ -37,14 +41,25 @@ function createAutoDetectionStore() {
     return {
         register(index: number) {
             if (index < 0) return;
-            if (!registeredItems.has(index)) {
-                registeredItems.set(index, { children: new Set() });
-                rebuild();
-                listeners.forEach(l => l());
+            const existing = registeredItems.get(index);
+            if (existing) {
+                if (existing.version === currentVersion) return;
+                existing.version = currentVersion;
+                existing.children = new Set();
+            } else {
+                registeredItems.set(index, { children: new Set(), version: currentVersion });
             }
+            rebuild();
+            listeners.forEach(l => l());
         },
         unregister() {
-            // No-op: keeps navigation stable during virtualization scroll
+            // No-op: keeps navigation stable during virtual scroll.
+            // Phantom items from old search views are handled by version filtering.
+        },
+        incrementVersion() {
+            currentVersion++;
+            rebuild();
+            listeners.forEach(l => l());
         },
         registerChild(parentIndex: number, childIndex: number) {
             if (parentIndex < 0) return;
@@ -52,7 +67,7 @@ function createAutoDetectionStore() {
             let parent = registeredItems.get(parentIndex);
             if (!parent) {
                 // Auto-register parent if it doesn't exist yet
-                parent = { children: new Set() };
+                parent = { children: new Set(), version: currentVersion };
                 registeredItems.set(parentIndex, parent);
             }
 
@@ -105,19 +120,35 @@ export interface NavigatableListProps {
     enabled?: boolean;
     onReset?: () => void;
     keyboardNavigatingClass?: string;
+    navigateToFirstChild?: boolean;
 }
 
 function NavigatableListRoot({
     children,
     enabled = true,
     onReset,
-    keyboardNavigatingClass = 'keyboard-navigating'
+    keyboardNavigatingClass = 'keyboard-navigating',
+    navigateToFirstChild
 }: NavigatableListProps) {
     const storeRef = useRef<ReturnType<typeof createAutoDetectionStore>>();
     if (!storeRef.current) {
         storeRef.current = createAutoDetectionStore();
     }
     const store = storeRef.current;
+
+    // Incremented when search changes — causes visible NavigatableItems to re-register
+    // with the new version, filtering out phantom items from the previous view.
+    const [registrationVersion, setRegistrationVersion] = useState(0);
+
+    const isFirstRenderRef = useRef(true);
+    useEffect(() => {
+        if (isFirstRenderRef.current) {
+            isFirstRenderRef.current = false;
+            return;
+        }
+        store.incrementVersion();
+        setRegistrationVersion(v => v + 1);
+    }, [onReset]);
 
     const snapshot = useSyncExternalStore(
         store.subscribe,
@@ -130,7 +161,8 @@ function NavigatableListRoot({
         enabled,
         onReset,
         keyboardNavigatingClass,
-        onEnter: store.triggerClickByKey
+        onEnter: store.triggerClickByKey,
+        navigateToFirstChild
     });
 
     const stateValue: NavigatableListStateContextType = useMemo(() => ({
@@ -143,7 +175,8 @@ function NavigatableListRoot({
         handleFocus
     }), [handleHover, handleFocus]);
 
-    // Registration context is stable - functions read from store directly
+    // registrationVersion in deps causes a new context object on each version bump,
+    // which triggers re-registration effects in all visible NavigatableItems.
     const registrationValue: NavigatableRegistrationContextType = useMemo(() => ({
         register: store.register,
         unregister: store.unregister,
@@ -152,7 +185,7 @@ function NavigatableListRoot({
         getNavigableIndex: store.getNavigableIndex,
         registerClickHandler: store.registerClickHandler,
         unregisterClickHandler: store.unregisterClickHandler
-    }), [store]);
+    }), [store, registrationVersion]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <NavigatableRegistrationContext.Provider value={registrationValue}>

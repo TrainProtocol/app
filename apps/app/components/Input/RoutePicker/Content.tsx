@@ -1,5 +1,5 @@
-import { FC, useEffect, useRef, useState } from "react";
-import { RowElement } from "@/apps/app/Models/Route";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
+import { NetworkElement, RowElement } from "@/apps/app/Models/Route";
 import { SwapDirection } from "@/apps/app/components/DTOs/SwapFormValues";
 import { useVirtualizer } from "@/apps/app/lib/virtual";
 import { Accordion } from "@/apps/app/components/shadcn/accordion";
@@ -45,6 +45,26 @@ const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selec
     const parentRef = useRef<HTMLDivElement>(null)
     const [openValues, setOpenValues] = useState<string[]>(selectedNetwork ? [selectedNetwork] : [])
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+    const isSingleNetwork = useMemo(() => {
+        if (!searchQuery) return false;
+        return rowElements.filter(r => r.type === 'network').length === 1;
+    }, [searchQuery, rowElements]);
+
+    const onReset = useMemo(
+        () => searchQuery ? (() => { }) : undefined,
+        [searchQuery]
+    );
+
+    useEffect(() => {
+        if (!isSingleNetwork) return;
+        const network = rowElements.find(r => r.type === 'network') as NetworkElement;
+        if (network) {
+            setOpenValues(prev =>
+                prev.includes(network.network.caip2Id) ? prev : [...prev, network.network.caip2Id]
+            );
+        }
+    }, [isSingleNetwork, rowElements]);
 
     const toggleAccordionItem = (value: string) => {
         setOpenValues((prev) =>
@@ -98,7 +118,7 @@ const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selec
             ref={parentRef}
             onScroll={handleScrollEvent}
         >
-            <NavigatableList enabled={true}>
+            <NavigatableList enabled={true} onReset={onReset} navigateToFirstChild={isSingleNetwork}>
                 <div id="sticky_accordion_header" />
                 <div className="relative">
                     <Accordion type="multiple" value={openValues}>
