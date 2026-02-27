@@ -11,7 +11,9 @@
       "default": "./dist/esm/index.js"
     }
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "./dist/esm/index.js"
+  ],
   "files": [
     "dist",
     "dist/**/*"
