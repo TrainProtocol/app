@@ -103,6 +103,7 @@ export type HTLCFromApi = {
     transactions: {
         type: HTLCTransaction,
         hash: string,
+        network: string,
         networkId: string
     }[]
 }
@@ -110,6 +111,34 @@ export type HTLCFromApi = {
 export enum HTLCTransaction {
     HTLCLock = 'HTLCLock',
     HTLCRedeem = 'HTLCRedeem',
+}
+
+export type OrderStreamEvent = {
+    eventType: 'order.created' | 'order.transaction_created' | 'order.status_changed'
+    data: OrderCreatedEventData | TransactionCreatedEventData | StatusChangedEventData
+}
+
+export type OrderCreatedEventData = {
+    hashlock: string
+    routeId: number
+    sourceAddress: string
+    destinationAddress: string
+    sourceAmount: string
+    destinationAmount: string
+}
+
+export type TransactionCreatedEventData = {
+    hashlock: string
+    network: string
+    networkId: string
+    transactionType: string
+    transactionHash: string
+}
+
+export type StatusChangedEventData = {
+    hashlock: string
+    status: string
+    failureReason: string | null
 }
 
 export type SolverProfile = {

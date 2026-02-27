@@ -1,7 +1,7 @@
 import { Context, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router';
 import { useSettingsState } from './settings';
-import { LockDetails, LockStatus } from '../Models/phtlc/PHTLC';
+import { LockDetails, LockStatus } from '@/Models/phtlc/PHTLC';
 import { Network, Token } from '@/Models/Network';
 import { HTLCFromApi, HTLCTransaction } from '@/lib/trainApiClient';
 import LightClient from '@/lib/lightClient';
@@ -11,7 +11,7 @@ import { resolvePersistantQueryParams } from '@/helpers/querryHelper';
 import useUserLockPolling from '@/hooks/htlc/useUserLockPolling';
 import useSolverLockPolling from '@/hooks/htlc/useSolverLockPolling';
 import useWallet from '@/hooks/useWallet';
-import useOrderPolling from '../hooks/useOrderPolling';
+import useOrderStreaming from '@/hooks/useOrderStreaming';
 import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus';
 
 const AtomicStateContext = createContext<DataContextType | null>(null);
@@ -139,7 +139,7 @@ export function AtomicProvider({ children }) {
     const source_token = source_network?.tokens.find(t => t.symbol === source_asset)
     const destination_token = destination_network?.tokens.find(t => t.symbol === destination_asset)
 
-    useOrderPolling({
+    useOrderStreaming({
         solverId: solverName,
         hashlock,
         enabled: !!hashlock && !!solverName && !destinationRedeemTx,
