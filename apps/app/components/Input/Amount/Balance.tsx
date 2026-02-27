@@ -1,10 +1,10 @@
-import { SwapFormValues } from "@/apps/app/components/DTOs/SwapFormValues";
-import { truncateDecimals } from "@/apps/app/components/utils/RoundDecimals";
+import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
+import { truncateDecimals } from "@/components/utils/RoundDecimals";
 import { Info } from "lucide-react";
-import { useSelectedAccount } from "@/apps/app/context/swapAccounts";
-import { useBalance } from "@/apps/app/lib/balances/useBalance";
+import { useSelectedAccount } from "@/context/swapAccounts";
+import { useBalance } from "@/lib/balances/useBalance";
 import { FC } from "react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/apps/app/components/shadcn/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip";
 
 const Balance = ({ values, direction }: { values: SwapFormValues, direction: string }) => {
     const { to, fromCurrency, toCurrency, from, destination_address } = values

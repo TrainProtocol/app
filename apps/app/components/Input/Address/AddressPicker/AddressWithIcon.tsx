@@ -1,18 +1,18 @@
 import { FC, MouseEventHandler, ReactNode, SVGProps, useCallback, useMemo, useState } from "react"
 import { AddressGroup, AddressItem } from ".";
-import AddressIcon from "@/apps/app/components/AddressIcon";
-import { Address, getExplorerUrl } from "@/apps/app/lib/address";
+import AddressIcon from "@/components/AddressIcon";
+import { Address, getExplorerUrl } from "@/lib/address";
 import { History, Copy, Check, ChevronDown, WalletIcon, Pencil, Link2, SquareArrowOutUpRight, Unplug, Info } from "lucide-react";
-import { Partner } from "@/apps/app/Models/Partner";
-import { Network } from "@/apps/app/Models/Network";
-import { Popover, PopoverContent, PopoverTrigger } from "@/apps/app/components/shadcn/popover";
-import useCopyClipboard from "@/apps/app/hooks/useCopyClipboard";
+import { Partner } from "@/Models/Partner";
+import { Network } from "@/Models/Network";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover";
+import useCopyClipboard from "@/hooks/useCopyClipboard";
 import Link from "next/link";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/apps/app/components/shadcn/tooltip";
-import { ImageWithFallback } from "@/apps/app/components/Common/ImageWithFallback";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip";
+import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
 import clsx from "clsx";
-import shortenString from "@/apps/app/components/utils/ShortenString";
-import NetworkSettings from "@/apps/app/lib/NetworkSettings";
+import shortenString from "@/components/utils/ShortenString";
+import NetworkSettings from "@/lib/NetworkSettings";
 
 type Props = {
     addressItem: AddressItem;

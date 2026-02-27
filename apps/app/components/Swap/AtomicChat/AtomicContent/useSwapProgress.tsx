@@ -1,13 +1,13 @@
 import React, { FC, useMemo } from "react";
-import { useAtomicState } from "@/apps/app/context/atomicContext";
+import { useAtomicState } from "@/context/atomicContext";
 import { StepStatus, TimelineStep } from "./progressTypes";
-import { LockStatus } from "@/apps/app/Models/phtlc/PHTLC";
-import { getExplorerUrl } from "@/apps/app/lib/address";
-import NetworkSettings from "@/apps/app/lib/NetworkSettings";
-import { HTLCTransaction } from "@/apps/app/lib/trainApiClient";
-import LockIcon from "@/apps/app/components/Icons/LockIcon";
-import { HTLCStatus } from "@/apps/app/Models/HTLCStatus";
-import { useSolverLockVerification } from "@/apps/app/hooks/htlc/useSolverLockVerification";
+import { LockStatus } from "@/Models/phtlc/PHTLC";
+import { getExplorerUrl } from "@/lib/address";
+import NetworkSettings from "@/lib/NetworkSettings";
+import { HTLCTransaction } from "@/lib/trainApiClient";
+import LockIcon from "@/components/Icons/LockIcon";
+import { HTLCStatus } from "@/Models/HTLCStatus";
+import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
 
 // --- Types ---
 

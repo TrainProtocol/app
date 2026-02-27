@@ -1,6 +1,6 @@
 import Jazzicon from "@metamask/jazzicon";
 import { FC, useEffect, useRef } from "react";
-import { Address } from "@/apps/app/lib/address";
+import { Address } from "@/lib/address";
 
 type Props = {
     address: string;

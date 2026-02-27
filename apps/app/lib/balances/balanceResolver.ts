@@ -1,7 +1,7 @@
 import posthog from "posthog-js";
-import { NetworkBalance, TokenBalance } from "@/apps/app/Models/Balance";
-import { BalanceProvider } from "@/apps/app/Models/BalanceProvider";
-import { Network } from "@/apps/app/Models/Network";
+import { NetworkBalance, TokenBalance } from "@/Models/Balance";
+import { BalanceProvider } from "@/Models/BalanceProvider";
+import { Network } from "@/Models/Network";
 import { classifyNodeError } from "./nodeErrorClassifier";
 import { extractErrorDetails } from "./errorUtils";
 import {

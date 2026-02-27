@@ -1,4 +1,4 @@
-import { TitleElement } from "@/apps/app/Models/Route";
+import { TitleElement } from "@/Models/Route";
 
 type Props = {
     item: TitleElement

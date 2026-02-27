@@ -1,10 +1,10 @@
 import { FC } from "react";
-import { truncateDecimals } from "@/apps/app/components/utils/RoundDecimals";
-import { Network, Token } from "@/apps/app/Models/Network";
-import { ImageWithFallback } from "@/apps/app/components/Common/ImageWithFallback";
+import { truncateDecimals } from "@/components/utils/RoundDecimals";
+import { Network, Token } from "@/Models/Network";
+import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
 import { ArrowDown } from "lucide-react";
 import NumberFlow from "@number-flow/react";
-import { resolveTokenLogoUrl } from "@/apps/app/components/utils/resolveTokenLogoUrl";
+import { resolveTokenLogoUrl } from "@/components/utils/resolveTokenLogoUrl";
 
 
 type AtomicSummaryProps = {

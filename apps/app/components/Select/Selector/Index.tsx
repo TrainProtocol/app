@@ -1,5 +1,5 @@
 import { forwardRef, ReactNode } from "react";
-import { Modal, ModalContent, ModalTrigger, useModalState } from "@/apps/app/components/Modal/modalWithoutAnimation";
+import { Modal, ModalContent, ModalTrigger, useModalState } from "@/components/Modal/modalWithoutAnimation";
 
 export const Selector = ({ children }: { children: ReactNode }) => {
     return (

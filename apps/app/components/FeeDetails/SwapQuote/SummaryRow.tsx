@@ -1,18 +1,18 @@
 import { FC, useMemo } from 'react'
 import { ChevronDown } from 'lucide-react'
 import AddressIcon from '../../AddressIcon'
-import { Address } from "@/apps/app/lib/address";
-import { Wallet } from '@/apps/app/Models/WalletProvider'
-import { SwapFormValues } from '@/apps/app/components/DTOs/SwapFormValues'
-import { ExtendedAddress } from '@/apps/app/components/Input/Address/AddressPicker/AddressWithIcon'
+import { Address } from "@/lib/address";
+import { Wallet } from '@/Models/WalletProvider'
+import { SwapFormValues } from '@/components/DTOs/SwapFormValues'
+import { ExtendedAddress } from '@/components/Input/Address/AddressPicker/AddressWithIcon'
 import { DetailsButton } from '..'
-import { SwapQuote } from '@/apps/app/lib/trainApiClient'
+import { SwapQuote } from '@/lib/trainApiClient'
 import clsx from 'clsx'
 import { GasFee } from './DetailedEstimates'
 import NumberFlow from '@number-flow/react'
-import { Partner } from '@/apps/app/Models/Partner'
-import { useQueryState } from '@/apps/app/context/query'
-import { ImageWithFallback } from '@/apps/app/components/Common/ImageWithFallback'
+import { Partner } from '@/Models/Partner'
+import { useQueryState } from '@/context/query'
+import { ImageWithFallback } from '@/components/Common/ImageWithFallback'
 
 export const SummaryRow: FC<{
     isQuoteLoading?: boolean

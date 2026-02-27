@@ -1,8 +1,8 @@
 import { FC, useState } from "react";
 import { WalletActionButton } from "../../buttons";
-import { useRevealSecret } from "@/apps/app/hooks/htlc/useRevealSecret";
-import { useSwapPreferencesStore } from "@/apps/app/stores/swapPreferencesStore";
-import { Checkbox } from "@/apps/app/components/shadcn/checkbox";
+import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
+import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
+import { Checkbox } from "@/components/shadcn/checkbox";
 import { SwapViewType } from ".";
 
 export const RevealSecretAction: FC<{ showCheckbox?: boolean, type: SwapViewType, verificationSkipped?: boolean }> = ({ showCheckbox = false, type, verificationSkipped = false }) => {

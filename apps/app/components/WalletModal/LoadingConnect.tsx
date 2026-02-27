@@ -5,7 +5,7 @@ import { resolveWalletConnectorIcon } from "../../lib/wallets/utils/resolveWalle
 import clsx from "clsx";
 import useWindowDimensions from "../../hooks/useWindowDimensions";
 import TrainLogoSymbol from "../Icons/TrainLogoSymbol";
-import { isMobile } from "@/apps/app/lib/wallets/utils/isMobile";
+import { isMobile } from "@/lib/wallets/utils/isMobile";
 
 export const LoadingConnect: FC<{ onRetry: () => void, selectedConnector: WalletModalConnector, connectionError: string | undefined }> = ({ onRetry, selectedConnector, connectionError }) => {
     const ConnectorIcon = resolveWalletConnectorIcon({ connector: selectedConnector?.name, iconUrl: selectedConnector.icon });

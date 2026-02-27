@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useMeasure } from "@uidotdev/usehooks";
-import useWindowDimensions from "@/apps/app/hooks/useWindowDimensions";
+import useWindowDimensions from "@/hooks/useWindowDimensions";
 
 const variants = {
     enter: () => {

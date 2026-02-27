@@ -1,9 +1,9 @@
 import { Context, createContext, useCallback, useContext, useMemo, useState } from 'react'
-import { SwapDirection } from '@/apps/app/components/DTOs/SwapFormValues';
-import useWallet from '@/apps/app/hooks/useWallet';
-import { Wallet, WalletProvider } from '@/apps/app/Models/WalletProvider';
-import AddressIcon from '@/apps/app/components/AddressIcon';
-import { getKey, useBalanceStore } from '@/apps/app/stores/balanceStore';
+import { SwapDirection } from '@/components/DTOs/SwapFormValues';
+import useWallet from '@/hooks/useWallet';
+import { Wallet, WalletProvider } from '@/Models/WalletProvider';
+import AddressIcon from '@/components/AddressIcon';
+import { getKey, useBalanceStore } from '@/stores/balanceStore';
 
 const SwapAccountsStateContext = createContext<SwapAccountsContextType | null>(null);
 const SwapAccountsUpdateContext = createContext<SwapAccountsUpdateContextType | null>(null);

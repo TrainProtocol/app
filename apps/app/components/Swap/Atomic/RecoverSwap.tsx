@@ -5,7 +5,7 @@ import useRecoverSwap from '../../../hooks/htlc/useRecoverSwap'
 import SubmitButton from '../../buttons/submitButton'
 import Image from 'next/image'
 import { ChevronDown } from 'lucide-react'
-import { useSwapStore } from '@/apps/app/stores/swapStore'
+import { useSwapStore } from '@/stores/swapStore'
 
 interface RecoverSwapProps {
     onRecovered: (hashlock: string) => void

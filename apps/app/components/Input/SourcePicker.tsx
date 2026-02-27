@@ -4,9 +4,9 @@ import AmountField from "./Amount"
 import { useFormikContext } from "formik";
 import { SwapFormValues } from "../DTOs/SwapFormValues";
 import MinMax from "./Amount/MinMax";
-import { SwapQuote } from "@/apps/app/lib/trainApiClient";
+import { SwapQuote } from "@/lib/trainApiClient";
 import clsx from "clsx";
-import { useClickOutside } from "@/apps/app/hooks/useClickOutside";
+import { useClickOutside } from "@/hooks/useClickOutside";
 import { useState } from "react";
 
 type Props = {

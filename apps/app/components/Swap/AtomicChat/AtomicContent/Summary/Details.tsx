@@ -1,13 +1,13 @@
 import { FC, ReactNode, SVGProps } from "react";
 import Link from "next/link";
-import shortenString from "@/apps/app/components/utils/ShortenString";
-import { getExplorerUrl } from "@/apps/app/lib/address";
-import { useAtomicState } from "@/apps/app/context/atomicContext";
-import WalletIcon from "@/apps/app/components/Icons/WalletIcon";
-import LockIcon from "@/apps/app/components/Icons/LockIcon";
-import SignatureIcon from "@/apps/app/components/Icons/SignatureIcon";
-import { HTLCTransaction } from "@/apps/app/lib/trainApiClient";
-import NetworkSettings from "@/apps/app/lib/NetworkSettings";
+import shortenString from "@/components/utils/ShortenString";
+import { getExplorerUrl } from "@/lib/address";
+import { useAtomicState } from "@/context/atomicContext";
+import WalletIcon from "@/components/Icons/WalletIcon";
+import LockIcon from "@/components/Icons/LockIcon";
+import SignatureIcon from "@/components/Icons/SignatureIcon";
+import { HTLCTransaction } from "@/lib/trainApiClient";
+import NetworkSettings from "@/lib/NetworkSettings";
 
 const Details: FC = () => {
     return (

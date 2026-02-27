@@ -1,17 +1,17 @@
 import { FC, useState } from "react";
-import useWallet from "@/apps/app/hooks/useWallet";
-import { useAtomicState } from "@/apps/app/context/atomicContext";
+import useWallet from "@/hooks/useWallet";
+import { useAtomicState } from "@/context/atomicContext";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
-import { LockStatus } from "@/apps/app/Models/phtlc/PHTLC";
-import { SwapQuote } from "@/apps/app/lib/trainApiClient";
-import { useSwapStore } from "@/apps/app/stores/swapStore";
+import { LockStatus } from "@/Models/phtlc/PHTLC";
+import { SwapQuote } from "@/lib/trainApiClient";
+import { useSwapStore } from "@/stores/swapStore";
 import { SwapViewType } from ".";
 import { useConfig, useWalletClient } from "wagmi";
-import { useSecretDerivation } from "@/apps/app/context/secretDerivationContext";
+import { useSecretDerivation } from "@/context/secretDerivationContext";
 import { secretToHashlock } from "@train-protocol/sdk";
-import { createHTLCClient } from "@/apps/app/lib/htlc/createHTLCClient";
-import { useRpcConfigStore } from "@/apps/app/stores/rpcConfigStore";
+import { createHTLCClient } from "@/lib/htlc/createHTLCClient";
+import { useRpcConfigStore } from "@/stores/rpcConfigStore";
 import { useSelectedAccount } from "@/context/swapAccounts";
 import { Address } from "@/lib/address";
 

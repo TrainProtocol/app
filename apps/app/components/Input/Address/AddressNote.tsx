@@ -5,8 +5,8 @@ import Link from "next/link"
 import AddressIcon from "../../AddressIcon"
 import { SwapFormValues } from "../../DTOs/SwapFormValues"
 import { Partner } from "../../../Models/Partner"
-import { Address, getExplorerUrl } from "@/apps/app/lib/address"
-import NetworkSettings from "@/apps/app/lib/NetworkSettings"
+import { Address, getExplorerUrl } from "@/lib/address"
+import NetworkSettings from "@/lib/NetworkSettings"
 
 type AddressNoteModalProps = {
     partner: Partner | undefined;

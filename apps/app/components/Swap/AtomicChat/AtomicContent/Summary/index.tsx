@@ -1,8 +1,8 @@
 import { FC } from "react";
-import { useAtomicState } from "@/apps/app/context/atomicContext";
+import { useAtomicState } from "@/context/atomicContext";
 import Summary from "./Summary";
-import { SwapQuote } from "@/apps/app/lib/trainApiClient";
-import { useSwapStore } from "@/apps/app/stores/swapStore";
+import { SwapQuote } from "@/lib/trainApiClient";
+import { useSwapStore } from "@/stores/swapStore";
 import { formatUnits } from "viem";
 
 type MotionSummaryProps = {

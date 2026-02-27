@@ -1,11 +1,11 @@
 import { useState, useCallback } from "react";
-import { useAtomicState } from "@/apps/app/context/atomicContext";
-import { useSecretDerivation } from "@/apps/app/context/secretDerivationContext";
-import TrainApiClient from "@/apps/app/lib/trainApiClient";
-import useWallet from "@/apps/app/hooks/useWallet";
+import { useAtomicState } from "@/context/atomicContext";
+import { useSecretDerivation } from "@/context/secretDerivationContext";
+import TrainApiClient from "@/lib/trainApiClient";
+import useWallet from "@/hooks/useWallet";
 import posthog from "posthog-js";
 import { useConfig } from "wagmi";
-import { useSwapStore } from "@/apps/app/stores/swapStore";
+import { useSwapStore } from "@/stores/swapStore";
 
 const apiClient = new TrainApiClient()
 

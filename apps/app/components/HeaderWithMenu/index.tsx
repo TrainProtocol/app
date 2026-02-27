@@ -1,10 +1,10 @@
-import IconButton from "@/apps/app/components/buttons/iconButton"
-import GoHomeButton from "@/apps/app/components/utils/GoHome"
+import IconButton from "@/components/buttons/iconButton"
+import GoHomeButton from "@/components/utils/GoHome"
 import { ArrowLeft } from 'lucide-react'
-import TrainMenu from "@/apps/app/components/TrainMenu"
-import { useQueryState } from "@/apps/app/context/query"
+import TrainMenu from "@/components/TrainMenu"
+import { useQueryState } from "@/context/query"
 import { UserStatusHeader } from "../SecretDerivation"
-import useWindowDimensions from "@/apps/app/hooks/useWindowDimensions"
+import useWindowDimensions from "@/hooks/useWindowDimensions"
 import dynamic from "next/dynamic"
 import PendingSwap from "../Swap/PendingSwap"
 

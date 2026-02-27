@@ -7,7 +7,7 @@ import PHTLCAbi from "../../abis/atomic/STARKNET_PHTLC.json"
 import ETHABbi from "../../abis/STARKNET_ETH.json"
 import formatAmount from "../../formatAmount"
 import TrainApiClient from "../../trainApiClient"
-import { useSecretDerivation } from "@/apps/app/context/secretDerivationContext"
+import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { BaseAtomicFunctions } from "../utils/atomicTypes"
 
 export interface UseAtomicStarknetParams {

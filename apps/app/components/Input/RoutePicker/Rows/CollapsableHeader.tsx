@@ -1,8 +1,8 @@
-import { SwapDirection } from "@/apps/app/components/DTOs/SwapFormValues";
-import { NetworkElement, GroupedTokenElement } from "@/apps/app/Models/Route";
+import { SwapDirection } from "@/components/DTOs/SwapFormValues";
+import { NetworkElement, GroupedTokenElement } from "@/Models/Route";
 import { NetworkRouteSelectItemDisplay } from "../Routes";
-import { resolveTokenLogoUrl } from "@/apps/app/components/utils/resolveTokenLogoUrl";
-import { ImageWithFallback } from "@/apps/app/components/Common/ImageWithFallback";
+import { resolveTokenLogoUrl } from "@/components/utils/resolveTokenLogoUrl";
+import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
 
 type Props = {
     item: NetworkElement | GroupedTokenElement;

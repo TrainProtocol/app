@@ -12,8 +12,6 @@
     "build:workers": "tsc -p tsconfig.worker.json"
   },
   "dependencies": {
-    "@azguardwallet/aztec-wallet": "^3.0.0-devnet.5",
-    "@azguardwallet/client": "^0.7.0",
     "@aztec/accounts": "^4.0.0-devnet.2-patch.0",
     "@aztec/aztec.js": "4.0.0-devnet.2-patch.0",
     "@aztec/constants": "^4.0.0-devnet.2-patch.0",
@@ -23,6 +21,7 @@
     "@aztec/noir-protocol-circuits-types": "^4.0.0-devnet.2-patch.0",
     "@aztec/protocol-contracts": "^4.0.0-devnet.2-patch.0",
     "@aztec/stdlib": "^4.0.0-devnet.2-patch.0",
+    "@aztec/wallet-sdk": "4.0.2",
     "@badrap/bar-of-progress": "^0.2.2",
     "@cartridge/controller": "^0.9.2",
     "@coral-xyz/anchor": "^0.30.1",

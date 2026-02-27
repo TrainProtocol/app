@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { ArrowRight } from "lucide-react"
 import { truncateDecimals } from "../utils/RoundDecimals"
-import { Token } from "@/apps/app/Models/Network"
+import { Token } from "@/Models/Network"
 
 export const RateElement = ({
     fromAsset,

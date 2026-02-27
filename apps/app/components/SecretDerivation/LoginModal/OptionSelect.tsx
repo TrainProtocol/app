@@ -1,8 +1,8 @@
-import { useConnectModal } from '@/apps/app/components/WalletModal';
-import useWallet from '@/apps/app/hooks/useWallet';
-import { Wallet } from '@/apps/app/Models/WalletProvider';
+import { useConnectModal } from '@/components/WalletModal';
+import useWallet from '@/hooks/useWallet';
+import { Wallet } from '@/Models/WalletProvider';
 import { Fingerprint, Wallet as WalletIcon } from 'lucide-react';
-import { useSecretDerivation } from '@/apps/app/context/secretDerivationContext';
+import { useSecretDerivation } from '@/context/secretDerivationContext';
 
 const OptionSelect = ({ onPasskeyLogin, goToStep, onConnectFinish }: {
     onPasskeyLogin: () => void;

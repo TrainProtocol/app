@@ -2,7 +2,7 @@ import { FC } from "react";
 import { Token } from "../../Models/Network";
 import { SwapQuote } from "../../lib/trainApiClient";
 import { truncateDecimals } from "../utils/RoundDecimals";
-import formatAmount from "@/apps/app/lib/formatAmount";
+import formatAmount from "@/lib/formatAmount";
 
 type WillReceiveProps = {
     destination_token: Token | undefined;

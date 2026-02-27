@@ -1,6 +1,6 @@
 import { Network, Token } from "./Network"
 import { Wallet } from "./WalletProvider"
-import { NodeErrorCategory } from "@/apps/app/lib/balances/nodeErrorClassifier"
+import { NodeErrorCategory } from "@/lib/balances/nodeErrorClassifier"
 
 export type GasProps = {
     network: Network,

@@ -1,4 +1,4 @@
-import { useWalletProviders } from "@/apps/app/context/walletHookProviders";
+import { useWalletProviders } from "@/context/walletHookProviders";
 import { Network } from "../Models/Network"
 import { Wallet, WalletProvider } from "../Models/WalletProvider";
 import { useCallback, useMemo } from "react";

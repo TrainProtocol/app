@@ -1,11 +1,11 @@
 import { Dispatch, FC, ReactNode, SetStateAction, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { clsx } from 'clsx';
-import useWindowDimensions from '@/apps/app/hooks/useWindowDimensions';
+import useWindowDimensions from '@/hooks/useWindowDimensions';
 import IconButton from '../buttons/iconButton';
 import { ChevronUp, X } from 'lucide-react';
 import { useMeasure } from '@uidotdev/usehooks';
-import { SnapElement, SnapPointsProvider, useSnapPoints } from '@/apps/app/context/snapPointsContext';
+import { SnapElement, SnapPointsProvider, useSnapPoints } from '@/context/snapPointsContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Drawer } from './vaul';
 
@@ -123,7 +123,7 @@ const Comp: FC<VaulDrawerProps> = ({ children, show, setShow, header, descriptio
             open={show}
             onOpenChange={handleOpenChange}
             container={container}
-            {...snapPointsProps}
+            {...(snapPointsProps ?? {})}
             modal={isMobile ? true : false}
             repositionInputs={false}
             onAnimationEnd={(e) => { onAnimationEnd && onAnimationEnd(e) }}

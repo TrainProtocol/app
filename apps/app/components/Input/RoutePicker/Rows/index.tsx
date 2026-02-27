@@ -1,11 +1,11 @@
-import { RowElement } from "@/apps/app/Models/Route";
-import { SwapDirection } from "@/apps/app/components/DTOs/SwapFormValues";
+import { RowElement } from "@/Models/Route";
+import { SwapDirection } from "@/components/DTOs/SwapFormValues";
 import { CurrencySelectItemDisplay } from "../Routes";
 import { CollapsibleRow } from "./CollapsibleRow";
-import { Network, Token } from "@/apps/app/Models/Network";
-import { SelectItem } from "@/apps/app/components/Select/Selector/SelectItem";
+import { Network, Token } from "@/Models/Network";
+import { SelectItem } from "@/components/Select/Selector/SelectItem";
 import TitleRow from "./TitleRow";
-import { NavigatableItem } from "@/apps/app/components/NavigatableList";
+import { NavigatableItem } from "@/components/NavigatableList";
 
 type Props = {
     item: RowElement;

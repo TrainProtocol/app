@@ -1,19 +1,19 @@
 import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info, Settings2, Zap, RotateCcw, ScrollText } from "lucide-react";
-import { useSwapPreferencesStore } from "@/apps/app/stores/swapPreferencesStore";
+import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
 import { useIntercom } from "react-use-intercom";
-import ChatIcon from "@/apps/app/components/Icons/ChatIcon";
-import inIframe from "@/apps/app/components/utils/inIframe";
-import GitHubLogo from "@/apps/app/components/Icons/GitHubLogo";
-import TwitterLogo from "@/apps/app/components/Icons/TwitterLogo";
+import ChatIcon from "@/components/Icons/ChatIcon";
+import inIframe from "@/components/utils/inIframe";
+import GitHubLogo from "@/components/Icons/GitHubLogo";
+import TwitterLogo from "@/components/Icons/TwitterLogo";
 import Link from "next/link";
-import Popover from "@/apps/app/components/Modal/popover";
-import SendFeedback from "@/apps/app/components/sendFeedback";
+import Popover from "@/components/Modal/popover";
+import SendFeedback from "@/components/sendFeedback";
 import Menu from "./Menu";
 import dynamic from "next/dynamic";
-import { MenuStep } from "@/apps/app/Models/Wizard";
-import useWindowDimensions from "@/apps/app/hooks/useWindowDimensions";
+import { MenuStep } from "@/Models/Wizard";
+import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { UserStatusMenu } from "../SecretDerivation";
 
 const WalletsMenu = dynamic(() => import("../Wallet/ConnectedWallets").then((comp) => comp.WalletsMenu), {
