@@ -20,7 +20,7 @@ import { formatUnits } from "viem";
 import { NetworkContractType } from "@/Models/Network";
 import { HTLCStatus } from "@/Models/HTLCStatus";
 import { usePulsatingCircles } from "@/stores/pulsatingCirclesStore";
-
+import AtomicPage from "../AtomicChat";
 
 export default function Form() {
     const formikRef = useRef<FormikProps<SwapFormValues>>(null);
