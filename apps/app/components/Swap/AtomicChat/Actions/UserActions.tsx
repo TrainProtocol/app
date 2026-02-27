@@ -12,6 +12,8 @@ import { useSecretDerivation } from "@/apps/app/context/secretDerivationContext"
 import { secretToHashlock } from "@train-protocol/sdk";
 import { createHTLCClient } from "@/apps/app/lib/htlc/createHTLCClient";
 import { useRpcConfigStore } from "@/apps/app/stores/rpcConfigStore";
+import { useSelectedAccount } from "@/context/swapAccounts";
+import { Address } from "@/lib/address";
 
 type UserCommitActionProps = {
     quote?: SwapQuote
@@ -26,6 +28,8 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote, type }) => 
     const { deriveSecret } = useSecretDerivation()
     const config = useConfig()
     const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
+    const sourceAccount = useSelectedAccount('from', source_network?.caip2Id)
+    const sourceWallet = (sourceAccount?.address && source_network) ? provider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, source_network)) : undefined
 
     const atomicContract = srcAtomicContract
     const destLpAddress = quote?.destinationSolverAddress
@@ -61,7 +65,7 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote, type }) => 
                 throw new Error("No wallet client")
             }
 
-            if (provider?.activeWallet && (provider.activeWallet.chainId != source_network.chainId) && provider.switchChain)  await provider.switchChain(provider.activeWallet, source_network.chainId)
+            if (provider && sourceWallet && (sourceWallet.chainId != source_network.chainId) && provider.switchChain) await provider.switchChain(sourceWallet, source_network.chainId)
 
             const { secret, nonce } = await deriveSecret({
                 wallet: provider?.activeWallet,
@@ -136,7 +140,7 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote, type }) => 
         </div>
 }
 
-export const UserRefundAction: FC<{type: SwapViewType}> = ({type}) => {
+export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const { source_network, hashlock, sourceDetails, source_asset, setError, refundTxId, srcAtomicContract } = useAtomicState()
     const { provider: source_provider } = useWallet(source_network, 'withdrawal')
     const { data: walletClient } = useWalletClient()
