@@ -13,7 +13,7 @@ export function createHTLCClient(chainNamespace: string, config: Record<string, 
     if (!factory) {
         throw new Error(
             `No HTLC client registered for chain namespace: ${chainNamespace}. ` +
-            `Did you forget to import the corresponding @train-protocol/sdk-* package?`
+            `Did you forget to call the corresponding register function (e.g. registerEvmSdk())?`
         )
     }
     return factory(config)
@@ -38,7 +38,7 @@ export function deriveKeyFromWallet(providerName: string, config: Record<string,
     if (!factory) {
         throw new Error(
             `No wallet sign registered for provider: ${providerName}. ` +
-            `Did you forget to import the corresponding @train-protocol/sdk-* package?`
+            `Did you forget to call the corresponding register function (e.g. registerEvmSdk())?`
         )
     }
     return factory(config)
