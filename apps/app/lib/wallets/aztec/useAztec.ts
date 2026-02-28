@@ -3,35 +3,34 @@ import { useSettingsState } from "../../../context/settings";
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider";
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
 import { useMemo } from "react";
-import { useAztecNodeUrl, useAztecSponsorAddress } from "./configs";
-import { useAztecWalletContext } from "./AztecWalletProvider";
+import { useAztecWalletContext, AZGUARD_PROVIDER_ID } from "../../../components/WalletProviders/AztecWalletProvider";
+import { azguardBase64 } from "@/components/Icons/Base64/Azguard";
+
+const commonSupportedNetworks = [
+    KnownInternalNames.Networks.AztecTestnet,
+]
 
 export default function useAztec(): WalletProvider {
-    const commonSupportedNetworks = [
-        KnownInternalNames.Networks.AztecTestnet,
-    ]
-
     const { networks } = useSettingsState()
-
-    const aztecNodeUrl = useAztecNodeUrl();
-    const sponsorAddress = useAztecSponsorAddress();
 
     const name = 'Aztec'
     const id = 'aztec'
 
     const {
         wallet,
-        connected,
         accountAddress,
         discoveredProviders,
+        azguardDetected,
         connect,
         disconnect,
     } = useAztecWalletContext();
 
     const aztecWallet = useMemo(() => {
-        if (!wallet || !connected || !accountAddress) return undefined;
+        if (!wallet || !accountAddress) return undefined;
 
-        const providerName = discoveredProviders.find(p => !p.isDisconnected())?.name ?? 'Aztec Wallet';
+        const providerName = azguardDetected && discoveredProviders.length === 0
+            ? 'Azguard'
+            : discoveredProviders.find(p => !p.isDisconnected())?.name ?? 'Aztec Wallet';
 
         return {
             id: providerName,
@@ -40,13 +39,13 @@ export default function useAztec(): WalletProvider {
             address: accountAddress,
             providerName: id,
             isActive: true,
-            icon: resolveWalletConnectorIcon({ connector: name, address: accountAddress }),
+            icon: resolveWalletConnectorIcon({ connector: name, address: accountAddress, iconUrl: providerName === 'Azguard' ? azguardBase64 : undefined }),
             disconnect: () => disconnectWallets(),
             withdrawalSupportedNetworks: commonSupportedNetworks,
             asSourceSupportedNetworks: commonSupportedNetworks,
             networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logoUrl
         }
-    }, [wallet, connected, accountAddress, networks, discoveredProviders])
+    }, [wallet, accountAddress, networks, discoveredProviders, azguardDetected])
 
     const connectWallet = async (params?: { connector?: InternalConnector }) => {
         try {
@@ -58,11 +57,13 @@ export default function useAztec(): WalletProvider {
             const connectedWallet = await connect(providerId);
 
             const accounts = await connectedWallet.getAccounts();
-            const connectedAddress = accounts[0]?.toString();
+            const connectedAddress = accounts[0]?.item?.toString() ?? accounts[0]?.toString();
 
             if (connectedAddress) {
+                const walletName = providerId === AZGUARD_PROVIDER_ID
+                    ? 'Azguard'
+                    : discoveredProviders.find(p => p.id === providerId)?.name ?? 'Aztec Wallet';
                 const activeProvider = discoveredProviders.find(p => p.id === providerId);
-                const walletName = activeProvider?.name ?? 'Aztec Wallet';
 
                 const newWallet: Wallet = {
                     id: walletName,
@@ -91,19 +92,7 @@ export default function useAztec(): WalletProvider {
     }
 
     const availableWalletsForConnect: InternalConnector[] = useMemo(() => {
-        if (discoveredProviders.length === 0) {
-            // No wallets discovered — show a generic "install" prompt
-            return [{
-                id: 'aztec-no-wallet',
-                name: 'Aztec Wallet',
-                providerName: name,
-                extensionNotFound: true,
-                hasBrowserExtension: true,
-                installUrl: "https://aztec.network/ecosystem",
-            }]
-        }
-
-        return discoveredProviders.map(provider => ({
+        const sdkWallets: InternalConnector[] = discoveredProviders.map(provider => ({
             id: provider.id,
             name: provider.name,
             icon: provider.icon,
@@ -111,7 +100,25 @@ export default function useAztec(): WalletProvider {
             extensionNotFound: false,
             hasBrowserExtension: true,
         }));
-    }, [discoveredProviders])
+
+        // Append Azguard if detected and not already in the SDK-discovered list
+        if (azguardDetected && !sdkWallets.some(w => w.id === AZGUARD_PROVIDER_ID)) {
+            sdkWallets.push({
+                id: AZGUARD_PROVIDER_ID,
+                name: 'Azguard',
+                icon: azguardBase64,
+                providerName: name,
+                extensionNotFound: false,
+                hasBrowserExtension: true,
+            });
+        }
+
+        if (sdkWallets.length === 0) {
+            return [];
+        }
+
+        return sdkWallets;
+    }, [discoveredProviders, azguardDetected])
 
     const provider = {
         connectWallet,

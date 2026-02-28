@@ -5,9 +5,8 @@ import { LockDetails, LockStatus } from "../../../Models/phtlc/PHTLC"
 import { hexToBytes, bytesToHex } from "./utils"
 import formatAmount from "../../formatAmount"
 import { TrainContract } from "./Train"
-import { useSecretDerivation } from "@/context/secretDerivationContext"
 import { BaseAtomicFunctions } from "../utils/atomicTypes"
-import { secretToHashlock } from "@train-protocol/sdk"
+import { parseUnits } from "viem"
 
 export interface UseAtomicAztecParams {
     wallet: any
@@ -18,20 +17,12 @@ export interface UseAtomicAztecParams {
 
 export default function useAtomicAztec(params: UseAtomicAztecParams): BaseAtomicFunctions {
     const { wallet, accountAddress, aztecNodeUrl, sponsorAddress } = params
-    const { deriveSecret } = useSecretDerivation()
 
     const createHTLC = async (params: CreateHTLCParams) => {
+        const { nonce: timestamp, hashlock } = params;
         if (!wallet) throw new Error("No wallet connected");
 
-        const { secret, nonce: timestamp } = await deriveSecret({
-            wallet: { metadata: { wallet }, providerName: 'aztec' } as any
-        });
-
-        const hashlock = secretToHashlock(secret);
-
-        const parsedAmount = BigInt(
-            Math.round(Math.pow(10, params.sourceAsset.decimals) * Number(params.amount))
-        );
+        const parsedAmount = parseUnits(params.amount.toString(), params.sourceAsset.decimals);
 
         const { userLockTransactionBuilder } = await import('./transactionBuilder')
 
