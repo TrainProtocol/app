@@ -8,7 +8,7 @@ import inIframe from "@/components/utils/inIframe";
 import GitHubLogo from "@/components/Icons/GitHubLogo";
 import TwitterLogo from "@/components/Icons/TwitterLogo";
 import Link from "next/link";
-import Popover from "@/components/Modal/popover";
+import VaulDrawer from "@/components/Modal/vaulModal";
 import SendFeedback from "@/components/sendFeedback";
 import Menu from "./Menu";
 import dynamic from "next/dynamic";
@@ -111,23 +111,23 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
 
 
             <Menu.Group>
-                <Popover
-                    opener={
-                        <Menu.Item onClick={() => setOpenFeedbackModal(true)} target="_blank" icon={<MessageSquarePlus className="h-5 w-5" />} >
-                            Suggest a Feature
-                        </Menu.Item>
-                    }
-                    isNested={true}
-                    show={openFeedbackModal}
-                    header="Suggest a Feature"
-                    setShow={setOpenFeedbackModal}
-                    popoverId={"feedback"}
-                >
+                <Menu.Item onClick={() => setOpenFeedbackModal(true)} target="_blank" icon={<MessageSquarePlus className="h-5 w-5" />}>
+                    Suggest a Feature
+                </Menu.Item>
+            </Menu.Group>
+            <VaulDrawer
+                show={openFeedbackModal}
+                header="Suggest a Feature"
+                setShow={setOpenFeedbackModal}
+                modalId="suggestFeature"
+                mode="fitHeight"
+            >
+                <VaulDrawer.Snap id="item-1">
                     <div className="p-0 md:max-w-md">
                         <SendFeedback onSend={handleCloseFeedback} />
                     </div>
-                </Popover>
-            </Menu.Group>
+                </VaulDrawer.Snap>
+            </VaulDrawer>
 
             <div className="space-y-3 w-full">
                 <hr className="border-secondary-500" />
