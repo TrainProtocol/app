@@ -3,6 +3,7 @@ import { Wallet } from '@aztec/aztec.js/wallet';
 import { AztecNode, createAztecNodeClient } from '@aztec/aztec.js/node';
 import { SponsoredFeePaymentMethod } from '@aztec/aztec.js/fee';
 import { SetPublicAuthwitContractInteraction } from '@aztec/aztec.js/authorization';
+import { BatchCall } from '@aztec/aztec.js/contracts';
 import { Fr } from '@aztec/aztec.js/fields';
 import { TrainContract } from './Train';
 import { TokenContract, TokenContractArtifact } from './Token';
@@ -88,10 +89,6 @@ export const userLockTransactionBuilder = async (props: UserLockParams) => {
             { caller: trainAddress, action: publicAction },
             true,
         );
-        await setPublicAuthwit.send({
-            fee: feeOptions,
-            wait: { timeout: TX_TIMEOUT },
-        });
 
         // Get current block timestamp for quote expiry
         const latestHeader = await node.getBlockHeader('latest');
@@ -122,13 +119,15 @@ export const userLockTransactionBuilder = async (props: UserLockParams) => {
         const solverDataBytes = new Array(256).fill(0);
         if (solverData) {
             const sdClean = solverData.replace(/^0x/i, '');
-            for (let i = 0; i < Math.min(sdClean.length / 2, 256); i++) {
-                solverDataBytes[i] = parseInt(sdClean.substring(i * 2, i * 2 + 2), 16);
+            if (/^[0-9a-fA-F]*$/.test(sdClean)) {
+                for (let i = 0; i < Math.min(sdClean.length / 2, 256); i++) {
+                    solverDataBytes[i] = parseInt(sdClean.substring(i * 2, i * 2 + 2), 16);
+                }
             }
         }
 
-        // Call user_lock
-        const tx = await train.methods.user_lock(
+        // Batch authwit + user_lock into a single transaction (one wallet confirmation)
+        const userLockInteraction = train.methods.user_lock(
             hashlockBytes,
             amount,
             transferNonce,
@@ -148,7 +147,10 @@ export const userLockTransactionBuilder = async (props: UserLockParams) => {
             dstTokenBytes,
             userData,
             solverDataBytes,
-        ).send({
+        );
+
+        const batch = new BatchCall(senderWallet, [setPublicAuthwit, userLockInteraction]);
+        const tx = await batch.send({
             from: senderAddress,
             fee: feeOptions,
             wait: { timeout: TX_TIMEOUT, dontThrowOnRevert: true },

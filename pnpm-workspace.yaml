@@ -12,3 +12,4 @@ catalog:
   "@noble/hashes": ^2.0.1
   zustand: ^4.5.7
   typescript: ^5.9.2
+  "@aztec/aztec.js": 4.0.0-devnet.2-patch.2

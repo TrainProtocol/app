@@ -32,6 +32,27 @@ export async function getServerSideProps(context) {
         }
     })
 
+    // Inject Aztec testnet if the API doesn't return it
+    const hasAztec = resolvedNetworks.some(n => n.caip2Id === "AZTEC_TESTNET")
+    if (!hasAztec) {
+        const aztecMock = mockData.data.find(n => n.caip2Id === "AZTEC_TESTNET")
+        resolvedNetworks.push({
+            caip2Id: "AZTEC_TESTNET",
+            displayName: "Aztec Testnet",
+            chainId: "AZTEC_TESTNET",
+            nativeTokenAddress: "0x2f919dc1aee248d399f0ba37f64cc0488f949a90d53e2c39fa21501821b2729c",
+            type: { name: "aztec" },
+            tokens: [{
+                symbol: "TEST",
+                contractAddress: "0x2f919dc1aee248d399f0ba37f64cc0488f949a90d53e2c39fa21501821b2729c",
+                decimals: 8,
+            }],
+            nodes: aztecMock?.nodes ?? [],
+            contracts: (aztecMock?.contracts as NetworkContract[]) ?? [],
+            metadata: [],
+        } as any)
+    }
+
     const settings = {
         networks: resolvedNetworks,
     }
@@ -102,6 +123,21 @@ const mockData = {
                 {
                     "type": "Multicall",
                     "address": "0xcA11bde05977b3631167028862bE2a173976CA11"
+                }
+            ],
+        },
+        {
+            "caip2Id": "AZTEC_TESTNET",
+            "nodes": [
+                {
+                    "providerName": "aztec-devnet",
+                    "url": "https://v4-devnet-2.aztec-labs.com"
+                }
+            ],
+            "contracts": [
+                {
+                    "type": "Train",
+                    "address": "0x207ad0e3c548d4878d7112f80ddefb81cab510d75fe7a62b9d3cc738dc5bcec7"
                 }
             ],
         }
