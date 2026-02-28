@@ -1,5 +1,4 @@
 import { createHTLCClient as createClient, IHTLCClient } from '@train-protocol/sdk'
-import '@train-protocol/sdk-evm' // side-effect: registers eip155 htlc client
 import { Network } from '../../Models/Network'
 
 export function createHTLCClient(

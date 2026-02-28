@@ -2,7 +2,6 @@
 import { getAccount } from '@wagmi/core'
 import { Config } from 'wagmi'
 import { deriveKeyFromWallet } from '@train-protocol/sdk'
-import '@train-protocol/sdk-evm' // side-effect: registers evm wallet sign
 import { getEvmTypedData as sdkGetEvmTypedData } from '@train-protocol/sdk-evm'
 
 const isSandbox = process.env.NEXT_PUBLIC_API_VERSION === 'sandbox'
