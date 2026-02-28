@@ -1,23 +1,21 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from "react";
 import type { WalletProvider as AztecSDKWalletProvider, PendingConnection } from "@aztec/wallet-sdk/manager";
-import { AZTEC_APP_ID, useAztecChainInfo } from "./configs";
+import { AZTEC_APP_ID, useAztecChainInfo } from "@/lib/wallets/aztec/configs";
 
 // Use a loose type to avoid version mismatches between @aztec/aztec.js versions.
 // The wallet-sdk may bundle a different @aztec/aztec.js version than the app.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AztecWallet = any;
 
+export const AZGUARD_PROVIDER_ID = 'azguard';
+
 interface AztecWalletContextType {
     wallet: AztecWallet | null;
-    connected: boolean;
     accountAddress: string | null;
     discoveredProviders: AztecSDKWalletProvider[];
+    azguardDetected: boolean;
     isDiscovering: boolean;
-    pendingConnection: PendingConnection | null;
-    verificationEmojis: string | null;
     connect: (providerId: string) => Promise<AztecWallet>;
-    confirmConnection: () => Promise<void>;
-    cancelConnection: () => void;
     disconnect: () => Promise<void>;
     startDiscovery: () => void;
 }
@@ -29,7 +27,6 @@ const EmojiVerificationOverlay: React.FC<{
     onConfirm: () => void;
     onCancel: () => void;
 }> = ({ emojis, onConfirm, onCancel }) => {
-    // Split emojis into a 3x3 grid (9 emojis)
     const emojiChars = [...emojis];
     const rows = [
         emojiChars.slice(0, 3),
@@ -83,56 +80,83 @@ const EmojiVerificationOverlay: React.FC<{
 
 export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [wallet, setWallet] = useState<AztecWallet | null>(null);
-    const [connected, setConnected] = useState(false);
     const [accountAddress, setAccountAddress] = useState<string | null>(null);
     const [discoveredProviders, setDiscoveredProviders] = useState<AztecSDKWalletProvider[]>([]);
+    const [azguardDetected, setAzguardDetected] = useState(false);
     const [isDiscovering, setIsDiscovering] = useState(false);
     const [pendingConnection, setPendingConnection] = useState<PendingConnection | null>(null);
     const [verificationEmojis, setVerificationEmojis] = useState<string | null>(null);
 
     const activeProviderRef = useRef<AztecSDKWalletProvider | null>(null);
     const discoveryRef = useRef<{ cancel: () => void } | null>(null);
+    const isDiscoveringRef = useRef(false);
     const pendingResolveRef = useRef<((wallet: AztecWallet) => void) | null>(null);
     const pendingRejectRef = useRef<((error: Error) => void) | null>(null);
 
     const chainInfo = useAztecChainInfo();
 
+    const resetConnection = useCallback(() => {
+        setWallet(null);
+        setAccountAddress(null);
+        activeProviderRef.current = null;
+    }, []);
+
     const startDiscovery = useCallback(async () => {
-        if (typeof window === 'undefined' || isDiscovering) return;
+        if (typeof window === 'undefined' || isDiscoveringRef.current) return;
 
         try {
+            isDiscoveringRef.current = true;
             setIsDiscovering(true);
             setDiscoveredProviders([]);
+            setAzguardDetected(false);
 
-            const { WalletManager } = await import("@aztec/wallet-sdk/manager");
+            const sdkDiscoveryPromise = (async () => {
+                const { WalletManager } = await import("@aztec/wallet-sdk/manager");
 
-            const manager = WalletManager.configure({
-                extensions: { enabled: true },
-            });
+                const manager = WalletManager.configure({
+                    extensions: { enabled: true },
+                });
 
-            const discovery = manager.getAvailableWallets({
-                chainInfo: await chainInfo(),
-                appId: AZTEC_APP_ID,
-                timeout: 10000,
-                onWalletDiscovered: (provider) => {
-                    setDiscoveredProviders(prev => {
-                        if (prev.some(p => p.id === provider.id)) return prev;
-                        return [...prev, provider];
-                    });
-                },
-            });
+                const discovery = manager.getAvailableWallets({
+                    chainInfo: await chainInfo(),
+                    appId: AZTEC_APP_ID,
+                    timeout: 10000,
+                    onWalletDiscovered: (provider) => {
+                        setDiscoveredProviders(prev => {
+                            if (prev.some(p => p.id === provider.id)) return prev;
+                            return [...prev, provider];
+                        });
+                    },
+                });
 
-            discoveryRef.current = discovery;
+                discoveryRef.current = discovery;
+                await discovery.done;
+            })();
 
-            await discovery.done;
+            const azguardDetectionPromise = (async () => {
+                // Poll for window.azguard since content scripts load asynchronously
+                const maxWait = 1000;
+                const interval = 100;
+                let elapsed = 0;
+                while (elapsed < maxWait) {
+                    if ((window as any).azguard) {
+                        setAzguardDetected(true);
+                        return;
+                    }
+                    await new Promise(r => setTimeout(r, interval));
+                    elapsed += interval;
+                }
+            })();
+
+            await Promise.allSettled([sdkDiscoveryPromise, azguardDetectionPromise]);
         } catch (error) {
             console.error("Error during wallet discovery:", error);
         } finally {
+            isDiscoveringRef.current = false;
             setIsDiscovering(false);
         }
-    }, [chainInfo, isDiscovering]);
+    }, [chainInfo]);
 
-    // Start discovery on mount (client-side only)
     useEffect(() => {
         if (typeof window === 'undefined') return;
         startDiscovery();
@@ -143,6 +167,25 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const connect = useCallback(async (providerId: string): Promise<AztecWallet> => {
+        // Azguard path: direct connection, no emoji verification
+        if (providerId === AZGUARD_PROVIDER_ID) {
+            const { AztecWallet: AzguardAztecWallet } = await import("@azguardwallet/aztec-wallet");
+            const azguardWallet = await AzguardAztecWallet.connect();
+
+            setWallet(azguardWallet);
+
+            const accounts = await azguardWallet.getAccounts();
+            const address = accounts[0]?.item?.toString() ?? accounts[0]?.toString();
+            if (address) {
+                setAccountAddress(address);
+            }
+
+            azguardWallet.onDisconnected.addHandler(() => resetConnection());
+
+            return azguardWallet;
+        }
+
+        // SDK path: emoji verification flow
         const provider = discoveredProviders.find(p => p.id === providerId);
         if (!provider) {
             throw new Error(`Wallet provider "${providerId}" not found`);
@@ -161,7 +204,7 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
             pendingResolveRef.current = resolve;
             pendingRejectRef.current = reject;
         });
-    }, [discoveredProviders]);
+    }, [discoveredProviders, resetConnection]);
 
     const confirmConnection = useCallback(async () => {
         if (!pendingConnection) return;
@@ -169,30 +212,15 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
         try {
             const connectedWallet = await pendingConnection.confirm();
             setWallet(connectedWallet);
-            setConnected(true);
 
             const accounts = await connectedWallet.getAccounts();
-            const address = accounts[0]?.toString();
+            const address = accounts[0]?.item?.toString() ?? accounts[0]?.toString();
             if (address) {
                 setAccountAddress(address);
             }
 
-            // Register disconnect handler
             if (activeProviderRef.current) {
-                activeProviderRef.current.onDisconnect(() => {
-                    setWallet(null);
-                    setConnected(false);
-                    setAccountAddress(null);
-                    activeProviderRef.current = null;
-                    if (typeof window !== 'undefined') {
-                        localStorage.removeItem("aztec_wallet_connected");
-                    }
-                });
-            }
-
-            if (typeof window !== 'undefined') {
-                localStorage.setItem("aztec_wallet_connected", "true");
-                localStorage.setItem("aztec_wallet_provider_id", activeProviderRef.current?.id ?? "");
+                activeProviderRef.current.onDisconnect(() => resetConnection());
             }
 
             setPendingConnection(null);
@@ -209,7 +237,7 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
             pendingResolveRef.current = null;
             pendingRejectRef.current = null;
         }
-    }, [pendingConnection]);
+    }, [pendingConnection, resetConnection]);
 
     const cancelConnection = useCallback(() => {
         if (pendingConnection) {
@@ -226,33 +254,24 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
         try {
             if (activeProviderRef.current) {
                 await activeProviderRef.current.disconnect();
+            } else if (wallet && typeof wallet.disconnect === 'function') {
+                await wallet.disconnect();
             }
         } catch (error) {
             console.error("Error disconnecting:", error);
         } finally {
-            setWallet(null);
-            setConnected(false);
-            setAccountAddress(null);
-            activeProviderRef.current = null;
-            if (typeof window !== 'undefined') {
-                localStorage.removeItem("aztec_wallet_connected");
-                localStorage.removeItem("aztec_wallet_provider_id");
-            }
+            resetConnection();
         }
-    }, []);
+    }, [wallet, resetConnection]);
 
     return (
         <AztecWalletContext.Provider value={{
             wallet,
-            connected,
             accountAddress,
             discoveredProviders,
+            azguardDetected,
             isDiscovering,
-            pendingConnection,
-            verificationEmojis,
             connect,
-            confirmConnection,
-            cancelConnection,
             disconnect,
             startDiscovery,
         }}>

@@ -7,7 +7,7 @@ import StarknetProvider from "./StarknetProvider";
 import { ImtblPassportProvider } from "./ImtblPassportProvider";
 import { WalletModalProvider } from "../WalletModal";
 import { WalletProvidersProvider } from "../../context/walletHookProviders";
-import { AztecWalletProvider } from "../../lib/wallets/aztec/AztecWalletProvider";
+import { AztecWalletProvider } from "./AztecWalletProvider";
 import { EvmConnectorsProvider } from "@/context/evmConnectorsContext";
 import { SecretDerivationProvider } from "@/context/secretDerivationContext";
 

@@ -80,7 +80,7 @@ const Comp = () => {
                 >
                     {() => (
                         <div className="h-full openpicker" id="virtualListContainer">
-                            <Wizard wizardId='menuWizard' className="pb-0!">
+                            <Wizard wizardId='menuWizard' className="pb-4!">
                                 <WizardItem StepName={MenuStep.Menu} inModal>
                                     <MenuList goToStep={handleGoToStep} />
                                 </WizardItem>

@@ -12,6 +12,7 @@
     "build:workers": "tsc -p tsconfig.worker.json"
   },
   "dependencies": {
+    "@azguardwallet/aztec-wallet": "4.0.0-devnet.2-patch.2",
     "@aztec/accounts": "^4.0.0-devnet.2-patch.0",
     "@aztec/aztec.js": "4.0.0-devnet.2-patch.0",
     "@aztec/constants": "^4.0.0-devnet.2-patch.0",

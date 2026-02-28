@@ -57,7 +57,7 @@ const WalletsList: FC<Props> = (props) => {
             </button>
             {
                 wallets.length > 0 &&
-                <div className="flex flex-col justify-start space-y-3">
+                <div className="flex flex-col justify-start space-y-2">
                     {
                         wallets.map((wallet, index) => <WalletItem
                             key={`${index}${wallet.providerName}`}
