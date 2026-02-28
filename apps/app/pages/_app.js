@@ -11,6 +11,11 @@ import { useEffect } from "react";
 import { PostHogProvider } from 'posthog-js/react'
 import posthog from 'posthog-js'
 import { Analytics } from '@vercel/analytics/next';
+import { registerEvmSdk } from '@train-protocol/sdk-evm';
+
+if (typeof window !== 'undefined') {
+  registerEvmSdk();
+}
 
 const progress = new ProgressBar({
   size: 2,
