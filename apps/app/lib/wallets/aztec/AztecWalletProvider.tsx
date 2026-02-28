@@ -306,6 +306,10 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
                 });
             } catch (err) {
                 console.error("Auto-reconnect failed:", err);
+                setAccountAddress(null);
+                localStorage.removeItem("aztec_wallet_connected");
+                localStorage.removeItem("aztec_wallet_provider_id");
+                localStorage.removeItem("aztec_wallet_address");
             }
         })();
     }, [isDiscovering, discoveredProviders, connected]);

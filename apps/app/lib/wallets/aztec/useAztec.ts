@@ -20,6 +20,8 @@ export default function useAztec(): WalletProvider {
     const id = 'aztec'
 
     const {
+        wallet,
+        connected,
         accountAddress,
         discoveredProviders,
         isDiscovering,
@@ -29,7 +31,7 @@ export default function useAztec(): WalletProvider {
     } = useAztecWalletContext();
 
     const aztecWallet = useMemo(() => {
-        if (!accountAddress) return undefined;
+        if (!connected || !wallet || !accountAddress) return undefined;
 
         const providerName = discoveredProviders.find(p => !p.isDisconnected())?.name ?? 'Aztec Wallet';
 
@@ -46,7 +48,7 @@ export default function useAztec(): WalletProvider {
             asSourceSupportedNetworks: commonSupportedNetworks,
             networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logoUrl
         }
-    }, [accountAddress, networks, discoveredProviders])
+    }, [wallet, connected, accountAddress, networks, discoveredProviders])
 
     const connectWallet = async (params?: { connector?: InternalConnector }) => {
         try {
@@ -99,10 +101,9 @@ export default function useAztec(): WalletProvider {
         if (discoveredProviders.length === 0) {
             return [{
                 id: 'aztec-no-wallet',
-                name: isDiscovering ? 'Detecting Aztec Wallet...' : 'Aztec Wallet',
+                name: 'Aztec Wallet',
                 providerName: name,
                 extensionNotFound: true,
-                hasBrowserExtension: true,
                 installUrl: undefined,
             }]
         }
