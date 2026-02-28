@@ -64,14 +64,14 @@ const EmojiVerificationOverlay: React.FC<{
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="flex-1 py-3 px-4 rounded-lg border border-secondary-500 text-secondary-text text-sm font-medium cursor-pointer bg-transparent hover:bg-secondary-700 transition-colors"
+                        className="flex-1 py-3 px-2 rounded-xl font-medium text-primary-text bg-secondary-400 hover:bg-secondary-500 active:animate-press-down transition duration-200 ease-in-out focus:outline-none"
                     >
                         Cancel
                     </button>
                     <button
                         type="button"
                         onClick={onConfirm}
-                        className="flex-1 py-3 px-4 rounded-lg bg-primary-500 text-primary-actionButtonText text-sm font-medium cursor-pointer border-none hover:bg-primary-400 transition-colors"
+                        className="flex-1 py-3 px-2 rounded-xl font-medium text-primary-buttonTextColor bg-primary-500 hover:brightness-125 active:animate-press-down transition duration-200 ease-in-out focus:outline-none"
                     >
                         Emojis Match
                     </button>
@@ -94,15 +94,21 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
     const discoveryRef = useRef<{ cancel: () => void } | null>(null);
     const pendingResolveRef = useRef<((wallet: AztecWallet) => void) | null>(null);
     const pendingRejectRef = useRef<((error: Error) => void) | null>(null);
+    const isDiscoveringRef = useRef(false);
+    const autoReconnectAttemptedRef = useRef(false);
 
     const chainInfo = useAztecChainInfo();
 
     const startDiscovery = useCallback(async () => {
-        if (typeof window === 'undefined' || isDiscovering) return;
+        if (typeof window === 'undefined') return;
 
+        discoveryRef.current?.cancel();
+        isDiscoveringRef.current = false;
+        setDiscoveredProviders([]);
+
+        isDiscoveringRef.current = true;
         try {
             setIsDiscovering(true);
-            setDiscoveredProviders([]);
 
             const { WalletManager } = await import("@aztec/wallet-sdk/manager");
 
@@ -128,9 +134,16 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
         } catch (error) {
             console.error("Error during wallet discovery:", error);
         } finally {
+            isDiscoveringRef.current = false;
             setIsDiscovering(false);
         }
-    }, [chainInfo, isDiscovering]);
+    }, [chainInfo]);
+
+    useEffect(() => {
+        const wasConnected = localStorage.getItem("aztec_wallet_connected") === "true";
+        const savedAddress = wasConnected ? localStorage.getItem("aztec_wallet_address") : null;
+        if (savedAddress) setAccountAddress(savedAddress);
+    }, []);
 
     // Start discovery on mount (client-side only)
     useEffect(() => {
@@ -150,7 +163,13 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
 
         const { hashToEmoji } = await import("@aztec/wallet-sdk/crypto");
 
-        const pending = await provider.establishSecureChannel(AZTEC_APP_ID);
+        let pending: PendingConnection;
+        try {
+            pending = await provider.establishSecureChannel(AZTEC_APP_ID);
+        } catch (error) {
+            startDiscovery();
+            throw error;
+        }
 
         const emojis = hashToEmoji(pending.verificationHash);
         setPendingConnection(pending);
@@ -161,7 +180,7 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
             pendingResolveRef.current = resolve;
             pendingRejectRef.current = reject;
         });
-    }, [discoveredProviders]);
+    }, [discoveredProviders, startDiscovery]);
 
     const confirmConnection = useCallback(async () => {
         if (!pendingConnection) return;
@@ -172,7 +191,7 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
             setConnected(true);
 
             const accounts = await connectedWallet.getAccounts();
-            const address = accounts[0]?.toString();
+            const address = accounts[0]?.item?.toString();
             if (address) {
                 setAccountAddress(address);
             }
@@ -186,6 +205,7 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
                     activeProviderRef.current = null;
                     if (typeof window !== 'undefined') {
                         localStorage.removeItem("aztec_wallet_connected");
+                        localStorage.removeItem("aztec_wallet_address");
                     }
                 });
             }
@@ -193,6 +213,7 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
             if (typeof window !== 'undefined') {
                 localStorage.setItem("aztec_wallet_connected", "true");
                 localStorage.setItem("aztec_wallet_provider_id", activeProviderRef.current?.id ?? "");
+                if (address) localStorage.setItem("aztec_wallet_address", address);
             }
 
             setPendingConnection(null);
@@ -237,9 +258,57 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
             if (typeof window !== 'undefined') {
                 localStorage.removeItem("aztec_wallet_connected");
                 localStorage.removeItem("aztec_wallet_provider_id");
+                localStorage.removeItem("aztec_wallet_address");
             }
+            startDiscovery();
         }
-    }, []);
+    }, [startDiscovery]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (isDiscovering) return;
+        if (connected) return;
+        if (discoveredProviders.length === 0) return;
+        if (autoReconnectAttemptedRef.current) return;
+
+        const wasConnected = localStorage.getItem("aztec_wallet_connected") === "true";
+        const savedProviderId = localStorage.getItem("aztec_wallet_provider_id");
+        if (!wasConnected || !savedProviderId) return;
+
+        const provider = discoveredProviders.find(p => p.id === savedProviderId);
+        if (!provider) return;
+
+        autoReconnectAttemptedRef.current = true;
+
+        (async () => {
+            try {
+                const pending = await provider.establishSecureChannel(AZTEC_APP_ID);
+                const connectedWallet = await pending.confirm();
+
+                setWallet(connectedWallet);
+                setConnected(true);
+                activeProviderRef.current = provider;
+
+                const accounts = await connectedWallet.getAccounts();
+                const address = accounts[0]?.item?.toString();
+                if (address) {
+                    setAccountAddress(address);
+                    localStorage.setItem("aztec_wallet_address", address);
+                }
+
+                provider.onDisconnect(() => {
+                    setWallet(null);
+                    setConnected(false);
+                    setAccountAddress(null);
+                    activeProviderRef.current = null;
+                    localStorage.removeItem("aztec_wallet_connected");
+                    localStorage.removeItem("aztec_wallet_address");
+                });
+            } catch (err) {
+                console.error("Auto-reconnect failed:", err);
+            }
+        })();
+    }, [isDiscovering, discoveredProviders, connected]);
 
     return (
         <AztecWalletContext.Provider value={{

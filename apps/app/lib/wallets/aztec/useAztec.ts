@@ -20,16 +20,16 @@ export default function useAztec(): WalletProvider {
     const id = 'aztec'
 
     const {
-        wallet,
-        connected,
         accountAddress,
         discoveredProviders,
+        isDiscovering,
         connect,
         disconnect,
+        startDiscovery,
     } = useAztecWalletContext();
 
     const aztecWallet = useMemo(() => {
-        if (!wallet || !connected || !accountAddress) return undefined;
+        if (!accountAddress) return undefined;
 
         const providerName = discoveredProviders.find(p => !p.isDisconnected())?.name ?? 'Aztec Wallet';
 
@@ -46,7 +46,7 @@ export default function useAztec(): WalletProvider {
             asSourceSupportedNetworks: commonSupportedNetworks,
             networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logoUrl
         }
-    }, [wallet, connected, accountAddress, networks, discoveredProviders])
+    }, [accountAddress, networks, discoveredProviders])
 
     const connectWallet = async (params?: { connector?: InternalConnector }) => {
         try {
@@ -55,10 +55,15 @@ export default function useAztec(): WalletProvider {
                 throw new Error("No wallet provider selected");
             }
 
+            if (params?.connector?.extensionNotFound) {
+                startDiscovery();
+                return;
+            }
+
             const connectedWallet = await connect(providerId);
 
             const accounts = await connectedWallet.getAccounts();
-            const connectedAddress = accounts[0]?.toString();
+            const connectedAddress = accounts[0]?.item?.toString();
 
             if (connectedAddress) {
                 const activeProvider = discoveredProviders.find(p => p.id === providerId);
@@ -92,14 +97,13 @@ export default function useAztec(): WalletProvider {
 
     const availableWalletsForConnect: InternalConnector[] = useMemo(() => {
         if (discoveredProviders.length === 0) {
-            // No wallets discovered — show a generic "install" prompt
             return [{
                 id: 'aztec-no-wallet',
-                name: 'Aztec Wallet',
+                name: isDiscovering ? 'Detecting Aztec Wallet...' : 'Aztec Wallet',
                 providerName: name,
                 extensionNotFound: true,
                 hasBrowserExtension: true,
-                installUrl: "https://aztec.network/ecosystem",
+                installUrl: undefined,
             }]
         }
 
