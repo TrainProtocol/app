@@ -5,6 +5,7 @@ import { Network } from "@/Models/Network";
 import { classifyNodeError } from "./nodeErrorClassifier";
 import { extractErrorDetails } from "./errorUtils";
 import {
+    AztecBalanceProvider,
     EVMBalanceProvider,
     FuelBalanceProvider,
     SolanaBalanceProvider
@@ -43,6 +44,7 @@ export class BalanceResolver {
     private providers: BalanceProvider[] = [
         // new QueryBalanceProvider(),
         // new StarknetBalanceProvider(),
+        new AztecBalanceProvider(),
         new EVMBalanceProvider(),
         new FuelBalanceProvider(),
         // new LoopringBalanceProvider(),

@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@aztec/aztec.js": "catalog:",
+    "@aztec/stdlib": "4.0.0-devnet.2-patch.2",
     "@defi-wonderland/aztec-standards": "4.0.0-devnet.2-patch.1"
   },
   "peerDependencies": {

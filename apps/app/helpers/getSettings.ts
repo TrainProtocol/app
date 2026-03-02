@@ -45,7 +45,8 @@ export async function getServerSideProps(context) {
             tokens: [{
                 symbol: "ETH",
                 contractAddress: "0x05c21c27f8bd1cacc9683d44f5a875a2dbfd62a455ab0b40e606dfe909c6363b",
-                decimals: 8,
+                decimals: 18,
+                priceInUsd: prices["eip155:11155111:0x0000000000000000000000000000000000000000"],
             }],
             nodes: aztecMock?.nodes ?? [],
             contracts: (aztecMock?.contracts as NetworkContract[]) ?? [],

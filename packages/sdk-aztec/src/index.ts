@@ -3,6 +3,7 @@ import { AztecHTLCClient } from './client'
 import type { AztecSigner } from './types'
 
 export { AztecHTLCClient } from './client'
+export { getPublicTokenBalance } from './balance'
 export type { AztecHTLCClientConfig, AztecSigner } from './types'
 
 let registered = false
