@@ -40,11 +40,11 @@ export async function getServerSideProps(context) {
             caip2Id: "AZTEC_TESTNET",
             displayName: "Aztec Testnet",
             chainId: "AZTEC_TESTNET",
-            nativeTokenAddress: "0x2f919dc1aee248d399f0ba37f64cc0488f949a90d53e2c39fa21501821b2729c",
+            nativeTokenAddress: "0x05c21c27f8bd1cacc9683d44f5a875a2dbfd62a455ab0b40e606dfe909c6363b",
             type: { name: "aztec" },
             tokens: [{
-                symbol: "TEST",
-                contractAddress: "0x2f919dc1aee248d399f0ba37f64cc0488f949a90d53e2c39fa21501821b2729c",
+                symbol: "ETH",
+                contractAddress: "0x05c21c27f8bd1cacc9683d44f5a875a2dbfd62a455ab0b40e606dfe909c6363b",
                 decimals: 8,
             }],
             nodes: aztecMock?.nodes ?? [],
@@ -137,7 +137,7 @@ const mockData = {
             "contracts": [
                 {
                     "type": "Train",
-                    "address": "0x207ad0e3c548d4878d7112f80ddefb81cab510d75fe7a62b9d3cc738dc5bcec7"
+                    "address": "0x232b967fa55f8d71f1c0e7223cbca3269828d1c273f66de67924e3deb0e19416"
                 }
             ],
         }

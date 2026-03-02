@@ -25,7 +25,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@aztec/aztec.js": "catalog:"
+    "@aztec/aztec.js": "catalog:",
+    "@defi-wonderland/aztec-standards": "4.0.0-devnet.2-patch.1"
   },
   "peerDependencies": {
     "@train-protocol/sdk": "workspace:^"
