@@ -32,7 +32,7 @@ export function useRevealSecret() {
             const { secret } = await deriveSecret({
                 wallet,
                 nonce: timestamp,
-                config
+                config: { evmConfig: config }
             })
 
             await apiClient.RevealSecret({ secret }, hashlock, solver)

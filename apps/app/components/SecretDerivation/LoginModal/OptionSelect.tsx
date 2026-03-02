@@ -1,30 +1,13 @@
-import { useConnectModal } from '@/components/WalletModal';
-import useWallet from '@/hooks/useWallet';
-import { Wallet } from '@/Models/WalletProvider';
 import { Fingerprint, Wallet as WalletIcon } from 'lucide-react';
 import { useSecretDerivation } from '@/context/secretDerivationContext';
 
-const OptionSelect = ({ onPasskeyLogin, goToStep, onConnectFinish }: {
+const OptionSelect = ({ onPasskeyLogin, goToStep }: {
     onPasskeyLogin: () => void;
     goToStep: (step: string) => void;
-    onConnectFinish: (wallet?: Wallet) => void;
 }) => {
-    const { connect } = useConnectModal();
-    const { providers } = useWallet();
     const { prfSupportDetails } = useSecretDerivation();
 
-    const evmProvider = providers.find(p => p.name.toLowerCase() === 'evm');
-    const connectedWallets = evmProvider?.connectedWallets || [];
-
-    const selectWallet = async () => {
-        if (connectedWallets.length < 1) {
-            const wallet = await connect(evmProvider);
-
-            if (wallet) {
-                onConnectFinish(wallet);
-                return
-            }
-        }
+    const selectWallet = () => {
         goToStep('wallet_select')
     }
 
@@ -39,7 +22,7 @@ const OptionSelect = ({ onPasskeyLogin, goToStep, onConnectFinish }: {
 
     const walletDescription = passkeyDisabled
         ? "Recommended for this device"
-        : "Select or connect an EVM wallet";
+        : "Select or connect a wallet";
 
     return (
         <div className="flex flex-col gap-2">
@@ -54,7 +37,7 @@ const OptionSelect = ({ onPasskeyLogin, goToStep, onConnectFinish }: {
             <OptionItem
                 onClick={selectWallet}
                 icon={WalletIcon}
-                title="Wallet (EVM)"
+                title="Wallet"
                 description={walletDescription}
             />
         </div>

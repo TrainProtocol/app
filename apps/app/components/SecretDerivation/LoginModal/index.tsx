@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useConfig } from 'wagmi';
 import { Loader2, ChevronLeft, CircleX } from 'lucide-react';
 import VaulModal from '@/components/Modal/vaulModal';
@@ -12,6 +12,7 @@ import OptionSelect from './OptionSelect';
 import IconButton from '@/components/buttons/iconButton';
 import WalletSelect from './SelectWallet';
 import { usePasskeyCredentialIds } from '@/stores/secretDerivationStore';
+import { useAztecWalletContext } from '@/components/WalletProviders/AztecWalletProvider';
 
 type LoginStep = 'pick' | 'passkey_recovery' | 'wallet_select' | 'signing';
 
@@ -27,7 +28,10 @@ interface LoginModalProps {
 }
 
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
-  const config = useConfig();
+  const evmConfig = useConfig();
+  const { wallet: aztecWallet } = useAztecWalletContext();
+  const aztecWalletRef = useRef(aztecWallet);
+  aztecWalletRef.current = aztecWallet;
   const { loginWithPasskey, loginWithWallet, derivationMessage } = useSecretDerivation();
   const storedPasskeyIds = usePasskeyCredentialIds();
   const hasStoredPasskeys = storedPasskeyIds.length > 0;
@@ -72,20 +76,14 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setSigningError(null);
     goToStep('signing');
     try {
-      await loginWithWallet(config, wallet);
+      // Yield to let React flush state updates (e.g. aztecWallet set during connect)
+      await new Promise(r => setTimeout(r, 0));
+      await loginWithWallet({ evmConfig, aztecWallet: aztecWalletRef.current }, wallet);
       closeAndReset();
     } catch (e) {
       const message = getErrorMessage(e, 'Wallet login failed');
       setSigningError(message);
     }
-  };
-
-  const onConnectFinish = async (wallet?: Wallet) => {
-    if (!wallet) {
-      goToStep('wallet_select', 'back');
-      return;
-    }
-    await startWalletLogin(wallet);
   };
 
   const handleBack = () => {
@@ -123,7 +121,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         <Steps currentStep={currentStep}>
 
           <Step name="pick">
-            <OptionSelect onPasskeyLogin={() => startPasskeyLogin(hasStoredPasskeys ? {} : { forceCreate: true })} goToStep={goToStep} onConnectFinish={onConnectFinish} />
+            <OptionSelect onPasskeyLogin={() => startPasskeyLogin(hasStoredPasskeys ? {} : { forceCreate: true })} goToStep={goToStep} />
           </Step>
 
           <Step name="passkey_recovery">

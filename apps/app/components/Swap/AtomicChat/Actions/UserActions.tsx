@@ -41,7 +41,7 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote, type }) => 
 
             const { secret, nonce } = await deriveSecret({
                 wallet: provider.activeWallet,
-                config
+                config: { evmConfig: config }
             })
             const hashlock = secretToHashlock(secret)
 

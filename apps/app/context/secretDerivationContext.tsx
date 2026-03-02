@@ -17,7 +17,7 @@ interface SecretDerivationContextValue {
   isLoggedIn: boolean;
   loginWallet: Wallet | null;
   loginWithPasskey: (options?: { forceCreate?: boolean; label?: string; crossDevice?: boolean }) => Promise<void>;
-  loginWithWallet: (config: any, wallet: Wallet) => Promise<void>;
+  loginWithWallet: (config: WalletLoginConfig, wallet: Wallet) => Promise<void>;
   logout: () => void;
   isPasskeySupported: boolean;
   prfSupportDetails: PrfSupportResult | null;
@@ -30,10 +30,15 @@ interface SecretDerivationContextValue {
   derivationMessage: string;
 }
 
+export interface WalletLoginConfig {
+  evmConfig?: any;       // Wagmi Config, for EVM wallets
+  aztecWallet?: any;     // Aztec wallet object, for Aztec wallets
+}
+
 interface DeriveKeyParams {
   wallet?: Wallet;
   nonce?: number;
-  config?: any; // Wagmi config for EVM
+  config?: WalletLoginConfig;
 }
 
 const SecretDerivationContext = createContext<SecretDerivationContextValue | undefined>(undefined);
@@ -105,13 +110,19 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
     }
   }, [setState]);
 
-  const loginWithWallet = useCallback(async (config: any, wallet: Wallet) => {
-    if (wallet.providerName?.toLowerCase() !== 'evm') {
-      throw new Error('Only EVM wallets are supported for login right now');
-    }
+  const loginWithWallet = useCallback(async (config: WalletLoginConfig, wallet: Wallet) => {
+    const providerName = wallet.providerName?.toLowerCase();
     setState({ derivationStatus: 'signing', derivationMessage: 'Please sign in your wallet' });
     try {
-      const derivedKey = await deriveKeyFromEvmSignature(config, wallet.address as `0x${string}`);
+      let derivedKey: Buffer;
+      if (providerName === 'evm') {
+        derivedKey = await deriveKeyFromEvmSignature(config.evmConfig, wallet.address as `0x${string}`);
+      } else if (providerName === 'aztec') {
+        const { deriveKeyFromAztecWallet } = await import('@/lib/htlc/secretDerivation/walletSign/aztec');
+        derivedKey = await deriveKeyFromAztecWallet(config.aztecWallet, wallet.address);
+      } else {
+        throw new Error(`Unsupported wallet provider for login: ${providerName}`);
+      }
       setState({
         method: 'wallet_sign',
         isLoggedIn: true,
@@ -151,10 +162,18 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
     const providerName = wallet.providerName?.toLowerCase();
 
     if (providerName === 'evm') {
-      if (!config) {
+      if (!config?.evmConfig) {
         throw new Error('Wagmi config required for EVM wallets');
       }
-      return await deriveKeyFromEvmSignature(config, wallet.address as `0x${string}`);
+      return await deriveKeyFromEvmSignature(config.evmConfig, wallet.address as `0x${string}`);
+    }
+
+    if (providerName === 'aztec') {
+      if (!config?.aztecWallet) {
+        throw new Error('Aztec wallet required for Aztec wallets');
+      }
+      const { deriveKeyFromAztecWallet } = await import('@/lib/htlc/secretDerivation/walletSign/aztec');
+      return await deriveKeyFromAztecWallet(config.aztecWallet, wallet.address);
     }
 
     throw new Error(`Unsupported provider: ${providerName}`);
