@@ -20,12 +20,14 @@ const SourcePicker = ({ quote }: Props) => {
     const { fromCurrency, from } = values || {}
     const { ref: parentRef, isActive: showQuickActions, activate: setShowQuickActions } = useClickOutside<HTMLDivElement>(false)
     const [actionTempValue, setActionTempValue] = useState<number | undefined>(undefined)
+    const [actionTempValueUsd, setActionTempValueUsd] = useState<string | undefined>(undefined)
 
-    const handleActionHover = (value: number | undefined) => {
+    const handleActionHover = (value: number | undefined, usdValue?: string) => {
         setActionTempValue(value)
+        setActionTempValueUsd(usdValue)
     }
 
-    return <div className="flex flex-col w-full bg-secondary-700 rounded-2xl p-4 pb-[15px] space-y-[27px] group" onClick={setShowQuickActions} ref={parentRef}>
+    return <div className="flex flex-col w-full bg-secondary-700 rounded-2xl p-4 pb-[15px] space-y-[27px] group/source" onClick={setShowQuickActions} ref={parentRef}>
         <div className="grid grid-cols-9 gap-2 items-center h-7">
             <label htmlFor="From" className="block col-span-5 font-normal text-secondary-text text-base leading-5">
                 Send from
@@ -43,7 +45,7 @@ const SourcePicker = ({ quote }: Props) => {
                         "hidden": !showQuickActions,
                         "block": showQuickActions
                     },
-                    "group-hover:block"
+                    "group-hover/source:block"
                 )}>
                     <MinMax
                         from={from}
@@ -56,7 +58,7 @@ const SourcePicker = ({ quote }: Props) => {
             }
             <div className="grid grid-cols-[1fr_auto] gap-1 w-full max-w-full">
                 <div className="min-w-0 overflow-hidden">
-                    <AmountField fee={quote} actionValue={actionTempValue} />
+                    <AmountField fee={quote} actionValue={actionTempValue} actionValueUsd={actionTempValueUsd} />
                 </div>
 
                 <div className="justify-self-end self-start">
