@@ -1,9 +1,11 @@
 import { AztecAddress } from '@aztec/aztec.js/addresses'
+import type { ContractArtifact } from '@aztec/aztec.js/abi'
 import { SetPublicAuthwitContractInteraction } from '@aztec/aztec.js/authorization'
-import { BatchCall } from '@aztec/aztec.js/contracts'
+import { BatchCall, getContractClassFromArtifact } from '@aztec/aztec.js/contracts'
 import { SponsoredFeePaymentMethod } from '@aztec/aztec.js/fee'
 import { Fr } from '@aztec/aztec.js/fields'
 import { type AztecNode, createAztecNodeClient } from '@aztec/aztec.js/node'
+import type { Wallet } from '@aztec/aztec.js/wallet'
 import type {
     IHTLCClient,
     CreateHTLCParams,
@@ -65,9 +67,17 @@ export class AztecHTLCClient implements IHTLCClient {
 
             // Register Token contract
             const tokenInstance = await node.getContract(tokenAddress)
-            if (tokenInstance) {
-                await signer.wallet.registerContract(tokenInstance, TokenContractArtifact)
+            if (!tokenInstance) {
+                throw new Error(
+                    `Token contract not found at ${tokenAddress.toString()} on node ${this.rpcUrl}`,
+                )
             }
+            await this.registerContractWithFallback(
+                signer.wallet,
+                tokenInstance,
+                TokenContractArtifact,
+                'Token',
+            )
             const token = TokenContract.at(tokenAddress, signer.wallet)
 
             const amount = parseUnits(params.amount.toString(), params.decimals)
@@ -214,9 +224,17 @@ export class AztecHTLCClient implements IHTLCClient {
             if (params.destinationAsset?.contractAddress) {
                 const tokenAddress = AztecAddress.fromString(params.destinationAsset.contractAddress)
                 const tokenInstance = await node.getContract(tokenAddress)
-                if (tokenInstance) {
-                    await signer.wallet.registerContract(tokenInstance, TokenContractArtifact)
+                if (!tokenInstance) {
+                    throw new Error(
+                        `Token contract not found at ${tokenAddress.toString()} on node ${this.rpcUrl}`,
+                    )
                 }
+                await this.registerContractWithFallback(
+                    signer.wallet,
+                    tokenInstance,
+                    TokenContractArtifact,
+                    'Token',
+                )
                 await signer.wallet.registerSender(AztecAddress.fromString(params.contractAddress))
             }
 
@@ -349,5 +367,50 @@ export class AztecHTLCClient implements IHTLCClient {
         const userAztecAddress = AztecAddress.fromString(signer.address)
 
         return { contract, userAztecAddress, node }
+    }
+
+    private async registerContractWithFallback(
+        wallet: Wallet,
+        instance: Parameters<Wallet['registerContract']>[0],
+        artifact: ContractArtifact,
+        contractName: string,
+    ): Promise<void> {
+        try {
+            await wallet.registerContract(instance, artifact)
+        } catch (error) {
+            if (!this.isArtifactClassMismatch(error)) throw error
+
+            const classDiagnostics = await this.buildContractClassDiagnostics(instance, artifact)
+            console.warn(`${contractName} artifact class mismatch. ${classDiagnostics}. Retrying without local artifact.`)
+
+            try {
+                await wallet.registerContract(instance)
+            } catch (fallbackError) {
+                throw new Error(
+                    `${contractName} registration failed for ${instance.address.toString()}. ${classDiagnostics}. ` +
+                    'Verify the token address for this network points to a contract compiled from the same artifact.',
+                    { cause: fallbackError instanceof Error ? fallbackError : undefined },
+                )
+            }
+        }
+    }
+
+    private async buildContractClassDiagnostics(
+        instance: Parameters<Wallet['registerContract']>[0],
+        artifact: ContractArtifact,
+    ): Promise<string> {
+        const onChainClassId = instance.currentContractClassId?.toString?.() ?? 'unknown'
+        try {
+            const localClass = await getContractClassFromArtifact(artifact)
+            return `address=${instance.address.toString()} onChainClassId=${onChainClassId} localClassId=${localClass.id.toString()}`
+        } catch {
+            return `address=${instance.address.toString()} onChainClassId=${onChainClassId} localClassId=unavailable`
+        }
+    }
+
+    private isArtifactClassMismatch(error: unknown): boolean {
+        if (!(error instanceof Error)) return false
+        const message = error.message.toLowerCase()
+        return message.includes('artifact') && message.includes('class id')
     }
 }

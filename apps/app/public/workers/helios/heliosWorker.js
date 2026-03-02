@@ -15,13 +15,16 @@ self.onmessage = (e) => {
 };
 async function initWorker(initConfigs) {
     try {
-        const ethCheckpoint = initConfigs.network?.toLowerCase().includes('eip155:11155111') && await fetch(initConfigs.hostname + '/api/getCheckpoint').then(res => res.json());
+        const networkSuffix = initConfigs.version == 'sandbox' ? 'sepolia' : 'mainnet';
+        const origin = self.location.origin;
+        const ethCheckpoint = initConfigs.network?.toLowerCase().includes('eip155:11155111') &&
+            await fetch(`${origin}/proxy/beaconchain-${networkSuffix}/checkpointz/v1/status`).then(res => res.json()).catch(() => null);
         const configs = [
             {
                 name: 'eip155:11155111',
                 cnfg: {
                     executionRpc: `${initConfigs.version == 'sandbox' ? 'https://eth-sepolia.g.alchemy.com/v2/' : 'https://eth-mainnet.g.alchemy.com/v2/'}${initConfigs.alchemyKey}`,
-                    consensusRpc: initConfigs.version == 'sandbox' ? initConfigs.hostname + '/api/consensusRpc' : undefined,
+                    consensusRpc: initConfigs.version == 'sandbox' ? `${origin}/proxy/nimbus-sepolia` : undefined,
                     checkpoint: ethCheckpoint?.finality?.finalized?.root || initConfigs.version == 'sandbox' ? '0x527a8a4949bc2128d73fa4e2a022aa56881b2053ba83c900013a66eb7c93343e' : '0xf5a73de5020ab47bb6648dee250e60d6f031516327f4b858bc7f3e3ecad84c40',
                     dbType: "localstorage",
                     network: initConfigs.version == 'sandbox' ? 'sepolia' : undefined,
