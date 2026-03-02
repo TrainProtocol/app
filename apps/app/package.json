@@ -22,7 +22,7 @@
     "@aztec/noir-protocol-circuits-types": "^4.0.0-devnet.2-patch.2",
     "@aztec/protocol-contracts": "^4.0.0-devnet.2-patch.2",
     "@aztec/stdlib": "^4.0.0-devnet.2-patch.2",
-    "@aztec/wallet-sdk": "4.0.2",
+    "@aztec/wallet-sdk": "4.0.0-devnet.2-patch.2",
     "@defi-wonderland/aztec-standards": "4.0.0-devnet.2-patch.1",
     "@badrap/bar-of-progress": "^0.2.2",
     "@cartridge/controller": "^0.9.2",
