@@ -137,7 +137,7 @@ const mockData = {
             "contracts": [
                 {
                     "type": "Train",
-                    "address": "0x232b967fa55f8d71f1c0e7223cbca3269828d1c273f66de67924e3deb0e19416"
+                    "address": "0x303637a2c303913af7faa27a93d210e987ae22ec9a27a603c6b509dad2b46e3e"
                 }
             ],
         }
