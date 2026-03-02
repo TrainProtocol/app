@@ -19,7 +19,7 @@ type UserCommitActionProps = {
     type: SwapViewType
 }
 
-export const UserCommitAction: FC<UserCommitActionProps> = ({ quote, type }) => {
+export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
     const { source_network, destination_network, amount, address, source_asset, destination_asset, onUserLock, hashlock, setError, srcAtomicContract } = useAtomicState();
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet

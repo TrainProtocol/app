@@ -1,6 +1,7 @@
-import type { IHTLCClient } from './types/htlc-client'
+import type { IHTLCClient, BaseHTLCClientConfig } from './types/htlc-client'
 
-export type HTLCClientFactory = (config: Record<string, unknown>) => IHTLCClient
+export type HTLCClientConfig = BaseHTLCClientConfig & Record<string, unknown>
+export type HTLCClientFactory = (config: HTLCClientConfig) => IHTLCClient
 
 const registry = new Map<string, HTLCClientFactory>()
 
@@ -8,7 +9,7 @@ export function registerHTLCClient(chainNamespace: string, factory: HTLCClientFa
     registry.set(chainNamespace, factory)
 }
 
-export function createHTLCClient(chainNamespace: string, config: Record<string, unknown>): IHTLCClient {
+export function createHTLCClient(chainNamespace: string, config: HTLCClientConfig): IHTLCClient {
     const factory = registry.get(chainNamespace)
     if (!factory) {
         throw new Error(

@@ -18,6 +18,7 @@ export function registerEvmSdk(): void {
         rpcUrl: config.rpcUrl as string,
         signer: config.signer as EvmSigner | undefined,
         chainId: config.chainId as number | undefined,
+        apiClient: config.apiClient,
     }))
 
     registerWalletSign('eip155', async (config) => {

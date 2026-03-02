@@ -2,7 +2,7 @@ import { FC, useEffect, useRef, useState } from "react";
 import { useAtomicState } from "../../../../context/atomicContext";
 import { RevealSecretAction } from "./RevealSecret";
 import { ManualClaimAction } from "./ManualClaim";
-import { UserRefundAction, UserCommitAction } from "./UserActions";
+import { UserRefundAction, UserLockAction } from "./UserActions";
 import TransactionMessages from "../../messages/TransactionMessages";
 import WalletMessage from "../../messages/Message";
 import DestinationWalletWrapper from "./DestinationWalletWrapper";
@@ -78,7 +78,7 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote, typ
         case HTLCStatus.UserLocked:
             return <></>
         default:
-            return <UserCommitAction quote={quote} type={type} />
+            return <UserLockAction quote={quote} type={type} />
     }
 }
 

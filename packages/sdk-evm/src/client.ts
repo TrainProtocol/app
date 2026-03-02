@@ -8,21 +8,19 @@ import {
     LockStatus,
     AtomicResult,
     RecoveredSwapData,
-    IHTLCClient,
+    HTLCClient,
 } from '@train-protocol/sdk'
 import { htlcFunctions, htlcEvents, erc20Functions } from './abi.js'
 import { JsonRpcClient } from './rpc.js'
 import { ZERO_ADDRESS, parseUnits, formatUnits, toHex32, waitForReceipt } from './utils.js'
 import type { EvmHTLCClientConfig, EvmSigner, RpcLog } from './types.js'
 
-type Hex = `0x${string}`
-const hex = (v: string): Hex => v as Hex
-
-export class EvmHTLCClient implements IHTLCClient {
+export class EvmHTLCClient extends HTLCClient {
     private rpc: JsonRpcClient
     private signer: EvmSigner | undefined
 
     constructor(config: EvmHTLCClientConfig) {
+        super(config.apiClient)
         this.rpc = new JsonRpcClient(config.rpcUrl)
         this.signer = config.signer
     }
@@ -334,3 +332,6 @@ export class EvmHTLCClient implements IHTLCClient {
         return null
     }
 }
+
+type Hex = `0x${string}`
+const hex = (v: string): Hex => v as Hex

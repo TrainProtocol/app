@@ -4,7 +4,10 @@ import {
     getRegisteredWalletSignProviders,
     createHTLCClient,
     deriveKeyFromWallet,
+    type TrainApiClient,
 } from '@train-protocol/sdk'
+
+const mockApiClient = {} as TrainApiClient
 import { registerEvmSdk } from '../index.js'
 
 describe('registerEvmSdk', () => {
@@ -25,7 +28,7 @@ describe('registerEvmSdk', () => {
     })
 
     it('createHTLCClient works for eip155 after registration', () => {
-        const client = createHTLCClient('eip155', { rpcUrl: 'https://example.com' })
+        const client = createHTLCClient('eip155', { rpcUrl: 'https://example.com', apiClient: mockApiClient })
         expect(client).toBeDefined()
         expect(typeof client.getUserLockDetails).toBe('function')
         expect(typeof client.getSolverLockDetails).toBe('function')

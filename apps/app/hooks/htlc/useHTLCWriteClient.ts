@@ -2,12 +2,15 @@ import { useCallback } from 'react'
 import { useConfig } from 'wagmi'
 import { getWalletClient } from 'wagmi/actions'
 import { getConnections } from '@wagmi/core'
-import { createHTLCClient as createClient, IHTLCClient } from '@train-protocol/sdk'
+import { createHTLCClient as createClient, IHTLCClient, TrainApiClient as SdkTrainApiClient } from '@train-protocol/sdk'
 import type { EvmSigner } from '@train-protocol/sdk-evm'
 import { Network } from '../../Models/Network'
 import { Wallet } from '@/Models/WalletProvider'
 import { useRpcConfigStore } from '@/stores/rpcConfigStore'
 import resolveChain from '@/lib/resolveChain'
+import AppSettings from '@/lib/AppSettings'
+
+const apiClient = new SdkTrainApiClient({ baseUrl: AppSettings.TrainApiUri ?? '' })
 
 /** Hook that returns a factory for creating HTLC write clients with a signer */
 export function useHTLCWriteClient() {
@@ -62,6 +65,6 @@ export function useHTLCWriteClient() {
             }
         }
 
-        return createClient(chainType, { rpcUrl, signer })
+        return createClient(chainType, { rpcUrl, signer, apiClient })
     }, [config, getEffectiveRpcUrls])
 }
