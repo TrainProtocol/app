@@ -226,49 +226,49 @@ export function AtomicProvider({ children }) {
         onSuccess: handleSolverLockSuccess,
     })
 
-    useEffect(() => {
-        if (destination_network && htlcStatus !== HTLCStatus.TimelockExpired && htlcStatus !== HTLCStatus.RedeemCompleted) {
-            (async () => {
-                try {
-                    const lightClient = new LightClient()
-                    await lightClient.initProvider({ network: destination_network })
-                    setLightClient(lightClient)
-                } catch (error) {
-                    console.log(error)
-                }
+    // useEffect(() => {
+    //     if (destination_network && htlcStatus !== HTLCStatus.TimelockExpired && htlcStatus !== HTLCStatus.RedeemCompleted) {
+    //         (async () => {
+    //             try {
+    //                 const lightClient = new LightClient()
+    //                 await lightClient.initProvider({ network: destination_network })
+    //                 setLightClient(lightClient)
+    //             } catch (error) {
+    //                 console.log(error)
+    //             }
 
-            })()
-        }
-    }, [destination_network])
+    //         })()
+    //     }
+    // }, [destination_network])
 
-    useEffect(() => {
-        (async () => {
-            if (destination_network && destination_token && hashlock && destination_asset && lightClient && !sourceDetails?.hashlock && destAtomicContract) {
-                if (!lightClient.supportsNetwork(destination_network)) return
+    // useEffect(() => {
+    //     (async () => {
+    //         if (destination_network && destination_token && hashlock && destination_asset && lightClient && !sourceDetails?.hashlock && destAtomicContract) {
+    //             if (!lightClient.supportsNetwork(destination_network)) return
 
-                try {
-                    setVerifyingByLightClient(true)
-                    const data = await lightClient.getDetails({
-                        network: destination_network,
-                        token: destination_token,
-                        hashlock,
-                        atomicContract: destAtomicContract
-                    })
-                    if (data) {
-                        updateCommit('destinationDetailsByLightClient', { data })
-                        return
-                    }
-                }
-                catch (e) {
-                    updateCommit('destinationDetailsByLightClient', { data: undefined, error: 'Light client is not available' })
-                    console.log(e)
-                }
-                finally {
-                    setVerifyingByLightClient(false)
-                }
-            }
-        })()
-    }, [destination_network, hashlock, destAtomicContract, lightClient, destination_token, sourceDetails, destination_asset])
+    //             try {
+    //                 setVerifyingByLightClient(true)
+    //                 const data = await lightClient.getDetails({
+    //                     network: destination_network,
+    //                     token: destination_token,
+    //                     hashlock,
+    //                     atomicContract: destAtomicContract
+    //                 })
+    //                 if (data) {
+    //                     updateCommit('destinationDetailsByLightClient', { data })
+    //                     return
+    //                 }
+    //             }
+    //             catch (e) {
+    //                 updateCommit('destinationDetailsByLightClient', { data: undefined, error: 'Light client is not available' })
+    //                 console.log(e)
+    //             }
+    //             finally {
+    //                 setVerifyingByLightClient(false)
+    //             }
+    //         }
+    //     })()
+    // }, [destination_network, hashlock, destAtomicContract, lightClient, destination_token, sourceDetails, destination_asset])
 
 
     useEffect(() => {
