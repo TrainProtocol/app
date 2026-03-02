@@ -16,6 +16,26 @@ const nextConfig: NextConfig = {
       }
     ]
   },
+  async rewrites() {
+    return [
+      {
+        source: '/proxy/beaconchain-sepolia/:path*',
+        destination: 'https://sync-sepolia.beaconcha.in/:path*',
+      },
+      {
+        source: '/proxy/beaconchain-mainnet/:path*',
+        destination: 'https://sync-mainnet.beaconcha.in/:path*',
+      },
+      {
+        source: '/proxy/nimbus-sepolia/:path*',
+        destination: 'https://unstable.sepolia.beacon-api.nimbus.team/:path*',
+      },
+      {
+        source: '/proxy/nimbus-mainnet/:path*',
+        destination: 'https://unstable.mainnet.beacon-api.nimbus.team/:path*',
+      },
+    ]
+  },
   // Required for @aztec/bb.js WASM (Barretenberg) — needs SharedArrayBuffer
   async headers() {
     return [
