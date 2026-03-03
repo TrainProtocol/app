@@ -36,7 +36,6 @@ export default class EVMLightClient extends _LightClient {
                     payload: {
                         data: {
                             initConfigs: {
-                                hostname: window.location.origin,
                                 network: network.caip2Id,
                                 alchemyKey: process.env.NEXT_PUBLIC_ALCHEMY_KEY,
                                 version: network.caip2Id.toLowerCase().includes('sepolia') ? 'sandbox' : 'mainnet'

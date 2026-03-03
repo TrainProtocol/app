@@ -18,6 +18,7 @@ export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
         setError,
         setManualClaimTxId,
         destRedeemTx,
+        destinationClient,
     } = useAtomicState();
 
     const { provider } = useWallet(destination_network, 'withdrawal');
@@ -34,10 +35,9 @@ export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
             if (!address) throw new Error("No destination address");
             if (provider?.activeWallet && (provider.activeWallet.chainId != destination_network.chainId) && provider.switchChain)
                 await provider.switchChain(provider.activeWallet, destination_network.chainId);
+            if (!destinationClient) throw new Error("No destination client");
 
-            const writeClient = await createWriteClient(destination_network, wallet);
-
-            const txHash = await writeClient.claim({
+            const txHash = await destinationClient.claim({
                 type: destination_asset.contractAddress ? 'erc20' : 'native',
                 chainId: destination_network.chainId,
                 contractAddress: destAtomicContract,

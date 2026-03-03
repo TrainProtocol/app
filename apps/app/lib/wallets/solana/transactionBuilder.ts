@@ -76,7 +76,7 @@ export const transactionBuilder = async (network: Network, token: Token, walletP
 
 export const phtlcTransactionBuilder = async (params: CreateHTLCParams & { program: Program<Idl>, connection: Connection, walletPublicKey: PublicKey, network: Network }) => {
 
-    const { destinationChain, destinationAsset, sourceAsset, srcLpAddress: lpAddress, address: destination_address, amount, atomicContract, chainId, program, walletPublicKey, connection, network } = params
+    const { destinationChain, destinationAsset, sourceAsset, srcLpAddress: lpAddress, destinationAddress, amount, atomicContract, chainId, program, walletPublicKey, connection, network } = params
 
     if (!walletPublicKey) {
         throw Error("Wallet not connected")
@@ -124,7 +124,7 @@ export const phtlcTransactionBuilder = async (params: CreateHTLCParams & { progr
             const tokenContract = new PublicKey(sourceAsset.contractAddress);
 
             const commitTx = await program.methods
-                .commit(hashlock, hopChains, hopAssets, hopAddresses, destinationChain, destinationAsset, destination_address, sourceAsset.symbol, lpAddressPublicKey, bnTimelock, bnAmount)
+                .commit(hashlock, hopChains, hopAssets, hopAddresses, destinationChain, destinationAsset, destinationAddress, sourceAsset.symbol, lpAddressPublicKey, bnTimelock, bnAmount)
                 .accountsPartial({
                     sender: walletPublicKey,
                     htlc: htlc,
@@ -137,7 +137,7 @@ export const phtlcTransactionBuilder = async (params: CreateHTLCParams & { progr
             commit.add(commitTx);
         } else {
             const commitTx = await program.methods
-                .commit(hashlock, hopChains, hopAssets, hopAddresses, destinationChain, destinationAsset, destination_address, sourceAsset.symbol, lpAddressPublicKey, bnTimelock, bnAmount)
+                .commit(hashlock, hopChains, hopAssets, hopAddresses, destinationChain, destinationAsset, destinationAddress, sourceAsset.symbol, lpAddressPublicKey, bnTimelock, bnAmount)
                 .accountsPartial({
                     sender: walletPublicKey,
                     htlc: htlc,

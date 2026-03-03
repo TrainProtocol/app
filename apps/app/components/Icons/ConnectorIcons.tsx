@@ -83,7 +83,7 @@ const IconsWrapper = ({ children, className }: { children: React.ReactNode, clas
 
 const KnownConnectors = {
     Starknet: "starknet",
-    EVM: "evm",
+    EVM: "eip155",
     TON: "ton",
     Solana: "solana",
     Glow: "glow",

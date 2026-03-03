@@ -7,7 +7,7 @@ import { useAztecWalletContext, AZGUARD_PROVIDER_ID } from "../../../components/
 import { azguardBase64 } from "@/components/Icons/Base64/Azguard";
 
 const commonSupportedNetworks = [
-    KnownInternalNames.Networks.AztecTestnet,
+    KnownInternalNames.Networks.AztecDevnet,
 ]
 
 export default function useAztec(): WalletProvider {
@@ -43,6 +43,7 @@ export default function useAztec(): WalletProvider {
             disconnect: () => disconnectWallets(),
             withdrawalSupportedNetworks: commonSupportedNetworks,
             asSourceSupportedNetworks: commonSupportedNetworks,
+            autofillSupportedNetworks: commonSupportedNetworks,
             networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logoUrl
         }
     }, [wallet, accountAddress, networks, discoveredProviders, azguardDetected])
@@ -76,6 +77,7 @@ export default function useAztec(): WalletProvider {
                     disconnect: () => disconnectWallets(),
                     withdrawalSupportedNetworks: commonSupportedNetworks,
                     asSourceSupportedNetworks: commonSupportedNetworks,
+                    autofillSupportedNetworks: commonSupportedNetworks,
                     networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logoUrl
                 }
 
@@ -129,6 +131,7 @@ export default function useAztec(): WalletProvider {
         activeWallet: aztecWallet,
         withdrawalSupportedNetworks: commonSupportedNetworks,
         asSourceSupportedNetworks: commonSupportedNetworks,
+        autofillSupportedNetworks: commonSupportedNetworks,
         name,
         id,
         ready: true,

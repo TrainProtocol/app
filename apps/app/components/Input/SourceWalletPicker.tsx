@@ -57,7 +57,7 @@ const SourceWalletPicker: FC = () => {
                 <button type="button" onClick={handleWalletChange} className="rounded-lg flex items-center space-x-2 text-sm hover:bg-secondary-400 py-1 pl-2 pr-2 outline-hidden">
                     <div className="rounded-lg flex space-x-1 items-center">
                         <div className="inline-flex items-center relative px-0.5">
-                            <selectedSourceAccount.icon className="w-4 h-4" />
+                            <selectedSourceAccount.icon className="w-4 h-4 rounded" />
                         </div>
                         <div className="text-secondary-text">
                             {new Address(selectedSourceAccount.address, values.from).toShortString()}

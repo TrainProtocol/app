@@ -12,7 +12,8 @@ import {
 } from '@train-protocol/sdk'
 import { htlcFunctions, htlcEvents, erc20Functions } from './abi.js'
 import { JsonRpcClient } from './rpc.js'
-import { ZERO_ADDRESS, parseUnits, formatUnits, toHex32, waitForReceipt } from './utils.js'
+import { parseUnits, formatUnits, toHex32 } from '@train-protocol/sdk'
+import { waitForReceipt } from './utils.js'
 import type { EvmHTLCClientConfig, EvmSigner, RpcLog } from './types.js'
 
 export class EvmHTLCClient extends HTLCClient {
@@ -35,7 +36,8 @@ export class EvmHTLCClient extends HTLCClient {
             destinationAsset,
             sourceAsset,
             srcLpAddress: lpAddress,
-            address,
+            sourceAddress,
+            destinationAddress,
             amount,
             decimals,
             atomicContract,
@@ -58,7 +60,7 @@ export class EvmHTLCClient extends HTLCClient {
         if (!isNativeToken) {
             await this.ensureERC20Allowance(
                 sourceAsset.contractAddress!,
-                address,
+                sourceAddress,
                 atomicContract,
                 parsedAmount,
                 signer,
@@ -74,7 +76,7 @@ export class EvmHTLCClient extends HTLCClient {
                 timelockDelta,
                 rewardTimelockDelta: rewardTimelockDelta ?? 0,
                 quoteExpiry,
-                sender: hex(address),
+                sender: hex(sourceAddress),
                 recipient: hex(lpAddress),
                 token: hex(tokenAddress),
                 rewardToken: rewardToken ?? '',
@@ -83,7 +85,7 @@ export class EvmHTLCClient extends HTLCClient {
             },
             {
                 dstChain: destinationChain,
-                dstAddress: address,
+                dstAddress: destinationAddress,
                 dstAmount: destinationAmount,
                 dstToken: destinationAsset,
             },
@@ -95,7 +97,7 @@ export class EvmHTLCClient extends HTLCClient {
             await this.rpc.ethCall(
                 atomicContract,
                 calldata,
-                address,
+                sourceAddress,
                 isNativeToken ? parsedAmount : undefined,
             )
 
@@ -332,3 +334,5 @@ export class EvmHTLCClient extends HTLCClient {
 
 type Hex = `0x${string}`
 const hex = (v: string): Hex => v as Hex
+
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'

@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
+import { Fingerprint, Wallet as WalletIcon } from 'lucide-react';
+import { useSecretDerivation } from '@/context/secretDerivationContext';
 import { useConnectModal } from '@/components/WalletModal';
 import useWallet from '@/hooks/useWallet';
 import { Wallet } from '@/Models/WalletProvider';
-import { Fingerprint, Wallet as WalletIcon } from 'lucide-react';
-import { useSecretDerivation } from '@/context/secretDerivationContext';
+import { getRegisteredWalletSignProviders } from '@train-protocol/sdk';
 
 const OptionSelect = ({ onPasskeyLogin, goToStep, onConnectFinish }: {
     onPasskeyLogin: () => void;
@@ -13,16 +15,18 @@ const OptionSelect = ({ onPasskeyLogin, goToStep, onConnectFinish }: {
     const { providers } = useWallet();
     const { prfSupportDetails } = useSecretDerivation();
 
-    const evmProvider = providers.find(p => p.name.toLowerCase() === 'evm');
-    const connectedWallets = evmProvider?.connectedWallets || [];
+    const connectedWallets = useMemo(() => {
+        const registeredProviders = getRegisteredWalletSignProviders();
+        const loginProviders = providers.filter(p => registeredProviders.includes(p.id.toLowerCase()));
+        return loginProviders.flatMap(p => p.connectedWallets || []);
+    }, [providers]);
 
     const selectWallet = async () => {
         if (connectedWallets.length < 1) {
-            const wallet = await connect(evmProvider);
-
-            if (wallet) {
+            const wallet = await connect();
+            if (wallet && getRegisteredWalletSignProviders().includes(wallet.providerName?.toLowerCase() ?? '')) {
                 onConnectFinish(wallet);
-                return
+                return;
             }
         }
         goToStep('wallet_select')
@@ -39,7 +43,7 @@ const OptionSelect = ({ onPasskeyLogin, goToStep, onConnectFinish }: {
 
     const walletDescription = passkeyDisabled
         ? "Recommended for this device"
-        : "Select or connect an EVM wallet";
+        : "Select or connect a wallet";
 
     return (
         <div className="flex flex-col gap-2">
@@ -54,7 +58,7 @@ const OptionSelect = ({ onPasskeyLogin, goToStep, onConnectFinish }: {
             <OptionItem
                 onClick={selectWallet}
                 icon={WalletIcon}
-                title="Wallet (EVM)"
+                title="Wallet"
                 description={walletDescription}
             />
         </div>

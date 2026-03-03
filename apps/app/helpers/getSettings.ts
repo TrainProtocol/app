@@ -1,6 +1,7 @@
 import { NetworkContract } from "@/Models/Network";
 import TrainApiClient from "../lib/trainApiClient";
 import { getThemeData } from "./settingsHelper";
+import KnownInternalNames from "@/lib/knownIds";
 
 const apiClient = new TrainApiClient()
 
@@ -31,6 +32,28 @@ export async function getServerSideProps(context) {
             })),
         }
     })
+
+    // Inject Aztec testnet if the API doesn't return it
+    const hasAztec = resolvedNetworks.some(n => n.caip2Id === KnownInternalNames.Networks.AztecDevnet)
+    if (!hasAztec) {
+        const aztecMock = mockData.data.find(n => n.caip2Id === KnownInternalNames.Networks.AztecDevnet)
+        resolvedNetworks.push({
+            caip2Id: KnownInternalNames.Networks.AztecDevnet,
+            displayName: "Aztec Devnet",
+            chainId: 'devnet',
+            nativeTokenAddress: "0x02c31306cad429e0a00d3a4ee8ba251853099f835101ee2c637e9b3b9351a056",
+            type: { name: "aztec" },
+            tokens: [{
+                symbol: "ETH",
+                contractAddress: "0x02c31306cad429e0a00d3a4ee8ba251853099f835101ee2c637e9b3b9351a056",
+                decimals: 18,
+                priceInUsd: prices["eip155:11155111:0x0000000000000000000000000000000000000000"],
+            }],
+            nodes: aztecMock?.nodes ?? [],
+            contracts: (aztecMock?.contracts as NetworkContract[]) ?? [],
+            metadata: [],
+        } as any)
+    }
 
     const settings = {
         networks: resolvedNetworks,
@@ -102,6 +125,21 @@ const mockData = {
                 {
                     "type": "Multicall",
                     "address": "0xcA11bde05977b3631167028862bE2a173976CA11"
+                }
+            ],
+        },
+        {
+            "caip2Id": KnownInternalNames.Networks.AztecDevnet,
+            "nodes": [
+                {
+                    "providerName": "aztec-devnet",
+                    "url": "https://v4-devnet-2.aztec-labs.com"
+                }
+            ],
+            "contracts": [
+                {
+                    "type": "Train",
+                    "address": "0x2b9192d4571cceb33c689f750bcf380a7baae350846cc55616a278523cfd0dfc"
                 }
             ],
         }

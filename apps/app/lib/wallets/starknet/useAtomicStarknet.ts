@@ -21,7 +21,7 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Base
     const { deriveSecret } = useSecretDerivation()
 
     const createHTLC = async (params: CreateHTLCParams) => {
-        const { destinationChain, destinationAsset, sourceAsset, srcLpAddress: lpAddress, address, tokenContractAddress, amount, decimals, atomicContract: atomicAddress } = params
+        const { destinationChain, destinationAsset, sourceAsset, srcLpAddress: lpAddress, destinationAddress, tokenContractAddress, amount, decimals, atomicContract: atomicAddress } = params
 
         if (!starknetWallet?.metadata?.starknetAccount) {
             throw new Error('Wallet not connected')
@@ -58,7 +58,7 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Base
                 parsedAmount,
                 destinationChain,
                 destinationAsset,
-                address,
+                destinationAddress,
                 sourceAsset.symbol,
                 lpAddress,
                 timelock,

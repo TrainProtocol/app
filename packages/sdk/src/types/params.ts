@@ -12,7 +12,8 @@ export type CreateHTLCParams = {
     destLpAddress: string;
     srcLpAddress: string;
     atomicContract: string;
-    address: string;
+    sourceAddress: string;
+    destinationAddress: string;
     tokenContractAddress?: string | undefined | null;
     chainId?: string | null;
     solverData?: string;

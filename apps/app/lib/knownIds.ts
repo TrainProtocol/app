@@ -6,7 +6,9 @@ export default class KnownInternalNames {
 
         public static readonly BaseSepolia: string = "eip155:84532";
         
+        public static readonly AztecDevnet: string = "aztec:aztec-devnet"
         
+
         public static readonly CronosMainnet: string = "CRONOS_MAINNET";
 
         public static readonly OsmosisMainnet: string = "OSMOSIS_MAINNET";
@@ -140,8 +142,6 @@ export default class KnownInternalNames {
         public static readonly FuelTestnet: string = "FUEL_TESTNET"
 
         public static readonly FuelDevnet: string = "FUEL_DEVNET"
-
-        public static readonly AztecTestnet: string = "AZTEC_TESTNET"
 
         public static readonly TronMainnet: string = "TRON_MAINNET"
 

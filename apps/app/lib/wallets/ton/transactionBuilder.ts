@@ -13,7 +13,7 @@ export const commitTransactionBuilder = async (params: CreateHTLCParams & { wall
         sourceAsset,
         destinationChain,
         destinationAsset,
-        address,
+        destinationAddress,
         decimals,
         amount
     } = params
@@ -56,7 +56,7 @@ export const commitTransactionBuilder = async (params: CreateHTLCParams & { wall
     b_0.storeStringRefTail(destinationChain);
     b_0.storeStringRefTail(destinationAsset);
     let b_1 = new Builder();
-    b_1.storeStringRefTail(address);
+    b_1.storeStringRefTail(destinationAddress);
     b_1.storeStringRefTail(sourceAsset.symbol);
     b_1.storeAddress(srcReceiver);
     b_1.storeInt(timelock, 257);

@@ -5,6 +5,7 @@ import {
     TrainApiClient as SdkTrainApiClient,
     Network,
 } from '@train-protocol/sdk'
+import KnownInternalNames from './knownIds'
 
 // Re-export all types from SDK so existing imports keep working
 export type {

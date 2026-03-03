@@ -2,12 +2,14 @@ import { useCallback } from 'react'
 import { useConfig } from 'wagmi'
 import { getWalletClient } from 'wagmi/actions'
 import { getConnections } from '@wagmi/core'
-import { createHTLCClient as createClient, IHTLCClient, TrainApiClient as SdkTrainApiClient } from '@train-protocol/sdk'
+import { createHTLCClient as createClient, getRegisteredNamespaces, IHTLCClient, TrainApiClient as SdkTrainApiClient } from '@train-protocol/sdk'
 import type { EvmSigner } from '@train-protocol/sdk-evm'
+import type { AztecSigner } from '@train-protocol/sdk-aztec'
 import { Network } from '../../Models/Network'
 import { Wallet } from '@/Models/WalletProvider'
 import { useRpcConfigStore } from '@/stores/rpcConfigStore'
 import resolveChain from '@/lib/resolveChain'
+import { useAztecWalletContext } from '@/components/WalletProviders/AztecWalletProvider'
 import AppSettings from '@/lib/AppSettings'
 
 const apiClient = new SdkTrainApiClient({ baseUrl: AppSettings.TrainApiUri ?? '' })
@@ -16,12 +18,26 @@ const apiClient = new SdkTrainApiClient({ baseUrl: AppSettings.TrainApiUri ?? ''
 export function useHTLCWriteClient() {
     const config = useConfig()
     const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
+    const { wallet: aztecWallet, accountAddress: aztecAccountAddress } = useAztecWalletContext()
 
     return useCallback(async (network: Network, wallet?: Wallet): Promise<IHTLCClient> => {
         const chainType = network.caip2Id.split(':')[0]
         const rpcUrl = getEffectiveRpcUrls(network)[0] ?? network.nodes?.[0]?.url ?? ''
-        const chain = resolveChain(network)
 
+        // Aztec chain path
+        if (chainType === 'aztec') {
+            let signer: AztecSigner | undefined
+            if (aztecWallet && aztecAccountAddress) {
+                signer = {
+                    wallet: aztecWallet,
+                    address: aztecAccountAddress,
+                }
+            }
+            return createClient(chainType, { rpcUrl, signer, apiClient })
+        }
+
+        // EVM chain path
+        const chain = resolveChain(network)
         let signer: EvmSigner | undefined
         if (wallet?.address && chain) {
             const connector = getConnections(config)
@@ -66,5 +82,5 @@ export function useHTLCWriteClient() {
         }
 
         return createClient(chainType, { rpcUrl, signer, apiClient })
-    }, [config, getEffectiveRpcUrls])
+    }, [config, getEffectiveRpcUrls, aztecWallet, aztecAccountAddress])
 }
