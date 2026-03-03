@@ -97,7 +97,6 @@ export default function useAtomicAztec(params: UseAtomicAztecParams): BaseAtomic
             timelock: Number(result.timelock),
             secret,
             status,
-            claimed: Number(result.status),
         }
     }
 
@@ -140,7 +139,6 @@ export default function useAtomicAztec(params: UseAtomicAztecParams): BaseAtomic
             rewardRecipient: result.reward_recipient?.toString(),
             rewardToken: result.reward_token?.toString(),
             status,
-            claimed: Number(result.status),
             secret,
             index: 0,
         }

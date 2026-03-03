@@ -190,7 +190,6 @@ export class EvmHTLCClient extends HTLCClient {
             token: result.token !== ZERO_ADDRESS ? result.token : undefined,
             timelock: Number(result.timelock),
             status: lockExists ? Number(result.status) as LockStatus : undefined,
-            claimed: Number(result.status),
             userData,
             blockTimestamp,
         }
@@ -224,7 +223,6 @@ export class EvmHTLCClient extends HTLCClient {
             rewardRecipient: result.rewardRecipient !== ZERO_ADDRESS ? result.rewardRecipient : undefined,
             rewardToken: result.rewardToken !== ZERO_ADDRESS ? result.rewardToken : undefined,
             status: Number(result.status) as LockStatus,
-            claimed: Number(result.status),
             index: 0,
         }
     }
@@ -258,7 +256,6 @@ export class EvmHTLCClient extends HTLCClient {
             token: first.token !== ZERO_ADDRESS ? first.token : undefined,
             timelock: Number(first.timelock),
             status: Number(first.status) as LockStatus,
-            claimed: Number(first.status),
             userData: first.userData !== ZERO_ADDRESS ? Number(first.userData).toString() : undefined,
         }
     }
