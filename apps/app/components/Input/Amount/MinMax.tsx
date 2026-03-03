@@ -9,19 +9,23 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/too
 import { useSelectedAccount } from "@/context/swapAccounts";
 import { useBalance } from "@/lib/balances/useBalance";
 import { getNativeToken } from "@/Models/Network";
+import { useUsdModeStore } from "@/stores/usdModeStore";
+import { skipNextUsdSync } from "@/hooks/useUsdTokenSync";
 
 type MinMaxProps = {
     fromCurrency: Token,
     from: Network,
     limitsMaxAmount: number | undefined,
     limitsMinAmount: number | undefined,
-    onActionHover: (value: number | undefined) => void,
+    onActionHover: (value: number | undefined, usdValue?: string) => void,
 }
 
 const MinMax = (props: MinMaxProps) => {
 
     const { setFieldValue, values } = useFormikContext<SwapFormValues>();
     const { fromCurrency, from, limitsMinAmount, limitsMaxAmount, onActionHover } = props;
+    const isUsdMode = useUsdModeStore(s => s.isUsdMode);
+    const setUsdAmount = useUsdModeStore(s => s.setUsdAmount);
 
     const selectedSourceAccount = useSelectedAccount("from", from?.caip2Id);
     const { gasData } = useSWRGas(selectedSourceAccount?.address, from, fromCurrency)
@@ -54,28 +58,33 @@ const MinMax = (props: MinMaxProps) => {
 
     const halfOfBalance = (walletBalance?.amount || maxAllowedAmount) ? (walletBalance?.amount || maxAllowedAmount) / 2 : 0;
 
-    const handleSetValue = (value: string) => {
-        mutateBalances()
-        setFieldValue('amount', value, true)
-        onActionHover(undefined)
+    const computeUsdValue = (tokenAmount: number): string | undefined => {
+        if (!fromCurrency.priceInUsd || tokenAmount <= 0) return undefined;
+        return (tokenAmount * fromCurrency.priceInUsd).toFixed(2).replace(/\.?0+$/, '');
     }
 
-    const handleSetMinAmount = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
-        handleSetValue(minAmount.toString())
+    const handleSetValue = (value: string, usdValue?: string) => {
+        mutateBalances()
+        if (isUsdMode && usdValue) {
+            if (values.amount !== value) {
+                skipNextUsdSync();
+            }
+            setUsdAmount(usdValue);
+        }
+        setFieldValue('amount', value, true)
+        onActionHover(undefined)
     }
 
     const handleSetHalfAmount = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault()
         e.stopPropagation()
-        handleSetValue(halfOfBalance.toString())
+        handleSetValue(halfOfBalance.toString(), computeUsdValue(halfOfBalance))
     }
 
     const handleSetMaxAmount = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault()
         e.stopPropagation()
-        handleSetValue(maxAllowedAmount.toString())
+        handleSetValue(maxAllowedAmount.toString(), computeUsdValue(maxAllowedAmount))
     }
 
     const showMaxTooltip = !!(walletBalance?.amount && shouldPayGasWithTheToken && (!limitsMaxAmount || walletBalance.amount < limitsMaxAmount))
@@ -85,16 +94,10 @@ const MinMax = (props: MinMaxProps) => {
 
     return (
         <div className="flex gap-1.5 group text-xs leading-4" onMouseLeave={() => onActionHover(undefined)}>
-            {/* <ActionButton
-                data-attr="min-amount"
-                label="Min"
-                onMouseEnter={() => onActionHover(minAmount)}
-                onClick={handleSetMinAmount}
-            /> */}
             <ActionButton
                 data-attr="half-amount"
                 label="50%"
-                onMouseEnter={() => onActionHover(halfOfBalance)}
+                onMouseEnter={() => onActionHover(halfOfBalance, computeUsdValue(halfOfBalance))}
                 onClick={handleSetHalfAmount}
             />
             <Tooltip disableHoverableContent={true}>
@@ -102,7 +105,7 @@ const MinMax = (props: MinMaxProps) => {
                     <ActionButton
                         data-attr="max-amount"
                         label="Max"
-                        onMouseEnter={() => onActionHover(maxAllowedAmount)}
+                        onMouseEnter={() => onActionHover(maxAllowedAmount, computeUsdValue(maxAllowedAmount))}
                         onClick={handleSetMaxAmount}
                     />
                 </TooltipTrigger>

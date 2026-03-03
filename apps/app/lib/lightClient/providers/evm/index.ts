@@ -119,7 +119,6 @@ export default class EVMLightClient extends _LightClient {
                             rewardRecipient: result.rewardRecipient !== ZERO_ADDRESS ? result.rewardRecipient : undefined,
                             rewardToken: result.rewardToken !== ZERO_ADDRESS ? result.rewardToken : undefined,
                             status: result.status,
-                            claimed: Number(result.status),
                             index: 1,
                         }
                         resolve(parsedResult)

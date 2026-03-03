@@ -46,9 +46,7 @@ export const getTONDetails = async (params: LockParams & { network: Network | un
         timelock: Number(details[10]),
         amount: Number(details[9]),
         hashlock,
-        id,
         secret: BigInt(details[7]),
-        claimed: Number(details[12]) === 1 ? 2 : Number(details[11]) === 1 ? 3 : 1
     }
 
     return parsedResult

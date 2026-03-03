@@ -6,42 +6,29 @@ import { SponsoredFeePaymentMethod } from '@aztec/aztec.js/fee'
 import { Fr } from '@aztec/aztec.js/fields'
 import { type AztecNode, createAztecNodeClient } from '@aztec/aztec.js/node'
 import type { Wallet } from '@aztec/aztec.js/wallet'
-import type {
-    IHTLCClient,
-    CreateHTLCParams,
-    LockParams,
-    RefundParams,
-    ClaimParams,
-    LockDetails,
-    AtomicResult,
-    RecoveredSwapData,
-    LockStatus,
+import {
+    type CreateHTLCParams,
+    type LockParams,
+    type RefundParams,
+    type ClaimParams,
+    type LockDetails,
+    type AtomicResult,
+    type RecoveredSwapData,
+    type LockStatus,
+    HTLCClient,
 } from '@train-protocol/sdk'
 import { TokenContract, TokenContractArtifact } from './artifacts/Token'
 import { TrainContract } from './artifacts/Train'
 import type { AztecHTLCClientConfig, AztecSigner } from './types'
-import { bytesToHex, formatAmount, hexToBytes, stringToBytes } from './utils'
+import { bytesToHex, hexToBytes, parseUnits, formatUnits } from '@train-protocol/sdk'
+import { stringToBytes } from './utils'
 
-const TX_TIMEOUT = 120000
-const AZTEC_TOKEN_DECIMALS = 8
-
-function createFeeOptions(sponsorAddress: string) {
-    return {
-        paymentMethod: new SponsoredFeePaymentMethod(AztecAddress.fromString(sponsorAddress)),
-    }
-}
-
-function parseUnits(value: string, decimals: number): bigint {
-    const [intPart, fracPart = ''] = value.split('.')
-    const paddedFrac = fracPart.padEnd(decimals, '0').slice(0, decimals)
-    return BigInt(intPart + paddedFrac)
-}
-
-export class AztecHTLCClient implements IHTLCClient {
+export class AztecHTLCClient extends HTLCClient {
     private readonly rpcUrl: string
     private readonly signer?: AztecSigner
 
     constructor(config: AztecHTLCClientConfig) {
+        super(config.apiClient)
         this.rpcUrl = config.rpcUrl
         this.signer = config.signer
     }
@@ -49,7 +36,7 @@ export class AztecHTLCClient implements IHTLCClient {
     async createHTLC(params: CreateHTLCParams): Promise<AtomicResult> {
         try {
             const signer = this.requireSigner()
-            const feeOptions = createFeeOptions(signer.sponsorAddress)
+            const feeOptions = this.createFeeOptions(signer.sponsorAddress)
 
             const accounts = await signer.wallet.getAccounts()
             const senderAddress = accounts[0].item
@@ -184,7 +171,7 @@ export class AztecHTLCClient implements IHTLCClient {
     async refund(params: RefundParams): Promise<string> {
         try {
             const signer = this.requireSigner()
-            const feeOptions = createFeeOptions(signer.sponsorAddress)
+            const feeOptions = this.createFeeOptions(signer.sponsorAddress)
 
             const { contract } = await this.getContractInstance(params.contractAddress, signer)
             const accounts = await signer.wallet.getAccounts()
@@ -214,7 +201,7 @@ export class AztecHTLCClient implements IHTLCClient {
     async claim(params: ClaimParams): Promise<string> {
         try {
             const signer = this.requireSigner()
-            const feeOptions = createFeeOptions(signer.sponsorAddress)
+            const feeOptions = this.createFeeOptions(signer.sponsorAddress)
 
             const { contract, node } = await this.getContractInstance(params.contractAddress, signer)
             const accounts = await signer.wallet.getAccounts()
@@ -284,14 +271,13 @@ export class AztecHTLCClient implements IHTLCClient {
 
         return {
             hashlock: id,
-            amount: formatAmount(BigInt(result.amount), AZTEC_TOKEN_DECIMALS),
+            amount: Number(formatUnits(BigInt(result.amount), AZTEC_TOKEN_DECIMALS)),
             sender: result.sender?.toString(),
             recipient: result.recipient?.toString(),
             token: result.token?.toString(),
             timelock: Number(result.timelock),
             secret,
             status,
-            claimed: Number(result.status),
         }
     }
 
@@ -322,17 +308,16 @@ export class AztecHTLCClient implements IHTLCClient {
 
         return {
             hashlock: id,
-            amount: formatAmount(BigInt(result.amount), AZTEC_TOKEN_DECIMALS),
+            amount: Number(formatUnits(BigInt(result.amount), AZTEC_TOKEN_DECIMALS)),
             sender: result.sender?.toString(),
             recipient: result.recipient?.toString(),
             token: result.token?.toString(),
             timelock: Number(result.timelock),
-            reward: formatAmount(BigInt(result.reward), AZTEC_TOKEN_DECIMALS),
+            reward: Number(formatUnits(BigInt(result.reward), AZTEC_TOKEN_DECIMALS)),
             rewardTimelock: Number(result.reward_timelock),
             rewardRecipient: result.reward_recipient?.toString(),
             rewardToken: result.reward_token?.toString(),
             status,
-            claimed: Number(result.status),
             secret,
             index: 0,
         }
@@ -413,4 +398,14 @@ export class AztecHTLCClient implements IHTLCClient {
         const message = error.message.toLowerCase()
         return message.includes('artifact') && message.includes('class id')
     }
+
+    private createFeeOptions(sponsorAddress: string) {
+        return {
+            paymentMethod: new SponsoredFeePaymentMethod(AztecAddress.fromString(sponsorAddress)),
+        }
+    }
 }
+
+
+const TX_TIMEOUT = 120000
+const AZTEC_TOKEN_DECIMALS = 18

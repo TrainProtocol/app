@@ -8,21 +8,20 @@ import {
     LockStatus,
     AtomicResult,
     RecoveredSwapData,
-    IHTLCClient,
+    HTLCClient,
 } from '@train-protocol/sdk'
 import { htlcFunctions, htlcEvents, erc20Functions } from './abi.js'
 import { JsonRpcClient } from './rpc.js'
-import { ZERO_ADDRESS, parseUnits, formatUnits, toHex32, waitForReceipt } from './utils.js'
+import { parseUnits, formatUnits, toHex32 } from '@train-protocol/sdk'
+import { waitForReceipt } from './utils.js'
 import type { EvmHTLCClientConfig, EvmSigner, RpcLog } from './types.js'
 
-type Hex = `0x${string}`
-const hex = (v: string): Hex => v as Hex
-
-export class EvmHTLCClient implements IHTLCClient {
+export class EvmHTLCClient extends HTLCClient {
     private rpc: JsonRpcClient
     private signer: EvmSigner | undefined
 
     constructor(config: EvmHTLCClientConfig) {
+        super(config.apiClient)
         this.rpc = new JsonRpcClient(config.rpcUrl)
         this.signer = config.signer
     }
@@ -192,7 +191,6 @@ export class EvmHTLCClient implements IHTLCClient {
             token: result.token !== ZERO_ADDRESS ? result.token : undefined,
             timelock: Number(result.timelock),
             status: lockExists ? Number(result.status) as LockStatus : undefined,
-            claimed: Number(result.status),
             userData,
             blockTimestamp,
         }
@@ -226,7 +224,6 @@ export class EvmHTLCClient implements IHTLCClient {
             rewardRecipient: result.rewardRecipient !== ZERO_ADDRESS ? result.rewardRecipient : undefined,
             rewardToken: result.rewardToken !== ZERO_ADDRESS ? result.rewardToken : undefined,
             status: Number(result.status) as LockStatus,
-            claimed: Number(result.status),
             index: 0,
         }
     }
@@ -260,7 +257,6 @@ export class EvmHTLCClient implements IHTLCClient {
             token: first.token !== ZERO_ADDRESS ? first.token : undefined,
             timelock: Number(first.timelock),
             status: Number(first.status) as LockStatus,
-            claimed: Number(first.status),
             userData: first.userData !== ZERO_ADDRESS ? Number(first.userData).toString() : undefined,
         }
     }
@@ -334,3 +330,8 @@ export class EvmHTLCClient implements IHTLCClient {
         return null
     }
 }
+
+type Hex = `0x${string}`
+const hex = (v: string): Hex => v as Hex
+
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'

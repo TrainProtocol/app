@@ -5,10 +5,13 @@ import { useSelectedAccount } from "@/context/swapAccounts";
 import { useBalance } from "@/lib/balances/useBalance";
 import { FC } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip";
+import { useUsdModeStore } from "@/stores/usdModeStore";
+import { formatUsd } from "@/components/utils/formatUsdAmount";
 
 const Balance = ({ values, direction }: { values: SwapFormValues, direction: string }) => {
     const { to, fromCurrency, toCurrency, from, destination_address } = values
     const selectedSourceAccount = useSelectedAccount("from", from?.caip2Id);
+    const isUsdMode = useUsdModeStore(s => s.isUsdMode);
     const token = direction === 'from' ? fromCurrency : toCurrency
     const network = direction === 'from' ? from : to
     const address = direction === 'from' ? selectedSourceAccount?.address : destination_address
@@ -16,7 +19,13 @@ const Balance = ({ values, direction }: { values: SwapFormValues, direction: str
     const tokenBalance = balances?.find(
         b => b?.network === network?.caip2Id && b?.token === token?.symbol
     )
+    const balanceAmount = Number(tokenBalance?.amount)
     const truncatedBalance = tokenBalance?.amount !== undefined ? truncateDecimals(tokenBalance?.amount, Math.min(token?.decimals ?? 8, 8)) : ''
+    const tokenPriceInUsd = token?.priceInUsd
+    const balanceInUsd = isUsdMode && typeof tokenPriceInUsd === 'number' && tokenPriceInUsd > 0 && !isNaN(balanceAmount)
+        ? formatUsd(balanceAmount * tokenPriceInUsd)
+        : undefined
+    const displayedBalance = balanceInUsd ?? truncatedBalance
 
     if (!isLoading && !(network && token && tokenBalance))
         return null;
@@ -25,13 +34,13 @@ const Balance = ({ values, direction }: { values: SwapFormValues, direction: str
         {
             isLoading ?
                 <div className='h-[10px] w-fit px-4 inline-flex bg-gray-500 rounded-xs animate-pulse' />
-                : !truncatedBalance ?
+                : !displayedBalance ?
                     <span>-</span>
-                    : (network && token && truncatedBalance) ?
-                        ((Number(tokenBalance?.amount) >= 0 && Number(tokenBalance?.amount) < Number(values.amount) && direction === 'from') ?
-                            <InsufficientBalance balance={truncatedBalance} />
+                    : (network && token && displayedBalance) ?
+                        ((balanceAmount >= 0 && balanceAmount < Number(values.amount) && direction === 'from') ?
+                            <InsufficientBalance balance={displayedBalance} />
                             :
-                            <span>{truncatedBalance}</span>
+                            <span>{displayedBalance}</span>
                         )
                         : null
         }
