@@ -1,10 +1,5 @@
 import { LockDetails } from '../types/lock'
 
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
-
-const isNativeToken = (addr: string | undefined | null): boolean =>
-    !addr || addr === ZERO_ADDRESS
-
 export interface VerificationResult {
     verified: boolean
     skipped: boolean
@@ -40,17 +35,10 @@ export function verifySolverLock(params: VerifySolverLockParams): VerificationRe
         }
     }
 
-    // 3. Token: must match destination asset contract (normalise native = zero address)
+    // 3. Token: must match destination asset contract
     const actualToken = solverLockDetails.token
-    const expectedIsNative = isNativeToken(expectedToken)
-    const actualIsNative = isNativeToken(actualToken)
-
-    if (expectedIsNative !== actualIsNative) {
-        mismatches.push(`Token: expected ${expectedIsNative ? 'native' : expectedToken}, got ${actualIsNative ? 'native' : actualToken}`)
-    } else if (!expectedIsNative && !actualIsNative) {
-        if (actualToken && expectedToken && !addressEquals(actualToken, expectedToken)) {
-            mismatches.push(`Token: expected ${expectedToken}, got ${actualToken}`)
-        }
+    if (actualToken && expectedToken && !addressEquals(actualToken, expectedToken)) {
+        mismatches.push(`Token: expected ${expectedToken}, got ${actualToken}`)
     }
 
     return {
