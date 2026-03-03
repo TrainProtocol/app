@@ -11,6 +11,7 @@ export const AZGUARD_PROVIDER_ID = 'azguard';
 
 interface AztecWalletContextType {
     wallet: AztecWallet | null;
+    getWallet: () => AztecWallet | null;
     accountAddress: string | null;
     discoveredProviders: AztecSDKWalletProvider[];
     azguardDetected: boolean;
@@ -79,7 +80,13 @@ const EmojiVerificationOverlay: React.FC<{
 };
 
 export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [wallet, setWallet] = useState<AztecWallet | null>(null);
+    const [wallet, _setWallet] = useState<AztecWallet | null>(null);
+    const walletRef = useRef<AztecWallet | null>(null);
+    const setWallet = useCallback((w: AztecWallet | null) => {
+        walletRef.current = w;
+        _setWallet(w);
+    }, []);
+    const getWallet = useCallback(() => walletRef.current, []);
     const [accountAddress, setAccountAddress] = useState<string | null>(null);
     const [discoveredProviders, setDiscoveredProviders] = useState<AztecSDKWalletProvider[]>([]);
     const [azguardDetected, setAzguardDetected] = useState(false);
@@ -267,6 +274,7 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
     return (
         <AztecWalletContext.Provider value={{
             wallet,
+            getWallet,
             accountAddress,
             discoveredProviders,
             azguardDetected,

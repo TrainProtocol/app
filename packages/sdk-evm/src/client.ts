@@ -36,7 +36,8 @@ export class EvmHTLCClient extends HTLCClient {
             destinationAsset,
             sourceAsset,
             srcLpAddress: lpAddress,
-            address,
+            sourceAddress,
+            destinationAddress,
             amount,
             decimals,
             atomicContract,
@@ -59,7 +60,7 @@ export class EvmHTLCClient extends HTLCClient {
         if (!isNativeToken) {
             await this.ensureERC20Allowance(
                 sourceAsset.contractAddress!,
-                address,
+                sourceAddress,
                 atomicContract,
                 parsedAmount,
                 signer,
@@ -75,7 +76,7 @@ export class EvmHTLCClient extends HTLCClient {
                 timelockDelta,
                 rewardTimelockDelta: rewardTimelockDelta ?? 0,
                 quoteExpiry,
-                sender: hex(address),
+                sender: hex(sourceAddress),
                 recipient: hex(lpAddress),
                 token: hex(tokenAddress),
                 rewardToken: rewardToken ?? '',
@@ -84,7 +85,7 @@ export class EvmHTLCClient extends HTLCClient {
             },
             {
                 dstChain: destinationChain,
-                dstAddress: address,
+                dstAddress: destinationAddress,
                 dstAmount: destinationAmount,
                 dstToken: destinationAsset,
             },
@@ -96,7 +97,7 @@ export class EvmHTLCClient extends HTLCClient {
             await this.rpc.ethCall(
                 atomicContract,
                 calldata,
-                address,
+                sourceAddress,
                 isNativeToken ? parsedAmount : undefined,
             )
 

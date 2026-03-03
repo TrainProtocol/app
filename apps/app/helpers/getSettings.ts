@@ -1,6 +1,7 @@
 import { NetworkContract } from "@/Models/Network";
 import TrainApiClient from "../lib/trainApiClient";
 import { getThemeData } from "./settingsHelper";
+import KnownInternalNames from "@/lib/knownIds";
 
 const apiClient = new TrainApiClient()
 
@@ -33,18 +34,18 @@ export async function getServerSideProps(context) {
     })
 
     // Inject Aztec testnet if the API doesn't return it
-    const hasAztec = resolvedNetworks.some(n => n.caip2Id === "AZTEC_TESTNET")
+    const hasAztec = resolvedNetworks.some(n => n.caip2Id === KnownInternalNames.Networks.AztecDevnet)
     if (!hasAztec) {
-        const aztecMock = mockData.data.find(n => n.caip2Id === "AZTEC_TESTNET")
+        const aztecMock = mockData.data.find(n => n.caip2Id === KnownInternalNames.Networks.AztecDevnet)
         resolvedNetworks.push({
-            caip2Id: "AZTEC_TESTNET",
-            displayName: "Aztec Testnet",
-            chainId: "AZTEC_TESTNET",
-            nativeTokenAddress: "0x05c21c27f8bd1cacc9683d44f5a875a2dbfd62a455ab0b40e606dfe909c6363b",
+            caip2Id: KnownInternalNames.Networks.AztecDevnet,
+            displayName: "Aztec Devnet",
+            chainId: 'devnet',
+            nativeTokenAddress: "0x02c31306cad429e0a00d3a4ee8ba251853099f835101ee2c637e9b3b9351a056",
             type: { name: "aztec" },
             tokens: [{
                 symbol: "ETH",
-                contractAddress: "0x05c21c27f8bd1cacc9683d44f5a875a2dbfd62a455ab0b40e606dfe909c6363b",
+                contractAddress: "0x02c31306cad429e0a00d3a4ee8ba251853099f835101ee2c637e9b3b9351a056",
                 decimals: 18,
                 priceInUsd: prices["eip155:11155111:0x0000000000000000000000000000000000000000"],
             }],
@@ -128,7 +129,7 @@ const mockData = {
             ],
         },
         {
-            "caip2Id": "AZTEC_TESTNET",
+            "caip2Id": KnownInternalNames.Networks.AztecDevnet,
             "nodes": [
                 {
                     "providerName": "aztec-devnet",
@@ -138,7 +139,7 @@ const mockData = {
             "contracts": [
                 {
                     "type": "Train",
-                    "address": "0x303637a2c303913af7faa27a93d210e987ae22ec9a27a603c6b509dad2b46e3e"
+                    "address": "0x2b9192d4571cceb33c689f750bcf380a7baae350846cc55616a278523cfd0dfc"
                 }
             ],
         }

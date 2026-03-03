@@ -16,6 +16,10 @@ import { IHTLCClient } from '@train-protocol/sdk';
 import { useRpcConfigStore } from '@/stores/rpcConfigStore';
 import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus';
 import useOrderStreaming from '@/hooks/useOrderStreaming';
+import { useHTLCWriteClient } from '@/hooks/htlc/useHTLCWriteClient';
+import { useSelectedAccount } from './swapAccounts';
+import useWallet from '@/hooks/useWallet';
+import { Address } from '@/lib/address';
 
 const AtomicStateContext = createContext<DataContextType | null>(null);
 
@@ -94,6 +98,9 @@ export function AtomicProvider({ children }) {
     const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
     const [verifyingByLightClient, setVerifyingByLightClient] = useState(false)
 
+    const [sourceClient, setSourceClient] = useState<IHTLCClient | undefined>(undefined);
+    const [destinationClient, setDestinationClient] = useState<IHTLCClient | undefined>(undefined);
+
     // Restore secretRevealed from persisted swap store on hydration
     useEffect(() => {
         if (activeHashlock && committedSwap?.secretRevealed) {
@@ -170,19 +177,40 @@ export function AtomicProvider({ children }) {
         if (Object.keys(updates).length > 0) updateSwap(activeHashlock, updates)
     }, [htlcStatus, destinationRedeemTx, activeHashlock, updateSwap])
 
-    const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
+    const { provider: sourceProvider } = useWallet(source_network, 'withdrawal')
+    const { provider: destinationProvider } = useWallet(destination_network, 'autofill')
+    const createWriteClient = useHTLCWriteClient()
 
-    const sourceClient = useMemo(() => {
-        if (!source_network) return undefined
-        try { return createHTLCClient(source_network, getEffectiveRpcUrls) }
-        catch (e) { console.error('Error creating source HTLC client:', e); return undefined }
-    }, [source_network, getEffectiveRpcUrls])
+    const sourceAccount = useSelectedAccount('from', source_network?.caip2Id)
+    const sourceWallet = (sourceAccount?.address && source_network) ? sourceProvider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, source_network)) : undefined
+    const destinationAccount = useSelectedAccount('to', destination_network?.caip2Id)
+    const destinationWallet = (destinationAccount?.address && destination_network) ? destinationProvider?.connectedWallets?.find(w => Address.equals(w.address, destinationAccount?.address, destination_network)) : undefined
 
-    const destinationClient = useMemo(() => {
-        if (!destination_network) return undefined
-        try { return createHTLCClient(destination_network, getEffectiveRpcUrls) }
-        catch (e) { console.error('Error creating destination HTLC client:', e); return undefined }
-    }, [destination_network, getEffectiveRpcUrls])
+    useEffect(() => {
+        if (!source_network || !sourceWallet) return
+        (async () => {
+            try {
+                const client = await createWriteClient(source_network, sourceWallet)
+                setSourceClient(client)
+            } catch (e) {
+                console.error('Error creating source HTLC client:', e)
+                setSourceClient(undefined)
+            }
+        })()
+    }, [source_network, sourceWallet, createWriteClient])
+    
+    useEffect(() => {
+        if (!destination_network || !destinationWallet) return
+        (async () => {
+            try {
+                const client = await createWriteClient(destination_network, destinationWallet)
+                setDestinationClient(client)
+            } catch (e) {
+                console.error('Error creating destination HTLC client:', e)
+                setDestinationClient(undefined)
+            }
+        })()
+    }, [destination_network, destinationWallet, createWriteClient])
 
     const handleUserLockSuccess = useCallback((details: LockDetails) => {
         if (hashlock) {
@@ -307,7 +335,7 @@ export function AtomicProvider({ children }) {
 
         const timer = setTimeout(() => {
             updateHTLCState(hashlock, { manualClaimRequired: true });
-        }, 2 * 60 * 1000);
+        }, 2 * 10 * 1000); // 20 seconds
 
         return () => clearTimeout(timer);
     }, [sourceDetails?.status, sourceDetails?.secret, solverLockDetails?.sender, solverLockDetails?.status, hashlock, manualClaimRequired])

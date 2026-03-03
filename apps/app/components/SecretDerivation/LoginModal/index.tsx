@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useConfig } from 'wagmi';
 import { Loader2, ChevronLeft, CircleX } from 'lucide-react';
 import VaulModal from '@/components/Modal/vaulModal';
 import { useSecretDerivation } from '@/context/secretDerivationContext';
@@ -27,7 +26,6 @@ interface LoginModalProps {
 }
 
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
-  const config = useConfig();
   const { loginWithPasskey, loginWithWallet, derivationMessage } = useSecretDerivation();
   const storedPasskeyIds = usePasskeyCredentialIds();
   const hasStoredPasskeys = storedPasskeyIds.length > 0;
@@ -72,7 +70,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setSigningError(null);
     goToStep('signing');
     try {
-      await loginWithWallet(config, wallet);
+      await loginWithWallet(wallet);
       closeAndReset();
     } catch (e) {
       const message = getErrorMessage(e, 'Wallet login failed');

@@ -4,7 +4,6 @@ import { BaseHTLCClientConfig } from '@train-protocol/sdk'
 export interface AztecSigner {
     wallet: Wallet
     address: string
-    sponsorAddress: string
 }
 
 export type AztecHTLCClientConfig = BaseHTLCClientConfig & {

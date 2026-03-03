@@ -2,7 +2,7 @@ import { useCallback } from 'react'
 import { useConfig } from 'wagmi'
 import { getWalletClient } from 'wagmi/actions'
 import { getConnections } from '@wagmi/core'
-import { createHTLCClient as createClient, IHTLCClient, TrainApiClient as SdkTrainApiClient } from '@train-protocol/sdk'
+import { createHTLCClient as createClient, getRegisteredNamespaces, IHTLCClient, TrainApiClient as SdkTrainApiClient } from '@train-protocol/sdk'
 import type { EvmSigner } from '@train-protocol/sdk-evm'
 import type { AztecSigner } from '@train-protocol/sdk-aztec'
 import { Network } from '../../Models/Network'
@@ -10,7 +10,6 @@ import { Wallet } from '@/Models/WalletProvider'
 import { useRpcConfigStore } from '@/stores/rpcConfigStore'
 import resolveChain from '@/lib/resolveChain'
 import { useAztecWalletContext } from '@/components/WalletProviders/AztecWalletProvider'
-import { useAztecSponsorAddress } from '@/lib/wallets/aztec/configs'
 import AppSettings from '@/lib/AppSettings'
 
 const apiClient = new SdkTrainApiClient({ baseUrl: AppSettings.TrainApiUri ?? '' })
@@ -20,20 +19,18 @@ export function useHTLCWriteClient() {
     const config = useConfig()
     const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
     const { wallet: aztecWallet, accountAddress: aztecAccountAddress } = useAztecWalletContext()
-    const aztecSponsorAddress = useAztecSponsorAddress()
 
     return useCallback(async (network: Network, wallet?: Wallet): Promise<IHTLCClient> => {
         const chainType = network.caip2Id.split(':')[0]
         const rpcUrl = getEffectiveRpcUrls(network)[0] ?? network.nodes?.[0]?.url ?? ''
 
         // Aztec chain path
-        if (chainType === 'AZTEC_TESTNET') {
+        if (chainType === 'aztec') {
             let signer: AztecSigner | undefined
             if (aztecWallet && aztecAccountAddress) {
                 signer = {
                     wallet: aztecWallet,
                     address: aztecAccountAddress,
-                    sponsorAddress: aztecSponsorAddress,
                 }
             }
             return createClient(chainType, { rpcUrl, signer, apiClient })
@@ -85,5 +82,5 @@ export function useHTLCWriteClient() {
         }
 
         return createClient(chainType, { rpcUrl, signer, apiClient })
-    }, [config, getEffectiveRpcUrls, aztecWallet, aztecAccountAddress, aztecSponsorAddress])
+    }, [config, getEffectiveRpcUrls, aztecWallet, aztecAccountAddress])
 }

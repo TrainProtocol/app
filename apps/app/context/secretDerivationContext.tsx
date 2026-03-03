@@ -10,14 +10,14 @@ import {
 } from '@/lib/htlc/secretDerivation';
 import { useSecretDerivationStore, DerivationStatus } from '@/stores/secretDerivationStore';
 import { DerivationMethod, deriveSecretFromTimelock } from '@train-protocol/sdk';
-import { deriveKeyFromEvmSignature } from '@/lib/htlc/secretDerivation/walletSign/evm';
+import { useWalletLoginDerivation } from '@/context/walletLoginContext';
 
 interface SecretDerivationContextValue {
   method: DerivationMethod | null;
   isLoggedIn: boolean;
   loginWallet: Wallet | null;
   loginWithPasskey: (options?: { forceCreate?: boolean; label?: string; crossDevice?: boolean }) => Promise<void>;
-  loginWithWallet: (config: any, wallet: Wallet) => Promise<void>;
+  loginWithWallet: (wallet: Wallet) => Promise<void>;
   logout: () => void;
   isPasskeySupported: boolean;
   prfSupportDetails: PrfSupportResult | null;
@@ -33,7 +33,6 @@ interface SecretDerivationContextValue {
 interface DeriveKeyParams {
   wallet?: Wallet;
   nonce?: number;
-  config?: any; // Wagmi config for EVM
 }
 
 const SecretDerivationContext = createContext<SecretDerivationContextValue | undefined>(undefined);
@@ -43,6 +42,8 @@ interface SecretDerivationProviderProps {
 }
 
 export function SecretDerivationProvider({ children }: SecretDerivationProviderProps) {
+  const deriveKeyFromWalletLogin = useWalletLoginDerivation();
+
   // Get all state from the zustand store
   const {
     method,
@@ -105,13 +106,12 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
     }
   }, [setState]);
 
-  const loginWithWallet = useCallback(async (config: any, wallet: Wallet) => {
-    if (wallet.providerName?.toLowerCase() !== 'evm') {
-      throw new Error('Only EVM wallets are supported for login right now');
-    }
+  const loginWithWallet = useCallback(async (wallet: Wallet) => {
+    const providerName = wallet.providerName?.toLowerCase();
+    if (!providerName) throw new Error('Wallet has no provider name');
     setState({ derivationStatus: 'signing', derivationMessage: 'Please sign in your wallet' });
     try {
-      const derivedKey = await deriveKeyFromEvmSignature(config, wallet.address as `0x${string}`);
+      const derivedKey = await deriveKeyFromWalletLogin(providerName, wallet.address);
       setState({
         method: 'wallet_sign',
         isLoggedIn: true,
@@ -121,10 +121,10 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
     } finally {
       setState({ derivationStatus: 'idle', derivationMessage: '' });
     }
-  }, [setState]);
+  }, [setState, deriveKeyFromWalletLogin]);
 
   const deriveInitialKey = useCallback(async (params: DeriveKeyParams): Promise<Buffer> => {
-    const { wallet, config } = params;
+    const { wallet } = params;
 
     if (!method) {
       throw new Error('No derivation method selected. Please choose passkey or wallet sign.');
@@ -149,16 +149,10 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
     }
 
     const providerName = wallet.providerName?.toLowerCase();
+    if (!providerName) throw new Error('Wallet has no provider name');
 
-    if (providerName === 'evm') {
-      if (!config) {
-        throw new Error('Wagmi config required for EVM wallets');
-      }
-      return await deriveKeyFromEvmSignature(config, wallet.address as `0x${string}`);
-    }
-
-    throw new Error(`Unsupported provider: ${providerName}`);
-  }, [method, storedDerivedKey, setState]);
+    return await deriveKeyFromWalletLogin(providerName, wallet.address);
+  }, [method, storedDerivedKey, setState, deriveKeyFromWalletLogin]);
 
   const deriveSecret = useCallback(async (params: DeriveKeyParams): Promise<{ secret: string, nonce: number }> => {
     setState({

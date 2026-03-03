@@ -70,7 +70,7 @@ const ResolvedIcon = (props: AdderssIconprops) => {
         />
     }
     else if (addressItem.group === AddressGroup.ConnectedWallet && wallet) {
-        return <wallet.icon className="w-4 h-4" />
+        return <wallet.icon className="w-4 h-4 rounded" />
     }
     else {
         return <AddressIcon className="h-4 w-4 p-0.5" address={destination ? new Address(addressItem.address, destination).full : addressItem.address} size={20} />
