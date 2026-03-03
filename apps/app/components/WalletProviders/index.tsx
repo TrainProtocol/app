@@ -10,30 +10,33 @@ import { WalletProvidersProvider } from "../../context/walletHookProviders";
 import { AztecWalletProvider } from "./AztecWalletProvider";
 import { EvmConnectorsProvider } from "@/context/evmConnectorsContext";
 import { SecretDerivationProvider } from "@/context/secretDerivationContext";
+import { WalletLoginProvider } from "@/context/walletLoginContext";
 
 const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], basePath: string, themeData: ThemeData, appName: string | undefined }> = ({ children, basePath, themeData, appName }) => {
     return (
-        <SecretDerivationProvider>
-            <TonConnectProvider basePath={basePath} themeData={themeData} appName={appName}>
-                <SolanaProvider>
-                    <StarknetProvider>
-                        <EvmConnectorsProvider>
-                            <Wagmi>
-                                <WalletModalProvider>
-                                    <AztecWalletProvider>
-                                        <ImtblPassportProvider>
-                                            <WalletProvidersProvider>
-                                                {children}
-                                            </WalletProvidersProvider>
-                                        </ImtblPassportProvider>
-                                    </AztecWalletProvider>
-                                </WalletModalProvider>
-                            </Wagmi>
-                        </EvmConnectorsProvider>
-                    </StarknetProvider>
-                </SolanaProvider>
-            </TonConnectProvider>
-        </SecretDerivationProvider>
+        <TonConnectProvider basePath={basePath} themeData={themeData} appName={appName}>
+            <SolanaProvider>
+                <StarknetProvider>
+                    <EvmConnectorsProvider>
+                        <Wagmi>
+                            <WalletModalProvider>
+                                <AztecWalletProvider>
+                                    <WalletLoginProvider>
+                                        <SecretDerivationProvider>
+                                            <ImtblPassportProvider>
+                                                <WalletProvidersProvider>
+                                                    {children}
+                                                </WalletProvidersProvider>
+                                            </ImtblPassportProvider>
+                                        </SecretDerivationProvider>
+                                    </WalletLoginProvider>
+                                </AztecWalletProvider>
+                            </WalletModalProvider>
+                        </Wagmi>
+                    </EvmConnectorsProvider>
+                </StarknetProvider>
+            </SolanaProvider>
+        </TonConnectProvider>
     )
 }
 

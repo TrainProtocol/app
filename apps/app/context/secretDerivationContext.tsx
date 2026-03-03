@@ -10,14 +10,14 @@ import {
 } from '@/lib/htlc/secretDerivation';
 import { useSecretDerivationStore, DerivationStatus } from '@/stores/secretDerivationStore';
 import { DerivationMethod, deriveSecretFromTimelock } from '@train-protocol/sdk';
-import { deriveKeyFromWalletLogin } from '@/lib/htlc/secretDerivation/walletSign';
+import { useWalletLoginDerivation } from '@/context/walletLoginContext';
 
 interface SecretDerivationContextValue {
   method: DerivationMethod | null;
   isLoggedIn: boolean;
   loginWallet: Wallet | null;
   loginWithPasskey: (options?: { forceCreate?: boolean; label?: string; crossDevice?: boolean }) => Promise<void>;
-  loginWithWallet: (config: WalletLoginConfig, wallet: Wallet) => Promise<void>;
+  loginWithWallet: (wallet: Wallet) => Promise<void>;
   logout: () => void;
   isPasskeySupported: boolean;
   prfSupportDetails: PrfSupportResult | null;
@@ -30,15 +30,9 @@ interface SecretDerivationContextValue {
   derivationMessage: string;
 }
 
-export interface WalletLoginConfig {
-  evmConfig?: any;       // Wagmi Config, for EVM wallets
-  aztecWallet?: any;     // Aztec wallet object, for Aztec wallets
-}
-
 interface DeriveKeyParams {
   wallet?: Wallet;
   nonce?: number;
-  config?: WalletLoginConfig;
 }
 
 const SecretDerivationContext = createContext<SecretDerivationContextValue | undefined>(undefined);
@@ -48,6 +42,8 @@ interface SecretDerivationProviderProps {
 }
 
 export function SecretDerivationProvider({ children }: SecretDerivationProviderProps) {
+  const deriveKeyFromWalletLogin = useWalletLoginDerivation();
+
   // Get all state from the zustand store
   const {
     method,
@@ -110,12 +106,12 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
     }
   }, [setState]);
 
-  const loginWithWallet = useCallback(async (config: WalletLoginConfig, wallet: Wallet) => {
+  const loginWithWallet = useCallback(async (wallet: Wallet) => {
     const providerName = wallet.providerName?.toLowerCase();
     if (!providerName) throw new Error('Wallet has no provider name');
     setState({ derivationStatus: 'signing', derivationMessage: 'Please sign in your wallet' });
     try {
-      const derivedKey = await deriveKeyFromWalletLogin(providerName, config, wallet.address);
+      const derivedKey = await deriveKeyFromWalletLogin(providerName, wallet.address);
       setState({
         method: 'wallet_sign',
         isLoggedIn: true,
@@ -125,10 +121,10 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
     } finally {
       setState({ derivationStatus: 'idle', derivationMessage: '' });
     }
-  }, [setState]);
+  }, [setState, deriveKeyFromWalletLogin]);
 
   const deriveInitialKey = useCallback(async (params: DeriveKeyParams): Promise<Buffer> => {
-    const { wallet, config } = params;
+    const { wallet } = params;
 
     if (!method) {
       throw new Error('No derivation method selected. Please choose passkey or wallet sign.');
@@ -151,15 +147,12 @@ export function SecretDerivationProvider({ children }: SecretDerivationProviderP
     if (!wallet) {
       throw new Error('Wallet required for wallet_sign method');
     }
-    if (!config) {
-      throw new Error('Config required for wallet sign');
-    }
 
     const providerName = wallet.providerName?.toLowerCase();
     if (!providerName) throw new Error('Wallet has no provider name');
 
-    return await deriveKeyFromWalletLogin(providerName, config, wallet.address);
-  }, [method, storedDerivedKey, setState]);
+    return await deriveKeyFromWalletLogin(providerName, wallet.address);
+  }, [method, storedDerivedKey, setState, deriveKeyFromWalletLogin]);
 
   const deriveSecret = useCallback(async (params: DeriveKeyParams): Promise<{ secret: string, nonce: number }> => {
     setState({

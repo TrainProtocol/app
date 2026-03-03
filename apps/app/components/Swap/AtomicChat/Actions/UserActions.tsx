@@ -7,7 +7,6 @@ import { LockStatus } from "@/Models/phtlc/PHTLC";
 import { SwapQuote } from "@/lib/trainApiClient";
 import { useSwapStore } from "@/stores/swapStore";
 import { SwapViewType } from ".";
-import { useConfig } from "wagmi";
 import { useSecretDerivation } from "@/context/secretDerivationContext";
 import { secretToHashlock } from "@train-protocol/sdk";
 import { useHTLCWriteClient } from "@/hooks/htlc/useHTLCWriteClient";
@@ -24,7 +23,6 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote, type }) => 
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
     const { deriveSecret } = useSecretDerivation()
-    const config = useConfig()
     const createWriteClient = useHTLCWriteClient()
     const sourceAccount = useSelectedAccount('from', source_network?.caip2Id)
     const sourceWallet = (sourceAccount?.address && source_network) ? provider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, source_network)) : undefined
@@ -41,7 +39,6 @@ export const UserCommitAction: FC<UserCommitActionProps> = ({ quote, type }) => 
 
             const { secret, nonce } = await deriveSecret({
                 wallet: provider.activeWallet,
-                config: { evmConfig: config }
             })
             const hashlock = secretToHashlock(secret)
 

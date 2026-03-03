@@ -3,8 +3,7 @@ import { useSecretDerivation } from '@/context/secretDerivationContext';
 import { useConnectModal } from '@/components/WalletModal';
 import useWallet from '@/hooks/useWallet';
 import { Wallet } from '@/Models/WalletProvider';
-
-const LOGIN_CAPABLE_PROVIDERS = ['evm', 'aztec'];
+import { getRegisteredWalletSignProviders } from '@train-protocol/sdk';
 
 const OptionSelect = ({ onPasskeyLogin, goToStep, onConnectFinish }: {
     onPasskeyLogin: () => void;
@@ -15,13 +14,13 @@ const OptionSelect = ({ onPasskeyLogin, goToStep, onConnectFinish }: {
     const { providers } = useWallet();
     const { prfSupportDetails } = useSecretDerivation();
 
-    const loginProviders = providers.filter(p => LOGIN_CAPABLE_PROVIDERS.includes(p.id.toLowerCase()));
+    const loginProviders = providers.filter(p => getRegisteredWalletSignProviders().includes(p.id.toLowerCase()));
     const connectedWallets = loginProviders.flatMap(p => p.connectedWallets || []);
 
     const selectWallet = async () => {
         if (connectedWallets.length < 1) {
             const wallet = await connect();
-            if (wallet && LOGIN_CAPABLE_PROVIDERS.includes(wallet.providerName?.toLowerCase())) {
+            if (wallet && getRegisteredWalletSignProviders().includes(wallet.providerName?.toLowerCase())) {
                 onConnectFinish(wallet);
                 return;
             }

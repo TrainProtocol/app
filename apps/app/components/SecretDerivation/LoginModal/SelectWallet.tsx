@@ -4,19 +4,22 @@ import { useConnectModal } from "@/components/WalletModal";
 import useWallet from "@/hooks/useWallet";
 import { Wallet } from "@/Models/WalletProvider";
 import { Plus } from "lucide-react";
-
-const LOGIN_CAPABLE_PROVIDERS = ['evm', 'aztec'];
+import { getRegisteredWalletSignProviders } from '@train-protocol/sdk';
+import { useMemo } from "react";
 
 interface WalletSelectProps {
     startWalletLogin: (wallet: Wallet) => void;
 }
 
-const WalletSelect = ({  startWalletLogin }: WalletSelectProps) => {
+const WalletSelect = ({ startWalletLogin }: WalletSelectProps) => {
     const { providers } = useWallet();
-    const loginProviders = providers.filter(p => LOGIN_CAPABLE_PROVIDERS.includes(p.id.toLowerCase()));
-    const connectedWallets = loginProviders.flatMap(p => p.connectedWallets || []);
-
     const { connect } = useConnectModal();
+
+    const connectedWallets = useMemo(() => {
+        const registeredWalletSignProviders = getRegisteredWalletSignProviders()
+        const loginProviders = providers.filter(p => registeredWalletSignProviders.includes(p.id.toLowerCase()));
+        return loginProviders.flatMap(p => p.connectedWallets || []);
+    }, [getRegisteredWalletSignProviders, providers])
 
     return (
         <div className="flex flex-col gap-2">
@@ -49,7 +52,7 @@ const WalletSelect = ({  startWalletLogin }: WalletSelectProps) => {
                 type="button"
                 onClick={async () => {
                     const wallet = await connect();
-                    if (wallet && LOGIN_CAPABLE_PROVIDERS.includes(wallet.providerName?.toLowerCase())) {
+                    if (wallet && getRegisteredWalletSignProviders().includes(wallet.providerName?.toLowerCase())) {
                         startWalletLogin(wallet);
                     }
                 }}
