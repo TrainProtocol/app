@@ -16,12 +16,12 @@ describe('registerAztecSdk', () => {
         registerAztecSdk()
     })
 
-    it('registers the AZTEC_TESTNET HTLC client', () => {
-        expect(getRegisteredNamespaces()).toContain('AZTEC_TESTNET')
+    it('registers the aztec HTLC client', () => {
+        expect(getRegisteredNamespaces()).toContain('aztec')
     })
 
-    it('createHTLCClient works for AZTEC_TESTNET after registration', () => {
-        const client = createHTLCClient('AZTEC_TESTNET', { rpcUrl: 'https://example.com', apiClient: mockApiClient })
+    it('createHTLCClient works for aztec after registration', () => {
+        const client = createHTLCClient('aztec', { rpcUrl: 'https://example.com', apiClient: mockApiClient })
         expect(client).toBeDefined()
         expect(typeof client.getUserLockDetails).toBe('function')
         expect(typeof client.getSolverLockDetails).toBe('function')
@@ -33,7 +33,7 @@ describe('registerAztecSdk', () => {
     it('multiple calls do not throw or double-register', () => {
         expect(() => registerAztecSdk()).not.toThrow()
 
-        const namespaces = getRegisteredNamespaces().filter(ns => ns === 'AZTEC_TESTNET')
+        const namespaces = getRegisteredNamespaces().filter(ns => ns === 'aztec')
         expect(namespaces).toHaveLength(1)
     })
 })

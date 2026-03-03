@@ -49,7 +49,8 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
 
             const result = await writeClient.createHTLC({
                 ...resolveQuote(quote),
-                address,
+                sourceAddress: sourceWallet.address,
+                destinationAddress: address,
                 amount: amount.toString(),
                 destinationChain: destination_network.caip2Id,
                 sourceChain: source_network.caip2Id,
@@ -119,7 +120,7 @@ const resolveQuote = (quote: SwapQuote) => {
 }
 
 export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
-    const { source_network, hashlock, sourceDetails, source_asset, setError, refundTxId, srcAtomicContract } = useAtomicState()
+    const { source_network, hashlock, sourceDetails, source_asset, setError, refundTxId, srcAtomicContract, sourceClient } = useAtomicState()
     const { provider: source_provider } = useWallet(source_network, 'withdrawal')
     const sourceAccount = useSelectedAccount('from', source_network?.caip2Id)
     const sourceWallet = (sourceAccount?.address && source_network) ? source_provider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, source_network)) : undefined
@@ -138,13 +139,12 @@ export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
             if (!source_asset) throw new Error("No source asset")
             if (!srcAtomicContract) throw new Error("No atomic contract")
             if (!sourceWallet) throw new Error("No wallet client")
+            if (!sourceClient) throw new Error("No source client")
 
             if (source_provider?.activeWallet && (source_provider.activeWallet.chainId != source_network.chainId) && source_provider.switchChain)
                 await source_provider.switchChain(source_provider.activeWallet, source_network.chainId)
 
-            const writeClient = await createWriteClient(source_network, sourceWallet)
-
-            const res = await writeClient.refund({
+            const res = await sourceClient.refund({
                 type: (source_asset?.contractAddress && source_asset.contractAddress !== '0x0000000000000000000000000000000000000000') ? 'erc20' : 'native',
                 id: hashlock,
                 hashlock: sourceDetails?.hashlock,

@@ -1,11 +1,11 @@
 import { AztecAddress } from '@aztec/aztec.js/addresses'
-import type { ContractArtifact } from '@aztec/aztec.js/abi'
 import { SetPublicAuthwitContractInteraction } from '@aztec/aztec.js/authorization'
-import { BatchCall, getContractClassFromArtifact } from '@aztec/aztec.js/contracts'
+import { BatchCall, getContractInstanceFromInstantiationParams } from '@aztec/aztec.js/contracts'
 import { SponsoredFeePaymentMethod } from '@aztec/aztec.js/fee'
 import { Fr } from '@aztec/aztec.js/fields'
 import { type AztecNode, createAztecNodeClient } from '@aztec/aztec.js/node'
 import type { Wallet } from '@aztec/aztec.js/wallet'
+import { SponsoredFPCContract } from '@aztec/noir-contracts.js/SponsoredFPC'
 import {
     type CreateHTLCParams,
     type LockParams,
@@ -17,15 +17,20 @@ import {
     type LockStatus,
     HTLCClient,
 } from '@train-protocol/sdk'
-import { TokenContract, TokenContractArtifact } from './artifacts/Token'
+import { TokenContract } from './artifacts/Token'
 import { TrainContract } from './artifacts/Train'
 import type { AztecHTLCClientConfig, AztecSigner } from './types'
 import { bytesToHex, hexToBytes, parseUnits, formatUnits } from '@train-protocol/sdk'
 import { stringToBytes } from './utils'
 
+const TX_TIMEOUT = 120000
+const AZTEC_TOKEN_DECIMALS = 18
+
 export class AztecHTLCClient extends HTLCClient {
     private readonly rpcUrl: string
     private readonly signer?: AztecSigner
+    private _node?: AztecNode
+    private _sponsoredFPCInstance?: Awaited<ReturnType<typeof getContractInstanceFromInstantiationParams>>
 
     constructor(config: AztecHTLCClientConfig) {
         super(config.apiClient)
@@ -36,7 +41,7 @@ export class AztecHTLCClient extends HTLCClient {
     async createHTLC(params: CreateHTLCParams): Promise<AtomicResult> {
         try {
             const signer = this.requireSigner()
-            const feeOptions = this.createFeeOptions(signer.sponsorAddress)
+            const feeOptions = await this.createFeeOptions()
 
             const accounts = await signer.wallet.getAccounts()
             const senderAddress = accounts[0].item
@@ -44,7 +49,7 @@ export class AztecHTLCClient extends HTLCClient {
             const trainAddress = AztecAddress.fromString(params.atomicContract)
             const tokenAddress = AztecAddress.fromString(params.tokenContractAddress!)
 
-            const node = this.createNode()
+            const node = this.getNode()
 
             // Register Train contract
             const trainInstance = await node.getContract(trainAddress)
@@ -52,19 +57,14 @@ export class AztecHTLCClient extends HTLCClient {
             await signer.wallet.registerContract(trainInstance, TrainContract.artifact)
             const train = TrainContract.at(trainAddress, signer.wallet)
 
-            // Register Token contract
+            // Register Token contract (instance only)
             const tokenInstance = await node.getContract(tokenAddress)
             if (!tokenInstance) {
                 throw new Error(
                     `Token contract not found at ${tokenAddress.toString()} on node ${this.rpcUrl}`,
                 )
             }
-            await this.registerContractWithFallback(
-                signer.wallet,
-                tokenInstance,
-                TokenContractArtifact,
-                'Token',
-            )
+            await signer.wallet.registerContract(tokenInstance)
             const token = TokenContract.at(tokenAddress, signer.wallet)
 
             const amount = parseUnits(params.amount.toString(), params.decimals)
@@ -94,12 +94,10 @@ export class AztecHTLCClient extends HTLCClient {
             const hashlockBytes = hexToBytes(params.hashlock, 32)
             const srcChainBytes = stringToBytes(params.sourceChain, 30)
             const dstChainBytes = stringToBytes(params.destinationChain, 30)
-            const dstAddressBytes = stringToBytes(params.address, 90)
+            const dstAddressBytes = stringToBytes(params.destinationAddress, 90)
             const dstTokenBytes = stringToBytes(params.destinationAsset, 90)
             const rewardRecipientBytes = stringToBytes(params.rewardRecipient || '', 90)
-            const rewardTokenAddress = params.rewardToken
-                ? AztecAddress.fromString(params.rewardToken)
-                : AztecAddress.ZERO
+            const rewardTokenAddress = stringToBytes(params.rewardToken || '', 90)
             const recipientAddress = AztecAddress.fromString(params.srcLpAddress)
 
             // Encode nonce/timestamp into userData (first 32 bytes, rest zeros)
@@ -146,6 +144,8 @@ export class AztecHTLCClient extends HTLCClient {
                 solverDataBytes,
             )
 
+            await this.registerSponsoredFPC(signer.wallet)
+
             const batch = new BatchCall(signer.wallet, [setPublicAuthwit, userLockInteraction])
             const tx = await batch.send({
                 from: senderAddress,
@@ -171,11 +171,13 @@ export class AztecHTLCClient extends HTLCClient {
     async refund(params: RefundParams): Promise<string> {
         try {
             const signer = this.requireSigner()
-            const feeOptions = this.createFeeOptions(signer.sponsorAddress)
+            const feeOptions = await this.createFeeOptions()
 
             const { contract } = await this.getContractInstance(params.contractAddress, signer)
             const accounts = await signer.wallet.getAccounts()
             const senderAddress = accounts[0].item
+
+            await this.registerSponsoredFPC(signer.wallet)
 
             const hashlockBytes = hexToBytes(params.id, 32)
 
@@ -201,7 +203,7 @@ export class AztecHTLCClient extends HTLCClient {
     async claim(params: ClaimParams): Promise<string> {
         try {
             const signer = this.requireSigner()
-            const feeOptions = this.createFeeOptions(signer.sponsorAddress)
+            const feeOptions = await this.createFeeOptions()
 
             const { contract, node } = await this.getContractInstance(params.contractAddress, signer)
             const accounts = await signer.wallet.getAccounts()
@@ -216,14 +218,11 @@ export class AztecHTLCClient extends HTLCClient {
                         `Token contract not found at ${tokenAddress.toString()} on node ${this.rpcUrl}`,
                     )
                 }
-                await this.registerContractWithFallback(
-                    signer.wallet,
-                    tokenInstance,
-                    TokenContractArtifact,
-                    'Token',
-                )
+                await signer.wallet.registerContract(tokenInstance)
                 await signer.wallet.registerSender(AztecAddress.fromString(params.contractAddress))
             }
+
+            await this.registerSponsoredFPC(signer.wallet)
 
             const hashlockBytes = hexToBytes(params.id, 32)
 
@@ -264,19 +263,14 @@ export class AztecHTLCClient extends HTLCClient {
         const status = Number(result.status) as LockStatus
         if (status === 0) return null
 
-        const secretBytes: number[] = Array.from(result.secret || [])
-        const secretHex = secretBytes.length > 0 ? bytesToHex(secretBytes) : '0x0'
-        const secretBigInt = BigInt(secretHex)
-        const secret = secretBigInt !== 0n ? secretBigInt : undefined
-
         return {
             hashlock: id,
-            amount: Number(formatUnits(BigInt(result.amount), AZTEC_TOKEN_DECIMALS)),
+            amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? AZTEC_TOKEN_DECIMALS)),
             sender: result.sender?.toString(),
             recipient: result.recipient?.toString(),
             token: result.token?.toString(),
             timelock: Number(result.timelock),
-            secret,
+            secret: this.parseSecret(result.secret),
             status,
         }
     }
@@ -301,24 +295,19 @@ export class AztecHTLCClient extends HTLCClient {
         const status = Number(result.status) as LockStatus
         if (status === 0) return null
 
-        const secretBytes: number[] = Array.from(result.secret || [])
-        const secretHex = secretBytes.length > 0 ? bytesToHex(secretBytes) : '0x0'
-        const secretBigInt = BigInt(secretHex)
-        const secret = secretBigInt !== 0n ? secretBigInt : undefined
-
         return {
             hashlock: id,
-            amount: Number(formatUnits(BigInt(result.amount), AZTEC_TOKEN_DECIMALS)),
+            amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? AZTEC_TOKEN_DECIMALS)),
             sender: result.sender?.toString(),
             recipient: result.recipient?.toString(),
             token: result.token?.toString(),
             timelock: Number(result.timelock),
-            reward: Number(formatUnits(BigInt(result.reward), AZTEC_TOKEN_DECIMALS)),
+            reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? AZTEC_TOKEN_DECIMALS)),
             rewardTimelock: Number(result.reward_timelock),
             rewardRecipient: result.reward_recipient?.toString(),
             rewardToken: result.reward_token?.toString(),
             status,
-            secret,
+            secret: this.parseSecret(result.secret),
             index: 0,
         }
     }
@@ -331,81 +320,61 @@ export class AztecHTLCClient extends HTLCClient {
         throw new Error('recoverSwap is not supported for Aztec')
     }
 
+    private parseSecret(rawSecret: unknown): bigint | undefined {
+        const secretBytes: number[] = Array.from((rawSecret as number[]) || [])
+        const secretHex = secretBytes.length > 0 ? bytesToHex(secretBytes) : '0x0'
+        const secretBigInt = BigInt(secretHex)
+        return secretBigInt !== 0n ? secretBigInt : undefined
+    }
+
     private requireSigner(): AztecSigner {
         if (!this.signer) throw new Error('Signer required')
         return this.signer
     }
 
-    private createNode(): AztecNode {
-        return createAztecNodeClient(this.rpcUrl)
+    private getNode(): AztecNode {
+        if (!this._node) {
+            this._node = createAztecNodeClient(this.rpcUrl)
+        }
+        return this._node
     }
 
     private async getContractInstance(contractAddress: string, signer: AztecSigner) {
         const aztecAtomicContract = AztecAddress.fromString(contractAddress)
-        const node = this.createNode()
+        const node = this.getNode()
         const trainInstance = await node.getContract(aztecAtomicContract)
 
         if (!trainInstance) throw new Error('Train contract not found')
 
-        await signer.wallet.registerContract(trainInstance, TrainContract.artifact)
+        // Register instance without artifact — the wallet's PXE discovers the
+        // contract class from its own node, avoiding version-mismatch issues
+        // between the app's @aztec/aztec.js and the wallet extension.
+        await signer.wallet.registerContract(trainInstance)
         const contract = TrainContract.at(aztecAtomicContract, signer.wallet)
         const userAztecAddress = AztecAddress.fromString(signer.address)
 
         return { contract, userAztecAddress, node }
     }
 
-    private async registerContractWithFallback(
-        wallet: Wallet,
-        instance: Parameters<Wallet['registerContract']>[0],
-        artifact: ContractArtifact,
-        contractName: string,
-    ): Promise<void> {
-        try {
-            await wallet.registerContract(instance, artifact)
-        } catch (error) {
-            if (!this.isArtifactClassMismatch(error)) throw error
-
-            const classDiagnostics = await this.buildContractClassDiagnostics(instance, artifact)
-            console.warn(`${contractName} artifact class mismatch. ${classDiagnostics}. Retrying without local artifact.`)
-
-            try {
-                await wallet.registerContract(instance)
-            } catch (fallbackError) {
-                throw new Error(
-                    `${contractName} registration failed for ${instance.address.toString()}. ${classDiagnostics}. ` +
-                    'Verify the token address for this network points to a contract compiled from the same artifact.',
-                    { cause: fallbackError instanceof Error ? fallbackError : undefined },
-                )
-            }
+    private async getSponsoredFPCInstance() {
+        if (!this._sponsoredFPCInstance) {
+            this._sponsoredFPCInstance = await getContractInstanceFromInstantiationParams(
+                SponsoredFPCContract.artifact,
+                { salt: new Fr(0) },
+            )
         }
+        return this._sponsoredFPCInstance
     }
 
-    private async buildContractClassDiagnostics(
-        instance: Parameters<Wallet['registerContract']>[0],
-        artifact: ContractArtifact,
-    ): Promise<string> {
-        const onChainClassId = instance.currentContractClassId?.toString?.() ?? 'unknown'
-        try {
-            const localClass = await getContractClassFromArtifact(artifact)
-            return `address=${instance.address.toString()} onChainClassId=${onChainClassId} localClassId=${localClass.id.toString()}`
-        } catch {
-            return `address=${instance.address.toString()} onChainClassId=${onChainClassId} localClassId=unavailable`
-        }
-    }
-
-    private isArtifactClassMismatch(error: unknown): boolean {
-        if (!(error instanceof Error)) return false
-        const message = error.message.toLowerCase()
-        return message.includes('artifact') && message.includes('class id')
-    }
-
-    private createFeeOptions(sponsorAddress: string) {
+    private async createFeeOptions() {
+        const fpcInstance = await this.getSponsoredFPCInstance()
         return {
-            paymentMethod: new SponsoredFeePaymentMethod(AztecAddress.fromString(sponsorAddress)),
+            paymentMethod: new SponsoredFeePaymentMethod(fpcInstance.address),
         }
+    }
+
+    private async registerSponsoredFPC(wallet: Wallet): Promise<void> {
+        const fpcInstance = await this.getSponsoredFPCInstance()
+        await wallet.registerContract(fpcInstance)
     }
 }
-
-
-const TX_TIMEOUT = 120000
-const AZTEC_TOKEN_DECIMALS = 18

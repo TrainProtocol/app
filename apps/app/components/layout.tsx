@@ -111,15 +111,15 @@ export default function Layout({ children, settings, themeData }: Props) {
           <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
             <ThemeWrapper>
               <WalletsProviders basePath={basePath} themeData={themeData} appName={router.query.appName?.toString()}>
-                <AtomicProvider>
-                  <SwapAccountsProvider>
+                <SwapAccountsProvider>
+                  <AtomicProvider>
                     <AsyncModalProvider>
                       {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
                         <MaintananceContent />
                         : children}
                     </AsyncModalProvider>
-                  </SwapAccountsProvider>
-                </AtomicProvider>
+                  </AtomicProvider>
+                </SwapAccountsProvider>
               </WalletsProviders>
             </ThemeWrapper>
           </ErrorBoundary>
