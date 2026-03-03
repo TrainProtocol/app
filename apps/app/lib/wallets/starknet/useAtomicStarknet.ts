@@ -165,7 +165,6 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Base
                 sender: toHex(result.sender),
                 amount: Number(formatAmount(BigInt(result.amount), 18)), //networkToken?.decimals
                 hashlock: result.hashlock && toHex(result.hashlock, { size: 32 }),
-                claimed: Number(result.claimed),
                 secret: BigInt(result.secret),
                 timelock: Number(result.timelock),
             }

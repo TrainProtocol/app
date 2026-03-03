@@ -1,3 +1,5 @@
+import type { BaseHTLCClientConfig } from '@train-protocol/sdk'
+
 /**
  * Minimal signer interface for EVM write operations.
  * Integrators wrap their library's signer (viem WalletClient, ethers Signer,
@@ -19,7 +21,7 @@ export interface EvmSigner {
     }): Promise<string>
 }
 
-export interface EvmHTLCClientConfig {
+export type EvmHTLCClientConfig = BaseHTLCClientConfig & {
     /** RPC URL for read operations */
     rpcUrl: string
     /** Optional signer for write operations (createHTLC, refund, claim) */
