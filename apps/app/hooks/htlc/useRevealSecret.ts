@@ -3,7 +3,6 @@ import { useAtomicState } from "@/context/atomicContext";
 import { useSecretDerivation } from "@/context/secretDerivationContext";
 import useWallet from "@/hooks/useWallet";
 import posthog from "posthog-js";
-import { useConfig } from "wagmi";
 import { useSwapStore } from "@/stores/swapStore";
 
 export function useRevealSecret() {
@@ -11,7 +10,6 @@ export function useRevealSecret() {
     const { deriveSecret } = useSecretDerivation()
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
-    const config = useConfig()
 
     const updateSwap = useSwapStore(s => s.updateSwap)
     const [isRevealing, setIsRevealing] = useState(false)
@@ -30,7 +28,6 @@ export function useRevealSecret() {
             const { secret } = await deriveSecret({
                 wallet,
                 nonce: timestamp,
-                config
             })
 
             await sourceClient.revealSecret(solver, hashlock, secret)
@@ -50,7 +47,7 @@ export function useRevealSecret() {
         finally {
             setIsRevealing(false)
         }
-    }, [hashlock, sourceDetails, sourceClient, wallet, config, solver, deriveSecret, updateHTLC, updateSwap])
+    }, [hashlock, sourceDetails, sourceClient, wallet, solver, deriveSecret, updateHTLC, updateSwap])
 
     return { revealSecret, isRevealing, source_network, wallet }
 }
