@@ -1,13 +1,31 @@
 import { Fingerprint, Wallet as WalletIcon } from 'lucide-react';
 import { useSecretDerivation } from '@/context/secretDerivationContext';
+import { useConnectModal } from '@/components/WalletModal';
+import useWallet from '@/hooks/useWallet';
+import { Wallet } from '@/Models/WalletProvider';
 
-const OptionSelect = ({ onPasskeyLogin, goToStep }: {
+const LOGIN_CAPABLE_PROVIDERS = ['evm', 'aztec'];
+
+const OptionSelect = ({ onPasskeyLogin, goToStep, onConnectFinish }: {
     onPasskeyLogin: () => void;
     goToStep: (step: string) => void;
+    onConnectFinish: (wallet?: Wallet) => void;
 }) => {
+    const { connect } = useConnectModal();
+    const { providers } = useWallet();
     const { prfSupportDetails } = useSecretDerivation();
 
-    const selectWallet = () => {
+    const loginProviders = providers.filter(p => LOGIN_CAPABLE_PROVIDERS.includes(p.id.toLowerCase()));
+    const connectedWallets = loginProviders.flatMap(p => p.connectedWallets || []);
+
+    const selectWallet = async () => {
+        if (connectedWallets.length < 1) {
+            const wallet = await connect();
+            if (wallet && LOGIN_CAPABLE_PROVIDERS.includes(wallet.providerName?.toLowerCase())) {
+                onConnectFinish(wallet);
+                return;
+            }
+        }
         goToStep('wallet_select')
     }
 

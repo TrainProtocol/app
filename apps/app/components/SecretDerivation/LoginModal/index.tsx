@@ -86,6 +86,14 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     }
   };
 
+  const onConnectFinish = async (wallet?: Wallet) => {
+    if (!wallet) {
+      goToStep('wallet_select', 'back');
+      return;
+    }
+    await startWalletLogin(wallet);
+  };
+
   const handleBack = () => {
     if (isStep('passkey_recovery')) {
       setPasskeyError(null);
@@ -121,7 +129,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         <Steps currentStep={currentStep}>
 
           <Step name="pick">
-            <OptionSelect onPasskeyLogin={() => startPasskeyLogin(hasStoredPasskeys ? {} : { forceCreate: true })} goToStep={goToStep} />
+            <OptionSelect onPasskeyLogin={() => startPasskeyLogin(hasStoredPasskeys ? {} : { forceCreate: true })} goToStep={goToStep} onConnectFinish={onConnectFinish} />
           </Step>
 
           <Step name="passkey_recovery">
