@@ -2,7 +2,7 @@ import { createContext, useContext, useCallback, ReactNode } from 'react'
 import { useConfig } from 'wagmi'
 import { useAztecWalletContext } from '@/components/WalletProviders/AztecWalletProvider'
 import { deriveKeyFromEvmSignature } from '@/lib/htlc/secretDerivation/walletSign/evm'
-import { deriveKeyFromAztecWallet } from '@/lib/htlc/secretDerivation/walletSign/aztec'
+import { deriveKeyFromWallet } from '@train-protocol/sdk'
 
 interface WalletLoginContextValue {
   deriveKey: (providerName: string, address: string) => Promise<Buffer>
@@ -25,7 +25,10 @@ export function WalletLoginProvider({ children }: { children: ReactNode }) {
       if (provider === 'aztec') {
         const aztecWallet = getAztecWallet()
         if (!aztecWallet) throw new Error('Aztec wallet required for Aztec wallets')
-        return deriveKeyFromAztecWallet(aztecWallet, address)
+        return deriveKeyFromWallet('aztec', {
+          wallet: aztecWallet,
+          address,
+      })
       }
 
       throw new Error(`Unsupported wallet provider for login: ${providerName}`)

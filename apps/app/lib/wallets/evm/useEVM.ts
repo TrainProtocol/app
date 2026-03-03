@@ -61,7 +61,7 @@ const ethereumNames = [KnownInternalNames.Networks.EthereumMainnet, KnownInterna
 const immutableZKEvm = [KnownInternalNames.Networks.ImmutableZkEVM]
 
 export default function useEVM(): WalletProvider {
-    const name = 'eip155'
+    const name = 'EVM'
     const id = 'eip155'
     const { networks } = useSettingsState()
     const isMobilePlatform = useMemo(() => isMobile(), []);
