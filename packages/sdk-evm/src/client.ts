@@ -12,7 +12,8 @@ import {
 } from '@train-protocol/sdk'
 import { htlcFunctions, htlcEvents, erc20Functions } from './abi.js'
 import { JsonRpcClient } from './rpc.js'
-import { ZERO_ADDRESS, parseUnits, formatUnits, toHex32, waitForReceipt } from './utils.js'
+import { parseUnits, formatUnits, toHex32 } from '@train-protocol/sdk'
+import { waitForReceipt } from './utils.js'
 import type { EvmHTLCClientConfig, EvmSigner, RpcLog } from './types.js'
 
 export class EvmHTLCClient extends HTLCClient {
@@ -332,3 +333,5 @@ export class EvmHTLCClient extends HTLCClient {
 
 type Hex = `0x${string}`
 const hex = (v: string): Hex => v as Hex
+
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'

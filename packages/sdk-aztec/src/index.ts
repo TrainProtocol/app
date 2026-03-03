@@ -14,5 +14,6 @@ export function registerAztecSdk(): void {
     registerHTLCClient('AZTEC_TESTNET', (config) => new AztecHTLCClient({
         rpcUrl: config.rpcUrl as string,
         signer: config.signer as AztecSigner | undefined,
+        apiClient: config.apiClient,
     }))
 }
