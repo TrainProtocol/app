@@ -77,6 +77,7 @@ export function AtomicProvider({ children }) {
         useShallow(s => activeHashlock ? s.swaps[activeHashlock] ?? null : null)
     )
     const currentSwap = tempSwap ?? committedSwap
+    const { getEffectiveRpcUrls } = useRpcConfigStore();
 
     const address = currentSwap?.address
     const amount = currentSwap?.requestedAmount
@@ -198,7 +199,7 @@ export function AtomicProvider({ children }) {
             }
         })()
     }, [source_network, sourceWallet, createWriteClient])
-    
+
     useEffect(() => {
         if (!destination_network || !destinationWallet) return
         (async () => {
