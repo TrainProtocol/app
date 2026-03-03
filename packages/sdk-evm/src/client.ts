@@ -196,17 +196,18 @@ export class EvmHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockDetails(params: LockParams): Promise<LockDetails | null> {
+    async _getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
         const { id, contractAddress } = params
+        const rpc = new JsonRpcClient(nodeUrl)
 
         const countData = AbiFunction.encodeData(htlcFunctions.getSolverLockCount, [hex(id)])
-        const countRaw = await this.rpc.ethCall(contractAddress, countData)
+        const countRaw = await rpc.ethCall(contractAddress, countData)
         const count = AbiFunction.decodeResult(htlcFunctions.getSolverLockCount, hex(countRaw))
 
         if (Number(count) === 0) return null
 
         const lockData = AbiFunction.encodeData(htlcFunctions.getSolverLock, [hex(id), 1n])
-        const lockRaw = await this.rpc.ethCall(contractAddress, lockData)
+        const lockRaw = await rpc.ethCall(contractAddress, lockData)
         const result = AbiFunction.decodeResult(htlcFunctions.getSolverLock, hex(lockRaw)) as any
 
         if (result.sender === ZERO_ADDRESS) return null
@@ -225,39 +226,6 @@ export class EvmHTLCClient extends HTLCClient {
             rewardToken: result.rewardToken !== ZERO_ADDRESS ? result.rewardToken : undefined,
             status: Number(result.status) as LockStatus,
             index: 0,
-        }
-    }
-
-    async secureGetDetails(params: LockParams, nodeUrls: string[]): Promise<LockDetails | null> {
-        const { id, contractAddress } = params
-
-        const calldata = AbiFunction.encodeData(htlcFunctions.getUserLock, [hex(id)])
-        const results = await Promise.all(
-            nodeUrls.map(async (url) => {
-                const rpc = new JsonRpcClient(url)
-                const raw = await rpc.ethCall(contractAddress, calldata)
-                return AbiFunction.decodeResult(htlcFunctions.getUserLock, hex(raw)) as any
-            }),
-        )
-
-        const validResults = results.filter(r => BigInt(r.amount) > 0n)
-        if (!validResults.length) return null
-
-        const [first, ...rest] = validResults
-        if (!rest.every(r => BigInt(r.amount) === BigInt(first.amount))) {
-            throw new Error('Lock details do not match across the provided nodes')
-        }
-
-        return {
-            hashlock: id,
-            amount: Number(formatUnits(BigInt(first.amount), params.decimals ?? 18)),
-            secret: first.secret !== 0n ? BigInt(first.secret) : undefined,
-            sender: first.sender !== ZERO_ADDRESS ? first.sender : undefined,
-            recipient: first.recipient !== ZERO_ADDRESS ? first.recipient : undefined,
-            token: first.token !== ZERO_ADDRESS ? first.token : undefined,
-            timelock: Number(first.timelock),
-            status: Number(first.status) as LockStatus,
-            userData: first.userData !== ZERO_ADDRESS ? Number(first.userData).toString() : undefined,
         }
     }
 

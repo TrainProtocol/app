@@ -1,7 +1,7 @@
 import useSWR from "swr"
-import { Network, Token } from "../../Models/Network"
-import { LockDetails } from "../../Models/phtlc/PHTLC"
-import { LockParams } from "../../Models/phtlc"
+import { Network, Token } from "@/Models/Network"
+import { LockDetails } from "@/Models/phtlc/PHTLC"
+import { LockParams } from "@/Models/phtlc"
 import { IHTLCClient } from "@train-protocol/sdk"
 
 interface UseSolverLockPollingParams {
@@ -11,6 +11,7 @@ interface UseSolverLockPollingParams {
     destinationAsset: Token | undefined
     enabled?: boolean
     client: IHTLCClient | undefined
+    nodeUrls: string[]
     onSuccess?: (details: LockDetails) => void
 }
 
@@ -21,6 +22,7 @@ const useSolverLockPolling = ({
     destinationAsset,
     enabled = true,
     client,
+    nodeUrls,
     onSuccess,
 }: UseSolverLockPollingParams) => {
     const type: 'erc20' | 'native' = destinationAsset?.contractAddress && destinationAsset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
@@ -45,7 +47,7 @@ const useSolverLockPolling = ({
             }
 
             try {
-                return await client.getSolverLockDetails(params)
+                return await client.getSolverLockDetails(params, nodeUrls)
             } catch (err) {
                 console.error('Error fetching solver lock details:', err)
                 throw err

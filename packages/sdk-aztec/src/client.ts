@@ -281,10 +281,10 @@ export class AztecHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockDetails(params: LockParams): Promise<LockDetails | null> {
+    async _getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
         const signer = this.requireSigner()
         const { id, contractAddress } = params
-        const { contract, userAztecAddress } = await this.getContractInstance(contractAddress, signer)
+        const { contract, userAztecAddress } = await this.getContractInstance(contractAddress, signer, nodeUrl)
 
         const hashlockBytes = hexToBytes(id, 32)
 
@@ -323,10 +323,6 @@ export class AztecHTLCClient extends HTLCClient {
         }
     }
 
-    async secureGetDetails(_params: LockParams, _nodeUrls: string[]): Promise<LockDetails | null> {
-        throw new Error('secureGetDetails is not supported for Aztec')
-    }
-
     async recoverSwap(_txHash: string): Promise<RecoveredSwapData> {
         throw new Error('recoverSwap is not supported for Aztec')
     }
@@ -340,9 +336,9 @@ export class AztecHTLCClient extends HTLCClient {
         return createAztecNodeClient(this.rpcUrl)
     }
 
-    private async getContractInstance(contractAddress: string, signer: AztecSigner) {
+    private async getContractInstance(contractAddress: string, signer: AztecSigner, nodeUrl?: string) {
         const aztecAtomicContract = AztecAddress.fromString(contractAddress)
-        const node = this.createNode()
+        const node = nodeUrl ? createAztecNodeClient(nodeUrl) : this.createNode()
         const trainInstance = await node.getContract(aztecAtomicContract)
 
         if (!trainInstance) throw new Error('Train contract not found')

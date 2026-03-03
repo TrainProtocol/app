@@ -223,6 +223,7 @@ export function AtomicProvider({ children }) {
         destinationAsset: destination_token,
         enabled: !!hashlock && !isTerminal,
         client: destinationClient,
+        nodeUrls: destination_network ? getEffectiveRpcUrls(destination_network) : [],
         onSuccess: handleSolverLockSuccess,
     })
 

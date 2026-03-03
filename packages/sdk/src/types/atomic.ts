@@ -31,7 +31,6 @@ export interface BaseAtomicFunctions {
     refund: (params: RefundParams) => Promise<string | any | null>
     claim: (params: ClaimParams) => Promise<string | undefined>
     getUserLockDetails: (params: LockParams) => Promise<LockDetails | null>
-    secureGetDetails?: (params: LockParams) => Promise<LockDetails | null>
-    getSolverLockDetails: (params: LockParams) => Promise<LockDetails | null>
+    getSolverLockDetails: (params: LockParams, nodeUrls: string[]) => Promise<LockDetails | null>
     recoverSwap?: (txHash: string, chainId: string) => Promise<RecoveredSwapData>
 }
