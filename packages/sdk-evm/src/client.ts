@@ -202,31 +202,37 @@ export class EvmHTLCClient extends HTLCClient {
 
         const countData = AbiFunction.encodeData(htlcFunctions.getSolverLockCount, [hex(id)])
         const countRaw = await this.rpc.ethCall(contractAddress, countData)
-        const count = AbiFunction.decodeResult(htlcFunctions.getSolverLockCount, hex(countRaw))
+        const count = Number(AbiFunction.decodeResult(htlcFunctions.getSolverLockCount, hex(countRaw)))
 
-        if (Number(count) === 0) return null
+        if (count === 0) return null
 
-        const lockData = AbiFunction.encodeData(htlcFunctions.getSolverLock, [hex(id), 1n])
-        const lockRaw = await this.rpc.ethCall(contractAddress, lockData)
-        const result = AbiFunction.decodeResult(htlcFunctions.getSolverLock, hex(lockRaw)) as any
+        for (let i = 1; i <= count; i++) {
+            const lockData = AbiFunction.encodeData(htlcFunctions.getSolverLock, [hex(id), BigInt(i)])
+            const lockRaw = await this.rpc.ethCall(contractAddress, lockData)
+            const result = AbiFunction.decodeResult(htlcFunctions.getSolverLock, hex(lockRaw)) as any
 
-        if (result.sender === ZERO_ADDRESS) return null
+            if (result.sender === ZERO_ADDRESS) continue
 
-        return {
-            hashlock: id,
-            amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
-            secret: result.secret !== 0n ? BigInt(result.secret) : undefined,
-            sender: result.sender,
-            recipient: result.recipient !== ZERO_ADDRESS ? result.recipient : undefined,
-            token: result.token !== ZERO_ADDRESS ? result.token : undefined,
-            timelock: Number(result.timelock),
-            reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? 18)),
-            rewardTimelock: Number(result.rewardTimelock),
-            rewardRecipient: result.rewardRecipient !== ZERO_ADDRESS ? result.rewardRecipient : undefined,
-            rewardToken: result.rewardToken !== ZERO_ADDRESS ? result.rewardToken : undefined,
-            status: Number(result.status) as LockStatus,
-            index: 0,
+            if (params.solverAddress && result.sender.toLowerCase() !== params.solverAddress.toLowerCase()) continue
+
+            const solverLock = {
+                hashlock: id,
+                amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
+                secret: result.secret !== 0n ? BigInt(result.secret) : undefined,
+                sender: result.sender,
+                recipient: result.recipient !== ZERO_ADDRESS ? result.recipient : undefined,
+                token: result.token !== ZERO_ADDRESS ? result.token : undefined,
+                timelock: Number(result.timelock),
+                reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? 18)),
+                rewardTimelock: Number(result.rewardTimelock),
+                rewardRecipient: result.rewardRecipient !== ZERO_ADDRESS ? result.rewardRecipient : undefined,
+                rewardToken: result.rewardToken !== ZERO_ADDRESS ? result.rewardToken : undefined,
+                status: Number(result.status) as LockStatus,
+            }
+            return solverLock
         }
+
+        return null
     }
 
     async secureGetDetails(params: LockParams, nodeUrls: string[]): Promise<LockDetails | null> {

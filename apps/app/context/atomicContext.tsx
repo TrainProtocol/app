@@ -49,7 +49,6 @@ type DataContextType = HTLCState & {
 
 interface HTLCState {
     sourceDetails?: LockDetails;
-    destinationDetails?: LockDetails;
     solverLockDetails?: LockDetails;
     destinationDetailsByLightClient?: { data?: LockDetails, error?: string };
     secretRevealed?: boolean;
@@ -91,6 +90,7 @@ export function AtomicProvider({ children }) {
     const solverName = currentSwap?.solver
     const srcAtomicContract = currentSwap?.srcContract
     const destAtomicContract = currentSwap?.destContract
+    const destinationSolverAddress = currentSwap?.destinationSolverAddress
 
     const [htlcStates, setHtlcStates] = useState<CommitStatesDict>({});
     const [error, setError] = useState<{ message: string, buttonText?: string } | undefined>(undefined);
@@ -117,7 +117,7 @@ export function AtomicProvider({ children }) {
         }
     }, [activeHashlock, committedSwap?.secretRevealed])
 
-    const updateHTLCState = (hashlock: string, newState: Partial<HTLCState>) => {
+    const updateHTLCState = useCallback((hashlock: string, newState: Partial<HTLCState>) => {
         setHtlcStates((prev) => ({
             ...prev,
             [hashlock]: {
@@ -125,7 +125,7 @@ export function AtomicProvider({ children }) {
                 ...newState,
             },
         }));
-    };
+    }, []);
 
     const setIsTimelockExpired = (isTimelockExpired: boolean) => {
         if (hashlock) updateHTLCState(hashlock, { isTimelockExpired });
@@ -136,7 +136,6 @@ export function AtomicProvider({ children }) {
     }
 
     const sourceDetails = hashlock ? htlcStates[hashlock]?.sourceDetails : undefined;
-    const destinationDetails = hashlock ? htlcStates[hashlock]?.destinationDetails : undefined;
     const solverLockDetails = hashlock ? htlcStates[hashlock]?.solverLockDetails : undefined;
     const secretRevealed = hashlock ? htlcStates[hashlock]?.secretRevealed : undefined;
     const htlcFromApi = hashlock ? htlcStates[hashlock]?.htlcFromApi : undefined;
@@ -161,7 +160,7 @@ export function AtomicProvider({ children }) {
     })
 
     const htlcStatus = useMemo(() =>
-        resolveHTLCStatus({ sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed, manualClaimRequired }),
+        resolveHTLCStatus({ sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed, manualClaimRequired, destRedeemTxId: destinationRedeemTx }),
         [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, manualClaimRequired])
 
     const isTerminal = isTerminalStatus(htlcStatus)
@@ -251,6 +250,7 @@ export function AtomicProvider({ children }) {
         destinationAsset: destination_token,
         enabled: !!hashlock && !isTerminal,
         client: destinationClient,
+        solverAddress: destinationSolverAddress,
         onSuccess: handleSolverLockSuccess,
     })
 
@@ -370,7 +370,6 @@ export function AtomicProvider({ children }) {
             lockTxId: lockTxId as string,
             solver: solverName as string,
             sourceDetails,
-            destinationDetails,
             solverLockDetails,
             secretRevealed,
             error,

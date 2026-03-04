@@ -17,7 +17,7 @@ export type CreateHTLCParams = {
     tokenContractAddress?: string | undefined | null;
     chainId?: string | null;
     solverData?: string;
-    quoteExpiry?: number;
+    quoteExpiry: number;
     rewardToken?: string;
     rewardRecipient?: string;
     rewardAmount?: string;
@@ -35,6 +35,7 @@ export type LockParams = {
     index?: number,
     txId?: string,
     decimals?: number,
+    solverAddress?: string,
 }
 
 export type OldLockParams = {

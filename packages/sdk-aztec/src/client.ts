@@ -1,9 +1,11 @@
+import { EventSelector, decodeFromAbi } from '@aztec/aztec.js/abi'
 import { AztecAddress } from '@aztec/aztec.js/addresses'
 import { SetPublicAuthwitContractInteraction } from '@aztec/aztec.js/authorization'
 import { BatchCall, getContractInstanceFromInstantiationParams } from '@aztec/aztec.js/contracts'
 import { SponsoredFeePaymentMethod } from '@aztec/aztec.js/fee'
 import { Fr } from '@aztec/aztec.js/fields'
 import { type AztecNode, createAztecNodeClient } from '@aztec/aztec.js/node'
+import { TxHash } from '@aztec/aztec.js/tx'
 import type { Wallet } from '@aztec/aztec.js/wallet'
 import { SponsoredFPCContract } from '@aztec/noir-contracts.js/SponsoredFPC'
 import {
@@ -21,7 +23,6 @@ import { TokenContract } from './artifacts/Token'
 import { TrainContract } from './artifacts/Train'
 import type { AztecHTLCClientConfig, AztecSigner } from './types'
 import { bytesToHex, hexToBytes, parseUnits, formatUnits } from '@train-protocol/sdk'
-import { stringToBytes } from './utils'
 
 const TX_TIMEOUT = 120000
 const AZTEC_TOKEN_DECIMALS = 18
@@ -85,63 +86,27 @@ export class AztecHTLCClient extends HTLCClient {
                 true,
             )
 
-            // Get current block timestamp for quote expiry
-            const latestHeader = await node.getBlockHeader('latest')
-            const now = latestHeader ? Number(latestHeader.globalVariables.timestamp) : Math.floor(Date.now() / 1000)
-            const effectiveQuoteExpiry = params.quoteExpiry ?? (now + 300)
-
-            // Prepare byte arrays
-            const hashlockBytes = hexToBytes(params.hashlock, 32)
-            const srcChainBytes = stringToBytes(params.sourceChain, 30)
-            const dstChainBytes = stringToBytes(params.destinationChain, 30)
-            const dstAddressBytes = stringToBytes(params.destinationAddress, 90)
-            const dstTokenBytes = stringToBytes(params.destinationAsset, 90)
-            const rewardRecipientBytes = stringToBytes(params.rewardRecipient || '', 90)
-            const rewardTokenAddress = stringToBytes(params.rewardToken || '', 90)
-            const recipientAddress = AztecAddress.fromString(params.srcLpAddress)
-
-            // Encode nonce/timestamp into userData (first 32 bytes, rest zeros)
-            const userData = new Array(256).fill(0)
-            if (params.nonce) {
-                const nonceHex = params.nonce.toString(16).padStart(64, '0')
-                for (let i = 0; i < 32; i++) {
-                    userData[i] = parseInt(nonceHex.substring(i * 2, i * 2 + 2), 16)
-                }
-            }
-
-            const solverDataBytes = new Array(256).fill(0)
-            if (params.solverData) {
-                const sdClean = params.solverData.replace(/^0x/i, '')
-                if (/^[0-9a-fA-F]*$/.test(sdClean)) {
-                    for (let i = 0; i < Math.min(sdClean.length / 2, 256); i++) {
-                        solverDataBytes[i] = parseInt(sdClean.substring(i * 2, i * 2 + 2), 16)
-                    }
-                }
-            }
-
-            const rewardAmount = params.rewardAmount ? BigInt(params.rewardAmount) : 0n
-
             // Batch authwit + user_lock into a single transaction (one wallet confirmation)
             const userLockInteraction = train.methods.user_lock(
-                hashlockBytes,
+                hexToBytes(params.hashlock, 32),
                 amount,
                 transferNonce,
-                rewardAmount,
+                params.rewardAmount ? BigInt(params.rewardAmount) : 0n,
                 params.timelockDelta ?? 40,
                 params.rewardTimelockDelta ?? 0,
-                effectiveQuoteExpiry,
+                params.quoteExpiry,
                 senderAddress,
-                recipientAddress,
+                AztecAddress.fromString(params.srcLpAddress),
                 tokenAddress,
-                rewardTokenAddress,
-                rewardRecipientBytes,
-                srcChainBytes,
-                dstChainBytes,
-                dstAddressBytes,
-                BigInt(params.destinationAmount || '0'),
-                dstTokenBytes,
-                userData,
-                solverDataBytes,
+                this.strToBytes(params.rewardToken || '', 90), // [u8;90] in user_lock
+                this.strToBytes(params.rewardRecipient || '', 90), // [u8;90] in user_lock
+                this.strToBytes(params.sourceChain, 30),
+                this.strToBytes(params.destinationChain, 30),
+                this.strToBytes(params.destinationAddress, 90),
+                BigInt(params.destinationAmount),
+                this.strToBytes(params.destinationAsset, 90),
+                this.strToBytes(params.nonce.toString() ?? '', 256),
+                this.strToBytes(params.solverData ?? '', 256),
             )
 
             await this.registerSponsoredFPC(signer.wallet)
@@ -252,7 +217,7 @@ export class AztecHTLCClient extends HTLCClient {
 
     async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
         const signer = this.requireSigner()
-        const { id, contractAddress } = params
+        const { id, contractAddress, txId } = params
         const { contract, userAztecAddress } = await this.getContractInstance(contractAddress, signer)
 
         const hashlockBytes = hexToBytes(id, 32)
@@ -263,6 +228,11 @@ export class AztecHTLCClient extends HTLCClient {
         const status = Number(result.status) as LockStatus
         if (status === 0) return null
 
+        let userData: string | undefined
+        if (txId) {
+            userData = await this.findUserDataFromLogs(txId, id)
+        }
+
         return {
             hashlock: id,
             amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? AZTEC_TOKEN_DECIMALS)),
@@ -272,6 +242,7 @@ export class AztecHTLCClient extends HTLCClient {
             timelock: Number(result.timelock),
             secret: this.parseSecret(result.secret),
             status,
+            userData,
         }
     }
 
@@ -282,34 +253,41 @@ export class AztecHTLCClient extends HTLCClient {
 
         const hashlockBytes = hexToBytes(id, 32)
 
-        const count = await contract.methods
+        const count = Number(await contract.methods
             .get_solver_lock_count(hashlockBytes)
-            .simulate({ from: userAztecAddress })
+            .simulate({ from: userAztecAddress }))
 
-        if (Number(count) === 0) return null
+        if (count === 0) return null
 
-        const result: any = await contract.methods
-            .get_solver_lock(hashlockBytes, BigInt(1))
-            .simulate({ from: userAztecAddress })
+        for (let i = 1; i <= count; i++) {
+            const result: any = await contract.methods
+                .get_solver_lock(hashlockBytes, BigInt(i))
+                .simulate({ from: userAztecAddress })
 
-        const status = Number(result.status) as LockStatus
-        if (status === 0) return null
+            const status = Number(result.status) as LockStatus
+            if (status === 0) continue
 
-        return {
-            hashlock: id,
-            amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? AZTEC_TOKEN_DECIMALS)),
-            sender: result.sender?.toString(),
-            recipient: result.recipient?.toString(),
-            token: result.token?.toString(),
-            timelock: Number(result.timelock),
-            reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? AZTEC_TOKEN_DECIMALS)),
-            rewardTimelock: Number(result.reward_timelock),
-            rewardRecipient: result.reward_recipient?.toString(),
-            rewardToken: result.reward_token?.toString(),
-            status,
-            secret: this.parseSecret(result.secret),
-            index: 0,
+            const sender = result.sender?.toString()
+            if (params.solverAddress && sender?.toLowerCase() !== params.solverAddress.toLowerCase()) continue
+
+            return {
+                hashlock: id,
+                amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? AZTEC_TOKEN_DECIMALS)),
+                sender,
+                recipient: result.recipient?.toString(),
+                token: result.token?.toString(),
+                timelock: Number(result.timelock),
+                reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? AZTEC_TOKEN_DECIMALS)),
+                rewardTimelock: Number(result.reward_timelock),
+                rewardRecipient: result.reward_recipient?.toString(),
+                rewardToken: result.reward_token?.toString(),
+                status,
+                secret: this.parseSecret(result.secret),
+                index: i,
+            }
         }
+
+        return null
     }
 
     async secureGetDetails(_params: LockParams, _nodeUrls: string[]): Promise<LockDetails | null> {
@@ -376,5 +354,53 @@ export class AztecHTLCClient extends HTLCClient {
     private async registerSponsoredFPC(wallet: Wallet): Promise<void> {
         const fpcInstance = await this.getSponsoredFPCInstance()
         await wallet.registerContract(fpcInstance)
+    }
+
+    private async findUserDataFromLogs(txHash: string, hashlock: string): Promise<string | undefined> {
+        try {
+            const node = this.getNode()
+            const { logs } = await node.getPublicLogs({
+                txHash: TxHash.fromString(txHash),
+            })
+
+            const eventDef = TrainContract.events.UserLocked
+
+            for (const log of logs) {
+                const emittedFields = log.log.getEmittedFields()
+                if (emittedFields.length === 0) continue
+
+                const selectorField = emittedFields[emittedFields.length - 1]
+                const selector = EventSelector.fromField(selectorField)
+                if (selector.toString() !== eventDef.eventSelector.toString()) continue
+
+                const decoded = decodeFromAbi(
+                    [eventDef.abiType],
+                    log.log.fields,
+                ) as Record<string, any>
+
+                const decodedHashlock = bytesToHex(Array.from(decoded.hashlock).map(Number))
+                if (decodedHashlock.toLowerCase() !== hashlock.toLowerCase()) continue
+
+                const userDataBytes: bigint[] = decoded.userData
+                if (!userDataBytes) return undefined
+
+                return Buffer.from(userDataBytes.map(Number))
+                    .toString('utf8')
+                    .replace(/\0/g, '')
+                    .trim() || undefined
+            }
+        } catch (e) {
+            console.error('Error fetching userData from Aztec logs:', e)
+        }
+        return undefined
+    }
+
+    private strToBytes(str: string, length: number): number[] {
+        const bytes = Buffer.from(str, 'utf8');
+        const result = new Array<number>(length).fill(0);
+        for (let i = 0; i < Math.min(bytes.length, length); i++) {
+            result[i] = bytes[i];
+        }
+        return result;
     }
 }
