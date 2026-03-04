@@ -58,14 +58,14 @@ export class AztecHTLCClient extends HTLCClient {
             await signer.wallet.registerContract(trainInstance, TrainContract.artifact)
             const train = TrainContract.at(trainAddress, signer.wallet)
 
-            // Register Token contract (instance only)
+            // Register Token contract
             const tokenInstance = await node.getContract(tokenAddress)
             if (!tokenInstance) {
                 throw new Error(
                     `Token contract not found at ${tokenAddress.toString()} on node ${this.rpcUrl}`,
                 )
             }
-            await signer.wallet.registerContract(tokenInstance)
+            await signer.wallet.registerContract(tokenInstance, TokenContract.artifact)
             const token = TokenContract.at(tokenAddress, signer.wallet)
 
             const amount = parseUnits(params.amount.toString(), params.decimals)
@@ -183,7 +183,7 @@ export class AztecHTLCClient extends HTLCClient {
                         `Token contract not found at ${tokenAddress.toString()} on node ${this.rpcUrl}`,
                     )
                 }
-                await signer.wallet.registerContract(tokenInstance)
+                await signer.wallet.registerContract(tokenInstance, TokenContract.artifact)
                 await signer.wallet.registerSender(AztecAddress.fromString(params.contractAddress))
             }
 
@@ -324,10 +324,7 @@ export class AztecHTLCClient extends HTLCClient {
 
         if (!trainInstance) throw new Error('Train contract not found')
 
-        // Register instance without artifact — the wallet's PXE discovers the
-        // contract class from its own node, avoiding version-mismatch issues
-        // between the app's @aztec/aztec.js and the wallet extension.
-        await signer.wallet.registerContract(trainInstance)
+        await signer.wallet.registerContract(trainInstance, TrainContract.artifact)
         const contract = TrainContract.at(aztecAtomicContract, signer.wallet)
         const userAztecAddress = AztecAddress.fromString(signer.address)
 
@@ -353,7 +350,7 @@ export class AztecHTLCClient extends HTLCClient {
 
     private async registerSponsoredFPC(wallet: Wallet): Promise<void> {
         const fpcInstance = await this.getSponsoredFPCInstance()
-        await wallet.registerContract(fpcInstance)
+        await wallet.registerContract(fpcInstance, SponsoredFPCContract.artifact)
     }
 
     private async findUserDataFromLogs(txHash: string, hashlock: string): Promise<string | undefined> {
