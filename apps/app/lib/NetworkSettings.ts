@@ -113,6 +113,10 @@ export default class NetworkSettings {
             TransactionExplorerTemplate: 'https://sepolia.arbiscan.io/tx/{0}',
             AccountExplorerTemplate: 'https://sepolia.arbiscan.io/address/{0}',
         };
+        NetworkSettings.KnownSettings[KnownInternalNames.Networks.AztecDevnet] = {
+            ChainId: 'aztec-devnet',
+            TransactionExplorerTemplate: 'https://aztecexplorer.xyz/tx/{0}',
+        };
 
 
         for (var k in NetworkSettings.KnownSettings) {
