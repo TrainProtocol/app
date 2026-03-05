@@ -15,6 +15,7 @@ import { registerEvmSdk } from '@train-protocol/evm';
 if (typeof window !== 'undefined') {
   registerEvmSdk();
   import('@train-protocol/aztec').then(m => m.registerAztecSdk());
+  import('@train-protocol/starknet').then(m => m.registerStarknetSdk());
 }
 
 const progress = new ProgressBar({
