@@ -1,4 +1,4 @@
-# @train-protocol/sdk-evm
+# @train-protocol/evm
 
 EVM (eip155) HTLC client and wallet-sign provider for the Train Protocol SDK.
 
@@ -7,7 +7,7 @@ EVM (eip155) HTLC client and wallet-sign provider for the Train Protocol SDK.
 Call `registerEvmSdk()` once at app startup **before** using any EVM HTLC or wallet-sign features:
 
 ```ts
-import { registerEvmSdk } from '@train-protocol/sdk-evm'
+import { registerEvmSdk } from '@train-protocol/evm'
 
 registerEvmSdk() // idempotent — safe to call more than once
 ```

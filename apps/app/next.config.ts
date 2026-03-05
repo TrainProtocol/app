@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  transpilePackages: ["@aztec/wallet-sdk", "@train-protocol/sdk", "@train-protocol/sdk-aztec"],
+  transpilePackages: ["@aztec/wallet-sdk", "@train-protocol/sdk", "@train-protocol/aztec"],
   productionBrowserSourceMaps: true,
   images: {
     remotePatterns: [

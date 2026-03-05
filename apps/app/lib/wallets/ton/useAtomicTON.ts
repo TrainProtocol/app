@@ -1,13 +1,12 @@
 import { beginCell, Cell, toNano } from "@ton/ton"
 import { hexToBigInt } from "viem"
 import { Network } from "../../../Models/Network"
-import { CreateHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
+import { UserLockParams, LockParams, OldLockParams, RefundParams, RedeemSolverParams } from "../../../Models/phtlc"
 import { LockDetails } from "../../../Models/phtlc/PHTLC"
 import { commitTransactionBuilder } from "./transactionBuilder"
 import { retryUntilFecth } from "../../retry"
 import { getTONDetails } from "./getters"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
-import { AtomicResult, BaseAtomicFunctions } from "../utils/atomicTypes"
 
 export interface UseAtomicTONParams {
     tonWallet: any
@@ -16,11 +15,11 @@ export interface UseAtomicTONParams {
     tonApiUrl: string
 }
 
-export default function useAtomicTON(params: UseAtomicTONParams): BaseAtomicFunctions {
+export default function useAtomicTON(params: UseAtomicTONParams) {
     const { tonWallet, tonConnectUI, networks, tonApiUrl } = params
     const { deriveSecret } = useSecretDerivation()
 
-    const createHTLC = async (params: CreateHTLCParams) => {
+    const userLock = async (params: UserLockParams) => {
 
         if (!tonWallet?.account.publicKey) return
 
@@ -153,7 +152,7 @@ export default function useAtomicTON(params: UseAtomicTONParams): BaseAtomicFunc
         return result
     }
 
-    const claim = async (params: ClaimParams) => {
+    const redeemSolver = async (params: RedeemSolverParams) => {
         const { id, secret, contractAddress } = params
 
         const opcode = 1972220037
@@ -183,10 +182,10 @@ export default function useAtomicTON(params: UseAtomicTONParams): BaseAtomicFunc
     }
 
     return {
-    createHTLC,
+    userLock,
     getUserLockDetails: getDetails,
     refund,
-    claim,
+    redeemSolver,
     getSolverLockDetails: function (params: LockParams): Promise<LockDetails | null> {
         throw new Error("Function not implemented.")
     }

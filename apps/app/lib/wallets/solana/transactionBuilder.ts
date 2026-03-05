@@ -1,7 +1,7 @@
 import { Connection, PublicKey, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { createAssociatedTokenAccountInstruction, createTransferInstruction, getAccount, getAssociatedTokenAddress } from '@solana/spl-token';
 import { Network, Token } from "../../../Models/Network";
-import { LockParams, CreateHTLCParams, OldLockParams } from "../../../Models/phtlc";
+import { LockParams, UserLockParams, OldLockParams } from "../../../Models/phtlc";
 import { BN, Idl, Program } from "@coral-xyz/anchor";
 import { createHash } from "crypto";
 
@@ -74,7 +74,7 @@ export const transactionBuilder = async (network: Network, token: Token, walletP
     }
 }
 
-export const phtlcTransactionBuilder = async (params: CreateHTLCParams & { program: Program<Idl>, connection: Connection, walletPublicKey: PublicKey, network: Network }) => {
+export const phtlcTransactionBuilder = async (params: UserLockParams & { program: Program<Idl>, connection: Connection, walletPublicKey: PublicKey, network: Network }) => {
 
     const { destinationChain, destinationAsset, sourceAsset, srcLpAddress: lpAddress, destinationAddress, amount, atomicContract, chainId, program, walletPublicKey, connection, network } = params
 

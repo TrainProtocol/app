@@ -25,9 +25,9 @@ describe('registerAztecSdk', () => {
         expect(client).toBeDefined()
         expect(typeof client.getUserLockDetails).toBe('function')
         expect(typeof client.getSolverLockDetails).toBe('function')
-        expect(typeof client.createHTLC).toBe('function')
+        expect(typeof client.userLock).toBe('function')
         expect(typeof client.refund).toBe('function')
-        expect(typeof client.claim).toBe('function')
+        expect(typeof client.redeemSolver).toBe('function')
     })
 
     it('multiple calls do not throw or double-register', () => {

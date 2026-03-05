@@ -1,7 +1,7 @@
 import { Token } from './network'
 import { LockDetails } from './lock'
 
-export type CreateHTLCParams = {
+export type UserLockParams = {
     destinationChain: string,
     sourceChain: string,
     amount: string,
@@ -60,7 +60,7 @@ export type RefundParams = {
     index?: number,
 }
 
-export type ClaimParams = {
+export type RedeemSolverParams = {
     type: 'erc20' | 'native';
     chainId: string | null,
     contractAddress: string,

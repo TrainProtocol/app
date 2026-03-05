@@ -9,7 +9,6 @@ import { useSwapStore } from "@/stores/swapStore";
 import { SwapViewType } from ".";
 import { useSecretDerivation } from "@/context/secretDerivationContext";
 import { secretToHashlock } from "@train-protocol/sdk";
-import { useHTLCWriteClient } from "@/hooks/htlc/useHTLCWriteClient";
 import { useSelectedAccount } from "@/context/swapAccounts";
 import { Address } from "@/lib/address";
 
@@ -19,11 +18,10 @@ type UserCommitActionProps = {
 }
 
 export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
-    const { source_network, destination_network, amount, address, source_asset, destination_asset, onUserLock, hashlock, setError, srcAtomicContract } = useAtomicState();
+    const { source_network, destination_network, amount, address, source_asset, destination_asset, onUserLock, hashlock, setError, srcAtomicContract, sourceClient } = useAtomicState();
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
     const { deriveSecret } = useSecretDerivation()
-    const createWriteClient = useHTLCWriteClient()
     const sourceAccount = useSelectedAccount('from', source_network?.caip2Id)
     const sourceWallet = (sourceAccount?.address && source_network) ? provider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, source_network)) : undefined
 
@@ -42,9 +40,9 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
             })
             const hashlock = secretToHashlock(secret)
 
-            const writeClient = await createWriteClient(source_network, sourceWallet)
+            if (!sourceClient) throw new Error("No source client")
 
-            const result = await writeClient.createHTLC({
+            const result = await sourceClient.userLock({
                 ...resolveQuote(quote),
                 sourceAddress: sourceWallet.address,
                 destinationAddress: address,
@@ -122,7 +120,6 @@ export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const sourceAccount = useSelectedAccount('from', source_network?.caip2Id)
     const sourceWallet = (sourceAccount?.address && source_network) ? source_provider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, source_network)) : undefined
     const updateSwap = useSwapStore(s => s.updateSwap)
-    const createWriteClient = useHTLCWriteClient()
 
     const [requestedRefund, setRequestedRefund] = useState(false)
 

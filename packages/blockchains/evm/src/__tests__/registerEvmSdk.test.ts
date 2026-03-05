@@ -32,6 +32,9 @@ describe('registerEvmSdk', () => {
         expect(client).toBeDefined()
         expect(typeof client.getUserLockDetails).toBe('function')
         expect(typeof client.getSolverLockDetails).toBe('function')
+        expect(typeof client.userLock).toBe('function')
+        expect(typeof client.refund).toBe('function')
+        expect(typeof client.redeemSolver).toBe('function')
     })
 
     it('deriveKeyFromWallet is callable for eip155 after registration', async () => {

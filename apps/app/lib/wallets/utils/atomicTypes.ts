@@ -3,5 +3,4 @@ export type {
     AtomicResult,
     LockResult,
     RecoveredSwapData,
-    BaseAtomicFunctions,
 } from '@train-protocol/sdk'

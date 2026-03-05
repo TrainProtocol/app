@@ -1,14 +1,13 @@
 import { cairo, Call, constants, Contract, RpcProvider, shortString, TypedData, TypedDataRevision } from "starknet"
 import { ethers } from "ethers"
 import { toHex } from "viem"
-import { CreateHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams, GetCommitsParams } from "../../../Models/phtlc"
+import { UserLockParams, LockParams, OldLockParams, RefundParams, RedeemSolverParams, GetCommitsParams } from "../../../Models/phtlc"
 import { LockDetails } from "../../../Models/phtlc/PHTLC"
 import PHTLCAbi from "../../abis/atomic/STARKNET_PHTLC.json"
 import ETHABbi from "../../abis/STARKNET_ETH.json"
 import formatAmount from "../../formatAmount"
 import TrainApiClient from "../../trainApiClient"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
-import { BaseAtomicFunctions } from "../utils/atomicTypes"
 
 export interface UseAtomicStarknetParams {
     starknetWallet: any
@@ -16,11 +15,11 @@ export interface UseAtomicStarknetParams {
 }
 const apiClient = new TrainApiClient()
 
-export default function useAtomicStarknet(params: UseAtomicStarknetParams): BaseAtomicFunctions {
+export default function useAtomicStarknet(params: UseAtomicStarknetParams) {
     const { starknetWallet, nodeUrl } = params
     const { deriveSecret } = useSecretDerivation()
 
-    const createHTLC = async (params: CreateHTLCParams) => {
+    const userLock = async (params: UserLockParams) => {
         const { destinationChain, destinationAsset, sourceAsset, srcLpAddress: lpAddress, destinationAddress, tokenContractAddress, amount, decimals, atomicContract: atomicAddress } = params
 
         if (!starknetWallet?.metadata?.starknetAccount) {
@@ -113,7 +112,7 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Base
         return trx.transaction_hash
     }
 
-    const claim = async (params: ClaimParams) => {
+    const redeemSolver = async (params: RedeemSolverParams) => {
         const { contractAddress: atomicAddress, id, secret } = params
 
         if (!starknetWallet?.metadata?.starknetAccount) {
@@ -288,10 +287,10 @@ export default function useAtomicStarknet(params: UseAtomicStarknetParams): Base
     }
 
     return {
-    createHTLC,
+    userLock,
     getUserLockDetails: getDetails,
     refund,
-    claim,
+    redeemSolver,
     getSolverLockDetails: function (params: LockParams): Promise<LockDetails | null> {
         throw new Error("Function not implemented.")
     }
