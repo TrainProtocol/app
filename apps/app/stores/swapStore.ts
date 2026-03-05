@@ -21,6 +21,8 @@ export interface SwapData {
     status?: HTLCStatus
     createdAt?: number
     timelock?: number
+    sourceSolverAddress?: string
+    destinationSolverAddress?: string
 }
 
 interface SwapStoreState {

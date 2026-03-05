@@ -43,6 +43,7 @@ export async function getServerSideProps(context) {
             chainId: 'devnet',
             nativeTokenAddress: "0x02c31306cad429e0a00d3a4ee8ba251853099f835101ee2c637e9b3b9351a056",
             type: { name: "aztec" },
+            logoUrl: 'https://raw.githubusercontent.com/TrainProtocol/icons/main/networks/aztec.png',
             tokens: [{
                 symbol: "ETH",
                 contractAddress: "0x02c31306cad429e0a00d3a4ee8ba251853099f835101ee2c637e9b3b9351a056",

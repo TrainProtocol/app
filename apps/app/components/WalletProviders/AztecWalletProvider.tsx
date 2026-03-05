@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from "react";
 import type { WalletProvider as AztecSDKWalletProvider, PendingConnection } from "@aztec/wallet-sdk/manager";
 import { AZTEC_APP_ID, useAztecChainInfo } from "@/lib/wallets/aztec/configs";
+import { extractAztecAddress } from "@/lib/wallets/aztec/utils";
+import SubmitButton from "../buttons/submitButton";
 
 // Use a loose type to avoid version mismatches between @aztec/aztec.js versions.
 // The wallet-sdk may bundle a different @aztec/aztec.js version than the app.
@@ -66,13 +68,12 @@ const EmojiVerificationOverlay: React.FC<{
                     >
                         Cancel
                     </button>
-                    <button
+                    <SubmitButton
                         type="button"
                         onClick={onConfirm}
-                        className="flex-1 py-3 px-4 rounded-lg bg-primary-500 text-primary-actionButtonText text-sm font-medium cursor-pointer border-none hover:bg-primary-400 transition-colors"
                     >
                         Emojis Match
-                    </button>
+                    </SubmitButton>
                 </div>
             </div>
         </div>
@@ -99,10 +100,14 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
     const isDiscoveringRef = useRef(false);
     const pendingResolveRef = useRef<((wallet: AztecWallet) => void) | null>(null);
     const pendingRejectRef = useRef<((error: Error) => void) | null>(null);
+    const disconnectUnsubRef = useRef<(() => void) | null>(null);
+    const isConfirmingRef = useRef(false);
 
     const chainInfo = useAztecChainInfo();
 
     const resetConnection = useCallback(() => {
+        disconnectUnsubRef.current?.();
+        disconnectUnsubRef.current = null;
         setWallet(null);
         setAccountAddress(null);
         activeProviderRef.current = null;
@@ -182,9 +187,8 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
             setWallet(azguardWallet);
 
             const accounts = await azguardWallet.getAccounts();
-            const address = accounts[0]?.item?.toString() ?? accounts[0]?.toString();
-            if (address) {
-                setAccountAddress(address);
+            if (accounts.length > 0) {
+                setAccountAddress(extractAztecAddress(accounts[0]));
             }
 
             azguardWallet.onDisconnected.addHandler(() => resetConnection());
@@ -214,20 +218,62 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
     }, [discoveredProviders, resetConnection]);
 
     const confirmConnection = useCallback(async () => {
-        if (!pendingConnection) return;
+        if (!pendingConnection || isConfirmingRef.current) return;
+        isConfirmingRef.current = true;
 
         try {
             const connectedWallet = await pendingConnection.confirm();
             setWallet(connectedWallet);
 
-            const accounts = await connectedWallet.getAccounts();
-            const address = accounts[0]?.item?.toString() ?? accounts[0]?.toString();
+            // Request capabilities (accounts + authwit permission for HTLC flow)
+            // Fall back to getAccounts() for wallets that don't support it
+            let address: string | null = null;
+            try {
+                const capabilities = await connectedWallet.requestCapabilities({
+                    version: '1.0' as const,
+                    metadata: {
+                        name: 'Train Protocol',
+                        version: '1.0.0',
+                        description: 'Cross-chain atomic swaps',
+                        url: typeof window !== 'undefined' ? window.location.origin : '',
+                    },
+                    capabilities: [
+                        { type: 'accounts', canGet: true, canCreateAuthWit: true },
+                    ],
+                });
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const accountsCap = capabilities.granted.find(
+                    (c: { type: string }) => c.type === 'accounts'
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ) as { type: 'accounts'; accounts: any[] } | undefined;
+                if (accountsCap?.accounts?.length) {
+                    address = extractAztecAddress(accountsCap.accounts[0]);
+                }
+            } catch (err) {
+                console.warn('requestCapabilities not supported, falling back to getAccounts:', err);
+            }
+
+            if (!address) {
+                const accounts = await connectedWallet.getAccounts();
+                if (accounts.length > 0) {
+                    address = extractAztecAddress(accounts[0]);
+                }
+            }
+
             if (address) {
                 setAccountAddress(address);
             }
 
             if (activeProviderRef.current) {
-                activeProviderRef.current.onDisconnect(() => resetConnection());
+                disconnectUnsubRef.current = activeProviderRef.current.onDisconnect(() => {
+                    // Grace period to avoid false disconnects from HMR/Fast Refresh
+                    setTimeout(() => {
+                        const provider = activeProviderRef.current;
+                        if (!provider || provider.isDisconnected?.() !== false) {
+                            resetConnection();
+                        }
+                    }, 1000);
+                });
             }
 
             setPendingConnection(null);
@@ -243,6 +289,8 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
             pendingRejectRef.current?.(error instanceof Error ? error : new Error(String(error)));
             pendingResolveRef.current = null;
             pendingRejectRef.current = null;
+        } finally {
+            isConfirmingRef.current = false;
         }
     }, [pendingConnection, resetConnection]);
 

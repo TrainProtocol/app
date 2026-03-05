@@ -15,9 +15,9 @@ import { explicitInjectedProviderDetected } from "./connectors/explicitInjectedP
 import sleep from "../utils/sleep"
 import { useEvmConnectors, HIDDEN_WALLETCONNECT_ID } from "@/context/evmConnectorsContext"
 import { useActiveEvmAccount } from "@/components/WalletProviders/ActiveEvmAccount"
-import { useAtomicState } from "@/context/atomicContext"
-import { useSelectedAccount } from "@/context/swapAccounts"
-import { Address } from "@/lib/address/Address"
+
+const name = 'eip155'
+const id = 'eip155'
 
 // Storage key for dynamic wallet metadata
 const DYNAMIC_WALLET_METADATA_KEY = 'ls_dynamic_wallet_metadata'
@@ -61,8 +61,6 @@ const ethereumNames = [KnownInternalNames.Networks.EthereumMainnet, KnownInterna
 const immutableZKEvm = [KnownInternalNames.Networks.ImmutableZkEVM]
 
 export default function useEVM(): WalletProvider {
-    const name = 'EVM'
-    const id = 'eip155'
     const { networks } = useSettingsState()
     const isMobilePlatform = useMemo(() => isMobile(), []);
 

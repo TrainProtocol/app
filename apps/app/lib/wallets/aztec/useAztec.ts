@@ -2,6 +2,7 @@ import KnownInternalNames from "../../knownIds";
 import { useSettingsState } from "../../../context/settings";
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider";
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
+import { extractAztecAddress } from "./utils";
 import { useMemo } from "react";
 import { useAztecWalletContext, AZGUARD_PROVIDER_ID } from "../../../components/WalletProviders/AztecWalletProvider";
 import { azguardBase64 } from "@/components/Icons/Base64/Azguard";
@@ -57,8 +58,20 @@ export default function useAztec(): WalletProvider {
 
             const connectedWallet = await connect(providerId);
 
-            const accounts = await connectedWallet.getAccounts();
-            const connectedAddress = accounts[0]?.item?.toString() ?? accounts[0]?.toString();
+            // getAccounts can hang if the wallet's encrypted channel is stale on reconnect
+            let connectedAddress: string | undefined;
+            try {
+                const accounts = await Promise.race([
+                    connectedWallet.getAccounts(),
+                    new Promise<never>((_, reject) =>
+                        setTimeout(() => reject(new Error('getAccounts timeout')), 10000)
+                    ),
+                ]);
+                connectedAddress = accounts.length > 0 ? extractAztecAddress(accounts[0]) : undefined;
+            } catch {
+                // Fall back to address already set by AztecWalletProvider's confirmConnection
+                connectedAddress = accountAddress ?? undefined;
+            }
 
             if (connectedAddress) {
                 const walletName = providerId === AZGUARD_PROVIDER_ID

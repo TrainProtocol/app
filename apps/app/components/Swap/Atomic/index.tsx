@@ -112,6 +112,8 @@ export default function Form() {
                 srcContract: source_contract,
                 destContract: destination_contract,
                 receiveAmount: formattedReceiveAmount,
+                sourceSolverAddress: quote?.sourceSolverAddress,
+                destinationSolverAddress: quote?.destinationSolverAddress,
             })
             setSwapModalOpen(true)
             setPolling(false)

@@ -12,6 +12,7 @@ interface UseSolverLockPollingParams {
     enabled?: boolean
     client: IHTLCClient | undefined
     nodeUrls: string[]
+    solverAddress?: string
     onSuccess?: (details: LockDetails) => void
 }
 
@@ -23,6 +24,7 @@ const useSolverLockPolling = ({
     enabled = true,
     client,
     nodeUrls,
+    solverAddress,
     onSuccess,
 }: UseSolverLockPollingParams) => {
     const type: 'erc20' | 'native' = destinationAsset?.contractAddress && destinationAsset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
@@ -44,6 +46,7 @@ const useSolverLockPolling = ({
                 id: hashlock,
                 contractAddress,
                 decimals: destinationAsset?.decimals,
+                solverAddress,
             }
 
             try {
