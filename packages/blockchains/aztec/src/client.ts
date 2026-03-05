@@ -9,10 +9,10 @@ import { TxHash } from '@aztec/aztec.js/tx'
 import type { Wallet } from '@aztec/aztec.js/wallet'
 import { SponsoredFPCContract } from '@aztec/noir-contracts.js/SponsoredFPC'
 import {
-    type CreateHTLCParams,
+    type UserLockParams,
     type LockParams,
     type RefundParams,
-    type ClaimParams,
+    type RedeemSolverParams,
     type LockDetails,
     type AtomicResult,
     type RecoveredSwapData,
@@ -39,7 +39,7 @@ export class AztecHTLCClient extends HTLCClient {
         this.signer = config.signer
     }
 
-    async createHTLC(params: CreateHTLCParams): Promise<AtomicResult> {
+    async userLock(params: UserLockParams): Promise<AtomicResult> {
         try {
             const signer = this.requireSigner()
             const feeOptions = await this.createFeeOptions()
@@ -165,7 +165,7 @@ export class AztecHTLCClient extends HTLCClient {
         }
     }
 
-    async claim(params: ClaimParams): Promise<string> {
+    async redeemSolver(params: RedeemSolverParams): Promise<string> {
         try {
             const signer = this.requireSigner()
             const feeOptions = await this.createFeeOptions()
@@ -210,7 +210,7 @@ export class AztecHTLCClient extends HTLCClient {
 
             return tx.txHash?.toString() ?? String(tx)
         } catch (error) {
-            console.error('Error in claim:', error)
+            console.error('Error in redeemSolver:', error)
             throw error
         }
     }

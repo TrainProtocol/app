@@ -1,5 +1,5 @@
 {
-  "name": "@train-protocol/sdk-aztec",
+  "name": "@train-protocol/aztec",
   "version": "0.1.0",
   "description": "Train Protocol SDK — Aztec HTLC client",
   "type": "module",

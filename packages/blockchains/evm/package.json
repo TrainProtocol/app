@@ -1,5 +1,5 @@
 {
-  "name": "@train-protocol/sdk-evm",
+  "name": "@train-protocol/evm",
   "version": "0.1.0",
   "description": "Train Protocol SDK — EVM HTLC client",
   "type": "module",

@@ -10,11 +10,11 @@ import { useEffect } from "react";
 import { PostHogProvider } from 'posthog-js/react'
 import posthog from 'posthog-js'
 import { Analytics } from '@vercel/analytics/next';
-import { registerEvmSdk } from '@train-protocol/sdk-evm';
+import { registerEvmSdk } from '@train-protocol/evm';
 
 if (typeof window !== 'undefined') {
   registerEvmSdk();
-  import('@train-protocol/sdk-aztec').then(m => m.registerAztecSdk());
+  import('@train-protocol/aztec').then(m => m.registerAztecSdk());
 }
 
 const progress = new ProgressBar({

@@ -1,9 +1,9 @@
 // Re-exported from @train-protocol/sdk — single source of truth
 export type {
-    CreateHTLCParams,
+    UserLockParams,
     LockParams,
     OldLockParams,
     RefundParams,
-    ClaimParams,
+    RedeemSolverParams,
     GetCommitsParams,
 } from '@train-protocol/sdk'

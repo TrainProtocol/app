@@ -2,7 +2,7 @@
 import { getAccount } from '@wagmi/core'
 import { Config } from 'wagmi'
 import { deriveKeyFromWallet } from '@train-protocol/sdk'
-import { getEvmTypedData as sdkGetEvmTypedData } from '@train-protocol/sdk-evm'
+import { getEvmTypedData as sdkGetEvmTypedData } from '@train-protocol/evm'
 
 const isSandbox = process.env.NEXT_PUBLIC_API_VERSION === 'sandbox'
 

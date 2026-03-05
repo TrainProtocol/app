@@ -1,10 +1,9 @@
 import { FC } from "react";
-import { useAtomicState } from "../../../../context/atomicContext";
+import { useAtomicState } from "@/context/atomicContext";
 import useWallet from "@/hooks/useWallet";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
 import { SwapViewType } from ".";
-import { useHTLCWriteClient } from "@/hooks/htlc/useHTLCWriteClient";
 
 export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const {
@@ -23,7 +22,6 @@ export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
 
     const { provider } = useWallet(destination_network, 'withdrawal');
     const wallet = provider?.activeWallet;
-    const createWriteClient = useHTLCWriteClient();
 
     const handleManualClaim = async () => {
         try {
@@ -37,7 +35,7 @@ export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
                 await provider.switchChain(provider.activeWallet, destination_network.chainId);
             if (!destinationClient) throw new Error("No destination client");
 
-            const txHash = await destinationClient.claim({
+            const txHash = await destinationClient.redeemSolver({
                 type: destination_asset.contractAddress ? 'erc20' : 'native',
                 chainId: destination_network.chainId,
                 contractAddress: destAtomicContract,

@@ -1,9 +1,9 @@
 import { AbiFunction, AbiEvent } from 'ox'
 import {
-    CreateHTLCParams,
+    UserLockParams,
     LockParams,
     RefundParams,
-    ClaimParams,
+    RedeemSolverParams,
     LockDetails,
     LockStatus,
     AtomicResult,
@@ -28,7 +28,7 @@ export class EvmHTLCClient extends HTLCClient {
 
     // ── Write Operations ───────────────────────────────────────────────
 
-    async createHTLC(params: CreateHTLCParams): Promise<AtomicResult> {
+    async userLock(params: UserLockParams): Promise<AtomicResult> {
         const signer = this.requireSigner()
         const {
             destinationChain,
@@ -109,7 +109,7 @@ export class EvmHTLCClient extends HTLCClient {
 
             return { hash, hashlock, nonce: timestamp };
         } catch (error) {
-            console.error('Error in createHTLC:', error);
+            console.error('Error in userLock:', error);
             throw error;
         }
     }
@@ -125,12 +125,12 @@ export class EvmHTLCClient extends HTLCClient {
 
             return signer.sendTransaction({ to: contractAddress, data: calldata })
         } catch (error) {
-            console.error('Error in createHTLC:', error);
+            console.error('Error in refund:', error);
             throw error;
         }
     }
 
-    async claim(params: ClaimParams): Promise<string> {
+    async redeemSolver(params: RedeemSolverParams): Promise<string> {
         const signer = this.requireSigner()
         const { id, contractAddress, secret, destinationAddress } = params
 
@@ -146,7 +146,7 @@ export class EvmHTLCClient extends HTLCClient {
 
             return signer.sendTransaction({ to: contractAddress, data: calldata })
         } catch (error) {
-            console.error('Error in createHTLC:', error);
+            console.error('Error in claim:', error);
             throw error;
         }
     }

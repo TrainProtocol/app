@@ -1,6 +1,3 @@
-import { CreateHTLCParams, LockParams, RefundParams, ClaimParams } from './params'
-import { LockDetails } from './lock'
-
 export interface AtomicResult {
     hash: string
     hashlock: string
@@ -24,13 +21,4 @@ export interface RecoveredSwapData {
     dstAmount: bigint
     dstToken: string
     srcContract: string
-}
-
-export interface BaseAtomicFunctions {
-    createHTLC: (params: CreateHTLCParams) => Promise<AtomicResult | null | undefined>
-    refund: (params: RefundParams) => Promise<string | any | null>
-    claim: (params: ClaimParams) => Promise<string | undefined>
-    getUserLockDetails: (params: LockParams) => Promise<LockDetails | null>
-    getSolverLockDetails: (params: LockParams, nodeUrls: string[]) => Promise<LockDetails | null>
-    recoverSwap?: (txHash: string, chainId: string) => Promise<RecoveredSwapData>
 }

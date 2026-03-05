@@ -1,7 +1,7 @@
 import { AnchorProvider, Program } from "@coral-xyz/anchor"
 import { Connection, PublicKey } from "@solana/web3.js"
 import { Network } from "../../../Models/Network"
-import { CreateHTLCParams, LockParams, OldLockParams, RefundParams, ClaimParams } from "../../../Models/phtlc"
+import { UserLockParams, LockParams, OldLockParams, RefundParams, RedeemSolverParams } from "../../../Models/phtlc"
 import { TokenAnchorHtlc } from "./tokenAnchorHTLC"
 import { NativeAnchorHtlc } from "./nativeAnchorHTLC"
 import { lockTransactionBuilder, phtlcTransactionBuilder } from "./transactionBuilder"
@@ -9,7 +9,6 @@ import TrainApiClient from "../../trainApiClient"
 import { toHex } from "viem"
 import { AnchorWallet } from "@solana/wallet-adapter-react"
 import { useSecretDerivation } from "@/context/secretDerivationContext"
-import { BaseAtomicFunctions } from "../utils/atomicTypes"
 import { LockDetails } from "@/Models/phtlc/PHTLC"
 
 export interface UseAtomicSVMParams {
@@ -21,11 +20,11 @@ export interface UseAtomicSVMParams {
     anchorProvider: AnchorProvider | undefined
 }
 
-export default function useAtomicSVM(params: UseAtomicSVMParams): BaseAtomicFunctions {
+export default function useAtomicSVM(params: UseAtomicSVMParams) {
     const { connection, signTransaction, signMessage, publicKey, network, anchorProvider } = params
     const { deriveSecret } = useSecretDerivation()
 
-    const createHTLC = async (params: CreateHTLCParams): Promise<{ hash: string; hashlock: string; } | null | undefined> => {
+    const userLock = async (params: UserLockParams): Promise<{ hash: string; hashlock: string; } | null | undefined> => {
         const { atomicContract, sourceAsset } = params
         const program = (anchorProvider && atomicContract) ? new Program(sourceAsset.contractAddress ? TokenAnchorHtlc(atomicContract) : NativeAnchorHtlc(atomicContract), anchorProvider) : null;
 
@@ -193,7 +192,7 @@ export default function useAtomicSVM(params: UseAtomicSVMParams): BaseAtomicFunc
         }
     }
 
-    const claim = async (params: ClaimParams) => {
+    const redeemSolver = async (params: RedeemSolverParams) => {
         const { sourceAsset, id, secret, contractAddress, destLpAddress } = params
         const program = (anchorProvider && contractAddress) ? new Program(sourceAsset.contractAddress ? TokenAnchorHtlc(contractAddress) : NativeAnchorHtlc(contractAddress), anchorProvider) : null;
 
@@ -244,10 +243,10 @@ export default function useAtomicSVM(params: UseAtomicSVMParams): BaseAtomicFunc
     }
 
     return {
-        createHTLC,
+        userLock,
         getUserLockDetails: getDetails,
         refund,
-        claim,
+        redeemSolver,
         getSolverLockDetails: function (params: LockParams): Promise<LockDetails | null> {
             throw new Error("Function not implemented.")
         }
