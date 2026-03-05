@@ -397,7 +397,6 @@ Define chain-specific constants at the top of `client.ts`, after imports:
 
 ```ts
 const TX_TIMEOUT = 120000           // Transaction confirmation timeout (ms)
-const DEFAULT_DECIMALS = 18         // Default token decimals for the chain
 const ZERO_ADDRESS = '0x000...'     // Chain's empty/zero address representation
 ```
 

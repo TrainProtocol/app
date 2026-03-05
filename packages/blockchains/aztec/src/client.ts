@@ -25,7 +25,6 @@ import type { AztecHTLCClientConfig, AztecSigner } from './types'
 import { bytesToHex, hexToBytes, parseUnits, formatUnits } from '@train-protocol/sdk'
 
 const TX_TIMEOUT = 120000
-const AZTEC_TOKEN_DECIMALS = 18
 
 export class AztecHTLCClient extends HTLCClient {
     private readonly rpcUrl: string
@@ -235,7 +234,7 @@ export class AztecHTLCClient extends HTLCClient {
 
         return {
             hashlock: id,
-            amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? AZTEC_TOKEN_DECIMALS)),
+            amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
             sender: result.sender?.toString(),
             recipient: result.recipient?.toString(),
             token: result.token?.toString(),
@@ -272,12 +271,12 @@ export class AztecHTLCClient extends HTLCClient {
 
             return {
                 hashlock: id,
-                amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? AZTEC_TOKEN_DECIMALS)),
+                amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
                 sender,
                 recipient: result.recipient?.toString(),
                 token: result.token?.toString(),
                 timelock: Number(result.timelock),
-                reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? AZTEC_TOKEN_DECIMALS)),
+                reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? 18)),
                 rewardTimelock: Number(result.reward_timelock),
                 rewardRecipient: result.reward_recipient?.toString(),
                 rewardToken: result.reward_token?.toString(),
