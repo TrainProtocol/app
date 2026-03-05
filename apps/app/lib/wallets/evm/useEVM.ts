@@ -225,7 +225,8 @@ export default function useEVM(): WalletProvider {
                 setSelectedConnector({ ...connector, qr: { state: 'loading', value: undefined }, showQrCode: internalConnector.showQrCode })
                 // Use actualConnector for getProvider, but connector.resolveURI for deep links
                 getWalletConnectUri(actualConnector, connector?.resolveURI, (uri: string) => {
-                    setSelectedConnector({ ...connector, icon: base64Icon, qr: { state: 'fetched', value: uri }, showQrCode: internalConnector.showQrCode })
+                    const deepLink = connector?.resolveURI ? connector.resolveURI(uri) : undefined
+                    setSelectedConnector({ ...connector, icon: base64Icon, qr: { state: 'fetched', value: uri, deepLink }, showQrCode: internalConnector.showQrCode })
                 })
             }
 

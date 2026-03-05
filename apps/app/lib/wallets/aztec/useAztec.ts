@@ -126,6 +126,16 @@ export default function useAztec(): WalletProvider {
                 extensionNotFound: false,
                 hasBrowserExtension: true,
             });
+        } else if(!azguardDetected) {
+            sdkWallets.push({
+                id: AZGUARD_PROVIDER_ID,
+                name: 'Azguard',
+                icon: azguardBase64,
+                providerName: name,
+                extensionNotFound: true,
+                hasBrowserExtension: false,
+                installUrl: 'https://azguardwallet.io/',
+            });
         }
 
         if (sdkWallets.length === 0) {
