@@ -123,9 +123,8 @@ export class {Chain}HTLCClient extends HTLCClient {
 
     // ── Read Operations ────────────────────────────────────────────────
 
+    async _getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> { ... }
     async getUserLockDetails(params: LockParams): Promise<LockDetails | null> { ... }
-    async getSolverLockDetails(params: LockParams): Promise<LockDetails | null> { ... }
-    async secureGetDetails(params: LockParams, nodeUrls: string[]): Promise<LockDetails | null> { ... }
     async recoverSwap(txHash: string): Promise<RecoveredSwapData> { ... }
 
     // ── Private Helpers ────────────────────────────────────────────────
@@ -138,19 +137,16 @@ export class {Chain}HTLCClient extends HTLCClient {
 ### Ordering rules
 
 1. **Write operations first** — `userLock` → `refund` → `redeemSolver`
-2. **Read operations second** — `getUserLockDetails` → `getSolverLockDetails` → `secureGetDetails` → `recoverSwap`
+2. **Read operations second** — `getUserLockDetails` → `_getSolverLockDetails` → `recoverSwap`
 3. **Private helpers last** — `requireSigner()` first, then chain-specific utilities
 4. **Use section comments** — `// ── Write Operations ───...` separator style between groups
 
-### Unimplemented methods
+### Base class methods (do NOT override)
 
-If a method isn't applicable to the chain, still define it but throw:
+The base `HTLCClient` class provides these methods — subclasses should **not** override them:
 
-```ts
-async secureGetDetails(_params: LockParams, _nodeUrls: string[]): Promise<LockDetails | null> {
-    throw new Error('secureGetDetails is not supported for {Chain}')
-}
-```
+- `getSolverLockDetails(params, nodeUrls)` — queries multiple nodes via `_getSolverLockDetails`, validates results match across nodes
+- `revealSecret(solverId, hashlock, secret)` — delegates to `apiClient.revealSecret()`
 
 ---
 
@@ -201,12 +197,12 @@ try {
 3. If `txId` is provided, fetch transaction logs to extract `userData` (nonce)
 4. Return `LockDetails` object with all fields mapped
 
-### getSolverLockDetails — Count-Then-Loop Pattern
+### _getSolverLockDetails — Count-Then-Loop Pattern
 
-**This is a critical shared pattern.** The contract stores multiple solver locks per hashlock. Always:
+**This is a critical shared pattern.** The base class calls `_getSolverLockDetails` for each node URL and verifies results match. Your subclass implements the single-node version. The contract stores multiple solver locks per hashlock. Always:
 
 ```ts
-async getSolverLockDetails(params: LockParams): Promise<LockDetails | null> {
+async _getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
     // 1. Get the count of solver locks for this hashlock
     const count = /* call getSolverLockCount(hashlock) */
 
@@ -242,10 +238,6 @@ Key points:
 - **Case-insensitive solver address comparison**
 - **Return first match** with early return
 - **Include `index`** in the returned `LockDetails`
-
-### secureGetDetails
-
-Query multiple nodes in parallel, verify results match. If not applicable to the chain, throw with descriptive message.
 
 ### recoverSwap
 
@@ -363,7 +355,6 @@ import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/sdk'
 | Signer guard | `private requireSigner(): Signer { if (!this.signer) throw new Error('Signer required'); return this.signer }` |
 | Lock not found | Return `null` (never throw for missing locks) |
 | Event decoding | Wrap in try-catch, skip non-matching events silently |
-| Unsupported method | `throw new Error('{method} is not supported for {Chain}')` |
 | Transaction revert | Check chain-specific revert indicator, throw with method name + error |
 
 ---
@@ -418,7 +409,7 @@ const ZERO_ADDRESS = '0x000...'     // Chain's empty/zero address representation
 - [ ] Define `{Chain}Signer` interface and `{Chain}HTLCClientConfig` in `types.ts`
 - [ ] Implement `{Chain}HTLCClient extends HTLCClient` in `client.ts`
 - [ ] Follow function ordering: writes → reads → private helpers
-- [ ] Implement count-then-loop pattern in `getSolverLockDetails` (1-indexed)
+- [ ] Implement count-then-loop pattern in `_getSolverLockDetails` (1-indexed, single-node version)
 - [ ] Implement key derivation in `login/wallet-sign.ts` using `deriveKeyMaterial` + `IDENTITY_SALT`
 - [ ] Create idempotent `register{Chain}Sdk()` in `index.ts`
 - [ ] Export: registration fn, client class, config type, signer type, key derivation fn
