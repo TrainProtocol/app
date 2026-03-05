@@ -3,21 +3,20 @@ import { useRouter } from 'next/router';
 import { useSettingsState } from './settings';
 import { LockDetails, LockStatus } from '../Models/phtlc/PHTLC';
 import { Network, Token } from '@/Models/Network';
-import { HTLCFromApi, HTLCTransaction } from '@train-protocol/sdk';
+import { HTLCFromApi, HTLCTransaction, resolveHTLCStatus, IHTLCClient } from '@train-protocol/sdk';
 import LightClient from '@/lib/lightClient';
 import { SwapData, useSwapStore } from '@/stores/swapStore';
 import { useShallow } from 'zustand/react/shallow';
 import { resolvePersistantQueryParams } from '@/helpers/querryHelper';
 import useUserLockPolling from '@/hooks/htlc/useUserLockPolling';
 import useSolverLockPolling from '@/hooks/htlc/useSolverLockPolling';
-import { resolveHTLCStatus } from '@train-protocol/sdk';
-import { IHTLCClient } from '@train-protocol/sdk';
 import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus';
 import useOrderStreaming from '@/hooks/useOrderStreaming';
 import { useHTLCWriteClient } from '@/hooks/htlc/useHTLCWriteClient';
 import { useSelectedAccount } from './swapAccounts';
 import useWallet from '@/hooks/useWallet';
 import { Address } from '@/lib/address';
+import { useRpcConfigStore } from '@/stores/rpcConfigStore';
 
 const AtomicStateContext = createContext<DataContextType | null>(null);
 
@@ -74,6 +73,7 @@ export function AtomicProvider({ children }) {
         useShallow(s => activeHashlock ? s.swaps[activeHashlock] ?? null : null)
     )
     const currentSwap = tempSwap ?? committedSwap
+    const { getEffectiveRpcUrls } = useRpcConfigStore();
 
     const address = currentSwap?.address
     const amount = currentSwap?.requestedAmount
@@ -195,7 +195,7 @@ export function AtomicProvider({ children }) {
             }
         })()
     }, [source_network, sourceWallet, createWriteClient])
-    
+
     useEffect(() => {
         if (!destination_network || !destinationWallet) return
         (async () => {
@@ -250,6 +250,7 @@ export function AtomicProvider({ children }) {
         client: destinationClient,
         solverAddress: destinationSolverAddress,
         onSuccess: handleSolverLockSuccess,
+        nodeUrls: destination_network ? getEffectiveRpcUrls(destination_network) : [],
     })
 
     // useEffect(() => {
