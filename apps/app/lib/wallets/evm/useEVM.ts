@@ -16,7 +16,7 @@ import sleep from "../utils/sleep"
 import { useEvmConnectors, HIDDEN_WALLETCONNECT_ID } from "@/context/evmConnectorsContext"
 import { useActiveEvmAccount } from "@/components/WalletProviders/ActiveEvmAccount"
 
-const name = 'eip155'
+const name = 'EVM'
 const id = 'eip155'
 
 // Storage key for dynamic wallet metadata
@@ -158,7 +158,7 @@ export default function useEVM(): WalletProvider {
                     installUrl: walletConnectWallet?.installUrl,
                     hasBrowserExtension: walletConnectWallet?.hasBrowserExtension,
                     extensionNotFound: walletConnectWallet?.hasBrowserExtension ? (type == 'walletConnect' && !isMobilePlatform) : false,
-                    providerName: name
+                    providerName: id
                 }
             })
     }, [allConnectors, walletConnectConnectors])
@@ -276,7 +276,7 @@ export default function useEVM(): WalletProvider {
                     autofill: autofillSupportedNetworks,
                     withdrawal: withdrawalSupportedNetworks
                 },
-                providerName: name
+                providerName: id
             })
 
             return wallet
@@ -310,7 +310,7 @@ export default function useEVM(): WalletProvider {
                     autofill: autofillSupportedNetworks,
                     withdrawal: withdrawalSupportedNetworks
                 },
-                providerName: name
+                providerName: id
             })
 
             return wallet

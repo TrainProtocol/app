@@ -5,9 +5,10 @@ export default class KnownInternalNames {
         public static readonly EthereumSepolia: string = "eip155:11155111";
 
         public static readonly BaseSepolia: string = "eip155:84532";
-        
+
         public static readonly AztecDevnet: string = "aztec:aztec-devnet"
-        
+
+        public static readonly SolanaDevnet: string = "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1";
 
         public static readonly CronosMainnet: string = "CRONOS_MAINNET";
 
@@ -84,8 +85,6 @@ export default class KnownInternalNames {
         public static readonly SolanaMainnet: string = "SOLANA_MAINNET";
 
         public static readonly SolanaTestnet: string = "SOLANA_TESTNET";
-
-        public static readonly SolanaDevnet: string = "SOLANA_DEVNET";
 
         public static readonly SoonMainnet: string = "SOON_MAINNET";
 
@@ -212,7 +211,7 @@ export default class KnownInternalNames {
         public static readonly MorphMainnet: string = "MORPH_MAINNET";
 
         public static readonly SeiMainnet: string = "SEI_MAINNET";
-        
+
         public static readonly GravityMainnet: string = "GRAVITY_MAINNET";
 
         public static readonly BitcoinMainnet: string = "BITCOIN_MAINNET"

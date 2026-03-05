@@ -66,15 +66,15 @@ const ConnectorsList: FC<{ onFinish: (result: Wallet | undefined) => void }> = (
 
             if (result && connector && provider) {
                 setRecentConnectors((prev) => {
-                    const next = [{ providerName: provider.name, connectorName: connector.name }];
+                    const next = [{ providerName: provider.id, connectorName: connector.name }];
                     const counts = new Map<string, number>();
-                    counts.set(provider.name, 1);
+                    counts.set(provider.id, 1);
 
                     (prev || []).forEach(item => {
                         if (
                             item.providerName &&
                             item.connectorName &&
-                            !(item.providerName === provider.name && item.connectorName === connector.name)
+                            !(item.providerName === provider.id && item.connectorName === connector.name)
                         ) {
                             const count = counts.get(item.providerName) ?? 0;
                             if (count < 3) {
@@ -151,7 +151,7 @@ const ConnectorsList: FC<{ onFinish: (result: Wallet | undefined) => void }> = (
     }, [hasMoreToLoad, isLoadingMore, loadMore, selectedConnector, selectedMultiChainConnector]);
 
     if (selectedConnector?.extensionNotFound && !selectedConnector?.showQrCode && !isMobilePlatfrom) {
-        const provider = featuredProviders.find(p => p.name === selectedConnector?.providerName)
+        const provider = featuredProviders.find(p => p.id === selectedConnector?.providerName)
         return <InstalledExtensionNotFound selectedConnector={selectedConnector} onConnect={(connector) => { connect(connector, provider!) }} />
     }
     if (selectedConnector?.qr?.state && (!selectedConnector?.hasBrowserExtension || selectedConnector?.showQrCode)) {
@@ -159,7 +159,7 @@ const ConnectorsList: FC<{ onFinish: (result: Wallet | undefined) => void }> = (
     }
 
     if (selectedConnector) {
-        const provider = featuredProviders.find(p => p.name === selectedConnector?.providerName)
+        const provider = featuredProviders.find(p => p.id === selectedConnector?.providerName)
         return <LoadingConnect
             onRetry={() => { (selectedConnector && provider) && connect(selectedConnector, provider) }}
             selectedConnector={selectedConnector}
@@ -204,7 +204,7 @@ const ConnectorsList: FC<{ onFinish: (result: Wallet | undefined) => void }> = (
                     <div className='grid grid-cols-2 gap-2'>
                         {
                             displayedConnectors.map(item => {
-                                const provider = featuredProviders.find(p => p.name === item.providerName)
+                                const provider = featuredProviders.find(p => p.id === item.providerName)
                                 const isRecent = recentConnectors?.some(v => v.connectorName === item.name)
                                 return (
                                     <Connector

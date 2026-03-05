@@ -52,10 +52,10 @@ export function SwapAccountsProvider({ children }: PickerAccountsProviderProps) 
             if (!hasWallet(provider)) return null;
 
             const selectedWallet = provider.connectedWallets?.find(wallet => wallet.id === selectedSourceAccounts.find(acc =>
-                acc.providerName === provider.name && wallet.addresses.some(a => a === acc.address))?.id && wallet.addresses)
+                acc.providerName === provider.id && wallet.addresses.some(a => a === acc.address))?.id && wallet.addresses)
 
             const wallet = selectedWallet || provider.activeWallet;
-            const selectedAccountAddress = selectedWallet ? selectedSourceAccounts.find(acc => acc.providerName === provider.name && acc.id === selectedWallet.id)?.address : undefined
+            const selectedAccountAddress = selectedWallet ? selectedSourceAccounts.find(acc => acc.providerName === provider.id && acc.id === selectedWallet.id)?.address : undefined
             const address = selectedAccountAddress ? selectedAccountAddress : wallet.address;
 
             const res = ResolveWalletSwapAccount(provider, wallet, address);
@@ -79,7 +79,7 @@ export function SwapAccountsProvider({ children }: PickerAccountsProviderProps) 
     const destinationAccounts: AccountIdentity[] = useMemo(() => {
         return providers.map(provider => {
             const manuallyAdded = selectedDestAccounts.find(
-                acc => acc.providerName === provider.name && acc.id === 'manually_added'
+                acc => acc.providerName === provider.id && acc.id === 'manually_added'
             );
 
             if (manuallyAdded) {
@@ -89,10 +89,10 @@ export function SwapAccountsProvider({ children }: PickerAccountsProviderProps) 
             if (!hasWallet(provider)) return null;
 
             const selectedWallet = provider.connectedWallets?.find(wallet => wallet.id === selectedDestAccounts.find(acc =>
-                acc.providerName === provider.name && wallet.addresses.some(a => a === acc.address))?.id && wallet.addresses)
+                acc.providerName === provider.id && wallet.addresses.some(a => a === acc.address))?.id && wallet.addresses)
 
             const wallet = selectedWallet || provider.activeWallet;
-            const selectedAccountAddress = selectedWallet ? selectedDestAccounts.find(acc => acc.providerName === provider.name && acc.id === selectedWallet.id)?.address : undefined
+            const selectedAccountAddress = selectedWallet ? selectedDestAccounts.find(acc => acc.providerName === provider.id && acc.id === selectedWallet.id)?.address : undefined
             const address = selectedAccountAddress ? selectedAccountAddress : wallet.address;
 
             return ResolveWalletSwapAccount(provider, wallet, address);
@@ -206,7 +206,7 @@ function ResolveWalletSwapAccount(provider: WalletProvider, wallet: Wallet, addr
     return {
         address,
         provider,
-        providerName: provider.name,
+        providerName: provider.id,
         id: wallet.id,
         walletWithdrawalSupportedNetworks: wallet.withdrawalSupportedNetworks,
         walletAutofillSupportedNetworks: wallet.autofillSupportedNetworks,
@@ -221,7 +221,7 @@ function ResolveManualSwapAccount(provider: WalletProvider, address: string): Ac
     return {
         address,
         provider,
-        providerName: provider.name,
+        providerName: provider.id,
         id: 'manually_added',
         displayName: "Manual",
         addresses: [address],

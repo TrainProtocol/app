@@ -161,7 +161,7 @@ function resolveSupportedNetworks(supportedNetworks: string[], connectorId: stri
     const supportedNetworksForWallet: string[] = [];
 
     supportedNetworks.forEach((network) => {
-        const networkName = network.split("_")[0].toLowerCase();
+        const networkName = network.split(":")[0].split("_")[0].toLowerCase();
         if (networkName === "solana") {
             supportedNetworksForWallet.push(networkName);
         } else if (networkSupport[networkName] && networkSupport[networkName].includes(connectorId?.toLowerCase())) {

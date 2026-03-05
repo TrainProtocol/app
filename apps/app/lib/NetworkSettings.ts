@@ -39,6 +39,7 @@ const sourceOrder = [
     KnownInternalNames.Networks.BNBChainMainnet,
     KnownInternalNames.Networks.OptimismMainnet,
     KnownInternalNames.Networks.SolanaMainnet,
+    KnownInternalNames.Networks.SolanaDevnet,
     KnownInternalNames.Networks.ZksyncEraMainnet,
     KnownInternalNames.Networks.PolygonMainnet,
     KnownInternalNames.Networks.AvalancheMainnet,
@@ -116,6 +117,11 @@ export default class NetworkSettings {
         NetworkSettings.KnownSettings[KnownInternalNames.Networks.AztecDevnet] = {
             ChainId: 'aztec-devnet',
             TransactionExplorerTemplate: 'https://aztecexplorer.xyz/tx/{0}',
+        };
+        NetworkSettings.KnownSettings[KnownInternalNames.Networks.SolanaDevnet] = {
+            ChainId: 'devnet',
+            TransactionExplorerTemplate: 'https://explorer.solana.com/tx/{0}?cluster=devnet',
+            AccountExplorerTemplate: 'https://explorer.solana.com/address/{0}?cluster=devnet',
         };
 
 

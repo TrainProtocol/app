@@ -151,7 +151,7 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
                 selectDestinationAccount({
                     address: address || "",
                     id: 'manually_added',
-                    providerName: provider.name,
+                    providerName: provider.id,
                 });
         }
     }, [destination, connectedWallets, provider, selectDestinationAccount]);

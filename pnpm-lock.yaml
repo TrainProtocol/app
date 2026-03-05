@@ -182,6 +182,9 @@ importers:
       '@train-protocol/sdk':
         specifier: workspace:^
         version: link:../../packages/sdk
+      '@train-protocol/solana':
+        specifier: workspace:^
+        version: link:../../packages/blockchains/solana
       '@uidotdev/usehooks':
         specifier: ^2.4.1
         version: 2.4.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -392,6 +395,31 @@ importers:
       vitest:
         specifier: ^4.0.18
         version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)
+
+  packages/blockchains/solana:
+    dependencies:
+      '@coral-xyz/anchor':
+        specifier: ^0.30.1
+        version: 0.30.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@solana/spl-token':
+        specifier: ^0.4.14
+        version: 0.4.14(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10))(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@solana/web3.js':
+        specifier: ^1.98.4
+        version: 1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+    devDependencies:
+      '@train-protocol/sdk':
+        specifier: workspace:^
+        version: link:../../sdk
+      '@types/node':
+        specifier: ^20
+        version: 20.19.34
+      rimraf:
+        specifier: ^6.0.1
+        version: 6.1.3
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
 
   packages/sdk:
     devDependencies:

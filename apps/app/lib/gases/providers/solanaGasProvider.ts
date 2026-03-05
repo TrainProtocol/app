@@ -1,44 +1,39 @@
 import { GasProps } from "../../../Models/Balance";
-import { Network, getNativeToken } from "../../../Models/Network";
+import { Network, getNativeToken, NetworkContractType } from "../../../Models/Network";
 import { formatUnits } from "viem";
-import KnownInternalNames from "../../knownIds";
+
 export class SolanaGasProvider {
     supportsNetwork(network: Network): boolean {
-        return KnownInternalNames.Networks.SolanaMainnet.includes(network.caip2Id)
+        return network.caip2Id.toLowerCase().startsWith('solana')
     }
 
     getGas = async ({ address, network, token }: GasProps) => {
-        if (!address)
-            return
-        const { PublicKey, Connection } = await import("@solana/web3.js");
+        if (!address) return
 
-        const walletPublicKey = new PublicKey(address)
+        const atomicContract = network.contracts?.find(c => c.type === NetworkContractType.Train)?.address
+        if (!atomicContract) return
 
-        const connection = new Connection(
-            `${network.nodes?.[0]?.url}`,
-            "confirmed"
-        );
-
-        if (!walletPublicKey) return
+        const nativeToken = getNativeToken(network)
+        if (!nativeToken) return
 
         try {
-            const transactionBuilder = ((await import("../../wallets/solana/transactionBuilder")).transactionBuilder);
+            const { SolanaHTLCClient } = await import("@train-protocol/solana")
 
-            const transaction = await transactionBuilder(network, token, walletPublicKey)
+            const client = new SolanaHTLCClient({
+                rpcUrl: network.nodes?.[0]?.url ?? '',
+            })
 
-            const nativeToken = getNativeToken(network)
+            const lamports = await client.estimateGas({
+                contractAddress: atomicContract,
+                address,
+                tokenSymbol: token.symbol,
+                tokenContractAddress: token.contractAddress,
+                decimals: token.decimals ?? 6,
+            })
 
-            if (!transaction || !nativeToken) return
-
-            const message = transaction.compileMessage();
-            const result = await connection.getFeeForMessage(message)
-
-            const formatedGas = result.value ? Number(formatUnits(BigInt(result.value), nativeToken.decimals)) : undefined
-
-            return formatedGas
-        }
-        catch (e) {
-            console.log(e)
+            return lamports ? Number(formatUnits(BigInt(lamports), nativeToken.decimals)) : undefined
+        } catch (e) {
+            console.error(e)
         }
     }
 }

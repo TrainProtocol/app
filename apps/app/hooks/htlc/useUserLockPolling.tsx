@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react"
 import useSWR from "swr"
 import { Network, Token } from "../../Models/Network"
 import { LockDetails } from "../../Models/phtlc/PHTLC"
