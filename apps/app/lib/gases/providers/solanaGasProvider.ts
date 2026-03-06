@@ -17,13 +17,8 @@ export class SolanaGasProvider {
         if (!nativeToken) return
 
         try {
-            const { SolanaHTLCClient } = await import("@train-protocol/solana")
-
-            const client = new SolanaHTLCClient({
+            const lamports = await estimateSolanaGas({
                 rpcUrl: network.nodes?.[0]?.url ?? '',
-            })
-
-            const lamports = await client.estimateGas({
                 contractAddress: atomicContract,
                 address,
                 tokenSymbol: token.symbol,
@@ -31,9 +26,59 @@ export class SolanaGasProvider {
                 decimals: token.decimals ?? 6,
             })
 
-            return lamports ? Number(formatUnits(BigInt(lamports), nativeToken.decimals)) : undefined
+            const gas = lamports ? Number(formatUnits(BigInt(lamports), nativeToken.decimals)) : undefined
+            return gas !== undefined ? { gas, token: nativeToken } : undefined
         } catch (e) {
             console.error(e)
         }
     }
+}
+
+async function estimateSolanaGas(params: {
+    rpcUrl: string
+    contractAddress: string
+    address: string
+    tokenSymbol: string
+    tokenContractAddress?: string | null
+    decimals: number
+}): Promise<number | undefined> {
+    const { Connection, PublicKey } = await import('@solana/web3.js')
+    const { AnchorProvider, Program } = await import('@coral-xyz/anchor')
+    const { phtlcTransactionBuilder, TrainHtlc } = await import('@train-protocol/solana')
+
+    const connection = new Connection(params.rpcUrl, 'confirmed')
+    const walletPublicKey = new PublicKey(params.address)
+    const wallet = {
+        publicKey: walletPublicKey,
+        signTransaction: async (tx: any) => tx,
+        signAllTransactions: async (txs: any) => txs,
+    }
+    const provider = new AnchorProvider(connection, wallet as any, AnchorProvider.defaultOptions())
+    const program = new Program(TrainHtlc(params.contractAddress), provider)
+
+    const { transaction } = await phtlcTransactionBuilder({
+        connection,
+        program,
+        walletPublicKey,
+        hashlock: Buffer.alloc(32),
+        sourceChain: 'solana',
+        destinationChain: 'eip155:1',
+        destinationAsset: 'ETH',
+        destinationAddress: params.address,
+        destinationAmount: '1',
+        lpAddress: params.address,
+        sourceAsset: { symbol: params.tokenSymbol, contractAddress: params.tokenContractAddress },
+        amount: '1',
+        decimals: params.decimals,
+        timelockDelta: 69,
+        quoteExpiry: Math.floor(Date.now() / 1000) + 3600,
+        rewardAmount: '0',
+        rewardToken: '',
+        rewardRecipient: '',
+        rewardTimelockDelta: 34,
+    })
+
+    const message = transaction.compileMessage()
+    const result = await connection.getFeeForMessage(message)
+    return result.value ?? undefined
 }

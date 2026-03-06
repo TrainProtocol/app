@@ -1,7 +1,8 @@
-import { AnchorProvider, Program } from '@coral-xyz/anchor'
-import { Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js'
+import { AnchorProvider, BN, Program, Wallet } from '@coral-xyz/anchor'
+import { Connection, PublicKey, Transaction, TransactionInstruction, VersionedTransaction } from '@solana/web3.js'
 import {
     HTLCClient,
+    TrainApiClient,
     UserLockParams,
     LockParams,
     RefundParams,
@@ -18,13 +19,42 @@ import { TrainHtlc } from './idl/trainHtlc.js'
 import { userLockTransactionBuilder } from './transactionBuilder.js'
 import { secretToBuffer } from './utils.js'
 
+// Raw Anchor-deserialized on-chain account shapes (u64 → BN, pubkey → PublicKey, [u8;32] → number[])
+interface UserLockData {
+    amount: BN
+    timelock: BN
+    sender: PublicKey
+    recipient: PublicKey
+    secret: number[]
+    tokenMint: PublicKey
+    status: number
+}
+
+interface SolverLockData {
+    amount: BN
+    reward: BN
+    timelock: BN
+    rewardTimelock: BN
+    sender: PublicKey
+    recipient: PublicKey
+    rewardRecipient: PublicKey
+    secret: number[]
+    tokenMint: PublicKey
+    rewardTokenMint: PublicKey
+    status: number
+}
+
+type TypedProgramAccounts = {
+    userLock: { fetch(pda: PublicKey): Promise<UserLockData> }
+    solverLock: { fetch(pda: PublicKey): Promise<SolverLockData> }
+}
 
 export class SolanaHTLCClient extends HTLCClient {
     private connection: Connection
     private signer: SolanaSigner | undefined
 
     constructor(config: SolanaHTLCClientConfig) {
-        super(config.apiClient as any)
+        super(config.apiClient as TrainApiClient)
         this.connection = new Connection(config.rpcUrl, 'confirmed')
         this.signer = config.signer
     }
@@ -106,6 +136,8 @@ export class SolanaHTLCClient extends HTLCClient {
             program.programId
         )
 
+        console.log('[SolanaHTLC][refund] start', { id, userLockPda: userLockPda.toBase58(), isToken: !!sourceAsset.contractAddress })
+
         try {
             let refundIx: TransactionInstruction
             if (sourceAsset.contractAddress) {
@@ -117,6 +149,7 @@ export class SolanaHTLCClient extends HTLCClient {
                     program.programId
                 )
 
+                console.log('[SolanaHTLC][refund] building refundUserToken ix', { tokenMint: tokenMint.toBase58(), vault: vault.toBase58(), senderTokenAccount: senderTokenAccount.toBase58() })
                 refundIx = await program.methods
                     .refundUserToken(hashlockArray)
                     .accounts({
@@ -131,6 +164,7 @@ export class SolanaHTLCClient extends HTLCClient {
                     })
                     .instruction()
             } else {
+                console.log('[SolanaHTLC][refund] building refundUserSol ix')
                 refundIx = await program.methods
                     .refundUserSol(hashlockArray)
                     .accounts({
@@ -143,13 +177,11 @@ export class SolanaHTLCClient extends HTLCClient {
 
             const closeIx = await program.methods
                 .closeUserLock(hashlockArray)
-                .accounts({
-                    caller: walletPublicKey,
-                    userLock: userLockPda,
-                })
+                .accounts({ caller: walletPublicKey, userLock: userLockPda })
                 .instruction()
 
             const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash()
+            console.log('[SolanaHTLC][refund] sending tx', { blockhash, lastValidBlockHeight })
             const tx = new Transaction()
             tx.recentBlockhash = blockhash
             tx.lastValidBlockHeight = lastValidBlockHeight
@@ -157,15 +189,17 @@ export class SolanaHTLCClient extends HTLCClient {
             tx.add(refundIx, closeIx)
 
             const signature = await signer.sendTransaction(tx)
+            console.log('[SolanaHTLC][refund] tx sent', { signature })
 
             const res = await this.connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature })
+            console.log('[SolanaHTLC][refund] confirmed', { signature, err: res?.value.err ?? null })
             if (res?.value.err) {
                 throw new Error(res.value.err.toString())
             }
 
             return signature
         } catch (error: any) {
-            console.error('[SolanaHTLC] refund failed', error?.logs ?? error)
+            console.error('[SolanaHTLC] refund failed', error?.message ?? error, error?.logs ?? [])
             throw error
         }
     }
@@ -193,7 +227,7 @@ export class SolanaHTLCClient extends HTLCClient {
         )
 
         try {
-            const solverLockAccount = await (program.account as any).solverLock.fetch(solverLockPda)
+            const solverLockAccount = await (program.account as TypedProgramAccounts).solverLock.fetch(solverLockPda)
             const rewardRecipient: PublicKey = new PublicKey(solverLockAccount.rewardRecipient)
 
             const recipient = destinationAddress
@@ -273,10 +307,32 @@ export class SolanaHTLCClient extends HTLCClient {
             : Promise.resolve({} as { userData?: string; blockTimestamp?: number })
 
         const accountInfo = await this.connection.getAccountInfo(userLockPda)
-        if (!accountInfo) return null
+        if (!accountInfo) {
+            const sigs = await this.connection.getSignaturesForAddress(userLockPda, { limit: 1 }).catch(() => [])
+            if (!sigs.length) return null
+            const closedTx = await this.connection.getTransaction(sigs[0].signature, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 })
+            const PROGRAM_DATA_PREFIX = 'Program data: '
+            const PROGRAM_LOG_PREFIX = 'Program log: '
+            for (const log of closedTx?.meta?.logMessages ?? []) {
+                const isData = log.startsWith(PROGRAM_DATA_PREFIX)
+                if (!isData && !log.startsWith(PROGRAM_LOG_PREFIX)) continue
+                const event = program.coder.events.decode(isData ? log.slice(PROGRAM_DATA_PREFIX.length) : log.slice(PROGRAM_LOG_PREFIX.length))
+                if (!event) continue
+                const name = event.name.toLowerCase()
+                if (name === 'userrefunded' || name === 'userredeemed') {
+                    return {
+                        hashlock: `0x${id.replace('0x', '')}`,
+                        amount: 0, timelock: 0, secret: undefined,
+                        status: name === 'userrefunded' ? LockStatus.Refunded : LockStatus.Redeemed,
+                        blockTimestamp: closedTx?.blockTime ? closedTx.blockTime * 1000 : undefined,
+                    }
+                }
+            }
+            return null
+        }
 
         try {
-            const result = await (program.account as any).userLock.fetch(userLockPda)
+            const result = await (program.account as TypedProgramAccounts).userLock.fetch(userLockPda)
 
             if (!result) return null
 
@@ -312,11 +368,12 @@ export class SolanaHTLCClient extends HTLCClient {
         const hashlockBuffer = Buffer.from(id.replace('0x', ''), 'hex')
 
         const pk = this.signer ? new PublicKey(this.signer.publicKey) : new PublicKey('11111111111111111111111111111111')
-        const provider = new AnchorProvider(
-            connection,
-            { publicKey: pk, signTransaction: async (tx: any) => tx, signAllTransactions: async (txs: any[]) => txs } as any,
-            AnchorProvider.defaultOptions()
-        )
+        const wallet = {
+            publicKey: pk,
+            signTransaction: async <T extends Transaction | VersionedTransaction>(tx: T): Promise<T> => tx,
+            signAllTransactions: async <T extends Transaction | VersionedTransaction>(txs: T[]): Promise<T[]> => txs,
+        }
+        const provider = new AnchorProvider(connection, wallet as Wallet, AnchorProvider.defaultOptions())
         const program = new Program(TrainHtlc(contractAddress), provider)
 
         // Count-then-loop: iterate PDAs from index 1 until getAccountInfo returns null
@@ -333,7 +390,7 @@ export class SolanaHTLCClient extends HTLCClient {
             if (!accountInfo) return null
 
             try {
-                const result = await (program.account as any).solverLock.fetch(solverLockPda)
+                const result = await (program.account as TypedProgramAccounts).solverLock.fetch(solverLockPda)
 
                 if (!result) continue
 
@@ -381,7 +438,7 @@ export class SolanaHTLCClient extends HTLCClient {
         return this.signer
     }
 
-    private parseSecret(secretBytes: Uint8Array): bigint | undefined {
+    private parseSecret(secretBytes: Uint8Array | number[]): bigint | undefined {
         return Array.from(secretBytes).some(b => b !== 0)
             ? BigInt(bytesToHex(Array.from(secretBytes)))
             : undefined
@@ -390,10 +447,10 @@ export class SolanaHTLCClient extends HTLCClient {
     private buildReadOnlyProvider(publicKey: PublicKey): AnchorProvider {
         const wallet = {
             publicKey,
-            signTransaction: async (tx: any) => tx,
-            signAllTransactions: async (txs: any[]) => txs,
+            signTransaction: async <T extends Transaction | VersionedTransaction>(tx: T): Promise<T> => tx,
+            signAllTransactions: async <T extends Transaction | VersionedTransaction>(txs: T[]): Promise<T[]> => txs,
         }
-        return new AnchorProvider(this.connection, wallet as any, AnchorProvider.defaultOptions())
+        return new AnchorProvider(this.connection, wallet as Wallet, AnchorProvider.defaultOptions())
     }
 
     private buildProgram(contractAddress: string, readerKey?: PublicKey): Program {
@@ -440,7 +497,7 @@ export class SolanaHTLCClient extends HTLCClient {
                 const eventHashlock = '0x' + Buffer.from(hashlockBytes).toString('hex')
                 if (eventHashlock.toLowerCase() !== `0x${id.replace('0x', '')}`.toLowerCase()) continue
 
-                const userDataBytes: number[] = Array.from((event.data as any).userData as Buffer ?? [])
+                const userDataBytes: number[] = Array.from((event.data as Record<string, unknown>).userData as Buffer ?? [])
                 const userData = userDataBytes.length > 0
                     ? Buffer.from(userDataBytes).toString('utf8').replace(/\0/g, '').trim() || undefined
                     : undefined
@@ -455,40 +512,4 @@ export class SolanaHTLCClient extends HTLCClient {
         }
     }
 
-    async estimateGas(params: {
-        contractAddress: string
-        address: string
-        tokenSymbol: string
-        tokenContractAddress?: string | null
-        decimals: number
-    }): Promise<number | undefined> {
-        const walletPublicKey = new PublicKey(params.address)
-        const program = this.buildProgram(params.contractAddress, walletPublicKey)
-
-        const { transaction } = await userLockTransactionBuilder({
-            connection: this.connection,
-            program,
-            walletPublicKey,
-            hashlock: Buffer.alloc(32),
-            sourceChain: 'solana',
-            destinationChain: 'eip155:1',
-            destinationAsset: 'ETH',
-            destinationAddress: params.address,
-            destinationAmount: '1',
-            lpAddress: params.address,
-            sourceAsset: { symbol: params.tokenSymbol, contractAddress: params.tokenContractAddress },
-            amount: '1',
-            decimals: params.decimals,
-            timelockDelta: 69,
-            quoteExpiry: Math.floor(Date.now() / 1000) + 3600,
-            rewardAmount: '0',
-            rewardToken: '',
-            rewardRecipient: '',
-            rewardTimelockDelta: 34,
-        })
-
-        const message = transaction.compileMessage()
-        const result = await this.connection.getFeeForMessage(message)
-        return result.value ?? undefined
-    }
 }
