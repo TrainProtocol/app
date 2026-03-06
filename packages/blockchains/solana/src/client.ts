@@ -359,18 +359,13 @@ export class SolanaHTLCClient extends HTLCClient {
 
         const connection = new Connection(nodeUrl, 'confirmed')
         const hashlockBuffer = Buffer.from(id.replace('0x', ''), 'hex')
+        const program = this.buildProgram(contractAddress, undefined, connection)
 
-        const pk = this.signer ? new PublicKey(this.signer.publicKey) : new PublicKey('11111111111111111111111111111111')
-        const wallet = {
-            publicKey: pk,
-            signTransaction: async <T extends Transaction | VersionedTransaction>(tx: T): Promise<T> => tx,
-            signAllTransactions: async <T extends Transaction | VersionedTransaction>(txs: T[]): Promise<T[]> => txs,
-        }
-        const provider = new AnchorProvider(connection, wallet as Wallet, AnchorProvider.defaultOptions())
-        const program = new Program(TrainHtlc(contractAddress), provider)
+        const hashlockArray = Array.from(hashlockBuffer)
+        const count = Number(await program.methods.getSolverLockCount(hashlockArray).view())
+        if (count === 0) return null
 
-        // Count-then-loop: iterate PDAs from index 1 until getAccountInfo returns null
-        for (let i = 1; ; i++) {
+        for (let i = 1; i <= count; i++) {
             const indexBuffer = Buffer.alloc(8)
             indexBuffer.writeBigUInt64LE(BigInt(i))
 
@@ -378,9 +373,6 @@ export class SolanaHTLCClient extends HTLCClient {
                 [Buffer.from("solver_lock"), hashlockBuffer, indexBuffer],
                 program.programId
             )
-
-            const accountInfo = await connection.getAccountInfo(solverLockPda)
-            if (!accountInfo) return null
 
             try {
                 const result = await (program.account as TypedProgramAccounts).solverLock.fetch(solverLockPda)
@@ -418,6 +410,8 @@ export class SolanaHTLCClient extends HTLCClient {
                 return null
             }
         }
+
+        return null
     }
 
     async recoverSwap(_txHash: string): Promise<RecoveredSwapData> {
@@ -437,19 +431,19 @@ export class SolanaHTLCClient extends HTLCClient {
             : undefined
     }
 
-    private buildReadOnlyProvider(publicKey: PublicKey): AnchorProvider {
+    private buildReadOnlyProvider(publicKey: PublicKey, connection?: Connection): AnchorProvider {
         const wallet = {
             publicKey,
             signTransaction: async <T extends Transaction | VersionedTransaction>(tx: T): Promise<T> => tx,
             signAllTransactions: async <T extends Transaction | VersionedTransaction>(txs: T[]): Promise<T[]> => txs,
         }
-        return new AnchorProvider(this.connection, wallet as Wallet, AnchorProvider.defaultOptions())
+        return new AnchorProvider(connection ?? this.connection, wallet as Wallet, AnchorProvider.defaultOptions())
     }
 
-    private buildProgram(contractAddress: string, readerKey?: PublicKey): Program {
+    private buildProgram(contractAddress: string, readerKey?: PublicKey, connection?: Connection): Program {
         const pk = readerKey
             ?? (this.signer ? new PublicKey(this.signer.publicKey) : new PublicKey('11111111111111111111111111111111'))
-        const provider = this.buildReadOnlyProvider(pk)
+        const provider = this.buildReadOnlyProvider(pk, connection)
         return new Program(TrainHtlc(contractAddress), provider)
     }
 

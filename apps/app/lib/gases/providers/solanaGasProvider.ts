@@ -66,7 +66,7 @@ async function estimateSolanaGas(params: {
         destinationAsset: 'ETH',
         destinationAddress: params.address,
         destinationAmount: '1',
-        lpAddress: params.address,
+        lpAddress: 'bD5zQpd6RkbNJDtW7cBf1mw6wHzFxZ71wPCMwAmMh6n',
         sourceAsset: { symbol: params.tokenSymbol, contractAddress: params.tokenContractAddress },
         amount: '1',
         decimals: params.decimals,

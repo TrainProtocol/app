@@ -32,6 +32,9 @@ export type TransactionResult = {
 }
 
 function toBaseUnits(amount: string, decimals: number): BN {
+    if (!amount || !/^\d+(\.\d+)?$/.test(amount.trim())) {
+        throw new Error(`Invalid amount: "${amount}"`)
+    }
     const [int, frac = ''] = amount.split('.')
     const fracPadded = frac.padEnd(decimals, '0').slice(0, decimals)
     return new BN(int + fracPadded)

@@ -44,11 +44,8 @@ export function WalletLoginProvider({ children }: { children: ReactNode }) {
       }
 
       if (provider === 'solana') {
-        let { signMessage } = solanaWalletRef.current
-        if (!signMessage) {
-          await new Promise<void>(resolve => setTimeout(resolve, 0))
-          signMessage = solanaWalletRef.current.signMessage
-        }
+        const { signMessage, connected } = solanaWalletRef.current
+        if (!connected) throw new Error('Solana wallet is not connected')
         if (!signMessage) throw new Error('Solana wallet does not support message signing')
         return deriveKeyFromWallet('solana', { wallet: { signMessage } })
       }

@@ -40,7 +40,7 @@ export function useHTLCWriteClient() {
             } else {
                 console.error('[useHTLCWriteClient] Solana signer unavailable', { hasPubkey: !!solanaPublicKey, hasSendTx: !!solanaSendTransaction })
             }
-            return createClient(chainType, { rpcUrl: solanaConnection.rpcEndpoint, signer, apiClient })
+            return createClient(chainType, { rpcUrl, signer, apiClient })
         }
 
         // Aztec chain path
