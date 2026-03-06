@@ -23,7 +23,7 @@ export function useConnectors({
             .map((provider) =>
                 provider.availableWalletsForConnect
                     ?.filter(v => searchValue ? v.name.toLowerCase().includes(searchValue.toLowerCase()) : true)
-                    .map((connector) => ({ ...connector, providerName: provider.id }))
+                    .map((connector) => ({ ...connector, providerName: provider.name }))
             )
             .flat() as InternalConnector[],
         [featuredProviders, searchValue]
@@ -38,7 +38,7 @@ export function useConnectors({
                         (searchValue ? v.name.toLowerCase().includes(searchValue.toLowerCase()) : true) &&
                         !featuredWalletsIds.includes(v.id.toLowerCase())
                     )
-                    .map((connector) => ({ ...connector, providerName: provider.id, isHidden: true }))
+                    .map((connector) => ({ ...connector, providerName: provider.name, isHidden: true }))
             )
             .flat() as InternalConnector[],
         [featuredProviders, searchValue]

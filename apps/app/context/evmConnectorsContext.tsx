@@ -75,7 +75,7 @@ export function EvmConnectorsProvider({ children }) {
 
     const initialRecentConnectors = useMemo(() => {
         const evmRecentConnectors = recentConnectors.filter(c =>
-            c.providerName === 'eip155'
+            c.providerName === 'EVM'
             && c.connectorName
             && !featuredWalletsIds.includes(c.connectorName.toLowerCase())
         )

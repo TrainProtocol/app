@@ -40,7 +40,7 @@ export const MultichainConnectorPicker: FC<MultichainConnectorModalProps> = ({ s
                             }, new Map<string, typeof allConnectors[0]>())
                             .values()
                     ).map((connector, index) => {
-                        const provider = providers.find(p => p.id === connector?.providerName)
+                        const provider = providers.find(p => p.name === connector?.providerName)
                         return (
                             <button
                                 type="button"
