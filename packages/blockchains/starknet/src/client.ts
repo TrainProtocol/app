@@ -118,7 +118,6 @@ export class StarknetHTLCClient extends HTLCClient {
 
     async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
         const { id, contractAddress } = params
-
         const contract = this.createContract(contractAddress, this.provider)
 
         try {
@@ -130,7 +129,6 @@ export class StarknetHTLCClient extends HTLCClient {
             }
 
             const status = this.mapLockStatus(result.status)
-
             return {
                 hashlock: id,
                 amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
@@ -199,33 +197,32 @@ export class StarknetHTLCClient extends HTLCClient {
     }
 
     private mapLockStatus(cairoStatus: any): LockStatus {
-        // Cairo custom enum — starknet.js returns an object with the active variant
-        if (cairoStatus?.activeVariant !== undefined) {
-            const variant = cairoStatus.activeVariant as string
+        // CairoCustomEnum — activeVariant is a METHOD, must be called
+        if (typeof cairoStatus?.activeVariant === 'function') {
+            const variant = cairoStatus.activeVariant() as string
             switch (variant) {
                 case 'Pending': return LockStatus.Pending
-                case 'Refunded': return LockStatus.Refunded
                 case 'Redeemed': return LockStatus.Redeemed
+                case 'Refunded': return LockStatus.Refunded
                 default: return LockStatus.Empty
             }
         }
-
-        // Fallback: if it's a number or variant index
+        // Fallback: plain number/bigint
         if (typeof cairoStatus === 'number' || typeof cairoStatus === 'bigint') {
             return Number(cairoStatus) as LockStatus
         }
-
-        // Check variant key presence
-        if (cairoStatus?.variant !== undefined) {
-            const variant = cairoStatus.variant as string
-            switch (variant) {
+        // Fallback: { variant: { Refunded: {}, ... } } — active key has an object value
+        if (cairoStatus?.variant && typeof cairoStatus.variant === 'object') {
+            const variantKey = Object.keys(cairoStatus.variant).find(
+                k => cairoStatus.variant[k] !== undefined
+            )
+            switch (variantKey) {
                 case 'Pending': return LockStatus.Pending
-                case 'Refunded': return LockStatus.Refunded
                 case 'Redeemed': return LockStatus.Redeemed
+                case 'Refunded': return LockStatus.Refunded
                 default: return LockStatus.Empty
             }
         }
-
         return LockStatus.Empty
     }
 }

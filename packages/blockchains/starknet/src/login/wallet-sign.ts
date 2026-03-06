@@ -23,28 +23,21 @@ export const deriveKeyFromStarknetWallet = async (
         throw new Error('Starknet wallet not connected')
     }
 
-    // Create a deterministic hash of the message "I am using TRAIN"
-    const messageBytes = new TextEncoder().encode('I am using TRAIN')
-    const hashBuffer = await crypto.subtle.digest('SHA-256', messageBytes)
-    const hashHex = '0x' + Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
-
     const typedData = {
         domain: {
             name: 'Train',
             version: '1',
             chainId: options?.chainId ?? 'SN_SEPOLIA',
-            revision: '1',
         },
         message: {
-            message: hashHex,
+            message: 'I am using TRAIN',
         },
         primaryType: 'TrainLogin',
         types: {
-            StarknetDomain: [
-                { name: 'name', type: 'shortstring' },
-                { name: 'version', type: 'shortstring' },
-                { name: 'chainId', type: 'shortstring' },
-                { name: 'revision', type: 'shortstring' },
+            StarkNetDomain: [
+                { name: 'name', type: 'felt' },
+                { name: 'chainId', type: 'felt' },
+                { name: 'version', type: 'felt' },
             ],
             TrainLogin: [
                 { name: 'message', type: 'felt' },

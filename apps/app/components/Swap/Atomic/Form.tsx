@@ -5,12 +5,12 @@ import SourcePicker from "../../Input/SourcePicker";
 import DestinationPicker from "../../Input/DestinationPicker";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import { Widget } from "../../Widget/Index";
-import { useQueryState } from "../../../context/query";
-import { transformFormValuesToQuoteArgs, useQuoteData } from "../../../hooks/useFee";
-import useWallet from "../../../hooks/useWallet";
+import { useQueryState } from "@/context/query";
+import { transformFormValuesToQuoteArgs, useQuoteData } from "@/hooks/useFee";
+import useWallet from "@/hooks/useWallet";
 import FormButton from "../FormButton";
-import { hasRequiredDestinationWallet } from "../../../lib/wallets/utils/destinationWalletUtils";
-import { SwapQuote } from "../../../lib/trainApiClient";
+import { hasRequiredDestinationWallet } from "@/lib/wallets/utils/destinationWalletUtils";
+import { SwapQuote } from "@/lib/trainApiClient";
 import QuoteDetails from "@/components/FeeDetails";
 import ReverseRouteButton from "./ReverseRouteButton";
 
@@ -27,7 +27,7 @@ const SwapForm: FC<SwapFormProps> = ({ polling = true, onQuoteChange }) => {
     const {
         to: destination,
     } = values
-    const { providers, wallets } = useWallet()
+    const { providers, wallets } = useWallet(values.from, 'withdrawal')
     const query = useQueryState()
 
     const params = useMemo(() => transformFormValuesToQuoteArgs(values), [values])

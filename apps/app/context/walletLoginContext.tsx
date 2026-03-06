@@ -3,7 +3,8 @@ import { useConfig } from 'wagmi'
 import { useAztecWalletContext } from '@/components/WalletProviders/AztecWalletProvider'
 import { deriveKeyFromEvmSignature } from '@/lib/htlc/secretDerivation/walletSign/evm'
 import { deriveKeyFromWallet } from '@train-protocol/sdk'
-
+import { deriveKeyFromStarknetSignature } from '@/lib/htlc/secretDerivation/walletSign/starknet'
+import useWallet from '@/hooks/useWallet'
 interface WalletLoginContextValue {
   deriveKey: (providerName: string, address: string) => Promise<Buffer>
 }
@@ -13,7 +14,8 @@ const WalletLoginContext = createContext<WalletLoginContextValue | undefined>(un
 export function WalletLoginProvider({ children }: { children: ReactNode }) {
   const evmConfig = useConfig()
   const { getWallet: getAztecWallet } = useAztecWalletContext()
-
+  const { wallets } = useWallet()
+console.log('wallets', wallets)
   const deriveKey = useCallback(
     async (providerName: string, address: string): Promise<Buffer> => {
       const provider = providerName.toLowerCase()
@@ -29,6 +31,14 @@ export function WalletLoginProvider({ children }: { children: ReactNode }) {
           wallet: aztecWallet,
           address,
       })
+      }
+
+      if (provider === 'starknet') {
+        const starknetWallet = wallets.find(wallet => wallet.providerName === 'Starknet')
+        const starknetAccount = starknetWallet?.metadata?.starknetAccount
+        console.log('starknetAccount', starknetAccount)
+        if (!starknetAccount) throw new Error('Starknet account required for Starknet wallets')
+        return deriveKeyFromStarknetSignature(starknetAccount, address)
       }
 
       throw new Error(`Unsupported wallet provider for login: ${providerName}`)

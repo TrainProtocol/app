@@ -33,6 +33,29 @@ export async function getServerSideProps(context) {
         }
     })
 
+    // Inject Starknet Sepolia if the API doesn't return it
+    const hasStarknet = resolvedNetworks.some(n => n.caip2Id === KnownInternalNames.Networks.StarkNetSepolia)
+    if (!hasStarknet) {
+        const starknetMock = mockData.data.find(n => n.caip2Id === KnownInternalNames.Networks.StarkNetSepolia)
+        resolvedNetworks.push({
+            caip2Id: KnownInternalNames.Networks.StarkNetSepolia,
+            displayName: "Starknet Sepolia",
+            chainId: 'SN_SEPOLIA',
+            nativeTokenAddress: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+            type: { name: "starknet" },
+            logoUrl: 'https://raw.githubusercontent.com/TrainProtocol/icons/main/networks/starknet.png',
+            tokens: [{
+                symbol: "ETH",
+                contractAddress: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+                decimals: 18,
+                priceInUsd: prices["eip155:11155111:0x0000000000000000000000000000000000000000"],
+            }],
+            nodes: starknetMock?.nodes ?? [],
+            contracts: (starknetMock?.contracts as NetworkContract[]) ?? [],
+            metadata: [],
+        } as any)
+    }
+
     // Inject Aztec testnet if the API doesn't return it
     const hasAztec = resolvedNetworks.some(n => n.caip2Id === KnownInternalNames.Networks.AztecDevnet)
     if (!hasAztec) {
@@ -126,6 +149,22 @@ const mockData = {
                 {
                     "type": "Multicall",
                     "address": "0xcA11bde05977b3631167028862bE2a173976CA11"
+                }
+            ],
+        },
+        {
+            "caip2Id": KnownInternalNames.Networks.StarkNetSepolia,
+            "nodes": [
+                {
+                    "providerName": "publicnode",
+                    "url": "https://starknet-sepolia-rpc.publicnode.com",
+                    "protocol": "Http"
+                }
+            ],
+            "contracts": [
+                {
+                    "type": "Train",
+                    "address": "0x056d5aab86196192bbdb571116b69de5169453eaf3f164300de2616c184fd697"
                 }
             ],
         },
