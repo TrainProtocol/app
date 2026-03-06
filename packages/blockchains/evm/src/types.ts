@@ -1,4 +1,20 @@
 import type { BaseHTLCClientConfig } from '@train-protocol/sdk'
+import type { Eip1193Provider } from './login/wallet-sign.js'
+
+declare module '@train-protocol/sdk' {
+    interface HTLCClientConfigMap {
+        eip155: EvmHTLCClientConfig
+    }
+    interface WalletSignConfigMap {
+        eip155: EvmWalletSignConfig
+    }
+}
+
+export type EvmWalletSignConfig = {
+    provider: Eip1193Provider
+    address: `0x${string}`
+    options?: { sandbox?: boolean; currentChainId?: number }
+}
 
 /**
  * Minimal signer interface for EVM write operations.
