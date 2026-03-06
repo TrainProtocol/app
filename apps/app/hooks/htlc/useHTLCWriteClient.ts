@@ -5,6 +5,7 @@ import { getConnections } from '@wagmi/core'
 import { createHTLCClient as createClient, getRegisteredNamespaces, IHTLCClient, TrainApiClient as SdkTrainApiClient } from '@train-protocol/sdk'
 import type { EvmSigner } from '@train-protocol/evm'
 import type { AztecSigner } from '@train-protocol/aztec'
+import type { StarknetSigner } from '@train-protocol/starknet'
 import { Network } from '../../Models/Network'
 import { Wallet } from '@/Models/WalletProvider'
 import { useRpcConfigStore } from '@/stores/rpcConfigStore'
@@ -31,6 +32,19 @@ export function useHTLCWriteClient() {
                 signer = {
                     wallet: aztecWallet,
                     address: aztecAccountAddress,
+                }
+            }
+            return createClient(chainType, { rpcUrl, signer, apiClient })
+        }
+
+        // Starknet chain path
+        if (chainType === 'starknet') {
+            let signer: StarknetSigner | undefined
+            const starknetAccount = wallet?.metadata?.starknetAccount
+            if (wallet?.address && starknetAccount) {
+                signer = {
+                    address: wallet.address,
+                    account: starknetAccount,
                 }
             }
             return createClient(chainType, { rpcUrl, signer, apiClient })

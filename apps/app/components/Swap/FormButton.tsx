@@ -74,9 +74,13 @@ const FormButton = ({
 
     if (values?.to && !values?.destination_address && !isAztecDestination) {
         return (
-            <div className="flex items-center col-span-6">
-                <Address>{SecondDestinationWalletPicker}</Address>
-            </div>
+            <Address>
+                {() => (
+                    <SubmitButton type="button" className="w-full">
+                        <span className="grow text-center">Enter destination address</span>
+                    </SubmitButton>
+                )}
+            </Address>
         );
     }
 
@@ -101,17 +105,6 @@ function ActionText(errors: FormikErrors<SwapFormValues>, actionDisplayName: str
         || (actionDisplayName)
 }
 
-export const SecondDestinationWalletPicker = () => {
-    return <div className="border border-primary disabled:border-primary-900 items-center space-x-1 disabled:text-opacity-40 disabled:bg-primary-900 disabled:cursor-not-allowed relative w-full flex justify-center font-semibold rounded-xl transform hover:brightness-125 transition duration-200 ease-in-out bg-primary text-primary-buttonTextColor py-3 px-2 md:px-3 plausible-event-name=Swap+initiated">
-        <div className="flex justify-center space-x-2">
-            <span className="order-first absolute left-0 inset-y-0 flex items-center pl-3">
-                <PlusIcon className="stroke-1" />
-            </span>
-            <span className="grow text-center">Enter destination address</span>
-        </div>
-    </div>
-}
-
 export const FormDestinationWalletButton: FC = () => {
     const {
         values
@@ -132,15 +125,9 @@ export const FormDestinationWalletButton: FC = () => {
 
     if (!availableWallets.length && destinationNetwork) {
         return (
-            <div className="border border-primary disabled:border-primary-900 items-center space-x-1 disabled:text-opacity-40 disabled:bg-primary-900 disabled:cursor-not-allowed relative w-full flex justify-center font-semibold rounded-xl transform hover:brightness-125 transition duration-200 ease-in-out bg-primary text-primary-buttonTextColor py-3 px-2 md:px-3 plausible-event-name=Connect+Destination+Wallet"
-                onClick={handleConnect}>
-                <div className="flex justify-center space-x-2">
-                    <span className="order-first absolute left-0 inset-y-0 flex items-center pl-3">
-                        <PlusIcon className="stroke-1" />
-                    </span>
-                    <span className="grow text-center">Connect {destinationNetwork.displayName} wallet</span>
-                </div>
-            </div>
+            <SubmitButton icon={<PlusIcon className="stroke-1" />} onClick={handleConnect}>
+                Connect {destinationNetwork.displayName} wallet
+            </SubmitButton>
         );
     }
 

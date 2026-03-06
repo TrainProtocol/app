@@ -6,7 +6,7 @@ import HTLCAbi from "../../abis/atomic/EVM_HTLC.json"
 import resolveChain from "../../resolveChain"
 import {
     gasPriceOracleABI,
-    gasPriceOracleAddress,
+    gasPriceOracleAddress
 } from '@eth-optimism/contracts-ts'
 
 const ERC20_TRANSFER_FROM_GAS_BUFFER = 65_000n

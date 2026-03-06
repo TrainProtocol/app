@@ -63,7 +63,7 @@ export default class KnownInternalNames {
 
         public static readonly StarkNetMainnet: string = "STARKNET_MAINNET";
 
-        public static readonly StarkNetSepolia: string = "STARKNET_SEPOLIA";
+        public static readonly StarkNetSepolia: string = "starknet:SN_SEPOLIA";
 
         public static readonly ImmutableZkEVM: string = "IMMUTABLEZK_MAINNET";
 

@@ -1,6 +1,5 @@
 import { Network, Token } from "../../Models/Network"
 import EVMLightClient from "./providers/evm"
-import StarknetLightClient from "./providers/starknet"
 
 export default class LightClient {
     private providers = [
