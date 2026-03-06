@@ -1,5 +1,5 @@
 import { AnchorProvider, Program } from '@coral-xyz/anchor'
-import { Connection, PublicKey } from '@solana/web3.js'
+import { Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js'
 import {
     HTLCClient,
     UserLockParams,
@@ -107,7 +107,7 @@ export class SolanaHTLCClient extends HTLCClient {
         )
 
         try {
-            let tx
+            let refundIx: TransactionInstruction
             if (sourceAsset.contractAddress) {
                 const { getAssociatedTokenAddress, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
                 const tokenMint = new PublicKey(sourceAsset.contractAddress)
@@ -117,7 +117,7 @@ export class SolanaHTLCClient extends HTLCClient {
                     program.programId
                 )
 
-                tx = await program.methods
+                refundIx = await program.methods
                     .refundUserToken(hashlockArray)
                     .accounts({
                         caller: walletPublicKey,
@@ -129,22 +129,32 @@ export class SolanaHTLCClient extends HTLCClient {
                         tokenProgram: TOKEN_PROGRAM_ID,
                         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
                     })
-                    .transaction()
+                    .instruction()
             } else {
-                tx = await program.methods
+                refundIx = await program.methods
                     .refundUserSol(hashlockArray)
                     .accounts({
                         caller: walletPublicKey,
                         userLock: userLockPda,
                         sender: walletPublicKey,
                     })
-                    .transaction()
+                    .instruction()
             }
 
+            const closeIx = await program.methods
+                .closeUserLock(hashlockArray)
+                .accounts({
+                    caller: walletPublicKey,
+                    userLock: userLockPda,
+                })
+                .instruction()
+
             const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash()
+            const tx = new Transaction()
             tx.recentBlockhash = blockhash
             tx.lastValidBlockHeight = lastValidBlockHeight
             tx.feePayer = walletPublicKey
+            tx.add(refundIx, closeIx)
 
             const signature = await signer.sendTransaction(tx)
 
@@ -152,11 +162,6 @@ export class SolanaHTLCClient extends HTLCClient {
             if (res?.value.err) {
                 throw new Error(res.value.err.toString())
             }
-
-            // Fire-and-forget: reclaim rent after refund is confirmed
-            this.closeUserLockAccount(program, hashlockArray, userLockPda, walletPublicKey, signer).catch((e: any) =>
-                console.warn('[SolanaHTLC] closeUserLock skipped:', e?.message ?? String(e))
-            )
 
             return signature
         } catch (error: any) {
@@ -389,31 +394,6 @@ export class SolanaHTLCClient extends HTLCClient {
             signAllTransactions: async (txs: any[]) => txs,
         }
         return new AnchorProvider(this.connection, wallet as any, AnchorProvider.defaultOptions())
-    }
-
-    private async closeUserLockAccount(
-        program: Program,
-        hashlockArray: number[],
-        userLockPda: PublicKey,
-        walletPublicKey: PublicKey,
-        signer: SolanaSigner
-    ): Promise<void> {
-        const closeTx = await program.methods
-            .closeUserLock(hashlockArray)
-            .accounts({
-                caller: walletPublicKey,
-                userLock: userLockPda,
-            })
-            .transaction()
-
-        const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash()
-        closeTx.recentBlockhash = blockhash
-        closeTx.lastValidBlockHeight = lastValidBlockHeight
-        closeTx.feePayer = walletPublicKey
-
-        const sig = await signer.sendTransaction(closeTx)
-        await this.connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature: sig })
-        console.log('[SolanaHTLC][closeUserLock] account closed, rent reclaimed', sig)
     }
 
     private buildProgram(contractAddress: string, readerKey?: PublicKey): Program {
