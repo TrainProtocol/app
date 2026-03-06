@@ -2,11 +2,13 @@
 import { GasProps } from "../../Models/Balance";
 import { EVMGasProvider } from "./providers/evmGasProvider";
 import { SolanaGasProvider } from "./providers/solanaGasProvider";
+import { StarknetGasProvider } from "./providers/starknetGasProvider";
 
 export class GasResolver {
     private providers = [
         new EVMGasProvider(),
         new SolanaGasProvider(),
+        new StarknetGasProvider(),
     ];
 
     getGas({ address, network, token }: GasProps) {

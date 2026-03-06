@@ -31,7 +31,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
 
     const handleUserLock = async () => {
         try {
-            if(!quote || !source_network || !sourceWallet || !provider?.activeWallet || !amount || !address || !destination_network || !destination_asset || !source_asset || !atomicContract || !destLpAddress || !srcLpAddress) throw new Error("Missing params")
+            if (!quote || !source_network || !sourceWallet || !provider?.activeWallet || !amount || !address || !destination_network || !destination_asset || !source_asset || !atomicContract || !destLpAddress || !srcLpAddress) throw new Error("Missing params")
 
             if (provider && sourceWallet && (sourceWallet.chainId != source_network.chainId) && provider.switchChain) await provider.switchChain(sourceWallet, source_network.chainId)
 
@@ -166,21 +166,17 @@ export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
         }
     }
 
-    return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
-        {
-            ((requestedRefund || !!refundTxId) && sourceDetails?.status !== LockStatus.Refunded) ?
-                null
-                :
-                <WalletActionButton
-                    activeChain={wallet?.chainId}
-                    isConnected={!!wallet}
-                    network={source_network!}
-                    networkChainId={Number(source_network?.chainId)}
-                    onClick={handleRefundAssets}
-                    type={type}
-                >
-                    Cancel & Refund
-                </WalletActionButton>
-        }
-    </div>
+
+    if ((requestedRefund || !!refundTxId) && sourceDetails?.status !== LockStatus.Refunded) return <></>
+
+    return <WalletActionButton
+        activeChain={wallet?.chainId}
+        isConnected={!!wallet}
+        network={source_network!}
+        networkChainId={Number(source_network?.chainId)}
+        onClick={handleRefundAssets}
+        type={type}
+    >
+        Cancel & Refund
+    </WalletActionButton>
 }

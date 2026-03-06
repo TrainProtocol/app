@@ -8,12 +8,12 @@ import {
     AztecBalanceProvider,
     EVMBalanceProvider,
     FuelBalanceProvider,
-    SolanaBalanceProvider
+    SolanaBalanceProvider,
+    StarknetBalanceProvider
     //BitcoinBalanceProvider,
     //LoopringBalanceProvider,
     //ParadexBalanceProvider,
     //QueryBalanceProvider,
-    //StarknetBalanceProvider,
     //TonBalanceProvider,
     //TronBalanceProvider,
     //ZkSyncBalanceProvider,
@@ -43,12 +43,12 @@ export class BalanceResolver {
 
     private providers: BalanceProvider[] = [
         // new QueryBalanceProvider(),
-        // new StarknetBalanceProvider(),
         new AztecBalanceProvider(),
         new EVMBalanceProvider(),
         new FuelBalanceProvider(),
         // new LoopringBalanceProvider(),
         new SolanaBalanceProvider(),
+        new StarknetBalanceProvider(),
         // new TonBalanceProvider(),
         // new ZkSyncBalanceProvider(),
         // new TronBalanceProvider(),

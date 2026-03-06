@@ -16,6 +16,7 @@ if (typeof window !== 'undefined') {
   registerEvmSdk();
   import('@train-protocol/aztec').then(m => m.registerAztecSdk());
   import('@train-protocol/solana').then(m => m.registerSolanaSdk());
+  import('@train-protocol/starknet').then(m => m.registerStarknetSdk());
 }
 
 const progress = new ProgressBar({

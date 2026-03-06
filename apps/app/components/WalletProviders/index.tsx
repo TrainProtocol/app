@@ -21,15 +21,15 @@ const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], basePath: st
                         <Wagmi>
                             <WalletModalProvider>
                                 <AztecWalletProvider>
-                                    <WalletLoginProvider>
-                                        <SecretDerivationProvider>
-                                            <ImtblPassportProvider>
-                                                <WalletProvidersProvider>
+                                    <ImtblPassportProvider>
+                                        <WalletProvidersProvider>
+                                            <WalletLoginProvider>
+                                                <SecretDerivationProvider>
                                                     {children}
-                                                </WalletProvidersProvider>
-                                            </ImtblPassportProvider>
-                                        </SecretDerivationProvider>
-                                    </WalletLoginProvider>
+                                                </SecretDerivationProvider>
+                                            </WalletLoginProvider>
+                                        </WalletProvidersProvider>
+                                    </ImtblPassportProvider>
                                 </AztecWalletProvider>
                             </WalletModalProvider>
                         </Wagmi>
