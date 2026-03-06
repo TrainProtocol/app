@@ -15,7 +15,7 @@ export function WalletLoginProvider({ children }: { children: ReactNode }) {
   const evmConfig = useConfig()
   const { getWallet: getAztecWallet } = useAztecWalletContext()
   const { wallets } = useWallet()
-console.log('wallets', wallets)
+
   const deriveKey = useCallback(
     async (providerName: string, address: string): Promise<Buffer> => {
       const provider = providerName.toLowerCase()
@@ -30,7 +30,7 @@ console.log('wallets', wallets)
         return deriveKeyFromWallet('aztec', {
           wallet: aztecWallet,
           address,
-      })
+        })
       }
 
       if (provider === 'starknet') {

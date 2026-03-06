@@ -1,41 +1,82 @@
-import { GasProps } from "../../../Models/Balance";
-import { Network } from "../../../Models/Network";
-import formatAmount from "../../formatAmount";
-import KnownInternalNames from "../../knownIds";
-import { ApiResponse } from "../../../Models/ApiResponse";
-import { useRouter } from "next/router";
-export class StarknetGasProvider {
+import { GasProps } from "../../../Models/Balance"
+import { Network, getNativeToken, NetworkContractType } from "../../../Models/Network"
+import { GasProvider } from "./types"
+
+export class StarknetGasProvider implements GasProvider {
     supportsNetwork(network: Network): boolean {
-        return (KnownInternalNames.Networks.StarkNetMainnet.includes(network.caip2Id) || KnownInternalNames.Networks.StarkNetGoerli.includes(network.caip2Id) || KnownInternalNames.Networks.StarkNetSepolia.includes(network.caip2Id))
+        return network.type?.name === 'starknet'
     }
 
-    getGas = async ({ address, network, token }: GasProps) => {
+    getGas = async ({ network, token, wallet }: GasProps) => {
+        const account = wallet?.metadata?.starknetAccount
 
-        // const nodeUrl = network.rpcUrl
-        // const contract_address = token?.contract
-        // const testnetWatchdog = '0x0423074c4bf903478daaa719bb3b1539d23af07db07101d263c78d75e5e6e0a3'
-        // const mainnetWatchdog = '0x022993789c33e54e0d296fc266a9c9a2e9dcabe2e48941f5fa1bd5692ac4a8c4'
-        // const mainnetRecipient = '0x19252B1dEef483477C4D30cFcc3e5Ed9C82FAFEA44669c182A45A01b4FdB97a'
-        // const testnetRecipient = '0x065a93bf9a33c87346f534a3b6c825e5c9e86a8e612cba683d0271aae5062d21'
-        // const version = (network.name.split('_').pop() === 'SEPOLIA' || network.name.split('_').pop() === 'GOERLI') ? 'sandbox' : 'prod'
-        // const router = useRouter()
+        if (!account || !network) return
 
-        // const recipient = version === 'prod' ? mainnetRecipient : testnetRecipient
-        // const watchdogContract = version === 'prod' ? mainnetWatchdog : testnetWatchdog
-        // const nativeToken = network.nativeTokenSymbol
-        // if (!token || !nativeToken) return
+        const rpcUrl = network.nodes?.[0]?.url
+        const contractAddress = network.contracts?.find(c => c.type === NetworkContractType.Train)?.address
+        const nativeToken = getNativeToken(network)
 
-        // const client = new InternalApiClient()
-        // const basePath = router.basePath ?? '/'
+        if (!rpcUrl || !contractAddress || !nativeToken) return
 
-        // if (!feeEstimateResponse?.data?.suggestedMaxFee) {
-        //     throw new Error(`Couldn't get fee estimation for the transfer. Response: ${JSON.stringify(feeEstimateResponse)}`);
-        // };
+        const tokenAddress = token?.contractAddress ?? nativeToken.contractAddress
+        if (!tokenAddress) return
 
-        // const feeInWei = feeEstimateResponse.data.suggestedMaxFee.toString();
-        // const gas = formatAmount(feeInWei, network.nativeTokenDecimals)
+        try {
+            const { CallData, cairo, byteArray } = await import('starknet')
+            const { formatUnits } = await import('viem')
 
-        // return gas
-        return 0
+
+            const emptyByteArray = byteArray.byteArrayFromString('')
+
+            const approveCall = {
+                contractAddress: tokenAddress,
+                entrypoint: 'approve',
+                calldata: CallData.compile({
+                    spender: contractAddress,
+                    amount: cairo.uint256(1n),
+                }),
+            }
+
+            // Mock user_lock — values don't need to be real; skip_validate is
+            // used internally so no signature verification happens
+            const userLockCall = {
+                contractAddress: contractAddress,
+                entrypoint: 'user_lock',
+                calldata: CallData.compile({
+                    params: {
+                        hashlock: cairo.uint256(1n),
+                        amount: cairo.uint256(1n),
+                        reward_amount: cairo.uint256(0n),
+                        timelock_delta: 150,
+                        reward_timelock_delta: 0,
+                        quote_expiry: 0,
+                        sender: account.address,
+                        recipient: account.address,
+                        token: tokenAddress,
+                        reward_token: emptyByteArray,
+                        reward_recipient: emptyByteArray,
+                        src_chain: emptyByteArray,
+                    },
+                    dst: {
+                        dst_chain: emptyByteArray,
+                        dst_address: emptyByteArray,
+                        dst_amount: cairo.uint256(1n),
+                        dst_token: emptyByteArray,
+                    },
+                    user_data: emptyByteArray,
+                    solver_data: emptyByteArray,
+                }),
+            }
+
+            const feeEstimate = await account.estimateInvokeFee([approveCall, userLockCall], { skipValidate: true })
+
+            const suggestedFee = (feeEstimate.overall_fee * 3n) / 2n
+            const gas = Number(formatUnits(suggestedFee, nativeToken.decimals))
+
+            return { gas, token: nativeToken }
+        } catch (e) {
+            console.error('Starknet gas estimation failed:', e)
+            return undefined
+        }
     }
 }
