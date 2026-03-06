@@ -136,8 +136,6 @@ export class SolanaHTLCClient extends HTLCClient {
             program.programId
         )
 
-        console.log('[SolanaHTLC][refund] start', { id, userLockPda: userLockPda.toBase58(), isToken: !!sourceAsset.contractAddress })
-
         try {
             let refundIx: TransactionInstruction
             if (sourceAsset.contractAddress) {
@@ -149,7 +147,6 @@ export class SolanaHTLCClient extends HTLCClient {
                     program.programId
                 )
 
-                console.log('[SolanaHTLC][refund] building refundUserToken ix', { tokenMint: tokenMint.toBase58(), vault: vault.toBase58(), senderTokenAccount: senderTokenAccount.toBase58() })
                 refundIx = await program.methods
                     .refundUserToken(hashlockArray)
                     .accounts({
@@ -164,7 +161,6 @@ export class SolanaHTLCClient extends HTLCClient {
                     })
                     .instruction()
             } else {
-                console.log('[SolanaHTLC][refund] building refundUserSol ix')
                 refundIx = await program.methods
                     .refundUserSol(hashlockArray)
                     .accounts({
@@ -181,7 +177,6 @@ export class SolanaHTLCClient extends HTLCClient {
                 .instruction()
 
             const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash()
-            console.log('[SolanaHTLC][refund] sending tx', { blockhash, lastValidBlockHeight })
             const tx = new Transaction()
             tx.recentBlockhash = blockhash
             tx.lastValidBlockHeight = lastValidBlockHeight
@@ -189,10 +184,8 @@ export class SolanaHTLCClient extends HTLCClient {
             tx.add(refundIx, closeIx)
 
             const signature = await signer.sendTransaction(tx)
-            console.log('[SolanaHTLC][refund] tx sent', { signature })
 
             const res = await this.connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature })
-            console.log('[SolanaHTLC][refund] confirmed', { signature, err: res?.value.err ?? null })
             if (res?.value.err) {
                 throw new Error(res.value.err.toString())
             }
