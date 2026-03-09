@@ -5,7 +5,7 @@ import { deriveKeyFromEvmSignature } from '@/lib/htlc/secretDerivation/walletSig
 import { deriveKeyFromWallet } from '@train-protocol/sdk'
 import { deriveKeyFromStarknetSignature } from '@/lib/htlc/secretDerivation/walletSign/starknet'
 import useWallet from '@/hooks/useWallet'
-import { useSolanaWalletStore } from '@/stores/solanaWalletStore'
+import { useWallet as useSolanaWallet } from '@solana/wallet-adapter-react'
 interface WalletLoginContextValue {
   deriveKey: (providerName: string, address: string) => Promise<Buffer>
 }
@@ -16,6 +16,7 @@ export function WalletLoginProvider({ children }: { children: ReactNode }) {
   const evmConfig = useConfig()
   const { getWallet: getAztecWallet } = useAztecWalletContext()
   const { wallets } = useWallet()
+  const { wallets: solanaAdapterWallets } = useSolanaWallet()
 
   const deriveKey = useCallback(
     async (providerName: string, address: string): Promise<Buffer> => {
@@ -43,14 +44,15 @@ export function WalletLoginProvider({ children }: { children: ReactNode }) {
       }
 
       if (provider === 'solana') {
-        const signMessage = useSolanaWalletStore.getState().signMessage
+        const connectedAdapter = solanaAdapterWallets.find(w => w.adapter.connected)?.adapter
+        const signMessage = connectedAdapter && 'signMessage' in connectedAdapter ? (msg: Uint8Array) => (connectedAdapter as any).signMessage(msg) : undefined
         if (!signMessage) throw new Error('Solana wallet is not connected')
         return deriveKeyFromWallet('solana', { wallet: { signMessage } })
       }
 
       throw new Error(`Unsupported wallet provider for login: ${providerName}`)
     },
-    [evmConfig, getAztecWallet, wallets],
+    [evmConfig, getAztecWallet, wallets, solanaAdapterWallets],
   )
 
   return (

@@ -1,5 +1,5 @@
 import { AnchorProvider, BN, Program, Wallet } from '@coral-xyz/anchor'
-import { Connection, PublicKey, Transaction, TransactionInstruction, VersionedTransaction } from '@solana/web3.js'
+import { Connection, PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js'
 import {
     HTLCClient,
     TrainApiClient,
@@ -14,12 +14,11 @@ import {
     formatUnits,
     bytesToHex,
 } from '@train-protocol/sdk'
-import { NATIVE_SOL_ADDRESS } from './types.js'
+import { NATIVE_SOL_ADDRESS } from './constants.js'
 import type { SolanaHTLCClientConfig, SolanaSigner } from './types.js'
 import { TrainHtlc } from './idl/trainHtlc.js'
-import { userLockTransactionBuilder } from './transactionBuilder.js'
+import { userLockTransactionBuilder, refundTransactionBuilder, redeemSolverTransactionBuilder } from './transactionBuilder.js'
 
-// Raw Anchor-deserialized on-chain account shapes (u64 → BN, pubkey → PublicKey, [u8;32] → number[])
 interface UserLockData {
     amount: BN
     timelock: BN
@@ -103,63 +102,17 @@ export class SolanaHTLCClient extends HTLCClient {
         if (!params.contractAddress) throw new Error('No contract address')
 
         const walletPublicKey = new PublicKey(signer.publicKey)
-        const hashlockBuffer = Buffer.from(params.id.replace('0x', ''), 'hex')
-        const hashlockArray = Array.from(hashlockBuffer)
         const program = this.buildProgram(params.contractAddress, walletPublicKey)
 
-        const [userLockPda] = PublicKey.findProgramAddressSync(
-            [Buffer.from("user_lock"), hashlockBuffer],
-            program.programId
-        )
-
         try {
-            let refundIx: TransactionInstruction
-            if (params.sourceAsset.contractAddress && params.sourceAsset.contractAddress !== NATIVE_SOL_ADDRESS) {
-                const { getAssociatedTokenAddress, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
-                const tokenMint = new PublicKey(params.sourceAsset.contractAddress)
-                const senderTokenAccount = await getAssociatedTokenAddress(tokenMint, walletPublicKey)
-                const [vault] = PublicKey.findProgramAddressSync(
-                    [Buffer.from("vault"), hashlockBuffer],
-                    program.programId
-                )
+            const { transaction, blockhash, lastValidBlockHeight } = await refundTransactionBuilder({
+                ...params,
+                connection: this.connection,
+                program,
+                walletPublicKey,
+            })
 
-                refundIx = await program.methods
-                    .refundUserToken(hashlockArray)
-                    .accounts({
-                        caller: walletPublicKey,
-                        userLock: userLockPda,
-                        sender: walletPublicKey,
-                        tokenMint,
-                        vault,
-                        senderTokenAccount,
-                        tokenProgram: TOKEN_PROGRAM_ID,
-                        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-                    })
-                    .instruction()
-            } else {
-                refundIx = await program.methods
-                    .refundUserSol(hashlockArray)
-                    .accounts({
-                        caller: walletPublicKey,
-                        userLock: userLockPda,
-                        sender: walletPublicKey,
-                    })
-                    .instruction()
-            }
-
-            const closeIx = await program.methods
-                .closeUserLock(hashlockArray)
-                .accounts({ caller: walletPublicKey, userLock: userLockPda })
-                .instruction()
-
-            const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash()
-            const tx = new Transaction()
-            tx.recentBlockhash = blockhash
-            tx.lastValidBlockHeight = lastValidBlockHeight
-            tx.feePayer = walletPublicKey
-            tx.add(refundIx, closeIx)
-
-            const signature = await signer.sendTransaction(tx)
+            const signature = await signer.sendTransaction(transaction)
 
             const res = await this.connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature })
             if (res?.value.err) {
@@ -179,82 +132,29 @@ export class SolanaHTLCClient extends HTLCClient {
         if (!params.contractAddress) throw new Error('No contract address')
 
         const walletPublicKey = new PublicKey(signer.publicKey)
-        const hashlockBuffer = Buffer.from(params.id.replace('0x', ''), 'hex')
-        const hashlockArray = Array.from(hashlockBuffer)
-        const secretArray = Array.from(this.secretToBuffer(params.secret))
-        const lockIndex = params.index ?? 1
-
-        const indexBuffer = Buffer.alloc(8)
-        indexBuffer.writeBigUInt64LE(BigInt(lockIndex))
-
         const program = this.buildProgram(params.contractAddress, walletPublicKey)
 
-        const [solverLockPda] = PublicKey.findProgramAddressSync(
-            [Buffer.from("solver_lock"), hashlockBuffer, indexBuffer],
-            program.programId
-        )
-
         try {
-            const solverLockAccount = await (program.account as TypedProgramAccounts).solverLock.fetch(solverLockPda)
-            const rewardRecipient: PublicKey = new PublicKey(solverLockAccount.rewardRecipient)
+            const { transaction, blockhash, lastValidBlockHeight } = await redeemSolverTransactionBuilder({
+                ...params,
+                connection: this.connection,
+                program,
+                walletPublicKey,
+            })
 
-            const recipient = params.destinationAddress
-                ? new PublicKey(params.destinationAddress)
-                : walletPublicKey
+            const signature = await signer.sendTransaction(transaction)
 
-            let tx
-            if (params.sourceAsset.contractAddress && params.sourceAsset.contractAddress !== NATIVE_SOL_ADDRESS) {
-                const { getAssociatedTokenAddress, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
-                const tokenMint = new PublicKey(params.sourceAsset.contractAddress)
-                const [vault] = PublicKey.findProgramAddressSync(
-                    [Buffer.from("vault"), hashlockBuffer, indexBuffer],
-                    program.programId
-                )
-                const recipientTokenAccount = await getAssociatedTokenAddress(tokenMint, recipient)
-                const rewardRecipientTokenAccount = await getAssociatedTokenAddress(tokenMint, rewardRecipient)
-                const callerTokenAccount = await getAssociatedTokenAddress(tokenMint, walletPublicKey)
-
-                tx = await program.methods
-                    .redeemSolverToken(hashlockArray, lockIndex, secretArray)
-                    .accounts({
-                        caller: walletPublicKey,
-                        solverLock: solverLockPda,
-                        recipient,
-                        rewardRecipient,
-                        tokenMint,
-                        vault,
-                        recipientTokenAccount,
-                        rewardRecipientTokenAccount,
-                        callerTokenAccount,
-                        tokenProgram: TOKEN_PROGRAM_ID,
-                        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-                    })
-                    .transaction()
-            } else {
-                tx = await program.methods
-                    .redeemSolverSol(hashlockArray, lockIndex, secretArray)
-                    .accounts({
-                        caller: walletPublicKey,
-                        solverLock: solverLockPda,
-                        recipient,
-                        rewardRecipient,
-                    })
-                    .transaction()
+            const res = await this.connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature })
+            if (res?.value.err) {
+                throw new Error(res.value.err.toString())
             }
 
-            const blockHash = await this.connection.getLatestBlockhash()
-            tx.recentBlockhash = blockHash.blockhash
-            tx.lastValidBlockHeight = blockHash.lastValidBlockHeight
-            tx.feePayer = walletPublicKey
-
-            return signer.sendTransaction(tx)
+            return signature
         } catch (error) {
             console.error('Error in redeemSolver:', error)
             throw error
         }
     }
-
-    // ── Read Operations ─────────────────────────────────────────────────
 
     async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
         const { contractAddress, id } = params
@@ -465,12 +365,5 @@ export class SolanaHTLCClient extends HTLCClient {
         }
     }
 
-    private secretToBuffer(secret: string | bigint): Buffer {
-        if (typeof secret === 'bigint') {
-            const hex = secret.toString(16).padStart(64, '0')
-            return Buffer.from(hex, 'hex')
-        }
-        return Buffer.from(secret.replace('0x', ''), 'hex')
-    }
 
 }

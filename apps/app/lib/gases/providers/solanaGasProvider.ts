@@ -44,7 +44,7 @@ async function estimateSolanaGas(params: {
 }): Promise<number | undefined> {
     const { Connection, PublicKey } = await import('@solana/web3.js')
     const { AnchorProvider, Program } = await import('@coral-xyz/anchor')
-    const { phtlcTransactionBuilder, TrainHtlc } = await import('@train-protocol/solana')
+    const { userLockTransactionBuilder, TrainHtlc } = await import('@train-protocol/solana')
 
     const connection = new Connection(params.rpcUrl, 'confirmed')
     const walletPublicKey = new PublicKey(params.address)
@@ -56,7 +56,7 @@ async function estimateSolanaGas(params: {
     const provider = new AnchorProvider(connection, wallet as any, AnchorProvider.defaultOptions())
     const program = new Program(TrainHtlc(params.contractAddress), provider)
 
-    const { transaction } = await phtlcTransactionBuilder({
+    const { transaction } = await userLockTransactionBuilder({
         connection,
         program,
         walletPublicKey,

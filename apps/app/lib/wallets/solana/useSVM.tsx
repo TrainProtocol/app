@@ -2,7 +2,6 @@ import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon"
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider"
 import { useCallback, useEffect, useMemo } from "react"
-import { useSolanaWalletStore } from "@/stores/solanaWalletStore"
 import { useAnchorWallet, useConnection, useWallet } from "@solana/wallet-adapter-react"
 import { AnchorProvider, setProvider } from '@coral-xyz/anchor'
 import { useSettingsState } from "../../../context/settings"
@@ -38,9 +37,6 @@ export default function useSVM(): WalletProvider {
         if (anchorProvider) setProvider(anchorProvider);
     }, [anchorProvider]);
 
-    useEffect(() => {
-        useSolanaWalletStore.getState().setSignMessage(signMessage ?? undefined)
-    }, [signMessage]);
 
     const connectedWallets = useMemo(() => {
         if (solanaWallet?.adapter.connected === true) {
@@ -82,7 +78,6 @@ export default function useSVM(): WalletProvider {
         const adapterSignMessage = newConnectedWallet && 'signMessage' in newConnectedWallet.adapter
             ? (newConnectedWallet.adapter as any).signMessage.bind(newConnectedWallet.adapter)
             : undefined
-        useSolanaWalletStore.getState().setSignMessage(adapterSignMessage)
 
         const wallet: Wallet | undefined = connectedAddress && newConnectedWallet ? {
             id: newConnectedWallet.adapter.name,
@@ -106,7 +101,6 @@ export default function useSVM(): WalletProvider {
     const disconnectWallet = async () => {
         try {
             await disconnect()
-            useSolanaWalletStore.getState().setSignMessage(undefined)
         }
         catch (e) {
             console.log(e)
