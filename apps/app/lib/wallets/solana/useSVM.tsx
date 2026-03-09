@@ -22,7 +22,7 @@ export default function useSVM(): WalletProvider {
 
     const name = 'Solana'
     const id = 'solana'
-    const { disconnect, wallet: solanaWallet, select, wallets, signTransaction, signMessage } = useWallet();
+    const { disconnect, wallet: solanaWallet, select, wallets, signTransaction } = useWallet();
     const publicKey = solanaWallet?.adapter.publicKey
 
     const connectedWallet = wallets.find(w => w.adapter.connected === true)
@@ -49,7 +49,7 @@ export default function useSVM(): WalletProvider {
                 disconnect,
                 isActive: true,
                 addresses: [connectedAddress],
-                metadata: { wallet: { signMessage } },
+                metadata: {},
                 asSourceSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
                 autofillSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
                 withdrawalSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
@@ -75,9 +75,6 @@ export default function useSVM(): WalletProvider {
 
         const newConnectedWallet = wallets.find(w => w.adapter.connected === true)
         const connectedAddress = newConnectedWallet?.adapter.publicKey?.toBase58()
-        const adapterSignMessage = newConnectedWallet && 'signMessage' in newConnectedWallet.adapter
-            ? (newConnectedWallet.adapter as any).signMessage.bind(newConnectedWallet.adapter)
-            : undefined
 
         const wallet: Wallet | undefined = connectedAddress && newConnectedWallet ? {
             id: newConnectedWallet.adapter.name,
@@ -88,7 +85,7 @@ export default function useSVM(): WalletProvider {
             disconnect,
             isActive: true,
             addresses: [connectedAddress],
-            metadata: { wallet: { signMessage: adapterSignMessage } },
+            metadata: {},
             asSourceSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
             autofillSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
             withdrawalSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),

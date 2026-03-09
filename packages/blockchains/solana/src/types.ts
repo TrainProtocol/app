@@ -11,9 +11,7 @@ export interface SolanaSigner {
     sendTransaction(tx: Transaction | VersionedTransaction): Promise<string>
 }
 
-export type SolanaHTLCClientConfig = {
+export type SolanaHTLCClientConfig = BaseHTLCClientConfig & {
     rpcUrl: string
     signer?: SolanaSigner
-    /** Required for revealSecret; may be omitted for read-only / gas-estimation use. */
-    apiClient?: BaseHTLCClientConfig['apiClient']
 }

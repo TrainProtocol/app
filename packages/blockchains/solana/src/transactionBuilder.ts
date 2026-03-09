@@ -1,25 +1,17 @@
 import { Connection, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js"
 import { BN, Idl, Program } from "@coral-xyz/anchor"
-import { UserLockParams as SdkUserLockParams, RefundParams, RedeemSolverParams } from '@train-protocol/sdk'
+import { UserLockParams as SdkUserLockParams, RefundParams, RedeemSolverParams, parseUnits } from '@train-protocol/sdk'
 import { NATIVE_SOL_ADDRESS } from './constants.js'
 
-export type UserLockParams = SdkUserLockParams & {
+type SolanaContext = {
     connection: Connection
     program: Program<Idl>
     walletPublicKey: PublicKey
 }
 
-export type RefundTxParams = RefundParams & {
-    connection: Connection
-    program: Program<Idl>
-    walletPublicKey: PublicKey
-}
-
-export type RedeemSolverTxParams = RedeemSolverParams & {
-    connection: Connection
-    program: Program<Idl>
-    walletPublicKey: PublicKey
-}
+export type UserLockParams = SdkUserLockParams & SolanaContext
+export type RefundTxParams = RefundParams & SolanaContext
+export type RedeemSolverTxParams = RedeemSolverParams & SolanaContext
 
 export type TransactionResult = {
     transaction: Transaction
@@ -28,12 +20,7 @@ export type TransactionResult = {
 }
 
 function toBaseUnits(amount: string, decimals: number): BN {
-    if (!amount || !/^\d+(\.\d+)?$/.test(amount.trim())) {
-        throw new Error(`Invalid amount: "${amount}"`)
-    }
-    const [int, frac = ''] = amount.split('.')
-    const fracPadded = frac.padEnd(decimals, '0').slice(0, decimals)
-    return new BN(int + fracPadded)
+    return new BN(parseUnits(amount, decimals).toString())
 }
 
 function secretToBuffer(secret: string | bigint): Buffer {

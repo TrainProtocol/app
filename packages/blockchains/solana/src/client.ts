@@ -2,7 +2,6 @@ import { AnchorProvider, BN, Program, Wallet } from '@coral-xyz/anchor'
 import { Connection, PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js'
 import {
     HTLCClient,
-    TrainApiClient,
     UserLockParams,
     LockParams,
     RefundParams,
@@ -53,7 +52,7 @@ export class SolanaHTLCClient extends HTLCClient {
     private signer: SolanaSigner | undefined
 
     constructor(config: SolanaHTLCClientConfig) {
-        super(config.apiClient as TrainApiClient)
+        super(config.apiClient)
         this.connection = new Connection(config.rpcUrl, 'confirmed')
         this.signer = config.signer
     }
