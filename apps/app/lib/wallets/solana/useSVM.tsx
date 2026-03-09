@@ -2,6 +2,7 @@ import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon"
 import { InternalConnector, Wallet, WalletProvider } from "../../../Models/WalletProvider"
 import { useCallback, useEffect, useMemo } from "react"
+import { useSolanaWalletStore } from "@/stores/solanaWalletStore"
 import { useAnchorWallet, useConnection, useWallet } from "@solana/wallet-adapter-react"
 import { AnchorProvider, setProvider } from '@coral-xyz/anchor'
 import { useSettingsState } from "../../../context/settings"
@@ -37,6 +38,10 @@ export default function useSVM(): WalletProvider {
         if (anchorProvider) setProvider(anchorProvider);
     }, [anchorProvider]);
 
+    useEffect(() => {
+        useSolanaWalletStore.getState().setSignMessage(signMessage ?? undefined)
+    }, [signMessage]);
+
     const connectedWallets = useMemo(() => {
         if (solanaWallet?.adapter.connected === true) {
             const wallet: Wallet | undefined = (connectedAddress && connectedAdapterName) ? {
@@ -48,6 +53,7 @@ export default function useSVM(): WalletProvider {
                 disconnect,
                 isActive: true,
                 addresses: [connectedAddress],
+                metadata: { wallet: { signMessage } },
                 asSourceSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
                 autofillSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
                 withdrawalSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connectedAdapterName),
@@ -73,6 +79,11 @@ export default function useSVM(): WalletProvider {
 
         const newConnectedWallet = wallets.find(w => w.adapter.connected === true)
         const connectedAddress = newConnectedWallet?.adapter.publicKey?.toBase58()
+        const adapterSignMessage = newConnectedWallet && 'signMessage' in newConnectedWallet.adapter
+            ? (newConnectedWallet.adapter as any).signMessage.bind(newConnectedWallet.adapter)
+            : undefined
+        useSolanaWalletStore.getState().setSignMessage(adapterSignMessage)
+
         const wallet: Wallet | undefined = connectedAddress && newConnectedWallet ? {
             id: newConnectedWallet.adapter.name,
             address: connectedAddress,
@@ -82,6 +93,7 @@ export default function useSVM(): WalletProvider {
             disconnect,
             isActive: true,
             addresses: [connectedAddress],
+            metadata: { wallet: { signMessage: adapterSignMessage } },
             asSourceSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
             autofillSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
             withdrawalSupportedNetworks: resolveSupportedNetworks(commonSupportedNetworks, connector.id),
@@ -94,6 +106,7 @@ export default function useSVM(): WalletProvider {
     const disconnectWallet = async () => {
         try {
             await disconnect()
+            useSolanaWalletStore.getState().setSignMessage(undefined)
         }
         catch (e) {
             console.log(e)
@@ -161,7 +174,7 @@ function resolveSupportedNetworks(supportedNetworks: string[], connectorId: stri
     const supportedNetworksForWallet: string[] = [];
 
     supportedNetworks.forEach((network) => {
-        const networkName = network.split(":")[0].split("_")[0].toLowerCase();
+        const networkName = network.split(":")[0].toLowerCase();
         if (networkName === "solana") {
             supportedNetworksForWallet.push(network);
         } else if (networkSupport[networkName] && networkSupport[networkName].includes(connectorId?.toLowerCase())) {

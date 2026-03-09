@@ -14,10 +14,10 @@ import {
     formatUnits,
     bytesToHex,
 } from '@train-protocol/sdk'
+import { NATIVE_SOL_ADDRESS } from './types.js'
 import type { SolanaHTLCClientConfig, SolanaSigner } from './types.js'
 import { TrainHtlc } from './idl/trainHtlc.js'
 import { userLockTransactionBuilder } from './transactionBuilder.js'
-import { secretToBuffer } from './utils.js'
 
 // Raw Anchor-deserialized on-chain account shapes (u64 → BN, pubkey → PublicKey, [u8;32] → number[])
 interface UserLockData {
@@ -59,43 +59,20 @@ export class SolanaHTLCClient extends HTLCClient {
         this.signer = config.signer
     }
 
-    // ── Write Operations ────────────────────────────────────────────────
-
     async userLock(params: UserLockParams): Promise<AtomicResult> {
         const signer = this.requireSigner()
-        const { atomicContract, sourceAsset, hashlock: hashlockHex, timelockDelta, rewardTimelockDelta } = params
 
-        if (!atomicContract) throw new Error('No contract address')
+        if (!params.atomicContract) throw new Error('No contract address')
 
         const walletPublicKey = new PublicKey(signer.publicKey)
-        const program = this.buildProgram(atomicContract, walletPublicKey)
-        const hashlock = Buffer.from(hashlockHex.replace('0x', ''), 'hex')
+        const program = this.buildProgram(params.atomicContract, walletPublicKey)
 
         const { transaction, blockhash, lastValidBlockHeight } = await userLockTransactionBuilder({
+            ...params,
             connection: this.connection,
             program,
             walletPublicKey,
-            hashlock,
-            sourceChain: params.sourceChain,
-            destinationChain: params.destinationChain,
-            destinationAsset: params.destinationAsset,
-            destinationAddress: params.destinationAddress,
-            destinationAmount: params.destinationAmount,
-            lpAddress: params.srcLpAddress,
-            sourceAsset: {
-                symbol: sourceAsset.symbol,
-                contractAddress: sourceAsset.contractAddress,
-            },
-            amount: params.amount,
-            decimals: params.decimals,
-            timelockDelta: timelockDelta || 0,
             quoteExpiry: params.quoteExpiry ?? Math.floor(Date.now() / 1000) + 86400,
-            rewardAmount: params.rewardAmount ?? '0',
-            rewardToken: params.rewardToken ?? '',
-            rewardRecipient: params.rewardRecipient ?? '',
-            rewardTimelockDelta: rewardTimelockDelta || 0,
-            solverData: params.solverData,
-            nonce: params.nonce,
         })
 
         let signature: string
@@ -117,19 +94,18 @@ export class SolanaHTLCClient extends HTLCClient {
             throw new Error(res.value.err.toString())
         }
 
-        return { hash: signature, hashlock: hashlockHex }
+        return { hash: signature, hashlock: params.hashlock }
     }
 
     async refund(params: RefundParams): Promise<string> {
         const signer = this.requireSigner()
-        const { id, sourceAsset, contractAddress } = params
 
-        if (!contractAddress) throw new Error('No contract address')
+        if (!params.contractAddress) throw new Error('No contract address')
 
         const walletPublicKey = new PublicKey(signer.publicKey)
-        const hashlockBuffer = Buffer.from(id.replace('0x', ''), 'hex')
+        const hashlockBuffer = Buffer.from(params.id.replace('0x', ''), 'hex')
         const hashlockArray = Array.from(hashlockBuffer)
-        const program = this.buildProgram(contractAddress, walletPublicKey)
+        const program = this.buildProgram(params.contractAddress, walletPublicKey)
 
         const [userLockPda] = PublicKey.findProgramAddressSync(
             [Buffer.from("user_lock"), hashlockBuffer],
@@ -138,9 +114,9 @@ export class SolanaHTLCClient extends HTLCClient {
 
         try {
             let refundIx: TransactionInstruction
-            if (sourceAsset.contractAddress) {
+            if (params.sourceAsset.contractAddress && params.sourceAsset.contractAddress !== NATIVE_SOL_ADDRESS) {
                 const { getAssociatedTokenAddress, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
-                const tokenMint = new PublicKey(sourceAsset.contractAddress)
+                const tokenMint = new PublicKey(params.sourceAsset.contractAddress)
                 const senderTokenAccount = await getAssociatedTokenAddress(tokenMint, walletPublicKey)
                 const [vault] = PublicKey.findProgramAddressSync(
                     [Buffer.from("vault"), hashlockBuffer],
@@ -199,20 +175,19 @@ export class SolanaHTLCClient extends HTLCClient {
 
     async redeemSolver(params: RedeemSolverParams): Promise<string> {
         const signer = this.requireSigner()
-        const { sourceAsset, id, secret, contractAddress, destinationAddress } = params
 
-        if (!contractAddress) throw new Error('No contract address')
+        if (!params.contractAddress) throw new Error('No contract address')
 
         const walletPublicKey = new PublicKey(signer.publicKey)
-        const hashlockBuffer = Buffer.from(id.replace('0x', ''), 'hex')
+        const hashlockBuffer = Buffer.from(params.id.replace('0x', ''), 'hex')
         const hashlockArray = Array.from(hashlockBuffer)
-        const secretArray = Array.from(secretToBuffer(secret))
+        const secretArray = Array.from(this.secretToBuffer(params.secret))
         const lockIndex = params.index ?? 1
 
         const indexBuffer = Buffer.alloc(8)
         indexBuffer.writeBigUInt64LE(BigInt(lockIndex))
 
-        const program = this.buildProgram(contractAddress, walletPublicKey)
+        const program = this.buildProgram(params.contractAddress, walletPublicKey)
 
         const [solverLockPda] = PublicKey.findProgramAddressSync(
             [Buffer.from("solver_lock"), hashlockBuffer, indexBuffer],
@@ -223,14 +198,14 @@ export class SolanaHTLCClient extends HTLCClient {
             const solverLockAccount = await (program.account as TypedProgramAccounts).solverLock.fetch(solverLockPda)
             const rewardRecipient: PublicKey = new PublicKey(solverLockAccount.rewardRecipient)
 
-            const recipient = destinationAddress
-                ? new PublicKey(destinationAddress)
+            const recipient = params.destinationAddress
+                ? new PublicKey(params.destinationAddress)
                 : walletPublicKey
 
             let tx
-            if (sourceAsset.contractAddress) {
+            if (params.sourceAsset.contractAddress && params.sourceAsset.contractAddress !== NATIVE_SOL_ADDRESS) {
                 const { getAssociatedTokenAddress, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
-                const tokenMint = new PublicKey(sourceAsset.contractAddress)
+                const tokenMint = new PublicKey(params.sourceAsset.contractAddress)
                 const [vault] = PublicKey.findProgramAddressSync(
                     [Buffer.from("vault"), hashlockBuffer, indexBuffer],
                     program.programId
@@ -294,23 +269,12 @@ export class SolanaHTLCClient extends HTLCClient {
             program.programId
         )
 
-        // Fetch log data from tx independently — needed even if account isn't indexed yet
-        const logsPromise = params.txId
-            ? this.findUserDataFromLogs(params.txId, id, program)
-            : Promise.resolve({} as { userData?: string; blockTimestamp?: number })
-
         const accountInfo = await this.connection.getAccountInfo(userLockPda)
         if (!accountInfo) {
             const sigs = await this.connection.getSignaturesForAddress(userLockPda, { limit: 1 }).catch(() => [])
             if (!sigs.length) return null
             const closedTx = await this.connection.getTransaction(sigs[0].signature, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 })
-            const PROGRAM_DATA_PREFIX = 'Program data: '
-            const PROGRAM_LOG_PREFIX = 'Program log: '
-            for (const log of closedTx?.meta?.logMessages ?? []) {
-                const isData = log.startsWith(PROGRAM_DATA_PREFIX)
-                if (!isData && !log.startsWith(PROGRAM_LOG_PREFIX)) continue
-                const event = program.coder.events.decode(isData ? log.slice(PROGRAM_DATA_PREFIX.length) : log.slice(PROGRAM_LOG_PREFIX.length))
-                if (!event) continue
+            for (const event of this.parseLogEvents(closedTx?.meta?.logMessages ?? [], program)) {
                 const name = event.name.toLowerCase()
                 if (name === 'userrefunded' || name === 'userredeemed') {
                     return {
@@ -329,7 +293,7 @@ export class SolanaHTLCClient extends HTLCClient {
 
             if (!result) return null
 
-            const { userData, blockTimestamp } = await logsPromise
+            const { userData, blockTimestamp } = params.txId ? await this.findUserDataFromLogs(params.txId, id, program) : {}
 
             const details: LockDetails = {
                 hashlock: `0x${id.replace('0x', '')}`,
@@ -338,7 +302,7 @@ export class SolanaHTLCClient extends HTLCClient {
                 sender: new PublicKey(result.sender).toString(),
                 recipient: new PublicKey(result.recipient).toString(),
                 secret: this.parseSecret(result.secret),
-                token: result.tokenMint && result.tokenMint.toString() !== '11111111111111111111111111111111'
+                token: result.tokenMint && result.tokenMint.toString() !== NATIVE_SOL_ADDRESS
                     ? result.tokenMint.toString()
                     : undefined,
                 status: Number(result.status) as LockStatus,
@@ -381,7 +345,7 @@ export class SolanaHTLCClient extends HTLCClient {
 
                 // Skip empty slots
                 const sender = new PublicKey(result.sender).toString()
-                if (sender === '11111111111111111111111111111111') continue
+                if (sender === NATIVE_SOL_ADDRESS) continue
 
                 // Filter by solver address if provided
                 if (params.solverAddress && sender.toLowerCase() !== params.solverAddress.toLowerCase()) continue
@@ -396,10 +360,10 @@ export class SolanaHTLCClient extends HTLCClient {
                     recipient: new PublicKey(result.recipient).toString(),
                     rewardRecipient: new PublicKey(result.rewardRecipient).toString(),
                     secret: this.parseSecret(result.secret),
-                    token: result.tokenMint && result.tokenMint.toString() !== '11111111111111111111111111111111'
+                    token: result.tokenMint && result.tokenMint.toString() !== NATIVE_SOL_ADDRESS
                         ? result.tokenMint.toString()
                         : undefined,
-                    rewardToken: result.rewardTokenMint && result.rewardTokenMint.toString() !== '11111111111111111111111111111111'
+                    rewardToken: result.rewardTokenMint && result.rewardTokenMint.toString() !== NATIVE_SOL_ADDRESS
                         ? result.rewardTokenMint.toString()
                         : undefined,
                     status: Number(result.status) as LockStatus,
@@ -426,9 +390,7 @@ export class SolanaHTLCClient extends HTLCClient {
     }
 
     private parseSecret(secretBytes: Uint8Array | number[]): bigint | undefined {
-        return Array.from(secretBytes).some(b => b !== 0)
-            ? BigInt(bytesToHex(Array.from(secretBytes)))
-            : undefined
+        return Array.from(secretBytes).some(b => b !== 0) ? BigInt(bytesToHex(Array.from(secretBytes))) : undefined
     }
 
     private buildReadOnlyProvider(publicKey: PublicKey, connection?: Connection): AnchorProvider {
@@ -441,10 +403,22 @@ export class SolanaHTLCClient extends HTLCClient {
     }
 
     private buildProgram(contractAddress: string, readerKey?: PublicKey, connection?: Connection): Program {
-        const pk = readerKey
-            ?? (this.signer ? new PublicKey(this.signer.publicKey) : new PublicKey('11111111111111111111111111111111'))
+        const pk = readerKey ?? (this.signer ? new PublicKey(this.signer.publicKey) : new PublicKey(NATIVE_SOL_ADDRESS))
         const provider = this.buildReadOnlyProvider(pk, connection)
         return new Program(TrainHtlc(contractAddress), provider)
+    }
+
+    private parseLogEvents(logs: string[], program: Program): Array<{ name: string; data: Record<string, unknown> }> {
+        const PROGRAM_DATA_PREFIX = 'Program data: '
+        const PROGRAM_LOG_PREFIX = 'Program log: '
+        const events: Array<{ name: string; data: Record<string, unknown> }> = []
+        for (const log of logs) {
+            const isData = log.startsWith(PROGRAM_DATA_PREFIX)
+            if (!isData && !log.startsWith(PROGRAM_LOG_PREFIX)) continue
+            const event = program.coder.events.decode(isData ? log.slice(PROGRAM_DATA_PREFIX.length) : log.slice(PROGRAM_LOG_PREFIX.length))
+            if (event) events.push(event as { name: string; data: Record<string, unknown> })
+        }
+        return events
     }
 
     private async findUserDataFromLogs(
@@ -469,16 +443,8 @@ export class SolanaHTLCClient extends HTLCClient {
             const blockTimestamp = tx.blockTime ? tx.blockTime * 1000 : undefined
             const logs = tx.meta?.logMessages ?? []
 
-            const PROGRAM_DATA_PREFIX = 'Program data: '
-            const PROGRAM_LOG_PREFIX = 'Program log: '
-            for (const log of logs) {
-                const isData = log.startsWith(PROGRAM_DATA_PREFIX)
-                const isLog = log.startsWith(PROGRAM_LOG_PREFIX)
-                if (!isData && !isLog) continue
-
-                const b64 = isData ? log.slice(PROGRAM_DATA_PREFIX.length) : log.slice(PROGRAM_LOG_PREFIX.length)
-                const event = program.coder.events.decode(b64)
-                if (!event || event.name.toLowerCase() !== 'userlocked') continue
+            for (const event of this.parseLogEvents(logs, program)) {
+                if (event.name.toLowerCase() !== 'userlocked') continue
 
                 const hashlockBytes: number[] = Array.from(event.data.hashlock as number[])
                 const eventHashlock = '0x' + Buffer.from(hashlockBytes).toString('hex')
@@ -497,6 +463,14 @@ export class SolanaHTLCClient extends HTLCClient {
             console.error('Error fetching userData from Solana logs:', e)
             return {}
         }
+    }
+
+    private secretToBuffer(secret: string | bigint): Buffer {
+        if (typeof secret === 'bigint') {
+            const hex = secret.toString(16).padStart(64, '0')
+            return Buffer.from(hex, 'hex')
+        }
+        return Buffer.from(secret.replace('0x', ''), 'hex')
     }
 
 }

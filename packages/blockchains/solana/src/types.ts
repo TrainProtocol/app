@@ -17,3 +17,5 @@ export type SolanaHTLCClientConfig = {
     /** Required for revealSecret; may be omitted for read-only / gas-estimation use. */
     apiClient?: BaseHTLCClientConfig['apiClient']
 }
+
+export const NATIVE_SOL_ADDRESS = '11111111111111111111111111111111'

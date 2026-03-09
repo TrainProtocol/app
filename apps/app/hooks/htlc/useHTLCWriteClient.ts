@@ -23,7 +23,7 @@ export function useHTLCWriteClient() {
     const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
     const { wallet: aztecWallet, accountAddress: aztecAccountAddress } = useAztecWalletContext()
     const { connection: solanaConnection } = useConnection()
-    const { publicKey: solanaPublicKey, sendTransaction: solanaSendTransaction } = useWallet()
+    const { wallets: solanaWallets } = useWallet()
 
     return useCallback(async (network: Network, wallet?: Wallet): Promise<IHTLCClient> => {
         const chainType = network.caip2Id.split(':')[0]
@@ -32,13 +32,15 @@ export function useHTLCWriteClient() {
         // Solana chain path
         if (chainType === 'solana') {
             let signer: SolanaSigner | undefined
-            if (solanaPublicKey && solanaSendTransaction) {
+            const connectedWallet = solanaWallets.find(w => w.adapter.connected)
+            const connectedPublicKey = connectedWallet?.adapter.publicKey
+            if (connectedWallet && connectedPublicKey) {
                 signer = {
-                    publicKey: solanaPublicKey.toBase58(),
-                    sendTransaction: async (tx) => solanaSendTransaction(tx as any, solanaConnection),
+                    publicKey: connectedPublicKey.toBase58(),
+                    sendTransaction: async (tx) => connectedWallet.adapter.sendTransaction(tx as any, solanaConnection),
                 }
             } else {
-                console.error('[useHTLCWriteClient] Solana signer unavailable', { hasPubkey: !!solanaPublicKey, hasSendTx: !!solanaSendTransaction })
+                console.error('[useHTLCWriteClient] Solana signer unavailable', { hasPubkey: !!connectedPublicKey })
             }
             return createClient(chainType, { rpcUrl, signer, apiClient })
         }
@@ -114,5 +116,5 @@ export function useHTLCWriteClient() {
         }
 
         return createClient(chainType, { rpcUrl, signer, apiClient })
-    }, [config, getEffectiveRpcUrls, aztecWallet, aztecAccountAddress, solanaPublicKey, solanaSendTransaction, solanaConnection])
+    }, [config, getEffectiveRpcUrls, aztecWallet, aztecAccountAddress, solanaWallets, solanaConnection])
 }

@@ -24,7 +24,8 @@ const OptionSelect = ({ onPasskeyLogin, goToStep, onConnectFinish }: {
     const selectWallet = async () => {
         if (connectedWallets.length < 1) {
             const wallet = await connect();
-            if (wallet && getRegisteredWalletSignProviders().includes(wallet.providerName?.toLowerCase() ?? '')) {
+            const provider = providers.find(p => p.name === wallet?.providerName)
+            if (wallet && provider && getRegisteredWalletSignProviders().includes(provider.id.toLowerCase())) {
                 onConnectFinish(wallet);
                 return;
             }

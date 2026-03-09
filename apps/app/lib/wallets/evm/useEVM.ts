@@ -158,7 +158,7 @@ export default function useEVM(): WalletProvider {
                     installUrl: walletConnectWallet?.installUrl,
                     hasBrowserExtension: walletConnectWallet?.hasBrowserExtension,
                     extensionNotFound: walletConnectWallet?.hasBrowserExtension ? (type == 'walletConnect' && !isMobilePlatform) : false,
-                    providerName: id
+                    providerName: name
                 }
             })
     }, [allConnectors, walletConnectConnectors])
@@ -276,7 +276,7 @@ export default function useEVM(): WalletProvider {
                     autofill: autofillSupportedNetworks,
                     withdrawal: withdrawalSupportedNetworks
                 },
-                providerName: id
+                providerName: name
             })
 
             return wallet
@@ -310,7 +310,7 @@ export default function useEVM(): WalletProvider {
                     autofill: autofillSupportedNetworks,
                     withdrawal: withdrawalSupportedNetworks
                 },
-                providerName: id
+                providerName: name
             })
 
             return wallet

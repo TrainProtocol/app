@@ -1,28 +1,12 @@
 import { Connection, PublicKey, Transaction } from "@solana/web3.js"
 import { BN, Idl, Program } from "@coral-xyz/anchor"
+import { UserLockParams as SdkUserLockParams } from '@train-protocol/sdk'
+import { NATIVE_SOL_ADDRESS } from './types.js'
 
-export type UserLockParams = {
+export type UserLockParams = SdkUserLockParams & {
     connection: Connection
     program: Program<Idl>
     walletPublicKey: PublicKey
-    hashlock: Buffer
-    sourceChain: string
-    destinationChain: string
-    destinationAsset: string
-    destinationAddress: string
-    destinationAmount: string
-    lpAddress: string
-    sourceAsset: { symbol: string; contractAddress?: string | null }
-    amount: string
-    decimals: number
-    timelockDelta: number
-    quoteExpiry: number
-    rewardAmount: string
-    rewardToken: string
-    rewardRecipient: string
-    rewardTimelockDelta: number
-    solverData?: string
-    nonce?: number
 }
 
 export type TransactionResult = {
@@ -41,27 +25,22 @@ function toBaseUnits(amount: string, decimals: number): BN {
 }
 
 export const userLockTransactionBuilder = async (params: UserLockParams): Promise<TransactionResult> => {
-    const {
-        connection, program, walletPublicKey, hashlock,
-        sourceChain, destinationChain, destinationAsset, destinationAddress, destinationAmount,
-        lpAddress, sourceAsset, amount, decimals,
-        timelockDelta, quoteExpiry, rewardAmount, rewardToken, rewardRecipient, rewardTimelockDelta,
-        solverData, nonce,
-    } = params
+    const { connection, program, walletPublicKey } = params
 
     if (!walletPublicKey) throw new Error("Wallet not connected")
-    if (!lpAddress) throw new Error("No LP address")
+    if (!params.srcLpAddress) throw new Error("No LP address")
 
-    const bnAmount = toBaseUnits(amount, decimals)
-    const bnDstAmount = toBaseUnits(destinationAmount, decimals)
-    const bnRewardAmount = toBaseUnits(rewardAmount || '0', decimals)
-    const bnTimelockDelta = new BN(timelockDelta)
-    const bnRewardTimelockDelta = new BN(rewardTimelockDelta)
-    const bnQuoteExpiry = new BN(quoteExpiry)
-    const lpPublicKey = new PublicKey(lpAddress)
+    const hashlock = Buffer.from(params.hashlock.replace('0x', ''), 'hex')
+    const bnAmount = toBaseUnits(params.amount, params.decimals)
+    const bnDstAmount = toBaseUnits(params.destinationAmount, params.decimals)
+    const bnRewardAmount = toBaseUnits(params.rewardAmount || '0', params.decimals)
+    const bnTimelockDelta = new BN(params.timelockDelta || 0)
+    const bnRewardTimelockDelta = new BN(params.rewardTimelockDelta || 0)
+    const bnQuoteExpiry = new BN(params.quoteExpiry)
+    const lpPublicKey = new PublicKey(params.srcLpAddress)
     const hashlockArray = Array.from(hashlock)
-    const userData = nonce != null ? Buffer.from(nonce.toString(), 'utf8') : Buffer.from([])
-    const solverDataBytes = solverData ? Buffer.from(solverData, 'utf8') : Buffer.from([])
+    const userData = params.nonce != null ? Buffer.from(params.nonce.toString(), 'utf8') : Buffer.from([])
+    const solverDataBytes = params.solverData ? Buffer.from(params.solverData, 'utf8') : Buffer.from([])
 
     const [userLockPda] = PublicKey.findProgramAddressSync(
         [Buffer.from("user_lock"), hashlock],
@@ -70,9 +49,9 @@ export const userLockTransactionBuilder = async (params: UserLockParams): Promis
 
     const tx = new Transaction()
 
-    if (sourceAsset.contractAddress) {
+    if (params.sourceAsset.contractAddress && params.sourceAsset.contractAddress !== NATIVE_SOL_ADDRESS) {
         const { getAssociatedTokenAddress, TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
-        const tokenMint = new PublicKey(sourceAsset.contractAddress)
+        const tokenMint = new PublicKey(params.sourceAsset.contractAddress)
         const senderTokenAccount = await getAssociatedTokenAddress(tokenMint, walletPublicKey)
         const [vault] = PublicKey.findProgramAddressSync(
             [Buffer.from("vault"), hashlock],
@@ -84,9 +63,9 @@ export const userLockTransactionBuilder = async (params: UserLockParams): Promis
                 hashlockArray,
                 bnAmount, bnTimelockDelta, bnQuoteExpiry,
                 walletPublicKey, lpPublicKey,
-                sourceChain, destinationChain, destinationAddress,
-                bnDstAmount, destinationAsset,
-                bnRewardAmount, rewardToken, rewardRecipient, bnRewardTimelockDelta,
+                params.sourceChain, params.destinationChain, params.destinationAddress,
+                bnDstAmount, params.destinationAsset,
+                bnRewardAmount, params.rewardToken ?? '', params.rewardRecipient ?? '', bnRewardTimelockDelta,
                 userData, solverDataBytes
             )
             .accounts({
@@ -106,9 +85,9 @@ export const userLockTransactionBuilder = async (params: UserLockParams): Promis
                 hashlockArray,
                 bnAmount, bnTimelockDelta, bnQuoteExpiry,
                 walletPublicKey, lpPublicKey,
-                sourceChain, destinationChain, destinationAddress,
-                bnDstAmount, destinationAsset,
-                bnRewardAmount, rewardToken, rewardRecipient, bnRewardTimelockDelta,
+                params.sourceChain, params.destinationChain, params.destinationAddress,
+                bnDstAmount, params.destinationAsset,
+                bnRewardAmount, params.rewardToken ?? '', params.rewardRecipient ?? '', bnRewardTimelockDelta,
                 userData, solverDataBytes
             )
             .accounts({

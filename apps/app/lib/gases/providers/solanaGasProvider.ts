@@ -60,14 +60,14 @@ async function estimateSolanaGas(params: {
         connection,
         program,
         walletPublicKey,
-        hashlock: Buffer.alloc(32),
+        hashlock: '0x' + Buffer.alloc(32).toString('hex'),
         sourceChain: 'solana',
         destinationChain: 'eip155:1',
         destinationAsset: 'ETH',
         destinationAddress: params.address,
         destinationAmount: '1',
-        lpAddress: 'bD5zQpd6RkbNJDtW7cBf1mw6wHzFxZ71wPCMwAmMh6n',
-        sourceAsset: { symbol: params.tokenSymbol, contractAddress: params.tokenContractAddress },
+        srcLpAddress: 'bD5zQpd6RkbNJDtW7cBf1mw6wHzFxZ71wPCMwAmMh6n',
+        sourceAsset: { symbol: params.tokenSymbol, contractAddress: params.tokenContractAddress ?? '', decimals: params.decimals },
         amount: '1',
         decimals: params.decimals,
         timelockDelta: 69,
@@ -76,7 +76,7 @@ async function estimateSolanaGas(params: {
         rewardToken: '',
         rewardRecipient: '',
         rewardTimelockDelta: 34,
-    })
+    } as any)
 
     const message = transaction.compileMessage()
     const result = await connection.getFeeForMessage(message)

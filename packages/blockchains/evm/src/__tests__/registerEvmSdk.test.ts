@@ -19,15 +19,15 @@ describe('registerEvmSdk', () => {
         registerEvmSdk()
     })
 
-    it('registers the eip155 HTLC client', () => {
+    it('registers the evm HTLC client', () => {
         expect(getRegisteredNamespaces()).toContain('eip155')
     })
 
-    it('registers the eip155 wallet-sign provider', () => {
+    it('registers the evm wallet-sign provider', () => {
         expect(getRegisteredWalletSignProviders()).toContain('eip155')
     })
 
-    it('createHTLCClient works for eip155 after registration', () => {
+    it('createHTLCClient works for evm after registration', () => {
         const client = createHTLCClient('eip155', { rpcUrl: 'https://example.com', apiClient: mockApiClient })
         expect(client).toBeDefined()
         expect(typeof client.getUserLockDetails).toBe('function')
@@ -37,7 +37,7 @@ describe('registerEvmSdk', () => {
         expect(typeof client.redeemSolver).toBe('function')
     })
 
-    it('deriveKeyFromWallet is callable for eip155 after registration', async () => {
+    it('deriveKeyFromWallet is callable for evm after registration', async () => {
         // We can't fully exercise wallet signing without a real EIP-1193 provider,
         // but we verify the factory is wired up (it rejects with a provider error,
         // not a "no wallet sign registered" error).
@@ -58,7 +58,7 @@ describe('registerEvmSdk', () => {
         // Call again — should be a no-op
         expect(() => registerEvmSdk()).not.toThrow()
 
-        // Still only one eip155 entry (Map.set overwrites, but the guard prevents even that)
+        // Still only one evm entry (Map.set overwrites, but the guard prevents even that)
         const namespaces = getRegisteredNamespaces().filter(ns => ns === 'eip155')
         expect(namespaces).toHaveLength(1)
     })

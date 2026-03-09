@@ -5,7 +5,7 @@ import { deriveKeyFromEvmSignature } from '@/lib/htlc/secretDerivation/walletSig
 import { deriveKeyFromWallet } from '@train-protocol/sdk'
 import { deriveKeyFromStarknetSignature } from '@/lib/htlc/secretDerivation/walletSign/starknet'
 import useWallet from '@/hooks/useWallet'
-import { useSolanaWalletRef } from '@/lib/wallets/solana/useSolanaWalletRef'
+import { useSolanaWalletStore } from '@/stores/solanaWalletStore'
 interface WalletLoginContextValue {
   deriveKey: (providerName: string, address: string) => Promise<Buffer>
 }
@@ -16,13 +16,12 @@ export function WalletLoginProvider({ children }: { children: ReactNode }) {
   const evmConfig = useConfig()
   const { getWallet: getAztecWallet } = useAztecWalletContext()
   const { wallets } = useWallet()
-  const solanaWalletRef = useSolanaWalletRef()
 
   const deriveKey = useCallback(
     async (providerName: string, address: string): Promise<Buffer> => {
       const provider = providerName.toLowerCase()
 
-      if (provider === 'eip155') {
+      if (provider === 'evm') {
         return deriveKeyFromEvmSignature(evmConfig, address as `0x${string}`)
       }
 
@@ -44,9 +43,8 @@ export function WalletLoginProvider({ children }: { children: ReactNode }) {
       }
 
       if (provider === 'solana') {
-        const { signMessage, connected } = solanaWalletRef.current
-        if (!connected) throw new Error('Solana wallet is not connected')
-        if (!signMessage) throw new Error('Solana wallet does not support message signing')
+        const signMessage = useSolanaWalletStore.getState().signMessage
+        if (!signMessage) throw new Error('Solana wallet is not connected')
         return deriveKeyFromWallet('solana', { wallet: { signMessage } })
       }
 
