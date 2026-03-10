@@ -8,7 +8,7 @@ export default class KnownInternalNames {
 
         public static readonly AztecDevnet: string = "aztec:aztec-devnet"
 
-        public static readonly SolanaDevnet: string = "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1";
+        public static readonly SolanaDevnet: string = "solana:devnet";
 
         public static readonly CronosMainnet: string = "CRONOS_MAINNET";
 

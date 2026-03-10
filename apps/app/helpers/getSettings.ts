@@ -87,15 +87,15 @@ export async function getServerSideProps(context) {
             caip2Id: KnownInternalNames.Networks.SolanaDevnet,
             displayName: "Solana Devnet",
             chainId: 'devnet',
-            nativeTokenAddress: null,
+            nativeTokenAddress: '11111111111111111111111111111111',
             type: { name: "solana" },
             logoUrl: 'https://raw.githubusercontent.com/TrainProtocol/icons/main/networks/solana.png',
             tokens: [{
                 symbol: "SOL",
-                contractAddress: null,
+                contractAddress: '11111111111111111111111111111111',
                 decimals: 9,
-                priceInUsd: prices["solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:So11111111111111111111111111111111111111112"]
-                    ?? prices["SOLANA_MAINNET:So11111111111111111111111111111111111111112"]
+                priceInUsd: prices["solana:devnet:11111111111111111111111111111111"]
+                    ?? prices["solana:devnet:11111111111111111111111111111111"]
                     ?? 150,
             }],
             nodes: solanaMock?.nodes ?? [],
