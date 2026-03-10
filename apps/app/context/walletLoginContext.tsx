@@ -38,14 +38,13 @@ export function WalletLoginProvider({ children }: { children: ReactNode }) {
       if (provider === 'starknet') {
         const starknetWallet = wallets.find(wallet => wallet.providerName === 'Starknet')
         const starknetAccount = starknetWallet?.metadata?.starknetAccount
-        console.log('starknetAccount', starknetAccount)
         if (!starknetAccount) throw new Error('Starknet account required for Starknet wallets')
         return deriveKeyFromStarknetSignature(starknetAccount, address)
       }
 
       if (provider === 'solana') {
         const connectedAdapter = solanaAdapterWallets.find(w => w.adapter.connected)?.adapter
-        const signMessage = connectedAdapter && 'signMessage' in connectedAdapter ? (msg: Uint8Array) => (connectedAdapter as any).signMessage(msg) : undefined
+        const signMessage = connectedAdapter && 'signMessage' in connectedAdapter ? (msg: Uint8Array) => connectedAdapter.signMessage(msg) : undefined
         if (!signMessage) throw new Error('Solana wallet is not connected')
         return deriveKeyFromWallet('solana', { wallet: { signMessage } })
       }

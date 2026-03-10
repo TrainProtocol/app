@@ -269,7 +269,7 @@ export class SolanaHTLCClient extends HTLCClient {
                 }
             } catch (e) {
                 console.error('Error fetching Solana solver lock details:', e)
-                return null
+                continue
             }
         }
 
