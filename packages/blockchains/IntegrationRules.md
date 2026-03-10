@@ -1,6 +1,6 @@
 # Chain SDK Integration Rules
 
-Rules and patterns for adding new blockchain HTLC client SDKs. Derived from `evm` and `aztec` implementations.
+Rules and patterns for adding new blockchain HTLC client SDKs. Derived from `evm`, `starknet`, `solana`, and `aztec` implementations.
 
 ---
 
@@ -74,12 +74,30 @@ Chain-specific libraries go in `dependencies`. The base SDK is always a `peerDep
 
 ---
 
-## 3. types.ts — Signer & Config
+## 3. types.ts — Signer, Config & Registry Augmentation
 
-Every SDK defines a **Signer** interface and a **Config** type:
+Every SDK defines a **Signer** interface, a **Config** type, a **WalletSignConfig** type, and augments the SDK registry maps via declaration merging:
 
 ```ts
 import type { BaseHTLCClientConfig } from '@train-protocol/sdk'
+import type { {Chain}WalletLike } from './login/index.js'
+
+// Augment the SDK registry so the factory callbacks are fully typed.
+// This eliminates all `as` casts in index.ts.
+declare module '@train-protocol/sdk' {
+    interface HTLCClientConfigMap {
+        {namespace}: {Chain}HTLCClientConfig
+    }
+    interface WalletSignConfigMap {
+        {namespace}: {Chain}WalletSignConfig
+    }
+}
+
+// Config passed to deriveKeyFromWallet('{namespace}', config).
+export type {Chain}WalletSignConfig = {
+    wallet: {Chain}WalletLike
+    // Add address / options if the chain's key derivation needs them.
+}
 
 // Signer wraps the chain's wallet/signing mechanism.
 // Must expose the address and a way to send transactions.
@@ -247,10 +265,12 @@ Fetch transaction + receipt, parse the `UserLocked` event from logs, return `Rec
 
 ## 7. index.ts — Registration & Exports
 
+Because `types.ts` augments `HTLCClientConfigMap` and `WalletSignConfigMap`, the factory callbacks receive fully-typed configs — no `as` casts needed.
+
 ```ts
 import { registerHTLCClient, registerWalletSign } from '@train-protocol/sdk'
-import { {Chain}HTLCClient } from './client'
-import { deriveKeyFrom{Chain}Wallet } from './login/index'
+import { {Chain}HTLCClient } from './client.js'
+import { deriveKeyFrom{Chain}Wallet } from './login/index.js'
 
 let registered = false
 
@@ -258,21 +278,20 @@ export function register{Chain}Sdk(): void {
     if (registered) return   // Idempotent guard
     registered = true
 
-    registerHTLCClient('{namespace}', (config) => new {Chain}HTLCClient({
-        rpcUrl: config.rpcUrl as string,
-        signer: config.signer as {Chain}Signer | undefined,
-        apiClient: config.apiClient,
-    }))
+    // config is typed as {Chain}HTLCClientConfig — no casts required
+    registerHTLCClient('{namespace}', (config) => new {Chain}HTLCClient(config))
 
+    // config is typed as {Chain}WalletSignConfig — no casts required
     registerWalletSign('{namespace}', async (config) => {
-        return deriveKeyFrom{Chain}Wallet(/* chain-specific params from config */)
+        return deriveKeyFrom{Chain}Wallet(config.wallet)
     })
 }
 
 // Public exports
-export { {Chain}HTLCClient } from './client'
-export type { {Chain}HTLCClientConfig, {Chain}Signer } from './types'
-export { deriveKeyFrom{Chain}Wallet } from './login/index'
+export { {Chain}HTLCClient } from './client.js'
+export type { {Chain}HTLCClientConfig, {Chain}Signer, {Chain}WalletSignConfig } from './types.js'
+export { deriveKeyFrom{Chain}Wallet } from './login/index.js'
+export type { {Chain}WalletLike } from './login/index.js'
 ```
 
 The `{namespace}` is the chain identifier used in the registry (e.g., `'eip155'` for EVM, `'aztec'` for Aztec).
@@ -405,13 +424,17 @@ const ZERO_ADDRESS = '0x000...'     // Chain's empty/zero address representation
 ## Summary Checklist for New Chain SDK
 
 - [ ] Create `packages/{chain}/` with the directory structure above
-- [ ] Define `{Chain}Signer` interface and `{Chain}HTLCClientConfig` in `types.ts`
+- [ ] In `types.ts`:
+  - [ ] Define `{Chain}Signer` interface and `{Chain}HTLCClientConfig` type
+  - [ ] Define `{Chain}WalletSignConfig` type
+  - [ ] Add `declare module '@train-protocol/sdk'` augmentation for `HTLCClientConfigMap` and `WalletSignConfigMap`
 - [ ] Implement `{Chain}HTLCClient extends HTLCClient` in `client.ts`
 - [ ] Follow function ordering: writes → reads → private helpers
 - [ ] Implement count-then-loop pattern in `_getSolverLockDetails` (1-indexed, single-node version)
+- [ ] Define `{Chain}WalletLike` minimal interface in `login/wallet-sign.ts`
 - [ ] Implement key derivation in `login/wallet-sign.ts` using `deriveKeyMaterial` + `IDENTITY_SALT`
-- [ ] Create idempotent `register{Chain}Sdk()` in `index.ts`
-- [ ] Export: registration fn, client class, config type, signer type, key derivation fn
+- [ ] Create idempotent `register{Chain}Sdk()` in `index.ts` — pass config directly (no `as` casts)
+- [ ] Export: registration fn, client class, config type, signer type, wallet sign config type, key derivation fn, wallet-like type
 - [ ] Use shared SDK utils (`parseUnits`, `formatUnits`, `hexToBytes`, etc.)
 - [ ] Add registration test in `__tests__/`
 - [ ] Add contract ABI/artifacts in `abis/` or `artifacts/`
