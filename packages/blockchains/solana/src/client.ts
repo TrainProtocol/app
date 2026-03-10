@@ -69,8 +69,7 @@ export class SolanaHTLCClient extends HTLCClient {
             ...params,
             connection: this.connection,
             program,
-            walletPublicKey,
-            quoteExpiry: params.quoteExpiry ?? Math.floor(Date.now() / 1000) + 86400,
+            walletPublicKey
         })
 
         let signature: string
@@ -92,7 +91,7 @@ export class SolanaHTLCClient extends HTLCClient {
             throw new Error(res.value.err.toString())
         }
 
-        return { hash: signature, hashlock: params.hashlock }
+        return { hash: signature, hashlock: params.hashlock, nonce: params.nonce }
     }
 
     async refund(params: RefundParams): Promise<string> {
