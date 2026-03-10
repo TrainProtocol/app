@@ -79,6 +79,31 @@ export async function getServerSideProps(context) {
         } as any)
     }
 
+    // Inject Solana devnet if the API doesn't return it
+    const hasSolanaDevnet = resolvedNetworks.some(n => n.caip2Id === KnownInternalNames.Networks.SolanaDevnet)
+    if (!hasSolanaDevnet) {
+        const solanaMock = mockData.data.find(n => n.caip2Id === KnownInternalNames.Networks.SolanaDevnet)
+        resolvedNetworks.push({
+            caip2Id: KnownInternalNames.Networks.SolanaDevnet,
+            displayName: "Solana Devnet",
+            chainId: 'devnet',
+            nativeTokenAddress: null,
+            type: { name: "solana" },
+            logoUrl: 'https://raw.githubusercontent.com/TrainProtocol/icons/main/networks/solana.png',
+            tokens: [{
+                symbol: "SOL",
+                contractAddress: null,
+                decimals: 9,
+                priceInUsd: prices["solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:So11111111111111111111111111111111111111112"]
+                    ?? prices["SOLANA_MAINNET:So11111111111111111111111111111111111111112"]
+                    ?? 150,
+            }],
+            nodes: solanaMock?.nodes ?? [],
+            contracts: (solanaMock?.contracts as NetworkContract[]) ?? [],
+            metadata: [],
+        } as any)
+    }
+
     const settings = {
         networks: resolvedNetworks,
     }
@@ -180,6 +205,22 @@ const mockData = {
                 {
                     "type": "Train",
                     "address": "0x2b9192d4571cceb33c689f750bcf380a7baae350846cc55616a278523cfd0dfc"
+                }
+            ],
+        },
+        {
+            "caip2Id": KnownInternalNames.Networks.SolanaDevnet,
+            "nodes": [
+                {
+                    "providerName": "solana-devnet",
+                    "url": "https://api.devnet.solana.com",
+                    "protocol": "Http"
+                }
+            ],
+            "contracts": [
+                {
+                    "type": "Train",
+                    "address": "6zasug6x5AY93zNVjPZPGoqQfdTBd3C1w6CU9NDKtNH8"
                 }
             ],
         }

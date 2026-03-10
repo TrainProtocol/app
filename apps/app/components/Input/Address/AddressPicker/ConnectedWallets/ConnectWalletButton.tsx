@@ -25,7 +25,7 @@ const ConnectWalletButton: FC<Props> = ({ provider, onConnect }) => {
         <button typeof="button" onClick={handleConnect} type="button" className={`py-5 px-6 bg-secondary-700 hover:bg-secondary-600 transition-colors duration-200 rounded-xl ${isLoading && 'cursor-progress opacity-80'}`}>
             <div className="flex flex-row justify-between gap-9 items-stretch">
                 <ResolveConnectorIcon
-                    connector={provider.name}
+                    connector={provider.id}
                     iconClassName="w-10 h-10 p-0.5 rounded-lg bg-secondary-800 border border-secondary-400"
                     className="grid grid-cols-2 gap-1 min-w-fit"
                 />

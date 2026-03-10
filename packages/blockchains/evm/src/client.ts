@@ -9,12 +9,14 @@ import {
     AtomicResult,
     RecoveredSwapData,
     HTLCClient,
+    parseUnits,
+    formatUnits,
+    toHex32
 } from '@train-protocol/sdk'
 import { htlcFunctions, htlcEvents, erc20Functions } from './abi.js'
 import { JsonRpcClient } from './rpc.js'
-import { parseUnits, formatUnits, toHex32 } from '@train-protocol/sdk'
-import { waitForReceipt } from './utils.js'
-import type { EvmHTLCClientConfig, EvmSigner, RpcLog } from './types.js'
+import type { EvmHTLCClientConfig, EvmSigner, RpcLog, RpcTransactionReceipt } from './types.js'
+import { ZERO_ADDRESS } from './constants.js'
 
 export class EvmHTLCClient extends HTLCClient {
     private rpc: JsonRpcClient
@@ -31,29 +33,11 @@ export class EvmHTLCClient extends HTLCClient {
     async userLock(params: UserLockParams): Promise<AtomicResult> {
         const signer = this.requireSigner()
         const {
-            destinationChain,
-            sourceChain,
-            destinationAsset,
             sourceAsset,
-            srcLpAddress: lpAddress,
-            sourceAddress,
-            destinationAddress,
-            amount,
-            decimals,
-            atomicContract,
-            quoteExpiry,
-            rewardToken,
-            rewardRecipient,
-            rewardAmount,
-            rewardTimelockDelta,
-            solverData,
-            destinationAmount,
-            timelockDelta,
-            hashlock,
-            nonce: timestamp,
+            sourceAddress
         } = params
 
-        const parsedAmount = parseUnits(amount.toString(), decimals)
+        const parsedAmount = parseUnits(params.amount.toString(), params.decimals)
         const tokenAddress = sourceAsset.contractAddress || ZERO_ADDRESS
         const isNativeToken = !sourceAsset.contractAddress || sourceAsset.contractAddress === ZERO_ADDRESS
 
@@ -61,53 +45,53 @@ export class EvmHTLCClient extends HTLCClient {
             await this.ensureERC20Allowance(
                 sourceAsset.contractAddress!,
                 sourceAddress,
-                atomicContract,
+                params.atomicContract,
                 parsedAmount,
                 signer,
             )
         }
 
-        const userData = toHex32(BigInt(timestamp))
+        const userData = toHex32(BigInt(params.nonce))
         const calldata = AbiFunction.encodeData(htlcFunctions.userLock, [
             {
-                hashlock: hex(hashlock),
+                hashlock: hex(params.hashlock),
                 amount: parsedAmount,
-                rewardAmount: rewardAmount || 0n,
-                timelockDelta,
-                rewardTimelockDelta: rewardTimelockDelta ?? 0,
-                quoteExpiry,
-                sender: hex(sourceAddress),
-                recipient: hex(lpAddress),
+                rewardAmount: params.rewardAmount || 0n,
+                timelockDelta: params.timelockDelta,
+                rewardTimelockDelta: params.rewardTimelockDelta ?? 0,
+                quoteExpiry: params.quoteExpiry,
+                sender: hex(params.sourceAddress),
+                recipient: hex(params.srcLpAddress),
                 token: hex(tokenAddress),
-                rewardToken: rewardToken ?? '',
-                rewardRecipient: rewardRecipient ?? '',
-                srcChain: sourceChain || '',
+                rewardToken: params.rewardToken ?? '',
+                rewardRecipient: params.rewardRecipient ?? '',
+                srcChain: params.sourceChain || '',
             },
             {
-                dstChain: destinationChain,
-                dstAddress: destinationAddress,
-                dstAmount: destinationAmount,
-                dstToken: destinationAsset,
+                dstChain: params.destinationChain,
+                dstAddress: params.destinationAddress,
+                dstAmount: params.destinationAmount,
+                dstToken: params.destinationAsset,
             },
             hex(userData),
-            hex(solverData || '0x'),
+            hex(params.solverData || '0x'),
         ])
 
         try {
             await this.rpc.ethCall(
-                atomicContract,
+                params.atomicContract,
                 calldata,
                 sourceAddress,
                 isNativeToken ? parsedAmount : undefined,
             )
 
             const hash = await signer.sendTransaction({
-                to: atomicContract,
+                to: params.atomicContract,
                 data: calldata,
                 value: isNativeToken ? parsedAmount : undefined,
             })
 
-            return { hash, hashlock, nonce: timestamp };
+            return { hash, hashlock: params.hashlock, nonce: params.nonce };
         } catch (error) {
             console.error('Error in userLock:', error);
             throw error;
@@ -284,7 +268,29 @@ export class EvmHTLCClient extends HTLCClient {
 
         const approveData = AbiFunction.encodeData(erc20Functions.approve, [hex(spender), requiredAmount])
         const approveHash = await signer.sendTransaction({ to: tokenAddress, data: approveData })
-        await waitForReceipt(this.rpc, approveHash)
+        await this.waitForReceipt(this.rpc, approveHash)
+    }
+
+    private async waitForReceipt(
+        rpc: JsonRpcClient,
+        txHash: string,
+        options?: { timeout?: number; interval?: number }
+    ): Promise<RpcTransactionReceipt> {
+        const timeout = options?.timeout ?? 120_000
+        const interval = options?.interval ?? 2_000
+        const start = Date.now()
+    
+        while (Date.now() - start < timeout) {
+            const receipt = await rpc.getTransactionReceipt(txHash)
+            if (receipt) {
+                if (receipt.status === '0x0') {
+                    throw new Error(`Transaction reverted: ${txHash}`)
+                }
+                return receipt
+            }
+            await new Promise(r => setTimeout(r, interval))
+        }
+        throw new Error(`Transaction receipt timeout after ${timeout}ms: ${txHash}`)
     }
 
     private findUserLockedEvent(logs: RpcLog[], matchHashlock?: string): Record<string, unknown> | null {
@@ -308,5 +314,3 @@ export class EvmHTLCClient extends HTLCClient {
 
 type Hex = `0x${string}`
 const hex = (v: string): Hex => v as Hex
-
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
