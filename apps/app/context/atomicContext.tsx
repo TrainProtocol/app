@@ -63,9 +63,20 @@ export function AtomicProvider({ children }) {
     const router = useRouter()
     const { networks } = useSettingsState()
 
-    const activeHashlockFromStore = useSwapStore(s => s.activeHashlock)
-    const activeHashlock = activeHashlockFromStore ?? router.query.hashlock as string | undefined
+    const activeHashlock = useSwapStore(s => s.activeHashlock)
     const updateSwap = useSwapStore(s => s.updateSwap)
+    const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
+    const swaps = useSwapStore(s => s.swaps)
+
+    useEffect(() => {
+        const hashlockFromUrl = router.query.hashlock as string | undefined
+        if (!hashlockFromUrl || activeHashlock) return
+
+        const swap = swaps[hashlockFromUrl]
+        if (swap && !isTerminalStatus(swap.status)) {
+            setActiveHashlock(hashlockFromUrl)
+        }
+    }, [router.query.hashlock, activeHashlock, swaps, setActiveHashlock])
 
     const tempSwap = useSwapStore(s => s.tempSwap)
     const commitSwap = useSwapStore(s => s.commitSwap)
