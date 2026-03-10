@@ -9,7 +9,7 @@ pnpm dev              # Start Next.js dev server (apps/app)
 pnpm build            # Build SDK packages first, then the app
 pnpm build:sdk        # Build @train-protocol/sdk only
 pnpm build:packages   # Build all packages
-pnpm lint             # ESLint (next lint on apps/app)
+pnpm --filter train-app lint  # ESLint (next lint on apps/app)
 
 # SDK development
 pnpm --filter @train-protocol/sdk dev    # Watch mode for SDK
@@ -23,6 +23,7 @@ No test runner is configured. Node.js >=20.9.0 required. Package manager: pnpm 1
 **Monorepo** (pnpm workspaces):
 - `apps/app` — Next.js 15 frontend (Pages Router, not App Router)
 - `packages/sdk` — `@train-protocol/sdk`: core HTLC protocol logic, API client, lock verification
+- `packages/blockchains/` — chain-specific HTLC client implementations (`evm`, `solana`, `starknet`, `aztec`)
 
 **What the app does**: Cross-chain atomic swaps using HTLC (Hash Time-Locked Contracts). Users lock funds on a source chain, a solver locks on the destination chain, then secrets are revealed to complete the swap. EVM is the primary chain; Solana, Starknet, TON, Aztec support is in progress.
 
@@ -31,7 +32,7 @@ No test runner is configured. Node.js >=20.9.0 required. Package manager: pnpm 1
 - **React Context** (`apps/app/context/`): `atomicContext` (HTLC contract interactions), `secretDerivationContext`, `swapAccounts` (wallet/account handling), `formWizardProvider` (multi-step forms), `evmConnectorsContext`
 
 ### API Layer — Station API
-All in `apps/app/lib/trainApiClient.ts`. Uses SSE for streaming:
+`apps/app/lib/trainApiClient.ts` is a thin wrapper delegating to `@train-protocol/sdk`'s `TrainApiClient`. Uses SSE for streaming:
 - `GET /api/v1/quote/stream` — quote streaming (events: `quote`, `done`)
 - `GET /api/v1/orders/{solverId}/{hashlock}/stream` — order status streaming
 - `POST /api/v1/orders/{solverId}/{hashlock}/reveal-secret` — reveal secret to solver
@@ -47,8 +48,8 @@ All in `apps/app/lib/trainApiClient.ts`. Uses SSE for streaming:
 Key files:
 - `apps/app/lib/abis/atomic/EVM_HTLC.json` — unified EVM ABI
 - `apps/app/lib/htlc/` — HTLC client creation
-- `packages/sdk/src/htlc-clients/` — chain-specific HTLC implementations
-- `apps/app/lib/wallets/utils/atomicHelpers.ts` — shared utilities (`generateRandomId`, `toHexString`, `assertWalletConnected`)
+- `packages/blockchains/{evm,solana,starknet,aztec}/src/client.ts` — chain-specific HTLC implementations
+- `apps/app/lib/wallets/utils/atomicTypes.ts` — chain-specific wallet/atomic interfaces
 
 ### Secret & Nonce
 - Secret derived from: `deriveInitialKey()` + `deriveSecretFromTimelock(key, nonce)`
