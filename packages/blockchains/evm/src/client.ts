@@ -15,8 +15,7 @@ import {
 } from '@train-protocol/sdk'
 import { htlcFunctions, htlcEvents, erc20Functions } from './abi.js'
 import { JsonRpcClient } from './rpc.js'
-import { waitForReceipt } from './utils.js'
-import type { EvmHTLCClientConfig, EvmSigner, RpcLog } from './types.js'
+import type { EvmHTLCClientConfig, EvmSigner, RpcLog, RpcTransactionReceipt } from './types.js'
 import { ZERO_ADDRESS } from './constants.js'
 
 export class EvmHTLCClient extends HTLCClient {
@@ -269,7 +268,29 @@ export class EvmHTLCClient extends HTLCClient {
 
         const approveData = AbiFunction.encodeData(erc20Functions.approve, [hex(spender), requiredAmount])
         const approveHash = await signer.sendTransaction({ to: tokenAddress, data: approveData })
-        await waitForReceipt(this.rpc, approveHash)
+        await this.waitForReceipt(this.rpc, approveHash)
+    }
+
+    private async waitForReceipt(
+        rpc: JsonRpcClient,
+        txHash: string,
+        options?: { timeout?: number; interval?: number }
+    ): Promise<RpcTransactionReceipt> {
+        const timeout = options?.timeout ?? 120_000
+        const interval = options?.interval ?? 2_000
+        const start = Date.now()
+    
+        while (Date.now() - start < timeout) {
+            const receipt = await rpc.getTransactionReceipt(txHash)
+            if (receipt) {
+                if (receipt.status === '0x0') {
+                    throw new Error(`Transaction reverted: ${txHash}`)
+                }
+                return receipt
+            }
+            await new Promise(r => setTimeout(r, interval))
+        }
+        throw new Error(`Transaction receipt timeout after ${timeout}ms: ${txHash}`)
     }
 
     private findUserLockedEvent(logs: RpcLog[], matchHashlock?: string): Record<string, unknown> | null {
