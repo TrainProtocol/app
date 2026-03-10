@@ -25,9 +25,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "^0.30.1",
-    "@solana/spl-token": "^0.4.14",
-    "@solana/web3.js": "^1.98.4"
+    "@coral-xyz/anchor": "catalog:",
+    "@solana/spl-token": "catalog:",
+    "@solana/web3.js": "catalog:"
   },
   "peerDependencies": {
     "@train-protocol/sdk": "workspace:^"
@@ -35,9 +35,9 @@
   "devDependencies": {
     "@train-protocol/sdk": "workspace:^",
     "@types/node": "^20",
-    "rimraf": "^6.0.1",
+    "rimraf": "catalog:",
     "typescript": "catalog:",
-    "vitest": "^4.0.18"
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=18"
