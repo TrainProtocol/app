@@ -2,7 +2,7 @@ import useSWR from "swr"
 import { Network, Token } from "../../Models/Network"
 import { LockDetails } from "../../Models/phtlc/PHTLC"
 import { LockParams } from "../../Models/phtlc"
-import { IHTLCClient } from "@train-protocol/sdk"
+import { IHTLCClient, LockStatus } from "@train-protocol/sdk"
 
 interface UseUserLockPollingParams {
     network: Network | undefined
@@ -55,7 +55,10 @@ const useUserLockPolling = ({
             }
         },
         {
-            refreshInterval: shouldPoll ? 3000 : 0,
+            refreshInterval: (data) => {
+                if (data?.status === LockStatus.Redeemed) return 0
+                return shouldPoll ? 3000 : 0
+            },
             revalidateOnFocus: false,
             revalidateOnReconnect: true,
             shouldRetryOnError: true,
