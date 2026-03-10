@@ -35,8 +35,7 @@ export class EvmHTLCClient extends HTLCClient {
         const signer = this.requireSigner()
         const {
             sourceAsset,
-            sourceAddress,  
-            hashlock,
+            sourceAddress
         } = params
 
         const parsedAmount = parseUnits(params.amount.toString(), params.decimals)
@@ -56,7 +55,7 @@ export class EvmHTLCClient extends HTLCClient {
         const userData = toHex32(BigInt(params.nonce))
         const calldata = AbiFunction.encodeData(htlcFunctions.userLock, [
             {
-                hashlock: hex(hashlock),
+                hashlock: hex(params.hashlock),
                 amount: parsedAmount,
                 rewardAmount: params.rewardAmount || 0n,
                 timelockDelta: params.timelockDelta,
@@ -93,7 +92,7 @@ export class EvmHTLCClient extends HTLCClient {
                 value: isNativeToken ? parsedAmount : undefined,
             })
 
-            return { hash, hashlock, nonce: params.nonce };
+            return { hash, hashlock: params.hashlock, nonce: params.nonce };
         } catch (error) {
             console.error('Error in userLock:', error);
             throw error;
