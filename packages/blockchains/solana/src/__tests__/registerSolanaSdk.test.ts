@@ -41,14 +41,15 @@ describe('registerSolanaSdk', () => {
         // We can't fully exercise wallet signing without a real Solana wallet,
         // but we verify the factory is wired up (it rejects with a signing error,
         // not a "No wallet sign registered" error).
+        const nullWallet = { signMessage: null } as never
         await expect(
-            deriveKeyFromWallet('solana', { wallet: { signMessage: null } })
+            deriveKeyFromWallet('solana', { wallet: nullWallet })
         ).rejects.toThrow()
 
         // Confirm the error is NOT "No wallet sign registered" — that would mean
         // registration didn't work. Any other error means the factory was found.
         try {
-            await deriveKeyFromWallet('solana', { wallet: { signMessage: null } })
+            await deriveKeyFromWallet('solana', { wallet: nullWallet })
         } catch (e: unknown) {
             expect((e as Error).message).not.toContain('No wallet sign registered')
         }

@@ -1,8 +1,6 @@
 import { registerHTLCClient, registerWalletSign } from '@train-protocol/sdk'
 import { StarknetHTLCClient } from './client.js'
 import { deriveKeyFromStarknetWallet } from './login/index.js'
-import type { StarknetAccountLike } from './login/index.js'
-import type { StarknetSigner } from './types.js'
 
 export { StarknetHTLCClient } from './client.js'
 export type { StarknetHTLCClientConfig, StarknetSigner } from './types.js'
@@ -19,17 +17,9 @@ export function registerStarknetSdk(): void {
     if (registered) return
     registered = true
 
-    registerHTLCClient('starknet', (config) => new StarknetHTLCClient({
-        rpcUrl: config.rpcUrl as string,
-        signer: config.signer as StarknetSigner | undefined,
-        apiClient: config.apiClient,
-    }))
+    registerHTLCClient('starknet', (config) => new StarknetHTLCClient(config))
 
     registerWalletSign('starknet', async (config) => {
-        return deriveKeyFromStarknetWallet(
-            config.provider as StarknetAccountLike,
-            config.address as string,
-            config.options as { chainId?: string } | undefined,
-        )
+        return deriveKeyFromStarknetWallet(config.provider, config.address, config.options)
     })
 }

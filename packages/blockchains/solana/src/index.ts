@@ -1,8 +1,6 @@
 import { registerHTLCClient, registerWalletSign } from '@train-protocol/sdk'
 import { SolanaHTLCClient } from './client.js'
 import { deriveKeyFromSolanaWallet } from './login/index.js'
-import type { SolanaWalletLike } from './login/index.js'
-import type { SolanaSigner } from './types.js'
 
 export { SolanaHTLCClient } from './client.js'
 export type { SolanaHTLCClientConfig, SolanaSigner } from './types.js'
@@ -19,13 +17,9 @@ export function registerSolanaSdk(): void {
     if (registered) return
     registered = true
 
-    registerHTLCClient('solana', (config) => new SolanaHTLCClient({
-        rpcUrl: config.rpcUrl as string,
-        signer: config.signer as SolanaSigner | undefined,
-        apiClient: config.apiClient,
-    }))
+    registerHTLCClient('solana', (config) => new SolanaHTLCClient(config))
 
     registerWalletSign('solana', async (config) => {
-        return deriveKeyFromSolanaWallet(config.wallet as SolanaWalletLike)
+        return deriveKeyFromSolanaWallet(config.wallet)
     })
 }

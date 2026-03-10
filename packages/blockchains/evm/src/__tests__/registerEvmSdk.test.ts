@@ -42,13 +42,13 @@ describe('registerEvmSdk', () => {
         // but we verify the factory is wired up (it rejects with a provider error,
         // not a "no wallet sign registered" error).
         await expect(
-            deriveKeyFromWallet('eip155', { provider: null, address: '0x0' })
+            deriveKeyFromWallet('eip155', { provider: null as any, address: '0x0' })
         ).rejects.toThrow()
 
         // Confirm the error is NOT "No wallet sign registered" — that would mean
         // registration didn't work. Any other error means the factory was found.
         try {
-            await deriveKeyFromWallet('eip155', { provider: null, address: '0x0' })
+            await deriveKeyFromWallet('eip155', { provider: null as any, address: '0x0' })
         } catch (e: unknown) {
             expect((e as Error).message).not.toContain('No wallet sign registered')
         }

@@ -1,5 +1,19 @@
 import type { Transaction, VersionedTransaction } from '@solana/web3.js'
 import type { BaseHTLCClientConfig } from '@train-protocol/sdk'
+import type { SolanaWalletLike } from './login/index.js'
+
+declare module '@train-protocol/sdk' {
+    interface HTLCClientConfigMap {
+        solana: SolanaHTLCClientConfig
+    }
+    interface WalletSignConfigMap {
+        solana: SolanaWalletSignConfig
+    }
+}
+
+export type SolanaWalletSignConfig = {
+    wallet: SolanaWalletLike
+}
 
 /**
  * Framework-agnostic Solana signer.

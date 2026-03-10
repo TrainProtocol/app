@@ -1,15 +1,38 @@
 import type { IHTLCClient, BaseHTLCClientConfig } from './types/htlc-client'
 
-export type HTLCClientConfig = BaseHTLCClientConfig & Record<string, unknown>
-export type HTLCClientFactory = (config: HTLCClientConfig) => IHTLCClient
+// --- HTLC Client Registry ---
+
+/**
+ * Open interface for chain-specific HTLC client configs.
+ * Chain SDKs extend this via declaration merging:
+ *
+ *   declare module '@train-protocol/sdk' {
+ *       interface HTLCClientConfigMap {
+ *           eip155: EvmHTLCClientConfig
+ *       }
+ *   }
+ */
+export interface HTLCClientConfigMap {}
+
+type ConfigFor<N extends string> = N extends keyof HTLCClientConfigMap
+    ? HTLCClientConfigMap[N]
+    : BaseHTLCClientConfig & Record<string, unknown>
+
+type HTLCClientFactory = (config: any) => IHTLCClient
 
 const registry = new Map<string, HTLCClientFactory>()
 
-export function registerHTLCClient(chainNamespace: string, factory: HTLCClientFactory): void {
+export function registerHTLCClient<N extends string>(
+    chainNamespace: N,
+    factory: (config: ConfigFor<N>) => IHTLCClient,
+): void {
     registry.set(chainNamespace, factory)
 }
 
-export function createHTLCClient(chainNamespace: string, config: HTLCClientConfig): IHTLCClient {
+export function createHTLCClient<N extends string>(
+    chainNamespace: N,
+    config: ConfigFor<N>,
+): IHTLCClient {
     const factory = registry.get(chainNamespace)
     if (!factory) {
         throw new Error(
@@ -26,15 +49,31 @@ export function getRegisteredNamespaces(): string[] {
 
 // --- Wallet Sign Registry ---
 
-export type WalletSignFactory = (config: Record<string, unknown>) => Promise<Buffer>
+/**
+ * Open interface for chain-specific wallet sign configs.
+ * Chain SDKs extend this via declaration merging.
+ */
+export interface WalletSignConfigMap {}
+
+type WalletSignConfigFor<N extends string> = N extends keyof WalletSignConfigMap
+    ? WalletSignConfigMap[N]
+    : Record<string, unknown>
+
+type WalletSignFactory = (config: any) => Promise<Buffer>
 
 const walletSignRegistry = new Map<string, WalletSignFactory>()
 
-export function registerWalletSign(providerName: string, factory: WalletSignFactory): void {
+export function registerWalletSign<N extends string>(
+    providerName: N,
+    factory: (config: WalletSignConfigFor<N>) => Promise<Buffer>,
+): void {
     walletSignRegistry.set(providerName, factory)
 }
 
-export function deriveKeyFromWallet(providerName: string, config: Record<string, unknown>): Promise<Buffer> {
+export function deriveKeyFromWallet<N extends string>(
+    providerName: N,
+    config: WalletSignConfigFor<N>,
+): Promise<Buffer> {
     const factory = walletSignRegistry.get(providerName)
     if (!factory) {
         throw new Error(
