@@ -61,7 +61,7 @@ export const MultichainConnectorPicker: FC<MultichainConnectorModalProps> = ({ s
                                     />
                                 }
                                 <p>
-                                    {connector?.providerName}
+                                    {provider?.name}
                                 </p>
                             </button>
                         )

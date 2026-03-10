@@ -136,6 +136,33 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
                 setLoading(true)
             }
 
+            // Mock quote for Solana devnet — real API doesn't support it yet
+            const urlParams = new URLSearchParams(url.split('?')[1])
+            if (urlParams.get('sourceNetwork')?.startsWith('solana:')) {
+                setKey(url)
+                setLoading(false)
+                const amount = urlParams.get('amount') ?? '1000000000'
+                return {
+                    quote: {
+                        signature: 'mock-solana-devnet-quote',
+                        totalFee: '5000000',
+                        receiveAmount: String(BigInt(amount) * 95n / 100n),
+                        sourceSolverAddress: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
+                        destinationSolverAddress: '0x0000000000000000000000000000000000000001',
+                        quoteExpirationTimestampInSeconds: Math.floor(Date.now() / 1000) + 3600,
+                        route: {
+                            source: { networkSlug: urlParams.get('sourceNetwork')!, tokenSymbol: 'SOL', tokenContract: '', tokenDecimals: 9 },
+                            destination: { networkSlug: urlParams.get('destinationNetwork')!, tokenSymbol: 'ETH', tokenContract: '', tokenDecimals: 18 },
+                            minAmountInSource: '10000000',
+                            maxAmountInSource: '10000000000000',
+                        },
+                        timelock: { timelockTimeSpanInSeconds: 69 },
+                        reward: { amount: '0', rewardTimelockTimeSpanInSeconds: 3600, rewardToken: '', rewardRecipientAddress: '' },
+                    },
+                    solverId: 'mock-solver',
+                }
+            }
+
             const response = await apiClient.fetcher(url) as { data?: AggregatedQuoteResponse; error?: { message: string } }
 
             setKey(url)

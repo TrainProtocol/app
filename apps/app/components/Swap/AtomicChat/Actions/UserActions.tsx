@@ -78,7 +78,8 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
             }
         }
         catch (e) {
-            setError({ message: e.details || e.message })
+            console.error('[UserLock] failed', e?.message ?? String(e), ...(e?.logs ? [e.logs] : []))
+            setError({ message: e?.details || e?.message || e?.code || e?.name || 'Unknown error' })
         }
     }
 

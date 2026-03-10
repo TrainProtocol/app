@@ -22,7 +22,7 @@ export default function useSVM(): WalletProvider {
 
     const name = 'Solana'
     const id = 'solana'
-    const { disconnect, wallet: solanaWallet, select, wallets, signTransaction, signMessage } = useWallet();
+    const { disconnect, wallet: solanaWallet, select, wallets, signTransaction } = useWallet();
     const publicKey = solanaWallet?.adapter.publicKey
 
     const connectedWallet = wallets.find(w => w.adapter.connected === true)
@@ -36,6 +36,7 @@ export default function useSVM(): WalletProvider {
     useEffect(() => {
         if (anchorProvider) setProvider(anchorProvider);
     }, [anchorProvider]);
+
 
     const connectedWallets = useMemo(() => {
         if (solanaWallet?.adapter.connected === true) {
@@ -73,6 +74,7 @@ export default function useSVM(): WalletProvider {
 
         const newConnectedWallet = wallets.find(w => w.adapter.connected === true)
         const connectedAddress = newConnectedWallet?.adapter.publicKey?.toBase58()
+
         const wallet: Wallet | undefined = connectedAddress && newConnectedWallet ? {
             id: newConnectedWallet.adapter.name,
             address: connectedAddress,
@@ -161,11 +163,11 @@ function resolveSupportedNetworks(supportedNetworks: string[], connectorId: stri
     const supportedNetworksForWallet: string[] = [];
 
     supportedNetworks.forEach((network) => {
-        const networkName = network.split("_")[0].toLowerCase();
+        const networkName = network.split(":")[0].toLowerCase();
         if (networkName === "solana") {
-            supportedNetworksForWallet.push(networkName);
+            supportedNetworksForWallet.push(network);
         } else if (networkSupport[networkName] && networkSupport[networkName].includes(connectorId?.toLowerCase())) {
-            supportedNetworksForWallet.push(networkName);
+            supportedNetworksForWallet.push(network);
         }
     });
 

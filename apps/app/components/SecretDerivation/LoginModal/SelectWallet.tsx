@@ -52,7 +52,8 @@ const WalletSelect = ({ startWalletLogin }: WalletSelectProps) => {
                 type="button"
                 onClick={async () => {
                     const wallet = await connect();
-                    if (wallet && getRegisteredWalletSignProviders().includes(wallet.providerName?.toLowerCase())) {
+                    const provider = providers.find(p => p.name === wallet?.providerName)
+                    if (wallet && provider && getRegisteredWalletSignProviders().includes(provider.id.toLowerCase())) {
                         startWalletLogin(wallet);
                     }
                 }}

@@ -2,9 +2,11 @@ import { useCallback } from 'react'
 import { useConfig } from 'wagmi'
 import { getWalletClient } from 'wagmi/actions'
 import { getConnections } from '@wagmi/core'
-import { createHTLCClient as createClient, getRegisteredNamespaces, IHTLCClient, TrainApiClient as SdkTrainApiClient } from '@train-protocol/sdk'
+import { createHTLCClient as createClient, IHTLCClient, TrainApiClient as SdkTrainApiClient } from '@train-protocol/sdk'
 import type { EvmSigner } from '@train-protocol/evm'
 import type { AztecSigner } from '@train-protocol/aztec'
+import type { SolanaSigner } from '@train-protocol/solana'
+import { useWallet, useConnection } from '@solana/wallet-adapter-react'
 import type { StarknetSigner } from '@train-protocol/starknet'
 import { Network } from '../../Models/Network'
 import { Wallet } from '@/Models/WalletProvider'
@@ -20,10 +22,28 @@ export function useHTLCWriteClient() {
     const config = useConfig()
     const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
     const { wallet: aztecWallet, accountAddress: aztecAccountAddress } = useAztecWalletContext()
+    const { connection: solanaConnection } = useConnection()
+    const { wallets: solanaWallets } = useWallet()
 
     return useCallback(async (network: Network, wallet?: Wallet): Promise<IHTLCClient> => {
         const chainType = network.caip2Id.split(':')[0]
         const rpcUrl = getEffectiveRpcUrls(network)[0] ?? network.nodes?.[0]?.url ?? ''
+
+        // Solana chain path
+        if (chainType === 'solana') {
+            let signer: SolanaSigner | undefined
+            const connectedWallet = solanaWallets.find(w => w.adapter.connected)
+            const connectedPublicKey = connectedWallet?.adapter.publicKey
+            if (connectedWallet && connectedPublicKey) {
+                signer = {
+                    publicKey: connectedPublicKey.toBase58(),
+                    sendTransaction: async (tx) => connectedWallet.adapter.sendTransaction(tx as any, solanaConnection),
+                }
+            } else {
+                console.error('[useHTLCWriteClient] Solana signer unavailable', { hasPubkey: !!connectedPublicKey })
+            }
+            return createClient(chainType, { rpcUrl, signer, apiClient })
+        }
 
         // Aztec chain path
         if (chainType === 'aztec') {
@@ -96,5 +116,5 @@ export function useHTLCWriteClient() {
         }
 
         return createClient(chainType, { rpcUrl, signer, apiClient })
-    }, [config, getEffectiveRpcUrls, aztecWallet, aztecAccountAddress])
+    }, [config, getEffectiveRpcUrls, aztecWallet, aztecAccountAddress, solanaWallets, solanaConnection])
 }

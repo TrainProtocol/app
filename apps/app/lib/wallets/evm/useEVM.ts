@@ -16,7 +16,7 @@ import sleep from "../utils/sleep"
 import { useEvmConnectors, HIDDEN_WALLETCONNECT_ID } from "@/context/evmConnectorsContext"
 import { useActiveEvmAccount } from "@/components/WalletProviders/ActiveEvmAccount"
 
-const name = 'eip155'
+const name = 'EVM'
 const id = 'eip155'
 
 // Storage key for dynamic wallet metadata
