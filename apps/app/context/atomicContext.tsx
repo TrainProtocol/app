@@ -192,10 +192,6 @@ export function AtomicProvider({ children }) {
     const createWriteClient = useHTLCWriteClient()
 
     const resolveClient = useCallback(async (network: Network, wallet: Wallet | undefined): Promise<IHTLCClient> => {
-        if (!wallet) {
-            if (network.caip2Id.startsWith('aztec:')) throw new Error('Aztec requires a connected wallet')
-            return createHTLCClient(network, getEffectiveRpcUrls)
-        }
         return createWriteClient(network, wallet)
     }, [createWriteClient, getEffectiveRpcUrls])
 
@@ -207,13 +203,17 @@ export function AtomicProvider({ children }) {
     useEffect(() => {
         setSourceClient(undefined)
         if (!source_network) return
-        resolveClient(source_network, sourceWallet).then(setSourceClient).catch(e => console.error('Error creating source HTLC client:', e))
+        resolveClient(source_network, sourceWallet)
+            .then(setSourceClient)
+            .catch(e => console.error('Error creating source HTLC client:', e))
     }, [source_network, sourceWallet, resolveClient])
 
     useEffect(() => {
         setDestinationClient(undefined)
         if (!destination_network) return
-        resolveClient(destination_network, destinationWallet).then(setDestinationClient).catch(e => console.error('Error creating destination HTLC client:', e))
+        resolveClient(destination_network, destinationWallet)
+            .then(setDestinationClient)
+            .catch(e => console.error('Error creating destination HTLC client:', e))
     }, [destination_network, destinationWallet, resolveClient])
 
     const handleUserLockSuccess = useCallback((details: LockDetails) => {
