@@ -78,29 +78,16 @@ export function useHTLCWriteClient() {
                 .find(c => c.connector.name === wallet.id)
                 ?.connector
 
-            const walletClient = await getWalletClient(config, {
-                chainId: chain.id,
-                account: wallet.address as `0x${string}`,
-                connector,
-            })
-            signer = {
-                address: walletClient.account.address,
-                sendTransaction: async (tx) => {
-                    try {
-                        return await walletClient.sendTransaction({
-                            to: tx.to as `0x${string}`,
-                            data: tx.data as `0x${string}`,
-                            value: tx.value,
-                            chain,
-                            account: walletClient.account,
-                        })
-                    } catch (e) {
-                        const isChainMismatch = e instanceof Error && (
-                            e.name === 'ChainMismatchError' ||
-                            (e.cause instanceof Error && e.cause.name === 'ChainMismatchError')
-                        )
-                        if (isChainMismatch && connector?.switchChain) {
-                            await connector.switchChain({ chainId: chain.id })
+            try {
+                const walletClient = await getWalletClient(config, {
+                    chainId: chain.id,
+                    account: wallet.address as `0x${string}`,
+                    connector,
+                })
+                signer = {
+                    address: walletClient.account.address,
+                    sendTransaction: async (tx) => {
+                        try {
                             return await walletClient.sendTransaction({
                                 to: tx.to as `0x${string}`,
                                 data: tx.data as `0x${string}`,
@@ -108,10 +95,26 @@ export function useHTLCWriteClient() {
                                 chain,
                                 account: walletClient.account,
                             })
+                        } catch (e) {
+                            const isChainMismatch = e instanceof Error && (
+                                e.name === 'ChainMismatchError' ||
+                                (e.cause instanceof Error && e.cause.name === 'ChainMismatchError')
+                            )
+                            if (isChainMismatch && connector?.switchChain) {
+                                await connector.switchChain({ chainId: chain.id })
+                                return await walletClient.sendTransaction({
+                                    to: tx.to as `0x${string}`,
+                                    data: tx.data as `0x${string}`,
+                                    value: tx.value,
+                                    chain,
+                                    account: walletClient.account,
+                                })
+                            }
+                            throw e
                         }
-                        throw e
-                    }
-                },
+                    },
+                }
+            } catch {
             }
         }
 

@@ -1,4 +1,4 @@
-import { cairo, Contract, ProviderOrAccount, RpcProvider, type Call } from 'starknet'
+import { cairo, Contract, hash, ProviderOrAccount, RpcProvider, type Call } from 'starknet'
 import {
     UserLockParams,
     LockParams,
@@ -180,8 +180,40 @@ export class StarknetHTLCClient extends HTLCClient {
         return null
     }
 
-    async recoverSwap(_txHash: string): Promise<RecoveredSwapData> {
-        throw new Error('recoverSwap is not supported for Starknet')
+    async recoverSwap(txHash: string): Promise<RecoveredSwapData> {
+        const receipt = await this.provider.getTransactionReceipt(txHash)
+        if (!receipt || !('events' in receipt)) throw new Error('Transaction not found')
+
+        const userLockedSelector = hash.getSelectorFromName('UserLocked')
+        const rawEvent = receipt.events.find(e => e.keys.includes(userLockedSelector))
+        if (!rawEvent) throw new Error('This transaction does not contain a swap lock')
+
+        const srcContract = rawEvent.from_address
+
+        const contract = this.createContract(srcContract, this.provider)
+        const parsed = contract.parseEvents(receipt)
+
+        const userLockedEntry = parsed.find(
+            ev => Object.keys(ev).some(k => k.includes('UserLocked'))
+        )
+        if (!userLockedEntry) throw new Error('Failed to decode UserLocked event')
+
+        const eventKey = Object.keys(userLockedEntry).find(k => k.includes('UserLocked'))!
+        const event = userLockedEntry[eventKey] as Record<string, any>
+
+        return {
+            hashlock: '0x' + BigInt(event.hashlock).toString(16),
+            sender: '0x' + BigInt(event.sender).toString(16),
+            recipient: '0x' + BigInt(event.recipient).toString(16),
+            srcChain: event.src_chain as string,
+            dstChain: event.dst_chain as string,
+            token: '0x' + BigInt(event.token).toString(16),
+            amount: BigInt(event.amount),
+            dstAddress: event.dst_address as string,
+            dstAmount: BigInt(event.dst_amount),
+            dstToken: event.dst_token as string,
+            srcContract,
+        }
     }
 
     // ── Private Helpers ────────────────────────────────────────────────

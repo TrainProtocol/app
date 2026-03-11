@@ -123,6 +123,10 @@ export default class NetworkSettings {
             TransactionExplorerTemplate: 'https://explorer.solana.com/tx/{0}?cluster=devnet',
             AccountExplorerTemplate: 'https://explorer.solana.com/address/{0}?cluster=devnet',
         };
+        NetworkSettings.KnownSettings[KnownInternalNames.Networks.StarkNetSepolia] = {
+            TransactionExplorerTemplate: 'https://sepolia.starkscan.co/tx/{0}',
+            AccountExplorerTemplate: 'https://sepolia.starkscan.co/contract/{0}',
+        };
 
 
         for (var k in NetworkSettings.KnownSettings) {

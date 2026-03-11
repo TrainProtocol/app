@@ -13,6 +13,7 @@ import useSolverLockPolling from '@/hooks/htlc/useSolverLockPolling';
 import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus';
 import useOrderStreaming from '@/hooks/useOrderStreaming';
 import { useHTLCWriteClient } from '@/hooks/htlc/useHTLCWriteClient';
+import { createHTLCClient } from '@/lib/htlc/createHTLCClient';
 import { useSelectedAccount } from './swapAccounts';
 import useWallet from '@/hooks/useWallet';
 import { Address } from '@/lib/address';
@@ -241,13 +242,23 @@ export function AtomicProvider({ children }) {
         }
     }, [hashlock, updateHTLCState])
 
+    const sourceReadClient = useMemo(() => {
+        if (!source_network) return undefined
+        try { return createHTLCClient(source_network, getEffectiveRpcUrls) } catch { return undefined }
+    }, [source_network, getEffectiveRpcUrls])
+
+    const destinationReadClient = useMemo(() => {
+        if (!destination_network) return undefined
+        try { return createHTLCClient(destination_network, getEffectiveRpcUrls) } catch { return undefined }
+    }, [destination_network, getEffectiveRpcUrls])
+
     useUserLockPolling({
         network: source_network,
         hashlock,
         contractAddress: srcAtomicContract,
         sourceAsset: source_token,
         enabled: !!hashlock && !isTerminal,
-        client: sourceClient,
+        client: sourceReadClient,
         txId: lockTxId as string | undefined,
         onSuccess: handleUserLockSuccess,
     })
@@ -258,7 +269,7 @@ export function AtomicProvider({ children }) {
         contractAddress: destAtomicContract,
         destinationAsset: destination_token,
         enabled: !!hashlock && !isTerminal,
-        client: destinationClient,
+        client: destinationReadClient,
         solverAddress: destinationSolverAddress,
         onSuccess: handleSolverLockSuccess,
         nodeUrls: destination_network ? getEffectiveRpcUrls(destination_network) : [],
