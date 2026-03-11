@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from 'react'
-import formatAmount from '../../lib/formatAmount'
-import { Network } from '../../Models/Network'
-import { SwapData, useSwapStore } from '../../stores/swapStore'
-import { useSettingsState } from '../../context/settings'
-import { createHTLCClient } from '../../lib/htlc/createHTLCClient'
-import { useRpcConfigStore } from '../../stores/rpcConfigStore'
+import formatAmount from '@/lib/formatAmount'
+import { Network } from '@/Models/Network'
+import { SwapData, useSwapStore } from '@/stores/swapStore'
+import { useSettingsState } from '@/context/settings'
+import { createHTLCClient } from '@/lib/htlc/createHTLCClient'
+import { useRpcConfigStore } from '@/stores/rpcConfigStore'
 
 export default function useRecoverSwap(sourceNetwork: Network | null) {
     const { networks } = useSettingsState()
