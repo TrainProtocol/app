@@ -4,7 +4,6 @@ import { useSettingsState } from './settings';
 import { LockDetails, LockStatus } from '../Models/phtlc/PHTLC';
 import { Network, Token } from '@/Models/Network';
 import { HTLCFromApi, HTLCTransaction, resolveHTLCStatus, IHTLCClient } from '@train-protocol/sdk';
-import LightClient from '@/lib/lightClient';
 import { SwapData, useSwapStore } from '@/stores/swapStore';
 import { useShallow } from 'zustand/react/shallow';
 import { resolvePersistantQueryParams } from '@/helpers/querryHelper';
@@ -17,6 +16,8 @@ import { useSelectedAccount } from './swapAccounts';
 import useWallet from '@/hooks/useWallet';
 import { Address } from '@/lib/address';
 import { useRpcConfigStore } from '@/stores/rpcConfigStore';
+import { useLightClient } from '@/hooks/htlc/useLightClient'
+import { supportsLightClient } from '@/lib/lightClient/supportsNetwork';
 
 const AtomicStateContext = createContext<DataContextType | null>(null);
 
@@ -32,6 +33,8 @@ type DataContextType = HTLCState & {
     htlcStatus: HTLCStatus,
     destRedeemTx?: string,
     verifyingByLightClient: boolean,
+    lightClientPending: boolean,
+    destinationDetailsByLightClient?: { data?: LockDetails, error?: string },
     srcAtomicContract?: string,
     destAtomicContract?: string,
     sourceClient?: IHTLCClient,
@@ -39,7 +42,6 @@ type DataContextType = HTLCState & {
     error?: { message: string, buttonText?: string },
     setError: (error: { message: string, buttonText?: string } | undefined) => void;
     setManualClaimTxId: (txId: string | undefined) => void;
-    setVerifyingByLightClient: (value: boolean) => void;
     onUserLock: (hashlock: string, txId: string) => void;
     updateHTLC: (field: keyof HTLCState, value: any) => void;
 }
@@ -47,10 +49,8 @@ type DataContextType = HTLCState & {
 interface HTLCState {
     sourceDetails?: LockDetails;
     solverLockDetails?: LockDetails;
-    destinationDetailsByLightClient?: { data?: LockDetails, error?: string };
     secretRevealed?: boolean;
     htlcFromApi?: HTLCFromApi;
-    lightClient?: LightClient | undefined;
     isTimelockExpired: boolean;
     manualClaimRequired?: boolean;
     refundTxId?: string | null;
@@ -104,8 +104,6 @@ export function AtomicProvider({ children }) {
     const [htlcStates, setHtlcStates] = useState<CommitStatesDict>({});
     const [error, setError] = useState<{ message: string, buttonText?: string } | undefined>(undefined);
     const [manualClaimTxId, setManualClaimTxId] = useState<string | undefined>(undefined);
-    const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
-    const [verifyingByLightClient, setVerifyingByLightClient] = useState(false)
 
     const [sourceClient, setSourceClient] = useState<IHTLCClient | undefined>(undefined);
     const [destinationClient, setDestinationClient] = useState<IHTLCClient | undefined>(undefined);
@@ -150,7 +148,6 @@ export function AtomicProvider({ children }) {
     const htlcFromApi = hashlock ? htlcStates[hashlock]?.htlcFromApi : undefined;
     const isTimelockExpired = hashlock ? htlcStates[hashlock]?.isTimelockExpired : false;
     const manualClaimRequired = hashlock ? htlcStates[hashlock]?.manualClaimRequired : false;
-    const destinationDetailsByLightClient = hashlock ? htlcStates[hashlock]?.destinationDetailsByLightClient : undefined
 
     const destinationRedeemTx = manualClaimTxId ?? htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem && t.networkId === destination)?.hash
 
@@ -170,9 +167,17 @@ export function AtomicProvider({ children }) {
 
     const htlcStatus = useMemo(() =>
         resolveHTLCStatus({ sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed, manualClaimRequired, destRedeemTxId: destinationRedeemTx }),
-        [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, manualClaimRequired])
+        [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, manualClaimRequired, destinationRedeemTx])
 
     const isTerminal = isTerminalStatus(htlcStatus)
+
+    const { lightClientInitialized, lightClientPending, verifyingByLightClient, destinationDetailsByLightClient } = useLightClient({
+        destination_network,
+        destination_token,
+        hashlock,
+        destAtomicContract,
+        isTerminal,
+    })
 
     useEffect(() => {
         if (!activeHashlock) return
@@ -252,6 +257,18 @@ export function AtomicProvider({ children }) {
         onSuccess: handleUserLockSuccess,
     })
 
+    const solverPollNodeUrls = useMemo(() => {
+        if (!destination_network) return []
+        const allUrls = getEffectiveRpcUrls(destination_network)
+        const useSingleRpc = supportsLightClient(destination_network)
+            && lightClientInitialized
+            && !destinationDetailsByLightClient?.error
+        if (useSingleRpc && allUrls.length > 0) {
+            return allUrls.slice(0, 1)
+        }
+        return allUrls
+    }, [destination_network, getEffectiveRpcUrls, lightClientInitialized, destinationDetailsByLightClient?.error])
+
     useSolverLockPolling({
         network: destination_network,
         hashlock,
@@ -261,53 +278,8 @@ export function AtomicProvider({ children }) {
         client: destinationClient,
         solverAddress: destinationSolverAddress,
         onSuccess: handleSolverLockSuccess,
-        nodeUrls: destination_network ? getEffectiveRpcUrls(destination_network) : [],
+        nodeUrls: solverPollNodeUrls,
     })
-
-    // useEffect(() => {
-    //     if (destination_network && htlcStatus !== HTLCStatus.TimelockExpired && htlcStatus !== HTLCStatus.RedeemCompleted) {
-    //         (async () => {
-    //             try {
-    //                 const lightClient = new LightClient()
-    //                 await lightClient.initProvider({ network: destination_network })
-    //                 setLightClient(lightClient)
-    //             } catch (error) {
-    //                 console.log(error)
-    //             }
-
-    //         })()
-    //     }
-    // }, [destination_network])
-
-    // useEffect(() => {
-    //     (async () => {
-    //         if (destination_network && destination_token && hashlock && destination_asset && lightClient && !sourceDetails?.hashlock && destAtomicContract) {
-    //             if (!lightClient.supportsNetwork(destination_network)) return
-
-    //             try {
-    //                 setVerifyingByLightClient(true)
-    //                 const data = await lightClient.getDetails({
-    //                     network: destination_network,
-    //                     token: destination_token,
-    //                     hashlock,
-    //                     atomicContract: destAtomicContract
-    //                 })
-    //                 if (data) {
-    //                     updateCommit('destinationDetailsByLightClient', { data })
-    //                     return
-    //                 }
-    //             }
-    //             catch (e) {
-    //                 updateCommit('destinationDetailsByLightClient', { data: undefined, error: 'Light client is not available' })
-    //                 console.log(e)
-    //             }
-    //             finally {
-    //                 setVerifyingByLightClient(false)
-    //             }
-    //         }
-    //     })()
-    // }, [destination_network, hashlock, destAtomicContract, lightClient, destination_token, sourceDetails, destination_asset])
-
 
     useEffect(() => {
         let timer: ReturnType<typeof setTimeout>;
@@ -349,7 +321,7 @@ export function AtomicProvider({ children }) {
         return () => clearTimeout(timer);
     }, [sourceDetails?.status, sourceDetails?.secret, solverLockDetails?.sender, solverLockDetails?.status, hashlock, manualClaimRequired])
 
-    const handleCommited = (hashlock: string, txId: string) => {
+    const onUserLock = (hashlock: string, txId: string) => {
         // Move tempSwap → swaps[hashlock] in the store (also sets activeHashlock)
         commitSwap(hashlock, txId)
 
@@ -370,7 +342,7 @@ export function AtomicProvider({ children }) {
     return (
         <AtomicStateContext.Provider value={{
             source_network,
-            onUserLock: handleCommited,
+            onUserLock,
             source_asset: source_token,
             destination_asset: destination_token,
             address: address as string,
@@ -386,18 +358,17 @@ export function AtomicProvider({ children }) {
             setError,
             setManualClaimTxId,
             htlcFromApi: htlcFromApi,
-            lightClient,
             htlcStatus,
             isTimelockExpired,
             refundTxId,
             destRedeemTx: destinationRedeemTx,
             verifyingByLightClient,
+            lightClientPending,
             destinationDetailsByLightClient,
             srcAtomicContract,
             destAtomicContract,
             sourceClient,
             destinationClient,
-            setVerifyingByLightClient,
             updateHTLC: updateCommit,
         }}>
             {children}
