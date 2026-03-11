@@ -13,8 +13,10 @@ import useSolverLockPolling from '@/hooks/htlc/useSolverLockPolling';
 import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus';
 import useOrderStreaming from '@/hooks/useOrderStreaming';
 import { useHTLCWriteClient } from '@/hooks/htlc/useHTLCWriteClient';
+import { createHTLCClient } from '@/lib/htlc/createHTLCClient';
 import { useSelectedAccount } from './swapAccounts';
 import useWallet from '@/hooks/useWallet';
+import { Wallet } from '@/Models/WalletProvider';
 import { Address } from '@/lib/address';
 import { useRpcConfigStore } from '@/stores/rpcConfigStore';
 
@@ -189,36 +191,30 @@ export function AtomicProvider({ children }) {
     const { provider: destinationProvider } = useWallet(destination_network, 'autofill')
     const createWriteClient = useHTLCWriteClient()
 
+    const resolveClient = useCallback(async (network: Network, wallet: Wallet | undefined): Promise<IHTLCClient> => {
+        if (!wallet) {
+            if (network.caip2Id.startsWith('aztec:')) throw new Error('Aztec requires a connected wallet')
+            return createHTLCClient(network, getEffectiveRpcUrls)
+        }
+        return createWriteClient(network, wallet)
+    }, [createWriteClient, getEffectiveRpcUrls])
+
     const sourceAccount = useSelectedAccount('from', source_network?.caip2Id)
     const sourceWallet = (sourceAccount?.address && source_network) ? sourceProvider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, source_network)) : undefined
     const destinationAccount = useSelectedAccount('to', destination_network?.caip2Id)
     const destinationWallet = (destinationAccount?.address && destination_network) ? destinationProvider?.connectedWallets?.find(w => Address.equals(w.address, destinationAccount?.address, destination_network)) : undefined
 
     useEffect(() => {
-        if (!source_network || !sourceWallet) return
-        (async () => {
-            try {
-                const client = await createWriteClient(source_network, sourceWallet)
-                setSourceClient(client)
-            } catch (e) {
-                console.error('Error creating source HTLC client:', e)
-                setSourceClient(undefined)
-            }
-        })()
-    }, [source_network, sourceWallet, createWriteClient])
+        setSourceClient(undefined)
+        if (!source_network) return
+        resolveClient(source_network, sourceWallet).then(setSourceClient).catch(e => console.error('Error creating source HTLC client:', e))
+    }, [source_network, sourceWallet, resolveClient])
 
     useEffect(() => {
-        if (!destination_network || !destinationWallet) return
-        (async () => {
-            try {
-                const client = await createWriteClient(destination_network, destinationWallet)
-                setDestinationClient(client)
-            } catch (e) {
-                console.error('Error creating destination HTLC client:', e)
-                setDestinationClient(undefined)
-            }
-        })()
-    }, [destination_network, destinationWallet, createWriteClient])
+        setDestinationClient(undefined)
+        if (!destination_network) return
+        resolveClient(destination_network, destinationWallet).then(setDestinationClient).catch(e => console.error('Error creating destination HTLC client:', e))
+    }, [destination_network, destinationWallet, resolveClient])
 
     const handleUserLockSuccess = useCallback((details: LockDetails) => {
         if (hashlock) {
