@@ -15,8 +15,7 @@ import {
 import type { StarknetHTLCClientConfig, StarknetSigner } from './types.js'
 import htlcAbi from './abis/STARKNET_HTLC.json' with { type: 'json' }
 import { ERC20_ABI } from './abis/ERC20.js'
-
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000000000000000000000000000'
+import { ZERO_ADDRESS } from './constants.js'
 
 export class StarknetHTLCClient extends HTLCClient {
     private provider: RpcProvider
