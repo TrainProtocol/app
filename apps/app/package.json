@@ -26,6 +26,7 @@
     "@defi-wonderland/aztec-standards": "4.0.0-devnet.2-patch.1",
     "@badrap/bar-of-progress": "^0.2.2",
     "@cartridge/controller": "^0.9.2",
+    "chainlist-rpcs": "^0.5.0",
     "@coral-xyz/anchor": "catalog:",
     "@eth-optimism/contracts-ts": "^0.15.0",
     "@imtbl/sdk": "1.45.10",

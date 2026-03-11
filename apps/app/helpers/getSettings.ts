@@ -2,8 +2,10 @@ import { NetworkContract } from "@/Models/Network";
 import TrainApiClient from "../lib/trainApiClient";
 import { getThemeData } from "./settingsHelper";
 import KnownInternalNames from "@/lib/knownIds";
+import { NodeResolver } from "@/lib/rpc/nodeResolver";
 
 const apiClient = new TrainApiClient()
+const nodeResolver = new NodeResolver()
 
 export async function getServerSideProps(context) {
 
@@ -19,19 +21,21 @@ export async function getServerSideProps(context) {
 
     if (!networks.length) return
 
-    const resolvedNetworks = networks.map(network => {
+    const resolvedNetworks = await Promise.all(networks.map(async network => {
         const _network = mockData.data.find(n => n.caip2Id === network.caip2Id)
+        const seedNodes = _network?.nodes ?? []
+        const resolvedNodes = await nodeResolver.resolveNodes(network.caip2Id, seedNodes)
 
         return {
             ...network,
-            nodes: _network?.nodes ?? [],
+            nodes: resolvedNodes.map(n => ({ providerName: n.providerName, url: n.url })),
             contracts: (_network?.contracts as NetworkContract[]) ?? [],
             tokens: network.tokens.map(token => ({
                 ...token,
                 priceInUsd: prices[`${network.caip2Id}:${token.contractAddress}`],
             })),
         }
-    })
+    }))
 
     // Inject Starknet Sepolia if the API doesn't return it
     const hasStarknet = resolvedNetworks.some(n => n.caip2Id === KnownInternalNames.Networks.StarkNetSepolia)
@@ -50,7 +54,7 @@ export async function getServerSideProps(context) {
                 decimals: 18,
                 priceInUsd: prices["eip155:11155111:0x0000000000000000000000000000000000000000"],
             }],
-            nodes: starknetMock?.nodes ?? [],
+            nodes: (await nodeResolver.resolveNodes(KnownInternalNames.Networks.StarkNetSepolia, starknetMock?.nodes ?? [])).map(n => ({ providerName: n.providerName, url: n.url })),
             contracts: (starknetMock?.contracts as NetworkContract[]) ?? [],
             metadata: [],
         } as any)
@@ -73,7 +77,7 @@ export async function getServerSideProps(context) {
                 decimals: 18,
                 priceInUsd: prices["eip155:11155111:0x0000000000000000000000000000000000000000"],
             }],
-            nodes: aztecMock?.nodes ?? [],
+            nodes: (await nodeResolver.resolveNodes(KnownInternalNames.Networks.AztecDevnet, aztecMock?.nodes ?? [])).map(n => ({ providerName: n.providerName, url: n.url })),
             contracts: (aztecMock?.contracts as NetworkContract[]) ?? [],
             metadata: [],
         } as any)
@@ -98,7 +102,7 @@ export async function getServerSideProps(context) {
                     ?? prices["solana:devnet:11111111111111111111111111111111"]
                     ?? 150,
             }],
-            nodes: solanaMock?.nodes ?? [],
+            nodes: (await nodeResolver.resolveNodes(KnownInternalNames.Networks.SolanaDevnet, solanaMock?.nodes ?? [])).map(n => ({ providerName: n.providerName, url: n.url })),
             contracts: (solanaMock?.contracts as NetworkContract[]) ?? [],
             metadata: [],
         } as any)

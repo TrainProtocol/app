@@ -30,11 +30,13 @@ export default function useAtomicTON(params: UseAtomicTONParams) {
         // const hashlock = secretToHashlock(secret);
 
         // Note: Add hashlock to transaction params when contract supports it
+        const network = networks.find(n => n.chainId === params.chainId)
         const tx = await commitTransactionBuilder({
             wallet: {
                 address: tonWallet.account.address,
                 publicKey: tonWallet.account.publicKey
             },
+            network,
             ...params
         })
 

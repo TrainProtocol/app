@@ -62,6 +62,8 @@ type CommitStatesDict = Record<string, HTLCState>;
 export function AtomicProvider({ children }) {
     const router = useRouter()
     const { networks } = useSettingsState()
+    const rpcConfigs = useRpcConfigStore(s => s.rpcConfigs)
+    const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
 
     const activeHashlock = useSwapStore(s => s.activeHashlock)
     const updateSwap = useSwapStore(s => s.updateSwap)
@@ -84,7 +86,6 @@ export function AtomicProvider({ children }) {
         useShallow(s => activeHashlock ? s.swaps[activeHashlock] ?? null : null)
     )
     const currentSwap = tempSwap ?? committedSwap
-    const { getEffectiveRpcUrls } = useRpcConfigStore();
 
     const address = currentSwap?.address
     const amount = currentSwap?.requestedAmount
@@ -252,6 +253,13 @@ export function AtomicProvider({ children }) {
         onSuccess: handleUserLockSuccess,
     })
 
+    // Subscribe reactively to rpcConfigs so RPC URL changes trigger a rerender
+    const destNodeUrls = useMemo(
+        () => destination_network ? getEffectiveRpcUrls(destination_network) : [],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [destination_network, rpcConfigs]
+    )
+
     useSolverLockPolling({
         network: destination_network,
         hashlock,
@@ -261,7 +269,7 @@ export function AtomicProvider({ children }) {
         client: destinationClient,
         solverAddress: destinationSolverAddress,
         onSuccess: handleSolverLockSuccess,
-        nodeUrls: destination_network ? getEffectiveRpcUrls(destination_network) : [],
+        nodeUrls: destNodeUrls,
     })
 
     // useEffect(() => {

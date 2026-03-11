@@ -3,6 +3,7 @@ import { formatUnits } from "viem";
 import Erc20Abi from '@/lib/abis/ERC20.json'
 import KnownInternalNames from "@/lib/knownIds";
 import { BalanceProvider } from "@/Models/BalanceProvider";
+import { getNetworkRpcUrl } from "@/lib/rpc/resolveNetworkRpcUrl";
 
 export class StarknetBalanceProvider extends BalanceProvider {
     supportsNetwork: BalanceProvider['supportsNetwork'] = (network) => {
@@ -22,7 +23,7 @@ export class StarknetBalanceProvider extends BalanceProvider {
         if (!network?.tokens) return
 
         const provider = new RpcProvider({
-            nodeUrl: network.nodes?.[0]?.url,
+            nodeUrl: getNetworkRpcUrl(network),
         });
 
 

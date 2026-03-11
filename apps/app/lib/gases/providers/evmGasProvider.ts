@@ -8,6 +8,7 @@ import {
     gasPriceOracleABI,
     gasPriceOracleAddress
 } from '@eth-optimism/contracts-ts'
+import { buildNetworkTransport } from "../../rpc/resolveNetworkRpcUrl"
 
 const ERC20_TRANSFER_FROM_GAS_BUFFER = 65_000n
 
@@ -27,13 +28,13 @@ export class EVMGasProvider implements GasProvider {
         if (!atomicContract) return
 
         try {
-            const { createPublicClient, http } = await import("viem")
+            const { createPublicClient } = await import("viem")
             const chain = resolveChain(network)
             if (!chain) return
 
             const publicClient = createPublicClient({
                 chain,
-                transport: http(network.nodes?.[0]?.url),
+                transport: buildNetworkTransport(network),
             })
 
             const nativeToken = getNativeToken(network)

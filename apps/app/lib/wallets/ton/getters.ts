@@ -1,6 +1,6 @@
 import { LockParams } from "../../../Models/phtlc";
 import { Address } from "@ton/ton"
-import tonClient from "./client";
+import { createTonClient } from "./client";
 import { hexToBigInt, toHex } from "viem";
 import { TupleBuilder } from "@ton/core"
 import { Network } from "../../../Models/Network";
@@ -17,12 +17,13 @@ export const getTONDetails = async (params: LockParams & { network: Network | un
 
     if (!network) throw Error("No network found")
 
+    const client = createTonClient(network);
     const bigIntValue = hexToBigInt(id as `0x${string}`);
 
     let args = new TupleBuilder();
     args.writeNumber(bigIntValue);
 
-    const commitResult = await tonClient.runMethod(
+    const commitResult = await client.runMethod(
         Address.parse(contractAddress),
         "getDetails",
         args.build()

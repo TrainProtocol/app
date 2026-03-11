@@ -1,10 +1,11 @@
 import { retryWithExponentialBackoff } from "../../retry";
 import { UserLockParams } from "../../../Models/phtlc";
-import tonClient from "./client";
+import { createTonClient } from "./client";
 import { JettonMaster, Address, Builder, Dictionary, DictionaryValue, beginCell, Slice, Cell, toNano } from "@ton/ton"
 import { fromHex } from "viem";
+import { Network } from "../../../Models/Network";
 
-export const commitTransactionBuilder = async (params: UserLockParams & { wallet: { address: string, publicKey: string } }) => {
+export const commitTransactionBuilder = async (params: UserLockParams & { wallet: { address: string, publicKey: string }, network?: Network }) => {
 
     const {
         wallet,
@@ -15,11 +16,13 @@ export const commitTransactionBuilder = async (params: UserLockParams & { wallet
         destinationAsset,
         destinationAddress,
         decimals,
-        amount
+        amount,
+        network,
     } = params
 
     if (!sourceAsset.contractAddress) return
 
+    const client = createTonClient(network);
     const response_destination = Address.parse(wallet.address);
 
     const queryId = BigInt(Date.now());
@@ -45,7 +48,7 @@ export const commitTransactionBuilder = async (params: UserLockParams & { wallet
     const userAddress = Address.parse(wallet.address)
 
     const jettonMasterAddress = Address.parse(sourceAsset.contractAddress)
-    const jettonMaster = tonClient.open(JettonMaster.create(jettonMasterAddress))
+    const jettonMaster = client.open(JettonMaster.create(jettonMasterAddress))
     const getJettonAddress = async (address: Address) => {
         return await jettonMaster.getWalletAddress(address)
     }

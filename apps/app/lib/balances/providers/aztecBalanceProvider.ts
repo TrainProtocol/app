@@ -6,6 +6,7 @@ import { Fr } from "@aztec/aztec.js/fields";
 import { createAztecNodeClient } from "@aztec/aztec.js/node";
 import { deriveStorageSlotInMap } from "@aztec/stdlib/hash";
 import { formatUnits } from "viem";
+import { getNetworkRpcUrl } from "@/lib/rpc/resolveNetworkRpcUrl";
 
 // Storage slot for public_balances map in the Token contract (slot 9 for standard Aztec token)
 const TOKEN_PUBLIC_BALANCES_SLOT = new Fr(9n)
@@ -18,7 +19,7 @@ export class AztecBalanceProvider extends BalanceProvider {
     fetchBalance: BalanceProvider['fetchBalance'] = async (address, network) => {
         if (!address || !network?.tokens) return []
 
-        const nodeUrl = network.nodes?.[0]?.url
+        const nodeUrl = getNetworkRpcUrl(network)
         if (!nodeUrl) return []
 
         const client = createAztecNodeClient(nodeUrl)

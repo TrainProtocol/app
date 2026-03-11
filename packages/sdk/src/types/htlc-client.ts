@@ -30,15 +30,33 @@ export abstract class HTLCClient implements IHTLCClient {
     }
 
     async getSolverLockDetails(params: LockParams, nodeUrls: string[]): Promise<LockDetails | null> {
-        const results = await Promise.all(
+        if (!nodeUrls.length) return null
+
+        const results = await Promise.allSettled(
             nodeUrls.map(url => this._getSolverLockDetails(params, url))
         )
 
-        const validResults = results.filter((r): r is LockDetails => r !== null)
-        if (!validResults.length) return null
+        const fulfilled = results.filter(
+            (r): r is PromiseFulfilledResult<LockDetails | null> => r.status === 'fulfilled'
+        )
+        const validResults = fulfilled.map(r => r.value).filter((r): r is LockDetails => r !== null)
+
+        if (!validResults.length) {
+            const firstError = results.find(
+                (r): r is PromiseRejectedResult => r.status === 'rejected'
+            )
+            if (firstError && fulfilled.length === 0) throw firstError.reason
+            return null
+        }
 
         const [first, ...rest] = validResults
-        if (!rest.every(r => r.amount === first.amount && r.sender === first.sender && r.recipient === first.recipient && r.token === first.token && r.timelock === first.timelock)) {
+        if (rest.length > 0 && !rest.every(r =>
+            r.amount === first.amount &&
+            r.sender === first.sender &&
+            r.recipient === first.recipient &&
+            r.token === first.token &&
+            r.timelock === first.timelock
+        )) {
             throw new Error('Lock details do not match across the provided nodes')
         }
 
