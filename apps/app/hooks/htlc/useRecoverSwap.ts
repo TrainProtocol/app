@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useState } from 'react'
 import formatAmount from '@/lib/formatAmount'
 import { Network } from '@/Models/Network'
 import { SwapData, useSwapStore } from '@/stores/swapStore'
@@ -9,19 +9,15 @@ import { useRpcConfigStore } from '@/stores/rpcConfigStore'
 export default function useRecoverSwap(sourceNetwork: Network | null) {
     const { networks } = useSettingsState()
     const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
-    const client = useMemo(() => {
-        if (!sourceNetwork) return undefined
-        try { return createHTLCClient(sourceNetwork, getEffectiveRpcUrls) }
-        catch { return undefined }
-    }, [sourceNetwork, getEffectiveRpcUrls])
     const recoverSwap = useSwapStore(s => s.recoverSwap)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
     const recover = useCallback(async (txHash: string): Promise<string> => {
-        if (!client || !sourceNetwork) {
+        if (!sourceNetwork) {
             throw new Error('No client available for this network')
         }
+        const client = createHTLCClient(sourceNetwork, getEffectiveRpcUrls)
 
         setError(null)
         setLoading(true)
@@ -69,7 +65,7 @@ export default function useRecoverSwap(sourceNetwork: Network | null) {
         } finally {
             setLoading(false)
         }
-    }, [client, sourceNetwork, networks, recoverSwap])
+    }, [sourceNetwork, networks, recoverSwap, getEffectiveRpcUrls])
 
     return { recover, loading, error, setError }
 }

@@ -136,9 +136,34 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
                 setLoading(true)
             }
 
-            // Mock quote for Solana devnet — real API doesn't support it yet
+            // Mock quote for chains not yet supported by the real API
             const urlParams = new URLSearchParams(url.split('?')[1])
-            if (urlParams.get('sourceNetwork')?.startsWith('solana:')) {
+            const sourceNetwork = urlParams.get('sourceNetwork') ?? ''
+            if (sourceNetwork.startsWith('starknet:')) {
+                setKey(url)
+                setLoading(false)
+                const amount = urlParams.get('amount') ?? '1000000000000000000'
+                return {
+                    quote: {
+                        signature: 'mock-starknet-quote',
+                        totalFee: '500000000000000',
+                        receiveAmount: String(BigInt(amount) * 95n / 100n),
+                        sourceSolverAddress: '0x056d5aab86196192bbdb571116b69de5169453eaf3f164300de2616c184fd697',
+                        destinationSolverAddress: '0x0000000000000000000000000000000000000001',
+                        quoteExpirationTimestampInSeconds: Math.floor(Date.now() / 1000) + 3600,
+                        route: {
+                            source: { networkSlug: sourceNetwork, tokenSymbol: 'ETH', tokenContract: urlParams.get('sourceTokenContract') ?? '', tokenDecimals: 18 },
+                            destination: { networkSlug: urlParams.get('destinationNetwork')!, tokenSymbol: 'ETH', tokenContract: urlParams.get('destinationTokenContract') ?? '', tokenDecimals: 18 },
+                            minAmountInSource: '1000000000000000',
+                            maxAmountInSource: '10000000000000000000',
+                        },
+                        timelock: { timelockTimeSpanInSeconds: 3600 },
+                        reward: { amount: '0', rewardTimelockTimeSpanInSeconds: 3600, rewardToken: '', rewardRecipientAddress: '' },
+                    },
+                    solverId: 'mock-solver',
+                }
+            }
+            if (sourceNetwork.startsWith('solana:')) {
                 setKey(url)
                 setLoading(false)
                 const amount = urlParams.get('amount') ?? '1000000000'
@@ -151,7 +176,7 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
                         destinationSolverAddress: '0x0000000000000000000000000000000000000001',
                         quoteExpirationTimestampInSeconds: Math.floor(Date.now() / 1000) + 3600,
                         route: {
-                            source: { networkSlug: urlParams.get('sourceNetwork')!, tokenSymbol: 'SOL', tokenContract: '', tokenDecimals: 9 },
+                            source: { networkSlug: sourceNetwork, tokenSymbol: 'SOL', tokenContract: '', tokenDecimals: 9 },
                             destination: { networkSlug: urlParams.get('destinationNetwork')!, tokenSymbol: 'ETH', tokenContract: '', tokenDecimals: 18 },
                             minAmountInSource: '10000000',
                             maxAmountInSource: '10000000000000',
