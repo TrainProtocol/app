@@ -19,7 +19,7 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
     const { recover, loading, error, setError } = useRecoverSwap(selectedNetwork)
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
 
-    const canRecover = isValidTxHash(selectedNetwork?.type?.name, txHash) && selectedNetwork && !loading
+    const canRecover = !!selectedNetwork && txHash.length > 0 && !loading
 
     const handleRecover = async () => {
         if (!canRecover) return
@@ -118,8 +118,3 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
     )
 }
 
-function isValidTxHash(networkType: string | undefined, txHash: string): boolean {
-    if (networkType === 'solana') return /^[1-9A-HJ-NP-Za-km-z]{43,88}$/.test(txHash)
-    if (networkType === 'starknet' || networkType === 'aztec') return /^0x[a-fA-F0-9]{1,64}$/.test(txHash)
-    return /^0x[a-fA-F0-9]{64}$/.test(txHash)
-}

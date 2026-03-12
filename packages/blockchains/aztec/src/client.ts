@@ -290,6 +290,9 @@ export class AztecHTLCClient extends HTLCClient {
     }
 
     async recoverSwap(txHash: string): Promise<RecoveredSwapData> {
+        if (!/^0x[a-fA-F0-9]{1,64}$/.test(txHash))
+            throw new Error('Invalid transaction hash format')
+
         const node = this.getNode()
         const { logs } = await node.getPublicLogs({
             txHash: TxHash.fromString(txHash),

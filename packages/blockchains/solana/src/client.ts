@@ -283,6 +283,9 @@ export class SolanaHTLCClient extends HTLCClient {
     }
 
     async recoverSwap(txHash: string): Promise<RecoveredSwapData> {
+        if (!/^[1-9A-HJ-NP-Za-km-z]{43,88}$/.test(txHash))
+            throw new Error('Invalid transaction hash format')
+
         let tx = await this.connection.getTransaction(txHash, {
             commitment: 'confirmed',
             maxSupportedTransactionVersion: 0,
