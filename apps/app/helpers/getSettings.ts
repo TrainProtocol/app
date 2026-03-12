@@ -31,7 +31,7 @@ export async function getServerSideProps(context) {
                 priceInUsd: prices[`${network.caip2Id}:${token.contractAddress}`],
             })),
         }
-    })
+    }).filter(n => n.nodes.length > 0 && n.contracts.length > 0)
 
     // Inject Starknet Sepolia if the API doesn't return it
     const hasStarknet = resolvedNetworks.some(n => n.caip2Id === KnownInternalNames.Networks.StarkNetSepolia)
