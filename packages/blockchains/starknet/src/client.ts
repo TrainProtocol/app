@@ -1,4 +1,4 @@
-import { cairo, Contract, hash, ProviderOrAccount, RpcProvider, type Call } from 'starknet'
+import { cairo, Contract, hash, num, addAddressPadding, ProviderOrAccount, RpcProvider, type Call } from 'starknet'
 import {
     UserLockParams,
     LockParams,
@@ -201,17 +201,20 @@ export class StarknetHTLCClient extends HTLCClient {
         const eventKey = Object.keys(userLockedEntry).find(k => k.includes('UserLocked'))!
         const event = userLockedEntry[eventKey] as Record<string, any>
 
+        const rawDstToken = event.dst_token as string
+        const dstToken = !rawDstToken || /^[\u0000]+$/.test(rawDstToken) ? '0x0000000000000000000000000000000000000000' : rawDstToken
+
         return {
-            hashlock: '0x' + BigInt(event.hashlock).toString(16),
-            sender: '0x' + BigInt(event.sender).toString(16),
-            recipient: '0x' + BigInt(event.recipient).toString(16),
+            hashlock: addAddressPadding(num.toHex(event.hashlock)),
+            sender: addAddressPadding(num.toHex(event.sender)),
+            recipient: addAddressPadding(num.toHex(event.recipient)),
             srcChain: event.src_chain as string,
             dstChain: event.dst_chain as string,
-            token: '0x' + BigInt(event.token).toString(16),
+            token: addAddressPadding(num.toHex(event.token)),
             amount: BigInt(event.amount),
             dstAddress: event.dst_address as string,
             dstAmount: BigInt(event.dst_amount),
-            dstToken: event.dst_token as string,
+            dstToken,
             srcContract,
         }
     }

@@ -13,10 +13,8 @@ import useSolverLockPolling from '@/hooks/htlc/useSolverLockPolling';
 import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus';
 import useOrderStreaming from '@/hooks/useOrderStreaming';
 import { useHTLCWriteClient } from '@/hooks/htlc/useHTLCWriteClient';
-import { createHTLCClient } from '@/lib/htlc/createHTLCClient';
 import { useSelectedAccount } from './swapAccounts';
 import useWallet from '@/hooks/useWallet';
-import { Wallet } from '@/Models/WalletProvider';
 import { Address } from '@/lib/address';
 import { useRpcConfigStore } from '@/stores/rpcConfigStore';
 
@@ -108,9 +106,7 @@ export function AtomicProvider({ children }) {
     const [manualClaimTxId, setManualClaimTxId] = useState<string | undefined>(undefined);
     const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
     const [verifyingByLightClient, setVerifyingByLightClient] = useState(false)
-
-    const [sourceClient, setSourceClient] = useState<IHTLCClient | undefined>(undefined);
-    const [destinationClient, setDestinationClient] = useState<IHTLCClient | undefined>(undefined);
+    const [clients, setClients] = useState<Record<string, IHTLCClient | undefined>>({});
 
     // Restore secretRevealed from persisted swap store on hydration
     useEffect(() => {
@@ -187,13 +183,10 @@ export function AtomicProvider({ children }) {
         if (Object.keys(updates).length > 0) updateSwap(activeHashlock, updates)
     }, [htlcStatus, destinationRedeemTx, activeHashlock, updateSwap])
 
-    const { provider: sourceProvider } = useWallet(source_network, 'withdrawal')
+    const { provider: sourceProvider, providers } = useWallet(source_network, 'withdrawal')
     const { provider: destinationProvider } = useWallet(destination_network, 'autofill')
+    const isProvidersReady = providers.every(p => p.ready)
     const createWriteClient = useHTLCWriteClient()
-
-    const resolveClient = useCallback(async (network: Network, wallet: Wallet | undefined): Promise<IHTLCClient> => {
-        return createWriteClient(network, wallet)
-    }, [createWriteClient, getEffectiveRpcUrls])
 
     const sourceAccount = useSelectedAccount('from', source_network?.caip2Id)
     const sourceWallet = (sourceAccount?.address && source_network) ? sourceProvider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, source_network)) : undefined
@@ -201,20 +194,27 @@ export function AtomicProvider({ children }) {
     const destinationWallet = (destinationAccount?.address && destination_network) ? destinationProvider?.connectedWallets?.find(w => Address.equals(w.address, destinationAccount?.address, destination_network)) : undefined
 
     useEffect(() => {
-        setSourceClient(undefined)
         if (!source_network) return
-        resolveClient(source_network, sourceWallet)
-            .then(setSourceClient)
+        setClients(prev => ({ ...prev, [source_network.caip2Id]: undefined }))
+        let cancelled = false
+        createWriteClient(source_network, isProvidersReady ? sourceWallet : undefined)
+            .then(client => { if (!cancelled) setClients(prev => ({ ...prev, [source_network.caip2Id]: client })) })
             .catch(e => console.error('Error creating source HTLC client:', e))
-    }, [source_network, sourceWallet, resolveClient])
+        return () => { cancelled = true }
+    }, [source_network, sourceWallet, isProvidersReady, createWriteClient])
 
     useEffect(() => {
-        setDestinationClient(undefined)
         if (!destination_network) return
-        resolveClient(destination_network, destinationWallet)
-            .then(setDestinationClient)
+        setClients(prev => ({ ...prev, [destination_network.caip2Id]: undefined }))
+        let cancelled = false
+        createWriteClient(destination_network, isProvidersReady ? destinationWallet : undefined)
+            .then(client => { if (!cancelled) setClients(prev => ({ ...prev, [destination_network.caip2Id]: client })) })
             .catch(e => console.error('Error creating destination HTLC client:', e))
-    }, [destination_network, destinationWallet, resolveClient])
+        return () => { cancelled = true }
+    }, [destination_network, destinationWallet, isProvidersReady, createWriteClient])
+
+    const sourceClient = source_network ? clients[source_network.caip2Id] : undefined
+    const destinationClient = destination_network ? clients[destination_network.caip2Id] : undefined
 
     const handleUserLockSuccess = useCallback((details: LockDetails) => {
         if (hashlock) {
@@ -381,7 +381,7 @@ export function AtomicProvider({ children }) {
             error,
             setError,
             setManualClaimTxId,
-            htlcFromApi: htlcFromApi,
+            htlcFromApi,
             lightClient,
             htlcStatus,
             isTimelockExpired,
@@ -410,4 +410,3 @@ export function useAtomicState() {
 
     return data;
 }
-
