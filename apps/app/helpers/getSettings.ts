@@ -20,7 +20,7 @@ export async function getServerSideProps(context) {
 
     if (!networks.length) return
 
-    const resolvedNetworks = await Promise.all(networks.map(async network => {
+    const resolvedNetworks = (await Promise.all(networks.map(async network => {
         const _network = mockData.data.find(n => n.caip2Id === network.caip2Id)
         const seedNodes = _network?.nodes ?? []
         const resolvedNodes = await resolveNodes(network.caip2Id, seedNodes)
@@ -34,7 +34,7 @@ export async function getServerSideProps(context) {
                 priceInUsd: prices[`${network.caip2Id}:${token.contractAddress}`],
             })),
         }
-    }))
+    }))).filter(n => n?.nodes?.length > 0 && n?.contracts?.length > 0)
 
     // Inject Starknet Sepolia if the API doesn't return it
     const hasStarknet = resolvedNetworks.some(n => n.caip2Id === KnownInternalNames.Networks.StarkNetSepolia)
@@ -223,7 +223,7 @@ const mockData = {
             "contracts": [
                 {
                     "type": "Train",
-                    "address": "6zasug6x5AY93zNVjPZPGoqQfdTBd3C1w6CU9NDKtNH8"
+                    "address": "ADwgQuJzWCrxEgsBR5EwGmvqD12xLbAW316KG8L2f8BL"
                 }
             ],
         }

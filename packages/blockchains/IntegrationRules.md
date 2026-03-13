@@ -279,7 +279,13 @@ Key points:
 
 ### recoverSwap
 
-Fetch transaction + receipt, parse the `UserLocked` event from logs, return `RecoveredSwapData`. If not applicable, throw.
+**Must validate the `txHash` format at the top of the function before making any RPC calls.** Throw `'Invalid transaction hash format'` if it doesn't match. Each chain has its own expected format:
+
+- EVM: `/^0x[a-fA-F0-9]{64}$/`
+- Starknet / Aztec: `/^0x[a-fA-F0-9]{1,64}$/`
+- Solana: `/^[1-9A-HJ-NP-Za-km-z]{43,88}$/`
+
+Then fetch transaction + receipt, parse the `UserLocked` event from logs, return `RecoveredSwapData`. If the event is not found, throw.
 
 ---
 
@@ -454,6 +460,7 @@ const ZERO_ADDRESS = '0x000...'     // Chain's empty/zero address representation
 - [ ] Follow function ordering: writes → reads → private helpers
 - [ ] Implement count-then-loop pattern in `getSolverLockDetails` (1-indexed, single-node version)
 - [ ] Set `this.consensusOptions` in constructor if chain needs non-default quorum (default: `minQuorum: 2`)
+- [ ] Validate `txHash` format at the top of `recoverSwap` before any RPC calls
 - [ ] Define `{Chain}WalletLike` minimal interface in `login/wallet-sign.ts`
 - [ ] Implement key derivation in `login/wallet-sign.ts` using `deriveKeyMaterial` + `IDENTITY_SALT`
 - [ ] Create idempotent `register{Chain}Sdk()` in `index.ts` — pass config directly (no `as` casts)

@@ -60,7 +60,7 @@ export const userLockTransactionBuilder = async (params: UserLockParams): Promis
         const tokenMint = new PublicKey(params.sourceAsset.contractAddress)
         const senderTokenAccount = await getAssociatedTokenAddress(tokenMint, walletPublicKey)
         const [vault] = PublicKey.findProgramAddressSync(
-            [Buffer.from("vault"), hashlock],
+            [Buffer.from("user_vault"), hashlock],
             program.programId
         )
 
@@ -129,7 +129,7 @@ export const refundTransactionBuilder = async (params: RefundTxParams): Promise<
         const tokenMint = new PublicKey(params.sourceAsset.contractAddress)
         const senderTokenAccount = await getAssociatedTokenAddress(tokenMint, walletPublicKey)
         const [vault] = PublicKey.findProgramAddressSync(
-            [Buffer.from("vault"), hashlockBuffer],
+            [Buffer.from("user_vault"), hashlockBuffer],
             program.programId
         )
 
@@ -157,17 +157,12 @@ export const refundTransactionBuilder = async (params: RefundTxParams): Promise<
             .instruction()
     }
 
-    const closeIx = await program.methods
-        .closeUserLock(hashlockArray)
-        .accounts({ caller: walletPublicKey, userLock: userLockPda })
-        .instruction()
-
     const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash()
     const tx = new Transaction()
     tx.recentBlockhash = blockhash
     tx.lastValidBlockHeight = lastValidBlockHeight
     tx.feePayer = walletPublicKey
-    tx.add(refundIx, closeIx)
+    tx.add(refundIx)
 
     return { transaction: tx, blockhash, lastValidBlockHeight }
 }
@@ -177,10 +172,11 @@ export const redeemSolverTransactionBuilder = async (params: RedeemSolverTxParam
     const hashlockBuffer = Buffer.from(params.id.replace('0x', ''), 'hex')
     const hashlockArray = Array.from(hashlockBuffer)
     const secretArray = Array.from(secretToBuffer(params.secret))
-    const lockIndex = params.index ?? 1
+    const lockIndexNum = params.index ?? 1
+    const lockIndex = new BN(lockIndexNum)
 
     const indexBuffer = Buffer.alloc(8)
-    indexBuffer.writeBigUInt64LE(BigInt(lockIndex))
+    indexBuffer.writeBigUInt64LE(BigInt(lockIndexNum))
 
     const [solverLockPda] = PublicKey.findProgramAddressSync(
         [Buffer.from("solver_lock"), hashlockBuffer, indexBuffer],
@@ -189,6 +185,7 @@ export const redeemSolverTransactionBuilder = async (params: RedeemSolverTxParam
 
     const solverLockAccount = await (program.account as any).solverLock.fetch(solverLockPda)
     const rewardRecipient = new PublicKey(solverLockAccount.rewardRecipient)
+    const sender = new PublicKey(solverLockAccount.sender)
     const recipient = params.destinationAddress ? new PublicKey(params.destinationAddress) : walletPublicKey
 
     let tx: Transaction
@@ -196,7 +193,7 @@ export const redeemSolverTransactionBuilder = async (params: RedeemSolverTxParam
         const { getAssociatedTokenAddress, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
         const tokenMint = new PublicKey(params.sourceAsset.contractAddress)
         const [vault] = PublicKey.findProgramAddressSync(
-            [Buffer.from("vault"), hashlockBuffer, indexBuffer],
+            [Buffer.from("solver_vault"), hashlockBuffer, indexBuffer],
             program.programId
         )
         const recipientTokenAccount = await getAssociatedTokenAddress(tokenMint, recipient)
@@ -215,6 +212,7 @@ export const redeemSolverTransactionBuilder = async (params: RedeemSolverTxParam
                 recipientTokenAccount,
                 rewardRecipientTokenAccount,
                 callerTokenAccount,
+                sender,
                 tokenProgram: TOKEN_PROGRAM_ID,
                 associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             })

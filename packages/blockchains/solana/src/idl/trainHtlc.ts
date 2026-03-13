@@ -77,63 +77,6 @@ export const TrainHtlc = (address: string): Idl => ({
       ]
     },
     {
-      "name": "close_user_lock",
-      "discriminator": [
-        106,
-        156,
-        216,
-        210,
-        55,
-        80,
-        233,
-        113
-      ],
-      "accounts": [
-        {
-          "name": "caller",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "user_lock",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  117,
-                  115,
-                  101,
-                  114,
-                  95,
-                  108,
-                  111,
-                  99,
-                  107
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "_hashlock"
-              }
-            ]
-          }
-        }
-      ],
-      "args": [
-        {
-          "name": "_hashlock",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          }
-        }
-      ]
-    },
-    {
       "name": "get_solver_lock",
       "discriminator": [
         112,
@@ -662,6 +605,10 @@ export const TrainHtlc = (address: string): Idl => ({
           }
         },
         {
+          "name": "sender",
+          "writable": true
+        },
+        {
           "name": "token_program"
         },
         {
@@ -1009,6 +956,10 @@ export const TrainHtlc = (address: string): Idl => ({
           }
         },
         {
+          "name": "sender",
+          "writable": true
+        },
+        {
           "name": "token_program"
         },
         {
@@ -1094,6 +1045,10 @@ export const TrainHtlc = (address: string): Idl => ({
           }
         },
         {
+          "name": "sender",
+          "writable": true
+        },
+        {
           "name": "recipient",
           "writable": true
         },
@@ -1166,6 +1121,10 @@ export const TrainHtlc = (address: string): Idl => ({
               }
             ]
           }
+        },
+        {
+          "name": "sender",
+          "writable": true
         },
         {
           "name": "recipient"
