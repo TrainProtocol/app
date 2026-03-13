@@ -9,7 +9,8 @@ export type BaseHTLCClientConfig = {
 
 export interface IHTLCClient {
     getUserLockDetails(params: LockParams): Promise<LockDetails | null>
-    getSolverLockDetails(params: LockParams, nodeUrls: string[]): Promise<LockDetails | null>
+    getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null>
+    getSolverLockDetailsWithConsensus(params: LockParams, nodeUrls: string[], options?: ConsensusOptions): Promise<LockDetails | null>
     recoverSwap(txHash: string): Promise<RecoveredSwapData>
 
     userLock(params: UserLockParams): Promise<AtomicResult>
@@ -20,6 +21,7 @@ export interface IHTLCClient {
 
 export abstract class HTLCClient implements IHTLCClient {
     protected apiClient: TrainApiClient
+    protected consensusOptions: ConsensusOptions = { minQuorum: 2 }
 
     constructor(apiClient: TrainApiClient) {
         this.apiClient = apiClient
@@ -29,11 +31,17 @@ export abstract class HTLCClient implements IHTLCClient {
         return this.apiClient.revealSecret(solverId, hashlock, secret)
     }
 
-    async getSolverLockDetails(params: LockParams, nodeUrls: string[]): Promise<LockDetails | null> {
+    async getSolverLockDetailsWithConsensus(
+        params: LockParams,
+        nodeUrls: string[],
+        options?: ConsensusOptions
+    ): Promise<LockDetails | null> {
+        const { minQuorum = 2 } = { ...this.consensusOptions, ...options }
+
         if (!nodeUrls.length) return null
 
         const results = await Promise.allSettled(
-            nodeUrls.map(url => this._getSolverLockDetails(params, url))
+            nodeUrls.map(url => this.getSolverLockDetails(params, url))
         )
 
         const fulfilled = results.filter(
@@ -49,9 +57,17 @@ export abstract class HTLCClient implements IHTLCClient {
             return null
         }
 
+        const effectiveQuorum = Math.min(minQuorum, nodeUrls.length)
+
+        if (validResults.length < effectiveQuorum) {
+            throw new Error(
+                `Insufficient node agreement: ${validResults.length} of ${nodeUrls.length} nodes returned results, need at least ${effectiveQuorum}`
+            )
+        }
+
         const [first, ...rest] = validResults
         if (rest.length > 0 && !rest.every(r =>
-            r.amount === first.amount &&
+            String(r.amount) === String(first.amount) &&
             r.sender === first.sender &&
             r.recipient === first.recipient &&
             r.token === first.token &&
@@ -64,9 +80,13 @@ export abstract class HTLCClient implements IHTLCClient {
     }
 
     abstract getUserLockDetails(params: LockParams): Promise<LockDetails | null>
-    abstract _getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null>
+    abstract getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null>
     abstract recoverSwap(txHash: string): Promise<RecoveredSwapData>
     abstract userLock(params: UserLockParams): Promise<AtomicResult>
     abstract refund(params: RefundParams): Promise<string>
     abstract redeemSolver(params: RedeemSolverParams): Promise<string>
+}
+
+export interface ConsensusOptions {
+    minQuorum?: number
 }

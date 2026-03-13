@@ -1,3 +1,4 @@
+import { useRef } from "react"
 import useSWR from "swr"
 import { Network, Token } from "@/Models/Network"
 import { LockDetails } from "@/Models/phtlc/PHTLC"
@@ -28,6 +29,7 @@ const useSolverLockPolling = ({
     onSuccess,
 }: UseSolverLockPollingParams) => {
     const type: 'erc20' | 'native' = destinationAsset?.contractAddress && destinationAsset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
+    const consensusVerified = useRef(false)
 
     const shouldPoll = !!(network && hashlock && contractAddress && enabled)
 
@@ -49,8 +51,25 @@ const useSolverLockPolling = ({
                 solverAddress,
             }
 
+            const primaryUrl = nodeUrls[0]
+            if (!primaryUrl) return null
+
             try {
-                return await client.getSolverLockDetails(params, nodeUrls)
+                // Regular polling: single node only
+                const result = await client.getSolverLockDetails(params, primaryUrl)
+
+                if (!result) return null
+
+                // First detection: verify with multi-node consensus
+                if (!consensusVerified.current && nodeUrls.length > 1) {
+                    const verified = await client.getSolverLockDetailsWithConsensus(params, nodeUrls)
+                    if (verified) {
+                        consensusVerified.current = true
+                    }
+                    return verified
+                }
+
+                return result
             } catch (err) {
                 console.error('Error fetching solver lock details:', err)
                 throw err

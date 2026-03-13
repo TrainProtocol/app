@@ -188,7 +188,10 @@ export default function useAtomicTON(params: UseAtomicTONParams) {
     getUserLockDetails: getDetails,
     refund,
     redeemSolver,
-    getSolverLockDetails: function (params: LockParams): Promise<LockDetails | null> {
+    getSolverLockDetails: function (params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+        throw new Error("Function not implemented.")
+    },
+    getSolverLockDetailsWithConsensus: function (params: LockParams, nodeUrls: string[]): Promise<LockDetails | null> {
         throw new Error("Function not implemented.")
     }
 }

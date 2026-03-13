@@ -36,6 +36,7 @@ export class AztecHTLCClient extends HTLCClient {
         super(config.apiClient)
         this.rpcUrl = config.rpcUrl
         this.signer = config.signer
+        this.consensusOptions = { minQuorum: 1 }
     }
 
     async userLock(params: UserLockParams): Promise<AtomicResult> {
@@ -245,7 +246,7 @@ export class AztecHTLCClient extends HTLCClient {
         }
     }
 
-    async _getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
         const signer = this.requireSigner()
         const { id, contractAddress } = params
         const { contract, userAztecAddress } = await this.getContractInstance(contractAddress, signer, nodeUrl)

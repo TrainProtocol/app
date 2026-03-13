@@ -20,12 +20,16 @@ export function getNetworkRpcUrl(network: Network): string {
 
 /**
  * Build a viem Transport with fallback across all effective RPC URLs.
+ * Throws if no RPC URLs are available for the network.
  */
 export function buildNetworkTransport(
     network: Network,
     options?: { timeout?: number; retryCount?: number },
 ): Transport {
     const urls = getNetworkRpcUrls(network)
+    if (urls.length === 0) {
+        throw new Error(`No RPC URLs available for network ${network.caip2Id}`)
+    }
     if (urls.length > 1) {
         return fallback(urls.map(u => http(u, options)))
     }

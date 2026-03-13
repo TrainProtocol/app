@@ -171,7 +171,7 @@ export function AtomicProvider({ children }) {
 
     const htlcStatus = useMemo(() =>
         resolveHTLCStatus({ sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed, manualClaimRequired, destRedeemTxId: destinationRedeemTx }),
-        [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, manualClaimRequired])
+        [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, manualClaimRequired, destinationRedeemTx])
 
     const isTerminal = isTerminalStatus(htlcStatus)
 
