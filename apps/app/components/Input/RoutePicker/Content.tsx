@@ -32,16 +32,17 @@ export const Content: FC<ContentProps> = (props) => {
             shouldFocus={true}
             direction={props.direction}
         />
-        <Items {...props} onScroll={handleScroll} setIsItemsScrolling={setIsItemsScrolling} />
+        <Items {...props} isScrolling={isItemsScrolling} onScroll={handleScroll} setIsItemsScrolling={setIsItemsScrolling} />
     </>
 }
 
 type ItemsProps = ContentProps & {
+    isScrolling: boolean;
     onScroll: () => void;
     setIsItemsScrolling: (isScrolling: boolean) => void;
 }
 
-const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selectedToken, selectedNetwork, direction, onSelect, onScroll, setIsItemsScrolling }) => {
+const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selectedToken, selectedNetwork, direction, onSelect, isScrolling, onScroll, setIsItemsScrolling }) => {
     const parentRef = useRef<HTMLDivElement>(null)
     const [openValues, setOpenValues] = useState<string[]>(selectedNetwork ? [selectedNetwork] : [])
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -76,7 +77,7 @@ const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selec
         count: rowElements.length,
         estimateSize: (index) => {
             const item = rowElements[index];
-            const key = (item as any)?.network?.name || (item as any)?.symbol;
+            const key = (item as any)?.network?.caip2Id || (item as any)?.symbol;
             const isOpen = openValues.includes(key);
             // Better size estimation based on open state
             if (isOpen && (item.type === 'network' || item.type === 'grouped_token')) {
@@ -109,12 +110,12 @@ const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selec
         }
         scrollTimeoutRef.current = setTimeout(() => {
             setIsItemsScrolling(false);
-        }, 150);
+        }, 1000);
     };
 
     return (
         <div
-            className="select-text overflow-y-auto overflow-x-hidden scrollbar:w-1! scrollbar:h-1! pr-0.5 styled-scroll h-full"
+            className={`select-text overflow-y-auto overflow-x-hidden scrollbar:w-1! scrollbar:h-1! scrollbar-thumb:bg-transparent pr-0.5 h-full${isScrolling ? " styled-scroll!" : ""}`}
             ref={parentRef}
             onScroll={handleScrollEvent}
         >
@@ -140,7 +141,7 @@ const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selec
                                     }}>
                                     {items.map((virtualRow) => {
                                         const data = rowElements?.[virtualRow.index]
-                                        const key = ((data as any)?.network as any)?.name || virtualRow.key;
+                                        const key = ((data as any)?.network as any)?.caip2Id || (data as any)?.symbol || virtualRow.key;
                                         return <div
                                             className="py-1 box-border w-full overflow-hidden select-none"
                                             key={key}
