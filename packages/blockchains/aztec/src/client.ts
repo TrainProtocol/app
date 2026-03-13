@@ -36,7 +36,7 @@ export class AztecHTLCClient extends HTLCClient {
         super(config.apiClient)
         this.rpcUrl = config.rpcUrl
         this.signer = config.signer
-        this.consensusOptions = { minQuorum: 1 }
+        this.consensusOptions = { minQuorum: 1, batchSize: 1 }
     }
 
     async userLock(params: UserLockParams): Promise<AtomicResult> {

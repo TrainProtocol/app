@@ -33,7 +33,7 @@ const useSolverLockPolling = ({
 
     useEffect(() => {
         consensusVerified.current = false
-    }, [hashlock])
+    }, [hashlock, nodeUrls])
 
     const shouldPoll = !!(network && hashlock && contractAddress && enabled)
 

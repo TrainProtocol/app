@@ -44,5 +44,5 @@ export async function resolveNodes(
         }
     }
 
-    return results.slice(0, 3)
+    return results
 }

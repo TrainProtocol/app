@@ -39,7 +39,6 @@ export async function resolveEvmNodes(chainId: string): Promise<ResolvedNode[]> 
                 results.push({ url: normalized, providerName: extractProviderName(url) })
             }
         }
-        if (results.length >= 3) break
     }
 
     return results

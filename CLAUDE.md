@@ -51,6 +51,14 @@ Key files:
 - `packages/blockchains/{evm,solana,starknet,aztec}/src/client.ts` — chain-specific HTLC implementations
 - `apps/app/lib/wallets/utils/atomicTypes.ts` — chain-specific wallet/atomic interfaces
 
+### RPC Node Resolution & Consensus
+- `apps/app/lib/rpc/` — dynamic RPC resolution: `nodeResolver.ts` (entry point), `evmNodes.ts` (chainlist-rpcs), `nonEvmNodes.ts` (static registry)
+- `resolveNodes(caip2Id)` returns all available RPCs (existing nodes first, then dynamic/static). Called server-side in `getSettings.ts`
+- `rpcConfigStore` manages user custom RPC overrides; `getEffectiveRpcUrls(network)` returns custom URLs or `network.nodes`
+- **Consensus verification**: `getSolverLockDetailsWithConsensus()` in SDK queries nodes in batches of `batchSize` (default 3), retries with next batch if quorum (`minQuorum`, default 2) not met
+- `ConsensusOptions`: `{ minQuorum?: number, batchSize?: number }` — configurable per-call or via subclass defaults
+- Consensus runs once on first solver lock detection (tracked by `consensusVerified` ref in `useSolverLockPolling`), then falls back to single-node polling
+
 ### Secret & Nonce
 - Secret derived from: `deriveInitialKey()` + `deriveSecretFromTimelock(key, nonce)`
 - Nonce = `Date.now()` timestamp, stored in URL query params (for page refresh recovery) and on-chain via `userData` bytes field
