@@ -1,4 +1,4 @@
-import { useRef } from "react"
+import { useEffect, useRef } from "react"
 import useSWR from "swr"
 import { Network, Token } from "@/Models/Network"
 import { LockDetails } from "@/Models/phtlc/PHTLC"
@@ -30,6 +30,10 @@ const useSolverLockPolling = ({
 }: UseSolverLockPollingParams) => {
     const type: 'erc20' | 'native' = destinationAsset?.contractAddress && destinationAsset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
     const consensusVerified = useRef(false)
+
+    useEffect(() => {
+        consensusVerified.current = false
+    }, [hashlock])
 
     const shouldPoll = !!(network && hashlock && contractAddress && enabled)
 

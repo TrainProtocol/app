@@ -352,7 +352,7 @@ export function AtomicProvider({ children }) {
 
         const timer = setTimeout(() => {
             updateHTLCState(hashlock, { manualClaimRequired: true });
-        }, 3 * 60 * 1000); // 2 minutes
+        }, 2 * 60 * 1000); // 2 minutes
 
         return () => clearTimeout(timer);
     }, [sourceDetails?.status, sourceDetails?.secret, solverLockDetails?.sender, solverLockDetails?.status, hashlock, manualClaimRequired])
