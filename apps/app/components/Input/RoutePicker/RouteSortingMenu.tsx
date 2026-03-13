@@ -2,7 +2,9 @@ import { FC, useState } from "react";
 import { useRouteSortingStore, SortingOption } from "@/stores/routeSortingStore";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip";
-import { ArrowUpDown, Check, Info } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
+import InfoIcon from "@/components/Icons/InfoIcon";
+import CheckIcon from "@/components/Icons/CheckIcon";
 import clsx from "clsx";
 
 const sortingOptions: Array<{
@@ -82,7 +84,7 @@ const RouteSortingMenu: FC = () => {
                                             className="flex items-center"
                                         >
                                             <span>
-                                                <Info className="w-3.5 h-3.5 text-primary-text-tertiary hover:text-primary-text transition-colors" />
+                                                <InfoIcon className="w-3.5 h-3.5 text-primary-text-tertiary hover:text-primary-text transition-colors" />
                                             </span>
                                         </TooltipTrigger>
                                         <TooltipContent side="right" className="max-w-[240px] text-xs">
@@ -92,7 +94,7 @@ const RouteSortingMenu: FC = () => {
                                 )}
                             </span>
                             {sortingOption === option.value && (
-                                <Check className="w-4 h-4 text-primary-text shrink-0" />
+                                <CheckIcon className="w-4 h-4 text-primary-text shrink-0" />
                             )}
                         </button>
                     ))}
