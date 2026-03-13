@@ -7,8 +7,10 @@ import useFormNetworks from "@/hooks/useFormNetworks";
 import { Content } from "./Content";
 import { Network, Token } from "@/Models/Network";
 import clsx from "clsx";
+import useWallet from "@/hooks/useWallet";
 import useSuggestionsLimit from "@/hooks/useSuggestionsLimit";
 import Balance from "@/components/Input/Amount/Balance";
+import PickerWalletConnect from "./PickerWalletConnect";
 
 const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ direction, className }) => {
     const {
@@ -16,8 +18,9 @@ const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ dir
         setFieldValue,
     } = useFormikContext<SwapFormValues>();
     const [searchQuery, setSearchQuery] = useState("")
+    const { wallets } = useWallet()
 
-    const { suggestionsLimit } = useSuggestionsLimit();
+    const { suggestionsLimit } = useSuggestionsLimit({ hasWallet: wallets.length > 0 });
 
     const { isLoading, networkElements, selectedNetwork, selectedToken } = useFormNetworks({ direction, values }, searchQuery, suggestionsLimit)
     const currencyFieldName = direction === 'from' ? 'fromCurrency' : 'toCurrency';
@@ -41,6 +44,7 @@ const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ dir
                 <SelectorContent
                     isLoading={isLoading}
                     searchHint="Search"
+                    header={<PickerWalletConnect direction={direction} />}
                 >
                     {({ closeModal }) => (
                         <Content

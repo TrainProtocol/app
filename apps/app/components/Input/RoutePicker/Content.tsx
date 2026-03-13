@@ -7,6 +7,8 @@ import Row from "./Rows";
 import { Network, Token } from "@/Models/Network";
 import RouteSearch from "./RouteSearch";
 import NavigatableList from "@/components/NavigatableList";
+import useWallet from "@/hooks/useWallet";
+import ConnectWalletButton from "@/components/Input/Address/AddressPicker/ConnectedWallets/ConnectWalletButton";
 
 type ContentProps = {
     onSelect: (network: Network, token: Token) => Promise<void> | void;
@@ -46,6 +48,8 @@ const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selec
     const parentRef = useRef<HTMLDivElement>(null)
     const [openValues, setOpenValues] = useState<string[]>(selectedNetwork ? [selectedNetwork] : [])
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const { wallets, providers } = useWallet()
+    const isProvidersReady = providers.every(p => p.ready)
 
     const isSingleNetwork = useMemo(() => {
         if (!searchQuery) return false;
@@ -119,6 +123,13 @@ const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selec
             ref={parentRef}
             onScroll={handleScrollEvent}
         >
+            {wallets.length === 0 && direction === 'from' && !searchQuery &&
+                <ConnectWalletButton
+                    descriptionText="Connect your wallet to browse your assets and choose easier"
+                    className="w-full my-2.5"
+                    disabled={!isProvidersReady}
+                />
+            }
             <NavigatableList enabled={true} onReset={onReset} navigateToFirstChild={isSingleNetwork}>
                 <div id="sticky_accordion_header" />
                 <div className="relative">
