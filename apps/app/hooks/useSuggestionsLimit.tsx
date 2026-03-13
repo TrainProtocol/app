@@ -10,10 +10,9 @@ type WindowSize = {
     height: number | undefined;
 };
 
-function calculateFromViewport(windowSize: WindowSize, hasWallet: boolean): number {
+function calculateFromViewport(windowSize: WindowSize): number {
     if (!windowSize?.height) return MIN_SUGGESTIONS;
 
-    const CONNECT_WALLET_BUTTON = hasWallet ? 0 : 128;
     const COLLAPSED_ROW_HEIGHT = 60;
     const SEARCH_HEIGHT = 40;
     const SUGGESTIONS_TITLE_HEIGHT = 28;
@@ -27,7 +26,7 @@ function calculateFromViewport(windowSize: WindowSize, hasWallet: boolean): numb
         ? windowSize.height * 0.79
         : windowSize.height * 0.90;
 
-    const fixedHeight = SEARCH_HEIGHT + SUGGESTIONS_TITLE_HEIGHT + CONNECT_WALLET_BUTTON +
+    const fixedHeight = SEARCH_HEIGHT + SUGGESTIONS_TITLE_HEIGHT +
         ALL_NETWORKS_TITLE_HEIGHT + ALL_NETWORKS_VISIBLE_ROWS +
         HEADER_HEIGHT + PADDING;
 
@@ -37,16 +36,12 @@ function calculateFromViewport(windowSize: WindowSize, hasWallet: boolean): numb
     return Math.max(MIN_SUGGESTIONS, Math.min(MAX_SUGGESTIONS, calculatedCount));
 }
 
-type Options = {
-    hasWallet: boolean;
-};
-
-export default function useSuggestionsLimit({ hasWallet }: Options) {
+export default function useSuggestionsLimit() {
     const { windowSize } = useWindowDimensions();
 
     const limit = useMemo(() => {
-        return calculateFromViewport(windowSize, hasWallet);
-    }, [windowSize, hasWallet]);
+        return calculateFromViewport(windowSize);
+    }, [windowSize]);
 
     return { suggestionsLimit: limit };
 }
