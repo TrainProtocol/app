@@ -34,12 +34,9 @@ export default function useAztec(): WalletProvider {
         const wallet = connectedWallets[0]
         if (!wallet) return undefined;
 
-        const activeProvider = discoveredProviders.find(p => !p.isDisconnected());
-        const providerName = activeProvider?.name ?? 'Aztec Wallet';
-
         return {
-            id: providerName,
-            displayName: `${providerName} - Aztec`,
+            id: wallet.id,
+            displayName: wallet.displayName,
             addresses: [wallet.address],
             address: wallet.address,
             providerName: name,
@@ -80,7 +77,7 @@ export default function useAztec(): WalletProvider {
                 const walletName = activeProvider?.name ?? 'Aztec Wallet';
 
                 const newWallet: Wallet = {
-                    id: walletName,
+                    id: activeProvider?.id ?? '',
                     displayName: `${walletName} - Aztec`,
                     addresses: [connectedAddress],
                     address: connectedAddress,
