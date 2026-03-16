@@ -23,6 +23,7 @@ import type {
     HTLCFromApi,
     QuoteDetails,
     Token,
+    RecoveredSwapData,
 } from '@train-protocol/sdk'
 import { useTrainContext } from './TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
@@ -179,7 +180,7 @@ export interface SwapContextValue {
     revealSecret: () => Promise<void>
     refund: () => Promise<string>
     manualClaim: (secret: string) => Promise<string>
-    recoverSwap: (txHash: string, chainNamespace: string, rpcUrl: string) => Promise<void>
+    recoverSwap: (txHash: string, chainNamespace: string, rpcUrl: string) => Promise<RecoveredSwapData>
     setError: (error: Error | null) => void
     reset: () => void
 }
@@ -603,6 +604,7 @@ export function SwapProvider({ children }: { children: ReactNode }) {
                 }
                 store.getState().recoverSwap(recovered.hashlock, swapData)
             }
+            return recovered
         } catch (err) {
             const error = new TrainError(
                 err instanceof Error ? err.message : String(err),

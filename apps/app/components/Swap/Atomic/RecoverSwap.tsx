@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Network } from '@/Models/Network'
 import { useSettingsState } from '@/context/settings'
-import useRecoverSwap from '@/hooks/htlc/useRecoverSwap'
+import { useRecoverSwap } from '@train-protocol/react'
 import SubmitButton from '@/components/buttons/submitButton'
 import Image from 'next/image'
 import { ChevronDown } from 'lucide-react'
@@ -16,21 +16,15 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
     const [txHash, setTxHash] = useState('')
     const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null)
     const [showNetworkList, setShowNetworkList] = useState(false)
-    const { recover, loading, error, setError } = useRecoverSwap(selectedNetwork)
+    const { recover, error, isRecovering } = useRecoverSwap()
     const { setActiveHashlock } = useSwapActions()
-
-    const canRecover = !!selectedNetwork && txHash.length > 0 && !loading
+    const canRecover = !!selectedNetwork && txHash.length > 0 && !isRecovering
 
     const handleRecover = async () => {
         if (!canRecover) return
-        setError(null)
-        try {
-            const hashlock = await recover(txHash)
-            setActiveHashlock(hashlock)
-            onRecovered(hashlock)
-        } catch {
-            // error is already set in the hook
-        }
+        const { hashlock } = await recover(txHash, selectedNetwork.caip2Id, selectedNetwork.nodes[0].url) //TODO repcurl resolver or smthng
+        setActiveHashlock(hashlock)
+        onRecovered(hashlock)
     }
 
     return (
@@ -102,13 +96,13 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
             </div>
 
             {error && (
-                <p className="text-sm text-error-foreground">{error}</p>
+                <p className="text-sm text-error-foreground">{error.message}</p>
             )}
 
             <SubmitButton
                 type="button"
                 isDisabled={!canRecover}
-                isSubmitting={loading}
+                isSubmitting={isRecovering}
                 onClick={handleRecover}
                 size="medium"
             >

@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react'
 import { useSwapContext } from '../providers/SwapProvider'
+import { RecoveredSwapData } from '@train-protocol/sdk'
 
 export interface UseRecoverSwapResult {
-    recover: (txHash: string, chainNamespace: string, rpcUrl: string) => Promise<void>
+    recover: (txHash: string, chainNamespace: string, rpcUrl: string) => Promise<RecoveredSwapData>
     isRecovering: boolean
     error: Error | null
 }
@@ -16,7 +17,7 @@ export function useRecoverSwap(): UseRecoverSwapResult {
         setIsRecovering(true)
         setError(null)
         try {
-            await recoverSwap(txHash, chainNamespace, rpcUrl)
+            return await recoverSwap(txHash, chainNamespace, rpcUrl)
         } catch (err) {
             setError(err instanceof Error ? err : new Error(String(err)))
             throw err
