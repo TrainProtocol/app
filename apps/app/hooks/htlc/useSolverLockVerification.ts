@@ -1,17 +1,14 @@
 import { useMemo } from 'react'
-import { useAtomicState } from '@/context/atomicContext'
-import { useSwapStore } from '@/stores/swapStore'
-import { useShallow } from 'zustand/react/shallow'
+import { useSwapData } from '@/hooks/useSwapData'
+import { useSwapState, useCurrentSwap } from '@train-protocol/react'
 import { verifySolverLock, VerificationResult } from '@train-protocol/sdk'
 
 export type { VerificationResult }
 
 export function useSolverLockVerification(): VerificationResult {
-    const { solverLockDetails, address, destination_asset, hashlock } = useAtomicState()
-
-    const swap = useSwapStore(
-        useShallow(s => hashlock ? s.swaps[hashlock] ?? null : null)
-    )
+    const { address, destination_asset } = useSwapData()
+    const { solverLockDetails } = useSwapState()
+    const swap = useCurrentSwap()
 
     return useMemo(() => {
         if (!solverLockDetails?.sender) {

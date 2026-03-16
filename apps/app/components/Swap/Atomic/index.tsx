@@ -8,7 +8,8 @@ import { NextRouter, useRouter } from "next/router";
 import { useQueryState } from "@/context/query";
 import useWallet from "@/hooks/useWallet";
 import { SwapQuote } from "@/lib/trainApiClient";
-import { useAtomicState } from "@/context/atomicContext";
+import { useSwapData } from "@/hooks/useSwapData";
+import { useSwapState } from "@train-protocol/react";
 import VaulDrawer from "../../Modal/vaulModal";
 import { Widget } from "../../Widget/Index";
 import { generateSwapInitialValues } from "@/lib/generateSwapInitialValues";
@@ -16,6 +17,7 @@ import { useSettingsState } from "@/context/settings";
 import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
 import { useSecretDerivation } from "@/context/secretDerivationContext";
 import { useSwapStore } from "@/stores/swapStore";
+import { useSwapActions } from "@train-protocol/react";
 import { formatUnits } from "viem";
 import { NetworkContractType } from "@/Models/Network";
 import { HTLCStatus } from "@/Models/HTLCStatus";
@@ -32,13 +34,12 @@ export default function Form() {
     const [solverId, setSolverId] = useState<string | undefined>()
     const [polling, setPolling] = useState(true)
     const { getProvider } = useWallet()
-    const { hashlock, htlcStatus } = useAtomicState()
+    const { hashlock } = useSwapData()
+    const { status: htlcStatus } = useSwapState()
     const settings = useSettingsState()
     const swapModalOpen = useSwapStore(s => s.swapModalOpen)
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
-    const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
-    const clearTempSwap = useSwapStore(s => s.clearTempSwap)
-    const setTempSwap = useSwapStore(s => s.setTempSwap)
+    const { setCurrentSwap, clearCurrentSwap, setActiveHashlock } = useSwapActions()
     const { setPulseState } = usePulsatingCircles();
 
     useEffect(() => {
@@ -59,14 +60,14 @@ export default function Form() {
 
     const handleDrawerAnimationEnd = useCallback((open: boolean) => {
         if (!open) {
-            clearTempSwap();
+            clearCurrentSwap();
             const isTerminal = htlcStatus === HTLCStatus.RedeemCompleted || htlcStatus === HTLCStatus.Refunded
             if (isTerminal) {
                 setActiveHashlock(null)
                 setPulseState("initial");
             }
         }
-    }, [clearTempSwap, htlcStatus, setActiveHashlock]);
+    }, [clearCurrentSwap, htlcStatus, setActiveHashlock]);
 
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
@@ -101,7 +102,7 @@ export default function Form() {
             }
             const formattedReceiveAmount = quote?.receiveAmount ? formatUnits(BigInt(quote?.receiveAmount), values.toCurrency.decimals) : undefined
 
-            setTempSwap({
+            setCurrentSwap({
                 requestedAmount: values.amount,
                 address: values.destination_address,
                 source: values.from?.caip2Id!,

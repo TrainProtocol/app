@@ -1,5 +1,4 @@
-import { useCallback } from 'react'
-import { useSwapContext } from '../providers/SwapProvider'
+import { useSwapContext, type ResumeSwapParams } from '../providers/SwapProvider'
 import type { HTLCStatus } from '@train-protocol/sdk'
 import type { StartSwapParams } from '../types'
 
@@ -7,8 +6,11 @@ export interface UseSwapResult {
     status: HTLCStatus
     error: Error | null
     startSwap: (params: StartSwapParams, derivedKey: Buffer) => Promise<void>
+    resumeSwap: (params: ResumeSwapParams) => void
     revealSecret: () => Promise<void>
     refund: () => Promise<string>
+    manualClaim: (secret: string) => Promise<string>
+    setError: (error: Error | null) => void
     reset: () => void
 }
 
@@ -19,8 +21,11 @@ export function useSwap(): UseSwapResult {
         status: ctx.status,
         error: ctx.error,
         startSwap: ctx.startSwap,
+        resumeSwap: ctx.resumeSwap,
         revealSecret: ctx.revealSecret,
         refund: ctx.refund,
+        manualClaim: ctx.manualClaim,
+        setError: ctx.setError,
         reset: ctx.reset,
     }
 }

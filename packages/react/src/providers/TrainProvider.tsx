@@ -47,9 +47,14 @@ export function TrainProvider({
         return adapter?.getSigner() ?? null
     }, [])
 
+    const getClientConfig = useCallback((chainNamespace: string): Record<string, unknown> => {
+        const adapter = adaptersRef.current.get(chainNamespace)
+        return adapter?.getClientConfig?.() ?? {}
+    }, [])
+
     const walletValue = useMemo<WalletContextValue>(
-        () => ({ adapters: adaptersRef.current, registerAdapter, getSigner }),
-        [registerAdapter, getSigner],
+        () => ({ adapters: adaptersRef.current, registerAdapter, getSigner, getClientConfig }),
+        [registerAdapter, getSigner, getClientConfig],
     )
 
     const trainValue = useMemo(

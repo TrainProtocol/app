@@ -1,5 +1,6 @@
 import { FC, useEffect, useRef, useState } from "react";
-import { useAtomicState } from "../../../../context/atomicContext";
+import { useSwapData } from "@/hooks/useSwapData";
+import { useSwapState, useSwap } from "@train-protocol/react";
 import { RevealSecretAction } from "./RevealSecret";
 import { ManualClaimAction } from "./ManualClaim";
 import { UserRefundAction, UserLockAction } from "./UserActions";
@@ -27,7 +28,7 @@ type ActionsProps = {
 }
 
 export const Actions: FC<ActionsProps> = ({ quote, type }) => {
-    const { htlcStatus: commitStatus, error } = useAtomicState()
+    const { status: commitStatus, error } = useSwapState()
 
     return (
         <>
@@ -52,11 +53,11 @@ type ResolveActionProps = {
 }
 
 const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote, type }) => {
-    const { setError } = useAtomicState()
+    const { setError } = useSwap()
 
     if (error) {
         return (
-            <SubmitButton type="button" onClick={() => setError(undefined)}>
+            <SubmitButton type="button" onClick={() => setError(null)}>
                 Try again
             </SubmitButton>
         )
@@ -118,13 +119,14 @@ export const ActionWrapper: FC<{ children: React.ReactNode, type: SwapViewType }
 }
 
 const TerminalActions: FC<{ variant: 'success' | 'refund'; type: SwapViewType }> = ({ variant, type }) => {
-    const { destRedeemTx, destination_network, refundTxId, source_network } = useAtomicState()
+    const { destination_network, source_network, refundTxId } = useSwapData()
+    const { destRedeemTxId } = useSwapState()
     const goHome = useGoHome()
 
     const isSuccess = variant === 'success'
     const isModal = type === 'contained'
     const networkSlug = isSuccess ? destination_network?.caip2Id : source_network?.caip2Id
-    const txHash = isSuccess ? destRedeemTx : refundTxId
+    const txHash = isSuccess ? destRedeemTxId : refundTxId
     const txLink = networkSlug && txHash
         ? getExplorerUrl(NetworkSettings.KnownSettings[networkSlug]?.TransactionExplorerTemplate, txHash)
         : undefined

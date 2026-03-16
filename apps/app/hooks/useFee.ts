@@ -1,12 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import useSWR from 'swr'
+import { useMemo, useState, useEffect } from 'react'
 import { parseUnits } from 'viem'
 import { SwapFormValues } from '../components/DTOs/SwapFormValues'
-import TrainApiClient, { SwapQuote, AggregatedQuoteResponse } from '../lib/trainApiClient'
+import { SwapQuote } from '../lib/trainApiClient'
 import { Token } from '../Models/Network'
-import { create } from 'zustand'
-
-const apiClient = new TrainApiClient()
+import { useQuote } from '@train-protocol/react'
 
 type UseQuoteData = {
     quote?: SwapQuote
@@ -81,11 +78,6 @@ export function buildQuoteUrl(args: QuoteUrlArgs): string {
     return `/quote?${params.toString()}`
 }
 
-type QuoteResult = {
-    quote: SwapQuote
-    solverId: string
-}
-
 export function useQuoteData(formValues: Props | undefined, refreshInterval?: number): UseQuoteData {
     const { fromCurrency, toCurrency, from, to, amount } = formValues || {}
 
@@ -115,95 +107,26 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
         }
     }, [convertedAmount, debouncedAmount])
 
-    const canGetQuote = from && to && fromCurrency && toCurrency && debouncedAmount
+    const canGetQuote = !!(from && to && fromCurrency && toCurrency && debouncedAmount && !isDebouncing)
 
-    const quoteURL = (canGetQuote && !isDebouncing)
-        ? buildQuoteUrl({
-            sourceNetwork: from,
-            destinationNetwork: to,
-            amount: String(debouncedAmount),
-            sourceTokenContract: fromCurrency?.contractAddress ? fromCurrency.contractAddress : undefined,
-            destinationTokenContract: toCurrency?.contractAddress ? toCurrency.contractAddress : undefined,
-        })
-        : null
-
-    const isQuoteLoading = useLoadingStore((state) => state.isLoading)
-
-    const quoteFetchWrapper = useCallback(async (url: string): Promise<QuoteResult | null> => {
-        const { setLoading, key, setKey } = useLoadingStore.getState()
-        try {
-            if (key !== url) {
-                setLoading(true)
-            }
-
-            // Mock quote for Solana devnet — real API doesn't support it yet
-            const urlParams = new URLSearchParams(url.split('?')[1])
-            if (urlParams.get('sourceNetwork')?.startsWith('solana:')) {
-                setKey(url)
-                setLoading(false)
-                const amount = urlParams.get('amount') ?? '1000000000'
-                return {
-                    quote: {
-                        signature: 'mock-solana-devnet-quote',
-                        totalFee: '5000000',
-                        receiveAmount: String(BigInt(amount) * 95n / 100n),
-                        sourceSolverAddress: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
-                        destinationSolverAddress: '0x0000000000000000000000000000000000000001',
-                        quoteExpirationTimestampInSeconds: Math.floor(Date.now() / 1000) + 3600,
-                        route: {
-                            source: { networkSlug: urlParams.get('sourceNetwork')!, tokenSymbol: 'SOL', tokenContract: '', tokenDecimals: 9 },
-                            destination: { networkSlug: urlParams.get('destinationNetwork')!, tokenSymbol: 'ETH', tokenContract: '', tokenDecimals: 18 },
-                            minAmountInSource: '10000000',
-                            maxAmountInSource: '10000000000000',
-                        },
-                        timelock: { timelockTimeSpanInSeconds: 69 },
-                        reward: { amount: '0', rewardTimelockTimeSpanInSeconds: 3600, rewardToken: '', rewardRecipientAddress: '' },
-                    },
-                    solverId: 'mock-solver',
-                }
-            }
-
-            const response = await apiClient.fetcher(url) as { data?: AggregatedQuoteResponse; error?: { message: string } }
-
-            setKey(url)
-            setLoading(false)
-
-            if (response.error) {
-                throw new Error(response.error.message)
-            }
-
-            const best = response.data?.quotes?.find(q => q.isBest)
-
-            if (!best?.quote) {
-                throw new Error('No quote available')
-            }
-
-            return { quote: best.quote, solverId: best.solver.id }
-        }
-        catch (error) {
-            setLoading(false)
-            setKey(null)
-            throw error
-        }
-    }, [])
-
-    const { data, mutate: mutateFee, error: quoteError } = useSWR<QuoteResult | null>(
-        quoteURL,
-        quoteFetchWrapper,
-        {
-            refreshInterval: (refreshInterval !== undefined && refreshInterval !== null) ? refreshInterval : 42000,
-            dedupingInterval: 5000,
-            keepPreviousData: true,
-        }
-    )
+    // Use React package's useQuote hook
+    const { bestQuote, bestSolver, isLoading, error, refetch } = useQuote({
+        amount: debouncedAmount ?? '',
+        sourceNetwork: from ?? '',
+        destinationNetwork: to ?? '',
+        sourceTokenContract: fromCurrency?.contractAddress || undefined,
+        destinationTokenContract: toCurrency?.contractAddress || undefined,
+        enabled: canGetQuote,
+        refreshInterval: (refreshInterval !== undefined && refreshInterval !== null) ? refreshInterval : 42000,
+    })
 
     return {
-        quote: (quoteError || !canGetQuote) ? undefined : data?.quote,
-        solverId: (quoteError || !canGetQuote) ? undefined : data?.solverId,
-        isQuoteLoading,
+        quote: (error || !canGetQuote) ? undefined : bestQuote as SwapQuote | undefined,
+        solverId: (error || !canGetQuote) ? undefined : bestSolver?.solver?.id,
+        isQuoteLoading: isLoading,
         isDebouncing,
-        quoteError: quoteError as QuoteError | undefined,
-        mutateFee,
+        quoteError: error as unknown as QuoteError | undefined,
+        mutateFee: refetch,
     }
 }
 
@@ -234,17 +157,3 @@ export function buildQuoteParamsFromAtomic(params: {
         amount: String(params.amount),
     }
 }
-
-type LoadingState = {
-    key: string | null;
-    setKey: (value: string | null) => void;
-    isLoading: boolean;
-    setLoading: (loading: boolean) => void;
-};
-
-export const useLoadingStore = create<LoadingState>((set) => ({
-    key: null,
-    setKey: (value) => set({ key: value }),
-    isLoading: false,
-    setLoading: (loading) => set({ isLoading: loading }),
-}));

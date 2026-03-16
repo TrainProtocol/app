@@ -2,7 +2,7 @@ import { FC, useMemo } from "react";
 import { Widget } from "../../Widget/Index";
 import { Actions, SwapViewType } from "./Actions";
 import AtomicContent from "./AtomicContent";
-import { useAtomicState } from "../../../context/atomicContext";
+import { useSwapData } from "@/hooks/useSwapData";
 import { buildQuoteParamsFromAtomic, useQuoteData } from "../../../hooks/useFee";
 
 type ContainerProps = {
@@ -10,7 +10,7 @@ type ContainerProps = {
 }
 
 const Swap: FC<ContainerProps> = ({ type }) => {
-    const { source_network, destination_network, source_asset, destination_asset, amount, hashlock } = useAtomicState();
+    const { source_network, destination_network, source_asset, destination_asset, amount, hashlock } = useSwapData();
 
     const quoteParams = useMemo(() => {
         if (hashlock) return undefined;

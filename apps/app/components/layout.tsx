@@ -17,9 +17,11 @@ import ColorSchema from "./ColorSchema";
 import { IsExtensionError } from "../helpers/errorHelper";
 import { AsyncModalProvider } from "../context/asyncModal";
 import WalletsProviders from "./WalletProviders";
-import { AtomicProvider } from "../context/atomicContext";
+import { useSwapSync } from "@/hooks/useSwapSync";
 import { SwapAccountsProvider } from "@/context/swapAccounts";
 import AppSettings from "@/lib/AppSettings";
+import { TrainProvider } from "@train-protocol/react";
+import { SwapProvider } from "@train-protocol/react";
 
 type Props = {
   children: JSX.Element | JSX.Element[];
@@ -72,7 +74,6 @@ export default function Layout({ children, settings, themeData }: Props) {
   const description = "The trustless and permissionless way of cross-chain asset bridging & swapping. Move assets across blockchains without third parties, secured by a battle-tested system."
 
   return (<>
-
     <Head>
       <title>{title}</title>
       <link rel="icon" type="image/png" href="favicon/favicon-96x96.png" sizes="96x96" />
@@ -110,21 +111,32 @@ export default function Layout({ children, settings, themeData }: Props) {
         <TooltipProvider delayDuration={500}>
           <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
             <ThemeWrapper>
-              <WalletsProviders basePath={basePath} themeData={themeData} appName={router.query.appName?.toString()}>
-                <SwapAccountsProvider>
-                  <AtomicProvider>
-                    <AsyncModalProvider>
-                      {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
-                        <MaintananceContent />
-                        : children}
-                    </AsyncModalProvider>
-                  </AtomicProvider>
-                </SwapAccountsProvider>
-              </WalletsProviders>
+              <TrainProvider baseUrl={AppSettings.TrainApiUri ?? ''}>
+                <WalletsProviders basePath={basePath} themeData={themeData} appName={router.query.appName?.toString()}>
+                  <SwapAccountsProvider>
+                    <SwapProvider>
+                      <AppContent>
+                        {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
+                          <MaintananceContent />
+                          : children}
+                      </AppContent>
+                    </SwapProvider>
+                  </SwapAccountsProvider>
+                </WalletsProviders>
+              </TrainProvider>
             </ThemeWrapper>
           </ErrorBoundary>
         </TooltipProvider>
       </SettingsProvider >
     </QueryProvider >
   </>)
+}
+
+function AppContent({ children }: { children: React.ReactNode }) {
+  useSwapSync()
+  return (
+    <AsyncModalProvider>
+      {children}
+    </AsyncModalProvider>
+  )
 }

@@ -1,6 +1,8 @@
 // --- Providers ---
 export { TrainProvider } from './providers/TrainProvider'
+export { useStoreContext } from './providers/TrainProvider'
 export { SwapProvider } from './providers/SwapProvider'
+export type { ResumeSwapParams, SwapContextValue } from './providers/SwapProvider'
 
 // --- Data Hooks (require TrainProvider) ---
 export { useNetworks } from './hooks/useNetworks'
@@ -10,6 +12,9 @@ export { usePrices } from './hooks/usePrices'
 export { useQuote } from './hooks/useQuote'
 export { useSwapHistory } from './hooks/useSwapHistory'
 export { useOrder } from './hooks/useOrder'
+
+// --- Swap Data Hooks (require TrainProvider) ---
+export { useCurrentSwap, useSwapActions } from './hooks/useCurrentSwap'
 
 // --- Swap Lifecycle Hooks (require SwapProvider) ---
 export { useSwap } from './hooks/useSwap'

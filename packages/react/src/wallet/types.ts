@@ -9,5 +9,7 @@ export interface TrainSigner {
 export interface TrainWalletAdapter {
     chainNamespace: string
     getSigner: () => TrainSigner | null
+    /** Return chain-specific config for createHTLCClient (e.g. { rpcUrl, chainId }) */
+    getClientConfig?: () => Record<string, unknown>
     onSignerChange: (cb: (signer: TrainSigner | null) => void) => () => void
 }

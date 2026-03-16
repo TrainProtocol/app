@@ -1,5 +1,6 @@
 import { FC, useEffect } from "react";
-import { useAtomicState } from "@/context/atomicContext";
+import { useSwapData } from "@/hooks/useSwapData";
+import { useSwapState } from "@train-protocol/react";
 import Summary from "./Summary";
 import { usePulsatingCircles } from "@/stores/pulsatingCirclesStore";
 import { SwapQuote } from "@/lib/trainApiClient";
@@ -18,11 +19,11 @@ type AtomicContentProps = {
 
 const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }) => {
     const {
-        htlcStatus: commitStatus, destination_network, source_network,
+        destination_network, source_network,
         source_asset, destination_asset, amount,
-        solverLockDetails, destinationDetailsByLightClient, setError,
         hashlock,
-    } = useAtomicState()
+    } = useSwapData()
+    const { status: commitStatus } = useSwapState()
 
     const { setPulseState } = usePulsatingCircles();
 
@@ -42,15 +43,6 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
                 setPulseState("initial");
         }
     }, [commitStatus]);
-
-    // Hashlock mismatch safety check (preserved from old LpLockingAssets step)
-    useEffect(() => {
-        const lcHash = destinationDetailsByLightClient?.data?.hashlock
-        const solverHash = solverLockDetails?.hashlock
-        if (lcHash && solverHash && lcHash !== solverHash) {
-            setError({ buttonText: 'Ok', message: 'Hashlock mismatch, please wait for refund.' })
-        }
-    }, [solverLockDetails, destinationDetailsByLightClient]);
 
     const values: SwapFormValues = {
         amount: amount?.toString(),

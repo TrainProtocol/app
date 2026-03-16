@@ -1,7 +1,7 @@
 import { ChevronRight } from 'lucide-react'
 import { FC } from 'react'
 import { ImageWithFallback } from '@/components/Common/ImageWithFallback'
-import { SwapData } from '@/stores/swapStore'
+import { type SwapData } from '@train-protocol/react'
 import { Network } from '@/Models/Network'
 
 type Props = {

@@ -1,11 +1,11 @@
 import React, { FC, useMemo } from "react";
-import { useAtomicState } from "@/context/atomicContext";
+import { useSwapData } from "@/hooks/useSwapData";
+import { useSwapState } from "@train-protocol/react";
 import { StepStatus, TimelineStep } from "./progressTypes";
 import { LockStatus } from "@/Models/phtlc/PHTLC";
 import { getExplorerUrl } from "@/lib/address";
 import NetworkSettings from "@/lib/NetworkSettings";
 import { HTLCTransaction } from "@/lib/trainApiClient";
-import LockIcon from "@/components/Icons/LockIcon";
 import { HTLCStatus } from "@/Models/HTLCStatus";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
 
@@ -99,35 +99,9 @@ function buildSteps(
     });
 }
 
-// --- Verification Status (extracted component, reads from context directly) ---
+// --- Verification Status ---
 
 const VerificationStatus: FC = () => {
-    const { solverLockDetails, destinationDetailsByLightClient, verifyingByLightClient } = useAtomicState();
-
-    const lcHashlock = destinationDetailsByLightClient?.data?.hashlock;
-    const solverHashlock = solverLockDetails?.hashlock;
-
-    if (verifyingByLightClient && !lcHashlock && solverHashlock) {
-        return (
-            <div className="flex items-center gap-1 text-sm">
-                <span>Verifying by Light Client</span>
-                <LockIcon className="h-4 w-4 text-accent animate-pulse" />
-            </div>
-        );
-    }
-
-    if (lcHashlock && solverHashlock && lcHashlock === solverHashlock) {
-        return (
-            <div className="flex items-center gap-1 text-sm">
-                <span>Verified by</span>
-                <span className="font-medium text-accent flex items-center gap-1">
-                    Light Client
-                    <LockIcon className="h-4 w-4 text-accent" />
-                </span>
-            </div>
-        );
-    }
-
     return <span className="text-sm">Verified by RPCs. Reveal your secret to complete the swap.</span>;
 };
 
@@ -135,15 +109,18 @@ const VerificationStatus: FC = () => {
 
 export function useSwapProgress(): SwapProgress {
     const {
-        htlcStatus,
         lockTxId,
-        sourceDetails,
-        destRedeemTx,
         refundTxId,
         source_network,
         destination_network,
+    } = useSwapData();
+
+    const {
+        status: htlcStatus,
+        sourceDetails,
+        destRedeemTxId: destRedeemTx,
         htlcFromApi,
-    } = useAtomicState();
+    } = useSwapState();
 
     const { verified, skipped, mismatches } = useSolverLockVerification();
 

@@ -1,5 +1,5 @@
 import { FC, ReactNode } from "react";
-import { useAtomicState } from "../../../../context/atomicContext";
+import { useSwapData } from "@/hooks/useSwapData";
 import useWallet from "../../../../hooks/useWallet";
 import { hasRequiredDestinationWallet } from "../../../../lib/wallets/utils/destinationWalletUtils";
 import { useConnectModal } from "../../../WalletModal";
@@ -14,7 +14,7 @@ interface DestinationWalletWrapperProps {
  * and shows connection UI if needed, otherwise renders children
  */
 const DestinationWalletWrapper: FC<DestinationWalletWrapperProps> = ({ children }) => {
-    const { destination_network, source_network } = useAtomicState();
+    const { destination_network, source_network } = useSwapData();
     const { providers, provider: destProvider } = useWallet(destination_network, 'withdrawal');
     const { provider: sourceProvider } = useWallet(source_network, 'withdrawal');
     const { connect } = useConnectModal();

@@ -5,6 +5,7 @@ export interface WalletContextValue {
     adapters: Map<string, TrainWalletAdapter>
     registerAdapter: (adapter: TrainWalletAdapter) => () => void
     getSigner: (chainNamespace: string) => TrainSigner | null
+    getClientConfig: (chainNamespace: string) => Record<string, unknown>
 }
 
 export const WalletContext = createContext<WalletContextValue | null>(null)

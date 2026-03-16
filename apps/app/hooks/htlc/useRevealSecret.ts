@@ -1,53 +1,41 @@
 import { useState, useCallback } from "react";
-import { useAtomicState } from "@/context/atomicContext";
-import { useSecretDerivation } from "@/context/secretDerivationContext";
+import { useSwapData } from "@/hooks/useSwapData";
 import useWallet from "@/hooks/useWallet";
 import posthog from "posthog-js";
-import { useSwapStore } from "@/stores/swapStore";
+import { useSwap, useSwapActions } from "@train-protocol/react";
 
 export function useRevealSecret() {
-    const { source_network, hashlock, solver, updateHTLC, setError, sourceDetails, sourceClient } = useAtomicState()
-    const { deriveSecret } = useSecretDerivation()
+    const { source_network, hashlock, solver } = useSwapData()
+    const { revealSecret: revealSecretAction, setError } = useSwap()
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
 
-    const updateSwap = useSwapStore(s => s.updateSwap)
+    const { updateSwap } = useSwapActions()
     const [isRevealing, setIsRevealing] = useState(false)
 
     const revealSecret = useCallback(async () => {
         try {
             if (!hashlock) throw new Error("No hashlock")
-            if (!sourceDetails) throw new Error("No source lock details")
-            if (!sourceClient) throw new Error("No HTLC client available")
 
             setIsRevealing(true)
-            const timestamp = Number(sourceDetails?.userData)
 
-            if (isNaN(timestamp)) throw new Error("Invalid timestamp")
-
-            const { secret } = await deriveSecret({
-                wallet,
-                nonce: timestamp,
-            })
-
-            await sourceClient.revealSecret(solver, hashlock, secret)
+            await revealSecretAction()
 
             posthog.capture("RevealSecret", {
                 hashlock,
                 solver,
             })
 
-            updateHTLC('secretRevealed', true)
             updateSwap(hashlock, { secretRevealed: true })
         }
         catch (e: any) {
-            setError({ message: e.details || e.message })
+            setError(new Error(e.details || e.message))
             throw e
         }
         finally {
             setIsRevealing(false)
         }
-    }, [hashlock, sourceDetails, sourceClient, wallet, solver, deriveSecret, updateHTLC, updateSwap])
+    }, [hashlock, solver, revealSecretAction, updateSwap, setError])
 
     return { revealSecret, isRevealing, source_network, wallet }
 }

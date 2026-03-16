@@ -2,7 +2,8 @@ import { FC, ReactNode, SVGProps } from "react";
 import Link from "next/link";
 import shortenString from "@/components/utils/ShortenString";
 import { getExplorerUrl } from "@/lib/address";
-import { useAtomicState } from "@/context/atomicContext";
+import { useSwapData } from "@/hooks/useSwapData";
+import { useSwapState } from "@train-protocol/react";
 import WalletIcon from "@/components/Icons/WalletIcon";
 import LockIcon from "@/components/Icons/LockIcon";
 import SignatureIcon from "@/components/Icons/SignatureIcon";
@@ -19,7 +20,7 @@ const Details: FC = () => {
 }
 
 const Confirmed: FC = () => {
-    const { lockTxId, source_network } = useAtomicState()
+    const { lockTxId, source_network } = useSwapData()
     const description = (lockTxId && source_network) && <p><span>Transaction ID:</span> <Link target="_blank" className="underline hover:no-underline" href={getExplorerUrl(NetworkSettings.KnownSettings[source_network.caip2Id]?.TransactionExplorerTemplate, lockTxId)}>{shortenString(lockTxId)}</Link></p>
 
     return (
@@ -32,7 +33,8 @@ const Confirmed: FC = () => {
 }
 
 const AssetsReady: FC = () => {
-    const { destination_network, htlcFromApi: htlcFromApi, destinationDetailsByLightClient } = useAtomicState()
+    const { destination_network } = useSwapData()
+    const { htlcFromApi } = useSwapState()
 
     const lpLockTx = htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCLock)
     const description = (lpLockTx && destination_network) ? <p><span>Transaction ID:</span> <Link className="underline hover:no-underline" target="_blank" href={getExplorerUrl(NetworkSettings.KnownSettings[destination_network.caip2Id]?.TransactionExplorerTemplate, lpLockTx?.hash)}>{shortenString(lpLockTx.hash)}</Link></p> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />
@@ -42,14 +44,6 @@ const AssetsReady: FC = () => {
             icon={LockIcon}
             title="Assets Ready"
             description={description}
-            titleDetails={
-                destinationDetailsByLightClient?.data
-                    ? <div className="text-accent flex items-center gap-1">
-                        <p>Light Client</p>
-                        <LockIcon className="h-4 w-4 text-accent" />
-                    </div>
-                    : null
-            }
         />
     )
 }

@@ -11,6 +11,7 @@ import { AztecWalletProvider } from "./AztecWalletProvider";
 import { EvmConnectorsProvider } from "@/context/evmConnectorsContext";
 import { SecretDerivationProvider } from "@/context/secretDerivationContext";
 import { WalletLoginProvider } from "@/context/walletLoginContext";
+import { WalletBridges } from "../WalletBridges";
 
 const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], basePath: string, themeData: ThemeData, appName: string | undefined }> = ({ children, basePath, themeData, appName }) => {
     return (
@@ -25,6 +26,7 @@ const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], basePath: st
                                         <WalletProvidersProvider>
                                             <WalletLoginProvider>
                                                 <SecretDerivationProvider>
+                                                    <WalletBridges />
                                                     {children}
                                                 </SecretDerivationProvider>
                                             </WalletLoginProvider>

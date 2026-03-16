@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import formatAmount from '../../lib/formatAmount'
 import { Network } from '../../Models/Network'
-import { SwapData, useSwapStore } from '../../stores/swapStore'
+import { useStoreContext, type SwapData } from '@train-protocol/react'
 import { useSettingsState } from '../../context/settings'
 import { createHTLCClient } from '../../lib/htlc/createHTLCClient'
 import { useRpcConfigStore } from '../../stores/rpcConfigStore'
@@ -14,7 +14,7 @@ export default function useRecoverSwap(sourceNetwork: Network | null) {
         try { return createHTLCClient(sourceNetwork, getEffectiveRpcUrls) }
         catch { return undefined }
     }, [sourceNetwork, getEffectiveRpcUrls])
-    const recoverSwap = useSwapStore(s => s.recoverSwap)
+    const store = useStoreContext()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
@@ -60,7 +60,7 @@ export default function useRecoverSwap(sourceNetwork: Network | null) {
                 txId: txHash,
             }
 
-            recoverSwap(data.hashlock, swapData)
+            store?.getState().recoverSwap(data.hashlock, swapData)
             return data.hashlock
         } catch (e: any) {
             const message = e?.shortMessage || e?.message || 'Failed to recover swap'
@@ -69,7 +69,7 @@ export default function useRecoverSwap(sourceNetwork: Network | null) {
         } finally {
             setLoading(false)
         }
-    }, [client, sourceNetwork, networks, recoverSwap])
+    }, [client, sourceNetwork, networks, store])
 
     return { recover, loading, error, setError }
 }

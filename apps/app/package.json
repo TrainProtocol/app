@@ -59,6 +59,7 @@
     "@ton/crypto": "^3.2.0",
     "@ton/ton": "^13.11.1",
     "@tonconnect/ui-react": "^2.0.0-beta.4",
+    "@train-protocol/react": "workspace:^",
     "@train-protocol/sdk": "workspace:^",
     "@train-protocol/aztec": "workspace:^",
     "@train-protocol/evm": "workspace:^",

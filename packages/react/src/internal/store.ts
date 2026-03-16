@@ -6,9 +6,12 @@ import type { SwapData, SwapStorage } from '../types'
 export interface SwapStoreState {
     swaps: Record<string, SwapData>
     activeHashlock: string | null
+    currentSwap: SwapData | null
 
     setActiveHashlock: (hashlock: string | null) => void
-    commitSwap: (hashlock: string, txId: string, data: SwapData) => void
+    setCurrentSwap: (data: SwapData) => void
+    clearCurrentSwap: () => void
+    commitSwap: (hashlock: string, txId: string) => void
     updateSwap: (hashlock: string, updates: Partial<SwapData>) => void
     recoverSwap: (hashlock: string, data: SwapData) => void
     clearSwap: (hashlock: string) => void
@@ -45,17 +48,25 @@ export function createSwapStore(options?: { persist?: boolean; storage?: SwapSto
     const initialState = {
         swaps: {} as Record<string, SwapData>,
         activeHashlock: null as string | null,
+        currentSwap: null as SwapData | null,
     }
 
     if (!shouldPersist) {
         return createZustandStore<SwapStoreState>()((set) => ({
             ...initialState,
             setActiveHashlock: (hashlock) => set({ activeHashlock: hashlock }),
-            commitSwap: (hashlock, txId, data) =>
-                set((state) => ({
-                    swaps: { ...state.swaps, [hashlock]: { ...data, hashlock, txId } },
-                    activeHashlock: hashlock,
-                })),
+            setCurrentSwap: (data) => set({ currentSwap: data }),
+            clearCurrentSwap: () => set({ currentSwap: null }),
+            commitSwap: (hashlock, txId) =>
+                set((state) => {
+                    const data = state.currentSwap
+                    if (!data) return state
+                    return {
+                        currentSwap: null,
+                        swaps: { ...state.swaps, [hashlock]: { ...data, hashlock, txId, createdAt: Date.now() } },
+                        activeHashlock: hashlock,
+                    }
+                }),
             updateSwap: (hashlock, updates) =>
                 set((state) => ({
                     swaps: {
@@ -89,11 +100,18 @@ export function createSwapStore(options?: { persist?: boolean; storage?: SwapSto
             (set) => ({
                 ...initialState,
                 setActiveHashlock: (hashlock) => set({ activeHashlock: hashlock }),
-                commitSwap: (hashlock, txId, data) =>
-                    set((state) => ({
-                        swaps: { ...state.swaps, [hashlock]: { ...data, hashlock, txId } },
-                        activeHashlock: hashlock,
-                    })),
+                setCurrentSwap: (data) => set({ currentSwap: data }),
+                clearCurrentSwap: () => set({ currentSwap: null }),
+                commitSwap: (hashlock, txId) =>
+                    set((state) => {
+                        const data = state.currentSwap
+                        if (!data) return state
+                        return {
+                            currentSwap: null,
+                            swaps: { ...state.swaps, [hashlock]: { ...data, hashlock, txId, createdAt: Date.now() } },
+                            activeHashlock: hashlock,
+                        }
+                    }),
                 updateSwap: (hashlock, updates) =>
                     set((state) => ({
                         swaps: {

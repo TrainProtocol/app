@@ -1,6 +1,6 @@
-import { FC, useEffect, useMemo, useState } from 'react'
+import { FC, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { ChevronUp } from 'lucide-react'
-import { SwapData, useSwapStore } from '@/stores/swapStore'
+import { useStoreContext, useSwapActions, type SwapData } from '@train-protocol/react'
 import { useSettingsState } from '@/context/settings'
 import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus'
 import { Network } from '@/Models/Network'
@@ -43,9 +43,16 @@ function buildCompletedDateGroups(terminalEntries: [string, SwapData][]): DateGr
 
 const apiClient = new TrainApiClient()
 
+const emptySwaps: Record<string, SwapData> = {}
+
 const SwapHistory: FC = () => {
-    const swaps = useSwapStore(s => s.swaps)
-    const updateSwap = useSwapStore(s => s.updateSwap)
+    const store = useStoreContext()
+    const swaps = useSyncExternalStore(
+        (cb) => store ? store.subscribe(cb) : () => {},
+        () => store?.getState().swaps ?? emptySwaps,
+        () => emptySwaps,
+    )
+    const { updateSwap } = useSwapActions()
     const { networks } = useSettingsState()
     const [expanded, setExpanded] = useState<string | undefined>(undefined)
     const [showAllOngoing, setShowAllOngoing] = useState(false)
@@ -77,7 +84,7 @@ const SwapHistory: FC = () => {
 
         const checkExpiry = () => {
             const now = Date.now()
-            const { swaps: currentSwaps } = useSwapStore.getState()
+            const currentSwaps = store?.getState().swaps ?? {}
             Object.entries(currentSwaps).forEach(([hashlock, swap]) => {
                 if (
                     swap.timelock &&

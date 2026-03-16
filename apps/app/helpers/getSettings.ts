@@ -1,9 +1,70 @@
 import { NetworkContract } from "@/Models/Network";
-import TrainApiClient from "../lib/trainApiClient";
+// import TrainApiClient from "../lib/trainApiClient";
 import { getThemeData } from "./settingsHelper";
 import KnownInternalNames from "@/lib/knownIds";
 
-const apiClient = new TrainApiClient()
+// const apiClient = new TrainApiClient()
+
+// Mock networks from station-config.json (backend ngrok is off)
+const MOCK_API_NETWORKS = [
+    {
+        caip2Id: "eip155:11155111",
+        displayName: "Ethereum Sepolia",
+        chainId: "11155111",
+        nativeTokenAddress: "0x0000000000000000000000000000000000000000",
+        type: { name: "eip155" },
+        logoUrl: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png",
+        explorerUrlTemplate: {
+            transaction: "https://sepolia.etherscan.io/tx/{hash}",
+            address: "https://sepolia.etherscan.io/address/{address}",
+        },
+        tokens: [{
+            symbol: "ETH",
+            contractAddress: "0x0000000000000000000000000000000000000000",
+            decimals: 18,
+            logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png",
+        }],
+        metadata: [],
+    },
+    {
+        caip2Id: "eip155:421614",
+        displayName: "Arbitrum Sepolia",
+        chainId: "421614",
+        nativeTokenAddress: "0x0000000000000000000000000000000000000000",
+        type: { name: "eip155" },
+        logoUrl: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/arbitrum/info/logo.png",
+        explorerUrlTemplate: {
+            transaction: "https://sepolia.arbiscan.io/tx/{hash}",
+            address: "https://sepolia.arbiscan.io/address/{address}",
+        },
+        tokens: [{
+            symbol: "ETH",
+            contractAddress: "0x0000000000000000000000000000000000000000",
+            decimals: 18,
+            logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png",
+        }],
+        metadata: [],
+    },
+    {
+        caip2Id: "eip155:84532",
+        displayName: "Base Sepolia",
+        chainId: "84532",
+        nativeTokenAddress: "0x0000000000000000000000000000000000000000",
+        type: { name: "eip155" },
+        logoUrl: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/base/info/logo.png",
+        explorerUrlTemplate: {
+            transaction: "https://sepolia.basescan.org/tx/{hash}",
+            address: "https://sepolia.basescan.org/address/{address}",
+        },
+        tokens: [{
+            symbol: "ETH",
+            contractAddress: "0x0000000000000000000000000000000000000000",
+            decimals: 18,
+            logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png",
+        }],
+        metadata: [],
+    },
+]
 
 export async function getServerSideProps(context) {
 
@@ -12,14 +73,16 @@ export async function getServerSideProps(context) {
         's-maxage=60, stale-while-revalidate'
     );
 
-    const [networks, prices] = await Promise.all([
-        apiClient.GetNetworksAsync(),
-        apiClient.GetPricesAsync(),
-    ])
+    // Mock prices while backend ngrok is off
+    const prices: Record<string, number> = {
+        "eip155:11155111:0x0000000000000000000000000000000000000000": 2500,
+        "eip155:421614:0x0000000000000000000000000000000000000000": 2500,
+        "eip155:84532:0x0000000000000000000000000000000000000000": 2500,
+        "solana:devnet:11111111111111111111111111111111": 150,
+    }
 
-    if (!networks.length) return
-
-    const resolvedNetworks = networks.map(network => {
+    // Use mock data while backend ngrok is off
+    const resolvedNetworks = MOCK_API_NETWORKS.map(network => {
         const _network = mockData.data.find(n => n.caip2Id === network.caip2Id)
 
         return {
@@ -220,7 +283,7 @@ const mockData = {
             "contracts": [
                 {
                     "type": "Train",
-                    "address": "6zasug6x5AY93zNVjPZPGoqQfdTBd3C1w6CU9NDKtNH8"
+                    "address": "ADwgQuJzWCrxEgsBR5EwGmvqD12xLbAW316KG8L2f8BL"
                 }
             ],
         }

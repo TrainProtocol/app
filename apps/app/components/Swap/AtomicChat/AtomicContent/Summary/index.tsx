@@ -1,8 +1,8 @@
 import { FC } from "react";
-import { useAtomicState } from "@/context/atomicContext";
+import { useSwapData } from "@/hooks/useSwapData";
+import { useSwapState, useCurrentSwap } from "@train-protocol/react";
 import Summary from "./Summary";
 import { SwapQuote } from "@/lib/trainApiClient";
-import { useSwapStore } from "@/stores/swapStore";
 import { formatUnits } from "viem";
 
 type MotionSummaryProps = {
@@ -11,11 +11,11 @@ type MotionSummaryProps = {
 }
 
 const MotionSummary: FC<MotionSummaryProps> = ({ quote, isQuoteLoading = false }) => {
-    const { htlcFromApi, source_asset: source_token, destination_asset: destination_token, source_network, destination_network, amount, hashlock } = useAtomicState()
+    const { source_asset: source_token, destination_asset: destination_token, source_network, destination_network, amount } = useSwapData()
+    const { htlcFromApi } = useSwapState()
+    const currentSwap = useCurrentSwap()
 
-    const storedReceiveAmount = useSwapStore(s =>
-        hashlock ? s.swaps[hashlock]?.receiveAmount : undefined
-    )
+    const storedReceiveAmount = currentSwap?.receiveAmount
 
     const receiveAmount = (htlcFromApi?.destinationAmount && destination_token?.decimals)
         ? formatUnits(BigInt(htlcFromApi?.destinationAmount), destination_token?.decimals)

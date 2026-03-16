@@ -141,6 +141,26 @@ function swapReducer(state: SwapState, action: SwapAction): SwapState {
 
 // --- Context ---
 
+/** Params for resuming an existing swap from persisted storage */
+export interface ResumeSwapParams {
+    hashlock: string
+    txId?: string
+    sourceNetwork: string
+    destinationNetwork: string
+    srcContract?: string
+    destContract?: string
+    tokenContractAddress?: string
+    sourceAddress?: string
+    destinationAddress?: string
+    chainId?: string
+    solverId?: string
+    sourceAsset?: Token | null
+    destinationAsset?: string
+    requestedAmount?: string
+    secretRevealed?: boolean
+    destinationSolverAddress?: string
+}
+
 export interface SwapContextValue {
     status: HTLCStatus
     hashlock: string | null
@@ -154,10 +174,13 @@ export interface SwapContextValue {
     error: Error | null
 
     startSwap: (params: StartSwapParams, derivedKey: Buffer) => Promise<void>
+    /** Resume monitoring an existing (persisted) swap without calling userLock again */
+    resumeSwap: (params: ResumeSwapParams) => void
     revealSecret: () => Promise<void>
     refund: () => Promise<string>
     manualClaim: (secret: string) => Promise<string>
     recoverSwap: (txHash: string, chainNamespace: string, rpcUrl: string) => Promise<void>
+    setError: (error: Error | null) => void
     reset: () => void
 }
 
@@ -244,20 +267,22 @@ export function SwapProvider({ children }: { children: ReactNode }) {
         }
     }, [state.hashlock, state.destContract, state.destinationNetwork, state.quote])
 
-    // Create read-only HTLC clients for polling
+    // Create read-only HTLC clients for polling (using adapter config for rpcUrl etc.)
     const sourceReadClient = useMemo(() => {
         if (!sourceNamespace) return null
         try {
-            return createHTLCClient(sourceNamespace, { apiClient } as any)
+            const adapterConfig = walletCtx.getClientConfig(sourceNamespace)
+            return createHTLCClient(sourceNamespace, { ...adapterConfig, apiClient } as any)
         } catch { return null }
-    }, [sourceNamespace, apiClient])
+    }, [sourceNamespace, apiClient, walletCtx])
 
     const destReadClient = useMemo(() => {
         if (!destNamespace) return null
         try {
-            return createHTLCClient(destNamespace, { apiClient } as any)
+            const adapterConfig = walletCtx.getClientConfig(destNamespace)
+            return createHTLCClient(destNamespace, { ...adapterConfig, apiClient } as any)
         } catch { return null }
-    }, [destNamespace, apiClient])
+    }, [destNamespace, apiClient, walletCtx])
 
     // Activate polling hooks
     useUserLockPolling({
@@ -369,8 +394,10 @@ export function SwapProvider({ children }: { children: ReactNode }) {
                 )
             }
 
-            // Create write client with signer
+            // Create write client with signer + adapter config (rpcUrl, chainId, etc.)
+            const adapterConfig = walletCtx.getClientConfig(namespace)
             const client = createHTLCClient(namespace, {
+                ...adapterConfig,
                 signer,
                 apiClient,
             } as any)
@@ -409,23 +436,9 @@ export function SwapProvider({ children }: { children: ReactNode }) {
                 secret,
             })
 
-            // Commit to store
+            // Commit currentSwap to persisted store
             if (store) {
-                const swapData: SwapData = {
-                    requestedAmount: params.amount,
-                    address: params.sourceAddress,
-                    source: params.sourceNetwork,
-                    destination: params.destinationNetwork,
-                    source_asset: params.sourceAsset.symbol,
-                    destination_asset: params.destinationAsset,
-                    solver: params.solverId,
-                    srcContract: params.srcContract,
-                    destContract: params.destContract,
-                    receiveAmount: params.quote.receiveAmount,
-                    sourceSolverAddress: params.quote.sourceSolverAddress,
-                    destinationSolverAddress: params.quote.destinationSolverAddress,
-                }
-                store.getState().commitSwap(result.hashlock, result.hash, swapData)
+                store.getState().commitSwap(result.hashlock, result.hash)
             }
         } catch (err) {
             const error = err instanceof TrainError
@@ -492,7 +505,8 @@ export function SwapProvider({ children }: { children: ReactNode }) {
                 throw new TrainError(`No wallet adapter for ${sourceNamespace}`, TrainErrorCode.WalletNotConnected)
             }
 
-            const client = createHTLCClient(sourceNamespace, { signer, apiClient } as any)
+            const adapterConfig = walletCtx.getClientConfig(sourceNamespace)
+            const client = createHTLCClient(sourceNamespace, { ...adapterConfig, signer, apiClient } as any)
             const txHash = await client.refund({
                 type: getLockType(state.tokenContractAddress),
                 chainId: state.chainId,
@@ -527,7 +541,8 @@ export function SwapProvider({ children }: { children: ReactNode }) {
                 throw new TrainError(`No wallet adapter for ${destNamespace}`, TrainErrorCode.WalletNotConnected)
             }
 
-            const client = createHTLCClient(destNamespace, { signer, apiClient } as any)
+            const adapterConfig = walletCtx.getClientConfig(destNamespace)
+            const client = createHTLCClient(destNamespace, { ...adapterConfig, signer, apiClient } as any)
             const txHash = await client.redeemSolver({
                 type: getLockType(state.quote.route?.destination?.tokenContract),
                 chainId: state.destinationNetwork?.split(':')[1] ?? null,
@@ -558,7 +573,8 @@ export function SwapProvider({ children }: { children: ReactNode }) {
 
     const recoverSwapFromTx = useCallback(async (txHash: string, chainNamespace: string, rpcUrl: string) => {
         try {
-            const client = createHTLCClient(chainNamespace, { rpcUrl, apiClient } as any)
+            const adapterConfig = walletCtx.getClientConfig(chainNamespace)
+            const client = createHTLCClient(chainNamespace, { ...adapterConfig, rpcUrl, apiClient } as any)
             const recovered = await client.recoverSwap(txHash)
 
             dispatch({
@@ -599,6 +615,37 @@ export function SwapProvider({ children }: { children: ReactNode }) {
         }
     }, [apiClient, store, config])
 
+    const resumeSwap = useCallback((params: ResumeSwapParams) => {
+        dispatch({
+            type: 'SET_PARAMS',
+            payload: {
+                hashlock: params.hashlock,
+                txId: params.txId ?? null,
+                sourceNetwork: params.sourceNetwork,
+                destinationNetwork: params.destinationNetwork,
+                srcContract: params.srcContract ?? null,
+                destContract: params.destContract ?? null,
+                tokenContractAddress: params.tokenContractAddress ?? null,
+                sourceAddress: params.sourceAddress ?? null,
+                destinationAddress: params.destinationAddress ?? null,
+                chainId: params.chainId ?? params.sourceNetwork.split(':')[1],
+                solverId: params.solverId ?? null,
+                sourceAsset: params.sourceAsset ?? null,
+                destinationAsset: params.destinationAsset ?? null,
+                requestedAmount: params.requestedAmount ?? null,
+                secretRevealed: params.secretRevealed ?? false,
+            },
+        })
+    }, [])
+
+    const setError = useCallback((error: Error | null) => {
+        if (error) {
+            dispatch({ type: 'SET_ERROR', error })
+        } else {
+            dispatch({ type: 'SET_PARAMS', payload: { error: null } })
+        }
+    }, [])
+
     const reset = useCallback(() => {
         dispatch({ type: 'RESET' })
     }, [])
@@ -615,12 +662,14 @@ export function SwapProvider({ children }: { children: ReactNode }) {
         destRedeemTxId: state.destRedeemTxId,
         error: state.error,
         startSwap,
+        resumeSwap,
         revealSecret,
         refund,
         manualClaim,
         recoverSwap: recoverSwapFromTx,
+        setError,
         reset,
-    }), [status, state, isTimelockExpired, startSwap, revealSecret, refund, manualClaim, recoverSwapFromTx, reset])
+    }), [status, state, isTimelockExpired, startSwap, resumeSwap, revealSecret, refund, manualClaim, recoverSwapFromTx, setError, reset])
 
     return (
         <SwapContext.Provider value={value}>
