@@ -3,6 +3,8 @@ name: code-review
 description: Entropy-reducing code review. Diff-anchored but context-aware. Favors deletion, consolidation, and simplification over additive fixes.
 ---
 
+> **TEMPORARY RULE**: Always compare against `main-v2` branch (not `main` or `dev`). Use `git diff main-v2...HEAD` for all diffs.
+
 ## How This Review Works
 
 Each layer runs as an **independent subagent** via the Task tool (`subagent_type: "general-purpose"`). This ensures complete context isolation — no layer's analysis is influenced by another layer's findings. Each subagent gets a fresh context, runs its own `git diff`, reads the affected code, and reviews through only its assigned lens.
