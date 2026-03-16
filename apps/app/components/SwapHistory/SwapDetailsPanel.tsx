@@ -1,6 +1,6 @@
 import { FC } from 'react'
-import { ExternalLink, RefreshCw } from 'lucide-react'
-import { SwapData, useSwapStore } from '@/stores/swapStore'
+import { AlertTriangle, ExternalLink, RefreshCw } from 'lucide-react'
+import { LoginIdentity, SwapData, useSwapStore } from '@/stores/swapStore'
 import { Network } from '@/Models/Network'
 import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus'
 import { getExplorerUrl } from '@/lib/address'
@@ -11,6 +11,8 @@ import StatusIcons from './StatusIcons'
 import { useRouter } from 'next/router'
 import { resolvePersistantQueryParams } from '@/helpers/querryHelper'
 import { getDateDifferenceString } from '@/components/utils/dateDifference'
+import { useLoginIdentityMismatch } from '@/hooks/useLoginIdentityMismatch'
+import { formatPasskeyIdForDisplay } from '@/lib/htlc/secretDerivation/passkeyService'
 
 type Props = {
     swap: SwapData
@@ -34,6 +36,7 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
     const isRefunded = swap.status === HTLCStatus.Refunded
     const isCompleted = swap.status === HTLCStatus.RedeemCompleted
     const isInProgress = swap.status && !isTerminalStatus(swap.status)
+    const { isMismatched } = useLoginIdentityMismatch(swap.loginIdentity)
 
     const dateDifferenceString = swap.createdAt ? getDateDifferenceString(swap.createdAt) : undefined
 
@@ -150,7 +153,7 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
                 </div>
             </div>
 
-            {isInProgress && (
+            {isInProgress && !isMismatched && (
                 <button
                     type="button"
                     onClick={handleViewSwap}
@@ -158,6 +161,10 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
                 >
                     View Swap
                 </button>
+            )}
+
+            {isInProgress && isMismatched && (
+                <LoginMismatchWarning loginIdentity={swap.loginIdentity} />
             )}
 
             {isCompleted && (
@@ -170,6 +177,28 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
                     Repeat Swap
                 </button>
             )}
+        </div>
+    )
+}
+
+const LoginMismatchWarning: FC<{ loginIdentity: LoginIdentity | undefined }> = ({ loginIdentity }) => {
+    const createdWith = loginIdentity?.method === 'passkey'
+        ? `passkey ${formatPasskeyIdForDisplay(loginIdentity.credentialId)}`
+        : loginIdentity?.method === 'wallet_sign'
+            ? `${loginIdentity.displayName} (${loginIdentity.address.slice(0, 6)}...${loginIdentity.address.slice(-4)})`
+            : 'a different login method'
+
+    return (
+        <div className="py-3 px-4 bg-warning-background border border-warning-foreground/20 rounded-xl text-sm space-y-2">
+            <div className="flex items-start gap-2">
+                <AlertTriangle className="w-5 h-5 text-warning-foreground shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                    <p className="text-warning-foreground font-medium">Login method mismatch</p>
+                    <p className="text-secondary-text">
+                        This swap was created with {createdWith}. Please log in with the same method to continue this swap.
+                    </p>
+                </div>
+            </div>
         </div>
     )
 }

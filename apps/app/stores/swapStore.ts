@@ -2,6 +2,10 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { HTLCStatus } from '@/Models/HTLCStatus'
 
+export type LoginIdentity =
+    | { method: 'passkey'; credentialId: string }
+    | { method: 'wallet_sign'; providerName: string; displayName: string; address: string }
+
 export interface SwapData {
     requestedAmount: string
     address: string
@@ -23,6 +27,7 @@ export interface SwapData {
     timelock?: number
     sourceSolverAddress?: string
     destinationSolverAddress?: string
+    loginIdentity?: LoginIdentity
 }
 
 interface SwapStoreState {
