@@ -1,4 +1,4 @@
-import { cairo, Contract, ProviderOrAccount, RpcProvider, type Call } from 'starknet'
+import { cairo, Contract, hash, num, addAddressPadding, ProviderOrAccount, RpcProvider, type Call } from 'starknet'
 import {
     UserLockParams,
     LockParams,
@@ -15,8 +15,7 @@ import {
 import type { StarknetHTLCClientConfig, StarknetSigner } from './types.js'
 import htlcAbi from './abis/STARKNET_HTLC.json' with { type: 'json' }
 import { ERC20_ABI } from './abis/ERC20.js'
-
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000000000000000000000000000'
+import { ZERO_ADDRESS } from './constants.js'
 
 export class StarknetHTLCClient extends HTLCClient {
     private provider: RpcProvider
@@ -181,8 +180,46 @@ export class StarknetHTLCClient extends HTLCClient {
         return null
     }
 
-    async recoverSwap(_txHash: string): Promise<RecoveredSwapData> {
-        throw new Error('recoverSwap is not supported for Starknet')
+    async recoverSwap(txHash: string): Promise<RecoveredSwapData> {
+        if (!/^0x[a-fA-F0-9]{1,64}$/.test(txHash))
+            throw new Error('Invalid transaction hash format')
+
+        const receipt = await this.provider.getTransactionReceipt(txHash)
+        if (!receipt || !('events' in receipt)) throw new Error('Transaction not found')
+
+        const userLockedSelector = hash.getSelectorFromName('UserLocked')
+        const rawEvent = receipt.events.find(e => e.keys.includes(userLockedSelector))
+        if (!rawEvent) throw new Error('This transaction does not contain a swap lock')
+
+        const srcContract = rawEvent.from_address
+
+        const contract = this.createContract(srcContract, this.provider)
+        const parsed = contract.parseEvents(receipt)
+
+        const userLockedEntry = parsed.find(
+            ev => Object.keys(ev).some(k => k.includes('UserLocked'))
+        )
+        if (!userLockedEntry) throw new Error('Failed to decode UserLocked event')
+
+        const eventKey = Object.keys(userLockedEntry).find(k => k.includes('UserLocked'))!
+        const event = userLockedEntry[eventKey] as Record<string, any>
+
+        const rawDstToken = event.dst_token as string
+        const dstToken = !rawDstToken || /^[\u0000]+$/.test(rawDstToken) ? '0x0000000000000000000000000000000000000000' : rawDstToken
+
+        return {
+            hashlock: addAddressPadding(num.toHex(event.hashlock)),
+            sender: addAddressPadding(num.toHex(event.sender)),
+            recipient: addAddressPadding(num.toHex(event.recipient)),
+            srcChain: event.src_chain as string,
+            dstChain: event.dst_chain as string,
+            token: addAddressPadding(num.toHex(event.token)),
+            amount: BigInt(event.amount),
+            dstAddress: event.dst_address as string,
+            dstAmount: BigInt(event.dst_amount),
+            dstToken,
+            srcContract,
+        }
     }
 
     // ── Private Helpers ────────────────────────────────────────────────

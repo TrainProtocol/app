@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Network } from '../../../Models/Network'
-import { useSettingsState } from '../../../context/settings'
-import useRecoverSwap from '../../../hooks/htlc/useRecoverSwap'
-import SubmitButton from '../../buttons/submitButton'
+import { Network } from '@/Models/Network'
+import { useSettingsState } from '@/context/settings'
+import useRecoverSwap from '@/hooks/htlc/useRecoverSwap'
+import SubmitButton from '@/components/buttons/submitButton'
 import Image from 'next/image'
 import { ChevronDown } from 'lucide-react'
 import { useSwapActions } from '@train-protocol/react'
@@ -19,10 +19,7 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
     const { recover, loading, error, setError } = useRecoverSwap(selectedNetwork)
     const { setActiveHashlock } = useSwapActions()
 
-    const evmNetworks = networks.filter(n => n.type?.name === 'eip155')
-
-    const isValidTxHash = /^0x[a-fA-F0-9]{64}$/.test(txHash)
-    const canRecover = isValidTxHash && selectedNetwork && !loading
+    const canRecover = !!selectedNetwork && txHash.length > 0 && !loading
 
     const handleRecover = async () => {
         if (!canRecover) return
@@ -65,10 +62,10 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
                         <ChevronDown className="h-4 w-4 text-secondary-text" />
                     </button>
                     {showNetworkList && (
-                        <div className="absolute z-20 mt-1 w-full bg-secondary-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                            {evmNetworks.map(network => (
+                        <div className="absolute z-20 mt-1 w-full bg-secondary-600 rounded-lg shadow-lg max-h-64 overflow-y-auto styled-scroll">
+                            {networks.map(network => (
                                 <button
-                                    key={network.chainId}
+                                    key={network.caip2Id}
                                     type="button"
                                     onClick={() => {
                                         setSelectedNetwork(network)
@@ -120,3 +117,4 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
         </div>
     )
 }
+

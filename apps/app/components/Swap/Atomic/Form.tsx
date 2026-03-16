@@ -38,8 +38,8 @@ const SwapForm: FC<SwapFormProps> = ({ polling = true, onQuoteChange }) => {
     }, [quote, solverId, onQuoteChange])
 
     const actionDisplayName = query?.buttonTextColor || "Swap now"
-    const shouldConnectWallet = !wallets.length;
-    const shouldConnectDestinationWallet = !hasRequiredDestinationWallet(destination, providers);
+    const shouldConnectWallet = values.from && !wallets.length;
+    const shouldConnectDestinationWallet = values.to && !hasRequiredDestinationWallet(destination, providers);
 
     return <>
         <Form className={`h-full space-y-2 ${(isSubmitting) ? 'pointer-events-none' : 'pointer-events-auto'}`} >

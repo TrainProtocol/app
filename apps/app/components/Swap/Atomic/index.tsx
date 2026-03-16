@@ -23,6 +23,7 @@ import { NetworkContractType } from "@/Models/Network";
 import { HTLCStatus } from "@/Models/HTLCStatus";
 import { usePulsatingCircles } from "@/stores/pulsatingCirclesStore";
 import AtomicPage from "../AtomicChat";
+import { useRecentNetworksStore } from "@/stores/recentRoutesStore";
 
 export default function Form() {
     const formikRef = useRef<FormikProps<SwapFormValues>>(null);
@@ -41,6 +42,7 @@ export default function Form() {
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
     const { setCurrentSwap, clearCurrentSwap, setActiveHashlock } = useSwapActions()
     const { setPulseState } = usePulsatingCircles();
+    const updateRecentNetworks = useRecentNetworksStore(s => s.updateRecentNetworks);
 
     useEffect(() => {
         if (swapModalOpen) {
@@ -101,6 +103,11 @@ export default function Form() {
                 throw new Error("No destination_provider")
             }
             const formattedReceiveAmount = quote?.receiveAmount ? formatUnits(BigInt(quote?.receiveAmount), values.toCurrency.decimals) : undefined
+
+            updateRecentNetworks({
+                from: values.from && values.fromCurrency ? { network: values.from.caip2Id, token: values.fromCurrency.symbol } : undefined,
+                to: values.to && values.toCurrency ? { network: values.to.caip2Id, token: values.toCurrency.symbol } : undefined,
+            })
 
             setCurrentSwap({
                 requestedAmount: values.amount,

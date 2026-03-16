@@ -1,27 +1,22 @@
-import { useCallback, useMemo, useState } from 'react'
-import formatAmount from '../../lib/formatAmount'
-import { Network } from '../../Models/Network'
+import { useCallback, useState } from 'react'
+import formatAmount from '@/lib/formatAmount'
+import { Network } from '@/Models/Network'
+import { useSettingsState } from '@/context/settings'
+import { createHTLCClient } from '@/lib/htlc/createHTLCClient'
+import { useRpcConfigStore } from '@/stores/rpcConfigStore'
 import { useStoreContext, type SwapData } from '@train-protocol/react'
-import { useSettingsState } from '../../context/settings'
-import { createHTLCClient } from '../../lib/htlc/createHTLCClient'
-import { useRpcConfigStore } from '../../stores/rpcConfigStore'
 
 export default function useRecoverSwap(sourceNetwork: Network | null) {
     const { networks } = useSettingsState()
     const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
-    const client = useMemo(() => {
-        if (!sourceNetwork) return undefined
-        try { return createHTLCClient(sourceNetwork, getEffectiveRpcUrls) }
-        catch { return undefined }
-    }, [sourceNetwork, getEffectiveRpcUrls])
-    const store = useStoreContext()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
     const recover = useCallback(async (txHash: string): Promise<string> => {
-        if (!client || !sourceNetwork) {
+        if (!sourceNetwork) {
             throw new Error('No client available for this network')
         }
+        const client = createHTLCClient(sourceNetwork, getEffectiveRpcUrls)
 
         setError(null)
         setLoading(true)
@@ -60,7 +55,6 @@ export default function useRecoverSwap(sourceNetwork: Network | null) {
                 txId: txHash,
             }
 
-            store?.getState().recoverSwap(data.hashlock, swapData)
             return data.hashlock
         } catch (e: any) {
             const message = e?.shortMessage || e?.message || 'Failed to recover swap'
@@ -69,7 +63,7 @@ export default function useRecoverSwap(sourceNetwork: Network | null) {
         } finally {
             setLoading(false)
         }
-    }, [client, sourceNetwork, networks, store])
+    }, [sourceNetwork, networks, getEffectiveRpcUrls])
 
     return { recover, loading, error, setError }
 }

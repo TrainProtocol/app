@@ -12,6 +12,7 @@ import { EvmConnectorsProvider } from "@/context/evmConnectorsContext";
 import { SecretDerivationProvider } from "@/context/secretDerivationContext";
 import { WalletLoginProvider } from "@/context/walletLoginContext";
 import { WalletBridges } from "../WalletBridges";
+import FuelProviderWrapper from "./FuelProvider";
 
 const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], basePath: string, themeData: ThemeData, appName: string | undefined }> = ({ children, basePath, themeData, appName }) => {
     return (
@@ -21,18 +22,20 @@ const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], basePath: st
                     <EvmConnectorsProvider>
                         <Wagmi>
                             <WalletModalProvider>
-                                <AztecWalletProvider>
-                                    <ImtblPassportProvider>
-                                        <WalletProvidersProvider>
-                                            <WalletLoginProvider>
-                                                <SecretDerivationProvider>
+                                <FuelProviderWrapper>
+                                    <AztecWalletProvider>
+                                        <ImtblPassportProvider>
+                                            <WalletProvidersProvider>
+                                                <WalletLoginProvider>
+                                                    <SecretDerivationProvider>
                                                     <WalletBridges />
-                                                    {children}
-                                                </SecretDerivationProvider>
-                                            </WalletLoginProvider>
-                                        </WalletProvidersProvider>
-                                    </ImtblPassportProvider>
-                                </AztecWalletProvider>
+                                                        {children}
+                                                    </SecretDerivationProvider>
+                                                </WalletLoginProvider>
+                                            </WalletProvidersProvider>
+                                        </ImtblPassportProvider>
+                                    </AztecWalletProvider>
+                                </FuelProviderWrapper>
                             </WalletModalProvider>
                         </Wagmi>
                     </EvmConnectorsProvider>
