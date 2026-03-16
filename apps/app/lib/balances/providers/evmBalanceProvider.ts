@@ -107,7 +107,7 @@ export class EVMBalanceProvider extends BalanceProvider {
             const amount = balances[1][index]
 
             if (amount >= 0) {
-                const formattedAmount = formatUnits(BigInt(amount), token.decimals)
+                const formattedAmount = Number(formatUnits(BigInt(amount), token.decimals))
                 return {
                     network: network.caip2Id,
                     token: token.symbol,

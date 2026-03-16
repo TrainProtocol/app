@@ -7,10 +7,11 @@ import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
 import { useBalance } from "@/lib/balances/useBalance";
 import { useSwapAccounts } from "@/context/swapAccounts";
 import { memo, useMemo } from "react";
-import { RowElement } from "@/Models/Route";
+import { GroupedTokenElement, RowElement } from "@/Models/Route";
 import { resolveTokenLogoUrl } from "@/components/utils/resolveTokenLogoUrl";
 import { formatUsd } from "@/components/utils/formatUsdAmount";
 import { getTotalBalanceInUSD } from "@/helpers/balanceHelper";
+import { getKey, useBalanceStore } from "@/stores/balanceStore";
 
 type TokenItemProps = {
     network: Network;
@@ -142,6 +143,102 @@ export const NetworkRouteSelectItemDisplay = (props: NetworkItemProps) => {
                         </div>
                     ) : <></>}
 
+                    <ChevronDown
+                        className="w-3.5! h-3.5! absolute right-2 top-1/2 -translate-y-1/2 text-secondary-text transition-opacity duration-200 opacity-0 group-hover/item:opacity-100"
+                        aria-hidden="true"
+                    />
+                </>
+            </SelectItem.Title>
+        </SelectItem>
+    );
+};
+
+export const GroupedTokenHeader = ({
+    item,
+    direction,
+    hideTokenImages,
+}: {
+    item: GroupedTokenElement;
+    direction: SwapDirection;
+    hideTokenImages?: boolean;
+}) => {
+    const swapAccounts = useSwapAccounts(direction);
+    const tokens = item.items;
+    const balances = useBalanceStore(s => s.balances);
+
+    const getAddress = (caip2Id: string) =>
+        swapAccounts.find(w =>
+            (direction === 'from' ? w.provider?.withdrawalSupportedNetworks : w.provider?.autofillSupportedNetworks)
+                ?.includes(caip2Id)
+        )?.address;
+
+    const networksWithBalance: Network[] = Array.from(
+        new Map(
+            tokens
+                .map(({ data }) => {
+                    const address = getAddress(data.network.caip2Id);
+                    const key = address ? getKey(address, data.network) : 'unknown';
+                    const balanceEntry = balances?.[key]?.data?.balances?.find(
+                        b => b.token === data.token.symbol && b.amount && b.amount >= 0
+                    );
+                    return balanceEntry ? [data.network.caip2Id, data.network] as const : null;
+                })
+                .filter((e): e is readonly [string, Network] => !!e)
+        ).values()
+    );
+
+    const tokenBalances = tokens.reduce((acc, { data }) => {
+        const address = getAddress(data.network.caip2Id);
+        const key = address ? getKey(address, data.network) : 'unknown';
+        const balanceEntry = balances?.[key]?.data?.balances?.find(b => b.token === data.token.symbol);
+        if (!balanceEntry?.amount) return acc;
+        return { sum: acc.sum + balanceEntry.amount * (data.token.priceInUsd || 0), hasValue: true };
+    }, { sum: 0, hasValue: false });
+
+    const mainToken = tokens[0]?.data.token;
+    if (!mainToken) return null;
+
+    const hasLoadedBalances = tokenBalances.hasValue && Number(tokenBalances.sum) >= 0;
+    const showNetworkIcons = hasLoadedBalances && networksWithBalance.length > 0;
+
+    return (
+        <SelectItem className="accordion-item-focused bg-secondary-500 group rounded-xl hover:bg-secondary-400 group/item relative pr-7 py-2">
+            <SelectItem.Logo
+                imgSrc={mainToken.logo || resolveTokenLogoUrl(mainToken.symbol)}
+                altText={`${mainToken.symbol} logo`}
+                className="rounded-full"
+            />
+            <SelectItem.Title>
+                <>
+                    <span>{mainToken.symbol}</span>
+                    {hasLoadedBalances ? (
+                        <div className={`${showNetworkIcons ? "flex flex-col space-y-0.5" : ""} ${hideTokenImages ? "invisible" : "visible"}`}>
+                            <span className="text-secondary-text text-sm leading-4 font-medium">
+                                {formatUsd(tokenBalances.sum)}
+                            </span>
+                            {showNetworkIcons && (
+                                <div className="flex justify-end items-center -space-x-1.5 relative h-4">
+                                    {networksWithBalance.slice(0, 3).map((network, index) => (
+                                        <ImageWithFallback
+                                            key={`${network.caip2Id}-${index}`}
+                                            src={network.logoUrl || ''}
+                                            alt={`${network.displayName} logo`}
+                                            height="16"
+                                            width="16"
+                                            loading="eager"
+                                            fetchPriority="high"
+                                            className="rounded-full object-contain"
+                                        />
+                                    ))}
+                                    {networksWithBalance.length > 3 && (
+                                        <div className="w-4 h-4 bg-secondary-600 text-primary-text text-[8px] rounded-full flex items-center justify-center border-2 border-background">
+                                            <span>+{networksWithBalance.length - 3}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ) : <></>}
                     <ChevronDown
                         className="w-3.5! h-3.5! absolute right-2 top-1/2 -translate-y-1/2 text-secondary-text transition-opacity duration-200 opacity-0 group-hover/item:opacity-100"
                         aria-hidden="true"
