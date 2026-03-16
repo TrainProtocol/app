@@ -7,7 +7,7 @@ import KnownInternalNames from "../../knownIds";
 const DEFAULT_AZTEC_NODE_URL = "https://v4-devnet-2.aztec-labs.com";
 
 // Application ID for wallet SDK discovery
-export const AZTEC_APP_ID = "train-protocol";
+export const AZTEC_APP_ID = "Train Protocol";
 
 export const useAztecNodeUrl = () => {
     if (typeof window === 'undefined') {
