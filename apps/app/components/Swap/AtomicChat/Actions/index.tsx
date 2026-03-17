@@ -1,10 +1,10 @@
 import { FC, useEffect, useRef, useState } from "react";
-import { useAtomicState } from "../../../../context/atomicContext";
+import { useAtomicState } from "@/context/atomicContext";
 import { RevealSecretAction } from "./RevealSecret";
 import { ManualClaimAction } from "./ManualClaim";
 import { UserRefundAction, UserLockAction } from "./UserActions";
-import TransactionMessages from "../../messages/TransactionMessages";
-import WalletMessage from "../../messages/Message";
+import TransactionMessages from "@/components/Swap/messages/TransactionMessages";
+import WalletMessage from "@/components/Swap/messages/Message";
 import DestinationWalletWrapper from "./DestinationWalletWrapper";
 import { SwapQuote } from "@/lib/trainApiClient";
 import SubmitButton from "@/components/buttons/submitButton";

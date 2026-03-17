@@ -45,7 +45,7 @@ export class InMemoryPasskeyStorage implements PasskeyCredentialStorage {
 
 export const formatPasskeyIdForDisplay = (credId: string): string => {
     if (!credId || credId.length < 8) return credId;
-    return `id:${credId.slice(0, 2)}...${credId.slice(-5)}`;
+    return `id: ${credId.slice(0, 2)}...${credId.slice(-5)}`;
 };
 
 export const getPasskeyPrfSalt = (): Uint8Array => {

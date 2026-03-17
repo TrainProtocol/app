@@ -8,12 +8,7 @@ import { Address } from "@/lib/address"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
 import { formatPasskeyIdForDisplay } from "@/lib/htlc/secretDerivation/passkeyService"
 import WalletIcon from "../Icons/WalletIcon"
-
-const usePasskeyDisplayId = () => {
-    const method = useSecretDerivationStore((s) => s.method)
-    const credId = usePasskeyCredentialId()
-    return method === 'passkey' && credId ? formatPasskeyIdForDisplay(credId) : null
-}
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../shadcn/tooltip"
 
 interface LoginWallet {
     address: string
@@ -24,7 +19,7 @@ interface LoginWallet {
 interface LoginDataCardProps {
     method: 'passkey' | 'wallet_sign' | null
     loginWallet: LoginWallet | null
-    passkeyDisplayId: string | null
+    passkeyCredentialId: string | null
     onCopyAddress: () => void
     className?: string
 }
@@ -32,7 +27,7 @@ interface LoginDataCardProps {
 const LoginDataCard = ({
     method,
     loginWallet,
-    passkeyDisplayId,
+    passkeyCredentialId,
     onCopyAddress,
     className = "flex items-center gap-3 p-3 bg-secondary-700 rounded-xl",
 }: LoginDataCardProps) => (
@@ -44,8 +39,17 @@ const LoginDataCard = ({
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
                     <span className="text-primary-text font-semibold">Passkey</span>
-                    {passkeyDisplayId && (
-                        <span className="text-secondary-text text-sm truncate">{passkeyDisplayId}</span>
+                    {passkeyCredentialId && (
+                        <TooltipProvider delayDuration={200}>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <span className="text-secondary-text text-sm truncate cursor-default">{formatPasskeyIdForDisplay(passkeyCredentialId)}</span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p className="font-mono break-all max-w-[280px]">{passkeyCredentialId}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     )}
                 </div>
             </>
@@ -109,8 +113,6 @@ const UserStatusContent = ({
         removeCredential(credId);
     };
 
-    const passkeyDisplayId = usePasskeyDisplayId()
-
     return (
         <div className={`flex flex-col ${showHeader ? 'gap-3' : 'gap-2'}`}>
             {showHeader && (
@@ -119,7 +121,7 @@ const UserStatusContent = ({
             <LoginDataCard
                 method={method}
                 loginWallet={loginWallet}
-                passkeyDisplayId={passkeyDisplayId}
+                passkeyCredentialId={activeId}
                 onCopyAddress={handleCopyAddress}
             />
 
@@ -128,10 +130,19 @@ const UserStatusContent = ({
                     <p className="text-secondary-text text-xs font-medium uppercase">Registered passkeys</p>
                     {credentialIds.map(id => (
                         <div key={id} className="flex items-center justify-between p-2 bg-secondary-700 rounded-lg">
-                            <span className="text-sm text-primary-text">
-                                {formatPasskeyIdForDisplay(id)}
-                                {id === activeId && <span className="text-green-400 ml-1">(active)</span>}
-                            </span>
+                            <TooltipProvider delayDuration={200}>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <span className="text-sm text-primary-text cursor-default">
+                                            {formatPasskeyIdForDisplay(id)}
+                                            {id === activeId && <span className="text-green-400 ml-1">(active)</span>}
+                                        </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p className="font-mono break-all max-w-[280px]">{id}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                             {credentialIds.length > 1 && (
                                 <button
                                     type="button"
@@ -262,7 +273,7 @@ export const UserStatusMenu = () => {
     const { isLoggedIn, method, loginWallet, logout } = useSecretDerivationStore()
     const openLoginModal = useLoginModalStore((s) => s.open)
     const [openModal, setOpenModal] = useState(false)
-    const passkeyDisplayId = usePasskeyDisplayId()
+    const activeCredentialId = usePasskeyCredentialId()
 
     if (!isLoggedIn) {
         return (
@@ -280,7 +291,7 @@ export const UserStatusMenu = () => {
     }
 
     const menuLabel = method === 'passkey'
-        ? (passkeyDisplayId ? `Passkey · ${passkeyDisplayId}` : 'Passkey')
+        ? (activeCredentialId ? `Passkey · ${formatPasskeyIdForDisplay(activeCredentialId)}` : 'Passkey')
         : `${loginWallet?.displayName || 'Wallet'}${loginWallet?.address ? ` · ${new Address(loginWallet.address, null, loginWallet.providerName).toShortString()}` : ''}`
 
     return (
