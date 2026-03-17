@@ -31,11 +31,11 @@ export const Actions: FC<ActionsProps> = ({ quote, type }) => {
 
     return (
         <>
-            {error && <TransactionMessage error={error.message} buttonText={error.buttonText} />}
+            {error && <TransactionMessage error={error.message} disableButton={error.disableButton} />}
             <DestinationWalletWrapper>
                 <ResolveAction
                     commitStatus={commitStatus}
-                    dismissable={!error?.buttonText}
+                    disableButton={error?.disableButton}
                     error={error?.message}
                     quote={quote}
                     type={type}
@@ -47,17 +47,17 @@ export const Actions: FC<ActionsProps> = ({ quote, type }) => {
 
 type ResolveActionProps = {
     commitStatus: HTLCStatus
-    dismissable: boolean
+    disableButton?: boolean
     error: string | undefined
     quote?: SwapQuote
     type: SwapViewType
 }
 
-const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, dismissable, error, quote, type }) => {
+const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, disableButton, error, quote, type }) => {
     const { setError } = useAtomicState()
 
     if (error) {
-        if (!dismissable) return <></>
+        if (disableButton) return <></>
         return (
             <SubmitButton type="button" onClick={() => setError(undefined)}>
                 Try again
@@ -171,13 +171,13 @@ const TerminalActions: FC<{ variant: 'success' | 'refund'; type: SwapViewType }>
     )
 }
 
-const TransactionMessage: FC<{ error: string | undefined, buttonText?: string }> = ({ error, buttonText }) => {
-    if (buttonText) {
+const TransactionMessage: FC<{ error: string | undefined, disableButton?: boolean }> = ({ error, disableButton }) => {
+    if (disableButton && error) {
         return (
             <WalletMessage
                 status="error"
                 header="Something went wrong"
-                details={error || "Please wait for the timelock to expire, then refund to receive your assets back."}
+                details={error}
             />
         )
     }
