@@ -1,7 +1,6 @@
 import { FC } from "react";
 import TrainLogo from "../Icons/TrainLogo";
 import { useGoHome } from "../../hooks/useGoHome";
-import { useRouter } from "next/router";
 
 interface Props {
     className?: string;
@@ -10,19 +9,9 @@ interface Props {
 
 const GoHomeButton: FC<Props> = (({ className, children }) => {
     const goHome = useGoHome()
-    const router = useRouter()
-
-    const onClick = async () => {
-        if (typeof window !== 'undefined' && window.location.pathname !== '/') {
-            await goHome()
-            router.reload()
-        } else {
-            await goHome()
-        }
-    }
 
     return (
-        <div onClick={onClick}>
+        <div onClick={goHome}>
             {
                 children ??
                 <TrainLogo className={className ?? "h-8 w-auto text-primary-logoColor fill-primary-text"} />
