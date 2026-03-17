@@ -11,7 +11,6 @@ function extractProviderName(url: string): string {
 
 /**
  * Resolve EVM RPC nodes for a given chainId from chainlist-rpcs.
- * Returns up to 3 HTTPS endpoints with no tracking or limited tracking.
  */
 export async function resolveEvmNodes(chainId: string): Promise<ResolvedNode[]> {
     const { get_rpcs_for_chain } = await import('chainlist-rpcs')
