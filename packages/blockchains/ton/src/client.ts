@@ -229,7 +229,7 @@ export class TonHTLCClient extends HTLCClient {
 
             return null
         } catch (error) {
-            console.error('Error in _getSolverLockDetails:', error)
+            console.error('Error in getSolverLockDetails:', error)
             return null
         }
     }
