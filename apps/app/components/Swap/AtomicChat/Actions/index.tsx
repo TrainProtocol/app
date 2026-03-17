@@ -31,10 +31,11 @@ export const Actions: FC<ActionsProps> = ({ quote, type }) => {
 
     return (
         <>
-            {error && <TransactionMessage error={error.message} />}
+            {error && <TransactionMessage error={error.message} buttonText={error.buttonText} />}
             <DestinationWalletWrapper>
                 <ResolveAction
                     commitStatus={commitStatus}
+                    dismissable={!error?.buttonText}
                     error={error?.message}
                     quote={quote}
                     type={type}
@@ -46,15 +47,17 @@ export const Actions: FC<ActionsProps> = ({ quote, type }) => {
 
 type ResolveActionProps = {
     commitStatus: HTLCStatus
+    dismissable: boolean
     error: string | undefined
     quote?: SwapQuote
     type: SwapViewType
 }
 
-const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote, type }) => {
+const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, dismissable, error, quote, type }) => {
     const { setError } = useAtomicState()
 
     if (error) {
+        if (!dismissable) return <></>
         return (
             <SubmitButton type="button" onClick={() => setError(undefined)}>
                 Try again
@@ -168,7 +171,16 @@ const TerminalActions: FC<{ variant: 'success' | 'refund'; type: SwapViewType }>
     )
 }
 
-const TransactionMessage: FC<{ error: string | undefined }> = ({ error }) => {
+const TransactionMessage: FC<{ error: string | undefined, buttonText?: string }> = ({ error, buttonText }) => {
+    if (buttonText) {
+        return (
+            <WalletMessage
+                status="error"
+                header="Something went wrong"
+                details={error || "Please wait for the timelock to expire, then refund to receive your assets back."}
+            />
+        )
+    }
     if (error === "An error occurred (USER_REFUSED_OP)" || error === "Execute failed" || error?.toLowerCase()?.includes('denied') || error?.toLowerCase()?.includes('user rejected')) {
         return <TransactionMessages.TransactionRejectedMessage />
     }

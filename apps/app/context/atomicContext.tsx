@@ -164,6 +164,9 @@ export function AtomicProvider({ children }) {
         onOrder: (order) => {
             if (hashlock) updateHTLCState(hashlock, { htlcFromApi: order })
         },
+        onFailed: () => {
+            setError({ buttonText: 'Ok', message: 'Please wait for the timelock to expire, then refund to receive your assets back.' })
+        },
     })
 
     const htlcStatus = useMemo(() =>
