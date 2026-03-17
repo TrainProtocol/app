@@ -1,3 +1,8 @@
+---
+paths:
+  - "packages/blockchains/**"
+---
+
 # Chain SDK Integration Rules
 
 Rules and patterns for adding new blockchain HTLC client SDKs. Derived from `evm`, `starknet`, `solana`, and `aztec` implementations.
