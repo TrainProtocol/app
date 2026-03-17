@@ -1,6 +1,7 @@
 import AddressIcon from "../../../components/AddressIcon";
 import SVGWithImg from "../../../components/Icons/SvgWithImg";
 import WalletIcon from "../../../components/Icons/WalletIcon";
+import KnownAztecConnectors from "../aztec/KnownAztecConnectors";
 import KnownEVMConnectors from "../evm/KnownEVMConnectors";
 import KnownSolanaConnectors from "../solana/KnownSolanaConnectors";
 import KnownStarknetConnectors from "../starknet/KnownStarknetConnectors";
@@ -9,6 +10,7 @@ const connectors = [
     ...KnownEVMConnectors,
     ...KnownSolanaConnectors,
     ...KnownStarknetConnectors,
+    ...KnownAztecConnectors,
 ]
 
 export const resolveWalletConnectorIcon = ({ connector, address, iconUrl }: { connector?: string, address?: string, iconUrl?: string }) => {

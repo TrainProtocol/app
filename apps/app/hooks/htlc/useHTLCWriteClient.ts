@@ -12,7 +12,7 @@ import { Network } from '../../Models/Network'
 import { Wallet } from '@/Models/WalletProvider'
 import { useRpcConfigStore } from '@/stores/rpcConfigStore'
 import resolveChain from '@/lib/resolveChain'
-import { useAztecWalletContext } from '@/components/WalletProviders/AztecWalletProvider'
+import { useAztecWalletStore } from '@/stores/aztecWalletStore'
 import AppSettings from '@/lib/AppSettings'
 
 const apiClient = new SdkTrainApiClient({ baseUrl: AppSettings.TrainApiUri ?? '' })
@@ -21,7 +21,7 @@ const apiClient = new SdkTrainApiClient({ baseUrl: AppSettings.TrainApiUri ?? ''
 export function useHTLCWriteClient() {
     const config = useConfig()
     const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
-    const { wallet: aztecWallet, accountAddress: aztecAccountAddress } = useAztecWalletContext()
+    const aztecWallet = useAztecWalletStore(s => s.wallet)
     const { connection: solanaConnection } = useConnection()
     const { wallets: solanaWallets } = useWallet()
 
@@ -48,10 +48,13 @@ export function useHTLCWriteClient() {
         // Aztec chain path
         if (chainType === 'aztec') {
             let signer: AztecSigner | undefined
-            if (aztecWallet && aztecAccountAddress) {
-                signer = {
-                    wallet: aztecWallet,
-                    address: aztecAccountAddress,
+            if (aztecWallet) {
+                const accounts = await aztecWallet.getAccounts()
+                if (accounts.length > 0) {
+                    signer = {
+                        wallet: aztecWallet,
+                        address: accounts[0].toString(),
+                    }
                 }
             }
             return createClient(chainType, { rpcUrl, signer, apiClient })
@@ -116,5 +119,5 @@ export function useHTLCWriteClient() {
         }
 
         return createClient(chainType, { rpcUrl, signer, apiClient })
-    }, [config, getEffectiveRpcUrls, aztecWallet, aztecAccountAddress, solanaWallets, solanaConnection])
+    }, [config, getEffectiveRpcUrls, aztecWallet, solanaWallets, solanaConnection])
 }

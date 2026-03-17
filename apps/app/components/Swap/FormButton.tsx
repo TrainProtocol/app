@@ -10,7 +10,6 @@ import { useFormikContext } from "formik";
 import useWallet from "../../hooks/useWallet";
 import { useConnectModal } from "../WalletModal";
 import { useSecretDerivation } from "../../context/secretDerivationContext";
-import { LoginModal } from "../SecretDerivation";
 import { useLoginModalStore } from "@/stores/loginModalStore";
 import SubmitButton from "../buttons/submitButton";
 
@@ -31,7 +30,7 @@ const FormButton = ({
     shouldConnectDestinationWallet
 }) => {
     const { isLoggedIn } = useSecretDerivation();
-    const { isOpen: loginOpen, open: openLogin, close: closeLogin } = useLoginModalStore();
+    const { open: openLogin } = useLoginModalStore();
 
     // Check derivation method first (before any other checks)
     if (!isLoggedIn) {
@@ -43,10 +42,6 @@ const FormButton = ({
                 >
                     Login to continue
                 </SubmitButton>
-                <LoginModal
-                    isOpen={loginOpen}
-                    onClose={closeLogin}
-                />
             </>
         );
     }

@@ -19,7 +19,8 @@ import { AsyncModalProvider } from "../context/asyncModal";
 import WalletsProviders from "./WalletProviders";
 import { AtomicProvider } from "../context/atomicContext";
 import { SwapAccountsProvider } from "@/context/swapAccounts";
-import AppSettings from "@/lib/AppSettings";
+import { LoginModal } from "./SecretDerivation";
+import { useLoginModalStore } from "@/stores/loginModalStore";
 
 type Props = {
   children: JSX.Element | JSX.Element[];
@@ -30,6 +31,7 @@ type Props = {
 
 export default function Layout({ children, settings, themeData }: Props) {
   const router = useRouter();
+  const { isOpen: loginOpen, close: closeLogin } = useLoginModalStore();
 
   if (!settings)
     return <ThemeWrapper>
@@ -114,6 +116,10 @@ export default function Layout({ children, settings, themeData }: Props) {
                 <SwapAccountsProvider>
                   <AtomicProvider>
                     <AsyncModalProvider>
+                      <LoginModal
+                        isOpen={loginOpen}
+                        onClose={closeLogin}
+                      />
                       {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
                         <MaintananceContent />
                         : children}
