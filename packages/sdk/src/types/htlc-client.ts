@@ -21,7 +21,7 @@ export interface IHTLCClient {
 
 export abstract class HTLCClient implements IHTLCClient {
     protected apiClient: TrainApiClient
-    protected consensusOptions: ConsensusOptions = { minQuorum: 2, batchSize: 3 }
+    protected consensusOptions: ConsensusOptions
 
     constructor(apiClient: TrainApiClient) {
         this.apiClient = apiClient
@@ -36,7 +36,7 @@ export abstract class HTLCClient implements IHTLCClient {
         nodeUrls: string[],
         options?: ConsensusOptions
     ): Promise<LockDetails | null> {
-        const { minQuorum, batchSize } = { ...this.consensusOptions, ...options } as Required<ConsensusOptions>
+        const { minQuorum = 2, batchSize = 3 } = { ...this.consensusOptions, ...options }
 
         if (!nodeUrls.length) return null
 
