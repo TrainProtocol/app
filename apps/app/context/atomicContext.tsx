@@ -32,6 +32,8 @@ type DataContextType = HTLCState & {
     htlcStatus: HTLCStatus,
     destRedeemTx?: string,
     verifyingByLightClient: boolean,
+    consensusVerifying: boolean,
+    consensusVerified: boolean,
     srcAtomicContract?: string,
     destAtomicContract?: string,
     sourceClient?: IHTLCClient,
@@ -62,7 +64,6 @@ type CommitStatesDict = Record<string, HTLCState>;
 export function AtomicProvider({ children }) {
     const router = useRouter()
     const { networks } = useSettingsState()
-    const rpcConfigs = useRpcConfigStore(s => s.rpcConfigs)
     const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
 
     const activeHashlock = useSwapStore(s => s.activeHashlock)
@@ -249,14 +250,22 @@ export function AtomicProvider({ children }) {
         onSuccess: handleUserLockSuccess,
     })
 
-    // Subscribe reactively to rpcConfigs so RPC URL changes trigger a rerender
-    const destNodeUrls = useMemo(
-        () => destination_network ? getEffectiveRpcUrls(destination_network) : [],
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [destination_network, rpcConfigs]
+    const destRpcConfig = useRpcConfigStore(s =>
+        destination_network?.caip2Id ? s.rpcConfigs[destination_network.caip2Id] : undefined
     )
 
-    useSolverLockPolling({
+    const destNodeUrls = useMemo(
+        () => destination_network ? getEffectiveRpcUrls(destination_network) : [],
+        [destination_network, destRpcConfig]
+    )
+
+    const handleConsensusFailed = useCallback(() => {
+        setError({
+            message: 'RPC node verification failed — nodes returned conflicting data. Your funds are safe and will be automatically refundable after the timelock expires.',
+        })
+    }, [setError])
+
+    const { consensusVerifying, consensusVerified: isConsensusVerified } = useSolverLockPolling({
         network: destination_network,
         hashlock,
         contractAddress: destAtomicContract,
@@ -265,6 +274,7 @@ export function AtomicProvider({ children }) {
         client: destinationClient,
         solverAddress: destinationSolverAddress,
         onSuccess: handleSolverLockSuccess,
+        onConsensusFailed: handleConsensusFailed,
         nodeUrls: destNodeUrls,
     })
 
@@ -396,6 +406,8 @@ export function AtomicProvider({ children }) {
             refundTxId,
             destRedeemTx: destinationRedeemTx,
             verifyingByLightClient,
+            consensusVerifying,
+            consensusVerified: isConsensusVerified,
             destinationDetailsByLightClient,
             srcAtomicContract,
             destAtomicContract,

@@ -1,9 +1,15 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useCallback, useState } from "react"
 import useSWR from "swr"
 import { Network, Token } from "@/Models/Network"
 import { LockDetails } from "@/Models/phtlc/PHTLC"
 import { LockParams } from "@/Models/phtlc"
 import { IHTLCClient } from "@train-protocol/sdk"
+
+const CONSENSUS_ERROR_PREFIX = 'Lock details do not match'
+
+function isConsensusMismatchError(err: unknown): boolean {
+    return err instanceof Error && err.message.startsWith(CONSENSUS_ERROR_PREFIX)
+}
 
 interface UseSolverLockPollingParams {
     network: Network | undefined
@@ -15,6 +21,7 @@ interface UseSolverLockPollingParams {
     nodeUrls: string[]
     solverAddress?: string
     onSuccess?: (details: LockDetails) => void
+    onConsensusFailed?: () => void
 }
 
 const useSolverLockPolling = ({
@@ -27,19 +34,30 @@ const useSolverLockPolling = ({
     nodeUrls,
     solverAddress,
     onSuccess,
+    onConsensusFailed,
 }: UseSolverLockPollingParams) => {
     const type: 'erc20' | 'native' = destinationAsset?.contractAddress && destinationAsset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
     const consensusVerified = useRef(false)
+    const consensusFailed = useRef(false)
+    const [consensusVerifying, setConsensusVerifying] = useState(false)
+    const nodeUrlsKey = nodeUrls.join(',')
 
     useEffect(() => {
         consensusVerified.current = false
-    }, [hashlock, nodeUrls])
+        consensusFailed.current = false
+        setConsensusVerifying(false)
+    }, [hashlock, nodeUrlsKey])
 
-    const shouldPoll = !!(network && hashlock && contractAddress && enabled)
+    const shouldPoll = !!(network && hashlock && contractAddress && enabled && !consensusFailed.current)
 
     const key = shouldPoll
         ? `/htlc/solverLock/${network!.caip2Id}/${hashlock}/${contractAddress}/${type}`
         : null
+
+    const handleConsensusFailed = useCallback(() => {
+        consensusFailed.current = true
+        onConsensusFailed?.()
+    }, [onConsensusFailed])
 
     const { data, error, isLoading, mutate } = useSWR<LockDetails | null>(
         key,
@@ -66,16 +84,34 @@ const useSolverLockPolling = ({
 
                 // First detection: verify with multi-node consensus
                 if (!consensusVerified.current && nodeUrls.length > 1) {
-                    const verified = await client.getSolverLockDetailsWithConsensus(params, nodeUrls)
-                    if (verified) {
-                        consensusVerified.current = true
+                    setConsensusVerifying(true)
+                    try {
+                        const verified = await client.getSolverLockDetailsWithConsensus(params, nodeUrls)
+                        if (verified) {
+                            consensusVerified.current = true
+                            setConsensusVerifying(false)
+                        }
+                        // If quorum not met (null): keep verifying, will retry next poll
+                    } catch (err) {
+                        if (isConsensusMismatchError(err)) {
+                            setConsensusVerifying(false)
+                            handleConsensusFailed()
+                            return null
+                        }
+                        console.error('Consensus verification error:', err)
+                        // Keep verifying state for transient errors, will retry next poll
                     }
-                    return verified
+                    // Always return single-node result so lock doesn't disappear
+                    return result
                 }
 
                 return result
             } catch (err) {
                 console.error('Error fetching solver lock details:', err)
+                if (isConsensusMismatchError(err)) {
+                    handleConsensusFailed()
+                    return null
+                }
                 throw err
             }
         },
@@ -94,6 +130,9 @@ const useSolverLockPolling = ({
         details: data ?? undefined,
         isLoading,
         error,
+        consensusFailed: consensusFailed.current,
+        consensusVerifying,
+        consensusVerified: consensusVerified.current,
         mutate,
     }
 }

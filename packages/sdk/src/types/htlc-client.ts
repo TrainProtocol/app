@@ -21,7 +21,7 @@ export interface IHTLCClient {
 
 export abstract class HTLCClient implements IHTLCClient {
     protected apiClient: TrainApiClient
-    protected consensusOptions: ConsensusOptions
+    protected consensusOptions: Required<ConsensusOptions> = { minQuorum: 2, batchSize: 3 }
 
     constructor(apiClient: TrainApiClient) {
         this.apiClient = apiClient
@@ -36,7 +36,8 @@ export abstract class HTLCClient implements IHTLCClient {
         nodeUrls: string[],
         options?: ConsensusOptions
     ): Promise<LockDetails | null> {
-        const { minQuorum = 2, batchSize = 3 } = { ...this.consensusOptions, ...options }
+        const minQuorum = options?.minQuorum ?? this.consensusOptions.minQuorum
+        const batchSize = options?.batchSize ?? this.consensusOptions.batchSize
 
         if (!nodeUrls.length) return null
 
@@ -48,7 +49,7 @@ export abstract class HTLCClient implements IHTLCClient {
             batches.push(nodeUrls.slice(i, i + batchSize))
         }
 
-        let totalValid = 0
+        const allValidResults: LockDetails[] = []
         let totalQueried = 0
         let lastError: unknown = null
 
@@ -64,21 +65,22 @@ export abstract class HTLCClient implements IHTLCClient {
             )
             const validResults = fulfilled.map(r => r.value).filter((r): r is LockDetails => r !== null)
 
-            totalValid += validResults.length
+            allValidResults.push(...validResults)
 
             const batchError = results.find(
                 (r): r is PromiseRejectedResult => r.status === 'rejected'
             )
             if (batchError) lastError = batchError.reason
 
-            if (validResults.length >= effectiveQuorum) {
-                const [first, ...rest] = validResults
+            if (allValidResults.length >= effectiveQuorum) {
+                const [first, ...rest] = allValidResults
                 if (rest.length > 0 && !rest.every(r =>
                     String(r.amount) === String(first.amount) &&
                     r.sender === first.sender &&
                     r.recipient === first.recipient &&
                     r.token === first.token &&
-                    r.timelock === first.timelock
+                    r.timelock === first.timelock &&
+                    r.status === first.status
                 )) {
                     throw new Error('Lock details do not match across the provided nodes')
                 }
@@ -87,13 +89,13 @@ export abstract class HTLCClient implements IHTLCClient {
         }
 
         // All batches exhausted
-        if (totalValid === 0) {
+        if (allValidResults.length === 0) {
             if (lastError) throw lastError
             return null
         }
 
         throw new Error(
-            `Insufficient node agreement: ${totalValid} of ${totalQueried} nodes returned results, need at least ${effectiveQuorum}`
+            `Insufficient node agreement: ${allValidResults.length} of ${totalQueried} nodes returned results, need at least ${effectiveQuorum}`
         )
     }
 

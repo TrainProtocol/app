@@ -1,10 +1,10 @@
-import type { ResolvedNode } from './types'
+import { NetworkNode } from '@train-protocol/sdk'
 
 /**
  * Curated public RPC endpoints for non-EVM chains.
  * Keyed by CAIP-2 ID.
  */
-export const NON_EVM_NODES: Record<string, ResolvedNode[]> = {
+export const NON_EVM_NODES: Record<string, NetworkNode[]> = {
     // ── Solana ──
     'solana:mainnet': [
         { url: 'https://api.mainnet-beta.solana.com', providerName: 'solana-official' },

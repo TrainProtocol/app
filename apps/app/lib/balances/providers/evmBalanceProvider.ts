@@ -1,7 +1,7 @@
 
-import { Chain, formatUnits, PublicClient, http, fallback } from "viem"
+import { Chain, formatUnits, PublicClient } from "viem"
 import { TokenBalance } from "@/Models/Balance"
-import { Network, Token, getNativeToken } from "@/Models/Network"
+import { Network, NetworkTypes, Token, getNativeToken } from "@/Models/Network"
 import { createConfig } from '@wagmi/core'
 import { erc20Abi } from 'viem'
 import { multicall } from '@wagmi/core'
@@ -10,11 +10,11 @@ import resolveChain from "@/lib/resolveChain"
 import BalanceGetterAbi from "@/lib/abis/BALANCEGETTERABI.json"
 import KnownInternalNames from "@/lib/knownIds"
 import { BalanceProvider } from "@/Models/BalanceProvider"
-import { getNetworkRpcUrls, buildNetworkTransport } from "@/lib/rpc/resolveNetworkRpcUrl"
+import { buildNetworkTransport } from "@/lib/rpc/resolveNetworkRpcUrl"
 
 export class EVMBalanceProvider extends BalanceProvider {
     supportsNetwork: BalanceProvider['supportsNetwork'] = (network) => {
-        return network.type?.name === "eip155" && !!getNativeToken(network)
+        return network.type?.name === NetworkTypes.EVM && !!getNativeToken(network)
     }
 
     fetchBalance: BalanceProvider['fetchBalance'] = async (address, network, options) => {

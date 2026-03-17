@@ -1,4 +1,4 @@
-import type { ResolvedNode } from './types'
+import { NetworkNode } from '@train-protocol/sdk'
 
 function extractProviderName(url: string): string {
     try {
@@ -12,7 +12,7 @@ function extractProviderName(url: string): string {
 /**
  * Resolve EVM RPC nodes for a given chainId from chainlist-rpcs.
  */
-export async function resolveEvmNodes(chainId: string): Promise<ResolvedNode[]> {
+export async function resolveEvmNodes(chainId: string): Promise<NetworkNode[]> {
     const { get_rpcs_for_chain } = await import('chainlist-rpcs')
     const rpcs = get_rpcs_for_chain({
         chain_id: Number(chainId),
@@ -22,7 +22,7 @@ export async function resolveEvmNodes(chainId: string): Promise<ResolvedNode[]> 
     if (!Array.isArray(rpcs)) return []
 
     const seen = new Set<string>()
-    const results: ResolvedNode[] = []
+    const results: NetworkNode[] = []
 
     for (const entry of rpcs) {
         const url = typeof entry === 'string' ? entry : entry.url

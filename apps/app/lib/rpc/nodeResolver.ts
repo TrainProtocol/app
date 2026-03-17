@@ -1,6 +1,7 @@
-import type { ResolvedNode, ChainNamespace } from './types'
 import { NON_EVM_NODES } from './nonEvmNodes'
 import { resolveEvmNodes } from './evmNodes'
+import { NetworkNode } from '@train-protocol/sdk';
+import { NetworkTypes } from '@/Models/Network';
 
 /**
  * Resolves RPC node URLs for a given CAIP-2 network ID.
@@ -8,13 +9,13 @@ import { resolveEvmNodes } from './evmNodes'
  */
 export async function resolveNodes(
     caip2Id: string,
-    existingNodes?: Array<{ url: string; providerName: string }>,
-): Promise<ResolvedNode[]> {
-    const [namespace, chainId] = caip2Id.split(':') as [ChainNamespace, string]
+    existingNodes?: NetworkNode[],
+): Promise<NetworkNode[]> {
+    const [namespace, chainId] = caip2Id.split(':') 
     const seen = new Set<string>()
-    const results: ResolvedNode[] = []
+    const results: NetworkNode[] = []
 
-    const add = (node: ResolvedNode) => {
+    const add = (node: NetworkNode) => {
         const key = node.url.replace(/\/+$/, '').toLowerCase()
         if (!seen.has(key)) {
             seen.add(key)
@@ -30,7 +31,7 @@ export async function resolveNodes(
     }
 
     // 2. Dynamic resolution by chain type
-    if (namespace === 'eip155') {
+    if (namespace === NetworkTypes.EVM) {
         try {
             for (const n of await resolveEvmNodes(chainId)) {
                 add(n)
