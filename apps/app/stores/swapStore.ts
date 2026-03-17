@@ -21,6 +21,7 @@ export interface SwapData {
     status?: HTLCStatus
     createdAt?: number
     timelock?: number
+    sourceRedeemedAt?: number
     sourceSolverAddress?: string
     destinationSolverAddress?: string
 }

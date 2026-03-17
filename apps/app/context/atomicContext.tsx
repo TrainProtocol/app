@@ -17,6 +17,7 @@ import { useSelectedAccount } from './swapAccounts';
 import useWallet from '@/hooks/useWallet';
 import { Address } from '@/lib/address';
 import { useRpcConfigStore } from '@/stores/rpcConfigStore';
+import { getBlockTimestampByTxHash } from '@/lib/getBlockTimestamp';
 
 const AtomicStateContext = createContext<DataContextType | null>(null);
 
@@ -84,7 +85,7 @@ export function AtomicProvider({ children }) {
         useShallow(s => activeHashlock ? s.swaps[activeHashlock] ?? null : null)
     )
     const currentSwap = tempSwap ?? committedSwap
-    const { getEffectiveRpcUrls } = useRpcConfigStore();
+    const { getEffectiveRpcUrl, getEffectiveRpcUrls } = useRpcConfigStore();
 
     const address = currentSwap?.address
     const amount = currentSwap?.requestedAmount
@@ -150,7 +151,9 @@ export function AtomicProvider({ children }) {
     const manualClaimRequired = hashlock ? htlcStates[hashlock]?.manualClaimRequired : false;
     const destinationDetailsByLightClient = hashlock ? htlcStates[hashlock]?.destinationDetailsByLightClient : undefined
 
-    const destinationRedeemTx = manualClaimTxId ?? htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem && t.networkId === destination)?.hash
+    const getTransactionNetwork = (t: { networkId?: string; network?: string }) => t.networkId ?? t.network
+    const destinationRedeemTx = manualClaimTxId ?? htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem && getTransactionNetwork(t) === destination)?.hash
+    const sourceRedeemTxHash = htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem && getTransactionNetwork(t) === source)?.hash
 
     const source_network = networks.find(n => n.caip2Id.toUpperCase() === (source as string)?.toUpperCase())
     const destination_network = networks.find(n => n.caip2Id.toUpperCase() === (destination as string)?.toUpperCase())
@@ -181,7 +184,15 @@ export function AtomicProvider({ children }) {
         if (htlcStatus !== HTLCStatus.Initial && currentSwapData.status !== htlcStatus) updates.status = htlcStatus
         if (destinationRedeemTx && currentSwapData.destTxId !== destinationRedeemTx) updates.destTxId = destinationRedeemTx
         if (Object.keys(updates).length > 0) updateSwap(activeHashlock, updates)
-    }, [htlcStatus, destinationRedeemTx, activeHashlock, updateSwap])
+
+        if (sourceRedeemTxHash && source_network) {
+            const rpcUrl = getEffectiveRpcUrl(source_network)
+            getBlockTimestampByTxHash(rpcUrl, sourceRedeemTxHash, source_network.caip2Id)
+                .then(ts => {
+                    if (ts && activeHashlock) updateSwap(activeHashlock, { sourceRedeemedAt: ts })
+                })
+        }
+    }, [htlcStatus, destinationRedeemTx, sourceRedeemTxHash, activeHashlock, updateSwap, source_network, getEffectiveRpcUrl])
 
     const { provider: sourceProvider, providers } = useWallet(source_network, 'withdrawal')
     const { provider: destinationProvider } = useWallet(destination_network, 'autofill')
@@ -325,7 +336,7 @@ export function AtomicProvider({ children }) {
         return () => clearTimeout(timer);
     }, [sourceDetails, isTimelockExpired])
 
-    // Manual claim timer: if solver redeemed on source but not destination, wait 2 min then enable manual claim
+    // Manual claim timer: if solver redeemed on source but not destination, wait 3 min then enable manual claim
     useEffect(() => {
         const sourceRedeemed = sourceDetails?.status === LockStatus.Redeemed;
         const hasSecret = sourceDetails?.secret && sourceDetails.secret !== 0n;
@@ -338,12 +349,22 @@ export function AtomicProvider({ children }) {
         if (!sourceRedeemed || !hasSecret || !destLockExists || !destNotRedeemed || !hashlock) return;
         if (manualClaimRequired) return;
 
+        const sourceRedeemedAt = committedSwap?.sourceRedeemedAt;
+        if (!sourceRedeemedAt) return;
+
+        const remaining = Math.max(0, sourceRedeemedAt + 3 * 60 * 1000 - Date.now());
+
+        if (remaining <= 0) {
+            updateHTLCState(hashlock, { manualClaimRequired: true });
+            return;
+        }
+
         const timer = setTimeout(() => {
             updateHTLCState(hashlock, { manualClaimRequired: true });
-        }, 3 * 60 * 1000); // 2 minutes
+        }, remaining);
 
         return () => clearTimeout(timer);
-    }, [sourceDetails?.status, sourceDetails?.secret, solverLockDetails?.sender, solverLockDetails?.status, hashlock, manualClaimRequired])
+    }, [sourceDetails?.status, sourceDetails?.secret, solverLockDetails?.sender, solverLockDetails?.status, hashlock, manualClaimRequired, committedSwap?.sourceRedeemedAt])
 
     const handleCommited = (hashlock: string, txId: string) => {
         // Move tempSwap → swaps[hashlock] in the store (also sets activeHashlock)
