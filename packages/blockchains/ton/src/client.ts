@@ -12,7 +12,6 @@ import {
     HTLCClient,
     parseUnits,
     formatUnits,
-    LockDetails,
 } from '@train-protocol/sdk'
 import type { TonHTLCClientConfig, TonSigner } from './types.js'
 import { TonRpcClient } from './rpc.js'
@@ -185,7 +184,7 @@ export class TonHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> {
         const { id, contractAddress } = params
         const rpc = TonRpcClient.fromUrl(nodeUrl, this.apiKey)
 
@@ -198,7 +197,11 @@ export class TonHTLCClient extends HTLCClient {
                 'getSolverLockCount',
                 countArgs.build(),
             )
-            return Number(countStack.readNumber())
+            const count = Number(countStack.readNumber())
+            if (count === 0) return null
+
+            // TODO: Loop through solver locks by index once getSolverLock is available
+            return null
         } catch (error) {
             console.error('Error in getSolverLockDetails:', error)
             return null

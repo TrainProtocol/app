@@ -89,9 +89,9 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const [autoRevealFailed, setAutoRevealFailed] = useState(false)
     const attemptedRef = useRef(false)
     const { verified, skipped, mismatches } = useSolverLockVerification()
-    const { lightClientPending } = useAtomicState()
+    // const { lightClientPending } = useSwap()
 
-    const shouldAutoReveal = autoRevealSecret && hasSeenAutoRevealPrompt && !autoRevealFailed && verified && !lightClientPending
+    const shouldAutoReveal = autoRevealSecret && hasSeenAutoRevealPrompt && !autoRevealFailed && verified 
 
     useEffect(() => {
         if (shouldAutoReveal && !attemptedRef.current) {
@@ -103,7 +103,7 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     }, [shouldAutoReveal, revealSecret])
 
     // Wait for light client verification before allowing secret reveal
-    if (lightClientPending) return <></>
+    // if (lightClientPending) return <></>
 
     if (shouldAutoReveal) return <></>
 

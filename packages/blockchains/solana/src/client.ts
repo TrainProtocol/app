@@ -244,7 +244,7 @@ export class SolanaHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> {
         const { contractAddress, id } = params
 
         if (!contractAddress) throw new Error('No contract address')
@@ -254,7 +254,17 @@ export class SolanaHTLCClient extends HTLCClient {
         const program = this.buildProgram(contractAddress, undefined, connection)
 
         const hashlockArray = Array.from(hashlockBytes)
-        return Number(await program.methods.getSolverLockCount(hashlockArray).view())
+        const count = Number(await program.methods.getSolverLockCount(hashlockArray).view())
+        if (count === 0) return null
+
+        for (let i = 1; i <= count; i++) {
+            const result = await this.getSolverLockByIndex(params, i, nodeUrl)
+            if (!result) continue
+            if (params.solverAddress && result.sender?.toLowerCase() !== params.solverAddress.toLowerCase()) continue
+            return result
+        }
+
+        return null
     }
 
     async getSolverLockByIndex(params: LockParams, index: number, nodeUrl: string): Promise<SolverLockDetails | null> {

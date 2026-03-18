@@ -183,13 +183,24 @@ export class EvmHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> {
         const { id, contractAddress } = params
         const rpc = new JsonRpcClient(nodeUrl)
 
         const countData = AbiFunction.encodeData(htlcFunctions.getSolverLockCount, [hex(id)])
         const countRaw = await rpc.ethCall(contractAddress, countData)
-        return Number(AbiFunction.decodeResult(htlcFunctions.getSolverLockCount, hex(countRaw)))
+        const count = Number(AbiFunction.decodeResult(htlcFunctions.getSolverLockCount, hex(countRaw)))
+
+        if (count === 0) return null
+
+        for (let i = 1; i <= count; i++) {
+            const result = await this.getSolverLockByIndex(params, i, nodeUrl)
+            if (!result) continue
+            if (params.solverAddress && result.sender?.toLowerCase() !== params.solverAddress.toLowerCase()) continue
+            return result
+        }
+
+        return null
     }
 
     async getSolverLockByIndex(params: LockParams, index: number, nodeUrl: string): Promise<SolverLockDetails | null> {

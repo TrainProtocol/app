@@ -3,6 +3,7 @@ import { TrainApiClient, defaultTrainSDK } from '@train-protocol/sdk'
 import { defaultTrainAuth } from '@train-protocol/auth'
 import { TrainContext } from './TrainContext'
 import { NetworksProvider } from './NetworksProvider'
+import { SecretDerivationProvider } from './SecretDerivationProvider'
 import { WalletContext, type WalletContextValue } from '../wallet/WalletContext'
 import type { TrainWalletAdapter, TrainSigner } from '../wallet/types'
 import { createSwapStore, type SwapStore } from '../internal/store'
@@ -77,7 +78,9 @@ export function TrainProvider({
             <WalletContext.Provider value={walletValue}>
                 <StoreContext.Provider value={storeRef.current}>
                     <NetworksProvider>
-                        {children}
+                        <SecretDerivationProvider {...config.secretDerivation}>
+                            {children}
+                        </SecretDerivationProvider>
                     </NetworksProvider>
                 </StoreContext.Provider>
             </WalletContext.Provider>

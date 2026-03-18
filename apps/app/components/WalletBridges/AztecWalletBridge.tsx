@@ -1,50 +1,22 @@
-import { useMemo } from 'react'
-import { useRegisterWallet, type TrainWalletAdapter } from '@train-protocol/react'
-import { useAztecWalletContext } from '@/components/WalletProviders/AztecWalletProvider'
+import { AztecWalletBridge as AztecBridge } from '@train-protocol/react'
+import { useAztecWalletStore } from '@/stores/aztecWalletStore'
 import { useSettingsState } from '@/context/settings'
 import { useRpcConfigStore } from '@/stores/rpcConfigStore'
+import { useWalletStore } from '@/stores/walletStore'
 
 export function AztecWalletBridge() {
-    const { wallet, accountAddress } = useAztecWalletContext()
+    const wallet = useAztecWalletStore(s => s.wallet)
+    const connectedWallets = useWalletStore(s => s.connectedWallets)
     const { networks } = useSettingsState()
     const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
 
-    const adapter = useMemo<TrainWalletAdapter>(() => ({
-        chainNamespace: 'aztec',
+    const aztecWallet = connectedWallets.find(w => w.providerName === 'Aztec')
+    const address = aztecWallet?.address ?? null
 
-        getSigner: () => {
-            if (!wallet || !accountAddress) return null
+    const aztecNetwork = networks.find(n => n.caip2Id.startsWith('aztec:'))
+    const rpcUrl = aztecNetwork
+        ? getEffectiveRpcUrls(aztecNetwork)[0] ?? aztecNetwork.nodes?.[0]?.url
+        : undefined
 
-            return {
-                address: accountAddress,
-                chainNamespace: 'aztec',
-                sendTransaction: async () => {
-                    // Aztec uses its own wallet SDK, not raw sendTransaction
-                    throw new Error('Aztec uses wallet SDK, not sendTransaction')
-                },
-            }
-        },
-
-        getClientConfig: () => {
-            const aztecNetwork = networks.find(n => n.caip2Id.startsWith('aztec:'))
-            if (!aztecNetwork) return {}
-            const rpcUrl = getEffectiveRpcUrls(aztecNetwork)[0] ?? aztecNetwork.nodes?.[0]?.url ?? ''
-            return {
-                rpcUrl,
-                signer: wallet && accountAddress ? { wallet, address: accountAddress } : undefined,
-            }
-        },
-
-        getLoginConfig: () => {
-            if (!wallet || !accountAddress) return null
-            return { wallet, address: accountAddress }
-        },
-
-        onSignerChange: () => {
-            return () => {}
-        },
-    }), [wallet, accountAddress, networks, getEffectiveRpcUrls])
-
-    useRegisterWallet(adapter)
-    return null
+    return <AztecBridge wallet={wallet} address={address} rpcUrl={rpcUrl} />
 }

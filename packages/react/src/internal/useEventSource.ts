@@ -3,8 +3,8 @@ import { useEffect, useRef, useCallback } from 'react'
 export interface UseEventSourceOptions {
     /** Whether the SSE connection is enabled */
     enabled: boolean
-    /** Event handlers keyed by event type */
-    onEvent: Record<string, (data: unknown) => void>
+    /** Event handlers keyed by event type. Return `'close'` from a handler to close the connection. */
+    onEvent: Record<string, (data: unknown) => void | 'close'>
     /** Called on connection error */
     onError?: (error: Event) => void
 }
@@ -30,11 +30,15 @@ export function useEventSource(
 
         for (const eventType of Object.keys(onEventRef.current)) {
             es.addEventListener(eventType, (event: MessageEvent) => {
+                let data: unknown
                 try {
-                    const parsed = JSON.parse(event.data)
-                    onEventRef.current[eventType]?.(parsed)
+                    data = JSON.parse(event.data)
                 } catch {
-                    onEventRef.current[eventType]?.(event.data)
+                    data = event.data
+                }
+                const result = onEventRef.current[eventType]?.(data)
+                if (result === 'close') {
+                    es.close()
                 }
             })
         }

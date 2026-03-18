@@ -12,6 +12,8 @@ export interface UseSwapStateResult {
     manualClaimRequired: boolean
     destRedeemTxId: string | null
     error: Error | null
+    consensusVerifying: boolean
+    consensusVerified: boolean
 }
 
 export function useSwapState(): UseSwapStateResult {
@@ -28,5 +30,7 @@ export function useSwapState(): UseSwapStateResult {
         manualClaimRequired: ctx.manualClaimRequired,
         destRedeemTxId: ctx.destRedeemTxId,
         error: ctx.error,
+        consensusVerifying: ctx.consensusVerifying,
+        consensusVerified: ctx.consensusVerified,
     }
 }

@@ -26,7 +26,7 @@ export { useManualClaim } from './hooks/useManualClaim'
 export { useRecoverSwap } from './hooks/useRecoverSwap'
 
 // --- Secret Derivation ---
-export { SecretDerivationProvider, useSharedSecretDerivation } from './providers/SecretDerivationProvider'
+export { SecretDerivationProvider, useSharedSecretDerivation, useOptionalSecretDerivation } from './providers/SecretDerivationProvider'
 export type { SecretDerivationProviderProps, SecretDerivationContextValue, LoginWalletInfo } from './providers/SecretDerivationProvider'
 export { useSecretDerivation } from './hooks/useSecretDerivation'
 export { usePasskeyLogin } from './hooks/usePasskeyLogin'
@@ -35,6 +35,10 @@ export { useWalletLogin } from './hooks/useWalletLogin'
 // --- Wallet Adapter ---
 export { useRegisterWallet } from './wallet/useRegisterWallet'
 export type { TrainSigner, TrainWalletAdapter } from './wallet/types'
+
+// --- Built-in Wallet Bridges ---
+export { AztecWalletBridge } from './bridges/AztecWalletBridge'
+export type { AztecWalletBridgeProps } from './bridges/AztecWalletBridge'
 
 // --- Types ---
 export {

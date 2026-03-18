@@ -22,7 +22,6 @@ import { SwapAccountsProvider } from "@/context/swapAccounts";
 import AppSettings from "@/lib/AppSettings";
 import { TrainProvider } from "@train-protocol/react";
 import { SwapProvider } from "@train-protocol/react";
-import { SecretDerivationProvider } from "@train-protocol/react";
 import { useRpcConfigStore } from "@/stores/rpcConfigStore";
 import { LoginModal } from "./SecretDerivation";
 import { useLoginModalStore } from "@/stores/loginModalStore";
@@ -114,23 +113,21 @@ export default function Layout({ children, settings, themeData }: Props) {
       <SettingsProvider data={appSettings}>
         <TooltipProvider delayDuration={500}>
           <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
-            <SecretDerivationProvider>
+            <TrainProviderWithRpc networks={appSettings.networks}>
               <ThemeWrapper>
-                <TrainProviderWithRpc networks={appSettings.networks}>
-                  <WalletsProviders basePath={basePath} themeData={themeData} appName={router.query.appName?.toString()}>
-                    <SwapAccountsProvider>
-                      <SwapProvider>
-                        <AppContent>
-                          {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
-                            <MaintananceContent />
-                            : children}
-                        </AppContent>
-                      </SwapProvider>
-                    </SwapAccountsProvider>
-                  </WalletsProviders>
-                </TrainProviderWithRpc>
+                <WalletsProviders basePath={basePath} themeData={themeData} appName={router.query.appName?.toString()}>
+                  <SwapAccountsProvider>
+                    <SwapProvider>
+                      <AppContent>
+                        {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
+                          <MaintananceContent />
+                          : children}
+                      </AppContent>
+                    </SwapProvider>
+                  </SwapAccountsProvider>
+                </WalletsProviders>
               </ThemeWrapper>
-            </SecretDerivationProvider>
+            </TrainProviderWithRpc>
           </ErrorBoundary >
         </TooltipProvider >
       </SettingsProvider >

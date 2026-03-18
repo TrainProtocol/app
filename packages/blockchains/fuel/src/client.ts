@@ -202,19 +202,22 @@ export class FuelHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> {
         const { id, contractAddress } = params
 
         try {
             const provider = new Provider(nodeUrl)
             const contract = new Contract(contractAddress, HTLC_ABI, provider)
 
-            // TODO: Update function name when contract ABI is finalized
+            // TODO: Implement count-then-loop pattern with getSolverLockByIndex when contract ABI is finalized
             const { value: count } = await contract.functions
                 .get_solver_lock_count(id)
                 .get()
 
-            return count ? Number(count) : 0
+            if (!count || Number(count) === 0) return null
+
+            // TODO: Loop through solver locks by index once getSolverLock ABI is available
+            return null
         } catch (error) {
             console.error('Error in getSolverLockDetails:', error)
             return null

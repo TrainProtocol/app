@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react'
-import type { HTLCFromApi, OrderStreamEvent, TransactionCreatedEventData } from '@train-protocol/sdk'
+import type { HTLCFromApi, HTLCFromApiResponse, OrderStreamEvent, TransactionCreatedEventData } from '@train-protocol/sdk'
 import { useEventSource } from './useEventSource'
 
 export interface UseOrderStreamOptions {
@@ -25,7 +25,8 @@ export function useOrderStream(options: UseOrderStreamOptions) {
 
     const eventHandlers = useMemo(() => ({
         order: (data: unknown) => {
-            const orderData = data as HTLCFromApi
+            const response = data as HTLCFromApiResponse
+            const orderData = response.order
             const merged = {
                 ...orderData,
                 transactions: [
@@ -43,7 +44,7 @@ export function useOrderStream(options: UseOrderStreamOptions) {
                 const tx = {
                     type: txData.transactionType as any,
                     hash: txData.transactionHash,
-                    networkId: txData.networkId,
+                    network: txData.networkId,
                 }
                 accumulatedTxsRef.current = [...accumulatedTxsRef.current, tx]
 
@@ -57,6 +58,9 @@ export function useOrderStream(options: UseOrderStreamOptions) {
                     return updated
                 })
             }
+        },
+        done: (_data: unknown) => {
+            return 'close' as const
         },
     }), [onOrder])
 

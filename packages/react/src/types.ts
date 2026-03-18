@@ -55,6 +55,17 @@ export interface TrainConfig {
     auth?: import('@train-protocol/auth').TrainAuth
     /** Resolve RPC node URLs for a CAIP-2 network ID (used for solver lock verification) */
     resolveNodeUrls?: (networkId: string) => string[]
+    /** Secret derivation options */
+    secretDerivation?: {
+        /** Persist derivedKey and method to localStorage (default: true) */
+        persist?: boolean
+        /** localStorage key prefix (default: 'train:auth') */
+        persistKey?: string
+        /** Passkey credential storage */
+        passkeyStorage?: import('@train-protocol/auth').PasskeyCredentialStorage
+        /** Auto-check passkey support on mount (default: true) */
+        autoCheckPasskeySupport?: boolean
+    }
 }
 
 /** Custom storage adapter interface */

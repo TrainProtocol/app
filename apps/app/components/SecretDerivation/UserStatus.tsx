@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Fingerprint, Lock, LogOut } from "lucide-react"
 import VaulDrawer from "../Modal/vaulModal"
 import { Popover, PopoverContent, PopoverTrigger } from "../shadcn/popover"
-import { useSharedSecretDerivation } from "@train-protocol/react"
+import { useSharedSecretDerivation, useOptionalSecretDerivation } from "@train-protocol/react"
 import { useLoginModalStore } from "@/stores/loginModalStore"
 import { Address } from "@/lib/address"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
@@ -162,16 +162,15 @@ const UserStatusContent = ({
 }
 
 export const UserStatusHeader = () => {
-    const {
-        method,
-        isLoggedIn,
-        loginWallet,
-        logout,
-    } = useSharedSecretDerivation()
+    const secretDerivation = useOptionalSecretDerivation()
     const openLoginModal = useLoginModalStore((s) => s.open)
     const [openDrawer, setOpenDrawer] = useState(false)
     const [openPopover, setOpenPopover] = useState(false)
     const { isMobile } = useWindowDimensions()
+
+    if (!secretDerivation) return null
+
+    const { method, isLoggedIn, loginWallet, logout } = secretDerivation
 
     if (!isLoggedIn) {
         return (

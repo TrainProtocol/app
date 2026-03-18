@@ -107,13 +107,21 @@ export function SecretDerivationProvider({
 }
 
 /**
- * Access shared secret derivation state. Requires SecretDerivationProvider.
+ * Access shared secret derivation state. Throws when used outside TrainProvider.
  * For standalone (non-shared) usage, use useSecretDerivation() hook directly.
  */
 export function useSharedSecretDerivation(): SecretDerivationContextValue {
     const ctx = useContext(SecretDerivationContext)
     if (!ctx) {
-        throw new Error('useSharedSecretDerivation must be used within <SecretDerivationProvider>')
+        throw new Error('useSharedSecretDerivation must be used within <TrainProvider>')
     }
     return ctx
+}
+
+/**
+ * Access shared secret derivation state, returning null when outside TrainProvider.
+ * Useful for components that may render outside the provider tree (e.g. error pages).
+ */
+export function useOptionalSecretDerivation(): SecretDerivationContextValue | null {
+    return useContext(SecretDerivationContext)
 }

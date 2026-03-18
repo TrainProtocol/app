@@ -247,16 +247,26 @@ export class AztecHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> {
         const signer = this.requireSigner()
         const { id, contractAddress } = params
         const { contract, userAztecAddress } = await this.getContractInstance(contractAddress, signer, nodeUrl)
 
         const hashlockBytes = hexToBytes(id, 32)
 
-        return Number(await contract.methods
+        const count = Number(await contract.methods
             .get_solver_lock_count(hashlockBytes)
             .simulate({ from: userAztecAddress }))
+        if (count === 0) return null
+
+        for (let i = 1; i <= count; i++) {
+            const result = await this.getSolverLockByIndex(params, i, nodeUrl)
+            if (!result) continue
+            if (params.solverAddress && result.sender?.toLowerCase() !== params.solverAddress.toLowerCase()) continue
+            return result
+        }
+
+        return null
     }
 
     async getSolverLockByIndex(params: LockParams, index: number, nodeUrl: string): Promise<SolverLockDetails | null> {

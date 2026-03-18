@@ -175,6 +175,8 @@ export interface SwapContextValue {
     manualClaimRequired: boolean
     destRedeemTxId: string | null
     error: Error | null
+    consensusVerifying: boolean
+    consensusVerified: boolean
 
     /** Set pre-lock swap data and reset lifecycle state for a new swap */
     setCurrentSwap: (data: SwapData) => void
@@ -347,24 +349,33 @@ export function SwapProvider({ children }: { children: ReactNode }) {
         onSuccess: onSourceDetails,
     })
 
-    useSolverLockPolling({
+    const onConsensusFailed = useCallback((error: Error) => {
+        const trainError = error instanceof TrainError
+            ? error
+            : new TrainError(error.message, TrainErrorCode.VerificationFailed, error)
+        dispatch({ type: 'SET_ERROR', error: trainError })
+        config.onError?.(trainError)
+    }, [config])
+
+    const { consensusVerifying, consensusVerified } = useSolverLockPolling({
         client: destReadClient,
         params: solverLockParams,
         nodeUrls: destNodeUrls,
         enabled: isActive && status !== HTLCStatus.Initial,
         onSuccess: onSolverLockDetails,
+        onConsensusFailed,
     })
 
     // Order streaming
     const destRedeemTx = state.htlcFromApi?.transactions?.find(
-        t => t.type === 'HTLCRedeem' && t.networkId === state.destinationNetwork
+        t => t.type === 'HTLCRedeem' && t.network === state.destinationNetwork
     )
 
     useOrderStream({
         baseUrl: config.baseUrl,
         solverId: state.solverId ?? undefined,
         hashlock: state.hashlock ?? undefined,
-        enabled: isActive && !destRedeemTx,
+        enabled: isActive && !!state.solverLockDetails && !destRedeemTx,
         onOrder: useCallback((order: HTLCFromApi) => {
             dispatch({ type: 'SET_ORDER', order })
 
@@ -729,6 +740,8 @@ export function SwapProvider({ children }: { children: ReactNode }) {
         manualClaimRequired: state.manualClaimRequired,
         destRedeemTxId: state.destRedeemTxId,
         error: state.error,
+        consensusVerifying,
+        consensusVerified,
         setCurrentSwap,
         startSwap,
         resumeSwap,
@@ -738,7 +751,7 @@ export function SwapProvider({ children }: { children: ReactNode }) {
         recoverSwap: recoverSwapFromTx,
         setError,
         reset,
-    }), [status, state, isTimelockExpired, setCurrentSwap, startSwap, resumeSwap, revealSecret, refund, manualClaim, recoverSwapFromTx, setError, reset])
+    }), [status, state, isTimelockExpired, consensusVerifying, consensusVerified, setCurrentSwap, startSwap, resumeSwap, revealSecret, refund, manualClaim, recoverSwapFromTx, setError, reset])
 
     return (
         <SwapContext.Provider value={value}>
