@@ -86,7 +86,7 @@ const useSolverLockPolling = ({
                 if (!consensusVerified.current && nodeUrls.length > 1) {
                     setConsensusVerifying(true)
                     try {
-                        const verified = await client.getSolverLockDetailsWithConsensus(params, nodeUrls)
+                        const verified = await client.getSolverLockDetailsWithConsensus(params, nodeUrls, { prefetchedResult: result })
                         if (verified) {
                             consensusVerified.current = true
                             setConsensusVerifying(false)
