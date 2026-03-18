@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, useEffect } from 'react'
+import { useCallback, useRef, useEffect } from 'react'
 import type { IHTLCClient, SolverLockDetails, LockParams } from '@train-protocol/sdk'
 import { usePolling } from './usePolling'
 
@@ -7,89 +7,98 @@ export interface UseSolverLockPollingOptions {
     params: LockParams | null
     nodeUrls: string[]
     enabled: boolean
-    onSuccess?: (details: SolverLockDetails) => void
+    /** Fired once on first detection (before consensus). */
+    onDetected?: (details: SolverLockDetails) => void
+    /** Fired once after multi-node consensus succeeds (or immediately for single-node). */
+    onVerified?: (details: SolverLockDetails) => void
+    /** Fired on subsequent polls after verification. */
+    onRefresh?: (details: SolverLockDetails) => void
+    /** Fired on permanent consensus failure (node mismatch). */
     onConsensusFailed?: (error: Error) => void
-}
-
-export interface SolverLockPollingResult {
-    consensusVerifying: boolean
-    consensusVerified: boolean
 }
 
 /**
  * Polls the destination chain for solver lock details every 3 seconds.
- * On first detection, verifies the lock with multi-node consensus before
- * falling back to fast single-node polling.
+ *
+ * Lifecycle:
+ *   1. First detection → fires `onDetected` (UI can show "verifying")
+ *   2. Multi-node consensus → fires `onVerified` (UI can show "verified")
+ *   3. Subsequent polls → fires `onRefresh` (data update only)
+ *
+ * All consensus logic is internal — callers receive clean, phase-separated callbacks.
  */
-export function useSolverLockPolling(options: UseSolverLockPollingOptions): SolverLockPollingResult {
-    const { client, params, nodeUrls, enabled, onSuccess, onConsensusFailed } = options
+export function useSolverLockPolling(options: UseSolverLockPollingOptions): void {
+    const { client, params, nodeUrls, enabled, onDetected, onVerified, onRefresh, onConsensusFailed } = options
 
-    const consensusVerified = useRef(false)
-    const consensusFailed = useRef(false)
-    const [consensusVerifying, setConsensusVerifying] = useState(false)
+    const detected = useRef(false)
+    const verified = useRef(false)
+    const failed = useRef(false)
 
-    // Reset consensus state when hashlock (params.id) changes
+    // Reset when hashlock (params.id) changes
     useEffect(() => {
-        consensusVerified.current = false
-        consensusFailed.current = false
-        setConsensusVerifying(false)
+        detected.current = false
+        verified.current = false
+        failed.current = false
     }, [params?.id])
 
     const fetcher = useCallback(async () => {
-        if (!client || !params) return null
-        if (consensusFailed.current) return null
+        if (!client || !params || failed.current) return null
         const primaryUrl = nodeUrls[0]
-        if (!primaryUrl) throw new Error("No node url") //TODO revisit this
+        if (!primaryUrl) throw new Error('No node url')
 
         try {
-            // Fast single-node fetch
             const details = await client.getSolverLockDetails(params, primaryUrl)
             if (!details) return null
 
-            // On first detection, verify with multi-node consensus
-            if (!consensusVerified.current && nodeUrls.length > 1) {
-                setConsensusVerifying(true)
-                try {
-                    const consensusDetails = await client.getSolverLockDetailsWithConsensus(
-                        params,
-                        nodeUrls,
-                        { prefetchedResult: details }
-                    )
-                    consensusVerified.current = true
-                    setConsensusVerifying(false)
-                    if (consensusDetails) onSuccess?.(consensusDetails)
-                    return consensusDetails
-                } catch (err) {
-                    const errorMsg = err instanceof Error ? err.message : String(err)
-                    // Permanent failure: lock details mismatch across nodes
-                    if (errorMsg.includes('do not match')) {
-                        consensusFailed.current = true
-                        setConsensusVerifying(false)
-                        onConsensusFailed?.(err instanceof Error ? err : new Error(errorMsg))
-                        return null
-                    }
-                    // Transient failure (network issues, insufficient quorum): retry next cycle
-                    console.warn('[SolverLockPolling] consensus verification transient error, will retry:', errorMsg)
-                    return null
-                }
+            // Already verified — just refresh
+            if (verified.current) {
+                onRefresh?.(details)
+                return details
             }
 
-            // Already verified or single node — use direct result
-            onSuccess?.(details)
-            return details
+            // First detection — fire onDetected once
+            if (!detected.current) {
+                detected.current = true
+                onDetected?.(details)
+            }
+
+            // Single node — skip consensus, verify immediately
+            if (nodeUrls.length <= 1) {
+                verified.current = true
+                onVerified?.(details)
+                return details
+            }
+
+            // Multi-node consensus
+            try {
+                const consensusDetails = await client.getSolverLockDetailsWithConsensus(
+                    params,
+                    nodeUrls,
+                    { prefetchedResult: details },
+                )
+                verified.current = true
+                if (consensusDetails) onVerified?.(consensusDetails)
+                return consensusDetails
+            } catch (err) {
+                const errorMsg = err instanceof Error ? err.message : String(err)
+                // Permanent failure: lock details mismatch across nodes
+                if (errorMsg.includes('do not match')) {
+                    failed.current = true
+                    onConsensusFailed?.(err instanceof Error ? err : new Error(errorMsg))
+                    return null
+                }
+                // Transient failure — retry next cycle (detected stays true, won't re-fire onDetected)
+                console.warn('[SolverLockPolling] consensus transient error, will retry:', errorMsg)
+                return null
+            }
         } catch (err) {
             console.error('[SolverLockPolling] error:', err)
             throw err
         }
-    }, [client, params, nodeUrls, onSuccess, onConsensusFailed])
+    }, [client, params, nodeUrls, onDetected, onVerified, onRefresh, onConsensusFailed])
 
     usePolling(fetcher, {
         interval: 3000,
         enabled: enabled && !!client && !!params,
     })
-
-    return {
-        consensusVerifying,
-        consensusVerified: consensusVerified.current,
-    }
 }

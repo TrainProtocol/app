@@ -11,7 +11,7 @@ import {
 import {
     HTLCStatus,
     LockStatus,
-    resolveHTLCStatus,
+    TERMINAL_STATUSES,
     verifySolverLock,
     deriveSecretFromTimelock,
     secretToHashlock,
@@ -41,6 +41,8 @@ import { useSharedSecretDerivation } from './SecretDerivationProvider'
 
 interface SwapState {
     status: HTLCStatus
+    consensusVerifying: boolean
+    consensusVerified: boolean
     hashlock: string | null
     nonce: number | null
     secret: string | null
@@ -70,6 +72,8 @@ interface SwapState {
 
 const initialState: SwapState = {
     status: HTLCStatus.Initial,
+    consensusVerifying: false,
+    consensusVerified: false,
     hashlock: null,
     nonce: null,
     secret: null,
@@ -99,44 +103,160 @@ const initialState: SwapState = {
 type SwapAction =
     | { type: 'SET_PARAMS'; payload: Partial<SwapState> }
     | { type: 'USER_LOCKED'; hashlock: string; txId: string; nonce: number; secret: string }
-    | { type: 'SET_SOURCE_DETAILS'; details: UserLockDetails }
-    | { type: 'SET_SOLVER_LOCK_DETAILS'; details: SolverLockDetails }
+    | { type: 'SOURCE_UPDATE'; details: UserLockDetails }
+    | { type: 'SOLVER_LOCK_DETECTED'; details: SolverLockDetails }
+    | { type: 'SOLVER_LOCK_VERIFIED'; details: SolverLockDetails }
+    | { type: 'SOLVER_UPDATE'; details: SolverLockDetails }
     | { type: 'SET_ORDER'; order: HTLCFromApi }
+    | { type: 'DEST_REDEEMED'; txId: string }
     | { type: 'SECRET_REVEALED' }
+    | { type: 'TIMELOCK_EXPIRED' }
     | { type: 'MANUAL_CLAIM_REQUIRED' }
-    | { type: 'SET_DEST_REDEEM_TX'; txId: string }
     | { type: 'SET_ERROR'; error: Error }
     | { type: 'RESET' }
 
 function swapReducer(state: SwapState, action: SwapAction): SwapState {
+    // Terminal states absorb everything except RESET and SET_ERROR
+    if (TERMINAL_STATUSES.has(state.status) && action.type !== 'RESET' && action.type !== 'SET_ERROR') {
+        return state
+    }
+
     switch (action.type) {
         case 'SET_PARAMS':
             return { ...state, ...action.payload }
+
         case 'USER_LOCKED':
             return {
                 ...state,
+                status: HTLCStatus.UserLocked,
                 hashlock: action.hashlock,
                 txId: action.txId,
                 nonce: action.nonce,
                 secret: action.secret,
                 error: null,
             }
-        case 'SET_SOURCE_DETAILS':
-            return { ...state, sourceDetails: action.details }
-        case 'SET_SOLVER_LOCK_DETAILS':
-            return { ...state, solverLockDetails: action.details }
+
+        case 'SOURCE_UPDATE': {
+            const next: SwapState = { ...state, sourceDetails: action.details }
+
+            // Advance Initial → UserLocked when source details arrive (resume case)
+            if (state.status === HTLCStatus.Initial && action.details.sender) {
+                next.status = HTLCStatus.UserLocked
+            }
+
+            // Detect on-chain secret (resume case where secret was already revealed)
+            if (action.details.secret) {
+                if (state.status === HTLCStatus.SolverLockDetected) {
+                    next.status = HTLCStatus.SecretRevealed
+                    next.secretRevealed = true
+                } else {
+                    // Store flag — will be applied when solver lock arrives
+                    next.secretRevealed = true
+                }
+            }
+
+            // Detect refund
+            if (action.details.status === LockStatus.Refunded) {
+                next.status = HTLCStatus.Refunded
+            }
+
+            return next
+        }
+
+        case 'SOLVER_LOCK_DETECTED': {
+            // Only advance from Initial or UserLocked
+            if (state.status !== HTLCStatus.Initial && state.status !== HTLCStatus.UserLocked) return state
+
+            // If secret was already revealed (resume case), skip ahead
+            const nextStatus = state.secretRevealed
+                ? HTLCStatus.SecretRevealed
+                : HTLCStatus.SolverLockDetected
+
+            return {
+                ...state,
+                status: nextStatus,
+                solverLockDetails: action.details,
+                consensusVerifying: !state.secretRevealed,
+                consensusVerified: state.secretRevealed,
+            }
+        }
+
+        case 'SOLVER_LOCK_VERIFIED': {
+            // Normal: was verifying, now verified
+            if (state.status === HTLCStatus.SolverLockDetected) {
+                return {
+                    ...state,
+                    solverLockDetails: action.details,
+                    consensusVerifying: false,
+                    consensusVerified: true,
+                }
+            }
+            // Edge: verification arrived but we skipped SolverLockDetected (e.g. resume)
+            if (state.status === HTLCStatus.Initial || state.status === HTLCStatus.UserLocked) {
+                const nextStatus = state.secretRevealed
+                    ? HTLCStatus.SecretRevealed
+                    : HTLCStatus.SolverLockDetected
+                return {
+                    ...state,
+                    status: nextStatus,
+                    solverLockDetails: action.details,
+                    consensusVerifying: false,
+                    consensusVerified: true,
+                }
+            }
+            return state
+        }
+
+        case 'SOLVER_UPDATE': {
+            const next: SwapState = { ...state, solverLockDetails: action.details }
+            // Detect solver redeemed on destination
+            if (action.details.status === LockStatus.Redeemed) {
+                next.status = HTLCStatus.RedeemCompleted
+            }
+            return next
+        }
+
         case 'SET_ORDER':
             return { ...state, htlcFromApi: action.order }
+
+        case 'DEST_REDEEMED':
+            return {
+                ...state,
+                status: HTLCStatus.RedeemCompleted,
+                destRedeemTxId: action.txId,
+            }
+
         case 'SECRET_REVEALED':
-            return { ...state, secretRevealed: true }
+            if (state.status !== HTLCStatus.SolverLockDetected) return state
+            return {
+                ...state,
+                status: HTLCStatus.SecretRevealed,
+                secretRevealed: true,
+            }
+
+        case 'TIMELOCK_EXPIRED': {
+            // Timelock can override UserLocked or SolverLockDetected (user hasn't revealed yet)
+            if (
+                state.status !== HTLCStatus.UserLocked &&
+                state.status !== HTLCStatus.Initial &&
+                state.status !== HTLCStatus.SolverLockDetected
+            ) return state
+            return { ...state, status: HTLCStatus.TimelockExpired }
+        }
+
         case 'MANUAL_CLAIM_REQUIRED':
-            return { ...state, manualClaimRequired: true }
-        case 'SET_DEST_REDEEM_TX':
-            return { ...state, destRedeemTxId: action.txId }
+            return {
+                ...state,
+                status: HTLCStatus.ManualClaimRequired,
+                manualClaimRequired: true,
+            }
+
         case 'SET_ERROR':
             return { ...state, error: action.error }
+
         case 'RESET':
             return { ...initialState }
+
         default:
             return state
     }
@@ -213,18 +333,14 @@ export function SwapProvider({ children }: { children: ReactNode }) {
     // Manual claim timer
     const manualClaimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-    // Timelock expiry
+    // Timelock expiry — dispatch to reducer when timer fires
     const isTimelockExpired = useTimelockExpiry(state.sourceDetails?.timelock)
 
-    // Resolve HTLC status
-    const status = useMemo(() => resolveHTLCStatus({
-        sourceDetails: state.sourceDetails ?? undefined,
-        solverLockDetails: state.solverLockDetails ?? undefined,
-        timelockExpired: isTimelockExpired,
-        secretRevealed: state.secretRevealed,
-        manualClaimRequired: state.manualClaimRequired,
-        destRedeemTxId: state.destRedeemTxId ?? undefined,
-    }), [state.sourceDetails, state.solverLockDetails, isTimelockExpired, state.secretRevealed, state.manualClaimRequired, state.destRedeemTxId])
+    useEffect(() => {
+        if (isTimelockExpired) {
+            dispatch({ type: 'TIMELOCK_EXPIRED' })
+        }
+    }, [isTimelockExpired])
 
     // Determine chain namespaces from CAIP-2 IDs
     const sourceNamespace = state.sourceNetwork?.split(':')[0] ?? null
@@ -259,16 +375,32 @@ export function SwapProvider({ children }: { children: ReactNode }) {
     }, [state.secret, state.hashlock, state.sourceDetails?.userData, derivedKey])
 
     // Whether polling should be active
-    const isActive = !!state.hashlock && status !== HTLCStatus.RedeemCompleted && status !== HTLCStatus.Refunded
+    const isActive = !!state.hashlock && !TERMINAL_STATUSES.has(state.status)
 
-    // Polling callbacks
-    const onSourceDetails = useCallback((details: UserLockDetails) => {
-        dispatch({ type: 'SET_SOURCE_DETAILS', details })
+    // Polling callbacks — phase-separated for solver lock
+    const onSourceUpdate = useCallback((details: UserLockDetails) => {
+        dispatch({ type: 'SOURCE_UPDATE', details })
     }, [])
 
-    const onSolverLockDetails = useCallback((details: SolverLockDetails) => {
-        dispatch({ type: 'SET_SOLVER_LOCK_DETAILS', details })
+    const onSolverDetected = useCallback((details: SolverLockDetails) => {
+        dispatch({ type: 'SOLVER_LOCK_DETECTED', details })
     }, [])
+
+    const onSolverVerified = useCallback((details: SolverLockDetails) => {
+        dispatch({ type: 'SOLVER_LOCK_VERIFIED', details })
+    }, [])
+
+    const onSolverRefresh = useCallback((details: SolverLockDetails) => {
+        dispatch({ type: 'SOLVER_UPDATE', details })
+    }, [])
+
+    const onConsensusFailed = useCallback((error: Error) => {
+        const trainError = error instanceof TrainError
+            ? error
+            : new TrainError(error.message, TrainErrorCode.VerificationFailed, error)
+        dispatch({ type: 'SET_ERROR', error: trainError })
+        config.onError?.(trainError)
+    }, [config])
 
     // Source chain polling params
     const userLockParams = useMemo(() => {
@@ -323,23 +455,17 @@ export function SwapProvider({ children }: { children: ReactNode }) {
         client: sourceReadClient,
         params: userLockParams,
         enabled: isActive,
-        onSuccess: onSourceDetails,
+        onSuccess: onSourceUpdate,
     })
 
-    const onConsensusFailed = useCallback((error: Error) => {
-        const trainError = error instanceof TrainError
-            ? error
-            : new TrainError(error.message, TrainErrorCode.VerificationFailed, error)
-        dispatch({ type: 'SET_ERROR', error: trainError })
-        config.onError?.(trainError)
-    }, [config])
-
-    const { consensusVerifying, consensusVerified } = useSolverLockPolling({
+    useSolverLockPolling({
         client: destReadClient,
         params: solverLockParams,
         nodeUrls: destNodeUrls,
-        enabled: isActive && status !== HTLCStatus.Initial,
-        onSuccess: onSolverLockDetails,
+        enabled: isActive && state.status !== HTLCStatus.Initial,
+        onDetected: onSolverDetected,
+        onVerified: onSolverVerified,
+        onRefresh: onSolverRefresh,
         onConsensusFailed,
     })
 
@@ -361,7 +487,7 @@ export function SwapProvider({ children }: { children: ReactNode }) {
                 t => t.type === 'HTLCRedeem'
             )
             if (redeemTx) {
-                dispatch({ type: 'SET_DEST_REDEEM_TX', txId: redeemTx.hash })
+                dispatch({ type: 'DEST_REDEEMED', txId: redeemTx.hash })
             }
         }, []),
     })
@@ -391,13 +517,13 @@ export function SwapProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         if (state.hashlock && store) {
             store.getState().updateSwap(state.hashlock, {
-                status,
+                status: state.status,
                 destTxId: state.destRedeemTxId ?? undefined,
                 createdAt: state.sourceDetails?.blockTimestamp,
                 timelock: state.sourceDetails?.timelock,
             })
         }
-    }, [status, state.hashlock, state.destRedeemTxId, state.sourceDetails?.blockTimestamp, state.sourceDetails?.timelock, store])
+    }, [state.status, state.hashlock, state.destRedeemTxId, state.sourceDetails?.blockTimestamp, state.sourceDetails?.timelock, store])
 
     // --- Actions ---
 
@@ -598,7 +724,7 @@ export function SwapProvider({ children }: { children: ReactNode }) {
                 destinationAddress: state.destinationAddress ?? undefined,
             })
 
-            dispatch({ type: 'SET_DEST_REDEEM_TX', txId: txHash })
+            dispatch({ type: 'DEST_REDEEMED', txId: txHash })
 
             if (store && state.hashlock) {
                 store.getState().updateSwap(state.hashlock, { destTxId: txHash })
@@ -704,7 +830,7 @@ export function SwapProvider({ children }: { children: ReactNode }) {
     }, [])
 
     const value = useMemo<SwapContextValue>(() => ({
-        status,
+        status: state.status,
         hashlock: state.hashlock,
         sourceDetails: state.sourceDetails,
         solverLockDetails: state.solverLockDetails,
@@ -714,8 +840,8 @@ export function SwapProvider({ children }: { children: ReactNode }) {
         manualClaimRequired: state.manualClaimRequired,
         destRedeemTxId: state.destRedeemTxId,
         error: state.error,
-        consensusVerifying,
-        consensusVerified,
+        consensusVerifying: state.consensusVerifying,
+        consensusVerified: state.consensusVerified,
         setCurrentSwap,
         startSwap,
         resumeSwap,
@@ -725,7 +851,7 @@ export function SwapProvider({ children }: { children: ReactNode }) {
         recoverSwap: recoverSwapFromTx,
         setError,
         reset,
-    }), [status, state, isTimelockExpired, consensusVerifying, consensusVerified, setCurrentSwap, startSwap, resumeSwap, revealSecret, refund, manualClaim, recoverSwapFromTx, setError, reset])
+    }), [state, isTimelockExpired, setCurrentSwap, startSwap, resumeSwap, revealSecret, refund, manualClaim, recoverSwapFromTx, setError, reset])
 
     return (
         <SwapContext.Provider value={value}>
