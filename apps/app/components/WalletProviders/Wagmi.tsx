@@ -8,7 +8,7 @@ import { Chain, http, fallback, Transport } from 'viem';
 import { useEvmConnectors } from "../../context/evmConnectorsContext";
 import { ActiveEvmAccountProvider } from "./ActiveEvmAccount";
 import { useRpcConfigStore } from "@/stores/rpcConfigStore";
-import { getNativeToken } from "../../Models/Network";
+import { getNativeToken, NetworkTypes } from "../../Models/Network";
 type Props = {
     children: JSX.Element | JSX.Element[]
 }
@@ -41,7 +41,7 @@ function WagmiComponent({ children }: Props) {
                 - (NetworkSettings.KnownSettings[b.caip2Id]?.ChainOrder || Number(b.chainId))
             )
             .filter(net =>
-                net.type?.name === "eip155"
+                net.type?.name === NetworkTypes.EVM
                 && !isNaN(Number(net.chainId))
                 && net.nodes?.[0]?.url
                 && getNativeToken(net)

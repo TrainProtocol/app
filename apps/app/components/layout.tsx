@@ -24,6 +24,8 @@ import { TrainProvider } from "@train-protocol/react";
 import { SwapProvider } from "@train-protocol/react";
 import { SecretDerivationProvider } from "@train-protocol/react";
 import { useRpcConfigStore } from "@/stores/rpcConfigStore";
+import { LoginModal } from "./SecretDerivation";
+import { useLoginModalStore } from "@/stores/loginModalStore";
 
 type Props = {
   children: JSX.Element | JSX.Element[];
@@ -129,8 +131,8 @@ export default function Layout({ children, settings, themeData }: Props) {
                 </TrainProviderWithRpc>
               </ThemeWrapper>
             </SecretDerivationProvider>
-          </ErrorBoundary>
-        </TooltipProvider>
+          </ErrorBoundary >
+        </TooltipProvider >
       </SettingsProvider >
     </QueryProvider >
   </>)
@@ -153,9 +155,15 @@ function TrainProviderWithRpc({ networks, children }: { networks: import("@/Mode
 }
 
 function AppContent({ children }: { children: React.ReactNode }) {
+  const { isOpen: loginOpen, close: closeLogin } = useLoginModalStore();
+
   useSwapSync()
   return (
     <AsyncModalProvider>
+      <LoginModal
+        isOpen={loginOpen}
+        onClose={closeLogin}
+      />
       {children}
     </AsyncModalProvider>
   )

@@ -74,9 +74,6 @@ importers:
 
   apps/app:
     dependencies:
-      '@azguardwallet/aztec-wallet':
-        specifier: 4.0.0-devnet.2-patch.2
-        version: 4.0.0-devnet.2-patch.2(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@aztec/accounts':
         specifier: ^4.0.0-devnet.2-patch.2
         version: 4.0.0-spartan.20260218(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
@@ -912,15 +909,6 @@ packages:
   '@aws/lambda-invoke-store@0.2.3':
     resolution: {integrity: sha512-oLvsaPMTBejkkmHhjf09xTgk71mOqyr/409NKhRIL08If7AhVfUsJhVsx386uJaqNd42v9kWamQ9lFbkoC2dYw==}
     engines: {node: '>=18.0.0'}
-
-  '@azguardwallet/aztec-wallet@4.0.0-devnet.2-patch.2':
-    resolution: {integrity: sha512-heOBBTkkMP+mevYVCDkU0LeuZtwjrtZNrOgPaBPOmgpUcCausaeNXvX/d/GzJtB+ypJyOFNd6Wtg0Jh9rhcqRg==}
-
-  '@azguardwallet/client@0.8.0':
-    resolution: {integrity: sha512-uOZoLdSO1PpjWmnWEEBKra3lrKvu9dl0utLds70LwpCw+zjf41fv/THhNSF+wa/4r2doGrKBI5macyz2mGWd4Q==}
-
-  '@azguardwallet/types@0.8.0':
-    resolution: {integrity: sha512-owAHzqwZJIUyCcdVTj8KCuYQ8vBa7HpzBOJuK6ohuQPUadltvIa23Y1H150nztPyWZkUvdWVtIpM6tgQwIrmFA==}
 
   '@aztec/accounts@4.0.0-spartan.20260218':
     resolution: {integrity: sha512-vDqeBJKuupSQwGIClvDdgbLR0xgpHpIjZ7g2M1VGgG7UNtFcZWA7QOtbqdZUqzgMht8u7+ZWCpvuJAgMLoNk9w==}
@@ -12257,30 +12245,6 @@ snapshots:
       tslib: 2.8.1
 
   '@aws/lambda-invoke-store@0.2.3': {}
-
-  '@azguardwallet/aztec-wallet@4.0.0-devnet.2-patch.2(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@azguardwallet/client': 0.8.0
-      '@azguardwallet/types': 0.8.0
-      '@aztec/aztec.js': 4.0.0-devnet.2-patch.2(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/entrypoints': 4.0.0-devnet.2-patch.2(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/foundation': 4.0.0-devnet.2-patch.2
-      '@aztec/stdlib': 4.0.0-devnet.2-patch.2(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      zod: 3.25.76
-    transitivePeerDependencies:
-      - '@types/pg'
-      - aws-crt
-      - bufferutil
-      - debug
-      - encoding
-      - pg-native
-      - supports-color
-      - typescript
-      - utf-8-validate
-
-  '@azguardwallet/client@0.8.0': {}
-
-  '@azguardwallet/types@0.8.0': {}
 
   '@aztec/accounts@4.0.0-spartan.20260218(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:

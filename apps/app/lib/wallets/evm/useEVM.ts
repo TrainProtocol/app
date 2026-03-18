@@ -1,5 +1,5 @@
 import { useConfig, useConnect, useConnectors, useDisconnect, useSwitchAccount, Connector, useAccount } from "wagmi"
-import { Network } from "@/Models/Network"
+import { Network, NetworkTypes } from "@/Models/Network"
 import { useSettingsState } from "@/context/settings"
 import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon, resolveWalletConnectorIndex } from "../utils/resolveWalletIcon"
@@ -65,11 +65,7 @@ export default function useEVM(): WalletProvider {
     const isMobilePlatform = useMemo(() => isMobile(), []);
 
     const asSourceSupportedNetworks = useMemo(() => [
-        ...networks.filter(network => network.type?.name === "eip155").map(l => l.caip2Id),
-        KnownInternalNames.Networks.ZksyncMainnet,
-        KnownInternalNames.Networks.LoopringGoerli,
-        KnownInternalNames.Networks.LoopringMainnet,
-        KnownInternalNames.Networks.LoopringSepolia
+        ...networks.filter(network => network.type?.name === NetworkTypes.EVM).map(l => l.caip2Id),
     ], [networks])
 
     const withdrawalSupportedNetworks = useMemo(() => [

@@ -145,7 +145,7 @@ export class StarknetHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockCount(params: LockParams, nodeUrl: string): Promise<number> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
         const { id, contractAddress } = params
         const provider = new RpcProvider({ nodeUrl })
         const contract = this.createContract(contractAddress, provider)

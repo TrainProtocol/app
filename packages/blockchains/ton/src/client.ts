@@ -12,6 +12,7 @@ import {
     HTLCClient,
     parseUnits,
     formatUnits,
+    LockDetails,
 } from '@train-protocol/sdk'
 import type { TonHTLCClientConfig, TonSigner } from './types.js'
 import { TonRpcClient } from './rpc.js'
@@ -184,7 +185,7 @@ export class TonHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockCount(params: LockParams, nodeUrl: string): Promise<number> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
         const { id, contractAddress } = params
         const rpc = TonRpcClient.fromUrl(nodeUrl, this.apiKey)
 
@@ -199,32 +200,7 @@ export class TonHTLCClient extends HTLCClient {
             )
             return Number(countStack.readNumber())
         } catch (error) {
-            console.error('Error in getSolverLockCount:', error)
-            return 0
-        }
-    }
-
-    async getSolverLockByIndex(params: LockParams, index: number, nodeUrl: string): Promise<SolverLockDetails | null> {
-        const { id, contractAddress } = params
-        const rpc = TonRpcClient.fromUrl(nodeUrl, this.apiKey)
-
-        try {
-            const args = new TupleBuilder()
-            args.writeNumber(BigInt(id))
-            args.writeNumber(BigInt(index))
-
-            const stack = await rpc.runMethod(
-                contractAddress,
-                'getSolverLock',
-                args.build(),
-            )
-
-            const details = this.parseSolverLockFromStack(stack, id, params.decimals)
-            if (!details) return null
-
-            return { ...details, index }
-        } catch (error) {
-            console.error('Error in getSolverLockByIndex:', error)
+            console.error('Error in getSolverLockDetails:', error)
             return null
         }
     }

@@ -202,7 +202,7 @@ export class FuelHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockCount(params: LockParams, nodeUrl: string): Promise<number> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
         const { id, contractAddress } = params
 
         try {
@@ -216,48 +216,7 @@ export class FuelHTLCClient extends HTLCClient {
 
             return count ? Number(count) : 0
         } catch (error) {
-            console.error('Error in getSolverLockCount:', error)
-            return 0
-        }
-    }
-
-    async getSolverLockByIndex(params: LockParams, index: number, nodeUrl: string): Promise<SolverLockDetails | null> {
-        const { id, contractAddress } = params
-
-        try {
-            const provider = new Provider(nodeUrl)
-            const contract = new Contract(contractAddress, HTLC_ABI, provider)
-
-            // TODO: Update function name when contract ABI is finalized
-            const { value: result } = await contract.functions
-                .get_solver_lock(id, index)
-                .get()
-
-            if (!result) return null
-
-            const sender = result.sender?.bits ?? null
-            if (!sender || sender === ZERO_B256) return null
-
-            const timelock = result.timelock
-                ? DateTime.fromTai64(result.timelock).toUnixSeconds()
-                : 0
-
-            return {
-                hashlock: id,
-                amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 9)),
-                secret: result.secret && result.secret !== 0n ? BigInt(result.secret) : undefined,
-                sender,
-                recipient: result.srcReceiver?.bits ?? undefined,
-                timelock,
-                reward: result.reward ? Number(formatUnits(BigInt(result.reward), params.decimals ?? 9)) : undefined,
-                rewardTimelock: result.rewardTimelock
-                    ? DateTime.fromTai64(result.rewardTimelock).toUnixSeconds()
-                    : undefined,
-                status: this.mapLockStatus(Number(result.claimed ?? result.status ?? 0)),
-                index,
-            }
-        } catch (error) {
-            console.error('Error in getSolverLockByIndex:', error)
+            console.error('Error in getSolverLockDetails:', error)
             return null
         }
     }

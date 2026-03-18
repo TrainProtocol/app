@@ -3,8 +3,9 @@ import { LockDetails, UserLockDetails, SolverLockDetails } from "./lock"
 import { AtomicResult, RecoveredSwapData } from "./atomic"
 
 export interface IHTLCClient {
-    getUserLockDetails(params: LockParams): Promise<UserLockDetails | null>
-    getSolverLockDetails(params: LockParams, nodeUrls: string[]): Promise<SolverLockDetails | null>
+    getUserLockDetails(params: LockParams): Promise<LockDetails | null>
+    getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null>
+    getSolverLockDetailsWithConsensus(params: LockParams, nodeUrls: string[], options?: ConsensusOptions & { prefetchedResult?: LockDetails }): Promise<LockDetails | null>
     recoverSwap(txHash: string): Promise<RecoveredSwapData>
 
     userLock(params: UserLockParams): Promise<AtomicResult>
@@ -13,54 +14,103 @@ export interface IHTLCClient {
 }
 
 export abstract class HTLCClient implements IHTLCClient {
-    constructor() {}
+    protected apiClient: TrainApiClient
+    protected consensusOptions: Required<ConsensusOptions> = { minQuorum: 2, batchSize: 3 }
 
-    async getSolverLockDetails(params: LockParams, nodeUrls: string[]): Promise<SolverLockDetails | null> {
-        console.log('[HTLCClient.getSolverLockDetails] nodeUrls:', nodeUrls, 'params:', { id: params.id, contractAddress: params.contractAddress, chainId: params.chainId, type: params.type })
-        if (nodeUrls.length === 0) {
-            console.warn('[HTLCClient.getSolverLockDetails] nodeUrls is EMPTY — cannot poll solver lock')
+    constructor(apiClient: TrainApiClient) {
+        this.apiClient = apiClient
+    }
+
+    revealSecret(solverId: string, hashlock: string, secret: string): Promise<void> {
+        return this.apiClient.revealSecret(solverId, hashlock, secret)
+    }
+
+    async getSolverLockDetailsWithConsensus(
+        params: LockParams,
+        nodeUrls: string[],
+        options?: ConsensusOptions & { prefetchedResult?: LockDetails }
+    ): Promise<LockDetails | null> {
+        const minQuorum = options?.minQuorum ?? this.consensusOptions.minQuorum
+        const batchSize = options?.batchSize ?? this.consensusOptions.batchSize
+        const prefetchedResult = options?.prefetchedResult
+
+        if (!nodeUrls.length && !prefetchedResult) return null
+
+        const effectiveQuorum = Math.min(minQuorum, nodeUrls.length)
+
+        // Skip nodeUrls[0] when prefetched — it already represents that node's result
+        const urlsToQuery = prefetchedResult ? nodeUrls.slice(1) : nodeUrls
+
+        // Partition urlsToQuery into batches
+        const batches: string[][] = []
+        for (let i = 0; i < urlsToQuery.length; i += batchSize) {
+            batches.push(urlsToQuery.slice(i, i + batchSize))
+        }
+
+        const allValidResults: LockDetails[] = prefetchedResult ? [prefetchedResult] : []
+        let totalQueried = prefetchedResult ? 1 : 0
+        let lastError: unknown = null
+
+        // Prefetched alone satisfies quorum (e.g. Aztec minQuorum=1)
+        if (allValidResults.length >= effectiveQuorum) {
+            return allValidResults[0]
+        }
+
+        for (const batch of batches) {
+            const results = await Promise.allSettled(
+                batch.map(url => this.getSolverLockDetails(params, url))
+            )
+
+            totalQueried += batch.length
+
+            const fulfilled = results.filter(
+                (r): r is PromiseFulfilledResult<LockDetails | null> => r.status === 'fulfilled'
+            )
+            const validResults = fulfilled.map(r => r.value).filter((r): r is LockDetails => r !== null)
+
+            allValidResults.push(...validResults)
+
+            const batchError = results.find(
+                (r): r is PromiseRejectedResult => r.status === 'rejected'
+            )
+            if (batchError) lastError = batchError.reason
+
+            if (allValidResults.length >= effectiveQuorum) {
+                const [first, ...rest] = allValidResults
+                if (rest.length > 0 && !rest.every(r =>
+                    String(r.amount) === String(first.amount) &&
+                    r.sender === first.sender &&
+                    r.recipient === first.recipient &&
+                    r.token === first.token &&
+                    r.timelock === first.timelock &&
+                    r.status === first.status
+                )) {
+                    throw new Error('Lock details do not match across the provided nodes')
+                }
+                return first
+            }
+        }
+
+        // All batches exhausted
+        if (allValidResults.length === 0) {
+            if (lastError) throw lastError
             return null
         }
-        const results = await Promise.all(
-            nodeUrls.map(url => this._getSolverLockDetails(params, url))
+
+        throw new Error(
+            `Insufficient node agreement: ${allValidResults.length} of ${totalQueried} nodes returned results, need at least ${effectiveQuorum}`
         )
-
-        const validResults = results.filter((r): r is SolverLockDetails => r !== null)
-        console.log('[HTLCClient.getSolverLockDetails] validResults:', validResults.length)
-        if (!validResults.length) return null
-
-        const [first, ...rest] = validResults
-        if (!rest.every(r => r.amount === first.amount && r.sender === first.sender && r.recipient === first.recipient && r.token === first.token && r.timelock === first.timelock)) {
-            throw new Error('Lock details do not match across the provided nodes')
-        }
-
-        return first
     }
 
-    /**
-     * Template method for solver lock retrieval.
-     * Default implementation uses getSolverLockCount + getSolverLockByIndex.
-     * Subclasses implement those two abstract methods instead of _getSolverLockDetails.
-     */
-    async _getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> {
-        const count = await this.getSolverLockCount(params, nodeUrl)
-        if (count === 0) return null
-
-        for (let i = 1; i <= count; i++) {
-            const lock = await this.getSolverLockByIndex(params, i, nodeUrl)
-            if (!lock) continue
-            if (params.solverAddress && lock.sender?.toLowerCase() !== params.solverAddress.toLowerCase()) continue
-            return lock
-        }
-
-        return null
-    }
-
-    abstract getUserLockDetails(params: LockParams): Promise<UserLockDetails | null>
-    abstract getSolverLockCount(params: LockParams, nodeUrl: string): Promise<number>
-    abstract getSolverLockByIndex(params: LockParams, index: number, nodeUrl: string): Promise<SolverLockDetails | null>
+    abstract getUserLockDetails(params: LockParams): Promise<LockDetails | null>
+    abstract getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null>
     abstract recoverSwap(txHash: string): Promise<RecoveredSwapData>
     abstract userLock(params: UserLockParams): Promise<AtomicResult>
     abstract refund(params: RefundParams): Promise<string>
     abstract redeemSolver(params: RedeemSolverParams): Promise<string>
+}
+
+export interface ConsensusOptions {
+    minQuorum?: number
+    batchSize?: number
 }

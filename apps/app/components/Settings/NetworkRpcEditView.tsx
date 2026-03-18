@@ -6,7 +6,7 @@ import { validateRpcUrl } from "../../lib/validators/rpcValidator"
 import SecondaryButton from "../buttons/secondaryButton"
 import SubmitButton from "../buttons/submitButton"
 import { toast } from "react-hot-toast"
-import LightClient from "../../lib/lightClient"
+import { supportsLightClient } from "../../lib/lightClient/supportsNetwork"
 import Image from 'next/image'
 
 interface NetworkRpcEditViewProps {
@@ -21,7 +21,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
     const [validationErrors, setValidationErrors] = useState<Record<number, string>>({})
     const [validatedUrls, setValidatedUrls] = useState<Record<number, boolean>>({})
 
-    const hasLightClient = new LightClient().supportsNetwork(network)
+    const hasLightClient = supportsLightClient(network)
 
     useEffect(() => {
         // Load existing URLs or start with one empty field

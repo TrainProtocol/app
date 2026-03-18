@@ -183,7 +183,7 @@ export class EvmHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockCount(params: LockParams, nodeUrl: string): Promise<number> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
         const { id, contractAddress } = params
         const rpc = new JsonRpcClient(nodeUrl)
 

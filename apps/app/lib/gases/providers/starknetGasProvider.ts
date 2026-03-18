@@ -1,6 +1,7 @@
 import { GasProps } from "../../../Models/Balance"
 import { Network, getNativeToken, NetworkContractType } from "../../../Models/Network"
 import { GasProvider } from "./types"
+import { getNetworkRpcUrl } from "../../rpc/resolveNetworkRpcUrl"
 
 export class StarknetGasProvider implements GasProvider {
     supportsNetwork(network: Network): boolean {
@@ -12,7 +13,7 @@ export class StarknetGasProvider implements GasProvider {
 
         if (!account || !network) return
 
-        const rpcUrl = network.nodes?.[0]?.url
+        const rpcUrl = getNetworkRpcUrl(network)
         const contractAddress = network.contracts?.find(c => c.type === NetworkContractType.Train)?.address
         const nativeToken = getNativeToken(network)
 

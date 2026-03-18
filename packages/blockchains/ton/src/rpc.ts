@@ -31,7 +31,7 @@ export class TonRpcClient {
         return this.client
     }
 
-    /** Create a new RPC client for a specific node URL (used by _getSolverLockDetails). */
+    /** Create a new RPC client for a specific node URL (used by getSolverLockDetails). */
     static fromUrl(url: string, apiKey?: string): TonRpcClient {
         return new TonRpcClient(url, apiKey)
     }
