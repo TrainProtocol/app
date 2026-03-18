@@ -10,7 +10,7 @@ export type BaseHTLCClientConfig = {
 export interface IHTLCClient {
     getUserLockDetails(params: LockParams): Promise<LockDetails | null>
     getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null>
-    getSolverLockDetailsWithConsensus(params: LockParams, nodeUrls: string[], options?: ConsensusOptions): Promise<LockDetails | null>
+    getSolverLockDetailsWithConsensus(params: LockParams, nodeUrls: string[], options?: ConsensusOptions & { prefetchedResult?: LockDetails }): Promise<LockDetails | null>
     recoverSwap(txHash: string): Promise<RecoveredSwapData>
 
     userLock(params: UserLockParams): Promise<AtomicResult>
@@ -34,24 +34,33 @@ export abstract class HTLCClient implements IHTLCClient {
     async getSolverLockDetailsWithConsensus(
         params: LockParams,
         nodeUrls: string[],
-        options?: ConsensusOptions
+        options?: ConsensusOptions & { prefetchedResult?: LockDetails }
     ): Promise<LockDetails | null> {
         const minQuorum = options?.minQuorum ?? this.consensusOptions.minQuorum
         const batchSize = options?.batchSize ?? this.consensusOptions.batchSize
+        const prefetchedResult = options?.prefetchedResult
 
-        if (!nodeUrls.length) return null
+        if (!nodeUrls.length && !prefetchedResult) return null
 
         const effectiveQuorum = Math.min(minQuorum, nodeUrls.length)
 
-        // Partition nodeUrls into batches
+        // Skip nodeUrls[0] when prefetched — it already represents that node's result
+        const urlsToQuery = prefetchedResult ? nodeUrls.slice(1) : nodeUrls
+
+        // Partition urlsToQuery into batches
         const batches: string[][] = []
-        for (let i = 0; i < nodeUrls.length; i += batchSize) {
-            batches.push(nodeUrls.slice(i, i + batchSize))
+        for (let i = 0; i < urlsToQuery.length; i += batchSize) {
+            batches.push(urlsToQuery.slice(i, i + batchSize))
         }
 
-        const allValidResults: LockDetails[] = []
-        let totalQueried = 0
+        const allValidResults: LockDetails[] = prefetchedResult ? [prefetchedResult] : []
+        let totalQueried = prefetchedResult ? 1 : 0
         let lastError: unknown = null
+
+        // Prefetched alone satisfies quorum (e.g. Aztec minQuorum=1)
+        if (allValidResults.length >= effectiveQuorum) {
+            return allValidResults[0]
+        }
 
         for (const batch of batches) {
             const results = await Promise.allSettled(
