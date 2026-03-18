@@ -249,7 +249,6 @@ export function SwapProvider({ children }: { children: ReactNode }) {
             const hashlock = secretToHashlock(secret)
             // Verify the derived hashlock matches the on-chain one
             if (hashlock.toLowerCase() === state.hashlock.toLowerCase()) {
-                console.log('[SwapProvider] Re-derived secret from nonce:', nonce)
                 dispatch({ type: 'SET_PARAMS', payload: { secret, nonce } })
             } else {
                 console.warn('[SwapProvider] Derived hashlock mismatch — derivedKey may be from a different login session')
@@ -318,28 +317,6 @@ export function SwapProvider({ children }: { children: ReactNode }) {
             return sdk.createHTLCClient(destNamespace, { ...adapterConfig } as any)
         } catch { return null }
     }, [destNamespace, walletCtx])
-
-    // --- DEBUG: solver lock polling diagnostics ---
-    useEffect(() => {
-        const solverPollingEnabled = isActive && status !== HTLCStatus.Initial
-        console.group('[SwapProvider] Solver Lock Polling Debug')
-        console.log('status:', status)
-        console.log('hashlock:', state.hashlock)
-        console.log('isActive:', isActive)
-        console.log('solverPollingEnabled:', solverPollingEnabled)
-        console.log('destNamespace:', destNamespace)
-        console.log('destContract:', state.destContract)
-        console.log('destinationNetwork:', state.destinationNetwork)
-        console.log('destNodeUrls:', destNodeUrls)
-        console.log('destReadClient:', destReadClient ? 'created' : 'NULL')
-        console.log('solverLockParams:', solverLockParams)
-        console.log('sourceDetails:', state.sourceDetails ? { sender: state.sourceDetails.sender, status: state.sourceDetails.status } : null)
-        console.log('solverLockDetails:', state.solverLockDetails)
-        console.log('quote:', state.quote ? 'present' : 'NULL')
-        console.log('config.resolveNodeUrls:', config.resolveNodeUrls ? 'provided' : 'NOT PROVIDED')
-        console.groupEnd()
-    }, [isActive, status, state.hashlock, destNamespace, state.destContract, state.destinationNetwork, destNodeUrls, destReadClient, solverLockParams, state.sourceDetails, state.solverLockDetails, state.quote, config.resolveNodeUrls])
-    // --- END DEBUG ---
 
     // Activate polling hooks
     useUserLockPolling({
@@ -520,7 +497,6 @@ export function SwapProvider({ children }: { children: ReactNode }) {
     }, [apiClient, walletCtx, store, config, sdk])
 
     const revealSecret = useCallback(async () => {
-        console.log('[SwapProvider.revealSecret] solverId:', state.solverId, 'hashlock:', state.hashlock, 'secret:', state.secret ? 'present' : 'NULL')
         if (!state.solverId || !state.hashlock || !state.secret) {
             console.error('[SwapProvider.revealSecret] MISSING:', { solverId: !!state.solverId, hashlock: !!state.hashlock, secret: !!state.secret })
             throw new TrainError('Cannot reveal: missing solverId, hashlock, or secret', TrainErrorCode.RevealFailed)
@@ -534,7 +510,6 @@ export function SwapProvider({ children }: { children: ReactNode }) {
                 expectedRecipient: state.destinationAddress ?? '',
                 expectedToken: state.quote.route?.destination?.tokenContract,
             })
-            console.log('[SwapProvider.revealSecret] verification:', verification)
             if (!verification.verified && !verification.skipped) {
                 throw new TrainError(
                     `Solver lock verification failed: ${verification.mismatches.join(', ')}`,
@@ -544,7 +519,6 @@ export function SwapProvider({ children }: { children: ReactNode }) {
         }
 
         try {
-            console.log('[SwapProvider.revealSecret] calling API:', state.solverId, state.hashlock)
             await apiClient.revealSecret(state.solverId, state.hashlock, state.secret)
             dispatch({ type: 'SECRET_REVEALED' })
 

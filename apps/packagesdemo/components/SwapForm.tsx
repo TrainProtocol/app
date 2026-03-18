@@ -396,8 +396,6 @@ export function SwapForm() {
 }
 
 function getStatusLabel(status: HTLCStatus): { text: string; type: string } {
-    debugger
-    console.log(status)
     switch (status) {
         case HTLCStatus.Initial:
             return { text: 'Ready', type: 'pending' }

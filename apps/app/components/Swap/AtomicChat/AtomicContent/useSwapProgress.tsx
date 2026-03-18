@@ -285,7 +285,6 @@ export function useSwapProgress(): SwapProgress {
                 }),
             };
         }
-        console.log("htlcStatus", htlcStatus)
         // Timelock expired — awaiting refund action
         if (htlcStatus === HTLCStatus.TimelockExpired && !isRefunded && !refundTxId) {
             return {

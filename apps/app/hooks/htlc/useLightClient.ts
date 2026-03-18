@@ -90,16 +90,6 @@ export function useLightClient({
                     atomicContract: destAtomicContract,
                 })
                 if (!cancelled && data) {
-                    console.log('[LightClient] Fetched solver lock details:', {
-                        hashlock: data.hashlock,
-                        sender: data.sender,
-                        recipient: data.recipient,
-                        amount: data.amount,
-                        token: data.token,
-                        status: data.status,
-                        timelock: data.timelock,
-                        secret: data.secret?.toString(),
-                    })
                     setDestinationDetailsByLightClient({ data })
                 }
             } catch (e) {
