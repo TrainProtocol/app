@@ -2,6 +2,7 @@
 
 # dependencies
 *node_modules
+dist/
 /.pnp
 .pnp.js
 
@@ -9,9 +10,8 @@
 /coverage
 
 # next.js
-/.next/
+*.next/
 /out/
-next-env.d.ts
 
 # production
 /build
@@ -34,8 +34,14 @@ yarn-error.log*
 
 # Moving to yarn
 package-lock.json
-storybook-static/*
+
 # Sentry Config File
 .sentryclirc
 .env*.local
 
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# PR Review Report
+pr-review-report.md 

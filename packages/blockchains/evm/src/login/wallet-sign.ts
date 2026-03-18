@@ -1,0 +1,60 @@
+import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/sdk';
+
+export interface Eip1193Provider {
+    request(args: { method: string; params: unknown[] }): Promise<unknown>
+}
+
+export const getEvmTypedData = (sandbox: boolean = false) => ({
+    domain: {
+        name: 'Train',
+        version: '1',
+        chainId: sandbox ? 11155111 : 1,
+    },
+    types: {
+        Message: [
+            { name: 'content', type: 'string' },
+        ],
+    },
+    primaryType: 'Message' as const,
+    message: {
+        content: 'I am using TRAIN',
+    },
+});
+
+export const deriveKeyFromEvmSignature = async (
+    provider: Eip1193Provider,
+    address: `0x${string}`,
+    options?: { sandbox?: boolean; currentChainId?: number }
+): Promise<Buffer> => {
+    const isSandbox = options?.sandbox ?? false;
+    const signingChainId = isSandbox ? 11155111 : 1;
+    const signingChainHex = isSandbox ? '0xAA36A7' : '0x1';
+    const signingChainName = isSandbox ? 'Sepolia' : 'Mainnet';
+
+    if (options?.currentChainId !== undefined && options.currentChainId !== signingChainId) {
+        try {
+            await provider.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: signingChainHex }],
+            });
+        } catch {
+            throw new Error(`Please switch to ${signingChainName} in your wallet and try again`);
+        }
+    }
+
+    let signature: string;
+    try {
+        signature = await provider.request({
+            method: 'eth_signTypedData_v4',
+            params: [address, JSON.stringify(getEvmTypedData(isSandbox))],
+        }) as string;
+    } catch {
+        throw new Error(`Signing failed. Please switch to ${signingChainName} in your wallet and try again`);
+    }
+
+    const signatureHex = signature.startsWith('0x') ? signature.slice(2) : signature;
+    const inputMaterial = Buffer.from(signatureHex, 'hex');
+    const identitySalt = Buffer.from(IDENTITY_SALT, 'utf8');
+
+    return Buffer.from(deriveKeyMaterial(inputMaterial, identitySalt));
+};

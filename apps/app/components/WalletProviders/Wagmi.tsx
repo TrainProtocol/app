@@ -1,0 +1,79 @@
+import { useSettingsState } from "../../context/settings";
+import resolveChain from "../../lib/resolveChain";
+import React, { useMemo } from "react";
+import NetworkSettings from "../../lib/NetworkSettings";
+import { WagmiProvider, createConfig, Config, usePublicClient, useWalletClient } from 'wagmi'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Chain, http, fallback, Transport } from 'viem';
+import { useEvmConnectors } from "../../context/evmConnectorsContext";
+import { ActiveEvmAccountProvider } from "./ActiveEvmAccount";
+import { useRpcConfigStore } from "@/stores/rpcConfigStore";
+import { getNativeToken, NetworkTypes } from "../../Models/Network";
+type Props = {
+    children: JSX.Element | JSX.Element[]
+}
+
+const queryClient = new QueryClient()
+
+let cachedConfig: Config | null = null
+
+function buildTransport(chain: Chain, rpcUrls: string[]): Transport {
+    if (rpcUrls.length > 1) {
+        return fallback(rpcUrls.map(url => http(url)))
+    }
+    if (rpcUrls.length === 1) {
+        return http(rpcUrls[0])
+    }
+    return chain.rpcUrls.default.http[0] ? http(chain.rpcUrls.default.http[0]) : http()
+}
+
+function WagmiComponent({ children }: Props) {
+    const settings = useSettingsState();
+    const { connectors } = useEvmConnectors()
+    const { getEffectiveRpcUrl, getEffectiveRpcUrls } = useRpcConfigStore();
+
+    const config = useMemo(() => {
+        if (cachedConfig) return cachedConfig
+
+        const chains = settings?.networks
+            .sort((a, b) =>
+                (NetworkSettings.KnownSettings[a.caip2Id]?.ChainOrder || Number(a.chainId))
+                - (NetworkSettings.KnownSettings[b.caip2Id]?.ChainOrder || Number(b.chainId))
+            )
+            .filter(net =>
+                net.type?.name === NetworkTypes.EVM
+                && !isNaN(Number(net.chainId))
+                && net.nodes?.[0]?.url
+                && getNativeToken(net)
+            )
+            .map(network => resolveChain(network, getEffectiveRpcUrl(network)))
+            .filter((c): c is Chain => c != undefined) as Chain[]
+
+        const transports: Record<number, Transport> = {}
+        for (const chain of chains) {
+            const network = settings?.networks?.find(n => Number(n.chainId) === chain.id)
+            const rpcUrls = network ? getEffectiveRpcUrls(network) : []
+            transports[chain.id] = buildTransport(chain, rpcUrls)
+        }
+
+        cachedConfig = createConfig({
+            connectors,
+            chains: chains as [Chain, ...Chain[]],
+            transports,
+            ssr: true
+        })
+        return cachedConfig
+    }, [])
+
+    return (
+        <WagmiProvider config={config} reconnectOnMount={true}>
+            <QueryClientProvider client={queryClient}>
+                <ActiveEvmAccountProvider>
+                    {children}
+                </ActiveEvmAccountProvider>
+            </QueryClientProvider>
+        </WagmiProvider>
+    )
+}
+
+export default WagmiComponent
