@@ -201,7 +201,7 @@ export class FuelHTLCClient extends HTLCClient {
         }
     }
 
-    async _getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
         const { id, contractAddress } = params
 
         try {
@@ -258,7 +258,7 @@ export class FuelHTLCClient extends HTLCClient {
 
             return null
         } catch (error) {
-            console.error('Error in _getSolverLockDetails:', error)
+            console.error('Error in getSolverLockDetails:', error)
             return null
         }
     }

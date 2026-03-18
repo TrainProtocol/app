@@ -136,6 +136,8 @@ export class {Chain}HTLCClient extends HTLCClient {
         super(config.apiClient)  // Always pass apiClient to base
         this.rpc = ...
         this.signer = config.signer
+        // Override default consensus options if needed (e.g., Aztec: minQuorum 1)
+        // this.consensusOptions = { minQuorum: 1 }
     }
 
     // ── Write Operations ───────────────────────────────────────────────
@@ -146,7 +148,7 @@ export class {Chain}HTLCClient extends HTLCClient {
 
     // ── Read Operations ────────────────────────────────────────────────
 
-    async _getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> { ... }
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> { ... }
     async getUserLockDetails(params: LockParams): Promise<LockDetails | null> { ... }
     async recoverSwap(txHash: string): Promise<RecoveredSwapData> { ... }
 
@@ -160,7 +162,7 @@ export class {Chain}HTLCClient extends HTLCClient {
 ### Ordering rules
 
 1. **Write operations first** — `userLock` → `refund` → `redeemSolver`
-2. **Read operations second** — `getUserLockDetails` → `_getSolverLockDetails` → `recoverSwap`
+2. **Read operations second** — `getUserLockDetails` → `getSolverLockDetails` → `recoverSwap`
 3. **Private helpers last** — `requireSigner()` first, then chain-specific utilities
 4. **Use section comments** — `// ── Write Operations ───...` separator style between groups
 
@@ -168,8 +170,26 @@ export class {Chain}HTLCClient extends HTLCClient {
 
 The base `HTLCClient` class provides these methods — subclasses should **not** override them:
 
-- `getSolverLockDetails(params, nodeUrls)` — queries multiple nodes via `_getSolverLockDetails`, validates results match across nodes
 - `revealSecret(solverId, hashlock, secret)` — delegates to `apiClient.revealSecret()`
+- `getSolverLockDetailsWithConsensus(params, nodeUrls, options?)` — queries multiple nodes via `getSolverLockDetails`, validates results match across nodes (see below)
+
+### Cross-node consensus
+
+The base class provides `getSolverLockDetailsWithConsensus()` which fans out `getSolverLockDetails()` to multiple RPC nodes and validates that all successful responses agree on critical fields (`amount`, `sender`, `recipient`, `token`, `timelock`).
+
+**Consensus options:**
+- The base class sets `protected consensusOptions: ConsensusOptions = { minQuorum: 2 }` by default
+- Subclasses can override this in their constructor (e.g., Aztec sets `minQuorum: 1` since it typically has fewer public nodes)
+- Per-call `options` passed to `getSolverLockDetailsWithConsensus()` take priority over the instance default
+
+**How it works:**
+1. Queries all `nodeUrls` in parallel via `Promise.allSettled`
+2. Filters for non-null results
+3. Requires at least `minQuorum` agreeing results (capped to `nodeUrls.length`)
+4. Compares critical fields across all valid results — throws if they disagree
+5. Returns the first valid result if consensus passes
+
+Chain implementations only need to implement the single-node abstract method `getSolverLockDetails(params, nodeUrl)`.
 
 ---
 
@@ -220,12 +240,12 @@ try {
 3. If `txId` is provided, fetch transaction logs to extract `userData` (nonce)
 4. Return `LockDetails` object with all fields mapped
 
-### _getSolverLockDetails — Count-Then-Loop Pattern
+### getSolverLockDetails — Count-Then-Loop Pattern
 
-**This is a critical shared pattern.** The base class calls `_getSolverLockDetails` for each node URL and verifies results match. Your subclass implements the single-node version. The contract stores multiple solver locks per hashlock. Always:
+**This is a critical shared pattern.** The base class calls `getSolverLockDetails` for each node URL and verifies results match via `getSolverLockDetailsWithConsensus()`. Your subclass implements the single-node version. The contract stores multiple solver locks per hashlock. Always:
 
 ```ts
-async _getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
     // 1. Get the count of solver locks for this hashlock
     const count = /* call getSolverLockCount(hashlock) */
 
@@ -369,6 +389,7 @@ import {
     AtomicResult,
     RecoveredSwapData,
     BaseHTLCClientConfig,
+    ConsensusOptions,
 } from '@train-protocol/sdk'
 
 // Key derivation
@@ -412,6 +433,7 @@ describe('register{Chain}Sdk', () => {
         })
         expect(typeof client.getUserLockDetails).toBe('function')
         expect(typeof client.getSolverLockDetails).toBe('function')
+        expect(typeof client.getSolverLockDetailsWithConsensus).toBe('function')
         expect(typeof client.userLock).toBe('function')
         expect(typeof client.refund).toBe('function')
         expect(typeof client.redeemSolver).toBe('function')
@@ -441,7 +463,8 @@ const ZERO_ADDRESS = '0x000...'     // Chain's empty/zero address representation
   - [ ] Add `declare module '@train-protocol/sdk'` augmentation for `HTLCClientConfigMap` and `WalletSignConfigMap`
 - [ ] Implement `{Chain}HTLCClient extends HTLCClient` in `client.ts`
 - [ ] Follow function ordering: writes → reads → private helpers
-- [ ] Implement count-then-loop pattern in `_getSolverLockDetails` (1-indexed, single-node version)
+- [ ] Implement count-then-loop pattern in `getSolverLockDetails` (1-indexed, single-node version)
+- [ ] Set `this.consensusOptions` in constructor if chain needs non-default quorum (default: `minQuorum: 2`)
 - [ ] Validate `txHash` format at the top of `recoverSwap` before any RPC calls
 - [ ] Define `{Chain}WalletLike` minimal interface in `login/wallet-sign.ts`
 - [ ] Implement key derivation in `login/wallet-sign.ts` using `deriveKeyMaterial` + `IDENTITY_SALT`

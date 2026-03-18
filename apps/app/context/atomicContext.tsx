@@ -33,6 +33,8 @@ type DataContextType = HTLCState & {
     htlcStatus: HTLCStatus,
     destRedeemTx?: string,
     verifyingByLightClient: boolean,
+    consensusVerifying: boolean,
+    consensusVerified: boolean,
     srcAtomicContract?: string,
     destAtomicContract?: string,
     sourceClient?: IHTLCClient,
@@ -63,6 +65,7 @@ type CommitStatesDict = Record<string, HTLCState>;
 export function AtomicProvider({ children }) {
     const router = useRouter()
     const { networks } = useSettingsState()
+    const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
 
     const activeHashlock = useSwapStore(s => s.activeHashlock)
     const updateSwap = useSwapStore(s => s.updateSwap)
@@ -85,7 +88,6 @@ export function AtomicProvider({ children }) {
         useShallow(s => activeHashlock ? s.swaps[activeHashlock] ?? null : null)
     )
     const currentSwap = tempSwap ?? committedSwap
-    const { getEffectiveRpcUrls } = useRpcConfigStore();
 
     const address = currentSwap?.address
     const amount = currentSwap?.requestedAmount
@@ -168,7 +170,7 @@ export function AtomicProvider({ children }) {
 
     const htlcStatus = useMemo(() =>
         resolveHTLCStatus({ sourceDetails, solverLockDetails, timelockExpired: isTimelockExpired, secretRevealed, manualClaimRequired, destRedeemTxId: destinationRedeemTx }),
-        [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, manualClaimRequired])
+        [sourceDetails, solverLockDetails, isTimelockExpired, secretRevealed, manualClaimRequired, destinationRedeemTx])
 
     const isTerminal = isTerminalStatus(htlcStatus)
 
@@ -228,7 +230,22 @@ export function AtomicProvider({ children }) {
         onSuccess: handleUserLockSuccess,
     })
 
-    useSolverLockPolling({
+    const destRpcConfig = useRpcConfigStore(s =>
+        destination_network?.caip2Id ? s.rpcConfigs[destination_network.caip2Id] : undefined
+    )
+
+    const destNodeUrls = useMemo(
+        () => destination_network ? getEffectiveRpcUrls(destination_network) : [],
+        [destination_network, destRpcConfig]
+    )
+
+    const handleConsensusFailed = useCallback(() => {
+        setError({
+            message: 'RPC node verification failed — nodes returned conflicting data. Your funds are safe and will be automatically refundable after the timelock expires.',
+        })
+    }, [setError])
+
+    const { consensusVerifying, consensusVerified: isConsensusVerified } = useSolverLockPolling({
         network: destination_network,
         hashlock,
         contractAddress: destAtomicContract,
@@ -237,7 +254,8 @@ export function AtomicProvider({ children }) {
         client: destinationClient,
         solverAddress: destinationSolverAddress,
         onSuccess: handleSolverLockSuccess,
-        nodeUrls: destination_network ? getEffectiveRpcUrls(destination_network) : [],
+        onConsensusFailed: handleConsensusFailed,
+        nodeUrls: destNodeUrls,
     })
 
     // useEffect(() => {
@@ -320,7 +338,7 @@ export function AtomicProvider({ children }) {
 
         const timer = setTimeout(() => {
             updateHTLCState(hashlock, { manualClaimRequired: true });
-        }, 3 * 60 * 1000); // 2 minutes
+        }, 2 * 60 * 1000); // 2 minutes
 
         return () => clearTimeout(timer);
     }, [sourceDetails?.status, sourceDetails?.secret, solverLockDetails?.sender, solverLockDetails?.status, hashlock, manualClaimRequired])
@@ -368,6 +386,8 @@ export function AtomicProvider({ children }) {
             refundTxId,
             destRedeemTx: destinationRedeemTx,
             verifyingByLightClient,
+            consensusVerifying,
+            consensusVerified: isConsensusVerified,
             destinationDetailsByLightClient,
             srcAtomicContract,
             destAtomicContract,

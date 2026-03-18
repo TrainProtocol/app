@@ -1,10 +1,5 @@
 export type NetworkTypeInfo = {
     name: string;
-    displayName?: string;
-    nativeTokenAddress?: string;
-    addressFormat?: string;
-    addressLength?: number;
-    curve?: string;
 }
 
 export type NetworkNode = {

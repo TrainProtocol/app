@@ -1,7 +1,7 @@
 
-import { Chain, formatUnits, PublicClient, http } from "viem"
+import { Chain, formatUnits, PublicClient } from "viem"
 import { TokenBalance } from "@/Models/Balance"
-import { Network, Token, getNativeToken } from "@/Models/Network"
+import { Network, NetworkTypes, Token, getNativeToken } from "@/Models/Network"
 import { createConfig } from '@wagmi/core'
 import { erc20Abi } from 'viem'
 import { multicall } from '@wagmi/core'
@@ -10,10 +10,11 @@ import resolveChain from "@/lib/resolveChain"
 import BalanceGetterAbi from "@/lib/abis/BALANCEGETTERABI.json"
 import KnownInternalNames from "@/lib/knownIds"
 import { BalanceProvider } from "@/Models/BalanceProvider"
+import { buildNetworkTransport } from "@/lib/rpc/resolveNetworkRpcUrl"
 
 export class EVMBalanceProvider extends BalanceProvider {
     supportsNetwork: BalanceProvider['supportsNetwork'] = (network) => {
-        return network.type?.name === "eip155" && !!getNativeToken(network)
+        return network.type?.name === NetworkTypes.EVM && !!getNativeToken(network)
     }
 
     fetchBalance: BalanceProvider['fetchBalance'] = async (address, network, options) => {
@@ -38,10 +39,10 @@ export class EVMBalanceProvider extends BalanceProvider {
             const { createPublicClient } = await import("viem")
             const publicClient: PublicClient = createPublicClient({
                 chain,
-                transport: http(network.nodes?.[0]?.url, {
+                transport: buildNetworkTransport(network, {
                     timeout: options?.timeoutMs,
                     retryCount: options?.retryCount,
-                })
+                }),
             })
 
             const erc20Promise = getErc20Balances({
@@ -84,10 +85,10 @@ export class EVMBalanceProvider extends BalanceProvider {
         const { createPublicClient } = await import("viem")
         const publicClient = createPublicClient({
             chain,
-            transport: http(network.nodes?.[0]?.url, {
+            transport: buildNetworkTransport(network, {
                 timeout: options?.timeoutMs,
                 retryCount: options?.retryCount,
-            })
+            }),
         })
 
         const contract = balanceGetterContracts.find(c => c.networks.includes(network.caip2Id))
@@ -230,7 +231,7 @@ export const getErc20Balances = async ({
             const config = createConfig({
                 chains: [chain],
                 transports: {
-                    [chain.id]: http(network.nodes?.[0]?.url, { timeout: timeoutMs, retryCount })
+                    [chain.id]: buildNetworkTransport(network, { timeout: timeoutMs, retryCount })
                 }
             })
 
@@ -325,7 +326,7 @@ export const getTokenBalance = async (address: `0x${string}`, network: Network, 
         const config = createConfig({
             chains: [chain],
             transports: {
-                [chain.id]: http(network.nodes?.[0]?.url, { timeout: timeoutMs, retryCount })
+                [chain.id]: buildNetworkTransport(network, { timeout: timeoutMs, retryCount })
             }
         })
 

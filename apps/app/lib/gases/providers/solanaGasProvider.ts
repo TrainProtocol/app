@@ -1,6 +1,7 @@
 import { GasProps } from "../../../Models/Balance";
 import { Network, getNativeToken, NetworkContractType } from "../../../Models/Network";
 import { formatUnits } from "viem";
+import { getNetworkRpcUrl } from "../../rpc/resolveNetworkRpcUrl";
 
 export class SolanaGasProvider {
     supportsNetwork(network: Network): boolean {
@@ -18,7 +19,7 @@ export class SolanaGasProvider {
 
         try {
             const lamports = await estimateSolanaGas({
-                rpcUrl: network.nodes?.[0]?.url ?? '',
+                rpcUrl: getNetworkRpcUrl(network),
                 contractAddress: atomicContract,
                 address,
                 tokenSymbol: token.symbol,
