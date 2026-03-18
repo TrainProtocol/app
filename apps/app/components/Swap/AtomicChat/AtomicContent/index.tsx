@@ -10,6 +10,9 @@ import Timeline from "./Timeline";
 import { useSwapProgress } from "./useSwapProgress";
 import { CircleCheck, Undo2, X } from "lucide-react";
 import { HTLCStatus } from "@/Models/HTLCStatus";
+import { useLoginIdentityMismatch } from "@/hooks/useLoginIdentityMismatch";
+import { useSwapStore } from "@/stores/swapStore";
+import { useShallow } from "zustand/react/shallow";
 
 type AtomicContentProps = {
     quote?: SwapQuote
@@ -51,6 +54,15 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
             setError({ message: 'Hashlock mismatch, please wait for refund.', disableButton: true })
         }
     }, [solverLockDetails, destinationDetailsByLightClient]);
+
+    const swap = useSwapStore(useShallow(s => hashlock ? s.swaps[hashlock] : undefined))
+    const { isMismatched } = useLoginIdentityMismatch(swap?.loginIdentity)
+
+    useEffect(() => {
+        if (isMismatched && commitStatus === HTLCStatus.SolverLockDetected) {
+            setError({ message: 'Please wait for the timelock to expire, then refund to receive your assets back.', disableButton: true })
+        }
+    }, [isMismatched, commitStatus, setError]);
 
     const values: SwapFormValues = {
         amount: amount?.toString(),
