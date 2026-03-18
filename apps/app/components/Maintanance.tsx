@@ -11,7 +11,7 @@ function MaintananceContent(props) {
     useEffect(() => {
         boot()
         update()
-    })
+    }, [])
 
     const twitterLogo = <TwitterLogo className="h-6 w-6" />
     return (
