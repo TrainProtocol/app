@@ -102,7 +102,7 @@ function buildSteps(
 // --- Verification Status (extracted component, reads from context directly) ---
 
 const VerificationStatus: FC = () => {
-    const { solverLockDetails, destinationDetailsByLightClient, verifyingByLightClient } = useAtomicState();
+    const { solverLockDetails, destinationDetailsByLightClient, verifyingByLightClient, consensusVerifying, consensusVerified } = useAtomicState();
 
     const lcHashlock = destinationDetailsByLightClient?.data?.hashlock;
     const solverHashlock = solverLockDetails?.hashlock;
@@ -128,6 +128,27 @@ const VerificationStatus: FC = () => {
         );
     }
 
+    if (consensusVerifying) {
+        return (
+            <div className="flex items-center gap-1 text-sm">
+                <span>Verifying with multiple RPCs</span>
+                <LockIcon className="h-4 w-4 text-accent animate-pulse" />
+            </div>
+        );
+    }
+
+    if (consensusVerified) {
+        return (
+            <div className="flex items-center gap-1 text-sm">
+                <span>Verified by</span>
+                <span className="font-medium text-accent flex items-center gap-1">
+                    multiple RPCs
+                    <LockIcon className="h-4 w-4 text-accent" />
+                </span>
+            </div>
+        );
+    }
+
     return <span className="text-sm">Verified by RPCs. Reveal your secret to complete the swap.</span>;
 };
 
@@ -143,6 +164,7 @@ export function useSwapProgress(): SwapProgress {
         source_network,
         destination_network,
         htlcFromApi,
+        consensusVerifying,
     } = useAtomicState();
 
     const { verified, skipped, mismatches } = useSolverLockVerification();
@@ -200,16 +222,23 @@ export function useSwapProgress(): SwapProgress {
             };
         }
 
-        // Solver lock detected — user can reveal secret
+        // Solver lock detected — user can reveal secret after verification
         if (htlcStatus === HTLCStatus.SolverLockDetected) {
             return {
                 gaugeValue: 50, gaugeIcon: null,
                 title: "Transfer in progress",
-                subtitle: "Verify solver lock and reveal your secret.",
+                subtitle: consensusVerifying
+                    ? "Verifying solver lock with multiple nodes..."
+                    : "Verify solver lock and reveal your secret.",
                 steps: buildSteps(HAPPY_STEPS, 2, { source: sourceTxLink, dest: destTxLink }, {
                     0: { timelock: sourceDetails?.timelock },
                     1: { description: <VerificationStatus /> },
-                    2: { status: StepStatus.Upcoming, description: "Verify solver lock and reveal secret" },
+                    2: {
+                        status: StepStatus.Upcoming,
+                        description: consensusVerifying
+                            ? "Waiting for verification to complete"
+                            : "Verify solver lock and reveal secret",
+                    },
                 }),
             };
         }
@@ -301,5 +330,6 @@ export function useSwapProgress(): SwapProgress {
         verified,
         skipped,
         mismatches,
+        consensusVerifying,
     ]);
 }

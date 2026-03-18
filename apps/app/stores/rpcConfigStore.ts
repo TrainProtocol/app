@@ -2,6 +2,15 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { Network } from '../Models/Network'
 
+function isValidRpcUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === 'https:' || parsed.protocol === 'wss:'
+  } catch {
+    return false
+  }
+}
+
 export interface RpcConfig {
   customRpcUrls: string[]  // Changed to array to support multiple URLs
   useCustomRpc: boolean
@@ -39,6 +48,8 @@ export const useRpcConfigStore = create<RpcConfigStore>()(
           if (config.customRpcUrl && !config.customRpcUrls) {
             customRpcUrls = [config.customRpcUrl]
           }
+
+          customRpcUrls = customRpcUrls.filter(isValidRpcUrl)
 
           return {
             rpcConfigs: {
@@ -110,6 +121,7 @@ export const useRpcConfigStore = create<RpcConfigStore>()(
       },
 
       addRpcUrl: (networkId: string, url: string) => {
+        if (!isValidRpcUrl(url)) return
         set((state) => {
           const config = state.rpcConfigs[networkId] || { customRpcUrls: [], useCustomRpc: true }
           return {
@@ -149,6 +161,7 @@ export const useRpcConfigStore = create<RpcConfigStore>()(
       },
 
       updateRpcUrl: (networkId: string, index: number, url: string) => {
+        if (!isValidRpcUrl(url)) return
         set((state) => {
           const config = state.rpcConfigs[networkId]
           if (!config || !config.customRpcUrls) return state

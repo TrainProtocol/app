@@ -1,9 +1,10 @@
 import { NetworkContract } from "@/Models/Network";
-import TrainApiClient from "../lib/trainApiClient";
+// import TrainApiClient from "../lib/trainApiClient";
 import { getThemeData } from "./settingsHelper";
 import KnownInternalNames from "@/lib/knownIds";
+import { resolveNodes } from "@/lib/rpc/nodeResolver";
 
-const apiClient = new TrainApiClient()
+// const apiClient = new TrainApiClient()
 
 export async function getServerSideProps(context) {
 
@@ -12,97 +13,37 @@ export async function getServerSideProps(context) {
         's-maxage=60, stale-while-revalidate'
     );
 
-    const [networks, prices] = await Promise.all([
-        apiClient.GetNetworksAsync(),
-        apiClient.GetPricesAsync(),
-    ])
+    // const [networks, prices] = await Promise.all([
+    //     apiClient.GetNetworksAsync(),
+    //     apiClient.GetPricesAsync(),
+    // ])
 
-    if (!networks.length) return
+    // if (!networks.length) return
 
-    const resolvedNetworks = networks.map(network => {
+    // Mock prices while backend ngrok is off
+    const prices: Record<string, number> = {
+        "eip155:11155111:0x0000000000000000000000000000000000000000": 2500,
+        "eip155:421614:0x0000000000000000000000000000000000000000": 2500,
+        "eip155:84532:0x0000000000000000000000000000000000000000": 2500,
+        "solana:devnet:11111111111111111111111111111111": 150,
+    }
+
+    //const resolvedNetworks = (await Promise.all(networks.map(async network => {
+    const resolvedNetworks = (await Promise.all(MOCK_API_NETWORKS.map(async network => {
         const _network = mockData.data.find(n => n.caip2Id === network.caip2Id)
+        const seedNodes = _network?.nodes ?? []
+        const resolvedNodes = await resolveNodes(network.caip2Id, seedNodes)
 
         return {
             ...network,
-            nodes: _network?.nodes ?? [],
+            nodes: resolvedNodes.map(n => ({ providerName: n.providerName, url: n.url })),
             contracts: (_network?.contracts as NetworkContract[]) ?? [],
             tokens: network.tokens.map(token => ({
                 ...token,
-                priceInUsd: prices[`${network.caip2Id}:${token.contractAddress}`],
+                priceInUsd: prices[`${network.caip2Id}:${token.contractAddress}`] || 0,
             })),
         }
-    })
-
-    // Inject Starknet Sepolia if the API doesn't return it
-    const hasStarknet = resolvedNetworks.some(n => n.caip2Id === KnownInternalNames.Networks.StarkNetSepolia)
-    if (!hasStarknet) {
-        const starknetMock = mockData.data.find(n => n.caip2Id === KnownInternalNames.Networks.StarkNetSepolia)
-        resolvedNetworks.push({
-            caip2Id: KnownInternalNames.Networks.StarkNetSepolia,
-            displayName: "Starknet Sepolia",
-            chainId: 'SN_SEPOLIA',
-            nativeTokenAddress: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-            type: { name: "starknet" },
-            logoUrl: 'https://raw.githubusercontent.com/TrainProtocol/icons/main/networks/starknet.png',
-            tokens: [{
-                symbol: "ETH",
-                contractAddress: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-                decimals: 18,
-                priceInUsd: prices["eip155:11155111:0x0000000000000000000000000000000000000000"],
-            }],
-            nodes: starknetMock?.nodes ?? [],
-            contracts: (starknetMock?.contracts as NetworkContract[]) ?? [],
-            metadata: [],
-        } as any)
-    }
-
-    // Inject Aztec testnet if the API doesn't return it
-    const hasAztec = resolvedNetworks.some(n => n.caip2Id === KnownInternalNames.Networks.AztecDevnet)
-    if (!hasAztec) {
-        const aztecMock = mockData.data.find(n => n.caip2Id === KnownInternalNames.Networks.AztecDevnet)
-        resolvedNetworks.push({
-            caip2Id: KnownInternalNames.Networks.AztecDevnet,
-            displayName: "Aztec Devnet",
-            chainId: 'devnet',
-            nativeTokenAddress: "0x02c31306cad429e0a00d3a4ee8ba251853099f835101ee2c637e9b3b9351a056",
-            type: { name: "aztec" },
-            logoUrl: 'https://raw.githubusercontent.com/TrainProtocol/icons/main/networks/aztec.png',
-            tokens: [{
-                symbol: "ETH",
-                contractAddress: "0x02c31306cad429e0a00d3a4ee8ba251853099f835101ee2c637e9b3b9351a056",
-                decimals: 18,
-                priceInUsd: prices["eip155:11155111:0x0000000000000000000000000000000000000000"],
-            }],
-            nodes: aztecMock?.nodes ?? [],
-            contracts: (aztecMock?.contracts as NetworkContract[]) ?? [],
-            metadata: [],
-        } as any)
-    }
-
-    // Inject Solana devnet if the API doesn't return it
-    const hasSolanaDevnet = resolvedNetworks.some(n => n.caip2Id === KnownInternalNames.Networks.SolanaDevnet)
-    if (!hasSolanaDevnet) {
-        const solanaMock = mockData.data.find(n => n.caip2Id === KnownInternalNames.Networks.SolanaDevnet)
-        resolvedNetworks.push({
-            caip2Id: KnownInternalNames.Networks.SolanaDevnet,
-            displayName: "Solana Devnet",
-            chainId: 'devnet',
-            nativeTokenAddress: '11111111111111111111111111111111',
-            type: { name: "solana" },
-            logoUrl: 'https://raw.githubusercontent.com/TrainProtocol/icons/main/networks/solana.png',
-            tokens: [{
-                symbol: "SOL",
-                contractAddress: '11111111111111111111111111111111',
-                decimals: 9,
-                priceInUsd: prices["solana:devnet:11111111111111111111111111111111"]
-                    ?? prices["solana:devnet:11111111111111111111111111111111"]
-                    ?? 150,
-            }],
-            nodes: solanaMock?.nodes ?? [],
-            contracts: (solanaMock?.contracts as NetworkContract[]) ?? [],
-            metadata: [],
-        } as any)
-    }
+    }))).filter(n => n?.nodes?.length > 0 && n?.contracts?.length > 0)
 
     const settings = {
         networks: resolvedNetworks,
@@ -220,9 +161,111 @@ const mockData = {
             "contracts": [
                 {
                     "type": "Train",
-                    "address": "6zasug6x5AY93zNVjPZPGoqQfdTBd3C1w6CU9NDKtNH8"
+                    "address": "ADwgQuJzWCrxEgsBR5EwGmvqD12xLbAW316KG8L2f8BL"
                 }
             ],
         }
     ]
 }
+
+const MOCK_API_NETWORKS = [
+    {
+        caip2Id: "eip155:11155111",
+        displayName: "Ethereum Sepolia",
+        chainId: "11155111",
+        nativeTokenAddress: "0x0000000000000000000000000000000000000000",
+        type: { name: "eip155" },
+        logoUrl: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png",
+        explorerUrlTemplate: {
+            transaction: "https://sepolia.etherscan.io/tx/{hash}",
+            address: "https://sepolia.etherscan.io/address/{address}",
+        },
+        tokens: [{
+            symbol: "ETH",
+            contractAddress: "0x0000000000000000000000000000000000000000",
+            decimals: 18,
+            logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png",
+        }],
+        metadata: [],
+    },
+    {
+        caip2Id: "eip155:421614",
+        displayName: "Arbitrum Sepolia",
+        chainId: "421614",
+        nativeTokenAddress: "0x0000000000000000000000000000000000000000",
+        type: { name: "eip155" },
+        logoUrl: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/arbitrum/info/logo.png",
+        explorerUrlTemplate: {
+            transaction: "https://sepolia.arbiscan.io/tx/{hash}",
+            address: "https://sepolia.arbiscan.io/address/{address}",
+        },
+        tokens: [{
+            symbol: "ETH",
+            contractAddress: "0x0000000000000000000000000000000000000000",
+            decimals: 18,
+            logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png",
+        }],
+        metadata: [],
+    },
+    {
+        caip2Id: "eip155:84532",
+        displayName: "Base Sepolia",
+        chainId: "84532",
+        nativeTokenAddress: "0x0000000000000000000000000000000000000000",
+        type: { name: "eip155" },
+        logoUrl: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/base/info/logo.png",
+        explorerUrlTemplate: {
+            transaction: "https://sepolia.basescan.org/tx/{hash}",
+            address: "https://sepolia.basescan.org/address/{address}",
+        },
+        tokens: [{
+            symbol: "ETH",
+            contractAddress: "0x0000000000000000000000000000000000000000",
+            decimals: 18,
+            logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png",
+        }],
+        metadata: [],
+    },
+    {
+        caip2Id: KnownInternalNames.Networks.StarkNetSepolia,
+        displayName: "Starknet Sepolia",
+        chainId: "SN_SEPOLIA",
+        nativeTokenAddress: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+        type: { name: "starknet" },
+        logoUrl: "https://raw.githubusercontent.com/TrainProtocol/icons/main/networks/starknet.png",
+        tokens: [{
+            symbol: "ETH",
+            contractAddress: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+            decimals: 18,
+        }],
+        metadata: [],
+    },
+    {
+        caip2Id: KnownInternalNames.Networks.AztecDevnet,
+        displayName: "Aztec Devnet",
+        chainId: "devnet",
+        nativeTokenAddress: "0x02c31306cad429e0a00d3a4ee8ba251853099f835101ee2c637e9b3b9351a056",
+        type: { name: "aztec" },
+        logoUrl: "https://raw.githubusercontent.com/TrainProtocol/icons/main/networks/aztec.png",
+        tokens: [{
+            symbol: "ETH",
+            contractAddress: "0x02c31306cad429e0a00d3a4ee8ba251853099f835101ee2c637e9b3b9351a056",
+            decimals: 18,
+        }],
+        metadata: [],
+    },
+    {
+        caip2Id: KnownInternalNames.Networks.SolanaDevnet,
+        displayName: "Solana Devnet",
+        chainId: "devnet",
+        nativeTokenAddress: "11111111111111111111111111111111",
+        type: { name: "solana" },
+        logoUrl: "https://raw.githubusercontent.com/TrainProtocol/icons/main/networks/solana.png",
+        tokens: [{
+            symbol: "SOL",
+            contractAddress: "11111111111111111111111111111111",
+            decimals: 9,
+        }],
+        metadata: [],
+    },
+]

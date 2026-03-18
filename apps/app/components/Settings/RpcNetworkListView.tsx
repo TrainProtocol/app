@@ -27,7 +27,7 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
         return (
             network.displayName.toLowerCase().includes(query) ||
             network.caip2Id.toLowerCase().includes(query) ||
-            network.type?.displayName?.toLowerCase().includes(query)
+            network.type?.name?.toLowerCase().includes(query)
         )
     })
 

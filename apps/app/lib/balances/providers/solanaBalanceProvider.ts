@@ -2,6 +2,7 @@ import { BalanceProvider } from "@/Models/BalanceProvider";
 import { TokenBalance } from "@/Models/Balance";
 import { formatUnits } from "viem";
 import KnownInternalNames from "@/lib/knownIds";
+import { getNetworkRpcUrl } from "@/lib/rpc/resolveNetworkRpcUrl";
 
 export class SolanaBalanceProvider extends BalanceProvider {
     supportsNetwork: BalanceProvider['supportsNetwork'] = (network) => {
@@ -22,7 +23,7 @@ export class SolanaBalanceProvider extends BalanceProvider {
         if (!network?.tokens || !walletPublicKey) return
 
         const connection = new SolanaConnection(
-            `${network.nodes?.[0]?.url}`,
+            getNetworkRpcUrl(network),
             "confirmed"
         );
 

@@ -71,7 +71,7 @@ export const ModalContent = forwardRef<HTMLDivElement, ModalContentProps>((props
             {(header || showCloseButton) && (
                 <div className="w-full relative z-20">
                     <div className="flex items-center w-full text-left justify-between px-4 mt-2 pb-2 gap-x-2 sm:gap-x-1">
-                        <div className="flex-1 text-lg text-secondary-text font-semibold w-full">
+                        <div className="flex-1 text-lg text-secondary-text font-semibold w-full flex justify-end">
                             {header}
                         </div>
                         {showCloseButton && (

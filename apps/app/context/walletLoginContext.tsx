@@ -6,6 +6,8 @@ import { deriveKeyFromWallet } from '@train-protocol/sdk'
 import { deriveKeyFromStarknetSignature } from '@/lib/htlc/secretDerivation/walletSign/starknet'
 import useWallet from '@/hooks/useWallet'
 import { useWallet as useSolanaWallet } from '@solana/wallet-adapter-react'
+import { useWallet as useFuelWallet } from '@fuels/react'
+import { useAztecWalletStore } from '@/stores/aztecWalletStore'
 interface WalletLoginContextValue {
   deriveKey: (providerName: string, address: string) => Promise<Buffer>
 }
@@ -14,9 +16,10 @@ const WalletLoginContext = createContext<WalletLoginContextValue | undefined>(un
 
 export function WalletLoginProvider({ children }: { children: ReactNode }) {
   const evmConfig = useConfig()
-  const { getWallet: getAztecWallet } = useAztecWalletContext()
+  const { wallet: aztecWallet } = useAztecWalletStore()
   const { wallets } = useWallet()
   const { wallets: solanaAdapterWallets } = useSolanaWallet()
+  const { wallet: fuelWalletInstance } = useFuelWallet()
 
   const deriveKey = useCallback(
     async (providerName: string, address: string): Promise<Buffer> => {
@@ -27,7 +30,6 @@ export function WalletLoginProvider({ children }: { children: ReactNode }) {
       }
 
       if (provider === 'aztec') {
-        const aztecWallet = getAztecWallet()
         if (!aztecWallet) throw new Error('Aztec wallet required for Aztec wallets')
         return deriveKeyFromWallet('aztec', {
           wallet: aztecWallet,
@@ -49,9 +51,15 @@ export function WalletLoginProvider({ children }: { children: ReactNode }) {
         return deriveKeyFromWallet('solana', { wallet: { signMessage } })
       }
 
+      if (provider === 'fuel') {
+        if (!fuelWalletInstance) throw new Error('Fuel wallet is not connected')
+        const signMessage = (msg: string) => fuelWalletInstance.signMessage(msg)
+        return deriveKeyFromWallet('fuel', { wallet: { signMessage } })
+      }
+
       throw new Error(`Unsupported wallet provider for login: ${providerName}`)
     },
-    [evmConfig, getAztecWallet, wallets, solanaAdapterWallets],
+    [evmConfig, aztecWallet, wallets, solanaAdapterWallets, fuelWalletInstance],
   )
 
   return (

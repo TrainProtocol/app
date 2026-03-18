@@ -181,7 +181,7 @@ export class EvmHTLCClient extends HTLCClient {
         }
     }
 
-    async _getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
         const { id, contractAddress } = params
         const rpc = new JsonRpcClient(nodeUrl)
 
@@ -221,6 +221,9 @@ export class EvmHTLCClient extends HTLCClient {
     }
 
     async recoverSwap(txHash: string): Promise<RecoveredSwapData> {
+        if (!/^0x[a-fA-F0-9]{64}$/.test(txHash))
+            throw new Error('Invalid transaction hash format')
+
         const [receipt, tx] = await Promise.all([
             this.rpc.getTransactionReceipt(txHash),
             this.rpc.getTransaction(txHash),

@@ -16,17 +16,20 @@ import OpenMask from "./Wallets/OpenMask";
 import TON from "./Wallets/TON";
 import MyTonWallet from "./Wallets/MyTonWallet";
 import GlowIcon from "./Wallets/Glow";
+import LogoPlaceholder from "./LogoPlaceholder";
+import Azguard from "./Wallets/Azguard";
+
 
 export const ResolveConnectorIcon = ({
     connector,
     iconClassName,
     className,
 }: {
-    connector: string;
+    connector?: string;
     iconClassName: string;
     className?: string;
 }) => {
-    switch (connector.toLowerCase()) {
+    switch (connector?.toLowerCase()) {
         case KnownConnectors.EVM:
             return (
                 <IconsWrapper className={className}>
@@ -72,8 +75,24 @@ export const ResolveConnectorIcon = ({
                     <Solana className={iconClassName} />
                 </IconsWrapper>
             );
+        case KnownConnectors.Aztec:
+            return (
+                <IconsWrapper className={className}>
+                    <Azguard className={iconClassName} />
+                    <LogoPlaceholder className={iconClassName} />
+                    <LogoPlaceholder className={iconClassName} />
+                    <LogoPlaceholder className={iconClassName} />
+                </IconsWrapper>
+            );
         default:
-            return <></>;
+            return (
+                <IconsWrapper className={className}>
+                    <MetaMaskIcon className={iconClassName} />
+                    <WalletConnectIcon className={iconClassName} />
+                    <RainbowIcon className={iconClassName} />
+                    <Phantom className={iconClassName} />
+                </IconsWrapper>
+            );
     }
 };
 
@@ -88,4 +107,5 @@ const KnownConnectors = {
     Solana: "solana",
     Glow: "glow",
     Fuel: "fuel",
+    Aztec: "aztec",
 };

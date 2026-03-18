@@ -36,6 +36,7 @@ export class AztecHTLCClient extends HTLCClient {
         super(config.apiClient)
         this.rpcUrl = config.rpcUrl
         this.signer = config.signer
+        this.consensusOptions = { minQuorum: 1, batchSize: 1 }
     }
 
     async userLock(params: UserLockParams): Promise<AtomicResult> {
@@ -245,7 +246,7 @@ export class AztecHTLCClient extends HTLCClient {
         }
     }
 
-    async _getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
         const signer = this.requireSigner()
         const { id, contractAddress } = params
         const { contract, userAztecAddress } = await this.getContractInstance(contractAddress, signer, nodeUrl)
@@ -289,8 +290,51 @@ export class AztecHTLCClient extends HTLCClient {
         return null
     }
 
-    async recoverSwap(_txHash: string): Promise<RecoveredSwapData> {
-        throw new Error('recoverSwap is not supported for Aztec')
+    async recoverSwap(txHash: string): Promise<RecoveredSwapData> {
+        if (!/^0x[a-fA-F0-9]{1,64}$/.test(txHash))
+            throw new Error('Invalid transaction hash format')
+
+        const node = this.getNode()
+        const { logs } = await node.getPublicLogs({
+            txHash: TxHash.fromString(txHash),
+        })
+
+        if (!logs.length) throw new Error('Transaction not found')
+
+        const eventDef = TrainContract.events.UserLocked
+
+        for (const log of logs) {
+            const emittedFields = log.log.getEmittedFields()
+            if (emittedFields.length === 0) continue
+
+            const selectorField = emittedFields[emittedFields.length - 1]
+            const selector = EventSelector.fromField(selectorField)
+            if (selector.toString() !== eventDef.eventSelector.toString()) continue
+
+            const decoded = decodeFromAbi(
+                [eventDef.abiType],
+                log.log.fields,
+            ) as Record<string, any>
+
+            const bytesToString = (bytes: (bigint | number)[]) =>
+                Buffer.from(bytes.map(Number)).toString('utf8').replace(/\0/g, '').trim()
+
+            return {
+                hashlock: bytesToHex(Array.from(decoded.hashlock).map(Number)),
+                sender: decoded.sender.toString(),
+                recipient: decoded.recipient.toString(),
+                srcChain: bytesToString(decoded.src_chain),
+                dstChain: bytesToString(decoded.dst_chain),
+                token: decoded.token.toString(),
+                amount: BigInt(decoded.amount),
+                dstAddress: bytesToString(decoded.dst_address),
+                dstAmount: BigInt(decoded.dst_amount),
+                dstToken: bytesToString(decoded.dst_token),
+                srcContract: log.log.contractAddress.toString(),
+            }
+        }
+
+        throw new Error('This transaction does not contain a swap lock')
     }
 
     private parseSecret(rawSecret: unknown): bigint | undefined {

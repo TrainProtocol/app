@@ -7,6 +7,8 @@ import Row from "./Rows";
 import { Network, Token } from "@/Models/Network";
 import RouteSearch from "./RouteSearch";
 import NavigatableList from "@/components/NavigatableList";
+import useWallet from "@/hooks/useWallet";
+import ConnectWalletButton from "@/components/Input/Address/AddressPicker/ConnectedWallets/ConnectWalletButton";
 
 type ContentProps = {
     onSelect: (network: Network, token: Token) => Promise<void> | void;
@@ -32,19 +34,22 @@ export const Content: FC<ContentProps> = (props) => {
             shouldFocus={true}
             direction={props.direction}
         />
-        <Items {...props} onScroll={handleScroll} setIsItemsScrolling={setIsItemsScrolling} />
+        <Items {...props} isScrolling={isItemsScrolling} onScroll={handleScroll} setIsItemsScrolling={setIsItemsScrolling} />
     </>
 }
 
 type ItemsProps = ContentProps & {
+    isScrolling: boolean;
     onScroll: () => void;
     setIsItemsScrolling: (isScrolling: boolean) => void;
 }
 
-const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selectedToken, selectedNetwork, direction, onSelect, onScroll, setIsItemsScrolling }) => {
+const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selectedToken, selectedNetwork, direction, onSelect, isScrolling, onScroll, setIsItemsScrolling }) => {
     const parentRef = useRef<HTMLDivElement>(null)
     const [openValues, setOpenValues] = useState<string[]>(selectedNetwork ? [selectedNetwork] : [])
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const { wallets, providers } = useWallet()
+    const isProvidersReady = providers.every(p => p.ready)
 
     const isSingleNetwork = useMemo(() => {
         if (!searchQuery) return false;
@@ -76,7 +81,7 @@ const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selec
         count: rowElements.length,
         estimateSize: (index) => {
             const item = rowElements[index];
-            const key = (item as any)?.network?.name || (item as any)?.symbol;
+            const key = (item as any)?.network?.caip2Id || (item as any)?.symbol;
             const isOpen = openValues.includes(key);
             // Better size estimation based on open state
             if (isOpen && (item.type === 'network' || item.type === 'grouped_token')) {
@@ -109,15 +114,22 @@ const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selec
         }
         scrollTimeoutRef.current = setTimeout(() => {
             setIsItemsScrolling(false);
-        }, 150);
+        }, 1000);
     };
 
     return (
         <div
-            className="select-text overflow-y-auto overflow-x-hidden scrollbar:w-1! scrollbar:h-1! pr-0.5 styled-scroll h-full"
+            className={`select-text overflow-y-auto overflow-x-hidden scrollbar:w-1! scrollbar:h-1! scrollbar-thumb:bg-transparent pr-0.5 h-full${isScrolling ? " styled-scroll!" : ""}`}
             ref={parentRef}
             onScroll={handleScrollEvent}
         >
+            {wallets.length === 0 && direction === 'from' && !searchQuery &&
+                <ConnectWalletButton
+                    descriptionText="Connect your wallet to browse your assets and choose easier"
+                    className="w-full my-2.5"
+                    disabled={!isProvidersReady}
+                />
+            }
             <NavigatableList enabled={true} onReset={onReset} navigateToFirstChild={isSingleNetwork}>
                 <div id="sticky_accordion_header" />
                 <div className="relative">
@@ -140,7 +152,7 @@ const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selec
                                     }}>
                                     {items.map((virtualRow) => {
                                         const data = rowElements?.[virtualRow.index]
-                                        const key = ((data as any)?.network as any)?.name || virtualRow.key;
+                                        const key = ((data as any)?.network as any)?.caip2Id || (data as any)?.symbol || virtualRow.key;
                                         return <div
                                             className="py-1 box-border w-full overflow-hidden select-none"
                                             key={key}

@@ -1,4 +1,4 @@
-import { AnchorProvider, BN, Program, Wallet } from '@coral-xyz/anchor'
+import { AnchorProvider, BN, BorshCoder, EventParser, Program, Wallet } from '@coral-xyz/anchor'
 import { Connection, PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js'
 import {
     HTLCClient,
@@ -159,8 +159,14 @@ export class SolanaHTLCClient extends HTLCClient {
 
         if (!contractAddress) throw new Error('No contract address')
 
+        let program: ReturnType<typeof this.buildProgram>
+        try {
+            program = this.buildProgram(contractAddress)
+        } catch {
+            return null
+        }
+
         const hashlockBuffer = Buffer.from(id.replace('0x', ''), 'hex')
-        const program = this.buildProgram(contractAddress)
 
         const [userLockPda] = PublicKey.findProgramAddressSync(
             [Buffer.from("user_lock"), hashlockBuffer],
@@ -214,7 +220,7 @@ export class SolanaHTLCClient extends HTLCClient {
         }
     }
 
-    async _getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
         const { contractAddress, id } = params
 
         if (!contractAddress) throw new Error('No contract address')
@@ -276,8 +282,68 @@ export class SolanaHTLCClient extends HTLCClient {
         return null
     }
 
-    async recoverSwap(_txHash: string): Promise<RecoveredSwapData> {
-        throw new Error('recoverSwap is not supported for Solana')
+    async recoverSwap(txHash: string): Promise<RecoveredSwapData> {
+        if (!/^[1-9A-HJ-NP-Za-km-z]{43,88}$/.test(txHash))
+            throw new Error('Invalid transaction hash format')
+
+        let tx = await this.connection.getTransaction(txHash, {
+            commitment: 'confirmed',
+            maxSupportedTransactionVersion: 0,
+        })
+        if (!tx || !tx.meta?.logMessages?.length) {
+            tx = await this.connection.getTransaction(txHash, {
+                commitment: 'finalized',
+                maxSupportedTransactionVersion: 0,
+            })
+        }
+        if (!tx) throw new Error('Transaction not found')
+
+        const logs = tx.meta?.logMessages ?? []
+
+        const invokeRegex = /^Program (\S+) invoke \[\d+\]$/
+        const programIds = [...new Set(
+            logs.map(l => l.match(invokeRegex)?.[1]).filter((id): id is string => !!id)
+        )]
+
+        let userLocked: { name: string; data: Record<string, unknown> } | undefined
+        let srcContract: string | undefined
+
+        for (const pid of programIds) {
+            try {
+                const parser = new EventParser(new PublicKey(pid), new BorshCoder(TrainHtlc(pid)))
+                for (const event of parser.parseLogs(logs)) {
+                    if (event.name.toLowerCase() === 'userlocked') {
+                        userLocked = { name: event.name, data: event.data as Record<string, unknown> }
+                        srcContract = pid
+                        break
+                    }
+                }
+                if (userLocked) break
+            } catch {
+                // Not a TrainHtlc program — skip
+            }
+        }
+
+        if (!userLocked || !srcContract) {
+            throw new Error('This transaction does not contain a swap lock')
+        }
+
+        const data = userLocked.data as Record<string, any>
+        const hashlock = '0x' + Buffer.from(Array.from(data.hashlock as number[])).toString('hex')
+
+        return {
+            hashlock,
+            sender: (data.sender as PublicKey).toBase58(),
+            recipient: (data.recipient as PublicKey).toBase58(),
+            srcChain: data.src_chain as string,
+            dstChain: data.dst_chain as string,
+            token: (data.token_mint as PublicKey).toBase58(),
+            amount: BigInt((data.amount as BN).toString()),
+            dstAddress: data.dst_address as string,
+            dstAmount: BigInt((data.dst_amount as BN).toString()),
+            dstToken: data.dst_token as string,
+            srcContract,
+        }
     }
 
     // ── Private Helpers ─────────────────────────────────────────────────
@@ -348,7 +414,7 @@ export class SolanaHTLCClient extends HTLCClient {
                 const eventHashlock = '0x' + Buffer.from(hashlockBytes).toString('hex')
                 if (eventHashlock.toLowerCase() !== `0x${id.replace('0x', '')}`.toLowerCase()) continue
 
-                const userDataBytes: number[] = Array.from((event.data as Record<string, unknown>).userData as Buffer ?? [])
+                const userDataBytes: number[] = Array.from((event.data as Record<string, unknown>).user_data as Buffer ?? [])
                 const userData = userDataBytes.length > 0
                     ? Buffer.from(userDataBytes).toString('utf8').replace(/\0/g, '').trim() || undefined
                     : undefined
