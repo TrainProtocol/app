@@ -55,7 +55,7 @@ export function createSwapStore(options?: { persist?: boolean; storage?: SwapSto
         return createZustandStore<SwapStoreState>()((set) => ({
             ...initialState,
             setActiveHashlock: (hashlock) => set({ activeHashlock: hashlock }),
-            setCurrentSwap: (data) => set({ currentSwap: data }),
+            setCurrentSwap: (data) => set({ currentSwap: data, activeHashlock: null }),
             clearCurrentSwap: () => set({ currentSwap: null }),
             commitSwap: (hashlock, txId) =>
                 set((state) => {
@@ -100,7 +100,7 @@ export function createSwapStore(options?: { persist?: boolean; storage?: SwapSto
             (set) => ({
                 ...initialState,
                 setActiveHashlock: (hashlock) => set({ activeHashlock: hashlock }),
-                setCurrentSwap: (data) => set({ currentSwap: data }),
+                setCurrentSwap: (data) => set({ currentSwap: data, activeHashlock: null }),
                 clearCurrentSwap: () => set({ currentSwap: null }),
                 commitSwap: (hashlock, txId) =>
                     set((state) => {

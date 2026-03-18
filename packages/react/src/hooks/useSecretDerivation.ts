@@ -90,12 +90,19 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
     const shouldPersist = options?.persist === true
     const persistKey = options?.persistKey ?? 'train:auth'
 
-    const [method, setMethod] = useState<DerivationMethod | null>(
-        () => shouldPersist ? readPersistedMethod(persistKey) : null,
-    )
-    const [derivedKey, setDerivedKey] = useState<Uint8Array | null>(
-        () => shouldPersist ? readPersistedKey(persistKey) : null,
-    )
+    const [method, setMethod] = useState<DerivationMethod | null>(null)
+    const [derivedKey, setDerivedKey] = useState<Uint8Array | null>(null)
+
+    // Restore persisted state after hydration to avoid server/client mismatch
+    useEffect(() => {
+        if (!shouldPersist) return
+        const storedMethod = readPersistedMethod(persistKey)
+        const storedKey = readPersistedKey(persistKey)
+        if (storedMethod && storedKey) {
+            setMethod(storedMethod)
+            setDerivedKey(storedKey)
+        }
+    }, [shouldPersist, persistKey])
     const [derivationStatus, setDerivationStatus] = useState<'idle' | 'signing'>('idle')
     const [derivationMessage, setDerivationMessage] = useState('')
     const [prfSupport, setPrfSupport] = useState<PrfSupportResult | null>(null)

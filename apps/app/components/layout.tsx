@@ -23,6 +23,7 @@ import AppSettings from "@/lib/AppSettings";
 import { TrainProvider } from "@train-protocol/react";
 import { SwapProvider } from "@train-protocol/react";
 import { SecretDerivationProvider } from "@train-protocol/react";
+import { useRpcConfigStore } from "@/stores/rpcConfigStore";
 
 type Props = {
   children: JSX.Element | JSX.Element[];
@@ -113,7 +114,7 @@ export default function Layout({ children, settings, themeData }: Props) {
           <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
             <SecretDerivationProvider>
               <ThemeWrapper>
-                <TrainProvider baseUrl={AppSettings.TrainApiUri ?? ''}>
+                <TrainProviderWithRpc networks={appSettings.networks}>
                   <WalletsProviders basePath={basePath} themeData={themeData} appName={router.query.appName?.toString()}>
                     <SwapAccountsProvider>
                       <SwapProvider>
@@ -125,7 +126,7 @@ export default function Layout({ children, settings, themeData }: Props) {
                       </SwapProvider>
                     </SwapAccountsProvider>
                   </WalletsProviders>
-                </TrainProvider>
+                </TrainProviderWithRpc>
               </ThemeWrapper>
             </SecretDerivationProvider>
           </ErrorBoundary>
@@ -133,6 +134,22 @@ export default function Layout({ children, settings, themeData }: Props) {
       </SettingsProvider >
     </QueryProvider >
   </>)
+}
+
+function TrainProviderWithRpc({ networks, children }: { networks: import("@/Models/Network").Network[]; children: React.ReactNode }) {
+  const { getEffectiveRpcUrls } = useRpcConfigStore()
+
+  const resolveNodeUrls = React.useCallback((networkId: string) => {
+    const network = networks.find(n => n.caip2Id === networkId)
+    if (!network) return []
+    return getEffectiveRpcUrls(network)
+  }, [networks, getEffectiveRpcUrls])
+
+  return (
+    <TrainProvider baseUrl={AppSettings.TrainApiUri ?? ''} resolveNodeUrls={resolveNodeUrls}>
+      {children}
+    </TrainProvider>
+  )
 }
 
 function AppContent({ children }: { children: React.ReactNode }) {

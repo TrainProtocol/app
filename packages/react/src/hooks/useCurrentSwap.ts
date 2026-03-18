@@ -33,7 +33,6 @@ export function useSwapActions() {
 
     const state = store.getState()
     return {
-        setCurrentSwap: state.setCurrentSwap,
         clearCurrentSwap: state.clearCurrentSwap,
         setActiveHashlock: state.setActiveHashlock,
         commitSwap: state.commitSwap,

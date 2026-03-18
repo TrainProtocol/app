@@ -37,13 +37,16 @@ export function SecretDerivationProvider({
     passkeyStorage = defaultPasskeyStorage,
 }: SecretDerivationProviderProps) {
     const hook = useSecretDerivationHook({ persist, persistKey, passkeyStorage })
-    const [loginWallet, setLoginWallet] = useState<LoginWalletInfo | null>(() => {
-        if (typeof window === 'undefined') return null
+    const [loginWallet, setLoginWallet] = useState<LoginWalletInfo | null>(null)
+
+    // Restore loginWallet after hydration to avoid server/client mismatch
+    useEffect(() => {
+        if (typeof window === 'undefined') return
         try {
             const stored = localStorage.getItem(`${persistKey}:loginWallet`)
-            return stored ? JSON.parse(stored) : null
-        } catch { return null }
-    })
+            if (stored) setLoginWallet(JSON.parse(stored))
+        } catch { /* ignore */ }
+    }, [persistKey])
 
     // Auto-check passkey support
     useEffect(() => {

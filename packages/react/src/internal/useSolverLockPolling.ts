@@ -17,10 +17,20 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions) {
     const { client, params, nodeUrls, enabled, onSuccess } = options
 
     const fetcher = useCallback(async () => {
-        if (!client || !params) return null
-        const details = await client.getSolverLockDetails(params, nodeUrls)
-        if (details) onSuccess?.(details)
-        return details
+        if (!client || !params) {
+            console.log('[SolverLockPolling] skip: client=', !!client, 'params=', !!params)
+            return null
+        }
+        console.log('[SolverLockPolling] fetching with params:', params, 'nodeUrls:', nodeUrls)
+        try {
+            const details = await client.getSolverLockDetails(params, nodeUrls)
+            console.log('[SolverLockPolling] result:', details)
+            if (details) onSuccess?.(details)
+            return details
+        } catch (err) {
+            console.error('[SolverLockPolling] error:', err)
+            throw err
+        }
     }, [client, params, nodeUrls, onSuccess])
 
     return usePolling(fetcher, {

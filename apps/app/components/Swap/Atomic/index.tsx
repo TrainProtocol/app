@@ -9,7 +9,7 @@ import { useQueryState } from "@/context/query";
 import useWallet from "@/hooks/useWallet";
 import type { SwapQuote } from "@train-protocol/sdk";
 import { useSwapData } from "@/hooks/useSwapData";
-import { useSwapState } from "@train-protocol/react";
+import { useSwapState, useSwap } from "@train-protocol/react";
 import VaulDrawer from "../../Modal/vaulModal";
 import { Widget } from "../../Widget/Index";
 import { generateSwapInitialValues } from "@/lib/generateSwapInitialValues";
@@ -40,7 +40,8 @@ export default function Form() {
     const settings = useSettingsState()
     const swapModalOpen = useSwapStore(s => s.swapModalOpen)
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
-    const { setCurrentSwap, clearCurrentSwap, setActiveHashlock } = useSwapActions()
+    const { setCurrentSwap } = useSwap()
+    const { clearCurrentSwap, setActiveHashlock } = useSwapActions()
     const { setPulseState } = usePulsatingCircles();
     const updateRecentNetworks = useRecentNetworksStore(s => s.updateRecentNetworks);
 

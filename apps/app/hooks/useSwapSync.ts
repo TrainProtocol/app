@@ -66,20 +66,13 @@ export function useSwapSync() {
         })
     }, [activeHashlock, store, networks, swapState.hashlock, resumeSwap])
 
-    // 3. Write hashlock to URL when activeHashlock changes
+    // 3. Clean up stale activeHashlock (terminal swaps)
     useEffect(() => {
-        if (!activeHashlock) return
+        if (!activeHashlock || !store) return
 
-        const basePath = router?.basePath || ""
-        let atomicURL = window.location.protocol + "//"
-            + window.location.host + `${basePath}/swap`
-        const params = resolvePersistantQueryParams(router.query)
-        const atomicParams = new URLSearchParams({ hashlock: activeHashlock })
-        atomicURL += `?${atomicParams}`
-        if (params && Object.keys(params).length) {
-            const search = new URLSearchParams(params as any)
-            atomicURL += `&${search}`
+        const swap = store.getState().swaps[activeHashlock]
+        if (!swap || isTerminalStatus(swap.status)) {
+            store.getState().setActiveHashlock(null)
         }
-        window.history.replaceState({ ...window.history.state, as: atomicURL, url: atomicURL }, '', atomicURL)
-    }, [activeHashlock, router])
+    }, [activeHashlock, store])
 }

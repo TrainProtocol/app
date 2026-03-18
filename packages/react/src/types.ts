@@ -53,6 +53,8 @@ export interface TrainConfig {
     sdk?: import('@train-protocol/sdk').TrainSDK
     /** Optional TrainAuth instance (for testing/multi-instance). Falls back to default. */
     auth?: import('@train-protocol/auth').TrainAuth
+    /** Resolve RPC node URLs for a CAIP-2 network ID (used for solver lock verification) */
+    resolveNodeUrls?: (networkId: string) => string[]
 }
 
 /** Custom storage adapter interface */

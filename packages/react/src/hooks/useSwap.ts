@@ -1,10 +1,11 @@
 import { useSwapContext, type ResumeSwapParams } from '../providers/SwapProvider'
 import type { HTLCStatus } from '@train-protocol/sdk'
-import type { StartSwapParams } from '../types'
+import type { StartSwapParams, SwapData } from '../types'
 
 export interface UseSwapResult {
     status: HTLCStatus
     error: Error | null
+    setCurrentSwap: (data: SwapData) => void
     startSwap: (params: StartSwapParams, derivedKey: Uint8Array) => Promise<void>
     resumeSwap: (params: ResumeSwapParams) => void
     revealSecret: () => Promise<void>
@@ -20,6 +21,7 @@ export function useSwap(): UseSwapResult {
     return {
         status: ctx.status,
         error: ctx.error,
+        setCurrentSwap: ctx.setCurrentSwap,
         startSwap: ctx.startSwap,
         resumeSwap: ctx.resumeSwap,
         revealSecret: ctx.revealSecret,

@@ -16,11 +16,17 @@ export abstract class HTLCClient implements IHTLCClient {
     constructor() {}
 
     async getSolverLockDetails(params: LockParams, nodeUrls: string[]): Promise<SolverLockDetails | null> {
+        console.log('[HTLCClient.getSolverLockDetails] nodeUrls:', nodeUrls, 'params:', { id: params.id, contractAddress: params.contractAddress, chainId: params.chainId, type: params.type })
+        if (nodeUrls.length === 0) {
+            console.warn('[HTLCClient.getSolverLockDetails] nodeUrls is EMPTY — cannot poll solver lock')
+            return null
+        }
         const results = await Promise.all(
             nodeUrls.map(url => this._getSolverLockDetails(params, url))
         )
 
         const validResults = results.filter((r): r is SolverLockDetails => r !== null)
+        console.log('[HTLCClient.getSolverLockDetails] validResults:', validResults.length)
         if (!validResults.length) return null
 
         const [first, ...rest] = validResults

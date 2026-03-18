@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useSwapStore } from "../../stores/swapStore";
 import { useStoreContext } from "@train-protocol/react";
 import { useSettingsState } from "../../context/settings";
@@ -8,6 +8,8 @@ import { ImageWithFallback } from "../Common/ImageWithFallback";
 import { useRouter } from "next/router";
 
 export default function PendingSwap() {
+    const [mounted, setMounted] = useState(false)
+    useEffect(() => setMounted(true), [])
     const swapModalOpen = useSwapStore(s => s.swapModalOpen)
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
     const store = useStoreContext()
@@ -28,7 +30,7 @@ export default function PendingSwap() {
     const settings = useSettingsState()
     const router = useRouter()
 
-    if (!activeHashlock || !activeSwap || swapModalOpen || !settings || router.pathname !== "/") return null
+    if (!mounted || !activeHashlock || !activeSwap || swapModalOpen || !settings || router.pathname !== "/") return null
 
     const { networks } = settings
     const source_network = networks.find(n => n.caip2Id.toUpperCase() === activeSwap.source?.toUpperCase())
