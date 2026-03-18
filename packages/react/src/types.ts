@@ -1,4 +1,5 @@
 import type { TrainApiClient } from '@train-protocol/sdk'
+import type { QueryClient } from '@tanstack/react-query'
 
 export type DerivationMethod = 'passkey' | 'wallet_sign'
 
@@ -55,6 +56,8 @@ export interface TrainConfig {
     auth?: import('@train-protocol/auth').TrainAuth
     /** Resolve RPC node URLs for a CAIP-2 network ID (used for solver lock verification) */
     resolveNodeUrls?: (networkId: string) => string[]
+    /** Optional TanStack Query client (for sharing with app-level QueryClientProvider) */
+    queryClient?: QueryClient
     /** Secret derivation options */
     secretDerivation?: {
         /** Persist derivedKey and method to localStorage (default: true) */
@@ -154,6 +157,8 @@ export interface QuoteParams {
     enabled?: boolean
     /** Refresh interval in ms (default: 42000) */
     refreshInterval?: number
+    /** Debounce delay in ms for amount changes (default: 300, set to 0 to disable) */
+    debounceMs?: number
 }
 
 /** Parameters for swap history */

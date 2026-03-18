@@ -1,6 +1,8 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import type { HTLCFromApiResponse } from '@train-protocol/sdk'
 import { useTrainContext } from '../providers/TrainContext'
+import { trainQueryKeys } from '../internal/queryKeys'
 import type { OrderParams } from '../types'
 
 export interface UseOrderResult {
@@ -14,27 +16,20 @@ export function useOrder(params: OrderParams): UseOrderResult {
     const { apiClient } = useTrainContext()
     const { solverId, hashlock } = params
 
-    const [order, setOrder] = useState<HTLCFromApiResponse | null>(null)
-    const [isLoading, setIsLoading] = useState(false)
-    const [error, setError] = useState<Error | null>(null)
+    const query = useQuery({
+        queryKey: trainQueryKeys.order(solverId, hashlock),
+        queryFn: () => apiClient.getOrder(solverId, hashlock),
+        enabled: !!solverId && !!hashlock,
+    })
 
-    const fetchOrder = useCallback(async () => {
-        if (!solverId || !hashlock) return
-        setIsLoading(true)
-        try {
-            const data = await apiClient.getOrder(solverId, hashlock)
-            setOrder(data)
-            setError(null)
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error(String(err)))
-        } finally {
-            setIsLoading(false)
-        }
-    }, [apiClient, solverId, hashlock])
+    const refetch = useCallback(async () => {
+        await query.refetch()
+    }, [query])
 
-    useEffect(() => {
-        fetchOrder()
-    }, [fetchOrder])
-
-    return { order, isLoading, error, refetch: fetchOrder }
+    return {
+        order: query.data ?? null,
+        isLoading: query.isLoading,
+        error: query.error instanceof Error ? query.error : query.error ? new Error(String(query.error)) : null,
+        refetch,
+    }
 }

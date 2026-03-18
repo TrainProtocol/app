@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import type { SolverQuote, QuoteDetails } from '@train-protocol/sdk'
 import { useTrainContext } from '../providers/TrainContext'
+import { trainQueryKeys } from '../internal/queryKeys'
 import type { QuoteParams } from '../types'
 
 export interface UseQuoteResult {
@@ -10,6 +12,21 @@ export interface UseQuoteResult {
     isLoading: boolean
     error: Error | null
     refetch: () => Promise<void>
+}
+
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+    const [debounced, setDebounced] = useState(value)
+
+    useEffect(() => {
+        if (delayMs <= 0) {
+            setDebounced(value)
+            return
+        }
+        const timer = setTimeout(() => setDebounced(value), delayMs)
+        return () => clearTimeout(timer)
+    }, [value, delayMs])
+
+    return debounced
 }
 
 export function useQuote(params: QuoteParams): UseQuoteResult {
@@ -22,72 +39,54 @@ export function useQuote(params: QuoteParams): UseQuoteResult {
         destinationTokenContract,
         enabled = true,
         refreshInterval = 42000,
+        debounceMs = 300,
     } = params
 
-    const [quotes, setQuotes] = useState<SolverQuote[]>([])
-    const [isLoading, setIsLoading] = useState(false)
-    const [error, setError] = useState<Error | null>(null)
-    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+    const debouncedAmount = useDebouncedValue(amount, debounceMs)
+    const isDebouncing = debounceMs > 0 && debouncedAmount !== amount
 
-    const canFetch = enabled && !!amount && !!sourceNetwork && !!destinationNetwork && Number(amount) > 0
+    const canFetch = enabled && !!debouncedAmount && !!sourceNetwork && !!destinationNetwork && Number(debouncedAmount) > 0
 
-    const fetchQuote = useCallback(async () => {
-        if (!canFetch) return
-        setIsLoading(true)
-        try {
+    const queryKeyParams = {
+        amount: debouncedAmount,
+        sourceNetwork,
+        destinationNetwork,
+        sourceTokenContract,
+        destinationTokenContract,
+    }
+
+    const query = useQuery({
+        queryKey: trainQueryKeys.quote(queryKeyParams),
+        queryFn: async () => {
             const result = await apiClient.getQuote({
-                amount,
+                amount: debouncedAmount,
                 sourceNetwork,
                 destinationNetwork,
                 sourceTokenContract,
                 destinationTokenContract,
                 includeReward: true,
             })
-            setQuotes(result.quotes ?? [])
-            setError(null)
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error(String(err)))
-        } finally {
-            setIsLoading(false)
-        }
-    }, [canFetch, apiClient, amount, sourceNetwork, destinationNetwork, sourceTokenContract, destinationTokenContract])
+            return result.quotes ?? []
+        },
+        enabled: canFetch,
+        refetchInterval: refreshInterval || false,
+        staleTime: 10_000,
+    })
 
-    // Debounced fetch on param changes
-    useEffect(() => {
-        if (!canFetch) {
-            setQuotes([])
-            setError(null)
-            return
-        }
-
-        if (debounceRef.current) clearTimeout(debounceRef.current)
-        debounceRef.current = setTimeout(fetchQuote, 300)
-
-        return () => {
-            if (debounceRef.current) clearTimeout(debounceRef.current)
-        }
-    }, [fetchQuote, canFetch])
-
-    // Auto-refresh interval
-    useEffect(() => {
-        if (!canFetch || !refreshInterval) return
-
-        intervalRef.current = setInterval(fetchQuote, refreshInterval)
-        return () => {
-            if (intervalRef.current) clearInterval(intervalRef.current)
-        }
-    }, [fetchQuote, canFetch, refreshInterval])
-
+    const quotes = canFetch ? (query.data ?? []) : []
     const bestSolver = quotes.find(q => q.isBest)
     const bestQuote = bestSolver?.quote
+
+    const refetch = useCallback(async () => {
+        await query.refetch()
+    }, [query])
 
     return {
         quotes,
         bestQuote,
         bestSolver,
-        isLoading,
-        error,
-        refetch: fetchQuote,
+        isLoading: isDebouncing || (canFetch && query.isLoading),
+        error: query.error instanceof Error ? query.error : query.error ? new Error(String(query.error)) : null,
+        refetch,
     }
 }

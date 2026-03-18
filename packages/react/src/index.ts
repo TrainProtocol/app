@@ -40,6 +40,9 @@ export type { TrainSigner, TrainWalletAdapter } from './wallet/types'
 export { AztecWalletBridge } from './bridges/AztecWalletBridge'
 export type { AztecWalletBridgeProps } from './bridges/AztecWalletBridge'
 
+// --- Query Keys (for advanced consumers: prefetch/invalidate) ---
+export { trainQueryKeys } from './internal/queryKeys'
+
 // --- Types ---
 export {
     TrainError,

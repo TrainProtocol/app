@@ -1,6 +1,8 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useCallback, useMemo, type ReactNode } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import type { Network } from '@train-protocol/sdk'
 import { useTrainContext } from './TrainContext'
+import { trainQueryKeys } from '../internal/queryKeys'
 
 export interface NetworksContextValue {
     networks: Network[]
@@ -23,41 +25,39 @@ export function useNetworksContext(): NetworksContextValue {
 
 export function NetworksProvider({ children }: { children: ReactNode }) {
     const { apiClient } = useTrainContext()
-    const [networks, setNetworks] = useState<Network[]>([])
-    const [prices, setPrices] = useState<Record<string, number>>({})
-    const [isLoading, setIsLoading] = useState(true)
-    const [error, setError] = useState<Error | null>(null)
+
+    const networksQuery = useQuery({
+        queryKey: trainQueryKeys.networks(),
+        queryFn: () => apiClient.getNetworks(),
+        staleTime: 5 * 60_000,
+    })
+
+    const pricesQuery = useQuery({
+        queryKey: trainQueryKeys.prices(),
+        queryFn: () => apiClient.getPrices(),
+        staleTime: 60_000,
+        retry: false,
+    })
 
     const refetchNetworks = useCallback(async () => {
-        try {
-            const data = await apiClient.getNetworks()
-            setNetworks(data)
-            setError(null)
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error(String(err)))
-        }
-    }, [apiClient])
+        await networksQuery.refetch()
+    }, [networksQuery])
 
     const refetchPrices = useCallback(async () => {
-        try {
-            const data = await apiClient.getPrices()
-            setPrices(data)
-        } catch {
-            // Prices are non-critical, don't set error
-        }
-    }, [apiClient])
+        await pricesQuery.refetch()
+    }, [pricesQuery])
 
-    useEffect(() => {
-        setIsLoading(true)
-        Promise.all([refetchNetworks(), refetchPrices()]).finally(() => {
-            setIsLoading(false)
-        })
-    }, [refetchNetworks, refetchPrices])
+    const value = useMemo<NetworksContextValue>(() => ({
+        networks: networksQuery.data ?? [],
+        prices: pricesQuery.data ?? {},
+        isLoading: networksQuery.isLoading,
+        error: networksQuery.error instanceof Error ? networksQuery.error : networksQuery.error ? new Error(String(networksQuery.error)) : null,
+        refetchNetworks,
+        refetchPrices,
+    }), [networksQuery.data, networksQuery.isLoading, networksQuery.error, pricesQuery.data, refetchNetworks, refetchPrices])
 
     return (
-        <NetworksContext.Provider
-            value={{ networks, prices, isLoading, error, refetchNetworks, refetchPrices }}
-        >
+        <NetworksContext.Provider value={value}>
             {children}
         </NetworksContext.Provider>
     )

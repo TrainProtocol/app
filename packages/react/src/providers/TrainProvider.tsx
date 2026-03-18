@@ -1,6 +1,7 @@
 import { useMemo, useCallback, useRef, createContext, useContext, type ReactNode } from 'react'
 import { TrainApiClient, defaultTrainSDK } from '@train-protocol/sdk'
 import { defaultTrainAuth } from '@train-protocol/auth'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { TrainContext } from './TrainContext'
 import { NetworksProvider } from './NetworksProvider'
 import { SecretDerivationProvider } from './SecretDerivationProvider'
@@ -35,6 +36,20 @@ export function TrainProvider({
         storeRef.current = createSwapStore({
             persist: config.persistSwaps !== false,
             storage: config.storage,
+        })
+    }
+
+    // Create or use provided QueryClient (stable across renders)
+    const queryClientRef = useRef<QueryClient | null>(null)
+    if (!queryClientRef.current) {
+        queryClientRef.current = config.queryClient ?? new QueryClient({
+            defaultOptions: {
+                queries: {
+                    staleTime: 30_000,
+                    retry: 1,
+                    refetchOnWindowFocus: false,
+                },
+            },
         })
     }
 
@@ -74,16 +89,18 @@ export function TrainProvider({
     )
 
     return (
-        <TrainContext.Provider value={trainValue}>
-            <WalletContext.Provider value={walletValue}>
-                <StoreContext.Provider value={storeRef.current}>
-                    <NetworksProvider>
-                        <SecretDerivationProvider {...config.secretDerivation}>
-                            {children}
-                        </SecretDerivationProvider>
-                    </NetworksProvider>
-                </StoreContext.Provider>
-            </WalletContext.Provider>
-        </TrainContext.Provider>
+        <QueryClientProvider client={queryClientRef.current}>
+            <TrainContext.Provider value={trainValue}>
+                <WalletContext.Provider value={walletValue}>
+                    <StoreContext.Provider value={storeRef.current}>
+                        <NetworksProvider>
+                            <SecretDerivationProvider {...config.secretDerivation}>
+                                {children}
+                            </SecretDerivationProvider>
+                        </NetworksProvider>
+                    </StoreContext.Provider>
+                </WalletContext.Provider>
+            </TrainContext.Provider>
+        </QueryClientProvider>
     )
 }
