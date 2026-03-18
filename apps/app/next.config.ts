@@ -28,7 +28,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: '/proxy/nimbus-sepolia/:path*',
-        destination: 'https://unstable.sepolia.beacon-api.nimbus.team/:path*',
+        destination: 'https://ethereum-sepolia-beacon-api.publicnode.com/:path*',
       },
       {
         source: '/proxy/nimbus-mainnet/:path*',

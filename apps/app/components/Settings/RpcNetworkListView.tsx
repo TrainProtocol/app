@@ -3,7 +3,7 @@ import { Settings2, Search, Zap } from "lucide-react"
 import { useSettingsState } from "../../context/settings"
 import { Network } from "../../Models/Network"
 import { useRpcConfigStore } from "../../stores/rpcConfigStore"
-import LightClient from "../../lib/lightClient"
+import { supportsLightClient } from "../../lib/lightClient/supportsNetwork"
 import Image from 'next/image'
 
 interface RpcNetworkListViewProps {
@@ -14,10 +14,6 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
     const settings = useSettingsState()
     const { rpcConfigs, isUsingCustomRpc } = useRpcConfigStore()
     const [searchQuery, setSearchQuery] = useState<string>('')
-
-    const hasLightClient = (network: Network): boolean => {
-        return new LightClient().supportsNetwork(network)
-    }
 
     // Filter for all networks with RPC URLs
     const networksWithRpc = settings?.networks?.filter(
@@ -84,7 +80,7 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
                                             <span className="font-medium text-primary-text">
                                                 {network.displayName}
                                             </span>
-                                            {hasLightClient(network) && (
+                                            {supportsLightClient(network) && (
                                                 <span className="flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-blue-900/20 text-blue-400 rounded">
                                                     <Zap className="w-3 h-3" />
                                                     Light Client

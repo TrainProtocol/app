@@ -251,6 +251,7 @@ export function useSwapProgress(): SwapProgress {
                 subtitle: "You will receive your assets shortly.",
                 steps: buildSteps(HAPPY_STEPS, 3, { source: sourceTxLink, dest: destTxLink }, {
                     0: { timelock: sourceDetails?.timelock },
+                    1: { description: <VerificationStatus /> },
                     3: { name: "Receiving assets", status: StepStatus.Current, description: "Solver is claiming on destination" },
                 }),
             };
@@ -263,6 +264,7 @@ export function useSwapProgress(): SwapProgress {
                 title: "Action required",
                 subtitle: "Claim your assets manually on the destination chain.",
                 steps: buildSteps(HAPPY_STEPS, 3, { source: sourceTxLink, dest: destTxLink }, {
+                    1: { description: <VerificationStatus /> },
                     3: { name: "Claim assets", status: !redeemTxLink ? StepStatus.Upcoming : StepStatus.Current, description: "Solver didn't complete the claim. You can claim your assets manually." },
                 }),
             };
@@ -274,7 +276,9 @@ export function useSwapProgress(): SwapProgress {
                 gaugeValue: 100, gaugeIcon: "check",
                 title: "Swap complete",
                 subtitle: "Your assets have been sent to your address.",
-                steps: buildSteps(HAPPY_STEPS, -1, { redeem: redeemTxLink, source: sourceTxLink, dest: destTxLink }),
+                steps: buildSteps(HAPPY_STEPS, -1, { redeem: redeemTxLink, source: sourceTxLink, dest: destTxLink }, {
+                    1: { description: <VerificationStatus /> },
+                }),
             };
         }
 
