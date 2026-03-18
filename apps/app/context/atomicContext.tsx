@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useSettingsState } from './settings';
 import { LockDetails, LockStatus } from '../Models/phtlc/PHTLC';
 import { Network, Token } from '@/Models/Network';
+import { Wallet } from '@/Models/WalletProvider';
 import { HTLCFromApi, HTLCTransaction, resolveHTLCStatus, IHTLCClient } from '@train-protocol/sdk';
 import LightClient from '@/lib/lightClient';
 import { SwapData, useSwapStore } from '@/stores/swapStore';
@@ -106,7 +107,6 @@ export function AtomicProvider({ children }) {
     const [manualClaimTxId, setManualClaimTxId] = useState<string | undefined>(undefined);
     const [lightClient, setLightClient] = useState<LightClient | undefined>(undefined);
     const [verifyingByLightClient, setVerifyingByLightClient] = useState(false)
-    const [clients, setClients] = useState<Record<string, IHTLCClient | undefined>>({});
 
     // Restore secretRevealed from persisted swap store on hydration
     useEffect(() => {
@@ -196,28 +196,8 @@ export function AtomicProvider({ children }) {
     const destinationAccount = useSelectedAccount('to', destination_network?.caip2Id)
     const destinationWallet = (destinationAccount?.address && destination_network) ? destinationProvider?.connectedWallets?.find(w => Address.equals(w.address, destinationAccount?.address, destination_network)) : undefined
 
-    useEffect(() => {
-        if (!source_network) return
-        setClients(prev => ({ ...prev, [source_network.caip2Id]: undefined }))
-        let cancelled = false
-        createWriteClient(source_network, isProvidersReady ? sourceWallet : undefined)
-            .then(client => { if (!cancelled) setClients(prev => ({ ...prev, [source_network.caip2Id]: client })) })
-            .catch(e => console.error('Error creating source HTLC client:', e))
-        return () => { cancelled = true }
-    }, [source_network, sourceWallet, isProvidersReady, createWriteClient])
-
-    useEffect(() => {
-        if (!destination_network) return
-        setClients(prev => ({ ...prev, [destination_network.caip2Id]: undefined }))
-        let cancelled = false
-        createWriteClient(destination_network, isProvidersReady ? destinationWallet : undefined)
-            .then(client => { if (!cancelled) setClients(prev => ({ ...prev, [destination_network.caip2Id]: client })) })
-            .catch(e => console.error('Error creating destination HTLC client:', e))
-        return () => { cancelled = true }
-    }, [destination_network, destinationWallet, isProvidersReady, createWriteClient])
-
-    const sourceClient = source_network ? clients[source_network.caip2Id] : undefined
-    const destinationClient = destination_network ? clients[destination_network.caip2Id] : undefined
+    const sourceClient = useHTLCClientInstance(source_network, sourceWallet, isProvidersReady, createWriteClient)
+    const destinationClient = useHTLCClientInstance(destination_network, destinationWallet, isProvidersReady, createWriteClient)
 
     const handleUserLockSuccess = useCallback((details: LockDetails) => {
         if (hashlock) {
@@ -412,4 +392,25 @@ export function useAtomicState() {
     }
 
     return data;
+}
+
+function useHTLCClientInstance(
+    network: Network | undefined,
+    wallet: Wallet | undefined,
+    isProvidersReady: boolean,
+    createWriteClient: ReturnType<typeof useHTLCWriteClient>
+): IHTLCClient | undefined {
+    const [client, setClient] = useState<IHTLCClient | undefined>();
+
+    useEffect(() => {
+        if (!network) return;
+        setClient(undefined);
+        let cancelled = false;
+        createWriteClient(network, isProvidersReady ? wallet : undefined)
+            .then(c => { if (!cancelled) setClient(c) })
+            .catch(e => console.error(`Error creating HTLC client for ${network.caip2Id}:`, e));
+        return () => { cancelled = true };
+    }, [network, wallet, isProvidersReady, createWriteClient]);
+
+    return client;
 }

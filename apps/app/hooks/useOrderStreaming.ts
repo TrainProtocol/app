@@ -20,7 +20,7 @@ export default function useOrderStreaming({ solverId, hashlock, enabled, onOrder
     useEffect(() => {
         onOrderRef.current = onOrder
         onFailedRef.current = onFailed
-    })
+    }, [onOrder, onFailed])
 
     useEffect(() => {
         if (!enabled || !solverId || !hashlock) return
