@@ -1,4 +1,9 @@
 import { NetworkNode } from '@train-protocol/sdk'
+import chainlistRpcs from './data/chainlistRpcs.json'
+
+type ChainlistEntry = { chainId: number; rpc: { url: string; tracking: string | null }[] }
+
+const ALLOWED_TRACKING = new Set(['none', 'limited'])
 
 function extractProviderName(url: string): string {
     try {
@@ -10,22 +15,23 @@ function extractProviderName(url: string): string {
 }
 
 /**
- * Resolve EVM RPC nodes for a given chainId from chainlist-rpcs.
+ * Resolve EVM RPC nodes for a given chainId from static chainlist data.
  */
 export async function resolveEvmNodes(chainId: string): Promise<NetworkNode[]> {
-    const { get_rpcs_for_chain } = await import('chainlist-rpcs')
-    const rpcs = get_rpcs_for_chain({
-        chain_id: Number(chainId),
-        allowed_tracking: ['none', 'limited'],
-    })
+    const chain = (chainlistRpcs as ChainlistEntry[]).find(
+        (c) => c.chainId === Number(chainId),
+    )
+    if (!chain) return []
 
-    if (!Array.isArray(rpcs)) return []
+    const rpcs = chain.rpc.filter(
+        (entry) => entry.tracking != null && ALLOWED_TRACKING.has(entry.tracking),
+    )
 
     const seen = new Set<string>()
     const results: NetworkNode[] = []
 
     for (const entry of rpcs) {
-        const url = typeof entry === 'string' ? entry : entry.url
+        const { url } = entry
         if (
             typeof url === 'string' &&
             url.startsWith('https://') &&

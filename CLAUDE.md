@@ -52,7 +52,7 @@ Key files:
 - `apps/app/lib/wallets/utils/atomicTypes.ts` — chain-specific wallet/atomic interfaces
 
 ### RPC Node Resolution & Consensus
-- `apps/app/lib/rpc/` — dynamic RPC resolution: `nodeResolver.ts` (entry point), `evmNodes.ts` (chainlist-rpcs), `nonEvmNodes.ts` (static registry)
+- `apps/app/lib/rpc/` — RPC resolution: `nodeResolver.ts` (entry point), `evmNodes.ts` (static chainlist data from `data/chainlistRpcs.json`), `nonEvmNodes.ts` (static registry)
 - `resolveNodes(caip2Id)` returns all available RPCs (existing nodes first, then dynamic/static). Called server-side in `getSettings.ts`
 - `rpcConfigStore` manages user custom RPC overrides; `getEffectiveRpcUrls(network)` returns custom URLs or `network.nodes`
 - **Consensus verification**: `getSolverLockDetailsWithConsensus()` in SDK queries nodes in batches of `batchSize` (default 3), retries with next batch if quorum (`minQuorum`, default 2) not met
