@@ -56,8 +56,7 @@ type ResolveActionProps = {
 const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, disableButton, error, quote, type }) => {
     const { setError } = useAtomicState()
 
-    if (error) {
-        if (disableButton) return <></>
+    if (error && !disableButton) {
         return (
             <SubmitButton type="button" onClick={() => setError(undefined)}>
                 Try again
@@ -77,6 +76,7 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, disableButton, er
         case HTLCStatus.SecretRevealed:
             return <></>
         case HTLCStatus.SolverLockDetected:
+            if (disableButton) return <></>
             return <SolverLockDetectedAction type={type} />
         case HTLCStatus.UserLocked:
             return <></>
