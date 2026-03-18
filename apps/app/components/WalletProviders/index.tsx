@@ -9,8 +9,6 @@ import { WalletModalProvider } from "../WalletModal";
 import { WalletProvidersProvider } from "../../context/walletHookProviders";
 import { AztecWalletProvider } from "./AztecWalletProvider";
 import { EvmConnectorsProvider } from "@/context/evmConnectorsContext";
-import { SecretDerivationProvider } from "@/context/secretDerivationContext";
-import { WalletLoginProvider } from "@/context/walletLoginContext";
 import { WalletBridges } from "../WalletBridges";
 import FuelProviderWrapper from "./FuelProvider";
 
@@ -26,12 +24,8 @@ const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], basePath: st
                                     <AztecWalletProvider>
                                         <ImtblPassportProvider>
                                             <WalletProvidersProvider>
-                                                <WalletLoginProvider>
-                                                    <SecretDerivationProvider>
-                                                    <WalletBridges />
-                                                        {children}
-                                                    </SecretDerivationProvider>
-                                                </WalletLoginProvider>
+                                                <WalletBridges />
+                                                {children}
                                             </WalletProvidersProvider>
                                         </ImtblPassportProvider>
                                     </AztecWalletProvider>

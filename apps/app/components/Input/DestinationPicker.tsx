@@ -4,7 +4,7 @@ import DestinationWalletPicker from "./DestinationWalletPicker";
 import { useFormikContext } from "formik";
 import { SwapFormValues } from "../DTOs/SwapFormValues";
 import { ReceiveAmount } from "./Amount/ReceiveAmount";
-import { SwapQuote } from "@/lib/trainApiClient";
+import type { SwapQuote } from "@train-protocol/sdk";
 
 type Props = {
     quote?: SwapQuote;

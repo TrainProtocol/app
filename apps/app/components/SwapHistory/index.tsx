@@ -7,7 +7,8 @@ import { Network } from '@/Models/Network'
 import HistorySummaryCard from './HistorySummaryCard'
 import SwapDetailsPanel from './SwapDetailsPanel'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/shadcn/accordion'
-import TrainApiClient, { HTLCTransaction } from '@/lib/trainApiClient'
+import { TrainApiClient, HTLCTransaction } from '@train-protocol/sdk'
+import AppSettings from '@/lib/AppSettings'
 import { getDaysAgoLabel } from '@/components/utils/dateDifference'
 
 type DateGroup = {
@@ -41,7 +42,7 @@ function buildCompletedDateGroups(terminalEntries: [string, SwapData][]): DateGr
     return groups
 }
 
-const apiClient = new TrainApiClient()
+const apiClient = new TrainApiClient({ baseUrl: AppSettings.TrainApiUri ?? '' })
 
 const emptySwaps: Record<string, SwapData> = {}
 
@@ -106,8 +107,8 @@ const SwapHistory: FC = () => {
     useEffect(() => {
         entries.forEach(([hashlock, swap]) => {
             if (swap.status !== HTLCStatus.RedeemCompleted || swap.destTxId || !swap.solver) return
-            apiClient.GetOrder(swap.solver, hashlock).then(res => {
-                const redeemTx = res?.data?.order?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem)?.hash
+            apiClient.getOrder(swap.solver, hashlock).then(res => {
+                const redeemTx = res?.order?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem)?.hash
                 if (redeemTx) updateSwap(hashlock, { destTxId: redeemTx })
             }).catch((err) => {
                 console.error(`Failed to fetch redeem tx for ${hashlock}:`, err)

@@ -1,13 +1,13 @@
 import { useCallback } from 'react'
 import { LockStatus } from '@train-protocol/sdk'
-import type { IHTLCClient, LockDetails, LockParams } from '@train-protocol/sdk'
+import type { IHTLCClient, UserLockDetails, LockParams } from '@train-protocol/sdk'
 import { usePolling } from './usePolling'
 
 export interface UseUserLockPollingOptions {
     client: IHTLCClient | null
     params: LockParams | null
     enabled: boolean
-    onSuccess?: (details: LockDetails) => void
+    onSuccess?: (details: UserLockDetails) => void
 }
 
 /**

@@ -2,10 +2,10 @@ import React, { FC, useMemo } from "react";
 import { useSwapData } from "@/hooks/useSwapData";
 import { useSwapState } from "@train-protocol/react";
 import { StepStatus, TimelineStep } from "./progressTypes";
-import { LockStatus } from "@/Models/phtlc/PHTLC";
+import { LockStatus } from "@train-protocol/sdk";
 import { getExplorerUrl } from "@/lib/address";
 import NetworkSettings from "@/lib/NetworkSettings";
-import { HTLCTransaction } from "@/lib/trainApiClient";
+import { HTLCTransaction } from "@train-protocol/sdk";
 import { HTLCStatus } from "@/Models/HTLCStatus";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
 
@@ -225,7 +225,7 @@ export function useSwapProgress(): SwapProgress {
                 steps: buildSteps(HAPPY_STEPS, -1, { redeem: redeemTxLink, source: sourceTxLink, dest: destTxLink }),
             };
         }
-
+        console.log("htlcStatus", htlcStatus)
         // Timelock expired — awaiting refund action
         if (htlcStatus === HTLCStatus.TimelockExpired && !isRefunded && !refundTxId) {
             return {

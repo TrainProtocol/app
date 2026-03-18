@@ -10,7 +10,7 @@ import { transformFormValuesToQuoteArgs, useQuoteData } from "@/hooks/useFee";
 import useWallet from "@/hooks/useWallet";
 import FormButton from "../FormButton";
 import { hasRequiredDestinationWallet } from "@/lib/wallets/utils/destinationWalletUtils";
-import { SwapQuote } from "@/lib/trainApiClient";
+import type { SwapQuote } from "@train-protocol/sdk";
 import QuoteDetails from "@/components/FeeDetails";
 import ReverseRouteButton from "./ReverseRouteButton";
 

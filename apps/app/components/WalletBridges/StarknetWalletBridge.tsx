@@ -36,6 +36,16 @@ export function StarknetWalletBridge() {
             }
         },
 
+        getLoginConfig: () => {
+            if (!account || !address) return null
+            const isSandbox = process.env.NEXT_PUBLIC_API_VERSION === 'sandbox'
+            return {
+                provider: account,
+                address,
+                options: { chainId: isSandbox ? 'SN_SEPOLIA' : 'SN_MAIN' },
+            }
+        },
+
         onSignerChange: () => {
             return () => {}
         },

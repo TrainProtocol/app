@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import type { IHTLCClient, LockDetails, LockParams } from '@train-protocol/sdk'
+import type { IHTLCClient, SolverLockDetails, LockParams } from '@train-protocol/sdk'
 import { usePolling } from './usePolling'
 
 export interface UseSolverLockPollingOptions {
@@ -7,7 +7,7 @@ export interface UseSolverLockPollingOptions {
     params: LockParams | null
     nodeUrls: string[]
     enabled: boolean
-    onSuccess?: (details: LockDetails) => void
+    onSuccess?: (details: SolverLockDetails) => void
 }
 
 /**

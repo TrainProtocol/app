@@ -1,5 +1,4 @@
 import { Token } from './network'
-import { LockDetails } from './lock'
 
 export type UserLockParams = {
     destinationChain: string,
@@ -38,18 +37,6 @@ export type LockParams = {
     solverAddress?: string,
 }
 
-export type OldLockParams = {
-    type: 'erc20' | 'native';
-    id: string,
-    lockData?: LockDetails,
-    hashlock: string,
-    chainId: string | null,
-    contractAddress: string,
-    lockDataResolver?: (data: any[]) => LockDetails,
-    sourceAsset?: Token,
-    solver: string,
-}
-
 export type RefundParams = {
     type: 'erc20' | 'native';
     chainId: string | null,
@@ -73,8 +60,3 @@ export type RedeemSolverParams = {
     index?: number,
 }
 
-export type GetCommitsParams = {
-    type: 'erc20' | 'native';
-    contractAddress: string,
-    chainId: string,
-}

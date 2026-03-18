@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { Fingerprint, Wallet as WalletIcon } from 'lucide-react';
-import { useSecretDerivation } from '@/context/secretDerivationContext';
+import { useSharedSecretDerivation } from '@train-protocol/react';
 import { useConnectModal } from '@/components/WalletModal';
 import useWallet from '@/hooks/useWallet';
 import { Wallet } from '@/Models/WalletProvider';
-import { getRegisteredWalletSignProviders } from '@train-protocol/sdk';
+import { getRegisteredWalletSignProviders } from '@train-protocol/auth';
 
 const OptionSelect = ({ onPasskeyLogin, goToStep, onConnectFinish }: {
     onPasskeyLogin: () => void;
@@ -13,7 +13,7 @@ const OptionSelect = ({ onPasskeyLogin, goToStep, onConnectFinish }: {
 }) => {
     const { connect } = useConnectModal();
     const { providers } = useWallet();
-    const { prfSupportDetails } = useSecretDerivation();
+    const { prfSupportDetails } = useSharedSecretDerivation();
 
     const connectedWallets = useMemo(() => {
         const registeredProviders = getRegisteredWalletSignProviders();

@@ -25,7 +25,9 @@ export { useRefund } from './hooks/useRefund'
 export { useManualClaim } from './hooks/useManualClaim'
 export { useRecoverSwap } from './hooks/useRecoverSwap'
 
-// --- Secret Derivation Hooks ---
+// --- Secret Derivation ---
+export { SecretDerivationProvider, useSharedSecretDerivation } from './providers/SecretDerivationProvider'
+export type { SecretDerivationProviderProps, SecretDerivationContextValue, LoginWalletInfo } from './providers/SecretDerivationProvider'
 export { useSecretDerivation } from './hooks/useSecretDerivation'
 export { usePasskeyLogin } from './hooks/usePasskeyLogin'
 export { useWalletLogin } from './hooks/useWalletLogin'
@@ -55,6 +57,8 @@ export type {
     Network,
     Token,
     LockDetails,
+    UserLockDetails,
+    SolverLockDetails,
     IHTLCClient,
     HTLCFromApi,
     HTLCFromApiResponse,
@@ -64,8 +68,6 @@ export type {
     AggregatedQuoteResponse,
     SwapQuote,
     RecoveredSwapData,
-    PrfSupportResult,
-    DerivationMethod,
 } from '@train-protocol/sdk'
 
 export {
@@ -74,6 +76,20 @@ export {
     isTerminalStatus,
     TERMINAL_STATUSES,
 } from '@train-protocol/sdk'
+
+// --- Re-exported Auth types ---
+export type {
+    PrfSupportResult,
+    PasskeyCredentialStorage,
+} from '@train-protocol/auth'
+
+export {
+    InMemoryPasskeyStorage,
+} from '@train-protocol/auth'
+
+export { LocalStoragePasskeyStorage } from './internal/LocalStoragePasskeyStorage'
+
+export type { DerivationMethod } from './types'
 
 // --- Hook result types ---
 export type { UseQuoteResult } from './hooks/useQuote'
@@ -84,7 +100,7 @@ export type { UseRevealSecretResult } from './hooks/useRevealSecret'
 export type { UseRefundResult } from './hooks/useRefund'
 export type { UseManualClaimResult } from './hooks/useManualClaim'
 export type { UseRecoverSwapResult } from './hooks/useRecoverSwap'
-export type { UseSecretDerivationResult } from './hooks/useSecretDerivation'
+export type { UseSecretDerivationResult, PasskeyLoginOptions } from './hooks/useSecretDerivation'
 export type { UsePasskeyLoginResult } from './hooks/usePasskeyLogin'
 export type { UseWalletLoginResult } from './hooks/useWalletLogin'
 export type { UseSwapHistoryResult } from './hooks/useSwapHistory'

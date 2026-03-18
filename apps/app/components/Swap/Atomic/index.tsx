@@ -7,7 +7,7 @@ import SwapForm from "./Form";
 import { NextRouter, useRouter } from "next/router";
 import { useQueryState } from "@/context/query";
 import useWallet from "@/hooks/useWallet";
-import { SwapQuote } from "@/lib/trainApiClient";
+import type { SwapQuote } from "@train-protocol/sdk";
 import { useSwapData } from "@/hooks/useSwapData";
 import { useSwapState } from "@train-protocol/react";
 import VaulDrawer from "../../Modal/vaulModal";
@@ -15,7 +15,7 @@ import { Widget } from "../../Widget/Index";
 import { generateSwapInitialValues } from "@/lib/generateSwapInitialValues";
 import { useSettingsState } from "@/context/settings";
 import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
-import { useSecretDerivation } from "@/context/secretDerivationContext";
+import { useSharedSecretDerivation } from "@train-protocol/react";
 import { useSwapStore } from "@/stores/swapStore";
 import { useSwapActions } from "@train-protocol/react";
 import { formatUnits } from "viem";
@@ -29,7 +29,7 @@ export default function Form() {
     const formikRef = useRef<FormikProps<SwapFormValues>>(null);
     const router = useRouter();
     const query = useQueryState()
-    const { isLoggedIn } = useSecretDerivation()
+    const { isLoggedIn } = useSharedSecretDerivation()
 
     const [quote, setQuote] = useState<SwapQuote | undefined>()
     const [solverId, setSolverId] = useState<string | undefined>()

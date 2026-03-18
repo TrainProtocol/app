@@ -4,10 +4,10 @@ import { useSwapData } from "@/hooks/useSwapData";
 import { useSwapState, useSwap, useSwapActions } from "@train-protocol/react";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
-import { LockStatus } from "@/Models/phtlc/PHTLC";
-import { SwapQuote } from "@/lib/trainApiClient";
+import { LockStatus } from "@train-protocol/sdk";
+import type { SwapQuote } from "@train-protocol/sdk";
 import { SwapViewType } from ".";
-import { useSecretDerivation } from "@/context/secretDerivationContext";
+import { useSharedSecretDerivation } from "@train-protocol/react";
 import { useSelectedAccount } from "@/context/swapAccounts";
 import { Address } from "@/lib/address";
 import { type StartSwapParams } from "@train-protocol/react";
@@ -24,7 +24,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
     const { startSwap } = useSwap();
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
-    const { deriveInitialKey } = useSecretDerivation()
+    const { derivedKey } = useSharedSecretDerivation()
     const sourceAccount = useSelectedAccount('from', source_network?.caip2Id)
     const sourceWallet = (sourceAccount?.address && source_network) ? provider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, source_network)) : undefined
 
@@ -39,8 +39,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
 
             if (provider && sourceWallet && (sourceWallet.chainId != source_network.chainId) && provider.switchChain) await provider.switchChain(sourceWallet, source_network.chainId)
 
-            // Get the derived key for secret derivation (SwapProvider handles deriveSecret internally)
-            const derivedKey = await deriveInitialKey({ wallet: provider.activeWallet })
+            if (!derivedKey) throw new Error('Please login first')
 
             const params: StartSwapParams = {
                 sourceNetwork: source_network.caip2Id,

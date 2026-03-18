@@ -27,6 +27,9 @@ type StationNetworkResponse = {
         decimals: number;
         logoUrl?: string;
     }[];
+    nodes?: { providerName: string; url: string; protocol?: string }[];
+    contracts?: { type: string; address: string }[];
+    metadata?: any[];
 }
 
 function mapStationNetwork(n: StationNetworkResponse): Network {
@@ -44,9 +47,9 @@ function mapStationNetwork(n: StationNetworkResponse): Network {
         nativeTokenAddress: n.nativeTokenAddress,
         type: { name: n.networkType },
         tokens,
-        nodes: [],
-        contracts: [],
-        metadata: [],
+        nodes: n.nodes ?? [],
+        contracts: (n.contracts ?? []) as any[],
+        metadata: n.metadata ?? [],
         explorerUrlTemplate: n.explorerUrlTemplate,
         logoUrl: n.logoUrl,
     } as unknown as Network

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Loader2, ChevronLeft, CircleX } from 'lucide-react';
 import VaulModal from '@/components/Modal/vaulModal';
-import { useSecretDerivation } from '@/context/secretDerivationContext';
-import { mapPasskeyError } from '@/lib/htlc/secretDerivation/passkeyService';
+import { useSharedSecretDerivation } from '@train-protocol/react';
+import { mapPasskeyError } from '@train-protocol/auth';
 import { PasskeyChoice } from './PasskeyChoice';
 import { Wallet } from '@/Models/WalletProvider';
 import { useSteps } from '@/hooks/useSteps';
@@ -10,7 +10,7 @@ import { Steps, Step } from '@/components/Step';
 import OptionSelect from './OptionSelect';
 import IconButton from '@/components/buttons/iconButton';
 import WalletSelect from './SelectWallet';
-import { usePasskeyCredentialIds } from '@/stores/secretDerivationStore';
+import { toChainNamespace } from '@/lib/chainNamespace';
 
 type LoginStep = 'pick' | 'passkey_recovery' | 'wallet_select' | 'signing';
 
@@ -26,9 +26,8 @@ interface LoginModalProps {
 }
 
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
-  const { loginWithPasskey, loginWithWallet, derivationMessage } = useSecretDerivation();
-  const storedPasskeyIds = usePasskeyCredentialIds();
-  const hasStoredPasskeys = storedPasskeyIds.length > 0;
+  const { loginWithPasskey, loginWithWallet, derivationMessage, passkeyCredentials } = useSharedSecretDerivation();
+  const hasStoredPasskeys = passkeyCredentials.length > 0;
   const { currentStep, goToStep, goBack, canGoBack, reset, isStep } = useSteps<LoginStep>({ initial: 'pick' });
   const [passkeyError, setPasskeyError] = useState<string | null>(null);
   const [signingWallet, setSigningWallet] = useState<Wallet | null>(null);
@@ -70,7 +69,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setSigningError(null);
     goToStep('signing');
     try {
-      await loginWithWallet(wallet);
+      await loginWithWallet(toChainNamespace(wallet.providerName));
       closeAndReset();
     } catch (e) {
       const message = getErrorMessage(e, 'Wallet login failed');

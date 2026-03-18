@@ -23,12 +23,30 @@ function toBaseUnits(amount: string, decimals: number): BN {
     return new BN(parseUnits(amount, decimals).toString())
 }
 
-function secretToBuffer(secret: string | bigint): Buffer {
-    if (typeof secret === 'bigint') {
-        return Buffer.from(secret.toString(16).padStart(64, '0'), 'hex')
+function hexToUint8Array(hex: string): Uint8Array {
+    const clean = hex.replace('0x', '')
+    const bytes = new Uint8Array(clean.length / 2)
+    for (let i = 0; i < clean.length; i += 2) {
+        bytes[i / 2] = parseInt(clean.substring(i, i + 2), 16)
     }
-    return Buffer.from(secret.replace('0x', ''), 'hex')
+    return bytes
 }
+
+function secretToUint8Array(secret: string | bigint): Uint8Array {
+    if (typeof secret === 'bigint') {
+        return hexToUint8Array(secret.toString(16).padStart(64, '0'))
+    }
+    return hexToUint8Array(secret.replace('0x', ''))
+}
+
+function writeBigUInt64LE(value: bigint): Uint8Array {
+    const buf = new Uint8Array(8)
+    const view = new DataView(buf.buffer)
+    view.setBigUint64(0, value, true)
+    return buf
+}
+
+const encoder = new TextEncoder()
 
 export const userLockTransactionBuilder = async (params: UserLockParams): Promise<TransactionResult> => {
     const { connection, program, walletPublicKey } = params
@@ -36,7 +54,7 @@ export const userLockTransactionBuilder = async (params: UserLockParams): Promis
     if (!walletPublicKey) throw new Error("Wallet not connected")
     if (!params.srcLpAddress) throw new Error("No LP address")
 
-    const hashlock = Buffer.from(params.hashlock.replace('0x', ''), 'hex')
+    const hashlock = hexToUint8Array(params.hashlock.replace('0x', ''))
     const bnAmount = toBaseUnits(params.amount, params.decimals)
     const bnDstAmount = toBaseUnits(params.destinationAmount, params.decimals)
     const bnRewardAmount = toBaseUnits(params.rewardAmount || '0', params.decimals)
@@ -45,11 +63,11 @@ export const userLockTransactionBuilder = async (params: UserLockParams): Promis
     const bnQuoteExpiry = new BN(params.quoteExpiry)
     const lpPublicKey = new PublicKey(params.srcLpAddress)
     const hashlockArray = Array.from(hashlock)
-    const userData = params.nonce != null ? Buffer.from(params.nonce.toString(), 'utf8') : Buffer.from([])
-    const solverDataBytes = params.solverData ? Buffer.from(params.solverData, 'utf8') : Buffer.from([])
+    const userData = params.nonce != null ? encoder.encode(params.nonce.toString()) : new Uint8Array(0)
+    const solverDataBytes = params.solverData ? encoder.encode(params.solverData) : new Uint8Array(0)
 
     const [userLockPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("user_lock"), hashlock],
+        [encoder.encode("user_lock"), hashlock],
         program.programId
     )
 
@@ -60,7 +78,7 @@ export const userLockTransactionBuilder = async (params: UserLockParams): Promis
         const tokenMint = new PublicKey(params.sourceAsset.contractAddress)
         const senderTokenAccount = await getAssociatedTokenAddress(tokenMint, walletPublicKey)
         const [vault] = PublicKey.findProgramAddressSync(
-            [Buffer.from("user_vault"), hashlock],
+            [encoder.encode("user_vault"), hashlock],
             program.programId
         )
 
@@ -115,11 +133,11 @@ export const userLockTransactionBuilder = async (params: UserLockParams): Promis
 
 export const refundTransactionBuilder = async (params: RefundTxParams): Promise<TransactionResult> => {
     const { connection, program, walletPublicKey } = params
-    const hashlockBuffer = Buffer.from(params.id.replace('0x', ''), 'hex')
-    const hashlockArray = Array.from(hashlockBuffer)
+    const hashlockBytes = hexToUint8Array(params.id.replace('0x', ''))
+    const hashlockArray = Array.from(hashlockBytes)
 
     const [userLockPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("user_lock"), hashlockBuffer],
+        [encoder.encode("user_lock"), hashlockBytes],
         program.programId
     )
 
@@ -129,7 +147,7 @@ export const refundTransactionBuilder = async (params: RefundTxParams): Promise<
         const tokenMint = new PublicKey(params.sourceAsset.contractAddress)
         const senderTokenAccount = await getAssociatedTokenAddress(tokenMint, walletPublicKey)
         const [vault] = PublicKey.findProgramAddressSync(
-            [Buffer.from("user_vault"), hashlockBuffer],
+            [encoder.encode("user_vault"), hashlockBytes],
             program.programId
         )
 
@@ -169,17 +187,16 @@ export const refundTransactionBuilder = async (params: RefundTxParams): Promise<
 
 export const redeemSolverTransactionBuilder = async (params: RedeemSolverTxParams): Promise<TransactionResult> => {
     const { connection, program, walletPublicKey } = params
-    const hashlockBuffer = Buffer.from(params.id.replace('0x', ''), 'hex')
-    const hashlockArray = Array.from(hashlockBuffer)
-    const secretArray = Array.from(secretToBuffer(params.secret))
+    const hashlockBytes = hexToUint8Array(params.id.replace('0x', ''))
+    const hashlockArray = Array.from(hashlockBytes)
+    const secretArray = Array.from(secretToUint8Array(params.secret))
     const lockIndexNum = params.index ?? 1
     const lockIndex = new BN(lockIndexNum)
 
-    const indexBuffer = Buffer.alloc(8)
-    indexBuffer.writeBigUInt64LE(BigInt(lockIndexNum))
+    const indexBytes = writeBigUInt64LE(BigInt(lockIndexNum))
 
     const [solverLockPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("solver_lock"), hashlockBuffer, indexBuffer],
+        [encoder.encode("solver_lock"), hashlockBytes, indexBytes],
         program.programId
     )
 
@@ -193,7 +210,7 @@ export const redeemSolverTransactionBuilder = async (params: RedeemSolverTxParam
         const { getAssociatedTokenAddress, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
         const tokenMint = new PublicKey(params.sourceAsset.contractAddress)
         const [vault] = PublicKey.findProgramAddressSync(
-            [Buffer.from("solver_vault"), hashlockBuffer, indexBuffer],
+            [encoder.encode("solver_vault"), hashlockBytes, indexBytes],
             program.programId
         )
         const recipientTokenAccount = await getAssociatedTokenAddress(tokenMint, recipient)

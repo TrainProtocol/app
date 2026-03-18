@@ -1,10 +1,12 @@
 import { useMemo } from 'react'
 import { useRegisterWallet, useStoreContext, type TrainWalletAdapter } from '@train-protocol/react'
 import { useConfig } from 'wagmi'
-import { getWalletClient, getConnections } from 'wagmi/actions'
+import { getAccount, getWalletClient, getConnections } from 'wagmi/actions'
 import { useSettingsState } from '@/context/settings'
 import { useRpcConfigStore } from '@/stores/rpcConfigStore'
 import resolveChain from '@/lib/resolveChain'
+
+const isSandbox = process.env.NEXT_PUBLIC_API_VERSION === 'sandbox'
 
 export function EvmWalletBridge() {
     const config = useConfig()
@@ -83,6 +85,17 @@ export function EvmWalletBridge() {
 
             const rpcUrl = getEffectiveRpcUrls(network)[0] ?? network.nodes?.[0]?.url ?? ''
             return { rpcUrl }
+        },
+
+        getLoginConfig: async () => {
+            const account = getAccount(config)
+            if (!account.connector || !account.address) return null
+            const provider = await account.connector.getProvider()
+            return {
+                provider,
+                address: account.address,
+                options: { sandbox: isSandbox, currentChainId: account.chainId },
+            }
         },
 
         onSignerChange: () => {

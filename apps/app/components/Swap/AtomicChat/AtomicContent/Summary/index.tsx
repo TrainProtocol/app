@@ -2,7 +2,7 @@ import { FC } from "react";
 import { useSwapData } from "@/hooks/useSwapData";
 import { useSwapState, useCurrentSwap } from "@train-protocol/react";
 import Summary from "./Summary";
-import { SwapQuote } from "@/lib/trainApiClient";
+import type { SwapQuote } from "@train-protocol/sdk";
 import { formatUnits } from "viem";
 
 type MotionSummaryProps = {

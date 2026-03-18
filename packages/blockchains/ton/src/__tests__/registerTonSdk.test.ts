@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
     getRegisteredNamespaces,
-    getRegisteredWalletSignProviders,
     createHTLCClient,
-    deriveKeyFromWallet,
-    type TrainApiClient,
 } from '@train-protocol/sdk'
+import {
+    getRegisteredWalletSignProviders,
+    deriveKeyFromWallet,
+} from '@train-protocol/auth'
 
-const mockApiClient = {} as TrainApiClient
 import { registerTonSdk } from '../index.js'
 
 describe('registerTonSdk', () => {
@@ -26,7 +26,6 @@ describe('registerTonSdk', () => {
     it('createHTLCClient works for ton after registration', () => {
         const client = createHTLCClient('ton', {
             rpcUrl: 'https://testnet.toncenter.com/api/v2/jsonRPC',
-            apiClient: mockApiClient,
         })
         expect(client).toBeDefined()
         expect(typeof client.getUserLockDetails).toBe('function')

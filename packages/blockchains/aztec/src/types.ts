@@ -1,11 +1,13 @@
 import type { Wallet } from '@aztec/aztec.js/wallet'
-import { BaseHTLCClientConfig } from '@train-protocol/sdk'
 import type { AztecWalletLike } from './login/wallet-sign.js'
 
 declare module '@train-protocol/sdk' {
     interface HTLCClientConfigMap {
         aztec: AztecHTLCClientConfig
     }
+}
+
+declare module '@train-protocol/auth' {
     interface WalletSignConfigMap {
         aztec: AztecWalletSignConfig
     }
@@ -21,7 +23,7 @@ export interface AztecSigner {
     address: string
 }
 
-export type AztecHTLCClientConfig = BaseHTLCClientConfig & {
+export type AztecHTLCClientConfig = {
     rpcUrl: string
     signer?: AztecSigner
 }

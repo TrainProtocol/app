@@ -3,7 +3,7 @@ import { useSwapData } from "@/hooks/useSwapData";
 import { useSwapState } from "@train-protocol/react";
 import Summary from "./Summary";
 import { usePulsatingCircles } from "@/stores/pulsatingCirclesStore";
-import { SwapQuote } from "@/lib/trainApiClient";
+import type { SwapQuote } from "@train-protocol/sdk";
 import SwapQuoteComp from "@/components/FeeDetails/SwapQuote";
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import { Gauge } from "./Gauge";

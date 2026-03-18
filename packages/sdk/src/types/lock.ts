@@ -5,22 +5,33 @@ export enum LockStatus {
     Redeemed
 }
 
-export type LockDetails = {
-    sender?: string,
-    srcReceiver?: string,
-    recipient?: string,
+type BaseLockDetails = {
     timelock: number,
     amount: number,
     hashlock: string | undefined,
-    secret: bigint | undefined,
-    ownership?: string,
-    token?: string,
-    reward?: number,
-    rewardTimelock?: number,
-    index?: number,
     status?: LockStatus,
-    rewardRecipient?: string,
-    rewardToken?: string,
+}
+
+export type UserLockDetails = BaseLockDetails & {
+    sender?: string,
+    recipient?: string,
+    token?: string,
     userData?: string,
     blockTimestamp?: number,
+    secret?: bigint,
 }
+
+export type SolverLockDetails = BaseLockDetails & {
+    sender?: string,
+    recipient?: string,
+    token?: string,
+    index: number,
+    reward?: number,
+    rewardTimelock?: number,
+    rewardRecipient?: string,
+    rewardToken?: string,
+    secret?: bigint,
+}
+
+/** Backward-compatible union type */
+export type LockDetails = UserLockDetails | SolverLockDetails

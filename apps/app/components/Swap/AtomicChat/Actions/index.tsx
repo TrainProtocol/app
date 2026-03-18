@@ -7,7 +7,7 @@ import { UserRefundAction, UserLockAction } from "./UserActions";
 import TransactionMessages from "../../messages/TransactionMessages";
 import WalletMessage from "../../messages/Message";
 import DestinationWalletWrapper from "./DestinationWalletWrapper";
-import { SwapQuote } from "@/lib/trainApiClient";
+import type { SwapQuote } from "@train-protocol/sdk";
 import SubmitButton from "@/components/buttons/submitButton";
 import { ExternalLink, Home } from "lucide-react";
 import { useGoHome } from "@/hooks/useGoHome";
@@ -177,15 +177,7 @@ const TransactionMessage: FC<{ error: string | undefined }> = ({ error }) => {
     if (error?.includes('insufficient funds')) {
         return <TransactionMessages.InsufficientFundsMessage />
     }
-    if (error === "Timelock expired") {
-        return (
-            <WalletMessage
-                status="error"
-                header="Timelock expired"
-                details="Unfortunately the time lock was expired, continuing the transaction is not recommended, cancel & refund to receive your assets back."
-            />
-        )
-    }
+    
     if (error) {
         return <TransactionMessages.UexpectedErrorMessage message={error} />
     }

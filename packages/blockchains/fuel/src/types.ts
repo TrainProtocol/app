@@ -1,11 +1,13 @@
 import type { Account } from 'fuels'
-import type { BaseHTLCClientConfig } from '@train-protocol/sdk'
 import type { FuelWalletLike } from './login/index.js'
 
 declare module '@train-protocol/sdk' {
     interface HTLCClientConfigMap {
         fuel: FuelHTLCClientConfig
     }
+}
+
+declare module '@train-protocol/auth' {
     interface WalletSignConfigMap {
         fuel: FuelWalletSignConfig
     }
@@ -30,7 +32,7 @@ export interface FuelSigner {
     account: Account
 }
 
-export type FuelHTLCClientConfig = BaseHTLCClientConfig & {
+export type FuelHTLCClientConfig = {
     /** Fuel GraphQL RPC URL for read operations */
     rpcUrl: string
     /** Optional signer for write operations */

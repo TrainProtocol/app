@@ -7,7 +7,7 @@ import { useSwapState } from "@train-protocol/react";
 import WalletIcon from "@/components/Icons/WalletIcon";
 import LockIcon from "@/components/Icons/LockIcon";
 import SignatureIcon from "@/components/Icons/SignatureIcon";
-import { HTLCTransaction } from "@/lib/trainApiClient";
+import { HTLCTransaction } from "@train-protocol/sdk";
 import NetworkSettings from "@/lib/NetworkSettings";
 
 const Details: FC = () => {

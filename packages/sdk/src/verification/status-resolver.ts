@@ -1,9 +1,9 @@
-import { LockDetails, LockStatus } from '../types/lock'
+import { UserLockDetails, SolverLockDetails, LockStatus } from '../types/lock'
 import { HTLCStatus } from '../types/htlc-status'
 
 export interface StatusResolverInput {
-    sourceDetails?: LockDetails
-    solverLockDetails?: LockDetails
+    sourceDetails?: UserLockDetails
+    solverLockDetails?: SolverLockDetails
     timelockExpired: boolean
     secretRevealed?: boolean
     manualClaimRequired?: boolean

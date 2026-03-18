@@ -124,13 +124,13 @@ importers:
         version: 0.15.0(@types/react@18.3.28)(@wagmi/core@2.16.4(@tanstack/query-core@5.90.20)(@types/react@18.3.28)(react@18.3.1)(typescript@5.9.3)(use-sync-external-store@1.6.0(react@18.3.1))(viem@2.44.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)))(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(wagmi@2.14.11(@react-native-async-storage/async-storage@1.24.0)(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@18.3.1))(@types/react@18.3.28)(bufferutil@4.1.0)(react@18.3.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)))
       '@fuel-ts/account':
         specifier: ^0.101.3
-        version: 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+        version: 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuel-ts/address':
         specifier: ^0.101.3
-        version: 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+        version: 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuels/react':
         specifier: ^0.43.2
-        version: 0.43.2(@tanstack/react-query@5.90.21(react@18.3.1))(@types/react-dom@18.3.7(@types/react@18.3.28))(@types/react@18.3.28)(fuels@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 0.43.2(@tanstack/react-query@5.90.21(react@18.3.1))(@types/react-dom@18.3.7(@types/react@18.3.28))(@types/react@18.3.28)(fuels@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3))))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@imtbl/sdk':
         specifier: 1.45.10
         version: 1.45.10(@react-native-async-storage/async-storage@1.24.0)(@types/react@18.3.28)(bufferutil@4.1.0)(framer-motion@10.18.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3)(utf-8-validate@5.0.10)
@@ -224,6 +224,9 @@ importers:
       '@tonconnect/ui-react':
         specifier: ^2.0.0-beta.4
         version: 2.4.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@train-protocol/auth':
+        specifier: workspace:^
+        version: link:../../packages/auth
       '@train-protocol/aztec':
         specifier: workspace:^
         version: link:../../packages/blockchains/aztec
@@ -404,7 +407,7 @@ importers:
         version: 6.2.0
       fuels:
         specifier: 'catalog:'
-        version: 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+        version: 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       tailwindcss:
         specifier: ^4.0.15
         version: 4.2.1
@@ -417,6 +420,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.59.20
         version: 5.90.21(react@18.3.1)
+      '@train-protocol/auth':
+        specifier: workspace:^
+        version: link:../../packages/auth
       '@train-protocol/evm':
         specifier: workspace:^
         version: link:../../packages/blockchains/evm
@@ -448,6 +454,27 @@ importers:
       '@types/react':
         specifier: 18.x
         version: 18.3.28
+      msw:
+        specifier: ^2.12.11
+        version: 2.12.11(@types/node@20.19.34)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
+  packages/auth:
+    devDependencies:
+      '@noble/hashes':
+        specifier: 'catalog:'
+        version: 2.0.1
+      '@train-protocol/sdk':
+        specifier: workspace:^
+        version: link:../sdk
+      '@types/node':
+        specifier: ^20
+        version: 20.19.34
+      rimraf:
+        specifier: 'catalog:'
+        version: 6.1.3
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -464,6 +491,9 @@ importers:
         specifier: 4.0.0-devnet.2-patch.1
         version: 4.0.0-devnet.2-patch.1
     devDependencies:
+      '@train-protocol/auth':
+        specifier: workspace:^
+        version: link:../../auth
       '@train-protocol/sdk':
         specifier: workspace:^
         version: link:../../sdk
@@ -478,7 +508,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 'catalog:'
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3))
 
   packages/blockchains/evm:
     dependencies:
@@ -486,6 +516,9 @@ importers:
         specifier: ^0.13.2
         version: 0.13.2(typescript@5.9.3)(zod@3.25.76)
     devDependencies:
+      '@train-protocol/auth':
+        specifier: workspace:^
+        version: link:../../auth
       '@train-protocol/sdk':
         specifier: workspace:^
         version: link:../../sdk
@@ -500,14 +533,17 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 'catalog:'
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3))
 
   packages/blockchains/fuel:
     dependencies:
       fuels:
         specifier: 'catalog:'
-        version: 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+        version: 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
     devDependencies:
+      '@train-protocol/auth':
+        specifier: workspace:^
+        version: link:../../auth
       '@train-protocol/sdk':
         specifier: workspace:^
         version: link:../../sdk
@@ -522,7 +558,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 'catalog:'
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3))
 
   packages/blockchains/solana:
     dependencies:
@@ -536,6 +572,9 @@ importers:
         specifier: 'catalog:'
         version: 1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
     devDependencies:
+      '@train-protocol/auth':
+        specifier: workspace:^
+        version: link:../../auth
       '@train-protocol/sdk':
         specifier: workspace:^
         version: link:../../sdk
@@ -550,7 +589,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 'catalog:'
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3))
 
   packages/blockchains/starknet:
     dependencies:
@@ -558,6 +597,9 @@ importers:
         specifier: 'catalog:'
         version: 8.9.2
     devDependencies:
+      '@train-protocol/auth':
+        specifier: workspace:^
+        version: link:../../auth
       '@train-protocol/sdk':
         specifier: workspace:^
         version: link:../../sdk
@@ -572,7 +614,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 'catalog:'
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3))
 
   packages/blockchains/ton:
     dependencies:
@@ -586,6 +628,9 @@ importers:
         specifier: 'catalog:'
         version: 13.11.2(@ton/core@0.53.0(@ton/crypto@3.3.0))(@ton/crypto@3.3.0)
     devDependencies:
+      '@train-protocol/auth':
+        specifier: workspace:^
+        version: link:../../auth
       '@train-protocol/sdk':
         specifier: workspace:^
         version: link:../../sdk
@@ -600,7 +645,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 'catalog:'
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3))
 
   packages/react:
     dependencies:
@@ -608,6 +653,9 @@ importers:
         specifier: 'catalog:'
         version: 4.5.7(@types/react@18.3.28)(react@18.3.1)
     devDependencies:
+      '@train-protocol/auth':
+        specifier: workspace:*
+        version: link:../auth
       '@train-protocol/sdk':
         specifier: workspace:*
         version: link:../sdk
@@ -2298,6 +2346,41 @@ packages:
     resolution: {integrity: sha512-wUUU2AfiGjziFp4oDCz9FZp1PolHWCP/JGGr7rxWinFhljw4KyEb0NEBt5ye5jcbhdPMQ58SbO6sxtYvbOdCSA==}
     engines: {node: '>=20.0.0'}
 
+  '@inquirer/ansi@1.0.2':
+    resolution: {integrity: sha512-S8qNSZiYzFd0wAcyG5AXCvUHC5Sr7xpZ9wZ2py9XR88jUz8wooStVx5M6dRzczbBWjic9NP7+rY0Xi7qqK/aMQ==}
+    engines: {node: '>=18'}
+
+  '@inquirer/confirm@5.1.21':
+    resolution: {integrity: sha512-KR8edRkIsUayMXV+o3Gv+q4jlhENF9nMYUZs9PA2HzrXeHI8M5uDag70U7RJn9yyiMZSbtF5/UexBtAVtZGSbQ==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@types/node': '>=18'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+
+  '@inquirer/core@10.3.2':
+    resolution: {integrity: sha512-43RTuEbfP8MbKzedNqBrlhhNKVwoK//vUFNW3Q3vZ88BLcrs4kYpGg+B2mm5p2K/HfygoCxuKwJJiv8PbGmE0A==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@types/node': '>=18'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+
+  '@inquirer/figures@1.0.15':
+    resolution: {integrity: sha512-t2IEY+unGHOzAaVM5Xx6DEWKeXlDDcNPeDyUpsRc6CUhBfU3VQOEl+Vssh7VNp1dR8MdUJBWhuObjXCsVpjN5g==}
+    engines: {node: '>=18'}
+
+  '@inquirer/type@3.0.10':
+    resolution: {integrity: sha512-BvziSRxfz5Ov8ch0z/n3oijRSEcEsHnhggm4xFZe93DHcUCTlutlq9Ox4SVENAfcRD22UQq7T/atg9Wr3k09eA==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@types/node': '>=18'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
     engines: {node: '>=12'}
@@ -2621,6 +2704,10 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@mswjs/interceptors@0.41.3':
+    resolution: {integrity: sha512-cXu86tF4VQVfwz8W1SPbhoRyHJkti6mjH/XJIxp40jhO4j2k1m4KYrEykxqWPkFF3vrK4rgQppBh//AwyGSXPA==}
+    engines: {node: '>=18'}
+
   '@napi-rs/wasm-runtime@0.2.12':
     resolution: {integrity: sha512-ZVWUcfwY4E/yPitQJl481FjFo3K22D6qF0DuFH6Y/nbnE11GY5uguDxZMGXPQ8WQ0128MXQD7TnfHyK4oWoIJQ==}
 
@@ -2789,6 +2876,15 @@ packages:
     peerDependencies:
       react: ^18 || ^19
       react-dom: ^18 || ^19
+
+  '@open-draft/deferred-promise@2.2.0':
+    resolution: {integrity: sha512-CecwLWx3rhxVQF6V4bAgPS5t+So2sTbPgAzafKkVizyi7tlwpcFpdFqq+wqF2OwNBmqFuu6tOyouTuxgpMfzmA==}
+
+  '@open-draft/logger@0.3.0':
+    resolution: {integrity: sha512-X2g45fzhxH238HKO4xbSr7+wBS8Fvw6ixhTDuvLd5mqh6bJJCFAPwU9mPDxbcrRtfxv4u5IHCEH77BmxvXmmxQ==}
+
+  '@open-draft/until@2.1.0':
+    resolution: {integrity: sha512-U69T3ItWHvLwGg5eJ0n3I62nWuE6ilHlmz7zM0npLBRvPRd7e6NYmg54vvRtP5mZG7kZqZCFVdsTWo7BPtBujg==}
 
   '@opensea/seaport-js@4.0.3':
     resolution: {integrity: sha512-LJjeX3ocMu6/eWxB7huXlXVfjq9tFkIyhtW4F/BsPuEnGI5AOR5nfx2tHs7qMAH9GODfTNtu9M9ZPdjxYTtK3w==}
@@ -6081,6 +6177,9 @@ packages:
   '@types/stack-utils@2.0.3':
     resolution: {integrity: sha512-9aEbYZ3TbYMznPdcdr3SmIrLXwC/AKZXQeCf9Pgao5CKb8CyHuEX5jzWPTkvregvhRJHcpRO6BFoGW9ycaOkYw==}
 
+  '@types/statuses@2.0.6':
+    resolution: {integrity: sha512-xMAgYwceFhRA2zY+XbEA7mxYbA093wdiW8Vu6gZPGWy9cmOyU9XesH1tNcEWsKFd5Vzrqx5T3D38PWx1FIIXkA==}
+
   '@types/tough-cookie@4.0.5':
     resolution: {integrity: sha512-/Ad8+nIOV7Rl++6f1BdKxFSMgmoqEoYbHRpPcx3JEfv8VRsQe9Z4mCXeJBzxs7mbHY/XOZZuXlRNfhpVPbs6ZA==}
 
@@ -7148,6 +7247,10 @@ packages:
     resolution: {integrity: sha512-IqLQi4lO0nIB4tcdTpN4LCB9FI3uqrJZK7RC515EnhZ6qBaglkIgICb1wjeAqpdoOabm1+SuQtkXIPdYC93jhQ==}
     engines: {node: '>= 0.2.0'}
 
+  cli-width@4.1.0:
+    resolution: {integrity: sha512-ouuZd4/dm2Sw5Gmqy6bGyNNNe1qt9RpmxveLSO7KcgsTnU7RXfsw+/bukWGo1abgBiMAic068rclZsO4IWmmxQ==}
+    engines: {node: '>= 12'}
+
   client-only@0.0.1:
     resolution: {integrity: sha512-IV3Ou0jSMzZrd3pZ48nLkT9DA7Ag1pnPzaiQhpW7c3RbcqqzvzzVu+L8gfqMp/8IM2MQtSiqaCxrrcfu8I8rMA==}
 
@@ -7277,6 +7380,10 @@ packages:
 
   cookie-es@1.2.2:
     resolution: {integrity: sha512-+W7VmiVINB+ywl1HGXJXmrqkOhpKrIiVZV6tQuV54ZyQC7MMuBt81Vc336GMLoHBq5hV/F9eXgt5Mnx0Rha5Fg==}
+
+  cookie@1.1.1:
+    resolution: {integrity: sha512-ei8Aos7ja0weRpFzJnEA9UHJ/7XQmqglbRwnf2ATjcB9Wq874VKH9kfjjirM6UhU2/E5fFYadylyhFldcqSidQ==}
+    engines: {node: '>=18'}
 
   cookiejar@2.1.4:
     resolution: {integrity: sha512-LDx6oHrK+PhzLKJU9j5S7/Y3jM/mUHvD/DeI1WQmJn652iPC5Y4TBzC9l+5OMOXlyTTA+SmVUPm0HQUwpD5Jqw==}
@@ -8283,6 +8390,10 @@ packages:
     resolution: {integrity: sha512-AjqGKbDGUFRKIRCP9tCKiIGHyriz2oHEbPIbEtcSLSs4YjReZOIPQQWek4+6hjw62H9QShXHyaGivGiYVLeYFQ==}
     engines: {node: ^12.22.0 || ^14.16.0 || ^16.0.0 || >=17.0.0}
 
+  graphql@16.13.1:
+    resolution: {integrity: sha512-gGgrVCoDKlIZ8fIqXBBb0pPKqDgki0Z/FSKNiQzSGj2uEYHr1tq5wmBegGwJx6QB5S5cM0khSBpi/JFHMCvsmQ==}
+    engines: {node: ^12.22.0 || ^14.16.0 || ^16.0.0 || >=17.0.0}
+
   gtoken@7.1.0:
     resolution: {integrity: sha512-pCcEwRi+TKpMlxAQObHDQ56KawURgyAf6jtIY046fJ5tIv3zDe/LEIubckAO8fj6JnAxLdmWkUfNyulQ2iKdEw==}
     engines: {node: '>=14.0.0'}
@@ -8345,6 +8456,9 @@ packages:
   hasown@2.0.2:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
+
+  headers-polyfill@4.0.3:
+    resolution: {integrity: sha512-IScLbePpkvO846sIwOtOTDjutRMWdXdJmXdMvk6gCBHxFO8d+QKOQedyZSxFTTFYRSmlgSTDtXqqq4pcenBXLQ==}
 
   help-me@5.0.0:
     resolution: {integrity: sha512-7xgomUX6ADmcYzFik0HzAxh/73YlKR9bmFzf51CZwR+b6YtzU2m0u49hQCqV6SvlqIqsaxovfwdvbnsw3b/zpg==}
@@ -8573,6 +8687,9 @@ packages:
   is-negative-zero@2.0.3:
     resolution: {integrity: sha512-5KoIu2Ngpyek75jXodFvnafB6DJgr3u8uuK0LEZJjrU19DrMD3EVERaR8sjz8CCGgpZvxPl9SuE1GMVPFHx1mw==}
     engines: {node: '>= 0.4'}
+
+  is-node-process@1.2.0:
+    resolution: {integrity: sha512-Vg4o6/fqPxIjtxgUH5QLJhwZ7gW5diGCVlXpuUfELC62CuxM1iHcRe51f2W1FDy04Ai4KJkagKjx3XaqyfRKXw==}
 
   is-number-object@1.1.1:
     resolution: {integrity: sha512-lZhclumE1G6VYD8VHe35wFaIif+CTy5SJIi5+3y4psDgWu4wPDoBhF8NxUOinEc7pHgiTsT6MaBb92rKhhD+Xw==}
@@ -9283,8 +9400,22 @@ packages:
   msgpackr@1.11.8:
     resolution: {integrity: sha512-bC4UGzHhVvgDNS7kn9tV8fAucIYUBuGojcaLiz7v+P63Lmtm0Xeji8B/8tYKddALXxJLpwIeBmUN3u64C4YkRA==}
 
+  msw@2.12.11:
+    resolution: {integrity: sha512-dVg20zi2I2EvnwH/+WupzsOC2mCa7qsIhyMAWtfRikn6RKtwL9+7SaF1IQ5LyZry4tlUtf6KyTVhnlQiZXozTQ==}
+    engines: {node: '>=18'}
+    hasBin: true
+    peerDependencies:
+      typescript: '>= 4.8.x'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   multiformats@9.9.0:
     resolution: {integrity: sha512-HoMUjhH9T8DDBNT+6xzkrd9ga/XiBI4xLr58LJACwK6G3HTOPeMz4nB4KJs33L2BelrIJa7P0VuNaVF3hMYfjg==}
+
+  mute-stream@2.0.0:
+    resolution: {integrity: sha512-WWdIxpyjEn+FhQJQQv9aQAYlHoNVdzIzUySNV1gHUPDSdZJ3yZn7pAAbQcV7B56Mvu881q9FZV+0Vx2xC44VWA==}
+    engines: {node: ^18.17.0 || >=20.5.0}
 
   nan@2.25.0:
     resolution: {integrity: sha512-0M90Ag7Xn5KMLLZ7zliPWP3rT90P6PN+IzVFS0VqmnPktBk3700xUVv8Ikm9EUaUE5SDWdp/BIxdENzVznpm1g==}
@@ -9532,6 +9663,9 @@ packages:
 
   os-browserify@0.3.0:
     resolution: {integrity: sha512-gjcpUc3clBf9+210TRaDWbf+rZZZEshZ+DlXMRCeAjp0xhTrnQsKHypIy1J3d5hKdUzj69t708EHtU8P6bUn0A==}
+
+  outvariant@1.4.3:
+    resolution: {integrity: sha512-+Sl2UErvtsoajRDKCE5/dBz4DIvHXQQnAxtQTF04OJxY0+DyZXSo5P5Bb7XYWOh81syohlYL24hbDwxedPUJCA==}
 
   own-keys@1.0.1:
     resolution: {integrity: sha512-qFOyK5PjiWZd+QQIh+1jhdb9LpxTF0qs7Pm8o5QHYZ0M3vKqSqzsZaEB6oWlxZ+q2sJBMI/Ktgd2N5ZwQoRHfg==}
@@ -10159,6 +10293,9 @@ packages:
     resolution: {integrity: sha512-XQBQ3I8W1Cge0Seh+6gjj03LbmRFWuoszgK9ooCpwYIrhhoO80pfq4cUkU5DkknwfOfFteRwlZ56PYOGYyFWdg==}
     engines: {node: '>= 4'}
 
+  rettime@0.10.1:
+    resolution: {integrity: sha512-uyDrIlUEH37cinabq0AX4QbgV4HbFZ/gqoiunWQ1UqBtRvTTytwhNYjE++pO/MjPTZL5KQCf2bEoJ/BJNVQ5Kw==}
+
   reusify@1.1.0:
     resolution: {integrity: sha512-g6QUff04oZpHs0eG5p83rFLhHeV00ug/Yf9nZM6fLeUrPguBTkTQOdpAWWspMh55TZfVQDPaN3NQJfbVRAxdIw==}
     engines: {iojs: '>=1.0.0', node: '>=0.10.0'}
@@ -10486,6 +10623,9 @@ packages:
   stream-shift@1.0.3:
     resolution: {integrity: sha512-76ORR0DO1o1hlKwTbi/DM3EXWGf3ZJYO8cXX5RJwnul2DEg2oyoZyjLNoQM8WsvZiFKCRfC1O0J7iCvie3RZmQ==}
 
+  strict-event-emitter@0.5.1:
+    resolution: {integrity: sha512-vMgjE/GGEPEFnhFub6pa4FmJBRBVOLpIII2hvCZ8Kzb7K0hlHo7mQv6xYrBvCL2LtAIBwFUK8wvuJgTVSQ5MFQ==}
+
   strict-uri-encode@1.1.0:
     resolution: {integrity: sha512-R3f198pcvnB+5IpnBlRkphuE9n46WyVl8I39W/ZUTZLz4nqSP/oLYUrcnJrw462Ds8he4YKMov2efsTIw1BDGQ==}
     engines: {node: '>=0.10.0'}
@@ -10629,6 +10769,10 @@ packages:
     resolution: {integrity: sha512-qd/R7n5rQTRFi+Zf2sk5XVVd9UQl6ZkduPFC3S7WEGJAmetDTjY3qPN50eSKzwuzEyQKy5TN2TiZdkIjos2L6A==}
     engines: {node: '>=8.0.0'}
 
+  tagged-tag@1.0.0:
+    resolution: {integrity: sha512-yEFYrVhod+hdNyx7g5Bnkkb0G6si8HJurOoOEgC8B/O0uXLHlaey/65KRv6cuWBNhBgHKAROVpc7QyYqE5gFng==}
+    engines: {node: '>=20'}
+
   tailwindcss-animate@1.0.7:
     resolution: {integrity: sha512-bl6mpH3T7I3UFxuvDEXLxy/VuFxBk5bbzplh7tXI68mwMokNYd1t9qPBHlnyTwfa4JGC4zP516I1hYYtQ/vspA==}
     peerDependencies:
@@ -10707,6 +10851,13 @@ packages:
     resolution: {integrity: sha512-PSkbLUoxOFRzJYjjxHJt9xro7D+iilgMX/C9lawzVuYiIdcihh9DXmVibBe8lmcFrRi/VzlPjBxbN7rH24q8/Q==}
     engines: {node: '>=14.0.0'}
 
+  tldts-core@7.0.26:
+    resolution: {integrity: sha512-5WJ2SqFsv4G2Dwi7ZFVRnz6b2H1od39QME1lc2y5Ew3eWiZMAeqOAfWpRP9jHvhUl881406QtZTODvjttJs+ew==}
+
+  tldts@7.0.26:
+    resolution: {integrity: sha512-WiGwQjr0qYdNNG8KpMKlSvpxz652lqa3Rd+/hSaDcY4Uo6SKWZq2LAF+hsAhUewTtYhXlorBKgNF3Kk8hnjGoQ==}
+    hasBin: true
+
   tmpl@1.0.5:
     resolution: {integrity: sha512-3f0uOEAQwIqGuWW2MVzYg8fV/QNnc/IpuJNG837rLuczAaLVHslWHZQj4IGiEl5Hs3kkbhwL9Ab7Hrsmuj+Smw==}
 
@@ -10743,6 +10894,10 @@ packages:
   totalist@1.1.0:
     resolution: {integrity: sha512-gduQwd1rOdDMGxFG1gEvhV88Oirdo2p+KjoYFU7k2g+i7n6AFFbDQ5kMPUsW0pNbfQsB/cwXvT1i4Bue0s9g5g==}
     engines: {node: '>=6'}
+
+  tough-cookie@6.0.1:
+    resolution: {integrity: sha512-LktZQb3IeoUWB9lqR5EWTHgW/VTITCXg4D21M+lvybRVdylLrRMnqaIONLVb5mav8vM19m44HIcGq4qASeu2Qw==}
+    engines: {node: '>=16'}
 
   tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
@@ -10818,6 +10973,10 @@ packages:
   type-fest@4.34.1:
     resolution: {integrity: sha512-6kSc32kT0rbwxD6QL1CYe8IqdzN/J/ILMrNK+HMQCKH3insCDRY/3ITb0vcBss0a3t72fzh2YSzj8ko1HgwT3g==}
     engines: {node: '>=16'}
+
+  type-fest@5.4.4:
+    resolution: {integrity: sha512-JnTrzGu+zPV3aXIUhnyWJj4z/wigMsdYajGLIYakqyOW1nPllzXEJee0QQbHj+CTIQtXGlAjuK0UY+2xTyjVAw==}
+    engines: {node: '>=20'}
 
   type-is@1.6.18:
     resolution: {integrity: sha512-TkRKr9sUTxEH8MdfuCSP7VizJyzRNMjj2J2do2Jr3Kym598JVdEksuzPQCnlFPW4ky9Q+iA+ma9BGm06XQBy8g==}
@@ -10994,6 +11153,9 @@ packages:
         optional: true
       uploadthing:
         optional: true
+
+  until-async@3.0.2:
+    resolution: {integrity: sha512-IiSk4HlzAMqTUseHHe3VhIGyuFmN90zMTpD3Z3y8jeQbzLIq500MVM7Jq2vUAnTKAFPJrqwkzr6PoTcPhGcOiw==}
 
   update-browserslist-db@1.2.3:
     resolution: {integrity: sha512-Js0m9cx+qOgDxo0eMiFGEueWztz+d4+M3rGlmKPT+T4IS/jP4ylw3Nwpu6cpTTP8R1MAC1kF4VbdLt3ARf209w==}
@@ -11564,6 +11726,10 @@ packages:
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
+
+  yoctocolors-cjs@2.1.3:
+    resolution: {integrity: sha512-U/PBtDf35ff0D8X8D0jfdzHYEPFxAI7jJlxZXwCSez5M3190m+QobIfh+sWDWSHMCWWJN2AWamkegn6vr6YBTw==}
+    engines: {node: '>=18'}
 
   yup@1.6.1:
     resolution: {integrity: sha512-JED8pB50qbA4FOkDol0bYF/p60qSEDQqBD0/qeIrUCG1KbPBIQ776fCUNb9ldbPcSTxA69g/47XTo4TqWiuXOA==}
@@ -14241,21 +14407,21 @@ snapshots:
       - react
       - react-dom
 
-  '@fuel-ts/abi-coder@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))':
+  '@fuel-ts/abi-coder@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))':
     dependencies:
-      '@fuel-ts/crypto': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/crypto': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuel-ts/errors': 0.101.3
-      '@fuel-ts/hasher': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/hasher': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuel-ts/math': 0.101.3
-      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       type-fest: 4.34.1
     transitivePeerDependencies:
       - vitest
 
-  '@fuel-ts/abi-typegen@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))':
+  '@fuel-ts/abi-typegen@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))':
     dependencies:
       '@fuel-ts/errors': 0.101.3
-      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuel-ts/versions': 0.101.3
       commander: 13.1.0
       glob: 10.4.5
@@ -14266,17 +14432,17 @@ snapshots:
     transitivePeerDependencies:
       - vitest
 
-  '@fuel-ts/account@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))':
+  '@fuel-ts/account@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))':
     dependencies:
-      '@fuel-ts/abi-coder': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/address': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/crypto': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/abi-coder': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/address': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/crypto': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuel-ts/errors': 0.101.3
-      '@fuel-ts/hasher': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/hasher': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuel-ts/math': 0.101.3
-      '@fuel-ts/merkle': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/transactions': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/merkle': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/transactions': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuel-ts/versions': 0.101.3
       '@fuels/vm-asm': 0.60.2
       '@noble/curves': 1.8.1
@@ -14289,37 +14455,37 @@ snapshots:
       - encoding
       - vitest
 
-  '@fuel-ts/address@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))':
+  '@fuel-ts/address@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))':
     dependencies:
-      '@fuel-ts/crypto': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/crypto': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuel-ts/errors': 0.101.3
-      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@noble/hashes': 1.7.1
     transitivePeerDependencies:
       - vitest
 
-  '@fuel-ts/contract@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))':
+  '@fuel-ts/contract@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))':
     dependencies:
-      '@fuel-ts/abi-coder': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/account': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/crypto': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/abi-coder': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/account': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/crypto': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuel-ts/errors': 0.101.3
-      '@fuel-ts/hasher': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/hasher': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuel-ts/math': 0.101.3
-      '@fuel-ts/merkle': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/program': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/transactions': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/merkle': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/program': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/transactions': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuels/vm-asm': 0.60.2
       ramda: 0.30.1
     transitivePeerDependencies:
       - encoding
       - vitest
 
-  '@fuel-ts/crypto@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))':
+  '@fuel-ts/crypto@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))':
     dependencies:
       '@fuel-ts/errors': 0.101.3
-      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@noble/hashes': 1.7.1
     transitivePeerDependencies:
       - vitest
@@ -14328,10 +14494,10 @@ snapshots:
     dependencies:
       '@fuel-ts/versions': 0.101.3
 
-  '@fuel-ts/hasher@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))':
+  '@fuel-ts/hasher@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))':
     dependencies:
-      '@fuel-ts/crypto': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/crypto': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@noble/hashes': 1.7.1
     transitivePeerDependencies:
       - vitest
@@ -14342,85 +14508,85 @@ snapshots:
       '@types/bn.js': 5.1.6
       bn.js: 5.2.1
 
-  '@fuel-ts/merkle@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))':
+  '@fuel-ts/merkle@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))':
     dependencies:
-      '@fuel-ts/hasher': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/hasher': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuel-ts/math': 0.101.3
     transitivePeerDependencies:
       - vitest
 
-  '@fuel-ts/program@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))':
+  '@fuel-ts/program@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))':
     dependencies:
-      '@fuel-ts/abi-coder': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/account': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/address': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/abi-coder': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/account': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/address': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuel-ts/errors': 0.101.3
       '@fuel-ts/math': 0.101.3
-      '@fuel-ts/transactions': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/transactions': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuels/vm-asm': 0.60.2
       ramda: 0.30.1
     transitivePeerDependencies:
       - encoding
       - vitest
 
-  '@fuel-ts/recipes@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))':
+  '@fuel-ts/recipes@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))':
     dependencies:
-      '@fuel-ts/abi-coder': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/abi-typegen': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/account': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/address': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/contract': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/program': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/transactions': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/abi-coder': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/abi-typegen': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/account': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/address': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/contract': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/program': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/transactions': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
     transitivePeerDependencies:
       - encoding
       - vitest
 
-  '@fuel-ts/script@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))':
+  '@fuel-ts/script@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))':
     dependencies:
-      '@fuel-ts/abi-coder': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/account': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/abi-coder': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/account': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuel-ts/errors': 0.101.3
       '@fuel-ts/math': 0.101.3
-      '@fuel-ts/program': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/transactions': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/program': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/transactions': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
     transitivePeerDependencies:
       - encoding
       - vitest
 
-  '@fuel-ts/transactions@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))':
+  '@fuel-ts/transactions@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))':
     dependencies:
-      '@fuel-ts/abi-coder': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/address': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/abi-coder': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/address': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuel-ts/errors': 0.101.3
-      '@fuel-ts/hasher': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/hasher': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuel-ts/math': 0.101.3
-      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
     transitivePeerDependencies:
       - vitest
 
-  '@fuel-ts/utils@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))':
+  '@fuel-ts/utils@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))':
     dependencies:
       '@fuel-ts/errors': 0.101.3
       '@fuel-ts/math': 0.101.3
       '@fuel-ts/versions': 0.101.3
       fflate: 0.8.2
-      vitest: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)
+      vitest: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3))
 
   '@fuel-ts/versions@0.101.3':
     dependencies:
       chalk: 4.1.2
       cli-table: 0.3.11
 
-  '@fuels/react@0.43.2(@tanstack/react-query@5.90.21(react@18.3.1))(@types/react-dom@18.3.7(@types/react@18.3.28))(@types/react@18.3.28)(fuels@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@fuels/react@0.43.2(@tanstack/react-query@5.90.21(react@18.3.1))(@types/react-dom@18.3.7(@types/react@18.3.28))(@types/react@18.3.28)(fuels@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3))))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@radix-ui/react-dialog': 1.1.1(@types/react-dom@18.3.7(@types/react@18.3.28))(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/react-query': 5.90.21(react@18.3.1)
       events: 3.3.0
-      fuels: 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      fuels: 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       react: 18.3.1
     transitivePeerDependencies:
       - '@types/react'
@@ -14693,6 +14859,34 @@ snapshots:
       - uploadthing
       - utf-8-validate
       - zod
+
+  '@inquirer/ansi@1.0.2': {}
+
+  '@inquirer/confirm@5.1.21(@types/node@20.19.34)':
+    dependencies:
+      '@inquirer/core': 10.3.2(@types/node@20.19.34)
+      '@inquirer/type': 3.0.10(@types/node@20.19.34)
+    optionalDependencies:
+      '@types/node': 20.19.34
+
+  '@inquirer/core@10.3.2(@types/node@20.19.34)':
+    dependencies:
+      '@inquirer/ansi': 1.0.2
+      '@inquirer/figures': 1.0.15
+      '@inquirer/type': 3.0.10(@types/node@20.19.34)
+      cli-width: 4.1.0
+      mute-stream: 2.0.0
+      signal-exit: 4.1.0
+      wrap-ansi: 6.2.0
+      yoctocolors-cjs: 2.1.3
+    optionalDependencies:
+      '@types/node': 20.19.34
+
+  '@inquirer/figures@1.0.15': {}
+
+  '@inquirer/type@3.0.10(@types/node@20.19.34)':
+    optionalDependencies:
+      '@types/node': 20.19.34
 
   '@isaacs/cliui@8.0.2':
     dependencies:
@@ -15171,6 +15365,15 @@ snapshots:
   '@msgpackr-extract/msgpackr-extract-win32-x64@3.0.3':
     optional: true
 
+  '@mswjs/interceptors@0.41.3':
+    dependencies:
+      '@open-draft/deferred-promise': 2.2.0
+      '@open-draft/logger': 0.3.0
+      '@open-draft/until': 2.1.0
+      is-node-process: 1.2.0
+      outvariant: 1.4.3
+      strict-event-emitter: 0.5.1
+
   '@napi-rs/wasm-runtime@0.2.12':
     dependencies:
       '@emnapi/core': 1.8.1
@@ -15309,6 +15512,15 @@ snapshots:
       number-flow: 0.5.12
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
+
+  '@open-draft/deferred-promise@2.2.0': {}
+
+  '@open-draft/logger@0.3.0':
+    dependencies:
+      is-node-process: 1.2.0
+      outvariant: 1.4.3
+
+  '@open-draft/until@2.1.0': {}
 
   '@opensea/seaport-js@4.0.3(bufferutil@4.1.0)(utf-8-validate@5.0.10)':
     dependencies:
@@ -20152,6 +20364,8 @@ snapshots:
 
   '@types/stack-utils@2.0.3': {}
 
+  '@types/statuses@2.0.6': {}
+
   '@types/tough-cookie@4.0.5': {}
 
   '@types/trusted-types@2.0.7': {}
@@ -20452,12 +20666,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.0.3
 
-  '@vitest/mocker@4.0.18(vite@7.3.1(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))':
+  '@vitest/mocker@4.0.18(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3))(vite@7.3.1(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))':
     dependencies:
       '@vitest/spy': 4.0.18
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
+      msw: 2.12.11(@types/node@20.19.34)(typescript@5.9.3)
       vite: 7.3.1(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)
 
   '@vitest/pretty-format@4.0.18':
@@ -22194,6 +22409,8 @@ snapshots:
     dependencies:
       colors: 1.0.3
 
+  cli-width@4.1.0: {}
+
   client-only@0.0.1: {}
 
   cliui@6.0.0:
@@ -22318,6 +22535,8 @@ snapshots:
   convert-string@0.1.0: {}
 
   cookie-es@1.2.2: {}
+
+  cookie@1.1.1: {}
 
   cookiejar@2.1.4: {}
 
@@ -23502,22 +23721,22 @@ snapshots:
   fsevents@2.3.3:
     optional: true
 
-  fuels@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)):
+  fuels@0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3))):
     dependencies:
-      '@fuel-ts/abi-coder': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/abi-typegen': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/account': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/address': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/contract': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/crypto': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/abi-coder': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/abi-typegen': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/account': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/address': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/contract': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/crypto': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuel-ts/errors': 0.101.3
-      '@fuel-ts/hasher': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/hasher': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuel-ts/math': 0.101.3
-      '@fuel-ts/program': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/recipes': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/script': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/transactions': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
-      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@fuel-ts/program': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/recipes': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/script': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/transactions': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
+      '@fuel-ts/utils': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)))
       '@fuel-ts/versions': 0.101.3
       '@fuels/vm-asm': 0.60.2
       bundle-require: 5.1.0(esbuild@0.25.3)
@@ -23716,6 +23935,8 @@ snapshots:
 
   graphql@16.10.0: {}
 
+  graphql@16.13.1: {}
+
   gtoken@7.1.0:
     dependencies:
       gaxios: 6.7.1
@@ -23793,6 +24014,8 @@ snapshots:
   hasown@2.0.2:
     dependencies:
       function-bind: 1.1.2
+
+  headers-polyfill@4.0.3: {}
 
   help-me@5.0.0: {}
 
@@ -24032,6 +24255,8 @@ snapshots:
       define-properties: 1.2.1
 
   is-negative-zero@2.0.3: {}
+
+  is-node-process@1.2.0: {}
 
   is-number-object@1.1.1:
     dependencies:
@@ -24822,7 +25047,34 @@ snapshots:
     optionalDependencies:
       msgpackr-extract: 3.0.3
 
+  msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3):
+    dependencies:
+      '@inquirer/confirm': 5.1.21(@types/node@20.19.34)
+      '@mswjs/interceptors': 0.41.3
+      '@open-draft/deferred-promise': 2.2.0
+      '@types/statuses': 2.0.6
+      cookie: 1.1.1
+      graphql: 16.13.1
+      headers-polyfill: 4.0.3
+      is-node-process: 1.2.0
+      outvariant: 1.4.3
+      path-to-regexp: 6.3.0
+      picocolors: 1.1.1
+      rettime: 0.10.1
+      statuses: 2.0.2
+      strict-event-emitter: 0.5.1
+      tough-cookie: 6.0.1
+      type-fest: 5.4.4
+      until-async: 3.0.2
+      yargs: 17.7.2
+    optionalDependencies:
+      typescript: 5.9.3
+    transitivePeerDependencies:
+      - '@types/node'
+
   multiformats@9.9.0: {}
+
+  mute-stream@2.0.0: {}
 
   nan@2.25.0: {}
 
@@ -25055,6 +25307,8 @@ snapshots:
   ordered-binary@1.6.1: {}
 
   os-browserify@0.3.0: {}
+
+  outvariant@1.4.3: {}
 
   own-keys@1.0.1:
     dependencies:
@@ -25825,6 +26079,8 @@ snapshots:
 
   retry@0.13.1: {}
 
+  rettime@0.10.1: {}
+
   reusify@1.1.0: {}
 
   rimraf@3.0.2:
@@ -26334,6 +26590,8 @@ snapshots:
 
   stream-shift@1.0.3: {}
 
+  strict-event-emitter@0.5.1: {}
+
   strict-uri-encode@1.1.0: {}
 
   strict-uri-encode@2.0.0: {}
@@ -26480,6 +26738,8 @@ snapshots:
       typical: 5.2.0
       wordwrapjs: 4.0.1
 
+  tagged-tag@1.0.0: {}
+
   tailwindcss-animate@1.0.7(tailwindcss@4.2.1):
     dependencies:
       tailwindcss: 4.2.1
@@ -26557,6 +26817,12 @@ snapshots:
 
   tinyrainbow@3.0.3: {}
 
+  tldts-core@7.0.26: {}
+
+  tldts@7.0.26:
+    dependencies:
+      tldts-core: 7.0.26
+
   tmpl@1.0.5: {}
 
   to-buffer@1.2.2:
@@ -26590,6 +26856,10 @@ snapshots:
   toposort@2.0.2: {}
 
   totalist@1.1.0: {}
+
+  tough-cookie@6.0.1:
+    dependencies:
+      tldts: 7.0.26
 
   tr46@0.0.3: {}
 
@@ -26647,6 +26917,10 @@ snapshots:
   type-fest@2.19.0: {}
 
   type-fest@4.34.1: {}
+
+  type-fest@5.4.4:
+    dependencies:
+      tagged-tag: 1.0.0
 
   type-is@1.6.18:
     dependencies:
@@ -26793,6 +27067,8 @@ snapshots:
       ufo: 1.6.3
     optionalDependencies:
       idb-keyval: 6.2.2
+
+  until-async@3.0.2: {}
 
   update-browserslist-db@1.2.3(browserslist@4.28.1):
     dependencies:
@@ -26999,10 +27275,10 @@ snapshots:
       jiti: 2.6.1
       lightningcss: 1.31.1
 
-  vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1):
+  vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3)):
     dependencies:
       '@vitest/expect': 4.0.18
-      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
+      '@vitest/mocker': 4.0.18(msw@2.12.11(@types/node@20.19.34)(typescript@5.9.3))(vite@7.3.1(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1))
       '@vitest/pretty-format': 4.0.18
       '@vitest/runner': 4.0.18
       '@vitest/snapshot': 4.0.18
@@ -27496,6 +27772,8 @@ snapshots:
   ylru@1.4.0: {}
 
   yocto-queue@0.1.0: {}
+
+  yoctocolors-cjs@2.1.3: {}
 
   yup@1.6.1:
     dependencies:

@@ -6,6 +6,7 @@ export interface WalletContextValue {
     registerAdapter: (adapter: TrainWalletAdapter) => () => void
     getSigner: (chainNamespace: string) => TrainSigner | null
     getClientConfig: (chainNamespace: string) => Record<string, unknown>
+    getLoginConfig: (chainNamespace: string) => Record<string, unknown> | null | Promise<Record<string, unknown> | null>
 }
 
 export const WalletContext = createContext<WalletContextValue | null>(null)
@@ -16,4 +17,9 @@ export function useWalletContext(): WalletContextValue {
         throw new Error('useWalletContext must be used within a <TrainProvider>')
     }
     return ctx
+}
+
+/** Non-throwing version — returns null when used outside TrainProvider */
+export function useWalletContextOptional(): WalletContextValue | null {
+    return useContext(WalletContext)
 }

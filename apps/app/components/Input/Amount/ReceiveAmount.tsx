@@ -1,6 +1,6 @@
 import { FC, useMemo } from "react";
 import { Token } from "@/Models/Network";
-import { SwapQuote } from "@/lib/trainApiClient";
+import type { SwapQuote } from "@train-protocol/sdk";
 import NumberFlow from "@number-flow/react";
 import clsx from "clsx";
 import formatAmount from "@/lib/formatAmount";

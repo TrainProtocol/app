@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import { parseUnits } from 'viem'
 import { SwapFormValues } from '../components/DTOs/SwapFormValues'
-import { SwapQuote } from '../lib/trainApiClient'
+import type { SwapQuote } from '@train-protocol/sdk'
 import { Token } from '../Models/Network'
 import { useQuote } from '@train-protocol/react'
 

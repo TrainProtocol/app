@@ -4,7 +4,7 @@ import { useConnectModal } from "@/components/WalletModal";
 import useWallet from "@/hooks/useWallet";
 import { Wallet } from "@/Models/WalletProvider";
 import { Plus } from "lucide-react";
-import { getRegisteredWalletSignProviders } from '@train-protocol/sdk';
+import { getRegisteredWalletSignProviders } from '@train-protocol/auth';
 import { useMemo } from "react";
 
 interface WalletSelectProps {

@@ -1,20 +1,19 @@
-import { registerHTLCClient, registerWalletSign } from '@train-protocol/sdk'
+import { registerHTLCClient, type TrainSDK, defaultTrainSDK } from '@train-protocol/sdk'
+import { registerWalletSign, type TrainAuth, defaultTrainAuth } from '@train-protocol/auth'
 import { EvmHTLCClient } from './client.js'
 import { deriveKeyFromEvmSignature } from './login/index.js'
 
-let registered = false
-
 /**
  * Explicitly register the EVM HTLC client and wallet-sign factories.
- * Call once at app startup. Safe to call multiple times (idempotent).
+ * Call once at app startup. Accepts optional SDK/Auth instances for testing isolation.
  */
-export function registerEvmSdk(): void {
-    if (registered) return
-    registered = true
+export function registerEvmSdk(sdk?: TrainSDK, auth?: TrainAuth): void {
+    const s = sdk ?? defaultTrainSDK
+    const a = auth ?? defaultTrainAuth
 
-    registerHTLCClient('eip155', (config) => new EvmHTLCClient(config))
+    s.registerHTLCClient('eip155', (config) => new EvmHTLCClient(config))
 
-    registerWalletSign('eip155', async (config) => {
+    a.registerWalletSign('eip155', async (config) => {
         return deriveKeyFromEvmSignature(config.provider, config.address, config.options)
     })
 }

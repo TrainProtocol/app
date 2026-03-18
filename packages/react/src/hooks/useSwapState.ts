@@ -1,11 +1,11 @@
 import { useSwapContext } from '../providers/SwapProvider'
-import type { HTLCStatus, LockDetails, HTLCFromApi } from '@train-protocol/sdk'
+import type { HTLCStatus, UserLockDetails, SolverLockDetails, HTLCFromApi } from '@train-protocol/sdk'
 
 export interface UseSwapStateResult {
     status: HTLCStatus
     hashlock: string | null
-    sourceDetails: LockDetails | null
-    solverLockDetails: LockDetails | null
+    sourceDetails: UserLockDetails | null
+    solverLockDetails: SolverLockDetails | null
     htlcFromApi: HTLCFromApi | null
     secretRevealed: boolean
     isTimelockExpired: boolean

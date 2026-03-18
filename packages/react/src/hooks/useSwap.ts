@@ -5,7 +5,7 @@ import type { StartSwapParams } from '../types'
 export interface UseSwapResult {
     status: HTLCStatus
     error: Error | null
-    startSwap: (params: StartSwapParams, derivedKey: Buffer) => Promise<void>
+    startSwap: (params: StartSwapParams, derivedKey: Uint8Array) => Promise<void>
     resumeSwap: (params: ResumeSwapParams) => void
     revealSecret: () => Promise<void>
     refund: () => Promise<string>

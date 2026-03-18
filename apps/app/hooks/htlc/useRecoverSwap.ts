@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react'
 import formatAmount from '@/lib/formatAmount'
 import { Network } from '@/Models/Network'
 import { useSettingsState } from '@/context/settings'
-import { createHTLCClient } from '@/lib/htlc/createHTLCClient'
+import { createHTLCClient } from '@train-protocol/sdk'
 import { useRpcConfigStore } from '@/stores/rpcConfigStore'
 import { useStoreContext, type SwapData } from '@train-protocol/react'
 
@@ -16,7 +16,9 @@ export default function useRecoverSwap(sourceNetwork: Network | null) {
         if (!sourceNetwork) {
             throw new Error('No client available for this network')
         }
-        const client = createHTLCClient(sourceNetwork, getEffectiveRpcUrls)
+        const chainType = sourceNetwork.caip2Id.split(':')[0]
+        const rpcUrl = getEffectiveRpcUrls(sourceNetwork)[0] ?? sourceNetwork.nodes?.[0]?.url ?? ''
+        const client = createHTLCClient(chainType, { rpcUrl })
 
         setError(null)
         setLoading(true)

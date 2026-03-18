@@ -1,10 +1,14 @@
 import type { TrainApiClient } from '@train-protocol/sdk'
 
+export type DerivationMethod = 'passkey' | 'wallet_sign'
+
 // Re-export key SDK types for consumer convenience
 export type {
     Network,
     Token,
     LockDetails,
+    UserLockDetails,
+    SolverLockDetails,
     LockStatus,
     HTLCStatus,
     IHTLCClient,
@@ -27,10 +31,13 @@ export type {
     StatusResolverInput,
     VerificationResult,
     VerifySolverLockParams,
-    DerivationMethod,
+} from '@train-protocol/sdk'
+
+// Re-export auth types
+export type {
     PrfSupportResult,
     PasskeyCredentialStorage,
-} from '@train-protocol/sdk'
+} from '@train-protocol/auth'
 
 /** Configuration for TrainProvider */
 export interface TrainConfig {
@@ -42,6 +49,10 @@ export interface TrainConfig {
     storage?: SwapStorage
     /** Global error callback */
     onError?: (error: TrainError) => void
+    /** Optional TrainSDK instance (for testing/multi-instance). Falls back to default. */
+    sdk?: import('@train-protocol/sdk').TrainSDK
+    /** Optional TrainAuth instance (for testing/multi-instance). Falls back to default. */
+    auth?: import('@train-protocol/auth').TrainAuth
 }
 
 /** Custom storage adapter interface */

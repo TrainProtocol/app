@@ -3,7 +3,7 @@ import { useSwapContext } from '../providers/SwapProvider'
 import type { StartSwapParams } from '../types'
 
 export interface UseUserLockResult {
-    lock: (params: StartSwapParams, derivedKey: Buffer) => Promise<void>
+    lock: (params: StartSwapParams, derivedKey: Uint8Array) => Promise<void>
     isLocking: boolean
     error: Error | null
 }
@@ -13,7 +13,7 @@ export function useUserLock(): UseUserLockResult {
     const [isLocking, setIsLocking] = useState(false)
     const [error, setError] = useState<Error | null>(null)
 
-    const lock = useCallback(async (params: StartSwapParams, derivedKey: Buffer) => {
+    const lock = useCallback(async (params: StartSwapParams, derivedKey: Uint8Array) => {
         setIsLocking(true)
         setError(null)
         try {

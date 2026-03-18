@@ -3,12 +3,12 @@ import {
     deriveKeyWithPasskey,
     registerPasskey,
     checkPrfSupport,
-} from '@train-protocol/sdk'
-import type { PrfSupportResult, PasskeyCredentialStorage } from '@train-protocol/sdk'
+} from '@train-protocol/auth'
+import type { PrfSupportResult, PasskeyCredentialStorage } from '@train-protocol/auth'
 
 export interface UsePasskeyLoginResult {
-    login: () => Promise<{ key: Buffer; credentialId: string }>
-    register: (displayName?: string) => Promise<{ credentialId: string; key?: Buffer }>
+    login: () => Promise<{ key: Uint8Array; credentialId: string }>
+    register: (displayName?: string) => Promise<{ credentialId: string; key?: Uint8Array }>
     isSupported: boolean | null
     prfDetails: PrfSupportResult | null
     checkSupport: () => Promise<PrfSupportResult>

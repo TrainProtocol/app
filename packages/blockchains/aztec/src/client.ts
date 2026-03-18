@@ -13,7 +13,8 @@ import {
     type LockParams,
     type RefundParams,
     type RedeemSolverParams,
-    type LockDetails,
+    type UserLockDetails,
+    type SolverLockDetails,
     type AtomicResult,
     type RecoveredSwapData,
     type LockStatus,
@@ -33,7 +34,7 @@ export class AztecHTLCClient extends HTLCClient {
     private _sponsoredFPCInstance?: Awaited<ReturnType<typeof getContractInstanceFromInstantiationParams>>
 
     constructor(config: AztecHTLCClientConfig) {
-        super(config.apiClient)
+        super()
         this.rpcUrl = config.rpcUrl
         this.signer = config.signer
     }
@@ -214,7 +215,7 @@ export class AztecHTLCClient extends HTLCClient {
         }
     }
 
-    async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
+    async getUserLockDetails(params: LockParams): Promise<UserLockDetails | null> {
         const signer = this.requireSigner()
         const { id, contractAddress, txId } = params
         const { contract, userAztecAddress } = await this.getContractInstance(contractAddress, signer)
@@ -245,48 +246,47 @@ export class AztecHTLCClient extends HTLCClient {
         }
     }
 
-    async _getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockCount(params: LockParams, nodeUrl: string): Promise<number> {
         const signer = this.requireSigner()
         const { id, contractAddress } = params
         const { contract, userAztecAddress } = await this.getContractInstance(contractAddress, signer, nodeUrl)
 
         const hashlockBytes = hexToBytes(id, 32)
 
-        const count = Number(await contract.methods
+        return Number(await contract.methods
             .get_solver_lock_count(hashlockBytes)
             .simulate({ from: userAztecAddress }))
+    }
 
-        if (count === 0) return null
+    async getSolverLockByIndex(params: LockParams, index: number, nodeUrl: string): Promise<SolverLockDetails | null> {
+        const signer = this.requireSigner()
+        const { id, contractAddress } = params
+        const { contract, userAztecAddress } = await this.getContractInstance(contractAddress, signer, nodeUrl)
 
-        for (let i = 1; i <= count; i++) {
-            const result: any = await contract.methods
-                .get_solver_lock(hashlockBytes, BigInt(i))
-                .simulate({ from: userAztecAddress })
+        const hashlockBytes = hexToBytes(id, 32)
 
-            const status = Number(result.status) as LockStatus
-            if (status === 0) continue
+        const result: any = await contract.methods
+            .get_solver_lock(hashlockBytes, BigInt(index))
+            .simulate({ from: userAztecAddress })
 
-            const sender = result.sender?.toString()
-            if (params.solverAddress && sender?.toLowerCase() !== params.solverAddress.toLowerCase()) continue
+        const status = Number(result.status) as LockStatus
+        if (status === 0) return null
 
-            return {
-                hashlock: id,
-                amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
-                sender,
-                recipient: result.recipient?.toString(),
-                token: result.token?.toString(),
-                timelock: Number(result.timelock),
-                reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? 18)),
-                rewardTimelock: Number(result.reward_timelock),
-                rewardRecipient: result.reward_recipient?.toString(),
-                rewardToken: result.reward_token?.toString(),
-                status,
-                secret: this.parseSecret(result.secret),
-                index: i,
-            }
+        return {
+            hashlock: id,
+            amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
+            sender: result.sender?.toString(),
+            recipient: result.recipient?.toString(),
+            token: result.token?.toString(),
+            timelock: Number(result.timelock),
+            reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? 18)),
+            rewardTimelock: Number(result.reward_timelock),
+            rewardRecipient: result.reward_recipient?.toString(),
+            rewardToken: result.reward_token?.toString(),
+            status,
+            secret: this.parseSecret(result.secret),
+            index,
         }
-
-        return null
     }
 
     async recoverSwap(txHash: string): Promise<RecoveredSwapData> {
@@ -316,7 +316,7 @@ export class AztecHTLCClient extends HTLCClient {
             ) as Record<string, any>
 
             const bytesToString = (bytes: (bigint | number)[]) =>
-                Buffer.from(bytes.map(Number)).toString('utf8').replace(/\0/g, '').trim()
+                new TextDecoder().decode(new Uint8Array(bytes.map(Number))).replace(/\0/g, '').trim()
 
             return {
                 hashlock: bytesToHex(Array.from(decoded.hashlock).map(Number)),
@@ -419,8 +419,7 @@ export class AztecHTLCClient extends HTLCClient {
                 const userDataBytes: bigint[] = decoded.userData
                 if (!userDataBytes) return undefined
 
-                return Buffer.from(userDataBytes.map(Number))
-                    .toString('utf8')
+                return new TextDecoder().decode(new Uint8Array(userDataBytes.map(Number)))
                     .replace(/\0/g, '')
                     .trim() || undefined
             }
@@ -431,7 +430,7 @@ export class AztecHTLCClient extends HTLCClient {
     }
 
     private strToBytes(str: string, length: number): number[] {
-        const bytes = Buffer.from(str, 'utf8');
+        const bytes = new TextEncoder().encode(str);
         const result = new Array<number>(length).fill(0);
         for (let i = 0; i < Math.min(bytes.length, length); i++) {
             result[i] = bytes[i];

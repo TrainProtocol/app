@@ -12,7 +12,6 @@ describe('registerStarknetSdk', () => {
     it('creates a client with required methods', () => {
         const client = createHTLCClient('starknet', {
             rpcUrl: 'https://starknet-sepolia.example.com',
-            apiClient: { revealSecret: async () => {} } as any,
         })
         expect(typeof client.getUserLockDetails).toBe('function')
         expect(typeof client.getSolverLockDetails).toBe('function')

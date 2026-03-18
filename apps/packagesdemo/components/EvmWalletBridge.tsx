@@ -1,15 +1,18 @@
 import { useMemo } from 'react'
-import { useRegisterWallet, useStoreContext, type TrainWalletAdapter } from '@train-protocol/react'
-import { useConfig } from 'wagmi'
+import { useNetworks, useRegisterWallet, useStoreContext, type TrainWalletAdapter } from '@train-protocol/react'
+import { useAccount, useChainId, useConfig } from 'wagmi'
 import { getWalletClient, getConnections } from 'wagmi/actions'
 
 /**
  * Bridges wagmi wallet to Train Protocol's wallet adapter system.
- * Renders nothing — just registers the EVM adapter.
+ * Renders nothing — just registers the EVM adapter (signing, RPC, and login).
  */
 export function EvmWalletBridge() {
     const config = useConfig()
     const store = useStoreContext()
+    const { networks } = useNetworks()
+    const { address: connectedAddress } = useAccount()
+    const currentChainId = useChainId()
 
     const adapter = useMemo<TrainWalletAdapter>(() => ({
         chainNamespace: 'eip155',
@@ -50,11 +53,30 @@ export function EvmWalletBridge() {
         },
 
         getClientConfig: () => {
-            return { rpcUrl: '' }
+            const network = networks.find(n => n.caip2Id.includes('eip155')) ///TODO maybe better filter
+            const rpcUrl = network?.nodes[0].url
+            if (!rpcUrl) {
+                throw new Error('No RPC url for eip155')
+            }
+            return { rpcUrl }
         },
 
-        onSignerChange: () => () => {},
-    }), [config, store])
+        getLoginConfig: async () => {
+            if (!connectedAddress) return null
+            const connections = getConnections(config)
+            if (connections.length === 0) return null
+
+            const provider = await connections[0].connector.getProvider()
+            const sandbox = currentChainId !== 1
+            return {
+                provider,
+                address: connectedAddress,
+                options: { sandbox, currentChainId },
+            }
+        },
+
+        onSignerChange: () => () => { },
+    }), [config, store, networks, connectedAddress, currentChainId])
 
     useRegisterWallet(adapter)
     return null

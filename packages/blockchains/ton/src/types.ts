@@ -1,10 +1,12 @@
-import type { BaseHTLCClientConfig } from '@train-protocol/sdk'
 import type { TonWalletLike } from './login/index.js'
 
 declare module '@train-protocol/sdk' {
     interface HTLCClientConfigMap {
         ton: TonHTLCClientConfig
     }
+}
+
+declare module '@train-protocol/auth' {
     interface WalletSignConfigMap {
         ton: TonWalletSignConfig
     }
@@ -31,7 +33,7 @@ export interface TonSigner {
     }): Promise<{ boc: string }>
 }
 
-export type TonHTLCClientConfig = BaseHTLCClientConfig & {
+export type TonHTLCClientConfig = {
     /** TonCenter API URL for read operations */
     rpcUrl: string
     /** Optional TonCenter API key */

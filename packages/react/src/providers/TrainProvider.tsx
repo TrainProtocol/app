@@ -1,5 +1,6 @@
 import { useMemo, useCallback, useRef, createContext, useContext, type ReactNode } from 'react'
-import { TrainApiClient } from '@train-protocol/sdk'
+import { TrainApiClient, defaultTrainSDK } from '@train-protocol/sdk'
+import { defaultTrainAuth } from '@train-protocol/auth'
 import { TrainContext } from './TrainContext'
 import { NetworksProvider } from './NetworksProvider'
 import { WalletContext, type WalletContextValue } from '../wallet/WalletContext'
@@ -22,6 +23,10 @@ export function TrainProvider({
         () => new TrainApiClient({ baseUrl: config.baseUrl }),
         [config.baseUrl],
     )
+
+    // Use provided SDK/Auth instances or fall back to defaults
+    const sdk = config.sdk ?? defaultTrainSDK
+    const auth = config.auth ?? defaultTrainAuth
 
     // Create swap store (stable across renders)
     const storeRef = useRef<SwapStore | null>(null)
@@ -52,14 +57,19 @@ export function TrainProvider({
         return adapter?.getClientConfig?.() ?? {}
     }, [])
 
+    const getLoginConfig = useCallback(async (chainNamespace: string): Promise<Record<string, unknown> | null> => {
+        const adapter = adaptersRef.current.get(chainNamespace)
+        return (await adapter?.getLoginConfig?.()) ?? null
+    }, [])
+
     const walletValue = useMemo<WalletContextValue>(
-        () => ({ adapters: adaptersRef.current, registerAdapter, getSigner, getClientConfig }),
-        [registerAdapter, getSigner, getClientConfig],
+        () => ({ adapters: adaptersRef.current, registerAdapter, getSigner, getClientConfig, getLoginConfig }),
+        [registerAdapter, getSigner, getClientConfig, getLoginConfig],
     )
 
     const trainValue = useMemo(
-        () => ({ apiClient, config }),
-        [apiClient, config],
+        () => ({ apiClient, config, sdk, auth }),
+        [apiClient, config, sdk, auth],
     )
 
     return (

@@ -34,6 +34,15 @@ export function SolanaWalletBridge() {
             return { rpcUrl }
         },
 
+        getLoginConfig: () => {
+            const connectedAdapter = wallets.find(w => w.adapter.connected)?.adapter
+            const signMessage = connectedAdapter && 'signMessage' in connectedAdapter
+                ? (msg: Uint8Array) => connectedAdapter.signMessage(msg)
+                : undefined
+            if (!signMessage) return null
+            return { wallet: { signMessage } }
+        },
+
         onSignerChange: () => {
             return () => {}
         },

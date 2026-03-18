@@ -1,7 +1,7 @@
 import { FC, useState } from 'react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../../shadcn/accordion'
 import { ChevronDown } from 'lucide-react'
-import { SwapQuote } from '@/lib/trainApiClient'
+import type { SwapQuote } from '@train-protocol/sdk'
 import { SwapFormValues } from '../../DTOs/SwapFormValues'
 import { SummaryRow } from './SummaryRow'
 import { DetailedEstimates } from './DetailedEstimates'

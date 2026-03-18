@@ -1,5 +1,4 @@
 import { NetworkContract } from "@/Models/Network";
-// import TrainApiClient from "../lib/trainApiClient";
 import { getThemeData } from "./settingsHelper";
 import KnownInternalNames from "@/lib/knownIds";
 

@@ -1,14 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
     getRegisteredNamespaces,
-    getRegisteredWalletSignProviders,
     createHTLCClient,
-    deriveKeyFromWallet,
-    type TrainApiClient,
 } from '@train-protocol/sdk'
+import {
+    getRegisteredWalletSignProviders,
+    deriveKeyFromWallet,
+} from '@train-protocol/auth'
 import { registerSolanaSdk } from '../index.js'
-
-const mockApiClient = {} as TrainApiClient
 
 describe('registerSolanaSdk', () => {
     // Note: because the registry is a global singleton and registerSolanaSdk is
@@ -28,7 +27,7 @@ describe('registerSolanaSdk', () => {
     })
 
     it('createHTLCClient works for solana after registration', () => {
-        const client = createHTLCClient('solana', { rpcUrl: 'https://api.devnet.solana.com', apiClient: mockApiClient })
+        const client = createHTLCClient('solana', { rpcUrl: 'https://api.devnet.solana.com' })
         expect(client).toBeDefined()
         expect(typeof client.getUserLockDetails).toBe('function')
         expect(typeof client.getSolverLockDetails).toBe('function')

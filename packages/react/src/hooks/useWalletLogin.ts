@@ -1,8 +1,8 @@
 import { useCallback } from 'react'
-import { deriveKeyFromWallet } from '@train-protocol/sdk'
+import { deriveKeyFromWallet } from '@train-protocol/auth'
 
 export interface UseWalletLoginResult {
-    login: (providerName: string, config: Record<string, unknown>) => Promise<Buffer>
+    login: (providerName: string, config: Record<string, unknown>) => Promise<Uint8Array>
 }
 
 export function useWalletLogin(): UseWalletLoginResult {

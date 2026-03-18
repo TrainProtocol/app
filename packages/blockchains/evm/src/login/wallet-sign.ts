@@ -1,4 +1,4 @@
-import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/sdk';
+import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/auth';
 
 export interface Eip1193Provider {
     request(args: { method: string; params: unknown[] }): Promise<unknown>
@@ -21,11 +21,19 @@ export const getEvmTypedData = (sandbox: boolean = false) => ({
     },
 });
 
+function hexToUint8Array(hex: string): Uint8Array {
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < hex.length; i += 2) {
+        bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+    }
+    return bytes;
+}
+
 export const deriveKeyFromEvmSignature = async (
     provider: Eip1193Provider,
     address: `0x${string}`,
     options?: { sandbox?: boolean; currentChainId?: number }
-): Promise<Buffer> => {
+): Promise<Uint8Array> => {
     const isSandbox = options?.sandbox ?? false;
     const signingChainId = isSandbox ? 11155111 : 1;
     const signingChainHex = isSandbox ? '0xAA36A7' : '0x1';
@@ -48,13 +56,14 @@ export const deriveKeyFromEvmSignature = async (
             method: 'eth_signTypedData_v4',
             params: [address, JSON.stringify(getEvmTypedData(isSandbox))],
         }) as string;
-    } catch {
+    } catch (e) {
+        console.log("err", e)
         throw new Error(`Signing failed. Please switch to ${signingChainName} in your wallet and try again`);
     }
 
     const signatureHex = signature.startsWith('0x') ? signature.slice(2) : signature;
-    const inputMaterial = Buffer.from(signatureHex, 'hex');
-    const identitySalt = Buffer.from(IDENTITY_SALT, 'utf8');
+    const inputMaterial = hexToUint8Array(signatureHex);
+    const identitySalt = new TextEncoder().encode(IDENTITY_SALT);
 
-    return Buffer.from(deriveKeyMaterial(inputMaterial, identitySalt));
+    return new Uint8Array(deriveKeyMaterial(inputMaterial, identitySalt));
 };

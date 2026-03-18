@@ -1,4 +1,4 @@
-import { LockDetails } from '../types/lock'
+import { SolverLockDetails } from '../types/lock'
 
 export interface VerificationResult {
     verified: boolean
@@ -7,7 +7,7 @@ export interface VerificationResult {
 }
 
 export interface VerifySolverLockParams {
-    solverLockDetails: LockDetails
+    solverLockDetails: SolverLockDetails
     expectedReceiveAmount: number
     expectedRecipient: string
     expectedToken: string | undefined | null

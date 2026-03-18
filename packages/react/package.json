@@ -25,7 +25,8 @@
   },
   "peerDependencies": {
     "react": "catalog:",
-    "@train-protocol/sdk": "workspace:*"
+    "@train-protocol/sdk": "workspace:*",
+    "@train-protocol/auth": "workspace:*"
   },
   "dependencies": {
     "zustand": "catalog:"
@@ -33,6 +34,7 @@
   "devDependencies": {
     "react": "catalog:",
     "@train-protocol/sdk": "workspace:*",
+    "@train-protocol/auth": "workspace:*",
     "@types/react": "catalog:",
     "@types/node": "^20",
     "rimraf": "catalog:",

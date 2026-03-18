@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { injected } from 'wagmi/connectors'
 import {
-    useNetworks,
     useNetwork,
     useTokens,
     useQuote,
@@ -37,8 +36,9 @@ export function SwapForm() {
     const sourceTokens = useTokens(sourceNetworkId)
     const destTokens = useTokens(destNetworkId)
 
-    const sourceAsset = sourceTokens.find((t: Token) => t.contractAddress === sourceToken)
-    const destAsset = destTokens.find((t: Token) => t.contractAddress === destToken)
+
+    const sourceAsset = sourceTokens.find((t: Token) => t.symbol === sourceToken)
+    const destAsset = destTokens.find((t: Token) => t.symbol === destToken)
 
     // Quote
     const { bestQuote, bestSolver, isLoading: quoteLoading } = useQuote({
@@ -55,23 +55,37 @@ export function SwapForm() {
     const swapState = useSwapState()
     const { setCurrentSwap } = useSwapActions()
 
-    // Secret derivation
+    // Secret derivation (with persistence across page refresh)
     const {
         isLoggedIn,
         derivedKey,
         derivationStatus,
         derivationMessage,
         loginWithWallet,
-    } = useSecretDerivation()
+        loginWithPasskey,
+        registerPasskey,
+        prfSupport,
+        checkPasskeySupport,
+        logout: authLogout,
+    } = useSecretDerivation({ persist: true })
 
-    // Derive key from connected wallet
-    const handleLogin = useCallback(async () => {
-        if (!address) return
-        await loginWithWallet('eip155', {
-            provider: (window as any).ethereum,
-            address,
-        })
-    }, [address, loginWithWallet])
+    // Check passkey support on mount
+    useState(() => { checkPasskeySupport() })
+
+    // Login with connected wallet — adapter provides the config
+    const handleWalletLogin = useCallback(async () => {
+        await loginWithWallet('eip155')
+    }, [loginWithWallet])
+
+    // Login with passkey
+    const handlePasskeyLogin = useCallback(async () => {
+        await loginWithPasskey()
+    }, [loginWithPasskey])
+
+    // Register new passkey
+    const handlePasskeyRegister = useCallback(async () => {
+        await registerPasskey('Train Demo')
+    }, [registerPasskey])
 
     // Start swap
     const handleSwap = useCallback(async () => {
@@ -79,6 +93,8 @@ export function SwapForm() {
 
         const srcContract = sourceNetwork.contracts?.find(c => c.type === 'Train')?.address
         const dstContract = destNetwork.contracts?.find(c => c.type === 'Train')?.address
+
+
         if (!srcContract || !dstContract) {
             alert('No HTLC contract found for selected networks')
             return
@@ -167,15 +183,34 @@ export function SwapForm() {
                         <div className="row">
                             <span className="label">Secret Key</span>
                             {isLoggedIn ? (
-                                <span className="status-badge success">Derived</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <span className="status-badge success">Derived</span>
+                                    <button
+                                        onClick={authLogout}
+                                        style={{ background: '#27272a', color: '#e4e4e7', padding: '6px 12px', fontSize: 12 }}
+                                    >
+                                        Logout
+                                    </button>
+                                </div>
                             ) : (
-                                <button
-                                    onClick={handleLogin}
-                                    disabled={derivationStatus === 'signing'}
-                                    style={{ background: '#6366f1', color: 'white', padding: '6px 12px', fontSize: 12 }}
-                                >
-                                    {derivationStatus === 'signing' ? derivationMessage : 'Sign to Derive Key'}
-                                </button>
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                    <button
+                                        onClick={handleWalletLogin}
+                                        disabled={derivationStatus === 'signing'}
+                                        style={{ background: '#6366f1', color: 'white', padding: '6px 12px', fontSize: 12 }}
+                                    >
+                                        {derivationStatus === 'signing' ? derivationMessage : 'Sign with Wallet'}
+                                    </button>
+                                    {prfSupport?.supported && (
+                                        <button
+                                            onClick={handlePasskeyLogin}
+                                            disabled={derivationStatus === 'signing'}
+                                            style={{ background: '#4f46e5', color: 'white', padding: '6px 12px', fontSize: 12 }}
+                                        >
+                                            Use Passkey
+                                        </button>
+                                    )}
+                                </div>
                             )}
                         </div>
                     )}
@@ -361,6 +396,8 @@ export function SwapForm() {
 }
 
 function getStatusLabel(status: HTLCStatus): { text: string; type: string } {
+    debugger
+    console.log(status)
     switch (status) {
         case HTLCStatus.Initial:
             return { text: 'Ready', type: 'pending' }

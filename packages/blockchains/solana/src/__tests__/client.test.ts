@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { LockStatus, type TrainApiClient } from '@train-protocol/sdk'
+import { LockStatus } from '@train-protocol/sdk'
 import { BN } from '@coral-xyz/anchor'
 import { PublicKey } from '@solana/web3.js'
 import { SolanaHTLCClient } from '../client.js'
@@ -76,7 +76,6 @@ vi.mock('@solana/spl-token', () => ({
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
-const mockApiClient = {} as TrainApiClient
 
 describe('SolanaHTLCClient', () => {
     let client: SolanaHTLCClient
@@ -98,7 +97,6 @@ describe('SolanaHTLCClient', () => {
         sendTransaction = vi.fn().mockResolvedValue(SIGNATURE)
         client = new SolanaHTLCClient({
             rpcUrl: 'https://api.devnet.solana.com',
-            apiClient: mockApiClient,
             signer: { publicKey: SIGNER_KEY, sendTransaction: sendTransaction as any },
         })
     })
@@ -125,7 +123,7 @@ describe('SolanaHTLCClient', () => {
         })
 
         it('returns LockDetails for an active SOL lock', async () => {
-            mocks.connection.getAccountInfo.mockResolvedValue({ data: Buffer.from([]) })
+            mocks.connection.getAccountInfo.mockResolvedValue({ data: new Uint8Array(0) })
             mocks.program.account.userLock.fetch.mockResolvedValue({
                 amount: new BN(2_000_000),
                 timelock: new BN(1_700_000_000),
@@ -151,7 +149,7 @@ describe('SolanaHTLCClient', () => {
         })
 
         it('returns LockDetails with token address for a token lock', async () => {
-            mocks.connection.getAccountInfo.mockResolvedValue({ data: Buffer.from([]) })
+            mocks.connection.getAccountInfo.mockResolvedValue({ data: new Uint8Array(0) })
             mocks.program.account.userLock.fetch.mockResolvedValue({
                 amount: new BN(5_000_000),
                 timelock: new BN(1_700_000_000),
@@ -213,7 +211,7 @@ describe('SolanaHTLCClient', () => {
         })
 
         it('returns null when program fetch throws', async () => {
-            mocks.connection.getAccountInfo.mockResolvedValue({ data: Buffer.from([]) })
+            mocks.connection.getAccountInfo.mockResolvedValue({ data: new Uint8Array(0) })
             mocks.program.account.userLock.fetch.mockRejectedValue(new Error('RPC error'))
 
             const result = await client.getUserLockDetails(baseParams)
@@ -236,8 +234,7 @@ describe('SolanaHTLCClient', () => {
         it('throws when signer is not configured', async () => {
             const noSignerClient = new SolanaHTLCClient({
                 rpcUrl: 'https://api.devnet.solana.com',
-                apiClient: mockApiClient,
-            })
+                })
             await expect(noSignerClient.refund(baseParams)).rejects.toThrow('Solana signer not configured')
         })
 

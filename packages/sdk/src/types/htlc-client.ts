@@ -1,40 +1,26 @@
 import { RedeemSolverParams, UserLockParams, LockParams, RefundParams } from "./params"
-import { LockDetails } from "./lock"
+import { LockDetails, UserLockDetails, SolverLockDetails } from "./lock"
 import { AtomicResult, RecoveredSwapData } from "./atomic"
-import type { TrainApiClient } from "../api/client"
-
-export type BaseHTLCClientConfig = {
-    apiClient: TrainApiClient
-}
 
 export interface IHTLCClient {
-    getUserLockDetails(params: LockParams): Promise<LockDetails | null>
-    getSolverLockDetails(params: LockParams, nodeUrls: string[]): Promise<LockDetails | null>
+    getUserLockDetails(params: LockParams): Promise<UserLockDetails | null>
+    getSolverLockDetails(params: LockParams, nodeUrls: string[]): Promise<SolverLockDetails | null>
     recoverSwap(txHash: string): Promise<RecoveredSwapData>
 
     userLock(params: UserLockParams): Promise<AtomicResult>
     refund(params: RefundParams): Promise<string>
     redeemSolver(params: RedeemSolverParams): Promise<string>
-    revealSecret(solverId: string, hashlock: string, secret: string): Promise<void>
 }
 
 export abstract class HTLCClient implements IHTLCClient {
-    protected apiClient: TrainApiClient
+    constructor() {}
 
-    constructor(apiClient: TrainApiClient) {
-        this.apiClient = apiClient
-    }
-
-    revealSecret(solverId: string, hashlock: string, secret: string): Promise<void> {
-        return this.apiClient.revealSecret(solverId, hashlock, secret)
-    }
-
-    async getSolverLockDetails(params: LockParams, nodeUrls: string[]): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: LockParams, nodeUrls: string[]): Promise<SolverLockDetails | null> {
         const results = await Promise.all(
             nodeUrls.map(url => this._getSolverLockDetails(params, url))
         )
 
-        const validResults = results.filter((r): r is LockDetails => r !== null)
+        const validResults = results.filter((r): r is SolverLockDetails => r !== null)
         if (!validResults.length) return null
 
         const [first, ...rest] = validResults
@@ -45,8 +31,28 @@ export abstract class HTLCClient implements IHTLCClient {
         return first
     }
 
-    abstract getUserLockDetails(params: LockParams): Promise<LockDetails | null>
-    abstract _getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null>
+    /**
+     * Template method for solver lock retrieval.
+     * Default implementation uses getSolverLockCount + getSolverLockByIndex.
+     * Subclasses implement those two abstract methods instead of _getSolverLockDetails.
+     */
+    async _getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> {
+        const count = await this.getSolverLockCount(params, nodeUrl)
+        if (count === 0) return null
+
+        for (let i = 1; i <= count; i++) {
+            const lock = await this.getSolverLockByIndex(params, i, nodeUrl)
+            if (!lock) continue
+            if (params.solverAddress && lock.sender?.toLowerCase() !== params.solverAddress.toLowerCase()) continue
+            return lock
+        }
+
+        return null
+    }
+
+    abstract getUserLockDetails(params: LockParams): Promise<UserLockDetails | null>
+    abstract getSolverLockCount(params: LockParams, nodeUrl: string): Promise<number>
+    abstract getSolverLockByIndex(params: LockParams, index: number, nodeUrl: string): Promise<SolverLockDetails | null>
     abstract recoverSwap(txHash: string): Promise<RecoveredSwapData>
     abstract userLock(params: UserLockParams): Promise<AtomicResult>
     abstract refund(params: RefundParams): Promise<string>

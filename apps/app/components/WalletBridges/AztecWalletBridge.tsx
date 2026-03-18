@@ -35,6 +35,11 @@ export function AztecWalletBridge() {
             }
         },
 
+        getLoginConfig: () => {
+            if (!wallet || !accountAddress) return null
+            return { wallet, address: accountAddress }
+        },
+
         onSignerChange: () => {
             return () => {}
         },

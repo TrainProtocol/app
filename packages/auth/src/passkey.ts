@@ -1,55 +1,10 @@
 import { sha256 } from "@noble/hashes/sha2.js";
-import { deriveKeyMaterial, IDENTITY_SALT } from './key-derivation';
-
-const base64URLStringToBuffer = (base64url: string): ArrayBuffer => {
-    const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
-    const binary = atob(padded);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-    }
-    return bytes.buffer;
-};
-
-const bufferToBase64URLString = (buffer: ArrayBuffer): string => {
-    const bytes = new Uint8Array(buffer);
-    let binary = '';
-    for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
-    }
-    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-};
-
-/** Injectable storage interface — implement with zustand, memory, or any other store. */
-export interface PasskeyCredentialStorage {
-    getActiveCredentialId(): string | null
-    getAllCredentialIds(): string[]
-    storeCredentialId(credId: string): void
-}
-
-/** In-memory fallback storage (non-persistent). */
-export class InMemoryPasskeyStorage implements PasskeyCredentialStorage {
-    private credentialIds: string[] = []
-    private activeId: string | null = null
-
-    getActiveCredentialId(): string | null { return this.activeId }
-    getAllCredentialIds(): string[] { return this.credentialIds }
-    storeCredentialId(credId: string): void {
-        if (!this.credentialIds.includes(credId)) {
-            this.credentialIds.push(credId)
-        }
-        this.activeId = credId
-    }
-}
-
-export const formatPasskeyIdForDisplay = (credId: string): string => {
-    if (!credId || credId.length < 8) return credId;
-    return `id:${credId.slice(0, 2)}...${credId.slice(-5)}`;
-};
+import { deriveKeyMaterial, IDENTITY_SALT } from './key-derivation'
+import type { PasskeyCredentialStorage } from './storage'
+import { base64URLStringToBuffer, bufferToBase64URLString } from './utils'
 
 export const getPasskeyPrfSalt = (): Uint8Array => {
-    const input = Buffer.from(`train-passkey-prf-salt-v1:${IDENTITY_SALT}`, 'utf8');
+    const input = new TextEncoder().encode(`train-passkey-prf-salt-v1:${IDENTITY_SALT}`);
     return new Uint8Array(sha256(input));
 };
 
@@ -59,6 +14,7 @@ export interface PrfSupportResult {
     platformAuthenticatorAvailable: boolean;
     prfCapabilityReported: boolean | null;
     platformHint?: 'windows_hello_no_prf' | 'unsupported_browser';
+    requiresSecurityKey: boolean;
 }
 
 export const checkPrfSupport = async (): Promise<PrfSupportResult> => {
@@ -66,6 +22,7 @@ export const checkPrfSupport = async (): Promise<PrfSupportResult> => {
         supported: false,
         platformAuthenticatorAvailable: false,
         prfCapabilityReported: null,
+        requiresSecurityKey: false,
     };
 
     if (typeof window === 'undefined' || !window.isSecureContext || !window.PublicKeyCredential) {
@@ -93,7 +50,8 @@ export const checkPrfSupport = async (): Promise<PrfSupportResult> => {
     if (isWindows && result.platformAuthenticatorAvailable && result.prfCapabilityReported !== true) {
         result.reason = 'Windows Hello does not support PRF. Use a security key instead.';
         result.platformHint = 'windows_hello_no_prf';
-        result.supported = true;
+        result.supported = false;
+        result.requiresSecurityKey = true;
         return result;
     }
 
@@ -113,7 +71,7 @@ export const checkPrfSupport = async (): Promise<PrfSupportResult> => {
 
 export interface RegisterPasskeyResult {
     credentialId: string;
-    key?: Buffer;
+    key?: Uint8Array;
 }
 
 export const registerPasskey = async (
@@ -169,8 +127,8 @@ export const registerPasskey = async (
 
     if (prfFirst) {
         const ikm = new Uint8Array(prfFirst);
-        const identitySalt = Buffer.from(IDENTITY_SALT, 'utf8');
-        const key = Buffer.from(deriveKeyMaterial(ikm, identitySalt));
+        const identitySalt = new TextEncoder().encode(IDENTITY_SALT);
+        const key = new Uint8Array(deriveKeyMaterial(ikm, identitySalt));
         return { credentialId, key };
     }
 
@@ -180,7 +138,7 @@ export const registerPasskey = async (
 export const deriveKeyWithPasskey = async (
     options?: { createIfMissing?: boolean },
     storage?: PasskeyCredentialStorage
-): Promise<{ key: Buffer; credentialId: string }> => {
+): Promise<{ key: Uint8Array; credentialId: string }> => {
     const createIfMissing = options?.createIfMissing !== false;
 
     if (typeof window === 'undefined') throw new Error('Passkey auth must run in a browser');
@@ -214,20 +172,8 @@ export const deriveKeyWithPasskey = async (
     if (!prfFirst) throw new Error('Passkey PRF extension not available in this browser/authenticator');
 
     const ikm = new Uint8Array(prfFirst);
-    const identitySalt = Buffer.from(IDENTITY_SALT, 'utf8');
-    const key = Buffer.from(deriveKeyMaterial(ikm, identitySalt));
+    const identitySalt = new TextEncoder().encode(IDENTITY_SALT);
+    const key = new Uint8Array(deriveKeyMaterial(ikm, identitySalt));
 
     return { key, credentialId };
-};
-
-export const mapPasskeyError = (error: unknown): string => {
-    const msg = error instanceof Error ? error.message : String(error);
-    const msgLower = msg.toLowerCase();
-
-    if (msgLower.includes('prf')) return "Your device doesn't support secure key derivation. Try using a wallet instead.";
-    if (msgLower.includes('no passkey found') || msgLower.includes('no credentials')) return 'No passkey found for this site. Would you like to create one?';
-    if (msgLower.includes('cancelled') || msgLower.includes('canceled') || msgLower.includes('not allowed') || msgLower.includes('abort')) return 'Authentication cancelled. Try again when ready.';
-    if (msgLower.includes('not supported') || msgLower.includes('security error')) return 'Passkeys are not supported in this browser. Try using a wallet instead.';
-    if (msgLower.includes('timeout')) return 'Authentication timed out. Please try again.';
-    return msg;
 };
