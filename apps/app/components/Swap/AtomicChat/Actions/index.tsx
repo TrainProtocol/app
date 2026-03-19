@@ -212,7 +212,7 @@ const TransactionMessage: FC<{ error: string | undefined, disableButton?: boolea
         )
     }
     if (error) {
-        return <TransactionMessages.UexpectedErrorMessage message={error} />
+        return <WalletMessage status="error" header="API error" details="Something went wrong while processing your transaction. Please try again." />
     }
     return <></>
 }
