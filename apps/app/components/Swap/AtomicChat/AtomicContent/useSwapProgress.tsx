@@ -102,7 +102,7 @@ function buildSteps(
 // --- Verification Status (extracted component, reads from context directly) ---
 
 const VerificationStatus: FC = () => {
-    const { solverLockDetails, destinationDetailsByLightClient, verifyingByLightClient } = useAtomicState();
+    const { solverLockDetails, destinationDetailsByLightClient, verifyingByLightClient, consensusVerifying, consensusVerified } = useAtomicState();
 
     const lcHashlock = destinationDetailsByLightClient?.data?.hashlock;
     const solverHashlock = solverLockDetails?.hashlock;
@@ -128,6 +128,27 @@ const VerificationStatus: FC = () => {
         );
     }
 
+    if (consensusVerifying) {
+        return (
+            <div className="flex items-center gap-1 text-sm">
+                <span>Verifying with multiple RPCs</span>
+                <LockIcon className="h-4 w-4 text-accent animate-pulse" />
+            </div>
+        );
+    }
+
+    if (consensusVerified) {
+        return (
+            <div className="flex items-center gap-1 text-sm">
+                <span>Verified by</span>
+                <span className="font-medium text-accent flex items-center gap-1">
+                    multiple RPCs
+                    <LockIcon className="h-4 w-4 text-accent" />
+                </span>
+            </div>
+        );
+    }
+
     return <span className="text-sm">Verified by RPCs. Reveal your secret to complete the swap.</span>;
 };
 
@@ -143,6 +164,7 @@ export function useSwapProgress(): SwapProgress {
         source_network,
         destination_network,
         htlcFromApi,
+        consensusVerifying,
     } = useAtomicState();
 
     const { verified, skipped, mismatches } = useSolverLockVerification();
@@ -200,16 +222,23 @@ export function useSwapProgress(): SwapProgress {
             };
         }
 
-        // Solver lock detected — user can reveal secret
+        // Solver lock detected — user can reveal secret after verification
         if (htlcStatus === HTLCStatus.SolverLockDetected) {
             return {
                 gaugeValue: 50, gaugeIcon: null,
                 title: "Transfer in progress",
-                subtitle: "Verify solver lock and reveal your secret.",
+                subtitle: consensusVerifying
+                    ? "Verifying solver lock with multiple nodes..."
+                    : "Verify solver lock and reveal your secret.",
                 steps: buildSteps(HAPPY_STEPS, 2, { source: sourceTxLink, dest: destTxLink }, {
                     0: { timelock: sourceDetails?.timelock },
                     1: { description: <VerificationStatus /> },
-                    2: { status: StepStatus.Upcoming, description: "Verify solver lock and reveal secret" },
+                    2: {
+                        status: StepStatus.Upcoming,
+                        description: consensusVerifying
+                            ? "Waiting for verification to complete"
+                            : "Verify solver lock and reveal secret",
+                    },
                 }),
             };
         }
@@ -222,6 +251,7 @@ export function useSwapProgress(): SwapProgress {
                 subtitle: "You will receive your assets shortly.",
                 steps: buildSteps(HAPPY_STEPS, 3, { source: sourceTxLink, dest: destTxLink }, {
                     0: { timelock: sourceDetails?.timelock },
+                    1: { description: <VerificationStatus /> },
                     3: { name: "Receiving assets", status: StepStatus.Current, description: "Solver is claiming on destination" },
                 }),
             };
@@ -234,6 +264,7 @@ export function useSwapProgress(): SwapProgress {
                 title: "Action required",
                 subtitle: "Claim your assets manually on the destination chain.",
                 steps: buildSteps(HAPPY_STEPS, 3, { source: sourceTxLink, dest: destTxLink }, {
+                    1: { description: <VerificationStatus /> },
                     3: { name: "Claim assets", status: !redeemTxLink ? StepStatus.Upcoming : StepStatus.Current, description: "Solver didn't complete the claim. You can claim your assets manually." },
                 }),
             };
@@ -245,7 +276,9 @@ export function useSwapProgress(): SwapProgress {
                 gaugeValue: 100, gaugeIcon: "check",
                 title: "Swap complete",
                 subtitle: "Your assets have been sent to your address.",
-                steps: buildSteps(HAPPY_STEPS, -1, { redeem: redeemTxLink, source: sourceTxLink, dest: destTxLink }),
+                steps: buildSteps(HAPPY_STEPS, -1, { redeem: redeemTxLink, source: sourceTxLink, dest: destTxLink }, {
+                    1: { description: <VerificationStatus /> },
+                }),
             };
         }
 
@@ -297,5 +330,6 @@ export function useSwapProgress(): SwapProgress {
         verified,
         skipped,
         mismatches,
+        consensusVerifying,
     ]);
 }

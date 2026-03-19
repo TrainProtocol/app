@@ -220,7 +220,7 @@ export class SolanaHTLCClient extends HTLCClient {
         }
     }
 
-    async _getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
         const { contractAddress, id } = params
 
         if (!contractAddress) throw new Error('No contract address')

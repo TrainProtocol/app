@@ -2,6 +2,7 @@ import { NetworkContract } from "@/Models/Network";
 // import TrainApiClient from "../lib/trainApiClient";
 import { getThemeData } from "./settingsHelper";
 import KnownInternalNames from "@/lib/knownIds";
+import { resolveNodes } from "@/lib/rpc/nodeResolver";
 
 // const apiClient = new TrainApiClient()
 
@@ -27,20 +28,22 @@ export async function getServerSideProps(context) {
         "solana:devnet:11111111111111111111111111111111": 150,
     }
 
-    // Use mock data while backend ngrok is off
-    const resolvedNetworks = MOCK_API_NETWORKS.map(network => {
+    //const resolvedNetworks = (await Promise.all(networks.map(async network => {
+    const resolvedNetworks = (await Promise.all(MOCK_API_NETWORKS.map(async network => {
         const _network = mockData.data.find(n => n.caip2Id === network.caip2Id)
+        const seedNodes = _network?.nodes ?? []
+        const resolvedNodes = await resolveNodes(network.caip2Id, seedNodes)
 
         return {
             ...network,
-            nodes: _network?.nodes ?? [],
+            nodes: resolvedNodes.map(n => ({ providerName: n.providerName, url: n.url })),
             contracts: (_network?.contracts as NetworkContract[]) ?? [],
             tokens: network.tokens.map(token => ({
                 ...token,
                 priceInUsd: prices[`${network.caip2Id}:${token.contractAddress}`] || 0,
             })),
         }
-    }).filter(n => n.nodes.length > 0 && n.contracts.length > 0)
+    }))).filter(n => n?.nodes?.length > 0 && n?.contracts?.length > 0)
 
     const settings = {
         networks: resolvedNetworks,

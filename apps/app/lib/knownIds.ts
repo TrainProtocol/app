@@ -46,7 +46,7 @@ export default class KnownInternalNames {
 
         public static readonly EthereumRinkeby: string = "ETHEREUM_RINKEBY";
 
-        public static readonly EthereumMainnet: string = "ETHEREUM_MAINNET";
+        public static readonly EthereumMainnet: string = "eip155:1";
 
         public static readonly EthereumGoerli: string = "ETHEREUM_GOERLI";
 
