@@ -97,6 +97,7 @@ const UserStatusContent = ({
     const credentialIds = usePasskeyCredentialIds();
     const activeId = usePasskeyCredentialId();
     const removeCredential = useSecretDerivationStore((s) => s.removePasskeyCredential);
+    const { isMobile } = useWindowDimensions();
 
     const handleLogout = () => {
         logout()
@@ -130,28 +131,33 @@ const UserStatusContent = ({
                     <p className="text-secondary-text text-xs font-medium uppercase">Registered passkeys</p>
                     {credentialIds.map(id => (
                         <div key={id} className="flex items-center justify-between p-2 bg-secondary-700 rounded-lg">
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <div>
-                                        <TooltipProvider delayDuration={200}>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <span className="text-sm text-primary-text cursor-pointer">
-                                                        {formatPasskeyIdForDisplay(id)}
-                                                        {id === activeId && <span className="text-success-foreground ml-1">(active)</span>}
-                                                    </span>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>View credential ID</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    </div>
-                                </PopoverTrigger>
-                                <PopoverContent side="top" className="w-auto p-2 bg-secondary-500! rounded-lg!">
-                                    <p className="font-mono break-all max-w-[280px] text-xs text-primary-text">{id}</p>
-                                </PopoverContent>
-                            </Popover>
+                            {isMobile ? (
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <span className="text-sm text-primary-text cursor-pointer">
+                                            {formatPasskeyIdForDisplay(id)}
+                                            {id === activeId && <span className="text-success-foreground ml-1">(active)</span>}
+                                        </span>
+                                    </PopoverTrigger>
+                                    <PopoverContent side="top" className="w-auto p-2 bg-secondary-500! rounded-lg!">
+                                        <p className="font-mono break-all max-w-[280px] text-xs text-primary-text">{id}</p>
+                                    </PopoverContent>
+                                </Popover>
+                            ) : (
+                                <TooltipProvider delayDuration={200}>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <span className="text-sm text-primary-text cursor-default">
+                                                {formatPasskeyIdForDisplay(id)}
+                                                {id === activeId && <span className="text-success-foreground ml-1">(active)</span>}
+                                            </span>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="font-mono break-all max-w-[280px]">{id}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            )}
                             {credentialIds.length > 1 && (
                                 <button
                                     type="button"
