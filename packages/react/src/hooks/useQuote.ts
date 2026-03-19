@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { SolverQuote, QuoteDetails } from '@train-protocol/sdk'
 import { useTrainContext } from '../providers/TrainContext'

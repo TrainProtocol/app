@@ -56,8 +56,7 @@ export const deriveKeyFromEvmSignature = async (
             method: 'eth_signTypedData_v4',
             params: [address, JSON.stringify(getEvmTypedData(isSandbox))],
         }) as string;
-    } catch (e) {
-        console.log("err", e)
+    } catch {
         throw new Error(`Signing failed. Please switch to ${signingChainName} in your wallet and try again`);
     }
 

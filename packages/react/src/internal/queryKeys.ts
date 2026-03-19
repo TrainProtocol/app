@@ -16,4 +16,10 @@ export const trainQueryKeys = {
 
     order: (solverId: string, hashlock: string) =>
         ['train', 'order', { solverId, hashlock }] as const,
+
+    userLock: (hashlock: string) =>
+        ['train', 'userLock', hashlock] as const,
+
+    solverLock: (hashlock: string) =>
+        ['train', 'solverLock', hashlock] as const,
 }

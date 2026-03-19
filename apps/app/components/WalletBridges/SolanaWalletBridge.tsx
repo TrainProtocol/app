@@ -43,9 +43,6 @@ export function SolanaWalletBridge() {
             return { wallet: { signMessage } }
         },
 
-        onSignerChange: () => {
-            return () => {}
-        },
     }), [wallets, connection, networks, getEffectiveRpcUrls])
 
     useRegisterWallet(adapter)

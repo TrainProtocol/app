@@ -82,7 +82,6 @@ interface TrainWalletAdapter {
   chainNamespace: string          // 'eip155', 'solana', 'starknet', 'aztec'
   getSigner(): TrainSigner | null
   getClientConfig?(): Record<string, unknown>  // rpcUrl, chainId, etc.
-  onSignerChange(cb: (signer | null) => void): () => void
 }
 
 interface TrainSigner {

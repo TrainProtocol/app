@@ -1,9 +1,9 @@
-import { useEffect, useSyncExternalStore } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { useSettingsState } from '@/context/settings'
 import { isTerminalStatus } from '@/Models/HTLCStatus'
-import { useSwapState, useSwap, useStoreContext } from '@train-protocol/react'
-import { resolvePersistantQueryParams } from '@/helpers/querryHelper'
+import { useSwapState, useSwap, useActiveHashlock, useSwapActions } from '@train-protocol/react'
+import { useStoreContext } from '@train-protocol/react'
 
 /**
  * Side-effect hook that bridges the @train-protocol/react SwapProvider
@@ -14,13 +14,12 @@ import { resolvePersistantQueryParams } from '@/helpers/querryHelper'
 export function useSwapSync() {
     const router = useRouter()
     const { networks } = useSettingsState()
+    const activeHashlock = useActiveHashlock()
+    const { setActiveHashlock } = useSwapActions()
+    // Use store directly for imperative reads inside effects —
+    // using reactive `useSwaps()` here would cause effects to re-fire
+    // on every store update, which can interfere with in-flight swaps.
     const store = useStoreContext()
-
-    const activeHashlock = useSyncExternalStore(
-        (cb) => store ? store.subscribe(cb) : () => {},
-        () => store?.getState().activeHashlock ?? null,
-        () => null,
-    )
 
     const swapState = useSwapState()
     const { resumeSwap } = useSwap()
@@ -32,9 +31,9 @@ export function useSwapSync() {
 
         const swap = store.getState().swaps[hashlockFromUrl]
         if (swap && !isTerminalStatus(swap.status)) {
-            store.getState().setActiveHashlock(hashlockFromUrl)
+            setActiveHashlock(hashlockFromUrl)
         }
-    }, [router.query.hashlock, activeHashlock, store])
+    }, [router.query.hashlock, activeHashlock, store, setActiveHashlock])
 
     // 2. Resume swap in SwapProvider when activeHashlock changes
     useEffect(() => {
@@ -72,7 +71,7 @@ export function useSwapSync() {
 
         const swap = store.getState().swaps[activeHashlock]
         if (!swap || isTerminalStatus(swap.status)) {
-            store.getState().setActiveHashlock(null)
+            setActiveHashlock(null)
         }
-    }, [activeHashlock, store])
+    }, [activeHashlock, store, setActiveHashlock])
 }

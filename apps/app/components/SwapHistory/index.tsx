@@ -1,6 +1,6 @@
-import { FC, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { FC, useEffect, useMemo, useState } from 'react'
 import { ChevronUp } from 'lucide-react'
-import { useStoreContext, useSwapActions, type SwapData } from '@train-protocol/react'
+import { useSwaps, useSwapActions, useStoreContext, type SwapData } from '@train-protocol/react'
 import { useSettingsState } from '@/context/settings'
 import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus'
 import { Network } from '@/Models/Network'
@@ -44,15 +44,9 @@ function buildCompletedDateGroups(terminalEntries: [string, SwapData][]): DateGr
 
 const apiClient = new TrainApiClient({ baseUrl: AppSettings.TrainApiUri ?? '' })
 
-const emptySwaps: Record<string, SwapData> = {}
-
 const SwapHistory: FC = () => {
+    const swaps = useSwaps()
     const store = useStoreContext()
-    const swaps = useSyncExternalStore(
-        (cb) => store ? store.subscribe(cb) : () => {},
-        () => store?.getState().swaps ?? emptySwaps,
-        () => emptySwaps,
-    )
     const { updateSwap } = useSwapActions()
     const { networks } = useSettingsState()
     const [expanded, setExpanded] = useState<string | undefined>(undefined)

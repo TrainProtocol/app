@@ -55,9 +55,6 @@ export function AztecWalletBridge({ wallet, address, rpcUrl }: AztecWalletBridge
             return { wallet, address }
         },
 
-        onSignerChange: () => {
-            return () => {}
-        },
     }), [wallet, address, networks, rpcUrl])
 
     useRegisterWallet(adapter)

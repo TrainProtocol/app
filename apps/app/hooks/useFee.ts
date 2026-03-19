@@ -42,42 +42,6 @@ type Props = {
     amount: string | number | undefined
 }
 
-export type QuoteUrlArgs = {
-    sourceNetwork: string
-    destinationNetwork: string
-    amount: string
-    sourceTokenContract?: string
-    destinationTokenContract?: string
-}
-
-export function buildQuoteUrl(args: QuoteUrlArgs): string {
-    const {
-        sourceNetwork,
-        destinationNetwork,
-        amount,
-        sourceTokenContract,
-        destinationTokenContract,
-    } = args
-
-    const includeReward = 'true'
-
-    const params = new URLSearchParams({
-        amount,
-        sourceNetwork,
-        destinationNetwork,
-        includeReward,
-    })
-
-    if (sourceTokenContract) {
-        params.append('sourceTokenContract', sourceTokenContract)
-    }
-    if (destinationTokenContract) {
-        params.append('destinationTokenContract', destinationTokenContract)
-    }
-
-    return `/quote?${params.toString()}`
-}
-
 export function useQuoteData(formValues: Props | undefined, refreshInterval?: number): UseQuoteData {
     const { fromCurrency, toCurrency, from, to, amount } = formValues || {}
 
@@ -118,6 +82,7 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
         destinationTokenContract: toCurrency?.contractAddress || undefined,
         enabled: canGetQuote,
         refreshInterval: (refreshInterval !== undefined && refreshInterval !== null) ? refreshInterval : 42000,
+        debounceMs: 0,
     })
 
     return {

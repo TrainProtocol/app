@@ -1,5 +1,6 @@
 // --- Providers ---
 export { TrainProvider } from './providers/TrainProvider'
+/** @internal — prefer useSwaps/useActiveSwap/useActiveHashlock for read access */
 export { useStoreContext } from './providers/TrainProvider'
 export { SwapProvider } from './providers/SwapProvider'
 export type { ResumeSwapParams, SwapContextValue } from './providers/SwapProvider'
@@ -15,6 +16,8 @@ export { useOrder } from './hooks/useOrder'
 
 // --- Swap Data Hooks (require TrainProvider) ---
 export { useCurrentSwap, useSwapActions } from './hooks/useCurrentSwap'
+export { useSwaps, useActiveSwap } from './hooks/useSwapStore'
+export { useActiveHashlock } from './hooks/useActiveHashlock'
 
 // --- Swap Lifecycle Hooks (require SwapProvider) ---
 export { useSwap } from './hooks/useSwap'

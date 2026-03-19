@@ -1,7 +1,7 @@
 import { FC, useState } from "react";
 import useWallet from "@/hooks/useWallet";
 import { useSwapData } from "@/hooks/useSwapData";
-import { useSwapState, useSwap, useSwapActions } from "@train-protocol/react";
+import { useSwapState, useSwap } from "@train-protocol/react";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
 import { LockStatus } from "@train-protocol/sdk";
@@ -110,7 +110,6 @@ export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const { provider: source_provider } = useWallet(source_network, 'withdrawal')
     const sourceAccount = useSelectedAccount('from', source_network?.caip2Id)
     const sourceWallet = (sourceAccount?.address && source_network) ? source_provider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, source_network)) : undefined
-    const { updateSwap } = useSwapActions()
 
     const [requestedRefund, setRequestedRefund] = useState(false)
 
@@ -138,7 +137,6 @@ export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
             })
 
             if (res) {
-                updateSwap(hashlock, { refundTxId: res })
                 setRequestedRefund(true)
             }
         }

@@ -98,9 +98,6 @@ export function EvmWalletBridge() {
             }
         },
 
-        onSignerChange: () => {
-            return () => {}
-        },
     }), [config, networks, getEffectiveRpcUrls, store])
 
     useRegisterWallet(adapter)

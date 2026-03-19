@@ -55,6 +55,16 @@ type ResolveActionProps = {
 const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote, type }) => {
     const { setError } = useSwap()
 
+    // Verification/reveal errors: no button at all — revealing would be unsafe
+    const isVerificationError = error && (
+        error.includes('verification failed') || error.includes('VERIFICATION_FAILED') ||
+        error.includes('Cannot reveal') || error.includes('REVEAL_FAILED')
+    )
+
+    if (isVerificationError) {
+        return <></>
+    }
+
     if (error) {
         return (
             <SubmitButton type="button" onClick={() => setError(null)}>
@@ -181,7 +191,13 @@ const TransactionMessage: FC<{ error: string | undefined }> = ({ error }) => {
     if (error?.includes('insufficient funds')) {
         return <TransactionMessages.InsufficientFundsMessage />
     }
-    
+    if (error?.includes('verification failed') || error?.includes('VERIFICATION_FAILED')) {
+        return <WalletMessage status="error" header="Verification failed" details={error} />
+    }
+    if (error?.includes('Cannot reveal') || error?.includes('REVEAL_FAILED')) {
+        return <WalletMessage status="error" header="Reveal failed" details={error} />
+    }
+
     if (error) {
         return <TransactionMessages.UexpectedErrorMessage message={error} />
     }

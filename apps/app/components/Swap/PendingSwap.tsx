@@ -1,6 +1,6 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { useSwapStore } from "../../stores/swapStore";
-import { useStoreContext } from "@train-protocol/react";
+import { useActiveHashlock, useActiveSwap } from "@train-protocol/react";
 import { useSettingsState } from "../../context/settings";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
@@ -12,21 +12,8 @@ export default function PendingSwap() {
     useEffect(() => setMounted(true), [])
     const swapModalOpen = useSwapStore(s => s.swapModalOpen)
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
-    const store = useStoreContext()
-    const activeHashlock = useSyncExternalStore(
-        (cb) => store ? store.subscribe(cb) : () => {},
-        () => store?.getState().activeHashlock ?? null,
-        () => null,
-    )
-    const activeSwap = useSyncExternalStore(
-        (cb) => store ? store.subscribe(cb) : () => {},
-        () => {
-            if (!store) return null
-            const s = store.getState()
-            return s.activeHashlock ? s.swaps[s.activeHashlock] ?? null : null
-        },
-        () => null,
-    )
+    const activeHashlock = useActiveHashlock()
+    const activeSwap = useActiveSwap()
     const settings = useSettingsState()
     const router = useRouter()
 

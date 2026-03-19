@@ -46,9 +46,6 @@ export function StarknetWalletBridge() {
             }
         },
 
-        onSignerChange: () => {
-            return () => {}
-        },
     }), [account, address, networks, getEffectiveRpcUrls])
 
     useRegisterWallet(adapter)

@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useSwapData } from "@/hooks/useSwapData";
 import useWallet from "@/hooks/useWallet";
 import posthog from "posthog-js";
-import { useSwap, useSwapActions } from "@train-protocol/react";
+import { useSwap } from "@train-protocol/react";
 
 export function useRevealSecret() {
     const { source_network, hashlock, solver } = useSwapData()
@@ -10,7 +10,6 @@ export function useRevealSecret() {
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
 
-    const { updateSwap } = useSwapActions()
     const [isRevealing, setIsRevealing] = useState(false)
 
     const revealSecret = useCallback(async () => {
@@ -25,8 +24,6 @@ export function useRevealSecret() {
                 hashlock,
                 solver,
             })
-
-            updateSwap(hashlock, { secretRevealed: true })
         }
         catch (e: any) {
             setError(new Error(e.details || e.message))
@@ -35,7 +32,7 @@ export function useRevealSecret() {
         finally {
             setIsRevealing(false)
         }
-    }, [hashlock, solver, revealSecretAction, updateSwap, setError])
+    }, [hashlock, solver, revealSecretAction, setError])
 
     return { revealSecret, isRevealing, source_network, wallet }
 }

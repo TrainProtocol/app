@@ -1,5 +1,6 @@
-import { useState, useRef, useMemo } from 'react'
+import { useState, useRef, useMemo, useEffect } from 'react'
 import type { HTLCFromApi, HTLCFromApiResponse, OrderStreamEvent, TransactionCreatedEventData } from '@train-protocol/sdk'
+import type { SwapStore } from './store'
 import { useEventSource } from './useEventSource'
 
 export interface UseOrderStreamOptions {
@@ -7,17 +8,23 @@ export interface UseOrderStreamOptions {
     solverId: string | undefined
     hashlock: string | undefined
     enabled: boolean
-    onOrder?: (order: HTLCFromApi) => void
+    store: SwapStore | null
 }
 
 /**
  * SSE stream for order events from Station API.
- * Accumulates transactions from order_event messages.
+ * Writes directly to the store. Accumulates transactions from order_event messages.
  */
 export function useOrderStream(options: UseOrderStreamOptions) {
-    const { baseUrl, solverId, hashlock, enabled, onOrder } = options
+    const { baseUrl, solverId, hashlock, enabled, store } = options
     const [order, setOrder] = useState<HTLCFromApi | null>(null)
     const accumulatedTxsRef = useRef<HTLCFromApi['transactions']>([])
+
+    // Reset accumulated state when stream params change (new swap)
+    useEffect(() => {
+        accumulatedTxsRef.current = []
+        setOrder(null)
+    }, [solverId, hashlock])
 
     const url = solverId && hashlock
         ? `${baseUrl}/api/v1/orders/${solverId}/${hashlock}/stream`
@@ -35,7 +42,7 @@ export function useOrderStream(options: UseOrderStreamOptions) {
                 ],
             }
             setOrder(merged)
-            onOrder?.(merged)
+            store?.getState().setHtlcFromApi(merged)
         },
         order_event: (data: unknown) => {
             const event = data as OrderStreamEvent
@@ -54,7 +61,7 @@ export function useOrderStream(options: UseOrderStreamOptions) {
                         ...prev,
                         transactions: [...(prev.transactions ?? []), tx],
                     }
-                    onOrder?.(updated)
+                    store?.getState().setHtlcFromApi(updated)
                     return updated
                 })
             }
@@ -62,7 +69,7 @@ export function useOrderStream(options: UseOrderStreamOptions) {
         done: (_data: unknown) => {
             return 'close' as const
         },
-    }), [onOrder])
+    }), [store])
 
     useEventSource(url, {
         enabled: enabled && !!url,

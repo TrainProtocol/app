@@ -9,7 +9,7 @@ export function useTimelockExpiry(timelockSeconds: number | undefined): boolean 
     const [expired, setExpired] = useState(false)
 
     useEffect(() => {
-        if (timelockSeconds == null) {
+        if (!timelockSeconds) {
             setExpired(false)
             return
         }

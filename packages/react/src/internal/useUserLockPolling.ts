@@ -1,32 +1,43 @@
-import { useCallback } from 'react'
+import { useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { LockStatus } from '@train-protocol/sdk'
-import type { IHTLCClient, UserLockDetails, LockParams } from '@train-protocol/sdk'
-import { usePolling } from './usePolling'
+import type { IHTLCClient, LockParams } from '@train-protocol/sdk'
+import type { SwapStore } from './store'
+import { trainQueryKeys } from './queryKeys'
 
 export interface UseUserLockPollingOptions {
     client: IHTLCClient | null
     params: LockParams | null
     enabled: boolean
-    onSuccess?: (details: UserLockDetails) => void
+    store: SwapStore | null
 }
 
 /**
  * Polls the source chain for user lock details every 3 seconds.
- * Stops when the lock status is Redeemed.
+ * Writes directly to the store. Stops when the lock status is Redeemed.
  */
 export function useUserLockPolling(options: UseUserLockPollingOptions) {
-    const { client, params, enabled, onSuccess } = options
+    const { client, params, enabled, store } = options
 
-    const fetcher = useCallback(async () => {
-        if (!client || !params) return null
-        const details = await client.getUserLockDetails(params)
-        if (details) onSuccess?.(details)
-        return details
-    }, [client, params, onSuccess])
-
-    return usePolling(fetcher, {
-        interval: 3000,
+    const query = useQuery({
+        queryKey: trainQueryKeys.userLock(params?.id ?? ''),
+        queryFn: async () => {
+            if (!client || !params) return null
+            return client.getUserLockDetails(params)
+        },
         enabled: enabled && !!client && !!params,
-        shouldStop: (data) => data?.status === LockStatus.Redeemed,
+        refetchInterval: (query) => {
+            if (query.state.data?.status === LockStatus.Redeemed) return false
+            return 3000
+        },
+        retry: false,
+        staleTime: 0,
+        gcTime: 0,
     })
+
+    useEffect(() => {
+        if (query.data && store) {
+            store.getState().setSourceDetails(query.data)
+        }
+    }, [query.data, store])
 }

@@ -1,28 +1,22 @@
 import {
     createContext,
     useContext,
-    useReducer,
     useCallback,
     useMemo,
-    useRef,
     useEffect,
+    useSyncExternalStore,
     type ReactNode,
 } from 'react'
 import {
     HTLCStatus,
-    LockStatus,
     TERMINAL_STATUSES,
-    verifySolverLock,
     deriveSecretFromTimelock,
     secretToHashlock,
-
 } from '@train-protocol/sdk'
 import type {
     UserLockDetails,
     SolverLockDetails,
-    IHTLCClient,
     HTLCFromApi,
-    QuoteDetails,
     Token,
     RecoveredSwapData,
 } from '@train-protocol/sdk'
@@ -32,235 +26,10 @@ import { useStoreContext } from './TrainProvider'
 import { useUserLockPolling } from '../internal/useUserLockPolling'
 import { useSolverLockPolling } from '../internal/useSolverLockPolling'
 import { useOrderStream } from '../internal/useOrderStream'
-import { useTimelockExpiry } from '../internal/useTimelockExpiry'
+import { useDerivedSwapState } from '../internal/useDerivedSwapState'
 import { TrainError, TrainErrorCode } from '../types'
 import type { StartSwapParams, SwapData } from '../types'
 import { useSharedSecretDerivation } from './SecretDerivationProvider'
-
-// --- State ---
-
-interface SwapState {
-    status: HTLCStatus
-    consensusVerifying: boolean
-    consensusVerified: boolean
-    hashlock: string | null
-    nonce: number | null
-    secret: string | null
-    solverId: string | null
-    sourceDetails: UserLockDetails | null
-    solverLockDetails: SolverLockDetails | null
-    htlcFromApi: HTLCFromApi | null
-    secretRevealed: boolean
-    manualClaimRequired: boolean
-    destRedeemTxId: string | null
-    error: Error | null
-    // Params needed for polling/clients
-    sourceNetwork: string | null
-    destinationNetwork: string | null
-    srcContract: string | null
-    destContract: string | null
-    tokenContractAddress: string | null
-    sourceAddress: string | null
-    destinationAddress: string | null
-    chainId: string | null
-    txId: string | null
-    sourceAsset: Token | null
-    destinationAsset: string | null
-    quote: QuoteDetails | null
-    requestedAmount: string | null
-}
-
-const initialState: SwapState = {
-    status: HTLCStatus.Initial,
-    consensusVerifying: false,
-    consensusVerified: false,
-    hashlock: null,
-    nonce: null,
-    secret: null,
-    solverId: null,
-    sourceDetails: null,
-    solverLockDetails: null,
-    htlcFromApi: null,
-    secretRevealed: false,
-    manualClaimRequired: false,
-    destRedeemTxId: null,
-    error: null,
-    sourceNetwork: null,
-    destinationNetwork: null,
-    srcContract: null,
-    destContract: null,
-    tokenContractAddress: null,
-    sourceAddress: null,
-    destinationAddress: null,
-    chainId: null,
-    txId: null,
-    sourceAsset: null,
-    destinationAsset: null,
-    quote: null,
-    requestedAmount: null,
-}
-
-type SwapAction =
-    | { type: 'SET_PARAMS'; payload: Partial<SwapState> }
-    | { type: 'USER_LOCKED'; hashlock: string; txId: string; nonce: number; secret: string }
-    | { type: 'SOURCE_UPDATE'; details: UserLockDetails }
-    | { type: 'SOLVER_LOCK_DETECTED'; details: SolverLockDetails }
-    | { type: 'SOLVER_LOCK_VERIFIED'; details: SolverLockDetails }
-    | { type: 'SOLVER_UPDATE'; details: SolverLockDetails }
-    | { type: 'SET_ORDER'; order: HTLCFromApi }
-    | { type: 'DEST_REDEEMED'; txId: string }
-    | { type: 'SECRET_REVEALED' }
-    | { type: 'TIMELOCK_EXPIRED' }
-    | { type: 'MANUAL_CLAIM_REQUIRED' }
-    | { type: 'SET_ERROR'; error: Error }
-    | { type: 'RESET' }
-
-function swapReducer(state: SwapState, action: SwapAction): SwapState {
-    // Terminal states absorb everything except RESET and SET_ERROR
-    if (TERMINAL_STATUSES.has(state.status) && action.type !== 'RESET' && action.type !== 'SET_ERROR') {
-        return state
-    }
-
-    switch (action.type) {
-        case 'SET_PARAMS':
-            return { ...state, ...action.payload }
-
-        case 'USER_LOCKED':
-            return {
-                ...state,
-                status: HTLCStatus.UserLocked,
-                hashlock: action.hashlock,
-                txId: action.txId,
-                nonce: action.nonce,
-                secret: action.secret,
-                error: null,
-            }
-
-        case 'SOURCE_UPDATE': {
-            const next: SwapState = { ...state, sourceDetails: action.details }
-
-            // Advance Initial → UserLocked when source details arrive (resume case)
-            if (state.status === HTLCStatus.Initial && action.details.sender) {
-                next.status = HTLCStatus.UserLocked
-            }
-
-            // Detect on-chain secret (resume case where secret was already revealed)
-            if (action.details.secret) {
-                if (state.status === HTLCStatus.SolverLockDetected) {
-                    next.status = HTLCStatus.SecretRevealed
-                    next.secretRevealed = true
-                } else {
-                    // Store flag — will be applied when solver lock arrives
-                    next.secretRevealed = true
-                }
-            }
-
-            // Detect refund
-            if (action.details.status === LockStatus.Refunded) {
-                next.status = HTLCStatus.Refunded
-            }
-
-            return next
-        }
-
-        case 'SOLVER_LOCK_DETECTED': {
-            // Only advance from Initial or UserLocked
-            if (state.status !== HTLCStatus.Initial && state.status !== HTLCStatus.UserLocked) return state
-
-            // If secret was already revealed (resume case), skip ahead
-            const nextStatus = state.secretRevealed
-                ? HTLCStatus.SecretRevealed
-                : HTLCStatus.SolverLockDetected
-
-            return {
-                ...state,
-                status: nextStatus,
-                solverLockDetails: action.details,
-                consensusVerifying: !state.secretRevealed,
-                consensusVerified: state.secretRevealed,
-            }
-        }
-
-        case 'SOLVER_LOCK_VERIFIED': {
-            // Normal: was verifying, now verified
-            if (state.status === HTLCStatus.SolverLockDetected) {
-                return {
-                    ...state,
-                    solverLockDetails: action.details,
-                    consensusVerifying: false,
-                    consensusVerified: true,
-                }
-            }
-            // Edge: verification arrived but we skipped SolverLockDetected (e.g. resume)
-            if (state.status === HTLCStatus.Initial || state.status === HTLCStatus.UserLocked) {
-                const nextStatus = state.secretRevealed
-                    ? HTLCStatus.SecretRevealed
-                    : HTLCStatus.SolverLockDetected
-                return {
-                    ...state,
-                    status: nextStatus,
-                    solverLockDetails: action.details,
-                    consensusVerifying: false,
-                    consensusVerified: true,
-                }
-            }
-            return state
-        }
-
-        case 'SOLVER_UPDATE': {
-            const next: SwapState = { ...state, solverLockDetails: action.details }
-            // Detect solver redeemed on destination
-            if (action.details.status === LockStatus.Redeemed) {
-                next.status = HTLCStatus.RedeemCompleted
-            }
-            return next
-        }
-
-        case 'SET_ORDER':
-            return { ...state, htlcFromApi: action.order }
-
-        case 'DEST_REDEEMED':
-            return {
-                ...state,
-                status: HTLCStatus.RedeemCompleted,
-                destRedeemTxId: action.txId,
-            }
-
-        case 'SECRET_REVEALED':
-            if (state.status !== HTLCStatus.SolverLockDetected) return state
-            return {
-                ...state,
-                status: HTLCStatus.SecretRevealed,
-                secretRevealed: true,
-            }
-
-        case 'TIMELOCK_EXPIRED': {
-            // Timelock can override UserLocked or SolverLockDetected (user hasn't revealed yet)
-            if (
-                state.status !== HTLCStatus.UserLocked &&
-                state.status !== HTLCStatus.Initial &&
-                state.status !== HTLCStatus.SolverLockDetected
-            ) return state
-            return { ...state, status: HTLCStatus.TimelockExpired }
-        }
-
-        case 'MANUAL_CLAIM_REQUIRED':
-            return {
-                ...state,
-                status: HTLCStatus.ManualClaimRequired,
-                manualClaimRequired: true,
-            }
-
-        case 'SET_ERROR':
-            return { ...state, error: action.error }
-
-        case 'RESET':
-            return { ...initialState }
-
-        default:
-            return state
-    }
-}
 
 // --- Context ---
 
@@ -321,6 +90,15 @@ export function useSwapContext(): SwapContextValue {
     return ctx
 }
 
+// --- Helpers ---
+
+function getLockType(tokenContract: string | null | undefined): 'erc20' | 'native' {
+    if (!tokenContract || tokenContract === '0x0000000000000000000000000000000000000000') {
+        return 'native'
+    }
+    return 'erc20'
+}
+
 // --- Provider ---
 
 export function SwapProvider({ children }: { children: ReactNode }) {
@@ -328,112 +106,77 @@ export function SwapProvider({ children }: { children: ReactNode }) {
     const walletCtx = useWalletContext()
     const store = useStoreContext()
     const { derivedKey } = useSharedSecretDerivation()
-    const [state, dispatch] = useReducer(swapReducer, initialState)
 
-    // Manual claim timer
-    const manualClaimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    // Read activeSwap from store for polling params
+    const activeSwap = useSyncExternalStore(
+        (cb) => store ? store.subscribe(cb) : () => { },
+        () => store?.getState().activeSwap ?? null,
+        () => null,
+    )
 
-    // Timelock expiry — dispatch to reducer when timer fires
-    const isTimelockExpired = useTimelockExpiry(state.sourceDetails?.timelock)
-
-    useEffect(() => {
-        if (isTimelockExpired) {
-            dispatch({ type: 'TIMELOCK_EXPIRED' })
-        }
-    }, [isTimelockExpired])
+    // Derived state (status, secretRevealed, manualClaimRequired, etc.)
+    const derived = useDerivedSwapState(store)
 
     // Determine chain namespaces from CAIP-2 IDs
-    const sourceNamespace = state.sourceNetwork?.split(':')[0] ?? null
-    const destNamespace = state.destinationNetwork?.split(':')[0] ?? null
-
-    // Determine lock type
-    const getLockType = (tokenContract: string | null | undefined): 'erc20' | 'native' => {
-        if (!tokenContract || tokenContract === '0x0000000000000000000000000000000000000000') {
-            return 'native'
-        }
-        return 'erc20'
-    }
+    const sourceNamespace = activeSwap?.sourceNetwork?.split(':')[0] ?? null
+    const destNamespace = activeSwap?.destinationNetwork?.split(':')[0] ?? null
 
     // Re-derive secret on resume when sourceDetails arrives with nonce (userData)
     useEffect(() => {
-        if (state.secret || !state.hashlock || !derivedKey || !state.sourceDetails?.userData) return
+        if (!store || !activeSwap) return
+        if (activeSwap.secret || !activeSwap.hashlock || !derivedKey || !activeSwap.sourceDetails?.userData) return
         try {
-            const nonce = Number(state.sourceDetails.userData)
+            const nonce = Number(activeSwap.sourceDetails.userData)
             if (!nonce || isNaN(nonce)) return
             const secretBytes = deriveSecretFromTimelock(derivedKey, nonce)
             const secret = '0x' + Array.from(secretBytes).map(b => b.toString(16).padStart(2, '0')).join('')
             const hashlock = secretToHashlock(secret)
             // Verify the derived hashlock matches the on-chain one
-            if (hashlock.toLowerCase() === state.hashlock.toLowerCase()) {
-                dispatch({ type: 'SET_PARAMS', payload: { secret, nonce } })
+            if (hashlock.toLowerCase() === activeSwap.hashlock.toLowerCase()) {
+                store.getState().setSecretAndNonce(secret, nonce)
             } else {
                 console.warn('[SwapProvider] Derived hashlock mismatch — derivedKey may be from a different login session')
             }
         } catch (e) {
             console.error('[SwapProvider] Failed to re-derive secret:', e)
         }
-    }, [state.secret, state.hashlock, state.sourceDetails?.userData, derivedKey])
+    }, [store, activeSwap?.secret, activeSwap?.hashlock, activeSwap?.sourceDetails?.userData, derivedKey])
 
     // Whether polling should be active
-    const isActive = !!state.hashlock && !TERMINAL_STATUSES.has(state.status)
-
-    // Polling callbacks — phase-separated for solver lock
-    const onSourceUpdate = useCallback((details: UserLockDetails) => {
-        dispatch({ type: 'SOURCE_UPDATE', details })
-    }, [])
-
-    const onSolverDetected = useCallback((details: SolverLockDetails) => {
-        dispatch({ type: 'SOLVER_LOCK_DETECTED', details })
-    }, [])
-
-    const onSolverVerified = useCallback((details: SolverLockDetails) => {
-        dispatch({ type: 'SOLVER_LOCK_VERIFIED', details })
-    }, [])
-
-    const onSolverRefresh = useCallback((details: SolverLockDetails) => {
-        dispatch({ type: 'SOLVER_UPDATE', details })
-    }, [])
-
-    const onConsensusFailed = useCallback((error: Error) => {
-        const trainError = error instanceof TrainError
-            ? error
-            : new TrainError(error.message, TrainErrorCode.VerificationFailed, error)
-        dispatch({ type: 'SET_ERROR', error: trainError })
-        config.onError?.(trainError)
-    }, [config])
+    const isActive = !!activeSwap?.hashlock && !TERMINAL_STATUSES.has(derived.status)
 
     // Source chain polling params
     const userLockParams = useMemo(() => {
-        if (!state.hashlock || !state.srcContract || !state.chainId) return null
+        if (!activeSwap?.hashlock || !activeSwap?.srcContract || !activeSwap?.chainId) return null
         return {
-            type: getLockType(state.tokenContractAddress),
-            id: state.hashlock,
-            chainId: state.chainId,
-            contractAddress: state.srcContract,
-            txId: state.txId ?? undefined,
+            type: getLockType(activeSwap.tokenContractAddress),
+            id: activeSwap.hashlock,
+            chainId: activeSwap.chainId,
+            contractAddress: activeSwap.srcContract,
+            txId: activeSwap.txId ?? undefined,
         }
-    }, [state.hashlock, state.srcContract, state.chainId, state.tokenContractAddress, state.txId])
+    }, [activeSwap?.hashlock, activeSwap?.srcContract, activeSwap?.chainId, activeSwap?.tokenContractAddress, activeSwap?.txId])
 
     // Destination chain polling params
     const solverLockParams = useMemo(() => {
-        if (!state.hashlock || !state.destContract) return null
-        const destChainId = state.destinationNetwork?.split(':')[1] ?? null
+        if (!activeSwap?.hashlock || !activeSwap?.destContract) return null
+        const destChainId = activeSwap.destinationNetwork?.split(':')[1] ?? null
         return {
-            type: getLockType(state.quote?.route?.destination?.tokenContract ?? state.destinationAsset),
-            id: state.hashlock,
+            type: getLockType(activeSwap.quote?.route?.destination?.tokenContract ?? activeSwap.destinationAsset),
+            id: activeSwap.hashlock,
             chainId: destChainId,
-            contractAddress: state.destContract,
-            solverAddress: state.quote?.destinationSolverAddress,
+            contractAddress: activeSwap.destContract,
+            solverAddress: activeSwap.quote?.destinationSolverAddress,
         }
-    }, [state.hashlock, state.destContract, state.destinationNetwork, state.quote, state.destinationAsset])
+    }, [activeSwap?.hashlock, activeSwap?.destContract, activeSwap?.destinationNetwork, activeSwap?.quote, activeSwap?.destinationAsset])
 
     // Resolve destination chain node URLs for solver lock verification
     const destNodeUrls = useMemo(() => {
-        if (!state.destinationNetwork || !config.resolveNodeUrls) return []
-        return config.resolveNodeUrls(state.destinationNetwork)
-    }, [state.destinationNetwork, config.resolveNodeUrls])
+        if (!activeSwap?.destinationNetwork || !config.resolveNodeUrls) return []
+        return config.resolveNodeUrls(activeSwap.destinationNetwork)
+    }, [activeSwap?.destinationNetwork, config.resolveNodeUrls])
 
-    // Create read-only HTLC clients for polling (using adapter config for rpcUrl etc.)
+    // Create read-only HTLC clients for polling
     const sourceReadClient = useMemo(() => {
         if (!sourceNamespace) return null
         try {
@@ -450,80 +193,53 @@ export function SwapProvider({ children }: { children: ReactNode }) {
         } catch { return null }
     }, [destNamespace, walletCtx])
 
-    // Activate polling hooks
+    const onConsensusFailed = useCallback((error: Error) => {
+        const trainError = error instanceof TrainError
+            ? error
+            : new TrainError(error.message, TrainErrorCode.VerificationFailed, error)
+        config.onError?.(trainError)
+    }, [config])
+
+    // Activate polling hooks — write directly to store
     useUserLockPolling({
         client: sourceReadClient,
         params: userLockParams,
         enabled: isActive,
-        onSuccess: onSourceUpdate,
+        store,
     })
 
     useSolverLockPolling({
         client: destReadClient,
         params: solverLockParams,
         nodeUrls: destNodeUrls,
-        enabled: isActive && state.status !== HTLCStatus.Initial,
-        onDetected: onSolverDetected,
-        onVerified: onSolverVerified,
-        onRefresh: onSolverRefresh,
+        enabled: isActive && derived.status !== HTLCStatus.Initial,
+        store,
         onConsensusFailed,
     })
 
     // Order streaming
-    const destRedeemTx = state.htlcFromApi?.transactions?.find(
-        t => t.type === 'HTLCRedeem' && t.network === state.destinationNetwork
+    const destRedeemTx = activeSwap?.htlcFromApi?.transactions?.find(
+        (t: any) => t.type === 'HTLCRedeem' && t.network === activeSwap?.destinationNetwork
     )
 
     useOrderStream({
         baseUrl: config.baseUrl,
-        solverId: state.solverId ?? undefined,
-        hashlock: state.hashlock ?? undefined,
-        enabled: isActive && !!state.solverLockDetails && !destRedeemTx,
-        onOrder: useCallback((order: HTLCFromApi) => {
-            dispatch({ type: 'SET_ORDER', order })
-
-            // Check for dest redeem tx
-            const redeemTx = order.transactions?.find(
-                t => t.type === 'HTLCRedeem'
-            )
-            if (redeemTx) {
-                dispatch({ type: 'DEST_REDEEMED', txId: redeemTx.hash })
-            }
-        }, []),
+        solverId: activeSwap?.solverId ?? undefined,
+        hashlock: activeSwap?.hashlock ?? undefined,
+        enabled: isActive && !!activeSwap?.solverLockDetails && !destRedeemTx,
+        store,
     })
 
-    // Manual claim timer: 3 minutes after source redeemed but dest not
+    // Write-behind to persisted swap history
     useEffect(() => {
-        if (
-            state.sourceDetails?.status === LockStatus.Redeemed &&
-            state.solverLockDetails &&
-            state.solverLockDetails.status !== LockStatus.Redeemed &&
-            !state.manualClaimRequired
-        ) {
-            manualClaimTimerRef.current = setTimeout(() => {
-                dispatch({ type: 'MANUAL_CLAIM_REQUIRED' })
-            }, 3 * 60 * 1000)
-        }
-
-        return () => {
-            if (manualClaimTimerRef.current) {
-                clearTimeout(manualClaimTimerRef.current)
-                manualClaimTimerRef.current = null
-            }
-        }
-    }, [state.sourceDetails?.status, state.solverLockDetails, state.manualClaimRequired])
-
-    // Sync status to swap store
-    useEffect(() => {
-        if (state.hashlock && store) {
-            store.getState().updateSwap(state.hashlock, {
-                status: state.status,
-                destTxId: state.destRedeemTxId ?? undefined,
-                createdAt: state.sourceDetails?.blockTimestamp,
-                timelock: state.sourceDetails?.timelock,
-            })
-        }
-    }, [state.status, state.hashlock, state.destRedeemTxId, state.sourceDetails?.blockTimestamp, state.sourceDetails?.timelock, store])
+        if (!store || !activeSwap?.hashlock) return
+        store.getState().updateSwap(activeSwap.hashlock, {
+            status: derived.status,
+            destTxId: derived.destRedeemTxId ?? undefined,
+            createdAt: activeSwap.sourceDetails?.blockTimestamp,
+            timelock: activeSwap.sourceDetails?.timelock,
+        })
+    }, [store, activeSwap?.hashlock, derived.status, derived.destRedeemTxId, activeSwap?.sourceDetails?.blockTimestamp, activeSwap?.sourceDetails?.timelock])
 
     // --- Actions ---
 
@@ -533,25 +249,6 @@ export function SwapProvider({ children }: { children: ReactNode }) {
             const secretBytes = deriveSecretFromTimelock(derivedKey, nonce)
             const secret = '0x' + Array.from(secretBytes).map(b => b.toString(16).padStart(2, '0')).join('')
             const hashlock = secretToHashlock(secret)
-
-            dispatch({
-                type: 'SET_PARAMS',
-                payload: {
-                    sourceNetwork: params.sourceNetwork,
-                    destinationNetwork: params.destinationNetwork,
-                    srcContract: params.srcContract,
-                    destContract: params.destContract,
-                    tokenContractAddress: params.tokenContractAddress ?? null,
-                    sourceAddress: params.sourceAddress,
-                    destinationAddress: params.destinationAddress,
-                    chainId: params.chainId ?? params.sourceNetwork.split(':')[1],
-                    solverId: params.solverId,
-                    sourceAsset: params.sourceAsset,
-                    destinationAsset: params.destinationAsset,
-                    quote: params.quote,
-                    requestedAmount: params.amount,
-                },
-            })
 
             // Get signer from wallet adapter
             const namespace = params.sourceNetwork.split(':')[0]
@@ -563,7 +260,7 @@ export function SwapProvider({ children }: { children: ReactNode }) {
                 )
             }
 
-            // Create write client with signer + adapter config (rpcUrl, chainId, etc.)
+            // Create write client with signer + adapter config
             const adapterConfig = walletCtx.getClientConfig(namespace)
             const client = sdk.createHTLCClient(namespace, {
                 ...adapterConfig,
@@ -596,16 +293,29 @@ export function SwapProvider({ children }: { children: ReactNode }) {
                 solverData: params.quote.signature,
             })
 
-            dispatch({
-                type: 'USER_LOCKED',
-                hashlock: result.hashlock,
-                txId: result.hash,
-                nonce,
-                secret,
-            })
-
-            // Commit currentSwap to persisted store
+            // Initialize active swap in store
             if (store) {
+                store.getState().initActiveSwap({
+                    hashlock: result.hashlock,
+                    nonce,
+                    secret,
+                    solverId: params.solverId,
+                    sourceNetwork: params.sourceNetwork,
+                    destinationNetwork: params.destinationNetwork,
+                    srcContract: params.srcContract,
+                    destContract: params.destContract,
+                    tokenContractAddress: params.tokenContractAddress ?? null,
+                    sourceAddress: params.sourceAddress,
+                    destinationAddress: params.destinationAddress,
+                    chainId: params.chainId ?? params.sourceNetwork.split(':')[1],
+                    txId: result.hash,
+                    sourceAsset: params.sourceAsset,
+                    destinationAsset: params.destinationAsset,
+                    quote: params.quote,
+                    requestedAmount: params.amount,
+                })
+
+                // Commit to persisted swap history
                 store.getState().commitSwap(result.hashlock, result.hash)
             }
         } catch (err) {
@@ -616,40 +326,25 @@ export function SwapProvider({ children }: { children: ReactNode }) {
                     TrainErrorCode.LockFailed,
                     err,
                 )
-            dispatch({ type: 'SET_ERROR', error })
+            if (store) store.getState().setActiveSwapError(error)
             config.onError?.(error)
             throw error
         }
-    }, [apiClient, walletCtx, store, config, sdk])
+    }, [walletCtx, store, config, sdk])
 
     const revealSecret = useCallback(async () => {
-        if (!state.solverId || !state.hashlock || !state.secret) {
-            console.error('[SwapProvider.revealSecret] MISSING:', { solverId: !!state.solverId, hashlock: !!state.hashlock, secret: !!state.secret })
+        const swap = store?.getState().activeSwap
+        if (!swap?.solverId || !swap?.hashlock || !swap?.secret) {
+            console.error('[SwapProvider.revealSecret] MISSING:', { solverId: !!swap?.solverId, hashlock: !!swap?.hashlock, secret: !!swap?.secret })
             throw new TrainError('Cannot reveal: missing solverId, hashlock, or secret', TrainErrorCode.RevealFailed)
         }
 
-        // Verify solver lock before revealing
-        if (state.solverLockDetails && state.quote) {
-            const verification = verifySolverLock({
-                solverLockDetails: state.solverLockDetails,
-                expectedReceiveAmount: state.solverLockDetails.amount,
-                expectedRecipient: state.destinationAddress ?? '',
-                expectedToken: state.quote.route?.destination?.tokenContract,
-            })
-            if (!verification.verified && !verification.skipped) {
-                throw new TrainError(
-                    `Solver lock verification failed: ${verification.mismatches.join(', ')}`,
-                    TrainErrorCode.VerificationFailed,
-                )
-            }
-        }
-
         try {
-            await apiClient.revealSecret(state.solverId, state.hashlock, state.secret)
-            dispatch({ type: 'SECRET_REVEALED' })
+            await apiClient.revealSecret(swap.solverId, swap.hashlock, swap.secret)
 
-            if (store && state.hashlock) {
-                store.getState().updateSwap(state.hashlock, { secretRevealed: true })
+            if (store) {
+                store.getState().setSecretRevealedToApi()
+                store.getState().updateSwap(swap.hashlock, { secretRevealed: true })
             }
         } catch (err) {
             console.error('[SwapProvider.revealSecret] FAILED:', err)
@@ -658,35 +353,37 @@ export function SwapProvider({ children }: { children: ReactNode }) {
                 TrainErrorCode.RevealFailed,
                 err,
             )
-            dispatch({ type: 'SET_ERROR', error })
+            if (store) store.getState().setActiveSwapError(error)
             config.onError?.(error)
             throw error
         }
-    }, [state.solverId, state.hashlock, state.secret, state.solverLockDetails, state.quote, state.destinationAddress, apiClient, store, config])
+    }, [apiClient, store, config])
 
     const refund = useCallback(async (): Promise<string> => {
-        if (!state.hashlock || !sourceNamespace || !state.srcContract || !state.sourceAsset) {
+        const swap = store?.getState().activeSwap
+        const srcNamespace = swap?.sourceNetwork?.split(':')[0] ?? null
+        if (!swap?.hashlock || !srcNamespace || !swap?.srcContract || !swap?.sourceAsset) {
             throw new TrainError('Cannot refund: missing required params', TrainErrorCode.RefundFailed)
         }
 
         try {
-            const signer = walletCtx.getSigner(sourceNamespace)
+            const signer = walletCtx.getSigner(srcNamespace)
             if (!signer) {
-                throw new TrainError(`No wallet adapter for ${sourceNamespace}`, TrainErrorCode.WalletNotConnected)
+                throw new TrainError(`No wallet adapter for ${srcNamespace}`, TrainErrorCode.WalletNotConnected)
             }
 
-            const adapterConfig = walletCtx.getClientConfig(sourceNamespace)
-            const client = sdk.createHTLCClient(sourceNamespace, { ...adapterConfig, signer } as any)
+            const adapterConfig = walletCtx.getClientConfig(srcNamespace)
+            const client = sdk.createHTLCClient(srcNamespace, { ...adapterConfig, signer } as any)
             const txHash = await client.refund({
-                type: getLockType(state.tokenContractAddress),
-                chainId: state.chainId,
-                contractAddress: state.srcContract,
-                id: state.hashlock,
-                sourceAsset: state.sourceAsset,
+                type: getLockType(swap.tokenContractAddress),
+                chainId: swap.chainId,
+                contractAddress: swap.srcContract,
+                id: swap.hashlock,
+                sourceAsset: swap.sourceAsset,
             })
 
-            if (store && state.hashlock) {
-                store.getState().updateSwap(state.hashlock, { refundTxId: txHash })
+            if (store) {
+                store.getState().updateSwap(swap.hashlock, { refundTxId: txHash })
             }
 
             return txHash
@@ -694,40 +391,40 @@ export function SwapProvider({ children }: { children: ReactNode }) {
             const error = err instanceof TrainError
                 ? err
                 : new TrainError(err instanceof Error ? err.message : String(err), TrainErrorCode.RefundFailed, err)
-            dispatch({ type: 'SET_ERROR', error })
+            if (store) store.getState().setActiveSwapError(error)
             config.onError?.(error)
             throw error
         }
-    }, [state.hashlock, state.srcContract, state.sourceAsset, state.tokenContractAddress, state.chainId, sourceNamespace, walletCtx, sdk, store, config])
+    }, [walletCtx, sdk, store, config])
 
     const manualClaim = useCallback(async (secret: string): Promise<string> => {
-        if (!state.hashlock || !destNamespace || !state.destContract || !state.quote) {
+        const swap = store?.getState().activeSwap
+        const dstNamespace = swap?.destinationNetwork?.split(':')[0] ?? null
+        if (!swap?.hashlock || !dstNamespace || !swap?.destContract || !swap?.quote) {
             throw new TrainError('Cannot claim: missing required params', TrainErrorCode.ClaimFailed)
         }
 
         try {
-            const signer = walletCtx.getSigner(destNamespace)
+            const signer = walletCtx.getSigner(dstNamespace)
             if (!signer) {
-                throw new TrainError(`No wallet adapter for ${destNamespace}`, TrainErrorCode.WalletNotConnected)
+                throw new TrainError(`No wallet adapter for ${dstNamespace}`, TrainErrorCode.WalletNotConnected)
             }
 
-            const adapterConfig = walletCtx.getClientConfig(destNamespace)
-            const client = sdk.createHTLCClient(destNamespace, { ...adapterConfig, signer } as any)
+            const adapterConfig = walletCtx.getClientConfig(dstNamespace)
+            const client = sdk.createHTLCClient(dstNamespace, { ...adapterConfig, signer } as any)
             const txHash = await client.redeemSolver({
-                type: getLockType(state.quote.route?.destination?.tokenContract),
-                chainId: state.destinationNetwork?.split(':')[1] ?? null,
-                contractAddress: state.destContract,
-                id: state.hashlock,
+                type: getLockType(swap.quote.route?.destination?.tokenContract),
+                chainId: swap.destinationNetwork?.split(':')[1] ?? null,
+                contractAddress: swap.destContract,
+                id: swap.hashlock,
                 secret,
-                sourceAsset: state.sourceAsset!,
-                destLpAddress: state.quote.destinationSolverAddress,
-                destinationAddress: state.destinationAddress ?? undefined,
+                sourceAsset: swap.sourceAsset!,
+                destLpAddress: swap.quote.destinationSolverAddress,
+                destinationAddress: swap.destinationAddress ?? undefined,
             })
 
-            dispatch({ type: 'DEST_REDEEMED', txId: txHash })
-
-            if (store && state.hashlock) {
-                store.getState().updateSwap(state.hashlock, { destTxId: txHash })
+            if (store) {
+                store.getState().updateSwap(swap.hashlock, { destTxId: txHash })
             }
 
             return txHash
@@ -735,11 +432,11 @@ export function SwapProvider({ children }: { children: ReactNode }) {
             const error = err instanceof TrainError
                 ? err
                 : new TrainError(err instanceof Error ? err.message : String(err), TrainErrorCode.ClaimFailed, err)
-            dispatch({ type: 'SET_ERROR', error })
+            if (store) store.getState().setActiveSwapError(error)
             config.onError?.(error)
             throw error
         }
-    }, [state.hashlock, state.destContract, state.quote, state.sourceAsset, state.destinationAddress, state.destinationNetwork, destNamespace, walletCtx, sdk, store, config])
+    }, [walletCtx, sdk, store, config])
 
     const recoverSwapFromTx = useCallback(async (txHash: string, chainNamespace: string, rpcUrl: string) => {
         try {
@@ -747,19 +444,27 @@ export function SwapProvider({ children }: { children: ReactNode }) {
             const client = sdk.createHTLCClient(chainNamespace, { ...adapterConfig, rpcUrl } as any)
             const recovered = await client.recoverSwap(txHash)
 
-            dispatch({
-                type: 'SET_PARAMS',
-                payload: {
+            if (store) {
+                store.getState().initActiveSwap({
                     hashlock: recovered.hashlock,
+                    nonce: null,
+                    secret: null,
+                    solverId: null,
                     sourceNetwork: recovered.srcChain,
                     destinationNetwork: recovered.dstChain,
                     srcContract: recovered.srcContract,
+                    destContract: null,
+                    tokenContractAddress: null,
                     sourceAddress: recovered.sender,
                     destinationAddress: recovered.dstAddress,
-                },
-            })
+                    chainId: null,
+                    txId: txHash,
+                    sourceAsset: null,
+                    destinationAsset: null,
+                    quote: null,
+                    requestedAmount: recovered.amount.toString(),
+                })
 
-            if (store) {
                 const swapData: SwapData = {
                     requestedAmount: recovered.amount.toString(),
                     address: recovered.sender,
@@ -780,68 +485,63 @@ export function SwapProvider({ children }: { children: ReactNode }) {
                 TrainErrorCode.RecoverFailed,
                 err,
             )
-            dispatch({ type: 'SET_ERROR', error })
+            if (store) store.getState().setActiveSwapError(error)
             config.onError?.(error)
             throw error
         }
     }, [sdk, walletCtx, store, config])
 
     const resumeSwap = useCallback((params: ResumeSwapParams) => {
-        dispatch({ type: 'RESET' })
-        dispatch({
-            type: 'SET_PARAMS',
-            payload: {
-                hashlock: params.hashlock,
-                txId: params.txId ?? null,
-                sourceNetwork: params.sourceNetwork,
-                destinationNetwork: params.destinationNetwork,
-                srcContract: params.srcContract ?? null,
-                destContract: params.destContract ?? null,
-                tokenContractAddress: params.tokenContractAddress ?? null,
-                sourceAddress: params.sourceAddress ?? null,
-                destinationAddress: params.destinationAddress ?? null,
-                chainId: params.chainId ?? params.sourceNetwork.split(':')[1],
-                solverId: params.solverId ?? null,
-                sourceAsset: params.sourceAsset ?? null,
-                destinationAsset: params.destinationAsset ?? null,
-                requestedAmount: params.requestedAmount ?? null,
-                secretRevealed: params.secretRevealed ?? false,
-            },
+        if (!store) return
+        store.getState().initActiveSwap({
+            hashlock: params.hashlock,
+            nonce: null,
+            secret: null,
+            solverId: params.solverId ?? null,
+            sourceNetwork: params.sourceNetwork,
+            destinationNetwork: params.destinationNetwork,
+            srcContract: params.srcContract ?? null,
+            destContract: params.destContract ?? null,
+            tokenContractAddress: params.tokenContractAddress ?? null,
+            sourceAddress: params.sourceAddress ?? null,
+            destinationAddress: params.destinationAddress ?? null,
+            chainId: params.chainId ?? params.sourceNetwork.split(':')[1],
+            txId: params.txId ?? null,
+            sourceAsset: params.sourceAsset ?? null,
+            destinationAsset: params.destinationAsset ?? null,
+            quote: null,
+            requestedAmount: params.requestedAmount ?? null,
         })
-    }, [])
+    }, [store])
 
     const setError = useCallback((error: Error | null) => {
-        if (error) {
-            dispatch({ type: 'SET_ERROR', error })
-        } else {
-            dispatch({ type: 'SET_PARAMS', payload: { error: null } })
-        }
-    }, [])
+        if (store) store.getState().setActiveSwapError(error)
+    }, [store])
 
     const setCurrentSwap = useCallback((data: SwapData) => {
-        dispatch({ type: 'RESET' })
         if (store) {
+            store.getState().resetActiveSwap()
             store.getState().setCurrentSwap(data)
         }
     }, [store])
 
     const reset = useCallback(() => {
-        dispatch({ type: 'RESET' })
-    }, [])
-
+        if (store) store.getState().resetActiveSwap()
+    }, [store])
+    console.log("derived", derived)
     const value = useMemo<SwapContextValue>(() => ({
-        status: state.status,
-        hashlock: state.hashlock,
-        sourceDetails: state.sourceDetails,
-        solverLockDetails: state.solverLockDetails,
-        htlcFromApi: state.htlcFromApi,
-        secretRevealed: state.secretRevealed,
-        isTimelockExpired,
-        manualClaimRequired: state.manualClaimRequired,
-        destRedeemTxId: state.destRedeemTxId,
-        error: state.error,
-        consensusVerifying: state.consensusVerifying,
-        consensusVerified: state.consensusVerified,
+        status: derived.status,
+        hashlock: derived.hashlock,
+        sourceDetails: derived.sourceDetails,
+        solverLockDetails: derived.solverLockDetails,
+        htlcFromApi: derived.htlcFromApi,
+        secretRevealed: derived.secretRevealed,
+        isTimelockExpired: derived.isTimelockExpired,
+        manualClaimRequired: derived.manualClaimRequired,
+        destRedeemTxId: derived.destRedeemTxId,
+        error: derived.error,
+        consensusVerifying: derived.consensusVerifying,
+        consensusVerified: derived.consensusVerified,
         setCurrentSwap,
         startSwap,
         resumeSwap,
@@ -851,7 +551,12 @@ export function SwapProvider({ children }: { children: ReactNode }) {
         recoverSwap: recoverSwapFromTx,
         setError,
         reset,
-    }), [state, isTimelockExpired, setCurrentSwap, startSwap, resumeSwap, revealSecret, refund, manualClaim, recoverSwapFromTx, setError, reset])
+    }), [
+        derived.status, derived.hashlock, derived.sourceDetails, derived.solverLockDetails,
+        derived.htlcFromApi, derived.secretRevealed, derived.isTimelockExpired, derived.manualClaimRequired,
+        derived.destRedeemTxId, derived.error, derived.consensusVerifying, derived.consensusVerified,
+        setCurrentSwap, startSwap, resumeSwap, revealSecret, refund, manualClaim, recoverSwapFromTx, setError, reset,
+    ])
 
     return (
         <SwapContext.Provider value={value}>

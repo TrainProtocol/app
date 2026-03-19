@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useCallback, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useCallback, useMemo, useState, type ReactNode } from 'react'
 import { useSecretDerivation as useSecretDerivationHook } from '../hooks/useSecretDerivation'
 import type { UseSecretDerivationOptions, UseSecretDerivationResult, PasskeyLoginOptions } from '../hooks/useSecretDerivation'
 import type { PrfSupportResult } from '@train-protocol/auth'
@@ -91,13 +91,13 @@ export function SecretDerivationProvider({
         setLoginWallet(null)
     }, [originalLogout])
 
-    const value: SecretDerivationContextValue = {
+    const value = useMemo<SecretDerivationContextValue>(() => ({
         ...hook,
         loginWithWallet,
         logout,
         loginWallet,
         prfSupportDetails: hook.prfSupport,
-    }
+    }), [hook, loginWithWallet, logout, loginWallet])
 
     return (
         <SecretDerivationContext.Provider value={value}>
