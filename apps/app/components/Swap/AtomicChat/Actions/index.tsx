@@ -30,23 +30,15 @@ type ActionsProps = {
 }
 
 export const Actions: FC<ActionsProps> = ({ quote, type }) => {
-    const { htlcStatus: commitStatus, error, hashlock } = useAtomicState()
-
-    const swap = useSwapStore(useShallow(s => hashlock ? s.swaps[hashlock] : undefined))
-    const { warning } = useLoginIdentityMismatch(swap?.loginIdentity)
-
-    const showWarning = !!warning && commitStatus === HTLCStatus.SolverLockDetected
+    const { htlcStatus: commitStatus, error } = useAtomicState()
 
     return (
         <>
-            {showWarning && (
-                <WalletMessage status="warning" header={warning.header} details={warning.details} />
-            )}
-            {error && !showWarning && <TransactionMessage error={error.message} disableButton={error.disableButton} />}
+            {error && <TransactionMessage error={error.message} disableButton={error.disableButton} />}
             <DestinationWalletWrapper>
                 <ResolveAction
                     commitStatus={commitStatus}
-                    disableButton={error?.disableButton || showWarning}
+                    disableButton={error?.disableButton}
                     error={error?.message}
                     quote={quote}
                     type={type}
@@ -87,7 +79,6 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, disableButton, er
         case HTLCStatus.SecretRevealed:
             return <></>
         case HTLCStatus.SolverLockDetected:
-            if (disableButton) return <></>
             return <SolverLockDetectedAction type={type} />
         case HTLCStatus.UserLocked:
             return <></>
@@ -102,7 +93,13 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const [autoRevealFailed, setAutoRevealFailed] = useState(false)
     const attemptedRef = useRef(false)
     const { verified, skipped, mismatches } = useSolverLockVerification()
-    const { lightClientPending } = useAtomicState()
+    const { lightClientPending, hashlock } = useAtomicState()
+    const swap = useSwapStore(useShallow(s => hashlock ? s.swaps[hashlock] : undefined))
+    const { warning } = useLoginIdentityMismatch(swap?.loginIdentity)
+
+    if (warning) {
+        return <WalletMessage status="warning" header={warning.header} details={warning.details} />
+    }
 
     const shouldAutoReveal = autoRevealSecret && hasSeenAutoRevealPrompt && !autoRevealFailed && verified && !lightClientPending
 

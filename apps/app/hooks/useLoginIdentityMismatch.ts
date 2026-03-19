@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { LoginIdentity } from '@/stores/swapStore'
+import { LoginIdentity } from '@/stores/secretDerivationStore'
 import { useSecretDerivationStore } from '@/stores/secretDerivationStore'
 import { formatPasskeyIdForDisplay } from '@/lib/htlc/secretDerivation/passkeyService'
 

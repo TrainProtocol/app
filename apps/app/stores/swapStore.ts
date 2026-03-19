@@ -1,10 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { HTLCStatus } from '@/Models/HTLCStatus'
-
-export type LoginIdentity =
-    | { method: 'passkey'; credentialId: string }
-    | { method: 'wallet_sign'; providerName: string; displayName: string; address: string }
+import { LoginIdentity } from './secretDerivationStore'
 
 export interface SwapData {
     requestedAmount: string

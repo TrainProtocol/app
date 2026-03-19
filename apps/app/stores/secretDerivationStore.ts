@@ -4,6 +4,10 @@ import { Wallet } from '@/Models/WalletProvider';
 import { PrfSupportResult } from '@/lib/htlc/secretDerivation';
 import { DerivationMethod } from '@train-protocol/sdk';
 
+export type LoginIdentity =
+    | { method: 'passkey'; credentialId: string }
+    | { method: 'wallet_sign'; providerName: string; displayName: string; address: string }
+
 export type DerivationStatus = 'idle' | 'signing';
 
 interface SecretDerivationState {

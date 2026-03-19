@@ -1,6 +1,5 @@
 import { FC } from 'react'
 import { ExternalLink, RefreshCw } from 'lucide-react'
-import WalletMessage from '@/components/Swap/messages/Message'
 import { SwapData, useSwapStore } from '@/stores/swapStore'
 import { Network } from '@/Models/Network'
 import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus'
@@ -12,7 +11,6 @@ import StatusIcons from './StatusIcons'
 import { useRouter } from 'next/router'
 import { resolvePersistantQueryParams } from '@/helpers/querryHelper'
 import { getDateDifferenceString } from '@/components/utils/dateDifference'
-import { useLoginIdentityMismatch } from '@/hooks/useLoginIdentityMismatch'
 
 type Props = {
     swap: SwapData
@@ -36,8 +34,6 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
     const isRefunded = swap.status === HTLCStatus.Refunded
     const isCompleted = swap.status === HTLCStatus.RedeemCompleted
     const isInProgress = swap.status && !isTerminalStatus(swap.status)
-    const isAtSolverLock = swap.status === HTLCStatus.SolverLockDetected
-    const { warning } = useLoginIdentityMismatch(swap.loginIdentity)
 
     const dateDifferenceString = swap.createdAt ? getDateDifferenceString(swap.createdAt) : undefined
 
@@ -154,7 +150,7 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
                 </div>
             </div>
 
-            {isInProgress && !(isAtSolverLock && warning) && (
+            {isInProgress && (
                 <button
                     type="button"
                     onClick={handleViewSwap}
@@ -162,10 +158,6 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
                 >
                     View Swap
                 </button>
-            )}
-
-            {isAtSolverLock && warning && (
-                <WalletMessage status="warning" header={warning.header} details={warning.details} />
             )}
 
             {isCompleted && (
