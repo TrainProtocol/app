@@ -18,6 +18,9 @@ import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
 import { Drawer } from "@/components/Modal/vaul";
 import { HTLCStatus } from "@/Models/HTLCStatus";
+import { useLoginIdentityMismatch } from "@/hooks/useLoginIdentityMismatch";
+import { useSwapStore } from "@/stores/swapStore";
+import { useShallow } from "zustand/react/shallow";
 
 export type SwapViewType = "widget" | "contained"
 
@@ -27,15 +30,23 @@ type ActionsProps = {
 }
 
 export const Actions: FC<ActionsProps> = ({ quote, type }) => {
-    const { htlcStatus: commitStatus, error } = useAtomicState()
+    const { htlcStatus: commitStatus, error, hashlock } = useAtomicState()
+
+    const swap = useSwapStore(useShallow(s => hashlock ? s.swaps[hashlock] : undefined))
+    const { warning } = useLoginIdentityMismatch(swap?.loginIdentity)
+
+    const showWarning = !!warning && commitStatus === HTLCStatus.SolverLockDetected
 
     return (
         <>
-            {error && <TransactionMessage error={error.message} disableButton={error.disableButton} />}
+            {showWarning && (
+                <WalletMessage status="warning" header={warning.header} details={warning.details} />
+            )}
+            {error && !showWarning && <TransactionMessage error={error.message} disableButton={error.disableButton} />}
             <DestinationWalletWrapper>
                 <ResolveAction
                     commitStatus={commitStatus}
-                    disableButton={error?.disableButton}
+                    disableButton={error?.disableButton || showWarning}
                     error={error?.message}
                     quote={quote}
                     type={type}
