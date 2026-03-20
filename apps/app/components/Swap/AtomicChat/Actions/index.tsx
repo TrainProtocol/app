@@ -1,10 +1,10 @@
 import { FC, useEffect, useRef, useState } from "react";
-import { useAtomicState } from "../../../../context/atomicContext";
+import { useAtomicState } from "@/context/atomicContext";
 import { RevealSecretAction } from "./RevealSecret";
 import { ManualClaimAction } from "./ManualClaim";
 import { UserRefundAction, UserLockAction } from "./UserActions";
-import TransactionMessages from "../../messages/TransactionMessages";
-import WalletMessage from "../../messages/Message";
+import TransactionMessages from "@/components/Swap/messages/TransactionMessages";
+import WalletMessage from "@/components/Swap/messages/Message";
 import DestinationWalletWrapper from "./DestinationWalletWrapper";
 import { SwapQuote } from "@/lib/trainApiClient";
 import SubmitButton from "@/components/buttons/submitButton";
@@ -18,6 +18,9 @@ import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
 import { Drawer } from "@/components/Modal/vaul";
 import { HTLCStatus } from "@/Models/HTLCStatus";
+import { useLoginIdentityMismatch } from "@/hooks/useLoginIdentityMismatch";
+import { useSwapStore } from "@/stores/swapStore";
+import { useShallow } from "zustand/react/shallow";
 
 export type SwapViewType = "widget" | "contained"
 
@@ -31,10 +34,11 @@ export const Actions: FC<ActionsProps> = ({ quote, type }) => {
 
     return (
         <>
-            {error && <TransactionMessage error={error.message} />}
+            {error && <TransactionMessage error={error.message} disableButton={error.disableButton} />}
             <DestinationWalletWrapper>
                 <ResolveAction
                     commitStatus={commitStatus}
+                    disableButton={error?.disableButton}
                     error={error?.message}
                     quote={quote}
                     type={type}
@@ -46,15 +50,16 @@ export const Actions: FC<ActionsProps> = ({ quote, type }) => {
 
 type ResolveActionProps = {
     commitStatus: HTLCStatus
+    disableButton?: boolean
     error: string | undefined
     quote?: SwapQuote
     type: SwapViewType
 }
 
-const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote, type }) => {
+const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, disableButton, error, quote, type }) => {
     const { setError } = useAtomicState()
 
-    if (error) {
+    if (error && !disableButton) {
         return (
             <SubmitButton type="button" onClick={() => setError(undefined)}>
                 Try again
@@ -88,7 +93,13 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const [autoRevealFailed, setAutoRevealFailed] = useState(false)
     const attemptedRef = useRef(false)
     const { verified, skipped, mismatches } = useSolverLockVerification()
-    const { lightClientPending } = useAtomicState()
+    const { lightClientPending, hashlock } = useAtomicState()
+    const swap = useSwapStore(useShallow(s => hashlock ? s.swaps[hashlock] : undefined))
+    const { warning } = useLoginIdentityMismatch(swap?.loginIdentity)
+
+    if (warning) {
+        return <WalletMessage status="warning" header={warning.header} details={warning.details} />
+    }
 
     const shouldAutoReveal = autoRevealSecret && hasSeenAutoRevealPrompt && !autoRevealFailed && verified && !lightClientPending
 
@@ -172,7 +183,16 @@ const TerminalActions: FC<{ variant: 'success' | 'refund'; type: SwapViewType }>
     )
 }
 
-const TransactionMessage: FC<{ error: string | undefined }> = ({ error }) => {
+const TransactionMessage: FC<{ error: string | undefined, disableButton?: boolean }> = ({ error, disableButton }) => {
+    if (disableButton && error) {
+        return (
+            <WalletMessage
+                status="error"
+                header="Something went wrong"
+                details={error}
+            />
+        )
+    }
     if (error === "An error occurred (USER_REFUSED_OP)" || error === "Execute failed" || error?.toLowerCase()?.includes('denied') || error?.toLowerCase()?.includes('user rejected')) {
         return <TransactionMessages.TransactionRejectedMessage />
     }
@@ -187,6 +207,9 @@ const TransactionMessage: FC<{ error: string | undefined }> = ({ error }) => {
                 details="Unfortunately the time lock was expired, continuing the transaction is not recommended, cancel & refund to receive your assets back."
             />
         )
+    }
+    if (error === 'TrainApiError') {
+        return <WalletMessage status="error" header="API error" details="Something went wrong while communicating with the server. Please try again." />
     }
     if (error) {
         return <TransactionMessages.UexpectedErrorMessage message={error} />

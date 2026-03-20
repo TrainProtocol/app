@@ -16,6 +16,8 @@ import { useSettingsState } from "@/context/settings";
 import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
 import { useSecretDerivation } from "@/context/secretDerivationContext";
 import { useSwapStore } from "@/stores/swapStore";
+import { LoginIdentity } from "@/stores/secretDerivationStore";
+import { useSecretDerivationStore } from "@/stores/secretDerivationStore";
 import { formatUnits } from "viem";
 import { NetworkContractType } from "@/Models/Network";
 import { HTLCStatus } from "@/Models/HTLCStatus";
@@ -108,6 +110,14 @@ export default function Form() {
                 to: values.to && values.toCurrency ? { network: values.to.caip2Id, token: values.toCurrency.symbol } : undefined,
             });
 
+            const { method, loginWallet, activePasskeyCredentialId } = useSecretDerivationStore.getState()
+            const loginIdentity: LoginIdentity | undefined =
+                method === 'passkey' && activePasskeyCredentialId
+                    ? { method: 'passkey', credentialId: activePasskeyCredentialId }
+                    : method === 'wallet_sign' && loginWallet
+                        ? { method: 'wallet_sign', providerName: loginWallet.providerName, displayName: loginWallet.displayName ?? loginWallet.id, address: loginWallet.address as string }
+                        : undefined
+
             setTempSwap({
                 requestedAmount: values.amount,
                 address: values.destination_address,
@@ -121,6 +131,7 @@ export default function Form() {
                 receiveAmount: formattedReceiveAmount,
                 sourceSolverAddress: quote?.sourceSolverAddress,
                 destinationSolverAddress: quote?.destinationSolverAddress,
+                loginIdentity,
             })
             setSwapModalOpen(true)
             setPolling(false)

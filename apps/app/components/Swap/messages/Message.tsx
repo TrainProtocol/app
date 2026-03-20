@@ -1,31 +1,38 @@
 import { FC } from "react";
-import { ChevronDown } from "lucide-react";
+import { AlertTriangle, ChevronDown } from "lucide-react";
 import FailIcon from "../../Icons/FailIcon";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/shadcn/accordion";
 
 export type WalletMessageProps = {
     header: string;
     details: string;
-    status: 'pending' | 'error';
+    status: 'pending' | 'error' | 'warning';
 }
+const StatusIcon: FC<{ status: WalletMessageProps['status'] }> = ({ status }) => {
+    switch (status) {
+        case 'warning':
+            return <AlertTriangle className="relative top-0 left-0 h-5 w-5 text-warning-foreground" />
+        case 'error':
+            return <FailIcon className="relative top-0 left-0 h-5 w-5" />
+        case 'pending':
+            return <>
+                <div className='absolute top-1.5 left-1.5 w-4 h-4 md:w-5 md:h-5 opacity-40 bg bg-primary rounded-full animate-ping'></div>
+                <div className='absolute top-2.5 left-2.5 w-2 h-2 md:w-3 md:h-3 opacity-40 bg bg-primary rounded-full animate-ping'></div>
+                <div className='relative top-0 left-0 w-6 h-6 md:w-7 md:h-7 scale-50 bg bg-primary rounded-full '></div>
+            </>
+    }
+}
+
 const WalletMessage: FC<WalletMessageProps> = ({ header, details, status }) => {
+    const isWarning = status === 'warning'
     return <>
-        <div className="px-2 py-3 rounded-2xl bg-secondary-400">
+        <div className={`px-2 py-3 rounded-2xl ${isWarning ? 'bg-warning-background border border-warning-foreground/20' : 'bg-secondary-400'}`}>
             <div className="flex items-start gap-2 relative">
                 <span className="shrink-0 p-0.5">
-                    {
-                        status === "error" ?
-                            <FailIcon className="relative top-0 left-0 h-5 w-5" />
-                            :
-                            <>
-                                <div className='absolute top-1.5 left-1.5 w-4 h-4 md:w-5 md:h-5 opacity-40 bg bg-primary rounded-full animate-ping'></div>
-                                <div className='absolute top-2.5 left-2.5 w-2 h-2 md:w-3 md:h-3 opacity-40 bg bg-primary rounded-full animate-ping'></div>
-                                <div className='relative top-0 left-0 w-6 h-6 md:w-7 md:h-7 scale-50 bg bg-primary rounded-full '></div>
-                            </>
-                    }
+                    <StatusIcon status={status} />
                 </span>
                 <div className="flex flex-col gap-1">
-                    <p className="text-white font-medium leading-4 text-base mt-0.5">{header}</p>
+                    <p className={`font-medium leading-4 text-base mt-0.5 ${isWarning ? 'text-warning-foreground' : 'text-white'}`}>{header}</p>
                     {details ? <p className="text-secondary-text text-sm leading-[18px]">{details}</p> : null}
                 </div>
             </div>

@@ -41,8 +41,8 @@ type DataContextType = HTLCState & {
     destAtomicContract?: string,
     sourceClient?: IHTLCClient,
     destinationClient?: IHTLCClient,
-    error?: { message: string, buttonText?: string },
-    setError: (error: { message: string, buttonText?: string } | undefined) => void;
+    error?: { message: string, disableButton?: boolean },
+    setError: (error: { message: string, disableButton?: boolean } | undefined) => void;
     setManualClaimTxId: (txId: string | undefined) => void;
     onUserLock: (hashlock: string, txId: string) => void;
     updateHTLC: (field: keyof HTLCState, value: any) => void;
@@ -104,7 +104,7 @@ export function AtomicProvider({ children }) {
     const destinationSolverAddress = currentSwap?.destinationSolverAddress
 
     const [htlcStates, setHtlcStates] = useState<CommitStatesDict>({});
-    const [error, setError] = useState<{ message: string, buttonText?: string } | undefined>(undefined);
+    const [error, setError] = useState<{ message: string, disableButton?: boolean } | undefined>(undefined);
     const [manualClaimTxId, setManualClaimTxId] = useState<string | undefined>(undefined);
 
     // Restore secretRevealed from persisted swap store on hydration
@@ -161,6 +161,9 @@ export function AtomicProvider({ children }) {
         enabled: !!hashlock && !!solverName && !destinationRedeemTx,
         onOrder: (order) => {
             if (hashlock) updateHTLCState(hashlock, { htlcFromApi: order })
+        },
+        onFailed: () => {
+            setError({ message: 'Please wait for the timelock to expire, then refund to receive your assets back.', disableButton: true })
         },
     })
 

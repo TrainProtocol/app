@@ -1,8 +1,8 @@
 import { FC, ReactNode } from "react";
-import { useAtomicState } from "../../../../context/atomicContext";
-import useWallet from "../../../../hooks/useWallet";
-import { hasRequiredDestinationWallet } from "../../../../lib/wallets/utils/destinationWalletUtils";
-import { useConnectModal } from "../../../WalletModal";
+import { useAtomicState } from "@/context/atomicContext";
+import useWallet from "@/hooks/useWallet";
+import { hasRequiredDestinationWallet } from "@/lib/wallets/utils/destinationWalletUtils";
+import { useConnectModal } from "@/components/WalletModal";
 import { PlusIcon } from "lucide-react";
 
 interface DestinationWalletWrapperProps {

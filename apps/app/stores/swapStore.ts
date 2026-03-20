@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { HTLCStatus } from '@/Models/HTLCStatus'
+import { LoginIdentity } from './secretDerivationStore'
 
 export interface SwapData {
     requestedAmount: string
@@ -23,6 +24,7 @@ export interface SwapData {
     timelock?: number
     sourceSolverAddress?: string
     destinationSolverAddress?: string
+    loginIdentity?: LoginIdentity
 }
 
 interface SwapStoreState {

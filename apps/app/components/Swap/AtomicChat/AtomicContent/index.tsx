@@ -48,7 +48,7 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
         const lcHash = destinationDetailsByLightClient?.data?.hashlock
         const solverHash = solverLockDetails?.hashlock
         if (lcHash && solverHash && lcHash !== solverHash) {
-            setError({ buttonText: 'Ok', message: 'Hashlock mismatch, please wait for refund.' })
+            setError({ message: 'Hashlock mismatch, please wait for refund.', disableButton: true })
         }
     }, [solverLockDetails, destinationDetailsByLightClient]);
 

@@ -7,17 +7,20 @@ type UseOrderStreamParams = {
     hashlock: string | undefined
     enabled: boolean
     onOrder: (order: HTLCFromApi) => void
+    onFailed?: () => void
 }
 
-export default function useOrderStreaming({ solverId, hashlock, enabled, onOrder }: UseOrderStreamParams) {
+export default function useOrderStreaming({ solverId, hashlock, enabled, onOrder, onFailed }: UseOrderStreamParams) {
     const [order, setOrder] = useState<HTLCFromApi | undefined>()
     const [error, setError] = useState<boolean>(false)
     const onOrderRef = useRef(onOrder)
+    const onFailedRef = useRef(onFailed)
     const accumulatedTransactionsRef = useRef<HTLCFromApi['transactions']>([])
 
     useEffect(() => {
         onOrderRef.current = onOrder
-    }, [onOrder])
+        onFailedRef.current = onFailed
+    }, [onOrder, onFailed])
 
     useEffect(() => {
         if (!enabled || !solverId || !hashlock) return
@@ -51,8 +54,16 @@ export default function useOrderStreaming({ solverId, hashlock, enabled, onOrder
             onOrderRef.current(data)
         }
 
+        const handleDone = (e: MessageEvent) => {
+            const { finalStatus } = JSON.parse(e.data) as { finalStatus: string }
+            if (finalStatus === 'Failed') {
+                onFailedRef.current?.()
+            }
+        }
+
         es.addEventListener('order', handleOrder)
         es.addEventListener('order_event', handleOrderEvent)
+        es.addEventListener('done', handleDone)
         es.onerror = () => setError(true)
 
         return () => es.close()
