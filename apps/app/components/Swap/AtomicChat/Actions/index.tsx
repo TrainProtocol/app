@@ -208,8 +208,11 @@ const TransactionMessage: FC<{ error: string | undefined, disableButton?: boolea
             />
         )
     }
+    if (error === 'TrainApiError') {
+        return <WalletMessage status="error" header="API error" details="Something went wrong while communicating with the server. Please try again." />
+    }
     if (error) {
-        return <WalletMessage status="error" header="API error" details="Something went wrong while processing your transaction. Please try again." />
+        return <TransactionMessages.UexpectedErrorMessage message={error} />
     }
     return <></>
 }

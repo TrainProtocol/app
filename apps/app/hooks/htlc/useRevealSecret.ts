@@ -41,7 +41,7 @@ export function useRevealSecret() {
             updateSwap(hashlock, { secretRevealed: true })
         }
         catch (e: any) {
-            setError({ message: e.details || e.message })
+            setError({ message: e.name === 'TrainApiError' ? 'TrainApiError' : (e.details || e.message) })
             throw e
         }
         finally {
