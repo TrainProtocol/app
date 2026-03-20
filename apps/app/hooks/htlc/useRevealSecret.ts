@@ -4,6 +4,7 @@ import { useSecretDerivation } from "@/context/secretDerivationContext";
 import useWallet from "@/hooks/useWallet";
 import posthog from "posthog-js";
 import { useSwapStore } from "@/stores/swapStore";
+import { classifyError } from "@/lib/errors";
 
 export function useRevealSecret() {
     const { source_network, hashlock, solver, updateHTLC, setError, sourceDetails, sourceClient } = useAtomicState()
@@ -41,7 +42,7 @@ export function useRevealSecret() {
             updateSwap(hashlock, { secretRevealed: true })
         }
         catch (e: any) {
-            setError({ message: e.name === 'TrainApiError' ? 'TrainApiError' : (e.details || e.message) })
+            setError(classifyError(e))
             throw e
         }
         finally {

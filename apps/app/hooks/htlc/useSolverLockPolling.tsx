@@ -3,12 +3,10 @@ import useSWR from "swr"
 import { Network, Token } from "@/Models/Network"
 import { LockDetails } from "@/Models/phtlc/PHTLC"
 import { LockParams } from "@/Models/phtlc"
-import { IHTLCClient } from "@train-protocol/sdk"
-
-const CONSENSUS_ERROR_PREFIX = 'Lock details do not match'
+import { IHTLCClient, TrainError, TrainErrorCode } from "@train-protocol/sdk"
 
 function isConsensusMismatchError(err: unknown): boolean {
-    return err instanceof Error && err.message.startsWith(CONSENSUS_ERROR_PREFIX)
+    return err instanceof TrainError && err.code === TrainErrorCode.CONSENSUS_MISMATCH
 }
 
 interface UseSolverLockPollingParams {

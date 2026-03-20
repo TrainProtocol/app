@@ -1,7 +1,9 @@
+import { TrainError, TrainErrorCode } from './errors'
+
 /** Convert a human-readable amount to its smallest unit (e.g. '1.5' with 18 decimals → 1500000000000000000n) */
 export function parseUnits(value: string, decimals: number) {
     if (!/^(-?)([0-9]*)\.?([0-9]*)$/.test(value))
-        throw new Error(`Invalid decimal number: ${value}`)
+        throw new TrainError(TrainErrorCode.INVALID_INPUT, `Invalid decimal number: ${value}`)
 
     let [integer, fraction = '0'] = value.split('.')
 
@@ -66,7 +68,7 @@ export function hexToBytes(hex: string, expectedLength: number): number[] {
         bytes.push(parseInt(clean.substring(i, i + 2), 16))
     }
     if (bytes.length !== expectedLength) {
-        throw new Error(`Expected ${expectedLength} bytes, got ${bytes.length}`)
+        throw new TrainError(TrainErrorCode.INVALID_INPUT, `Expected ${expectedLength} bytes, got ${bytes.length}`)
     }
     return bytes
 }

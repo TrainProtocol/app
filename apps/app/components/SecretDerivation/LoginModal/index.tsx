@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Loader2, ChevronLeft, CircleX } from 'lucide-react';
 import VaulModal from '@/components/Modal/vaulModal';
 import { useSecretDerivation } from '@/context/secretDerivationContext';
-import { mapPasskeyError } from '@/lib/htlc/secretDerivation/passkeyService';
+import { classifyError } from '@/lib/errors';
 import { PasskeyChoice } from './PasskeyChoice';
 import { Wallet } from '@/Models/WalletProvider';
 import { useSteps } from '@/hooks/useSteps';
@@ -13,12 +13,6 @@ import WalletSelect from './SelectWallet';
 import { usePasskeyCredentialIds } from '@/stores/secretDerivationStore';
 
 type LoginStep = 'pick' | 'passkey_recovery' | 'wallet_select' | 'signing';
-
-const getErrorMessage = (error: unknown, fallback: string): string => {
-  if (error instanceof Error) return error.message;
-  if (typeof error === 'string') return error;
-  return fallback;
-};
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -59,8 +53,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       }
       closeAndReset();
     } catch (e) {
-      const message = mapPasskeyError(e);
-      setPasskeyError(message);
+      setPasskeyError(classifyError(e).message);
       goToStep('passkey_recovery', 'back');
     }
   };
@@ -73,8 +66,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       await loginWithWallet(wallet);
       closeAndReset();
     } catch (e) {
-      const message = getErrorMessage(e, 'Wallet login failed');
-      setSigningError(message);
+      setSigningError(classifyError(e).message);
     }
   };
 

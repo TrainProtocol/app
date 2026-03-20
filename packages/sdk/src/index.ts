@@ -1,6 +1,7 @@
 export * from './types'
 export * from './login'
 export * from './api'
+export * from './errors'
 export * from './verification'
 export * from './registry'
 export * from './utils'

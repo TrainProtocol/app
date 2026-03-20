@@ -1,4 +1,5 @@
 import type { IHTLCClient, BaseHTLCClientConfig } from './types/htlc-client'
+import { TrainError, TrainErrorCode } from './errors'
 
 // --- HTLC Client Registry ---
 
@@ -35,7 +36,8 @@ export function createHTLCClient<N extends string>(
 ): IHTLCClient {
     const factory = registry.get(chainNamespace)
     if (!factory) {
-        throw new Error(
+        throw new TrainError(
+            TrainErrorCode.HTLC_CLIENT_NOT_REGISTERED,
             `No HTLC client registered for chain namespace: ${chainNamespace}. ` +
             `Did you forget to call the corresponding register function (e.g. registerEvmSdk())?`
         )
@@ -76,7 +78,8 @@ export function deriveKeyFromWallet<N extends string>(
 ): Promise<Buffer> {
     const factory = walletSignRegistry.get(providerName)
     if (!factory) {
-        throw new Error(
+        throw new TrainError(
+            TrainErrorCode.WALLET_SIGN_NOT_REGISTERED,
             `No wallet sign registered for provider: ${providerName}. ` +
             `Did you forget to call the corresponding register function (e.g. registerEvmSdk())?`
         )

@@ -1,5 +1,6 @@
 import { FC, useEffect } from "react";
 import { useAtomicState } from "@/context/atomicContext";
+import { AppError, AppErrorCode } from "@/lib/errors";
 import Summary from "./Summary";
 import { usePulsatingCircles } from "@/stores/pulsatingCirclesStore";
 import { SwapQuote } from "@/lib/trainApiClient";
@@ -48,7 +49,7 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
         const lcHash = destinationDetailsByLightClient?.data?.hashlock
         const solverHash = solverLockDetails?.hashlock
         if (lcHash && solverHash && lcHash !== solverHash) {
-            setError({ message: 'Hashlock mismatch, please wait for refund.', disableButton: true })
+            setError(new AppError(AppErrorCode.HASHLOCK_MISMATCH, 'Hashlock mismatch, please wait for refund.'))
         }
     }, [solverLockDetails, destinationDetailsByLightClient]);
 

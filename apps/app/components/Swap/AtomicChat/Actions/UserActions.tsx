@@ -3,6 +3,7 @@ import useWallet from "@/hooks/useWallet";
 import { useAtomicState } from "@/context/atomicContext";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
+import { classifyError } from "@/lib/errors";
 import { LockStatus } from "@/Models/phtlc/PHTLC";
 import { SwapQuote } from "@/lib/trainApiClient";
 import { useSwapStore } from "@/stores/swapStore";
@@ -79,7 +80,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
         }
         catch (e) {
             console.error('[UserLock] failed', e?.message ?? String(e), ...(e?.logs ? [e.logs] : []))
-            setError({ message: e?.details || e?.message || e?.code || e?.name || 'Unknown error' })
+            setError(classifyError(e))
         }
     }
 
@@ -161,7 +162,7 @@ export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
             }
         }
         catch (e) {
-            setError({ message: e.details || e.message })
+            setError(classifyError(e))
         }
     }
 

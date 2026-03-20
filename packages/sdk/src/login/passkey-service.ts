@@ -1,5 +1,6 @@
 import { sha256 } from "@noble/hashes/sha2.js";
 import { deriveKeyMaterial, IDENTITY_SALT } from './key-derivation';
+import { TrainError, TrainErrorCode } from '../errors';
 
 const base64URLStringToBuffer = (base64url: string): ArrayBuffer => {
     const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
@@ -126,8 +127,8 @@ export const registerPasskey = async (
         if (existing) return { credentialId: existing };
     }
 
-    if (typeof window === 'undefined') throw new Error('Passkey registration must run in a browser');
-    if (!window.isSecureContext) throw new Error('Passkeys require HTTPS (secure context)');
+    if (typeof window === 'undefined') throw new TrainError(TrainErrorCode.PASSKEY_BROWSER_REQUIRED, 'Passkey registration must run in a browser');
+    if (!window.isSecureContext) throw new TrainError(TrainErrorCode.PASSKEY_HTTPS_REQUIRED, 'Passkeys require HTTPS (secure context)');
 
     const challengeBytes = new Uint8Array(32);
     window.crypto.getRandomValues(challengeBytes);
@@ -159,7 +160,7 @@ export const registerPasskey = async (
     };
 
     const credential = await navigator.credentials.create({ publicKey }) as PublicKeyCredential;
-    if (!credential) throw new Error('Failed to create passkey credential');
+    if (!credential) throw new TrainError(TrainErrorCode.PASSKEY_CREATION_FAILED, 'Failed to create passkey credential');
 
     const credentialId = bufferToBase64URLString(credential.rawId);
     storage?.storeCredentialId(credentialId);
@@ -183,8 +184,8 @@ export const deriveKeyWithPasskey = async (
 ): Promise<{ key: Buffer; credentialId: string }> => {
     const createIfMissing = options?.createIfMissing !== false;
 
-    if (typeof window === 'undefined') throw new Error('Passkey auth must run in a browser');
-    if (!window.isSecureContext) throw new Error('Passkeys require HTTPS (secure context)');
+    if (typeof window === 'undefined') throw new TrainError(TrainErrorCode.PASSKEY_BROWSER_REQUIRED, 'Passkey auth must run in a browser');
+    if (!window.isSecureContext) throw new TrainError(TrainErrorCode.PASSKEY_HTTPS_REQUIRED, 'Passkeys require HTTPS (secure context)');
 
     const prfSalt = getPasskeyPrfSalt();
     const challengeBytes = new Uint8Array(32);
@@ -200,18 +201,18 @@ export const deriveKeyWithPasskey = async (
     let cred = (await navigator.credentials.get({ publicKey })) as PublicKeyCredential | null;
 
     if (!cred) {
-        if (!createIfMissing) throw new Error('No passkey found for this site. Create one instead.');
+        if (!createIfMissing) throw new TrainError(TrainErrorCode.PASSKEY_NOT_FOUND, 'No passkey found for this site. Create one instead.');
         const result = await registerPasskey(true, undefined, storage);
         if (result.key) return { key: result.key, credentialId: result.credentialId };
         cred = (await navigator.credentials.get({ publicKey })) as PublicKeyCredential | null;
-        if (!cred) throw new Error('Passkey authentication was cancelled or no passkey is available');
+        if (!cred) throw new TrainError(TrainErrorCode.PASSKEY_CANCELLED, 'Passkey authentication was cancelled or no passkey is available');
     }
 
     const credentialId = bufferToBase64URLString(cred.rawId);
     const ext: any = cred.getClientExtensionResults?.() ?? {};
     const prfFirst: ArrayBuffer | undefined = ext?.prf?.results?.first;
 
-    if (!prfFirst) throw new Error('Passkey PRF extension not available in this browser/authenticator');
+    if (!prfFirst) throw new TrainError(TrainErrorCode.PASSKEY_PRF_UNAVAILABLE, 'Passkey PRF extension not available in this browser/authenticator');
 
     const ikm = new Uint8Array(prfFirst);
     const identitySalt = Buffer.from(IDENTITY_SALT, 'utf8');

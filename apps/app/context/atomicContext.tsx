@@ -4,7 +4,8 @@ import { useSettingsState } from './settings';
 import { LockDetails, LockStatus } from '../Models/phtlc/PHTLC';
 import { Network, Token } from '@/Models/Network';
 import { Wallet } from '@/Models/WalletProvider';
-import { HTLCFromApi, HTLCTransaction, resolveHTLCStatus, IHTLCClient } from '@train-protocol/sdk';
+import { HTLCFromApi, HTLCTransaction, resolveHTLCStatus, IHTLCClient, TrainErrorCode } from '@train-protocol/sdk';
+import { AppError, AppErrorCode } from '@/lib/errors';
 import { SwapData, useSwapStore } from '@/stores/swapStore';
 import { useShallow } from 'zustand/react/shallow';
 import { resolvePersistantQueryParams } from '@/helpers/querryHelper';
@@ -41,8 +42,8 @@ type DataContextType = HTLCState & {
     destAtomicContract?: string,
     sourceClient?: IHTLCClient,
     destinationClient?: IHTLCClient,
-    error?: { message: string, disableButton?: boolean },
-    setError: (error: { message: string, disableButton?: boolean } | undefined) => void;
+    error?: AppError,
+    setError: (error: AppError | undefined) => void;
     setManualClaimTxId: (txId: string | undefined) => void;
     onUserLock: (hashlock: string, txId: string) => void;
     updateHTLC: (field: keyof HTLCState, value: any) => void;
@@ -104,7 +105,7 @@ export function AtomicProvider({ children }) {
     const destinationSolverAddress = currentSwap?.destinationSolverAddress
 
     const [htlcStates, setHtlcStates] = useState<CommitStatesDict>({});
-    const [error, setError] = useState<{ message: string, disableButton?: boolean } | undefined>(undefined);
+    const [error, setError] = useState<AppError | undefined>(undefined);
     const [manualClaimTxId, setManualClaimTxId] = useState<string | undefined>(undefined);
 
     // Restore secretRevealed from persisted swap store on hydration
@@ -163,7 +164,7 @@ export function AtomicProvider({ children }) {
             if (hashlock) updateHTLCState(hashlock, { htlcFromApi: order })
         },
         onFailed: () => {
-            setError({ message: 'Please wait for the timelock to expire, then refund to receive your assets back.', disableButton: true })
+            setError(new AppError(AppErrorCode.SOLVER_FAILED, 'Please wait for the timelock to expire, then refund to receive your assets back.'))
         },
     })
 
@@ -247,9 +248,7 @@ export function AtomicProvider({ children }) {
     )
 
     const handleConsensusFailed = useCallback(() => {
-        setError({
-            message: 'RPC node verification failed — nodes returned conflicting data. Your funds are safe and will be automatically refundable after the timelock expires.',
-        })
+        setError(new AppError(TrainErrorCode.CONSENSUS_MISMATCH, 'RPC node verification failed — nodes returned conflicting data. Your funds are safe and will be automatically refundable after the timelock expires.'))
     }, [setError])
 
     const { consensusVerifying, consensusVerified: isConsensusVerified } = useSolverLockPolling({

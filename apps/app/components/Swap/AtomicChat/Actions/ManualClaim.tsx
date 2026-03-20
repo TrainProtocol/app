@@ -3,6 +3,7 @@ import { useAtomicState } from "@/context/atomicContext";
 import useWallet from "@/hooks/useWallet";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
+import { classifyError } from "@/lib/errors";
 import { SwapViewType } from ".";
 
 export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
@@ -56,7 +57,7 @@ export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
                 destinationNetwork: destination_network.caip2Id,
             });
         } catch (e: any) {
-            setError({ message: e.details || e.message });
+            setError(classifyError(e));
         }
     };
 

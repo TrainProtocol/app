@@ -5,6 +5,7 @@ import {
     AggregatedQuoteResponse,
     RevealSecretParams,
 } from './types'
+import { TrainError, TrainErrorCode } from '../errors'
 
 export interface TrainApiClientConfig {
     baseUrl: string
@@ -52,19 +53,12 @@ function mapStationNetwork(n: StationNetworkResponse): Network {
     } as unknown as Network
 }
 
-export class TrainApiError extends Error {
-    override name = 'TrainApiError' as const
-    constructor(message: string, public status: number) {
-        super(message)
-    }
-}
-
 export class TrainApiClient {
     private baseUrl: string
 
     constructor(config: TrainApiClientConfig) {
         if (!config.baseUrl) {
-            throw new Error('TrainApiClient: baseUrl is required. Set NEXT_PUBLIC_TRAIN_API env var.')
+            throw new TrainError(TrainErrorCode.API_CLIENT_MISCONFIGURED, 'TrainApiClient: baseUrl is required. Set NEXT_PUBLIC_TRAIN_API env var.')
         }
         this.baseUrl = config.baseUrl.replace(/\/$/, '')
     }
@@ -128,7 +122,7 @@ export class TrainApiClient {
 
         if (!res.ok) {
             const text = await res.text().catch(() => res.statusText)
-            throw new TrainApiError(`${method} ${path} failed (${res.status}): ${text}`, res.status)
+            throw new TrainError(TrainErrorCode.API_REQUEST_FAILED, `${method} ${path} failed (${res.status}): ${text}`)
         }
 
         return res.json() as Promise<T>

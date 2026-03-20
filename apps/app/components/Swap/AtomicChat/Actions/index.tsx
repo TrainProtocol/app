@@ -21,6 +21,8 @@ import { HTLCStatus } from "@/Models/HTLCStatus";
 import { useLoginIdentityMismatch } from "@/hooks/useLoginIdentityMismatch";
 import { useSwapStore } from "@/stores/swapStore";
 import { useShallow } from "zustand/react/shallow";
+import { AppError, AppErrorCode, isActionDisabled } from "@/lib/errors";
+import { TrainErrorCode } from "@train-protocol/sdk";
 
 export type SwapViewType = "widget" | "contained"
 
@@ -34,12 +36,11 @@ export const Actions: FC<ActionsProps> = ({ quote, type }) => {
 
     return (
         <>
-            {error && <TransactionMessage error={error.message} disableButton={error.disableButton} />}
+            {error && <TransactionMessage error={error} />}
             <DestinationWalletWrapper>
                 <ResolveAction
                     commitStatus={commitStatus}
-                    disableButton={error?.disableButton}
-                    error={error?.message}
+                    error={error}
                     quote={quote}
                     type={type}
                 />
@@ -50,16 +51,15 @@ export const Actions: FC<ActionsProps> = ({ quote, type }) => {
 
 type ResolveActionProps = {
     commitStatus: HTLCStatus
-    disableButton?: boolean
-    error: string | undefined
+    error: AppError | undefined
     quote?: SwapQuote
     type: SwapViewType
 }
 
-const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, disableButton, error, quote, type }) => {
+const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote, type }) => {
     const { setError } = useAtomicState()
 
-    if (error && !disableButton) {
+    if (error && !isActionDisabled(error.code)) {
         return (
             <SubmitButton type="button" onClick={() => setError(undefined)}>
                 Try again
@@ -183,36 +183,34 @@ const TerminalActions: FC<{ variant: 'success' | 'refund'; type: SwapViewType }>
     )
 }
 
-const TransactionMessage: FC<{ error: string | undefined, disableButton?: boolean }> = ({ error, disableButton }) => {
-    if (disableButton && error) {
+const TransactionMessage: FC<{ error: AppError | undefined }> = ({ error }) => {
+    if (!error) return <></>
+    if (isActionDisabled(error.code)) {
         return (
             <WalletMessage
                 status="error"
                 header="Something went wrong"
-                details={error}
+                details={error.message}
             />
         )
     }
-    if (error === "An error occurred (USER_REFUSED_OP)" || error === "Execute failed" || error?.toLowerCase()?.includes('denied') || error?.toLowerCase()?.includes('user rejected')) {
-        return <TransactionMessages.TransactionRejectedMessage />
+    switch (error.code) {
+        case AppErrorCode.USER_REJECTED:
+            return <TransactionMessages.TransactionRejectedMessage />
+        case AppErrorCode.INSUFFICIENT_FUNDS:
+            return <TransactionMessages.InsufficientFundsMessage />
+        case AppErrorCode.TIMELOCK_EXPIRED:
+            return (
+                <WalletMessage
+                    status="error"
+                    header="Timelock expired"
+                    details="Unfortunately the time lock was expired, continuing the transaction is not recommended, cancel & refund to receive your assets back."
+                />
+            )
+        case TrainErrorCode.API_REQUEST_FAILED:
+        case TrainErrorCode.API_CLIENT_MISCONFIGURED:
+            return <WalletMessage status="error" header="API error" details="Something went wrong while communicating with the server. Please try again." />
+        default:
+            return <TransactionMessages.UexpectedErrorMessage message={error.message} />
     }
-    if (error?.includes('insufficient funds')) {
-        return <TransactionMessages.InsufficientFundsMessage />
-    }
-    if (error === "Timelock expired") {
-        return (
-            <WalletMessage
-                status="error"
-                header="Timelock expired"
-                details="Unfortunately the time lock was expired, continuing the transaction is not recommended, cancel & refund to receive your assets back."
-            />
-        )
-    }
-    if (error === 'TrainApiError') {
-        return <WalletMessage status="error" header="API error" details="Something went wrong while communicating with the server. Please try again." />
-    }
-    if (error) {
-        return <TransactionMessages.UexpectedErrorMessage message={error} />
-    }
-    return <></>
 }

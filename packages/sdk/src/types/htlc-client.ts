@@ -2,6 +2,7 @@ import { RedeemSolverParams, UserLockParams, LockParams, RefundParams } from "./
 import { LockDetails } from "./lock"
 import { AtomicResult, RecoveredSwapData } from "./atomic"
 import type { TrainApiClient } from "../api/client"
+import { TrainError, TrainErrorCode } from "../errors"
 
 export type BaseHTLCClientConfig = {
     apiClient: TrainApiClient
@@ -91,7 +92,7 @@ export abstract class HTLCClient implements IHTLCClient {
                     r.timelock === first.timelock &&
                     r.status === first.status
                 )) {
-                    throw new Error('Lock details do not match across the provided nodes')
+                    throw new TrainError(TrainErrorCode.CONSENSUS_MISMATCH, 'Lock details do not match across the provided nodes')
                 }
                 return first
             }
@@ -103,7 +104,8 @@ export abstract class HTLCClient implements IHTLCClient {
             return null
         }
 
-        throw new Error(
+        throw new TrainError(
+            TrainErrorCode.CONSENSUS_QUORUM_NOT_MET,
             `Insufficient node agreement: ${allValidResults.length} of ${totalQueried} nodes returned results, need at least ${effectiveQuorum}`
         )
     }

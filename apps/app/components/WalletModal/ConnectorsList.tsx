@@ -8,6 +8,7 @@ import { usePersistedState } from "@/hooks/usePersistedState";
 import { useConnectors } from "@/hooks/useConnectors";
 import { SearchComponent } from "@/components/Input/Search";
 import CircularLoader from "@/components/Icons/CircularLoader";
+import { classifyError, AppErrorCode } from "@/lib/errors";
 import { MultichainConnectorPicker } from "./MultichainConnectorPicker";
 import { ProviderPicker } from "./ProviderPicker";
 import { InstalledExtensionNotFound } from "./InstalledExtensionNotFound";
@@ -90,11 +91,12 @@ const ConnectorsList: FC<{ onFinish: (result: Wallet | undefined) => void }> = (
             setSelectedConnector(undefined)
         } catch (e) {
             console.log(e)
-            if (e?.message?.toLowerCase().includes('rejected') || e?.details?.toLowerCase().includes('rejected')) {
+            const classified = classifyError(e)
+            if (classified.code === AppErrorCode.USER_REJECTED) {
                 setConnectionError("You've declined the wallet connection request")
             }
             else {
-                setConnectionError(e.message || e.details || 'Something went wrong')
+                setConnectionError(classified.message)
             }
         }
     }
