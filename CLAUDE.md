@@ -69,6 +69,16 @@ Key files:
 - Solana: @solana/web3.js + wallet-adapter
 - TON: @ton/ton + @tonconnect/ui-react
 
+### Error Handling
+Two-layer typed error system — no string matching in consumers:
+- **SDK** (`packages/sdk/src/errors.ts`): `TrainError` class + `TrainErrorCode` enum for protocol-level errors (API, consensus, passkey, registry, validation)
+- **App** (`apps/app/lib/errors.ts`): `AppError` class + `AppErrorCode` enum for UI-level errors (user rejection, insufficient funds, chain mismatch, etc.)
+- `ErrorCode = TrainErrorCode | AppErrorCode` — unified type, no duplication between layers
+- `classifyError(raw)` in `apps/app/lib/errors.ts` is the **single place** that does string matching on raw errors. All consumers switch on `.code`
+- `isActionDisabled(code)` determines if retry is possible (replaces the old `disableButton` flag)
+- Blockchain packages throw plain `Error`s — no custom types imposed on integrators
+- `atomicContext` error state is `AppError | undefined`, not raw strings
+
 ## Key Conventions
 
 - Code uses legacy "commit" naming (`CommitStatus`, `commitId`) — these refer to **locks**, not a separate commit step
