@@ -188,12 +188,12 @@ export function SwapProvider({ children }: { children: ReactNode }) {
     }, [sourceNamespace, walletCtx])
 
     const destReadClient = useMemo(() => {
-        if (!destNamespace) return null
+        if (!destNamespace || !activeSwap?.destinationNetwork) return null
         try {
-            const adapterConfig = walletCtx.getClientConfig(destNamespace)
+            const adapterConfig = walletCtx.getClientConfigForNetwork(activeSwap.destinationNetwork)
             return sdk.createHTLCClient(destNamespace, { ...adapterConfig } as any)
         } catch { return null }
-    }, [destNamespace, walletCtx])
+    }, [destNamespace, activeSwap?.destinationNetwork, walletCtx])
 
     const onConsensusFailed = useCallback((error: Error) => {
         const trainError = error instanceof TrainError
@@ -415,26 +415,23 @@ export function SwapProvider({ children }: { children: ReactNode }) {
     const manualClaim = useCallback(async (secret: string): Promise<string> => {
         const swap = store?.getState().activeSwap
         const dstNamespace = swap?.destinationNetwork?.split(':')[0] ?? null
-        if (!swap?.hashlock || !dstNamespace || !swap?.destContract || !swap?.quote) {
+        if (!swap?.hashlock || !dstNamespace || !swap?.destinationNetwork || !swap?.destContract) {
             throw new TrainError('Cannot claim: missing required params', TrainErrorCode.ClaimFailed)
         }
 
         try {
-            const signer = walletCtx.getSigner(dstNamespace)
+            const signer = walletCtx.getSignerForNetwork(swap.destinationNetwork)
             if (!signer) {
                 throw new TrainError(`No wallet adapter for ${dstNamespace}`, TrainErrorCode.WalletNotConnected)
             }
 
-            const adapterConfig = walletCtx.getClientConfig(dstNamespace)
+            const adapterConfig = walletCtx.getClientConfigForNetwork(swap.destinationNetwork)
             const client = sdk.createHTLCClient(dstNamespace, { ...adapterConfig, signer } as any)
             const txHash = await client.redeemSolver({
-                type: getLockType(swap.quote.route?.destination?.tokenContract),
-                chainId: swap.destinationNetwork?.split(':')[1] ?? null,
+                chainId: swap.destinationNetwork.split(':')[1] ?? null,
                 contractAddress: swap.destContract,
                 id: swap.hashlock,
                 secret,
-                sourceAsset: swap.sourceAsset!,
-                destLpAddress: swap.quote.destinationSolverAddress,
                 destinationAddress: swap.destinationAddress ?? undefined,
             })
 

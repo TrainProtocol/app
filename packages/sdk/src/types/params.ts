@@ -48,13 +48,11 @@ export type RefundParams = {
 }
 
 export type RedeemSolverParams = {
-    type: 'erc20' | 'native';
     chainId: string | null,
     contractAddress: string,
     id: string,
     secret: string | bigint,
-    sourceAsset: Token,
-    destLpAddress: string,
+    sourceAsset?: Token,
     destinationAddress?: string,
     destinationAsset?: Token,
     index?: number,

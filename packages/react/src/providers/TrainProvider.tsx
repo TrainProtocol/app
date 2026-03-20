@@ -78,9 +78,21 @@ export function TrainProvider({
         return (await adapter?.getLoginConfig?.()) ?? null
     }, [])
 
+    const getSignerForNetwork = useCallback((caip2Id: string): TrainSigner | null => {
+        const namespace = caip2Id.split(':')[0]
+        const adapter = adaptersRef.current.get(namespace)
+        return adapter?.getSignerForNetwork?.(caip2Id) ?? adapter?.getSigner() ?? null
+    }, [])
+
+    const getClientConfigForNetwork = useCallback((caip2Id: string): Record<string, unknown> => {
+        const namespace = caip2Id.split(':')[0]
+        const adapter = adaptersRef.current.get(namespace)
+        return adapter?.getClientConfigForNetwork?.(caip2Id) ?? adapter?.getClientConfig?.() ?? {}
+    }, [])
+
     const walletValue = useMemo<WalletContextValue>(
-        () => ({ adapters: adaptersRef.current, registerAdapter, getSigner, getClientConfig, getLoginConfig }),
-        [registerAdapter, getSigner, getClientConfig, getLoginConfig],
+        () => ({ adapters: adaptersRef.current, registerAdapter, getSigner, getClientConfig, getLoginConfig, getSignerForNetwork, getClientConfigForNetwork }),
+        [registerAdapter, getSigner, getClientConfig, getLoginConfig, getSignerForNetwork, getClientConfigForNetwork],
     )
 
     const trainValue = useMemo(

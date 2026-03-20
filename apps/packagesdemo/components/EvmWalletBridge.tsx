@@ -58,6 +58,41 @@ export function EvmWalletBridge() {
             return { rpcUrl }
         },
 
+        getSignerForNetwork: (caip2Id: string) => {
+            if (!connectedAddress) return null
+
+            const chainId = Number(caip2Id.split(':')[1])
+
+            return {
+                address: connectedAddress,
+                chainNamespace: 'eip155',
+                sendTransaction: async (tx) => {
+                    const connection = getConnections(config)
+                        .find(c => c.accounts.some(a => a.toLowerCase() === connectedAddress.toLowerCase()))
+
+                    const walletClient = await getWalletClient(config, {
+                        chainId,
+                        account: connectedAddress as `0x${string}`,
+                        connector: connection?.connector,
+                    })
+
+                    return await walletClient.sendTransaction({
+                        to: tx.to as `0x${string}`,
+                        data: tx.data as `0x${string}`,
+                        value: tx.value,
+                        account: walletClient.account,
+                    })
+                },
+            }
+        },
+
+        getClientConfigForNetwork: (caip2Id: string) => {
+            const network = networks.find(n => n.caip2Id === caip2Id)
+            const rpcUrl = network?.nodes[0].url
+            if (!rpcUrl) return {}
+            return { rpcUrl }
+        },
+
         getLoginConfig: async () => {
             if (!connectedAddress) return null
             const connections = getConnections(config)

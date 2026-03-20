@@ -17,17 +17,26 @@ export function EvmWalletBridge() {
     const adapter = useMemo<TrainWalletAdapter>(() => ({
         chainNamespace: 'eip155',
 
-        getSigner: () => {
-            // Use wagmi's connected account as the signer address
-            const account = getAccount(config)
-            if (!account.address) return null
-
+        getSigner: function () {
             const swap = getCurrentSwapData()
             const sourceNetworkId = swap?.source
             if (!sourceNetworkId?.startsWith('eip155:')) return null
+            return this.getSignerForNetwork!(sourceNetworkId)
+        },
+
+        getClientConfig: function () {
+            const swap = getCurrentSwapData()
+            const sourceNetworkId = swap?.source ?? networks.find(n => n.caip2Id.startsWith('eip155:'))?.caip2Id
+            if (!sourceNetworkId) return {}
+            return this.getClientConfigForNetwork!(sourceNetworkId)
+        },
+
+        getSignerForNetwork: (caip2Id: string) => {
+            const account = getAccount(config)
+            if (!account.address) return null
 
             const address = account.address
-            const network = networks.find(n => n.caip2Id === sourceNetworkId)
+            const network = networks.find(n => n.caip2Id === caip2Id)
             const chain = network ? resolveChain(network) : undefined
 
             return {
@@ -72,15 +81,9 @@ export function EvmWalletBridge() {
             }
         },
 
-        getClientConfig: () => {
-            const swap = getCurrentSwapData()
-            const sourceNetworkId = swap?.source
-
-            const network = sourceNetworkId
-                ? networks.find(n => n.caip2Id === sourceNetworkId)
-                : networks.find(n => n.caip2Id.startsWith('eip155:'))
+        getClientConfigForNetwork: (caip2Id: string) => {
+            const network = networks.find(n => n.caip2Id === caip2Id)
             if (!network) return {}
-
             const rpcUrl = getEffectiveRpcUrls(network)[0] ?? network.nodes?.[0]?.url ?? ''
             return { rpcUrl }
         },

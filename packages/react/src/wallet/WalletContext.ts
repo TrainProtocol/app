@@ -7,6 +7,8 @@ export interface WalletContextValue {
     getSigner: (chainNamespace: string) => TrainSigner | null
     getClientConfig: (chainNamespace: string) => Record<string, unknown>
     getLoginConfig: (chainNamespace: string) => Record<string, unknown> | null | Promise<Record<string, unknown> | null>
+    getSignerForNetwork: (caip2Id: string) => TrainSigner | null
+    getClientConfigForNetwork: (caip2Id: string) => Record<string, unknown>
 }
 
 export const WalletContext = createContext<WalletContextValue | null>(null)
