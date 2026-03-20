@@ -228,22 +228,22 @@ export function useSwapProgress(): SwapProgress {
 
         // Solver lock detected — user can reveal secret after verification
         if (htlcStatus === HTLCStatus.SolverLockDetected) {
+            // During consensus, step 1 (Assets reserved) is current; after consensus, step 2 (Reveal secret) is current
+            const currentStep = consensusVerifying ? 1 : 2;
+            const solverLockOverrides: Record<number, StepOverride> = {
+                0: { timelock: sourceDetails?.timelock },
+                1: { description: <VerificationStatus /> },
+            };
+            if (!consensusVerifying) {
+                solverLockOverrides[2] = { description: "Verify solver lock and reveal secret" };
+            }
             return {
                 gaugeValue: 50, gaugeIcon: null,
                 title: "Transfer in progress",
                 subtitle: consensusVerifying
                     ? "Verifying solver lock with multiple nodes..."
                     : "Verify solver lock and reveal your secret.",
-                steps: buildSteps(HAPPY_STEPS, 2, { source: sourceTxLink, dest: destTxLink }, {
-                    0: { timelock: sourceDetails?.timelock },
-                    1: { description: <VerificationStatus /> },
-                    2: {
-                        status: StepStatus.Upcoming,
-                        description: consensusVerifying
-                            ? "Waiting for verification to complete"
-                            : "Verify solver lock and reveal secret",
-                    },
-                }),
+                steps: buildSteps(HAPPY_STEPS, currentStep, { source: sourceTxLink, dest: destTxLink }, solverLockOverrides),
             };
         }
 

@@ -99,9 +99,11 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const [autoRevealFailed, setAutoRevealFailed] = useState(false)
     const attemptedRef = useRef(false)
     const { verified, skipped, mismatches } = useSolverLockVerification()
-    // const { lightClientPending } = useSwap()
+    const { consensusVerified, consensusVerifying } = useSwapState()
 
-    const shouldAutoReveal = autoRevealSecret && hasSeenAutoRevealPrompt && !autoRevealFailed && verified 
+    // Wait for both quote verification AND multi-RPC consensus before revealing
+    const consensusReady = consensusVerified || skipped
+    const shouldAutoReveal = autoRevealSecret && hasSeenAutoRevealPrompt && !autoRevealFailed && verified && consensusReady
 
     useEffect(() => {
         if (shouldAutoReveal && !attemptedRef.current) {
@@ -112,8 +114,8 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
         }
     }, [shouldAutoReveal, revealSecret])
 
-    // Wait for light client verification before allowing secret reveal
-    // if (lightClientPending) return <></>
+    // Wait for consensus verification before allowing secret reveal
+    if (consensusVerifying) return <></>
 
     if (shouldAutoReveal) return <></>
 
