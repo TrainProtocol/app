@@ -23,7 +23,7 @@ export interface DerivedSwapState {
 
 function deriveDestRedeemTxId(activeSwap: ActiveSwapState): string | null {
     const redeemTx = activeSwap.htlcFromApi?.transactions?.find(
-        (t: any) => t.type === 'HTLCRedeem'
+        (t: any) => t.type === 'HTLCRedeem' && t.network === activeSwap.destinationNetwork
     )
     return redeemTx?.hash ?? null
 }

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import type { SolverQuote, QuoteDetails } from '@train-protocol/sdk'
 import { useTrainContext } from '../providers/TrainContext'
 import { trainQueryKeys } from '../internal/queryKeys'
+import { normalizeQueryError } from '../internal/normalizeQueryError'
 import type { QuoteParams } from '../types'
 
 export interface UseQuoteResult {
@@ -86,7 +87,7 @@ export function useQuote(params: QuoteParams): UseQuoteResult {
         bestQuote,
         bestSolver,
         isLoading: isDebouncing || (canFetch && query.isLoading),
-        error: query.error instanceof Error ? query.error : query.error ? new Error(String(query.error)) : null,
+        error: normalizeQueryError(query.error),
         refetch,
     }
 }

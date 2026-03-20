@@ -4,7 +4,7 @@ import { Network } from '@/Models/Network'
 import { useSettingsState } from '@/context/settings'
 import { createHTLCClient } from '@train-protocol/sdk'
 import { useRpcConfigStore } from '@/stores/rpcConfigStore'
-import { useStoreContext, type SwapData } from '@train-protocol/react'
+import type { SwapData } from '@train-protocol/react'
 
 export default function useRecoverSwap(sourceNetwork: Network | null) {
     const { networks } = useSettingsState()

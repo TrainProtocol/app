@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useCallback, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useSecretDerivation as useSecretDerivationHook } from '../hooks/useSecretDerivation'
 import type { UseSecretDerivationOptions, UseSecretDerivationResult, PasskeyLoginOptions } from '../hooks/useSecretDerivation'
 import type { PrfSupportResult } from '@train-protocol/auth'
@@ -23,7 +23,10 @@ const SecretDerivationContext = createContext<SecretDerivationContextValue | nul
 
 export interface SecretDerivationProviderProps extends UseSecretDerivationOptions {
     children: ReactNode
-    /** Auto-check passkey support on mount (default: true) */
+    /**
+     * Auto-check passkey support on mount (default: true).
+     * When true, calls checkPasskeySupport() on first render only.
+     */
     autoCheckPasskeySupport?: boolean
 }
 
@@ -32,7 +35,7 @@ const defaultPasskeyStorage = new LocalStoragePasskeyStorage()
 export function SecretDerivationProvider({
     children,
     autoCheckPasskeySupport = true,
-    persist = true,
+    persist = false,
     persistKey = 'train:auth',
     passkeyStorage = defaultPasskeyStorage,
 }: SecretDerivationProviderProps) {
@@ -44,16 +47,23 @@ export function SecretDerivationProvider({
         if (typeof window === 'undefined') return
         try {
             const stored = localStorage.getItem(`${persistKey}:loginWallet`)
-            if (stored) setLoginWallet(JSON.parse(stored))
+            if (stored) {
+                const parsed = JSON.parse(stored)
+                if (parsed && typeof parsed.address === 'string' && typeof parsed.providerName === 'string') {
+                    setLoginWallet(parsed)
+                }
+            }
         } catch { /* ignore */ }
     }, [persistKey])
 
-    // Auto-check passkey support
+    // Auto-check passkey support (fire-once on mount when enabled)
+    const checkPasskeyRef = useRef(hook.checkPasskeySupport)
+    checkPasskeyRef.current = hook.checkPasskeySupport
     useEffect(() => {
         if (autoCheckPasskeySupport) {
-            hook.checkPasskeySupport()
+            checkPasskeyRef.current()
         }
-    }, [])
+    }, [autoCheckPasskeySupport])
 
     // Persist loginWallet
     useEffect(() => {
@@ -97,7 +107,7 @@ export function SecretDerivationProvider({
         logout,
         loginWallet,
         prfSupportDetails: hook.prfSupport,
-    }), [hook, loginWithWallet, logout, loginWallet])
+    }), [hook.derivedKey, hook.method, hook.derivationStatus, hook.prfSupport, hook.isLoggedIn, hook.derivationMessage, hook.passkeyCredentials, loginWithWallet, logout, loginWallet])
 
     return (
         <SecretDerivationContext.Provider value={value}>

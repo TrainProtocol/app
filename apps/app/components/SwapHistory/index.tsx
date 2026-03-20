@@ -1,6 +1,6 @@
 import { FC, useEffect, useMemo, useState } from 'react'
 import { ChevronUp } from 'lucide-react'
-import { useSwaps, useSwapActions, useStoreContext, type SwapData } from '@train-protocol/react'
+import { useSwaps, useSwapActions, useSwapStoreRead, type SwapData } from '@train-protocol/react'
 import { useSettingsState } from '@/context/settings'
 import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus'
 import { Network } from '@/Models/Network'
@@ -46,7 +46,7 @@ const apiClient = new TrainApiClient({ baseUrl: AppSettings.TrainApiUri ?? '' })
 
 const SwapHistory: FC = () => {
     const swaps = useSwaps()
-    const store = useStoreContext()
+    const { getAllSwaps } = useSwapStoreRead()
     const { updateSwap } = useSwapActions()
     const { networks } = useSettingsState()
     const [expanded, setExpanded] = useState<string | undefined>(undefined)
@@ -79,7 +79,7 @@ const SwapHistory: FC = () => {
 
         const checkExpiry = () => {
             const now = Date.now()
-            const currentSwaps = store?.getState().swaps ?? {}
+            const currentSwaps = getAllSwaps()
             Object.entries(currentSwaps).forEach(([hashlock, swap]) => {
                 if (
                     swap.timelock &&

@@ -1,5 +1,6 @@
 import { hkdf } from "@noble/hashes/hkdf.js";
 import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex } from "./utils";
 
 const SECRET_INFO = new TextEncoder().encode('train-signature-key-derivation');
 
@@ -25,5 +26,5 @@ export const secretToHashlock = (secret: string): string => {
         secretBytes[i / 2] = parseInt(clean.substring(i, i + 2), 16);
     }
     const hash = sha256(secretBytes);
-    return '0x' + Array.from(hash).map(b => b.toString(16).padStart(2, '0')).join('');
+    return bytesToHex(Array.from(hash));
 };

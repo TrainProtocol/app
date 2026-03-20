@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useRegisterWallet, useStoreContext, type TrainWalletAdapter } from '@train-protocol/react'
+import { useRegisterWallet, useSwapStoreRead, type TrainWalletAdapter } from '@train-protocol/react'
 import { useConfig } from 'wagmi'
 import { getAccount, getWalletClient, getConnections } from 'wagmi/actions'
 import { useSettingsState } from '@/context/settings'
@@ -12,21 +12,21 @@ export function EvmWalletBridge() {
     const config = useConfig()
     const { networks } = useSettingsState()
     const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
-    const store = useStoreContext()
+    const { getCurrentSwapData } = useSwapStoreRead()
 
     const adapter = useMemo<TrainWalletAdapter>(() => ({
         chainNamespace: 'eip155',
 
         getSigner: () => {
-            // Resolve the current source address from the react package store
-            const state = store?.getState()
-            const swap = state?.currentSwap ?? (state?.activeHashlock ? state.swaps[state.activeHashlock] : null)
+            // Use wagmi's connected account as the signer address
+            const account = getAccount(config)
+            if (!account.address) return null
+
+            const swap = getCurrentSwapData()
             const sourceNetworkId = swap?.source
             if (!sourceNetworkId?.startsWith('eip155:')) return null
 
-            const address = swap?.address
-            if (!address) return null
-
+            const address = account.address
             const network = networks.find(n => n.caip2Id === sourceNetworkId)
             const chain = network ? resolveChain(network) : undefined
 
@@ -73,9 +73,7 @@ export function EvmWalletBridge() {
         },
 
         getClientConfig: () => {
-            // Resolve rpcUrl from the current source network
-            const state = store?.getState()
-            const swap = state?.currentSwap ?? (state?.activeHashlock ? state.swaps[state.activeHashlock] : null)
+            const swap = getCurrentSwapData()
             const sourceNetworkId = swap?.source
 
             const network = sourceNetworkId
@@ -98,7 +96,7 @@ export function EvmWalletBridge() {
             }
         },
 
-    }), [config, networks, getEffectiveRpcUrls, store])
+    }), [config, networks, getEffectiveRpcUrls, getCurrentSwapData])
 
     useRegisterWallet(adapter)
     return null

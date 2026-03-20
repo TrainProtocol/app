@@ -60,7 +60,12 @@ export interface TrainConfig {
     queryClient?: QueryClient
     /** Secret derivation options */
     secretDerivation?: {
-        /** Persist derivedKey and method to localStorage (default: true) */
+        /**
+         * Persist derivedKey and method to localStorage (default: false).
+         * WARNING: When enabled, the master derived key is stored as plaintext hex
+         * in localStorage under a predictable key. Any XSS or malicious extension
+         * on the same origin can extract it. Prefer sessionStorage or explicit opt-in.
+         */
         persist?: boolean
         /** localStorage key prefix (default: 'train:auth') */
         persistKey?: string
@@ -127,6 +132,8 @@ export interface SwapData {
     timelock?: number
     sourceSolverAddress?: string
     destinationSolverAddress?: string
+    sourceAddress?: string
+    destinationAddress?: string
 }
 
 /** Parameters to start a swap */

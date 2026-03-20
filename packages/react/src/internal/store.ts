@@ -60,7 +60,7 @@ export interface SwapStoreState {
     clearSwap: (hashlock: string) => void
 
     // Active swap actions
-    initActiveSwap: (params: Omit<ActiveSwapState, 'sourceDetails' | 'solverLockDetails' | 'htlcFromApi' | 'secretRevealedToApi' | 'consensusPhase' | 'error' | 'manualClaimStartedAt'>) => void
+    initActiveSwap: (params: Omit<ActiveSwapState, 'sourceDetails' | 'solverLockDetails' | 'htlcFromApi' | 'secretRevealedToApi' | 'consensusPhase' | 'error' | 'manualClaimStartedAt'> & { secretRevealed?: boolean }) => void
     setSourceDetails: (details: UserLockDetails) => void
     setSolverLockDetails: (details: SolverLockDetails) => void
     setConsensusPhase: (phase: ConsensusPhase) => void
@@ -100,12 +100,12 @@ function createActions(set: SetFn) {
                 }
             }),
         updateSwap: (hashlock: string, updates: Partial<SwapData>) =>
-            set((state) => ({
-                swaps: {
-                    ...state.swaps,
-                    [hashlock]: { ...state.swaps[hashlock], ...updates },
-                },
-            })),
+            set((state) => {
+                if (!state.swaps[hashlock]) return state
+                return {
+                    swaps: { ...state.swaps, [hashlock]: { ...state.swaps[hashlock], ...updates } },
+                }
+            }),
         recoverSwap: (hashlock: string, data: SwapData) =>
             set((state) => {
                 if (state.swaps[hashlock]) return state
@@ -124,14 +124,14 @@ function createActions(set: SetFn) {
             }),
 
         // --- Active swap actions ---
-        initActiveSwap: (params: Omit<ActiveSwapState, 'sourceDetails' | 'solverLockDetails' | 'htlcFromApi' | 'secretRevealedToApi' | 'consensusPhase' | 'error' | 'manualClaimStartedAt'>) =>
+        initActiveSwap: (params: Omit<ActiveSwapState, 'sourceDetails' | 'solverLockDetails' | 'htlcFromApi' | 'secretRevealedToApi' | 'consensusPhase' | 'error' | 'manualClaimStartedAt'> & { secretRevealed?: boolean }) =>
             set({
                 activeSwap: {
                     ...params,
                     sourceDetails: null,
                     solverLockDetails: null,
                     htlcFromApi: null,
-                    secretRevealedToApi: false,
+                    secretRevealedToApi: params.secretRevealed ?? false,
                     consensusPhase: 'none',
                     error: null,
                     manualClaimStartedAt: null,

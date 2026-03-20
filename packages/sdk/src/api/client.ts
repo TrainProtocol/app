@@ -82,13 +82,13 @@ export class TrainApiClient {
     }
 
     async getOrder(solverId: string, hashlock: string): Promise<HTLCFromApiResponse> {
-        const data = await this.request<{ data: HTLCFromApiResponse }>('GET', `/orders/${solverId}/${hashlock}`)
+        const data = await this.request<{ data: HTLCFromApiResponse }>('GET', `/orders/${encodeURIComponent(solverId)}/${encodeURIComponent(hashlock)}`)
         return data.data
     }
 
     async revealSecret(solverId: string, hashlock: string, secret: string): Promise<void> {
         const params: RevealSecretParams = { secret }
-        await this.request<unknown>('POST', `/orders/${solverId}/${hashlock}/reveal-secret`, params)
+        await this.request<unknown>('POST', `/orders/${encodeURIComponent(solverId)}/${encodeURIComponent(hashlock)}/reveal-secret`, params)
     }
 
     async getQuote(params: {
@@ -117,7 +117,6 @@ export class TrainApiClient {
             method,
             headers: {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
             },
             ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
         })

@@ -4,6 +4,7 @@ import {
     useCallback,
     useMemo,
     useEffect,
+    useRef,
     useSyncExternalStore,
     type ReactNode,
 } from 'react'
@@ -12,6 +13,7 @@ import {
     TERMINAL_STATUSES,
     deriveSecretFromTimelock,
     secretToHashlock,
+    bytesToHex,
 } from '@train-protocol/sdk'
 import type {
     UserLockDetails,
@@ -129,7 +131,7 @@ export function SwapProvider({ children }: { children: ReactNode }) {
             const nonce = Number(activeSwap.sourceDetails.userData)
             if (!nonce || isNaN(nonce)) return
             const secretBytes = deriveSecretFromTimelock(derivedKey, nonce)
-            const secret = '0x' + Array.from(secretBytes).map(b => b.toString(16).padStart(2, '0')).join('')
+            const secret = bytesToHex(Array.from(secretBytes))
             const hashlock = secretToHashlock(secret)
             // Verify the derived hashlock matches the on-chain one
             if (hashlock.toLowerCase() === activeSwap.hashlock.toLowerCase()) {
@@ -238,16 +240,23 @@ export function SwapProvider({ children }: { children: ReactNode }) {
             destTxId: derived.destRedeemTxId ?? undefined,
             createdAt: activeSwap.sourceDetails?.blockTimestamp,
             timelock: activeSwap.sourceDetails?.timelock,
+            sourceAddress: activeSwap.sourceAddress ?? undefined,
+            destinationAddress: activeSwap.destinationAddress ?? undefined,
         })
     }, [store, activeSwap?.hashlock, derived.status, derived.destRedeemTxId, activeSwap?.sourceDetails?.blockTimestamp, activeSwap?.sourceDetails?.timelock])
 
     // --- Actions ---
 
+    const startSwapInFlight = useRef(false)
+    const revealSecretInFlight = useRef(false)
+
     const startSwap = useCallback(async (params: StartSwapParams, derivedKey: Uint8Array) => {
+        if (startSwapInFlight.current) return
+        startSwapInFlight.current = true
         try {
             const nonce = Date.now()
             const secretBytes = deriveSecretFromTimelock(derivedKey, nonce)
-            const secret = '0x' + Array.from(secretBytes).map(b => b.toString(16).padStart(2, '0')).join('')
+            const secret = bytesToHex(Array.from(secretBytes))
             const hashlock = secretToHashlock(secret)
 
             // Get signer from wallet adapter
@@ -329,10 +338,14 @@ export function SwapProvider({ children }: { children: ReactNode }) {
             if (store) store.getState().setActiveSwapError(error)
             config.onError?.(error)
             throw error
+        } finally {
+            startSwapInFlight.current = false
         }
     }, [walletCtx, store, config, sdk])
 
     const revealSecret = useCallback(async () => {
+        if (revealSecretInFlight.current) return
+        revealSecretInFlight.current = true
         const swap = store?.getState().activeSwap
         if (!swap?.solverId || !swap?.hashlock || !swap?.secret) {
             console.error('[SwapProvider.revealSecret] MISSING:', { solverId: !!swap?.solverId, hashlock: !!swap?.hashlock, secret: !!swap?.secret })
@@ -356,6 +369,8 @@ export function SwapProvider({ children }: { children: ReactNode }) {
             if (store) store.getState().setActiveSwapError(error)
             config.onError?.(error)
             throw error
+        } finally {
+            revealSecretInFlight.current = false
         }
     }, [apiClient, store, config])
 
@@ -511,6 +526,7 @@ export function SwapProvider({ children }: { children: ReactNode }) {
             destinationAsset: params.destinationAsset ?? null,
             quote: null,
             requestedAmount: params.requestedAmount ?? null,
+            secretRevealed: params.secretRevealed,
         })
     }, [store])
 
@@ -528,7 +544,6 @@ export function SwapProvider({ children }: { children: ReactNode }) {
     const reset = useCallback(() => {
         if (store) store.getState().resetActiveSwap()
     }, [store])
-    console.log("derived", derived)
     const value = useMemo<SwapContextValue>(() => ({
         status: derived.status,
         hashlock: derived.hashlock,

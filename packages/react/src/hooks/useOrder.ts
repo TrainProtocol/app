@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import type { HTLCFromApiResponse } from '@train-protocol/sdk'
 import { useTrainContext } from '../providers/TrainContext'
 import { trainQueryKeys } from '../internal/queryKeys'
+import { normalizeQueryError } from '../internal/normalizeQueryError'
 import type { OrderParams } from '../types'
 
 export interface UseOrderResult {
@@ -29,7 +30,7 @@ export function useOrder(params: OrderParams): UseOrderResult {
     return {
         order: query.data ?? null,
         isLoading: query.isLoading,
-        error: query.error instanceof Error ? query.error : query.error ? new Error(String(query.error)) : null,
+        error: normalizeQueryError(query.error),
         refetch,
     }
 }

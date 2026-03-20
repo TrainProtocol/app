@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import type { HTLCFromApi, HTLCFromApiResponse, OrderStreamEvent, TransactionCreatedEventData } from '@train-protocol/sdk'
 import type { SwapStore } from './store'
 import { useEventSource } from './useEventSource'
@@ -17,17 +17,15 @@ export interface UseOrderStreamOptions {
  */
 export function useOrderStream(options: UseOrderStreamOptions) {
     const { baseUrl, solverId, hashlock, enabled, store } = options
-    const [order, setOrder] = useState<HTLCFromApi | null>(null)
     const accumulatedTxsRef = useRef<HTLCFromApi['transactions']>([])
 
     // Reset accumulated state when stream params change (new swap)
     useEffect(() => {
         accumulatedTxsRef.current = []
-        setOrder(null)
     }, [solverId, hashlock])
 
     const url = solverId && hashlock
-        ? `${baseUrl}/api/v1/orders/${solverId}/${hashlock}/stream`
+        ? `${baseUrl}/api/v1/orders/${encodeURIComponent(solverId)}/${encodeURIComponent(hashlock)}/stream`
         : null
 
     const eventHandlers = useMemo(() => ({
@@ -41,7 +39,6 @@ export function useOrderStream(options: UseOrderStreamOptions) {
                     ...accumulatedTxsRef.current,
                 ],
             }
-            setOrder(merged)
             store?.getState().setHtlcFromApi(merged)
         },
         order_event: (data: unknown) => {
@@ -55,15 +52,13 @@ export function useOrderStream(options: UseOrderStreamOptions) {
                 }
                 accumulatedTxsRef.current = [...accumulatedTxsRef.current, tx]
 
-                setOrder(prev => {
-                    if (!prev) return prev
-                    const updated = {
-                        ...prev,
-                        transactions: [...(prev.transactions ?? []), tx],
-                    }
-                    store?.getState().setHtlcFromApi(updated)
-                    return updated
-                })
+                const currentOrder = store?.getState().activeSwap?.htlcFromApi
+                if (currentOrder) {
+                    store?.getState().setHtlcFromApi({
+                        ...currentOrder,
+                        transactions: [...(currentOrder.transactions ?? []), tx],
+                    })
+                }
             }
         },
         done: (_data: unknown) => {
@@ -75,6 +70,4 @@ export function useOrderStream(options: UseOrderStreamOptions) {
         enabled: enabled && !!url,
         onEvent: eventHandlers,
     })
-
-    return { order }
 }
