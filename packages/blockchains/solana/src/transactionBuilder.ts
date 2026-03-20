@@ -38,8 +38,8 @@ export const userLockTransactionBuilder = async (params: UserLockParams): Promis
 
     const hashlock = Buffer.from(params.hashlock.replace('0x', ''), 'hex')
     const bnAmount = toBaseUnits(params.amount, params.decimals)
-    const bnDstAmount = toBaseUnits(params.destinationAmount, params.decimals)
-    const bnRewardAmount = toBaseUnits(params.rewardAmount || '0', params.decimals)
+    const bnDstAmount = new BN(params.destinationAmount)
+    const bnRewardAmount = new BN(params.rewardAmount || '0')
     const bnTimelockDelta = new BN(params.timelockDelta || 0)
     const bnRewardTimelockDelta = new BN(params.rewardTimelockDelta || 0)
     const bnQuoteExpiry = new BN(params.quoteExpiry)
