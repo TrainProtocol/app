@@ -68,7 +68,7 @@ export class AztecHTLCClient extends HTLCClient {
             await signer.wallet.registerContract(tokenInstance, TokenContract.artifact)
             const token = TokenContract.at(tokenAddress, signer.wallet)
 
-            const amount = parseUnits(params.amount.toString(), params.decimals)
+            const amount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
 
             // Authorize public token transfer
             const transferNonce = Fr.random()

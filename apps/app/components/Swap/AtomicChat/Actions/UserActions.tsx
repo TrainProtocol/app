@@ -42,7 +42,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
 
             if (!sourceClient) throw new Error("No source client")
 
-            const result = await sourceClient.userLock({
+                const result = await sourceClient.userLock({
                 ...resolveQuote(quote),
                 sourceAddress: sourceWallet.address,
                 destinationAddress: address,
@@ -54,7 +54,6 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
                 destLpAddress,
                 srcLpAddress,
                 tokenContractAddress: source_asset.contractAddress,
-                decimals: source_asset.decimals,
                 atomicContract,
                 chainId: source_network.chainId,
                 hashlock,

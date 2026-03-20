@@ -50,7 +50,7 @@ export class FuelHTLCClient extends HTLCClient {
             sourceChain,
         } = params
 
-        const parsedAmount = parseUnits(params.amount.toString(), params.decimals)
+        const parsedAmount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
         const isNativeToken = !sourceAsset.contractAddress
 
         try {

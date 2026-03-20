@@ -32,7 +32,7 @@ export class StarknetHTLCClient extends HTLCClient {
     async userLock(params: UserLockParams): Promise<AtomicResult> {
         const signer = this.requireSigner()
 
-        const parsedAmount = parseUnits(params.amount.toString(), params.decimals)
+        const parsedAmount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
         const tokenAddress = params.tokenContractAddress || params.sourceAsset.contractAddress || ZERO_ADDRESS
 
         // ERC20 approval

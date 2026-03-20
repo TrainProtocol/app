@@ -49,12 +49,15 @@ export type HTLCFromApi = {
             contract: string,
             decimals: number
         },
-    }
+    },
     transactions: {
         type: HTLCTransaction,
         hash: string,
         networkId: string
-    }[]
+    }[],
+    error?: {
+        message: string;
+    }
 }
 
 export enum HTLCTransaction {

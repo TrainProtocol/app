@@ -35,9 +35,11 @@ export const userLockTransactionBuilder = async (params: UserLockParams): Promis
 
     if (!walletPublicKey) throw new Error("Wallet not connected")
     if (!params.srcLpAddress) throw new Error("No LP address")
+    if (!params.nonce) throw new Error("No nonce")
+    if (!params.solverData) throw new Error("No solver data")
 
     const hashlock = Buffer.from(params.hashlock.replace('0x', ''), 'hex')
-    const bnAmount = toBaseUnits(params.amount, params.decimals)
+    const bnAmount = toBaseUnits(params.amount, params.sourceAsset.decimals)
     const bnDstAmount = new BN(params.destinationAmount)
     const bnRewardAmount = new BN(params.rewardAmount || '0')
     const bnTimelockDelta = new BN(params.timelockDelta || 0)
@@ -45,9 +47,9 @@ export const userLockTransactionBuilder = async (params: UserLockParams): Promis
     const bnQuoteExpiry = new BN(params.quoteExpiry)
     const lpPublicKey = new PublicKey(params.srcLpAddress)
     const hashlockArray = Array.from(hashlock)
-    const userData = params.nonce != null ? Buffer.from(params.nonce.toString(), 'utf8') : Buffer.from([])
-    const solverDataBytes = params.solverData ? Buffer.from(params.solverData, 'utf8') : Buffer.from([])
-
+    const userData = Buffer.from(params.nonce.toString(), 'utf8')
+    const solverDataBytes = Buffer.from(params.solverData, 'utf8')
+    
     const [userLockPda] = PublicKey.findProgramAddressSync(
         [Buffer.from("user_lock"), hashlock],
         program.programId

@@ -6,7 +6,6 @@ export type UserLockParams = {
     sourceChain: string,
     amount: string,
     destinationAmount: string,
-    decimals: number,
     destinationAsset: string,
     sourceAsset: Token;
     destLpAddress: string;
