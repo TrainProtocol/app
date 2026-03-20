@@ -163,7 +163,7 @@ export function AtomicProvider({ children }) {
             if (hashlock) updateHTLCState(hashlock, { htlcFromApi: order })
         },
         onFailed: () => {
-            if (hashlock) updateHTLCState(hashlock, { htlcFromApi: { error: { message: 'Please wait for the timelock to expire, then refund to receive your assets back.' } } })
+            if (hashlock) updateHTLCState(hashlock, { htlcFromApi: { error: { message: 'Please wait for the timelock to expire, then refund to receive your assets back.' } } as HTLCFromApi })
         },
     })
 
