@@ -1,7 +1,10 @@
 //@ts-check
 import plugin from 'tailwindcss/plugin'
+import forms from '@tailwindcss/forms'
+import typography from '@tailwindcss/typography'
+import animate from 'tailwindcss-animate'
 
-module.exports = {
+export default {
   content: ["./pages/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
   darkMode: 'media',
   theme: {
@@ -270,9 +273,9 @@ module.exports = {
     },
   },
   plugins: [
-    require("@tailwindcss/forms"),
-    require("@tailwindcss/typography"),
-    require("tailwindcss-animate"),
+    forms,
+    typography,
+    animate,
     plugin(function ({ addVariant }) {
       // Add a `third` variant, ie. `third:pb-0`
       addVariant('scrollbar', '&::-webkit-scrollbar');

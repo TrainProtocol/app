@@ -32,11 +32,13 @@ Router.events.on("routeChangeComplete", progress.finish);
 Router.events.on("routeChangeError", progress.finish);
 
 const INTERCOM_APP_ID = 'h5zisg78'
+const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com';
 
 // Check that PostHog is client-side (used to handle Next.js SSR)
-if (typeof window !== 'undefined') {
-  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
-    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
+if (typeof window !== 'undefined' && posthogKey) {
+  posthog.init(posthogKey, {
+    api_host: posthogHost,
     person_profiles: 'identified_only',
     // Enable debug mode in development
     loaded: (posthog) => {

@@ -3,7 +3,7 @@ name: code-review
 description: Entropy-reducing code review. Diff-anchored but context-aware. Favors deletion, consolidation, and simplification over additive fixes.
 ---
 
-> **TEMPORARY RULE**: Always compare against `main-v2` branch (not `main` or `dev`). Use `git diff main-v2...HEAD` for all diffs.
+> **TEMPORARY RULE**: Always compare against `dev` branch. Use `git diff dev...HEAD` for all diffs. Do not do any changes, review only.
 
 ## How This Review Works
 
