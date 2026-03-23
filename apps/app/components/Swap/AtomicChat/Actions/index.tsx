@@ -19,6 +19,7 @@ import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerificatio
 import { Drawer } from "@/components/Modal/vaul";
 import { HTLCStatus } from "@/Models/HTLCStatus";
 import { useLoginIdentityMismatch } from "@/hooks/useLoginIdentityMismatch";
+import { useRecoveryIdentityCheck } from "@/hooks/useRecoveryIdentityCheck";
 import { useSwapStore } from "@/stores/swapStore";
 import { useShallow } from "zustand/react/shallow";
 
@@ -95,13 +96,11 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const { verified, skipped, mismatches } = useSolverLockVerification()
     const { lightClientPending, hashlock } = useAtomicState()
     const swap = useSwapStore(useShallow(s => hashlock ? s.swaps[hashlock] : undefined))
-    const { warning } = useLoginIdentityMismatch(swap?.loginIdentity)
+    const { warning: metadataWarning } = useLoginIdentityMismatch(swap?.loginIdentity)
+    const recoveryWarning = useRecoveryIdentityCheck(swap?.loginIdentity)
+    const warning = metadataWarning || recoveryWarning
 
-    if (warning) {
-        return <WalletMessage status="warning" header={warning.header} details={warning.details} />
-    }
-
-    const shouldAutoReveal = autoRevealSecret && hasSeenAutoRevealPrompt && !autoRevealFailed && verified && !lightClientPending
+    const shouldAutoReveal = autoRevealSecret && hasSeenAutoRevealPrompt && !autoRevealFailed && verified && !lightClientPending && !warning
 
     useEffect(() => {
         if (shouldAutoReveal && !attemptedRef.current) {
@@ -111,6 +110,10 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
             })
         }
     }, [shouldAutoReveal, revealSecret])
+
+    if (warning) {
+        return <WalletMessage status="warning" header={warning.header} details={warning.details} />
+    }
 
     // Wait for light client verification before allowing secret reveal
     if (lightClientPending) return <></>
