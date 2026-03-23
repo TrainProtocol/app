@@ -39,7 +39,7 @@ export class EvmHTLCClient extends HTLCClient {
             sourceAddress
         } = params
 
-        const parsedAmount = parseUnits(params.amount.toString(), params.decimals)
+        const parsedAmount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
         const tokenAddress = sourceAsset.contractAddress || ZERO_ADDRESS
         const isNativeToken = !sourceAsset.contractAddress || sourceAsset.contractAddress === ZERO_ADDRESS
 

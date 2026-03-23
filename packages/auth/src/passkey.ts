@@ -2,6 +2,10 @@ import { sha256 } from "@noble/hashes/sha2.js";
 import { deriveKeyMaterial, IDENTITY_SALT } from './key-derivation'
 import type { PasskeyCredentialStorage } from './storage'
 import { base64URLStringToBuffer, bufferToBase64URLString } from './utils'
+export const formatPasskeyIdForDisplay = (credId: string): string => {
+    if (!credId || credId.length < 8) return credId;
+    return `id: ${credId.slice(0, 2)}...${credId.slice(-5)}`;
+};
 
 export const getPasskeyPrfSalt = (): Uint8Array => {
     const input = new TextEncoder().encode(`train-passkey-prf-salt-v1:${IDENTITY_SALT}`);

@@ -49,7 +49,7 @@ export class TonHTLCClient extends HTLCClient {
     async userLock(params: UserLockParams): Promise<AtomicResult> {
         const signer = this.requireSigner()
 
-        const parsedAmount = parseUnits(params.amount.toString(), params.decimals)
+        const parsedAmount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
         const isNativeToken = !params.sourceAsset.contractAddress
 
         try {

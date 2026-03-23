@@ -175,12 +175,26 @@ export function useSwapProgress(): SwapProgress {
 
     return useMemo(() => {
         const sourceTxLink = buildExplorerLink(source_network?.caip2Id, lockTxId);
-        const lpLockTx = htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCLock as string);
-        const destTxLink = buildExplorerLink(destination_network?.caip2Id, lpLockTx?.hash);
+        const solverLockTx = htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCLock as string);
+        const destTxLink = buildExplorerLink(destination_network?.caip2Id, solverLockTx?.hash);
         const redeemTxLink = buildExplorerLink(destination_network?.caip2Id, destRedeemTx);
         const refundTxLink = buildExplorerLink(source_network?.caip2Id, refundTxId);
 
         const isRefunded = sourceDetails?.status === LockStatus.Refunded;
+
+        // API error — overlay on current progress
+        if (htlcFromApi?.error?.message) {
+            const currentIndex = solverLockTx ? 2 : 1
+            return {
+                gaugeValue: 50, gaugeIcon: "x" as GaugeIcon,
+                title: "Something went wrong",
+                subtitle: htlcFromApi.error.message,
+                steps: buildSteps(HAPPY_STEPS, currentIndex, { source: sourceTxLink, dest: destTxLink }, {
+                    0: { timelock: sourceDetails?.timelock },
+                    1: { description: solverLockTx ? <VerificationStatus /> : null, status: solverLockTx ? StepStatus.Complete : StepStatus.Failed },
+                }),
+            };
+        }
 
         // Initial (no tx yet)
         if (htlcStatus === HTLCStatus.Initial && !lockTxId) {

@@ -55,6 +55,13 @@ function mapStationNetwork(n: StationNetworkResponse): Network {
     } as unknown as Network
 }
 
+export class TrainApiError extends Error {
+    override name = 'TrainApiError' as const
+    constructor(message: string, public status: number) {
+        super(message)
+    }
+}
+
 export class TrainApiClient {
     private baseUrl: string
 
@@ -123,7 +130,7 @@ export class TrainApiClient {
 
         if (!res.ok) {
             const text = await res.text().catch(() => res.statusText)
-            throw new Error(`TrainApiClient: ${method} ${path} failed (${res.status}): ${text}`)
+            throw new TrainApiError(`${method} ${path} failed (${res.status}): ${text}`, res.status)
         }
 
         return res.json() as Promise<T>

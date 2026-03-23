@@ -53,6 +53,8 @@ export const userLockTransactionBuilder = async (params: UserLockParams): Promis
 
     if (!walletPublicKey) throw new Error("Wallet not connected")
     if (!params.srcLpAddress) throw new Error("No LP address")
+    if (!params.nonce) throw new Error("No nonce")
+    if (!params.solverData) throw new Error("No solver data")
 
     const hashlock = hexToUint8Array(params.hashlock.replace('0x', ''))
     const bnAmount = toBaseUnits(params.amount, params.decimals)
@@ -63,8 +65,8 @@ export const userLockTransactionBuilder = async (params: UserLockParams): Promis
     const bnQuoteExpiry = new BN(params.quoteExpiry)
     const lpPublicKey = new PublicKey(params.srcLpAddress)
     const hashlockArray = Array.from(hashlock)
-    const userData = params.nonce != null ? encoder.encode(params.nonce.toString()) : new Uint8Array(0)
-    const solverDataBytes = params.solverData ? encoder.encode(params.solverData) : new Uint8Array(0)
+    const userData = encoder.encode(params.nonce.toString())
+    const solverDataBytes = encoder.encode(params.solverData)
 
     const [userLockPda] = PublicKey.findProgramAddressSync(
         [encoder.encode("user_lock"), hashlock],

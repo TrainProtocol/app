@@ -4,8 +4,8 @@ import { useSwapState, useSwap } from "@train-protocol/react";
 import { RevealSecretAction } from "./RevealSecret";
 import { ManualClaimAction } from "./ManualClaim";
 import { UserRefundAction, UserLockAction } from "./UserActions";
-import TransactionMessages from "../../messages/TransactionMessages";
-import WalletMessage from "../../messages/Message";
+import TransactionMessages from "@/components/Swap/messages/TransactionMessages";
+import WalletMessage from "@/components/Swap/messages/Message";
 import DestinationWalletWrapper from "./DestinationWalletWrapper";
 import type { SwapQuote } from "@train-protocol/sdk";
 import SubmitButton from "@/components/buttons/submitButton";
@@ -32,10 +32,11 @@ export const Actions: FC<ActionsProps> = ({ quote, type }) => {
 
     return (
         <>
-            {error && <TransactionMessage error={error.message} />}
+            {error && <TransactionMessage error={error.message} disableButton={error.disableButton} />}
             <DestinationWalletWrapper>
                 <ResolveAction
                     commitStatus={commitStatus}
+                    disableButton={error?.disableButton}
                     error={error?.message}
                     quote={quote}
                     type={type}
@@ -47,6 +48,7 @@ export const Actions: FC<ActionsProps> = ({ quote, type }) => {
 
 type ResolveActionProps = {
     commitStatus: HTLCStatus
+    disableButton?: boolean
     error: string | undefined
     quote?: SwapQuote
     type: SwapViewType
@@ -100,6 +102,13 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const attemptedRef = useRef(false)
     const { verified, skipped, mismatches } = useSolverLockVerification()
     const { consensusVerified, consensusVerifying } = useSwapState()
+
+    //TODO implement in react package 
+    // const { warning } = useLoginIdentityMismatch(swap?.loginIdentity)
+
+    // if (warning) {
+    //     return <WalletMessage status="warning" header={warning.header} details={warning.details} />
+    // }
 
     // Wait for both quote verification AND multi-RPC consensus before revealing
     const consensusReady = consensusVerified || skipped
@@ -186,7 +195,16 @@ const TerminalActions: FC<{ variant: 'success' | 'refund'; type: SwapViewType }>
     )
 }
 
-const TransactionMessage: FC<{ error: string | undefined }> = ({ error }) => {
+const TransactionMessage: FC<{ error: string | undefined, disableButton?: boolean }> = ({ error, disableButton }) => {
+    if (disableButton && error) {
+        return (
+            <WalletMessage
+                status="error"
+                header="Something went wrong"
+                details={error}
+            />
+        )
+    }
     if (error === "An error occurred (USER_REFUSED_OP)" || error === "Execute failed" || error?.toLowerCase()?.includes('denied') || error?.toLowerCase()?.includes('user rejected')) {
         return <TransactionMessages.TransactionRejectedMessage />
     }

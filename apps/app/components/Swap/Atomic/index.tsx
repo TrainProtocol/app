@@ -123,6 +123,7 @@ export default function Form() {
                 receiveAmount: formattedReceiveAmount,
                 sourceSolverAddress: quote?.sourceSolverAddress,
                 destinationSolverAddress: quote?.destinationSolverAddress,
+                loginIdentity,
             })
             setSwapModalOpen(true)
             setPolling(false)
