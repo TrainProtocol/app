@@ -1,5 +1,5 @@
 import { Formik, FormikProps } from "formik";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import React from "react";
 import MainStepValidation from "@/lib/mainStepValidator";
@@ -15,7 +15,7 @@ import { Widget } from "../../Widget/Index";
 import { generateSwapInitialValues } from "@/lib/generateSwapInitialValues";
 import { useSettingsState } from "@/context/settings";
 import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
-import { useSharedSecretDerivation } from "@train-protocol/react";
+import { useSharedSecretDerivation, type LoginIdentity } from "@train-protocol/react";
 import { useSwapStore } from "@/stores/swapStore";
 import { useSwapActions } from "@train-protocol/react";
 import { formatUnits } from "viem";
@@ -29,7 +29,7 @@ export default function Form() {
     const formikRef = useRef<FormikProps<SwapFormValues>>(null);
     const router = useRouter();
     const query = useQueryState()
-    const { isLoggedIn } = useSharedSecretDerivation()
+    const { isLoggedIn, method, loginWallet, activePasskeyCredentialId } = useSharedSecretDerivation()
 
     const [quote, setQuote] = useState<SwapQuote | undefined>()
     const [solverId, setSolverId] = useState<string | undefined>()
@@ -44,6 +44,21 @@ export default function Form() {
     const { clearCurrentSwap, setActiveHashlock } = useSwapActions()
     const { setPulseState } = usePulsatingCircles();
     const updateRecentNetworks = useRecentNetworksStore(s => s.updateRecentNetworks);
+
+    const loginIdentity = useMemo((): LoginIdentity | undefined => {
+        if (method === 'passkey' && activePasskeyCredentialId) {
+            return { method: 'passkey', credentialId: activePasskeyCredentialId }
+        }
+        if (method === 'wallet_sign' && loginWallet) {
+            return {
+                method: 'wallet_sign',
+                providerName: loginWallet.providerName,
+                displayName: loginWallet.displayName ?? loginWallet.providerName,
+                address: loginWallet.address,
+            }
+        }
+        return undefined
+    }, [method, activePasskeyCredentialId, loginWallet])
 
     useEffect(() => {
         if (swapModalOpen) {

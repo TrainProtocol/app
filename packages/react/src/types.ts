@@ -134,6 +134,7 @@ export interface SwapData {
     destinationSolverAddress?: string
     sourceAddress?: string
     destinationAddress?: string
+    loginIdentity?: import('./hooks/useLoginIdentityMismatch').LoginIdentity
 }
 
 /** Parameters to start a swap */
@@ -142,7 +143,7 @@ export interface StartSwapParams {
     sourceNetwork: string
     destinationNetwork: string
     sourceAsset: import('@train-protocol/sdk').Token
-    destinationAsset: string
+    destinationAsset: import('@train-protocol/sdk').Token
     sourceAddress: string
     destinationAddress: string
     solverId: string

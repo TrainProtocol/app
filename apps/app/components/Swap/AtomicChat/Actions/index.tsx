@@ -17,6 +17,7 @@ import { Widget } from "@/components/Widget/Index";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
+import { useLoginIdentityMismatch, useCurrentSwap } from "@train-protocol/react";
 import { Drawer } from "@/components/Modal/vaul";
 import { HTLCStatus } from "@/Models/HTLCStatus";
 
@@ -32,11 +33,10 @@ export const Actions: FC<ActionsProps> = ({ quote, type }) => {
 
     return (
         <>
-            {error && <TransactionMessage error={error.message} disableButton={error.disableButton} />}
+            {error && <TransactionMessage error={error.message} />}
             <DestinationWalletWrapper>
                 <ResolveAction
                     commitStatus={commitStatus}
-                    disableButton={error?.disableButton}
                     error={error?.message}
                     quote={quote}
                     type={type}
@@ -102,13 +102,12 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const attemptedRef = useRef(false)
     const { verified, skipped, mismatches } = useSolverLockVerification()
     const { consensusVerified, consensusVerifying } = useSwapState()
+    const currentSwap = useCurrentSwap()
+    const { warning } = useLoginIdentityMismatch(currentSwap?.loginIdentity)
 
-    //TODO implement in react package 
-    // const { warning } = useLoginIdentityMismatch(swap?.loginIdentity)
-
-    // if (warning) {
-    //     return <WalletMessage status="warning" header={warning.header} details={warning.details} />
-    // }
+    if (warning) {
+        return <WalletMessage status="warning" header={warning.header} details={warning.details} />
+    }
 
     // Wait for both quote verification AND multi-RPC consensus before revealing
     const consensusReady = consensusVerified || skipped

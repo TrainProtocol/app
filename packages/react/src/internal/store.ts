@@ -23,7 +23,7 @@ export interface ActiveSwapState {
     chainId: string | null
     txId: string | null
     sourceAsset: Token | null
-    destinationAsset: string | null
+    destinationAsset: Token | null
     quote: QuoteDetails | null
     requestedAmount: string | null
 

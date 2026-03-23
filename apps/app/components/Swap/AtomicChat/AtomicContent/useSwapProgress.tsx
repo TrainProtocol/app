@@ -183,12 +183,12 @@ export function useSwapProgress(): SwapProgress {
         const isRefunded = sourceDetails?.status === LockStatus.Refunded;
 
         // API error — overlay on current progress
-        if (htlcFromApi?.error?.message) {
+        if (htlcFromApi?.failureReason) {
             const currentIndex = solverLockTx ? 2 : 1
             return {
                 gaugeValue: 50, gaugeIcon: "x" as GaugeIcon,
                 title: "Something went wrong",
-                subtitle: htlcFromApi.error.message,
+                subtitle: htlcFromApi.failureReason,
                 steps: buildSteps(HAPPY_STEPS, currentIndex, { source: sourceTxLink, dest: destTxLink }, {
                     0: { timelock: sourceDetails?.timelock },
                     1: { description: solverLockTx ? <VerificationStatus /> : null, status: solverLockTx ? StepStatus.Complete : StepStatus.Failed },

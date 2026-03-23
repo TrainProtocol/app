@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useCallback, useRef } from 'react'
+import { useStore } from 'zustand'
 import {
     deriveSecretFromTimelock,
     secretToHashlock,
@@ -13,6 +14,11 @@ import type { PrfSupportResult, PasskeyCredentialStorage } from '@train-protocol
 import type { DerivationMethod } from '../types'
 import { LocalStoragePasskeyStorage } from '../internal/LocalStoragePasskeyStorage'
 import { useWalletContextOptional } from '../wallet/WalletContext'
+import {
+    createSecretDerivationStore,
+    type SecretDerivationStore,
+    type SecretDerivationStoreState,
+} from '../internal/secretDerivationStore'
 
 export interface UseSecretDerivationOptions {
     /** Passkey credential storage (optional, uses in-memory if omitted) */
@@ -53,60 +59,38 @@ export interface UseSecretDerivationResult {
     // Passkey management
     registerPasskey: (displayName?: string) => Promise<void>
     passkeyCredentials: string[]
+    activePasskeyCredentialId: string | null
     removePasskeyCredential: (id: string) => void
 
     prfSupport: PrfSupportResult | null
     checkPasskeySupport: () => Promise<PrfSupportResult>
 }
 
-function hexToUint8Array(hex: string): Uint8Array {
-    const bytes = new Uint8Array(hex.length / 2)
-    for (let i = 0; i < hex.length; i += 2) {
-        bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16)
-    }
-    return bytes
-}
-
 function uint8ArrayToHex(bytes: Uint8Array): string {
     return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('')
-}
-
-function readPersistedKey(persistKey: string): Uint8Array | null {
-    if (typeof window === 'undefined') return null
-    try {
-        const stored = localStorage.getItem(`${persistKey}:derivedKey`)
-        return stored ? hexToUint8Array(stored) : null
-    } catch { return null }
-}
-
-function readPersistedMethod(persistKey: string): DerivationMethod | null {
-    if (typeof window === 'undefined') return null
-    try {
-        return localStorage.getItem(`${persistKey}:method`) as DerivationMethod | null
-    } catch { return null }
 }
 
 export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSecretDerivationResult {
     const shouldPersist = options?.persist === true
     const persistKey = options?.persistKey ?? 'train:auth'
 
-    const [method, setMethod] = useState<DerivationMethod | null>(null)
-    const [derivedKey, setDerivedKey] = useState<Uint8Array | null>(null)
+    // Create store once (stable across renders)
+    const storeRef = useRef<SecretDerivationStore | null>(null)
+    if (!storeRef.current) {
+        storeRef.current = createSecretDerivationStore({
+            persist: shouldPersist,
+            persistKey,
+        })
+    }
+    const store = storeRef.current
 
-    // Restore persisted state after hydration to avoid server/client mismatch
-    useEffect(() => {
-        if (!shouldPersist) return
-        const storedMethod = readPersistedMethod(persistKey)
-        const storedKey = readPersistedKey(persistKey)
-        if (storedMethod && storedKey) {
-            setMethod(storedMethod)
-            setDerivedKey(storedKey)
-        }
-    }, [shouldPersist, persistKey])
-    const [derivationStatus, setDerivationStatus] = useState<'idle' | 'signing'>('idle')
-    const [derivationMessage, setDerivationMessage] = useState('')
-    const [prfSupport, setPrfSupport] = useState<PrfSupportResult | null>(null)
-    const [credentialVersion, setCredentialVersion] = useState(0)
+    // Subscribe to store state
+    const method = useStore(store, (s) => s.method)
+    const derivedKey = useStore(store, (s) => s.derivedKey)
+    const derivationStatus = useStore(store, (s) => s.derivationStatus)
+    const derivationMessage = useStore(store, (s) => s.derivationMessage)
+    const prfSupport = useStore(store, (s) => s.prfSupport)
+    const credentialVersion = useStore(store, (s) => s.credentialVersion)
 
     // Wallet context (optional — works outside TrainProvider too)
     const walletCtx = useWalletContextOptional()
@@ -121,43 +105,25 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
 
     const isLoggedIn = !!method && !!derivedKey
 
-    // Persist derivedKey and method to localStorage
-    useEffect(() => {
-        if (!shouldPersist || typeof window === 'undefined') return
-        try {
-            if (derivedKey && method) {
-                localStorage.setItem(`${persistKey}:derivedKey`, uint8ArrayToHex(derivedKey))
-                localStorage.setItem(`${persistKey}:method`, method)
-            } else {
-                localStorage.removeItem(`${persistKey}:derivedKey`)
-                localStorage.removeItem(`${persistKey}:method`)
-            }
-        } catch { /* ignore */ }
-    }, [derivedKey, method, shouldPersist, persistKey])
-
     const loginWithPasskey = useCallback(async (options?: PasskeyLoginOptions) => {
-        setDerivationStatus('signing')
-        setDerivationMessage('Confirm with passkey')
+        store.getState().setDerivationStatus('signing')
+        store.getState().setDerivationMessage('Confirm with passkey')
         try {
             let key: Uint8Array
             let credentialId: string
 
             if (options?.forceCreate) {
-                // Force create a new passkey (tries PRF during creation for single-prompt flow)
                 const result = await sdkRegisterPasskey(true, options.label, passkeyStorage)
                 if (result.key) {
                     key = result.key
                     credentialId = result.credentialId
                 } else {
-                    // PRF not available during creation, need one more prompt
                     ;({ key, credentialId } = await deriveKeyWithPasskey(
                         { createIfMissing: false },
                         passkeyStorage,
                     ))
                 }
             } else {
-                // crossDevice: only authenticate with existing passkey (no auto-creation)
-                // Normal: use existing passkey or create if missing
                 ;({ key, credentialId } = await deriveKeyWithPasskey(
                     { createIfMissing: !options?.crossDevice },
                     passkeyStorage,
@@ -165,17 +131,15 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
             }
 
             passkeyStorage?.storeCredentialId(credentialId)
-            setDerivedKey(key)
-            setMethod('passkey')
-            setCredentialVersion(v => v + 1)
+            store.getState().setLogin('passkey', key)
+            store.getState().bumpCredentialVersion()
         } finally {
-            setDerivationStatus('idle')
-            setDerivationMessage('')
+            store.getState().setDerivationStatus('idle')
+            store.getState().setDerivationMessage('')
         }
-    }, [passkeyStorage])
+    }, [store, passkeyStorage])
 
     const loginWithWallet = useCallback(async (chainNamespace: string, config?: Record<string, unknown>) => {
-        // Resolve config: explicit > adapter > error
         const resolvedConfig = config ?? (await walletCtx?.getLoginConfig(chainNamespace))
         if (!resolvedConfig) {
             throw new Error(
@@ -184,63 +148,62 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
             )
         }
 
-        setDerivationStatus('signing')
-        setDerivationMessage('Please sign in wallet')
+        store.getState().setDerivationStatus('signing')
+        store.getState().setDerivationMessage('Please sign in wallet')
         try {
             const key = await deriveKeyFromWallet(chainNamespace, resolvedConfig)
-            setDerivedKey(key)
-            setMethod('wallet_sign')
+            store.getState().setLogin('wallet_sign', key)
         } finally {
-            setDerivationStatus('idle')
-            setDerivationMessage('')
+            store.getState().setDerivationStatus('idle')
+            store.getState().setDerivationMessage('')
         }
-    }, [walletCtx])
+    }, [store, walletCtx])
 
     const logout = useCallback(() => {
-        setMethod(null)
-        setDerivedKey(null)
-    }, [])
+        store.getState().logout()
+    }, [store])
 
     const deriveSecret = useCallback((nonce?: number) => {
-        if (!derivedKey) return null
+        const currentKey = store.getState().derivedKey
+        if (!currentKey) return null
         const timestamp = nonce ?? Date.now()
-        const secretBytes = deriveSecretFromTimelock(derivedKey, timestamp)
+        const secretBytes = deriveSecretFromTimelock(currentKey, timestamp)
         const secret = '0x' + uint8ArrayToHex(secretBytes)
         const hashlock = secretToHashlock(secret)
         return { secret, nonce: timestamp, hashlock }
-    }, [derivedKey])
+    }, [store])
 
     const registerPasskey = useCallback(async (displayName?: string) => {
-        setDerivationStatus('signing')
-        setDerivationMessage('Register passkey')
+        store.getState().setDerivationStatus('signing')
+        store.getState().setDerivationMessage('Register passkey')
         try {
             const { credentialId, key } = await sdkRegisterPasskey(true, displayName, passkeyStorage)
             if (key) {
-                setDerivedKey(key)
-                setMethod('passkey')
+                store.getState().setLogin('passkey', key)
             }
             passkeyStorage?.storeCredentialId(credentialId)
-            setCredentialVersion(v => v + 1)
+            store.getState().bumpCredentialVersion()
         } finally {
-            setDerivationStatus('idle')
-            setDerivationMessage('')
+            store.getState().setDerivationStatus('idle')
+            store.getState().setDerivationMessage('')
         }
-    }, [passkeyStorage])
+    }, [store, passkeyStorage])
 
     const passkeyCredentials = passkeyStorage?.getAllCredentialIds() ?? []
-    // credentialVersion is used to trigger re-read after mutations
+    const activePasskeyCredentialId = passkeyStorage?.getActiveCredentialId() ?? null
+    // credentialVersion triggers re-read after mutations
     void credentialVersion
 
     const removePasskeyCredential = useCallback((id: string) => {
         passkeyStorage?.removeCredentialId?.(id)
-        setCredentialVersion(v => v + 1)
-    }, [passkeyStorage])
+        store.getState().bumpCredentialVersion()
+    }, [store, passkeyStorage])
 
     const checkPasskeySupport = useCallback(async () => {
         const result = await checkPrfSupport()
-        setPrfSupport(result)
+        store.getState().setPrfSupport(result)
         return result
-    }, [])
+    }, [store])
 
     return {
         method,
@@ -254,6 +217,7 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
         deriveSecret,
         registerPasskey,
         passkeyCredentials,
+        activePasskeyCredentialId,
         removePasskeyCredential,
         prfSupport,
         checkPasskeySupport,

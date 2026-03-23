@@ -1,7 +1,12 @@
 import { useMemo } from 'react'
-import { LoginIdentity } from '@/stores/secretDerivationStore'
-import { useSecretDerivationStore } from '@/stores/secretDerivationStore'
-import { formatPasskeyIdForDisplay } from '@/lib/htlc/secretDerivation/passkeyService'
+import { formatPasskeyIdForDisplay } from '@train-protocol/auth'
+import { useOptionalSecretDerivation } from '../providers/SecretDerivationProvider'
+import type { DerivationMethod } from '../types'
+import type { LoginWalletInfo } from '../internal/secretDerivationStore'
+
+export type LoginIdentity =
+    | { method: 'passkey'; credentialId: string }
+    | { method: 'wallet_sign'; providerName: string; displayName: string; address: string }
 
 export type IdentityWarning = {
     header: string
@@ -21,11 +26,29 @@ function formatIdentityLabel(identity: LoginIdentity): string {
     return `${identity.displayName} (${identity.address.slice(0, 6)}...${identity.address.slice(-4)})`
 }
 
-export function useLoginIdentityMismatch(swapLoginIdentity: LoginIdentity | undefined): IdentityMismatchResult {
-    const method = useSecretDerivationStore(s => s.method)
-    const loginWallet = useSecretDerivationStore(s => s.loginWallet)
-    const activePasskeyCredentialId = useSecretDerivationStore(s => s.activePasskeyCredentialId)
-    const isLoggedIn = useSecretDerivationStore(s => s.isLoggedIn)
+export interface LoginIdentityState {
+    method: DerivationMethod | null
+    isLoggedIn: boolean
+    loginWallet: LoginWalletInfo | null
+    activePasskeyCredentialId: string | null
+}
+
+/**
+ * Check whether the current login identity matches a swap's stored login identity.
+ *
+ * When used inside `<TrainProvider>`, reads login state from context automatically.
+ * Otherwise, pass the current login state explicitly via `currentState`.
+ */
+export function useLoginIdentityMismatch(
+    swapLoginIdentity: LoginIdentity | undefined,
+    currentState?: LoginIdentityState,
+): IdentityMismatchResult {
+    const ctx = useOptionalSecretDerivation()
+
+    const method = currentState?.method ?? ctx?.method ?? null
+    const isLoggedIn = currentState?.isLoggedIn ?? ctx?.isLoggedIn ?? false
+    const loginWallet = currentState?.loginWallet ?? ctx?.loginWallet ?? null
+    const activePasskeyCredentialId = currentState?.activePasskeyCredentialId ?? ctx?.activePasskeyCredentialId ?? null
 
     return useMemo(() => {
         const loggedIn = !!isLoggedIn
@@ -53,7 +76,7 @@ export function useLoginIdentityMismatch(swapLoginIdentity: LoginIdentity | unde
         if (swapLoginIdentity.method !== method) {
             isMismatched = true
         } else if (swapLoginIdentity.method === 'wallet_sign' && method === 'wallet_sign' && loginWallet) {
-            isMismatched = swapLoginIdentity.address.toLowerCase() !== (loginWallet.address as string).toLowerCase()
+            isMismatched = swapLoginIdentity.address.toLowerCase() !== loginWallet.address.toLowerCase()
         } else if (swapLoginIdentity.method === 'passkey' && method === 'passkey' && activePasskeyCredentialId) {
             isMismatched = swapLoginIdentity.credentialId !== activePasskeyCredentialId
         }

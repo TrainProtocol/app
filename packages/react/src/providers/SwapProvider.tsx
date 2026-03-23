@@ -49,7 +49,7 @@ export interface ResumeSwapParams {
     chainId?: string
     solverId?: string
     sourceAsset?: Token | null
-    destinationAsset?: string
+    destinationAsset?: Token | null
     requestedAmount?: string
     secretRevealed?: boolean
     destinationSolverAddress?: string
@@ -164,7 +164,7 @@ export function SwapProvider({ children }: { children: ReactNode }) {
         if (!activeSwap?.hashlock || !activeSwap?.destContract) return null
         const destChainId = activeSwap.destinationNetwork?.split(':')[1] ?? null
         return {
-            type: getLockType(activeSwap.quote?.route?.destination?.tokenContract ?? activeSwap.destinationAsset),
+            type: getLockType(activeSwap.quote?.route?.destination?.tokenContract ?? activeSwap.destinationAsset?.contractAddress),
             id: activeSwap.hashlock,
             chainId: destChainId,
             contractAddress: activeSwap.destContract,
@@ -282,7 +282,7 @@ export function SwapProvider({ children }: { children: ReactNode }) {
                 amount: params.amount,
                 destinationAmount: params.quote.receiveAmount,
                 decimals: params.sourceAsset.decimals,
-                destinationAsset: params.destinationAsset,
+                destinationAsset: params.destinationAsset.contractAddress,
                 sourceAsset: params.sourceAsset,
                 destLpAddress: params.quote.destinationSolverAddress,
                 srcLpAddress: params.quote.sourceSolverAddress,
@@ -415,7 +415,8 @@ export function SwapProvider({ children }: { children: ReactNode }) {
     const manualClaim = useCallback(async (secret: string): Promise<string> => {
         const swap = store?.getState().activeSwap
         const dstNamespace = swap?.destinationNetwork?.split(':')[0] ?? null
-        if (!swap?.hashlock || !dstNamespace || !swap?.destinationNetwork || !swap?.destContract) {
+        const chainId = swap?.destinationNetwork?.split(':')[1]
+        if (!swap?.hashlock || !dstNamespace || !swap?.destinationNetwork || !swap?.destContract || !swap.destinationAddress || !chainId || !swap.solverLockDetails || !swap.destinationAsset || !swap.sourceAsset) {
             throw new TrainError('Cannot claim: missing required params', TrainErrorCode.ClaimFailed)
         }
 
@@ -424,15 +425,18 @@ export function SwapProvider({ children }: { children: ReactNode }) {
             if (!signer) {
                 throw new TrainError(`No wallet adapter for ${dstNamespace}`, TrainErrorCode.WalletNotConnected)
             }
-
+            const solverIndex = swap.solverLockDetails.index
             const adapterConfig = walletCtx.getClientConfigForNetwork(swap.destinationNetwork)
             const client = sdk.createHTLCClient(dstNamespace, { ...adapterConfig, signer } as any)
             const txHash = await client.redeemSolver({
-                chainId: swap.destinationNetwork.split(':')[1] ?? null,
+                chainId,
                 contractAddress: swap.destContract,
                 id: swap.hashlock,
                 secret,
-                destinationAddress: swap.destinationAddress ?? undefined,
+                destinationAddress: swap.destinationAddress,
+                destinationAsset: swap.destinationAsset,
+                sourceAsset: swap.sourceAsset,
+                index: solverIndex
             })
 
             if (store) {

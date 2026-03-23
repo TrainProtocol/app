@@ -4,6 +4,7 @@ export type UserLockParams = {
     destinationChain: string,
     sourceChain: string,
     amount: string,
+    decimals: number,
     destinationAmount: string,
     destinationAsset: string,
     sourceAsset: Token;
@@ -21,7 +22,7 @@ export type UserLockParams = {
     rewardAmount?: string;
     rewardTimelockDelta?: number;
     timelockDelta?: number;
-    hashlock: string; 
+    hashlock: string;
     nonce: number
 }
 
@@ -51,9 +52,9 @@ export type RedeemSolverParams = {
     contractAddress: string,
     id: string,
     secret: string | bigint,
-    sourceAsset?: Token,
-    destinationAddress?: string,
-    destinationAsset?: Token,
+    sourceAsset: Token,
+    destinationAddress: string,
+    destinationAsset: Token,
     index?: number,
 }
 

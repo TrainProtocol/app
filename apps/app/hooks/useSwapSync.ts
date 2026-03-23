@@ -43,6 +43,9 @@ export function useSwapSync() {
         const sourceNetwork = networks.find(n => n.caip2Id.toUpperCase() === swap.source?.toUpperCase())
         const sourceAsset = sourceNetwork?.tokens.find(t => t.symbol === swap.source_asset)
 
+        const destinationNetwork = networks.find(n => n.caip2Id.toUpperCase() === swap.destination?.toUpperCase())
+        const destinationAsset = destinationNetwork?.tokens.find(t => t.symbol === swap.destination_asset)
+
         resumeSwap({
             hashlock: activeHashlock,
             txId: swap.txId,
@@ -55,7 +58,7 @@ export function useSwapSync() {
             destinationAddress: swap.destinationAddress ?? swap.address,
             solverId: swap.solver,
             sourceAsset: sourceAsset ?? null,
-            destinationAsset: swap.destination_asset,
+            destinationAsset: destinationAsset,
             requestedAmount: swap.requestedAmount,
             secretRevealed: swap.secretRevealed,
             destinationSolverAddress: swap.destinationSolverAddress,

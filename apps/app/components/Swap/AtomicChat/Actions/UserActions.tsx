@@ -46,7 +46,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
                 destinationNetwork: destination_network.caip2Id,
                 amount: amount.toString(),
                 sourceAsset: source_asset,
-                destinationAsset: destination_asset.contractAddress || destination_asset.symbol,
+                destinationAsset: destination_asset,
                 sourceAddress: sourceWallet.address,
                 destinationAddress: address,
                 solverId: solver ?? '',

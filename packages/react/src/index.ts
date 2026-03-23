@@ -33,6 +33,7 @@ export type { SecretDerivationProviderProps, SecretDerivationContextValue, Login
 export { useSecretDerivation } from './hooks/useSecretDerivation'
 export { usePasskeyLogin } from './hooks/usePasskeyLogin'
 export { useWalletLogin } from './hooks/useWalletLogin'
+export { useLoginIdentityMismatch } from './hooks/useLoginIdentityMismatch'
 
 // --- Wallet Adapter ---
 export { useRegisterWallet } from './wallet/useRegisterWallet'
@@ -112,5 +113,6 @@ export type { UseRecoverSwapResult } from './hooks/useRecoverSwap'
 export type { UseSecretDerivationResult, PasskeyLoginOptions } from './hooks/useSecretDerivation'
 export type { UsePasskeyLoginResult } from './hooks/usePasskeyLogin'
 export type { UseWalletLoginResult } from './hooks/useWalletLogin'
+export type { LoginIdentity, IdentityWarning, IdentityMismatchResult, LoginIdentityState } from './hooks/useLoginIdentityMismatch'
 export type { UseSwapHistoryResult } from './hooks/useSwapHistory'
 export type { UseOrderResult } from './hooks/useOrder'
