@@ -39,10 +39,6 @@ export { useLoginIdentityMismatch } from './hooks/useLoginIdentityMismatch'
 export { useRegisterWallet } from './wallet/useRegisterWallet'
 export type { TrainSigner, TrainWalletAdapter } from './wallet/types'
 
-// --- Built-in Wallet Bridges ---
-export { AztecWalletBridge } from './bridges/AztecWalletBridge'
-export type { AztecWalletBridgeProps } from './bridges/AztecWalletBridge'
-
 // --- Query Keys (for advanced consumers: prefetch/invalidate) ---
 export { trainQueryKeys } from './internal/queryKeys'
 

@@ -1,4 +1,6 @@
-import { AztecWalletBridge as AztecBridge } from '@train-protocol/react'
+import { useMemo } from 'react'
+import { useRegisterWallet } from '@train-protocol/react'
+import type { TrainWalletAdapter } from '@train-protocol/react'
 import { useAztecWalletStore } from '@/stores/aztecWalletStore'
 import { useSettingsState } from '@/context/settings'
 import { useRpcConfigStore } from '@/stores/rpcConfigStore'
@@ -18,5 +20,39 @@ export function AztecWalletBridge() {
         ? getEffectiveRpcUrls(aztecNetwork)[0] ?? aztecNetwork.nodes?.[0]?.url
         : undefined
 
-    return <AztecBridge wallet={wallet} address={address} rpcUrl={rpcUrl} />
+    const adapter = useMemo<TrainWalletAdapter>(() => ({
+        chainNamespace: 'aztec',
+
+        getSigner: () => {
+            if (!wallet || !address) return null
+
+            return {
+                address,
+                chainNamespace: 'aztec',
+                sendTransaction: async () => {
+                    throw new Error('Aztec uses wallet SDK, not sendTransaction')
+                },
+            }
+        },
+
+        getClientConfig: () => {
+            const aztecNet = networks.find(n => n.caip2Id.startsWith('aztec:'))
+            const resolvedRpcUrl = rpcUrl
+                ?? aztecNet?.nodes?.[0]?.url
+                ?? ''
+            return {
+                rpcUrl: resolvedRpcUrl,
+                signer: wallet && address ? { wallet, address } : undefined,
+            }
+        },
+
+        getLoginConfig: () => {
+            if (!wallet || !address) return null
+            return { wallet, address }
+        },
+
+    }), [wallet, address, networks, rpcUrl])
+
+    useRegisterWallet(adapter)
+    return null
 }
