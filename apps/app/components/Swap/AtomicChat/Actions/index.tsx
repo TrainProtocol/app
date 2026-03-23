@@ -95,10 +95,15 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const [autoRevealFailed, setAutoRevealFailed] = useState(false)
     const attemptedRef = useRef(false)
     const { verified, skipped, mismatches } = useSolverLockVerification()
-    const { lightClientPending, hashlock } = useAtomicState()
+    const { lightClientPending, hashlock, sourceDetails } = useAtomicState()
     const swap = useSwapStore(useShallow(s => hashlock ? s.swaps[hashlock] : undefined))
     const { warning: metadataWarning } = useLoginIdentityMismatch(swap?.loginIdentity)
-    const recoveryWarning = useRecoveryIdentityCheck(swap?.loginIdentity)
+    const storedDerivedKey = useSecretDerivationStore(s => s.storedDerivedKey)
+    const isLoggedIn = useSecretDerivationStore(s => s.isLoggedIn)
+    const recoveryWarning = useMemo(
+        () => checkRecoveryIdentity(swap?.loginIdentity, hashlock, sourceDetails?.userData, storedDerivedKey ?? undefined, isLoggedIn),
+        [swap?.loginIdentity, hashlock, sourceDetails?.userData, storedDerivedKey, isLoggedIn]
+    )
     const warning = metadataWarning || recoveryWarning
 
     const shouldAutoReveal = autoRevealSecret && hasSeenAutoRevealPrompt && !autoRevealFailed && verified && !lightClientPending && !warning
@@ -218,39 +223,39 @@ const TransactionMessage: FC<{ error: string | undefined, disableButton?: boolea
     return <></>
 }
 
-function useRecoveryIdentityCheck(loginIdentity: LoginIdentity | undefined): IdentityWarning {
-    const { hashlock, sourceDetails } = useAtomicState()
-    const storedDerivedKey = useSecretDerivationStore(s => s.storedDerivedKey)
-    const isLoggedIn = useSecretDerivationStore(s => s.isLoggedIn)
+function checkRecoveryIdentity(
+    loginIdentity: LoginIdentity | undefined,
+    hashlock: string | undefined,
+    userData: string | undefined,
+    storedDerivedKey: Buffer | undefined,
+    isLoggedIn: boolean,
+): IdentityWarning {
+    if (loginIdentity) return null
 
-    return useMemo(() => {
-        if (loginIdentity) return null
-
-        if (!isLoggedIn || !storedDerivedKey) {
-            if (!hashlock) return null
-            return {
-                header: 'Login required',
-                details: 'Please log in to continue this swap.',
-            }
+    if (!isLoggedIn || !storedDerivedKey) {
+        if (!hashlock) return null
+        return {
+            header: 'Login required',
+            details: 'Please log in to continue this swap.',
         }
+    }
 
-        if (!hashlock || !sourceDetails?.userData) return null
+    if (!hashlock || !userData) return null
 
-        const nonce = Number(sourceDetails.userData)
-        if (isNaN(nonce)) return null
+    const nonce = Number(userData)
+    if (isNaN(nonce)) return null
 
-        try {
-            const derivedSecret = deriveSecretFromTimelock(storedDerivedKey, nonce)
-            const testHashlock = secretToHashlock('0x' + derivedSecret.toString('hex'))
+    try {
+        const derivedSecret = deriveSecretFromTimelock(storedDerivedKey, nonce)
+        const testHashlock = secretToHashlock('0x' + derivedSecret.toString('hex'))
 
-            if (testHashlock.toLowerCase() === hashlock.toLowerCase()) return null
+        if (testHashlock.toLowerCase() === hashlock.toLowerCase()) return null
 
-            return {
-                header: 'Identity mismatch',
-                details: 'The current login does not match the identity that created this swap. Please log in with the correct passkey or wallet to continue.',
-            }
-        } catch {
-            return null
+        return {
+            header: 'Identity mismatch',
+            details: 'The current login does not match the identity that created this swap. Please log in with the correct passkey or wallet to continue.',
         }
-    }, [loginIdentity, hashlock, sourceDetails?.userData, storedDerivedKey, isLoggedIn])
+    } catch {
+        return null
+    }
 }
