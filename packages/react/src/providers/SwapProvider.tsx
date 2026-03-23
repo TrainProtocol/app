@@ -224,12 +224,19 @@ export function SwapProvider({ children }: { children: ReactNode }) {
         (t: any) => t.type === 'HTLCRedeem' && t.network === activeSwap?.destinationNetwork
     )
 
+    const onOrderFailed = useCallback((reason: string) => {
+        const error = new TrainError(reason, TrainErrorCode.OrderFailed)
+        store?.getState().setActiveSwapError(error)
+        config.onError?.(error)
+    }, [store, config])
+
     useOrderStream({
         baseUrl: config.baseUrl,
         solverId: activeSwap?.solverId ?? undefined,
         hashlock: activeSwap?.hashlock ?? undefined,
         enabled: isActive && !!activeSwap?.solverLockDetails && !destRedeemTx,
         store,
+        onFailed: onOrderFailed,
     })
 
     // Write-behind to persisted swap history

@@ -108,6 +108,7 @@ export enum TrainErrorCode {
     VerificationFailed = 'VERIFICATION_FAILED',
     TimelockExpired = 'TIMELOCK_EXPIRED',
     SecretDerivationFailed = 'SECRET_DERIVATION_FAILED',
+    OrderFailed = 'ORDER_FAILED',
 }
 
 /** Persisted swap data */

@@ -1,5 +1,5 @@
 import { useRef, useMemo, useEffect } from 'react'
-import type { HTLCFromApi, HTLCFromApiResponse, OrderStreamEvent, TransactionCreatedEventData } from '@train-protocol/sdk'
+import type { HTLCFromApi, HTLCFromApiResponse, OrderStreamEvent, TransactionCreatedEventData, StatusChangedEventData } from '@train-protocol/sdk'
 import type { SwapStore } from './store'
 import { useEventSource } from './useEventSource'
 
@@ -9,6 +9,7 @@ export interface UseOrderStreamOptions {
     hashlock: string | undefined
     enabled: boolean
     store: SwapStore | null
+    onFailed?: (reason: string) => void
 }
 
 /**
@@ -16,7 +17,9 @@ export interface UseOrderStreamOptions {
  * Writes directly to the store. Accumulates transactions from order_event messages.
  */
 export function useOrderStream(options: UseOrderStreamOptions) {
-    const { baseUrl, solverId, hashlock, enabled, store } = options
+    const { baseUrl, solverId, hashlock, enabled, store, onFailed } = options
+    const onFailedRef = useRef(onFailed)
+    onFailedRef.current = onFailed
     const accumulatedTxsRef = useRef<HTLCFromApi['transactions']>([])
 
     // Reset accumulated state when stream params change (new swap)
@@ -58,6 +61,11 @@ export function useOrderStream(options: UseOrderStreamOptions) {
                         ...currentOrder,
                         transactions: [...(currentOrder.transactions ?? []), tx],
                     })
+                }
+            } else if (event.eventType === 'order.status_changed') {
+                const statusData = event.data as StatusChangedEventData
+                if (statusData.status === 'failed') {
+                    onFailedRef.current?.(statusData.failureReason ?? 'Please wait for the timelock to expire, then refund to receive your assets back.')
                 }
             }
         },
