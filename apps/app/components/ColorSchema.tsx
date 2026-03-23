@@ -1,11 +1,13 @@
 import { FC } from "react";
 import { THEME_COLORS, ThemeData } from "../Models/Theme";
+import { useTheme } from "next-themes";
 
 type Props = {
     themeData?: ThemeData | null
 }
-const ColorSchema: FC<Props> = ({ themeData }) => {
-    themeData = themeData || THEME_COLORS.default
+const ColorSchema: FC<Props> = ({ themeData: serverThemeData }) => {
+    const { resolvedTheme } = useTheme();
+    const themeData = THEME_COLORS[resolvedTheme ?? "default"] || serverThemeData || THEME_COLORS.default;
 
     return (
         <>
@@ -23,10 +25,12 @@ const ColorSchema: FC<Props> = ({ themeData }) => {
                         --ls-colors-primary-700: ${themeData.primary?.[700]};
                         --ls-colors-primary-800: ${themeData.primary?.[800]};
                         --ls-colors-primary-900: ${themeData.primary?.[900]};
+                        --ls-colors-primary-text: ${themeData.primary?.text};
 
                         --ls-colors-buttonTextColor: ${themeData.buttonTextColor};
                         --ls-colors-text-tertiary: ${themeData.tertiary};
-                        --ls-colors-primary-text: ${themeData.primary?.text};
+                        --ls-colors-actionButtonColor: ${themeData.actionButtonColor};
+                        --ls-colors-background: ${themeData.background};
 
                         --ls-colors-secondary: ${themeData.secondary?.DEFAULT};
                         --ls-colors-secondary-100: ${themeData.secondary?.[100]};
@@ -46,9 +50,6 @@ const ColorSchema: FC<Props> = ({ themeData }) => {
                         --ls-colors-error-background: ${themeData.error?.Background};
                         --ls-colors-success-foreground: ${themeData.success?.Foreground};
                         --ls-colors-success-background: ${themeData.success?.Background};
-
-                        --ls-colors-accent: ${themeData.accent?.DEFAULT};
-                        --ls-colors-accent-hover: ${themeData.accent?.hover};
                     }
                     .headerLogo {
                         display: ${themeData.headerLogo};

@@ -28,16 +28,16 @@ const TonConnectProvider = ({ children, basePath, themeData, appName }: { childr
                                 white: '#f1f1f1f1',
                             },
                             connectButton: {
-                                background: rgbToHex(themeData?.primary?.[500] || ''),
+                                background: rgbToHex(themeData?.primary?.DEFAULT || ''),
                                 foreground: rgbToHex(themeData?.secondary?.[800] || ''),
                             },
-                            accent: rgbToHex(themeData?.accent?.DEFAULT || ''),
-                            telegramButton: rgbToHex(themeData?.primary?.[500] || ''),
+                            accent: rgbToHex(themeData?.primary?.DEFAULT || ''),
+                            telegramButton: rgbToHex(themeData?.primary?.DEFAULT || ''),
                             icon: {
-                                primary: rgbToHex(themeData?.primary?.[500] || ''),
+                                primary: rgbToHex(themeData?.primary?.DEFAULT || ''),
                                 secondary: rgbToHex(themeData?.secondary?.text || ''),
                                 tertiary: rgbToHex(themeData?.secondary?.[400] || ''),
-                                success: rgbToHex(themeData?.primary?.[500] || ''),
+                                success: rgbToHex(themeData?.primary?.DEFAULT || ''),
                             },
                             background: {
                                 primary: rgbToHex(themeData?.secondary?.[900] || ''),

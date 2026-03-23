@@ -154,7 +154,7 @@ const Comp: FC<VaulDrawerProps> = ({ children, show, setShow, header, descriptio
                 <Drawer.Content
                     data-testid="content"
                     data-fit-height={isFitHeightMode ? 'true' : undefined}
-                    className={clsx('fixed sm:absolute bg-secondary-900 rounded-t-3xl bottom-0 left-0 right-0 z-50 text-primary-text ring-0! outline-hidden!', className, {
+                    className={clsx('fixed sm:absolute bg-secondary-700 rounded-t-3xl bottom-0 left-0 right-0 z-50 text-primary-text ring-0! outline-hidden!', className, {
                         'flex flex-col pb-4 h-full': isSnapPointsMode,
                         'flex flex-col': isFitHeightMode,
                         'border-none! rounded-none!': isSnapPointsMode && snap === 1,

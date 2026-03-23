@@ -27,7 +27,7 @@ const WalletSelect = ({ startWalletLogin }: WalletSelectProps) => {
 
             <div className="flex flex-col gap-2">
                 {connectedWallets.length === 0 && (
-                    <div className="text-sm text-secondary-text bg-secondary-800 border border-secondary-700 rounded-xl p-4">
+                    <div className="text-sm text-secondary-text bg-secondary-500 border border-secondary-400 rounded-xl p-4">
                         No wallets connected.
                     </div>
                 )}
@@ -36,9 +36,9 @@ const WalletSelect = ({ startWalletLogin }: WalletSelectProps) => {
                         key={`${wallet.providerName}-${wallet.address}`}
                         type="button"
                         onClick={() => startWalletLogin(wallet)}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-secondary-700 bg-secondary-800 hover:border-secondary-600"
+                        className="w-full flex items-center gap-3 p-3 rounded-xl border border-secondary-400 bg-secondary-500 hover:border-secondary-300"
                     >
-                        <div className="shrink-0 w-10 h-10 rounded-lg bg-secondary-700 flex items-center justify-center">
+                        <div className="shrink-0 w-10 h-10 rounded-lg bg-secondary-400 flex items-center justify-center">
                             {wallet.icon ? <wallet.icon /> : <WalletIcon className="w-5 h-5 text-primary-text" />}
                         </div>
                         <div className="flex-1 min-w-0 text-left">
@@ -57,7 +57,7 @@ const WalletSelect = ({ startWalletLogin }: WalletSelectProps) => {
                         startWalletLogin(wallet);
                     }
                 }}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold border-2 border-secondary-700 bg-secondary-800 text-primary-text hover:bg-secondary-700 transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold border border-secondary-400 bg-secondary-500 text-primary-text hover:bg-secondary-400 transition-colors"
             >
                 <Plus className="w-4 h-4" />
                 Connect wallet

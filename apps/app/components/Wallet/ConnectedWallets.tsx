@@ -61,15 +61,15 @@ export const WalletsIcons = ({ wallets }: WalletsIconsProps) => {
         <div className="-space-x-2 flex">
             {
                 firstWallet?.displayName &&
-                <firstWallet.icon className="rounded-md border-2 border-secondary-600 bg-secondary-700 shrink-0 h-6 w-6" />
+                <firstWallet.icon className="rounded-md border-2 border-secondary-400 bg-secondary-500 shrink-0 h-6 w-6" />
             }
             {
                 secondWallet?.displayName &&
-                <secondWallet.icon className="rounded-md border-2 border-secondary-600 bg-secondary-700 shrink-0 h-6 w-6" />
+                <secondWallet.icon className="rounded-md border-2 border-secondary-400 bg-secondary-500 shrink-0 h-6 w-6" />
             }
             {
                 uniqueWallets.length > 2 &&
-                <div className="h-6 w-6 shrink-0 rounded-md justify-center p-1 bg-secondary-600 text-primary-text overlfow-hidden text-xs">
+                <div className="h-6 w-6 shrink-0 rounded-md justify-center p-1 bg-secondary-400 text-primary-text overlfow-hidden text-xs">
                     <span><span>+</span>{uniqueWallets.length - 2}</span>
                 </div>
             }
@@ -88,7 +88,7 @@ export const WalletsMenu = () => {
 
     return (
         <ConnectButton>
-            <div className="active:animate-press-down border border-primary disabled:border-primary-900 items-center space-x-1 disabled:text-primary/40 disabled:bg-primary-900 disabled:cursor-not-allowed relative w-full flex justify-center font-semibold rounded-xl transform hover:brightness-125 transition duration-200 ease-in-out py-3 md:px-3 bg-primary/20 border-none text-primary! px-4!" >
+            <div className="active:animate-press-down items-center space-x-1 disabled:cursor-not-allowed relative w-full flex justify-center font-semibold rounded-xl transform hover:brightness-125 transition duration-200 ease-in-out py-3 md:px-3 bg-secondary-400 border-none text-primary-text! px-4!" >
                 <span className="order-first absolute left-0 inset-y-0 flex items-center pl-3">
                     <WalletIcon className="h-6 w-6" strokeWidth="2" />
                 </span>
@@ -103,7 +103,7 @@ const WalletsMenuWalletsList = ({ wallets }: { wallets: Wallet[] }) => {
     const [openModal, setOpenModal] = useState<boolean>(false)
 
     return <>
-        <button onClick={() => setOpenModal(true)} type="button" className="py-3 px-4 bg-secondary-500 flex items-center w-full rounded-xl space-x-1 disabled:text-secondary-text/40 disabled:bg-primary-900 disabled:cursor-not-allowed relative font-semibold transform border border-secondary-500 hover:bg-secondary-400 transition duration-200 ease-in-out outline-hidden">
+        <button onClick={() => setOpenModal(true)} type="button" className="py-3 px-4 bg-secondary-400 flex items-center w-full rounded-xl space-x-1 disabled:text-secondary-text/40 disabled:bg-secondary-600 disabled:cursor-not-allowed relative font-semibold transform border border-secondary-400 hover:bg-secondary-300 transition duration-200 ease-in-out outline-hidden">
             {
                 wallets.length === 1 ?
                     <div className="flex gap-4 items-start text-primary-text">

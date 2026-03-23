@@ -45,7 +45,7 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search networks..."
-                    className="w-full pl-10 pr-4 py-2 bg-secondary-700 border border-secondary-500 rounded-lg text-primary-text placeholder-secondary-text focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 bg-secondary-500 border border-secondary-500 rounded-lg text-primary-text placeholder-secondary-text focus:outline-none focus:ring-2 focus:ring-secondary-300 focus:border-transparent"
                 />
             </div>
 
@@ -63,7 +63,7 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
                             <button
                                 key={network.caip2Id}
                                 onClick={() => onNetworkSelect(network)}
-                                className="w-full flex items-center justify-between p-3 rounded-xl bg-secondary-700 hover:bg-secondary-600 cursor-pointer transition-colors"
+                                className="w-full flex items-center justify-between p-3 rounded-xl bg-secondary-500 hover:bg-secondary-400 cursor-pointer transition-colors"
                             >
                                 <div className="flex items-center space-x-3 overflow-hidden">
                                     <Image

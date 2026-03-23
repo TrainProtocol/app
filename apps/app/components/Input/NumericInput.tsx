@@ -45,7 +45,7 @@ const NumericInput: FC<Input> = forwardRef<HTMLInputElement, Input>(
                 {
                     !isNaN(Number(tempValue)) &&
                     <span className={classNames(
-                        'py-2 flex text-secondary-text/45 items-center h-12 leading-4 bg-secondary-700 min-w-0 rounded-lg font-semibold border-0 ',
+                        'py-2 flex text-secondary-text/45 items-center h-12 leading-4 bg-secondary-500 min-w-0 rounded-lg font-semibold border-0 ',
                         className
                     )}
                         ref={ref}
@@ -73,7 +73,7 @@ const NumericInput: FC<Input> = forwardRef<HTMLInputElement, Input>(
                         id={name}
                         ref={ref}
                         className={classNames(
-                            'disabled:cursor-not-allowed h-12 leading-4 border-secondary-500 placeholder:text-secondary-text bg-secondary-700 focus:ring-primary focus:border-primary block min-w-0 rounded-lg font-semibold border-0',
+                            'disabled:cursor-not-allowed h-12 leading-4 border-secondary-500 placeholder:text-secondary-text bg-secondary-500 focus:ring-secondary-300 focus:border-secondary-300 block min-w-0 rounded-lg font-semibold border-0',
                             className
                         )}
                         onChange={onChange ? onChange : e => {

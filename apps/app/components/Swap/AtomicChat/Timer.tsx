@@ -39,7 +39,7 @@ const TimelockTimer = ({ timelock, children }: { timelock: number, children?: Re
             trigger={
                 children
                     ? children
-                    : <div className="px-2.5 py-0.5 rounded-xl bg-opacity-0 hover:bg-opacity-100 transition-all duration-200 bg-secondary-400 hover:bg-secondary-600 text-sm text-secondary-text w-max">
+                    : <div className="px-2.5 py-0.5 rounded-xl bg-opacity-0 hover:bg-opacity-100 transition-all duration-200 bg-secondary-400 hover:bg-secondary-300 text-sm text-secondary-text w-max">
                         <div className="flex items-center gap-1.5">
                             <p>Refund</p>
                             <HelpCircle className="h-4 w-4" />

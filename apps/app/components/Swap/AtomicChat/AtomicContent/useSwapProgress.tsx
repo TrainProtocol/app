@@ -111,7 +111,7 @@ const VerificationStatus: FC = () => {
         return (
             <div className="flex items-center gap-1 text-sm">
                 <span>Verifying by Light Client</span>
-                <LockIcon className="h-4 w-4 text-accent animate-pulse" />
+                <LockIcon className="h-4 w-4 text-primary animate-pulse" />
             </div>
         );
     }
@@ -120,9 +120,9 @@ const VerificationStatus: FC = () => {
         return (
             <div className="flex items-center gap-1 text-sm">
                 <span>Verified by</span>
-                <span className="font-medium text-accent flex items-center gap-1">
+                <span className="font-medium text-primary flex items-center gap-1">
                     Light Client
-                    <LockIcon className="h-4 w-4 text-accent" />
+                    <LockIcon className="h-4 w-4 text-primary" />
                 </span>
             </div>
         );
@@ -132,7 +132,7 @@ const VerificationStatus: FC = () => {
         return (
             <div className="flex items-center gap-1 text-sm">
                 <span>Verifying with multiple RPCs</span>
-                <LockIcon className="h-4 w-4 text-accent animate-pulse" />
+                <LockIcon className="h-4 w-4 text-primary animate-pulse" />
             </div>
         );
     }
@@ -141,9 +141,9 @@ const VerificationStatus: FC = () => {
         return (
             <div className="flex items-center gap-1 text-sm">
                 <span>Verified by</span>
-                <span className="font-medium text-accent flex items-center gap-1">
+                <span className="font-medium text-primary flex items-center gap-1">
                     multiple RPCs
-                    <LockIcon className="h-4 w-4 text-accent" />
+                    <LockIcon className="h-4 w-4 text-primary" />
                 </span>
             </div>
         );

@@ -38,34 +38,32 @@
 }
 
 @theme static {
-  --color-primary: rgb(var(--ls-colors-primary, 204, 45, 93));
-  --color-primary-100: rgb(var(--ls-colors-primary-100, 255, 148, 176));
-  --color-primary-200: rgb(var(--ls-colors-primary-200, 245, 103, 141));
-  --color-primary-300: rgb(var(--ls-colors-primary-300, 235, 84, 129));
-  --color-primary-400: rgb(var(--ls-colors-primary-400, 229, 64, 114));
-  --color-primary-500: rgb(var(--ls-colors-primary-500, 204, 45, 93));
-  --color-primary-600: rgb(var(--ls-colors-primary-600, 178, 29, 74));
-  --color-primary-700: rgb(var(--ls-colors-primary-700, 143, 23, 59));
-  --color-primary-800: rgb(var(--ls-colors-primary-800, 89, 14, 37));
-  --color-primary-900: rgb(var(--ls-colors-primary-900, 46, 7, 19));
-  --color-primary-950: rgb(var(--ls-colors-primary-950, 129, 129, 129));
-  --color-primary-text: rgb(var(--ls-colors-primary-text, 225, 227, 230));
-  --color-primary-text-tertiary: rgb(var(--ls-colors-text-tertiary, 118, 128, 147));
+  --color-primary: rgb(var(--ls-colors-primary, 255, 255, 255));
+  --color-primary-100: rgb(var(--ls-colors-primary-100, 255, 255, 255));
+  --color-primary-200: rgb(var(--ls-colors-primary-200, 255, 255, 255));
+  --color-primary-300: rgb(var(--ls-colors-primary-300, 255, 255, 255));
+  --color-primary-400: rgb(var(--ls-colors-primary-400, 255, 255, 255));
+  --color-primary-500: rgb(var(--ls-colors-primary-500, 255, 255, 255));
+  --color-primary-600: rgb(var(--ls-colors-primary-600, 227, 227, 227));
+  --color-primary-700: rgb(var(--ls-colors-primary-700, 199, 199, 199));
+  --color-primary-800: rgb(var(--ls-colors-primary-800, 164, 164, 164));
+  --color-primary-900: rgb(var(--ls-colors-primary-900, 143, 143, 143));
+  --color-primary-text: rgb(var(--ls-colors-primary-text, 233, 233, 233));
+  --color-primary-text-tertiary: rgb(var(--ls-colors-text-tertiary, 113, 113, 113));
   --color-primary-buttonTextColor: rgb(var(--ls-colors-buttonTextColor, 0, 0, 0));
-  --color-primary-logoColor: rgb(var(--ls-colors-logo, 255, 0, 147));
+  --color-primary-logoColor: rgb(var(--ls-colors-logo, 255, 255, 255));
 
-  --color-secondary: rgb(var(--ls-colors-secondary, 17, 29, 54));
-  --color-secondary-100: rgb(var(--ls-colors-secondary-100, 60, 72, 97));
-  --color-secondary-200: rgb(var(--ls-colors-secondary-200, 52, 63, 87));
-  --color-secondary-300: rgb(var(--ls-colors-secondary-300, 40, 50, 71));
-  --color-secondary-400: rgb(var(--ls-colors-secondary-400, 31, 40, 61));
-  --color-secondary-500: rgb(var(--ls-colors-secondary-500, 23, 31, 49));
-  --color-secondary-600: rgb(var(--ls-colors-secondary-600, 18, 25, 41));
-  --color-secondary-700: rgb(var(--ls-colors-secondary-700, 14, 21, 36));
-  --color-secondary-800: rgb(var(--ls-colors-secondary-800, 11, 17, 31));
-  --color-secondary-900: rgb(var(--ls-colors-secondary-900, 6, 10, 20));
-  --color-secondary-950: rgb(var(--ls-colors-secondary-950, 18, 18, 18));
-  --color-secondary-text: rgb(var(--ls-colors-secondary-text, 163, 173, 194));
+  --color-secondary: rgb(var(--ls-colors-secondary, 32, 31, 31));
+  --color-secondary-100: rgb(var(--ls-colors-secondary-100, 72, 72, 71));
+  --color-secondary-200: rgb(var(--ls-colors-secondary-200, 62, 61, 61));
+  --color-secondary-300: rgb(var(--ls-colors-secondary-300, 52, 51, 51));
+  --color-secondary-400: rgb(var(--ls-colors-secondary-400, 42, 41, 41));
+  --color-secondary-500: rgb(var(--ls-colors-secondary-500, 32, 31, 31));
+  --color-secondary-600: rgb(var(--ls-colors-secondary-600, 25, 25, 25));
+  --color-secondary-700: rgb(var(--ls-colors-secondary-700, 19, 19, 19));
+  --color-secondary-800: rgb(var(--ls-colors-secondary-800, 17, 17, 17));
+  --color-secondary-900: rgb(var(--ls-colors-secondary-900, 14, 14, 14));
+  --color-secondary-text: rgb(var(--ls-colors-secondary-text, 173, 170, 170));
 
   --color-warning-foreground: rgb(var(--ls-colors-warning-foreground, 255, 201, 74));
   --color-warning-background: rgb(var(--ls-colors-warning-background, 47, 43, 29));
@@ -74,8 +72,9 @@
   --color-success-foreground: rgb(var(--ls-colors-success-foreground, 89, 224, 125));
   --color-success-background: rgb(var(--ls-colors-success-background, 14, 43, 22));
 
-  --color-accent: rgb(var(--ls-colors-accent, 39, 142, 246));
-  --color-accent-hover: rgb(var(--ls-colors-accent-hover, 35, 128, 222));
+  --color-actionButtonColor: rgb(var(--ls-colors-actionButtonColor, 255, 255, 255));
+
+  --color-background: rgb(var(--ls-colors-background, var(--ls-colors-secondary-900, 14, 14, 14)));
 }
 
 
@@ -123,7 +122,7 @@
 @layer base {
 
   body {
-    @apply bg-secondary-900 sm:bg-secondary-950;
+    @apply bg-background sm:bg-background;
   }
 
   /* Transparent background for immutable theme (iframe embedding) */
@@ -388,7 +387,7 @@ path {
 /* Focus ring - 2px accent inset with 12px radius */
 .navigation-focus-ring-text-bold-lg:focus-visible {
   outline: none !important;
-  box-shadow: inset 0 0 0 2px rgb(var(--ls-colors-secondary-100)) !important;
+  box-shadow: inset 0 0 0 2px rgb(var(--ls-colors-primary-500)) !important;
   border-radius: 12px;
 }
 

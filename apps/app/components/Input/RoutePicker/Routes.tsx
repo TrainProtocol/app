@@ -134,7 +134,7 @@ export const NetworkRouteSelectItemDisplay = (props: NetworkItemProps) => {
                                         />
                                     ))}
                                     {filteredNetworkTokens.length > 3 && (
-                                        <div className="w-4 h-4 bg-secondary-600 text-primary-text text-[8px] rounded-full flex items-center justify-center border-2 border-background">
+                                        <div className="w-4 h-4 bg-secondary-400 text-primary-text text-[8px] rounded-full flex items-center justify-center border-2 border-background">
                                             <span>+{filteredNetworkTokens.length - 3}</span>
                                         </div>
                                     )}
@@ -231,7 +231,7 @@ export const GroupedTokenHeader = ({
                                         />
                                     ))}
                                     {networksWithBalance.length > 3 && (
-                                        <div className="w-4 h-4 bg-secondary-600 text-primary-text text-[8px] rounded-full flex items-center justify-center border-2 border-background">
+                                        <div className="w-4 h-4 bg-secondary-400 text-primary-text text-[8px] rounded-full flex items-center justify-center border-2 border-background">
                                             <span>+{networksWithBalance.length - 3}</span>
                                         </div>
                                     )}
@@ -316,7 +316,7 @@ export const SelectedRoutePlaceholder = ({ placeholder }: { placeholder: string 
 
 const RoutePickerIcon = (props) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 29 29" fill="none">
-        <circle cx="12" cy="12" r="12" fill="rgb(var(--ls-colors-secondary-400))" />
-        <rect x="13.5" y="13.5" width="15" height="15" rx="4.5" fill="rgb(var(--ls-colors-secondary-400))" stroke="rgb(var(--ls-colors-secondary-500))" />
+        <circle cx="12" cy="12" r="12" fill="rgb(var(--ls-colors-secondary-200))" />
+        <rect x="13.5" y="13.5" width="15" height="15" rx="4.5" fill="rgb(var(--ls-colors-secondary-200))" stroke="rgb(var(--ls-colors-secondary-300))" />
     </svg>
 )
