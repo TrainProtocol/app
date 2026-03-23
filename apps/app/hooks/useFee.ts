@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import useSWR from 'swr'
 import { parseUnits } from 'viem'
 import { SwapFormValues } from '../components/DTOs/SwapFormValues'
@@ -100,6 +100,7 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
 
     const [debouncedAmount, setDebouncedAmount] = useState(convertedAmount)
     const [isDebouncing, setIsDebouncing] = useState(false)
+    const cachedQuote = useRef<QuoteResult | null>(null)
 
     useEffect(() => {
         if (convertedAmount === debouncedAmount) return
@@ -160,19 +161,24 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
         }
     }, [])
 
-    const { data, mutate: mutateFee, error: quoteError } = useSWR<QuoteResult | null>(
+    const { data: rawData, mutate: mutateFee, error: quoteError } = useSWR<QuoteResult | null>(
         quoteURL,
         quoteFetchWrapper,
         {
             refreshInterval: (refreshInterval !== undefined && refreshInterval !== null) ? refreshInterval : 42000,
             dedupingInterval: 5000,
-            keepPreviousData: true,
         }
     )
 
+    if (rawData) cachedQuote.current = rawData
+    if (quoteError) cachedQuote.current = null
+
+    const data = rawData ?? cachedQuote.current
+    const resolvedQuote = (quoteError || !canGetQuote) ? undefined : data?.quote
+    const resolvedSolverId = (quoteError || !canGetQuote) ? undefined : data?.solverId
     return {
-        quote: (quoteError || !canGetQuote) ? undefined : data?.quote,
-        solverId: (quoteError || !canGetQuote) ? undefined : data?.solverId,
+        quote: resolvedQuote,
+        solverId: resolvedSolverId,
         isQuoteLoading,
         isDebouncing,
         quoteError: quoteError as QuoteError | undefined,
