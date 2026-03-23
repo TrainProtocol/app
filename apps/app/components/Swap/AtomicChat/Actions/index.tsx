@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 import { useAtomicState } from "@/context/atomicContext";
 import { RevealSecretAction } from "./RevealSecret";
 import { ManualClaimAction } from "./ManualClaim";
@@ -18,8 +18,9 @@ import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
 import { Drawer } from "@/components/Modal/vaul";
 import { HTLCStatus } from "@/Models/HTLCStatus";
-import { useLoginIdentityMismatch } from "@/hooks/useLoginIdentityMismatch";
-import { useRecoveryIdentityCheck } from "@/hooks/useRecoveryIdentityCheck";
+import { useLoginIdentityMismatch, type IdentityWarning } from "@/hooks/useLoginIdentityMismatch";
+import { useSecretDerivationStore, LoginIdentity } from "@/stores/secretDerivationStore";
+import { deriveSecretFromTimelock, secretToHashlock } from "@train-protocol/sdk";
 import { useSwapStore } from "@/stores/swapStore";
 import { useShallow } from "zustand/react/shallow";
 
@@ -215,4 +216,41 @@ const TransactionMessage: FC<{ error: string | undefined, disableButton?: boolea
         return <TransactionMessages.UexpectedErrorMessage message={error} />
     }
     return <></>
+}
+
+function useRecoveryIdentityCheck(loginIdentity: LoginIdentity | undefined): IdentityWarning {
+    const { hashlock, sourceDetails } = useAtomicState()
+    const storedDerivedKey = useSecretDerivationStore(s => s.storedDerivedKey)
+    const isLoggedIn = useSecretDerivationStore(s => s.isLoggedIn)
+
+    return useMemo(() => {
+        if (loginIdentity) return null
+
+        if (!isLoggedIn || !storedDerivedKey) {
+            if (!hashlock) return null
+            return {
+                header: 'Login required',
+                details: 'Please log in to continue this swap.',
+            }
+        }
+
+        if (!hashlock || !sourceDetails?.userData) return null
+
+        const nonce = Number(sourceDetails.userData)
+        if (isNaN(nonce)) return null
+
+        try {
+            const derivedSecret = deriveSecretFromTimelock(storedDerivedKey, nonce)
+            const testHashlock = secretToHashlock('0x' + derivedSecret.toString('hex'))
+
+            if (testHashlock.toLowerCase() === hashlock.toLowerCase()) return null
+
+            return {
+                header: 'Identity mismatch',
+                details: 'The current login does not match the identity that created this swap. Please log in with the correct passkey or wallet to continue.',
+            }
+        } catch {
+            return null
+        }
+    }, [loginIdentity, hashlock, sourceDetails?.userData, storedDerivedKey, isLoggedIn])
 }
