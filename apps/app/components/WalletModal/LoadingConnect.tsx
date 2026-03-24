@@ -53,7 +53,7 @@ export const LoadingConnect: FC<{ onRetry: () => void, selectedConnector: Wallet
                 connectionError &&
                 <div className={`bg-secondary-500 rounded-lg flex flex-col gap-1.5 items-center p-3 w-full bottom-0`}>
                     <div className="flex w-full gap-1 text-sm text-secondary-text justify-start">
-                        <CircleX className="w-5 h-5 stroke-primary-500 mr-1 mt-0.5 shrink-0" />
+                        <CircleX className="w-5 h-5 text-secondary-text mr-1 mt-0.5 shrink-0" />
                         <div className='flex flex-col gap-1'>
                             <p className='text-base text-white'>Failed to connect</p>
                             <p className="text-sm font-normal">

@@ -241,7 +241,7 @@ const EmptyState = () => (
 )
 
 const SkeletonCard = ({ className }: { className?: string }) => (
-    <div className={`${className ?? ''} bg-secondary-700 rounded-xl overflow-hidden animate-pulse`}>
+    <div className={`${className ?? ''} bg-secondary-500 rounded-xl overflow-hidden animate-pulse`}>
         <div className="grid grid-cols-12 items-center gap-2">
             <div className="col-span-6 flex items-center gap-2 p-3">
                 <div className="w-8 h-8 rounded-full bg-secondary-500 shrink-0" />
@@ -250,7 +250,7 @@ const SkeletonCard = ({ className }: { className?: string }) => (
                     <div className="h-2.5 rounded bg-secondary-500 w-1/2" />
                 </div>
             </div>
-            <div className="col-span-6 flex items-center justify-end gap-2 bg-secondary-600 p-3 rounded-xl">
+            <div className="col-span-6 flex items-center justify-end gap-2 bg-secondary-400 p-3 rounded-xl">
                 <div className="flex flex-col gap-1.5 items-end flex-1">
                     <div className="h-3 rounded bg-secondary-500 w-3/4" />
                     <div className="h-2.5 rounded bg-secondary-500 w-1/2" />
@@ -258,7 +258,7 @@ const SkeletonCard = ({ className }: { className?: string }) => (
                 <div className="w-8 h-8 rounded-full bg-secondary-500 shrink-0" />
             </div>
         </div>
-        <div className="h-8 bg-secondary-600 w-full" />
+        <div className="h-8 bg-secondary-400 w-full" />
     </div>
 )
 

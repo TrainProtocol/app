@@ -1,7 +1,7 @@
 import { FC, useEffect } from "react";
 import { useAtomicState } from "@/context/atomicContext";
 import Summary from "./Summary";
-import { usePulsatingCircles } from "@/stores/pulsatingCirclesStore";
+
 import { SwapQuote } from "@/lib/trainApiClient";
 import SwapQuoteComp from "@/components/FeeDetails/SwapQuote";
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
@@ -24,24 +24,7 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
         hashlock,
     } = useAtomicState()
 
-    const { setPulseState } = usePulsatingCircles();
-
     const isInitial = commitStatus === HTLCStatus.Initial
-
-    // Centralized pulse state
-    useEffect(() => {
-        switch (commitStatus) {
-            case HTLCStatus.RedeemCompleted:
-                setPulseState("completed");
-                break;
-            case HTLCStatus.SecretRevealed:
-            case HTLCStatus.UserLocked:
-                setPulseState("pulsing");
-                break;
-            default:
-                setPulseState("initial");
-        }
-    }, [commitStatus]);
 
     // Hashlock mismatch safety check (preserved from old LpLockingAssets step)
     useEffect(() => {
@@ -84,16 +67,16 @@ const SwapProgressPanel: FC = () => {
                 <div className="flex flex-col gap-2 items-center">
                     <div className="flex items-center">
                         {gaugeIcon === "x" ? (
-                            <span className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full bg-accent/20">
-                                <X className="h-7 w-7 text-accent" aria-hidden="true" />
+                            <span className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full bg-primary/20">
+                                <X className="h-7 w-7 text-primary" aria-hidden="true" />
                             </span>
                         ) : gaugeIcon === "undo" ? (
-                            <span className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full bg-accent/20">
-                                <Undo2 className="h-7 w-7 text-accent" aria-hidden="true" />
+                            <span className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full bg-primary/20">
+                                <Undo2 className="h-7 w-7 text-primary" aria-hidden="true" />
                             </span>
                         ) : gaugeIcon === "circleCheck" ? (
                             <span className="relative z-10 flex h-10 w-10 items-center justify-center">
-                                <CircleCheck className="h-10 w-10 text-accent" strokeWidth={2} aria-hidden="true" />
+                                <CircleCheck className="h-10 w-10 text-primary" strokeWidth={2} aria-hidden="true" />
                             </span>
                         ) : (
                             <Gauge value={gaugeValue} size="small" showCheckmark={gaugeIcon === "check"} />

@@ -64,7 +64,7 @@ const SendFeedback: FC<Props> = ({ onSend }) => {
                             onChange={e => {
                                 handleChange(e)
                             }}
-                            className="h-40 max-h-60 appearance-none block bg-secondary-700 text-primary-text border border-secondary-500 rounded-md py-3 px-4 mb-3 leading-tight focus:ring-0 focus:bg-secondary-500 focus:border-secondary-100 "
+                            className="h-40 max-h-60 appearance-none block bg-secondary-500 text-primary-text border border-secondary-500 rounded-md py-3 px-4 mb-3 leading-tight focus:ring-0 focus:bg-secondary-500 focus:border-secondary-100 "
                         />
                         <button
                             type="button"
@@ -73,7 +73,7 @@ const SendFeedback: FC<Props> = ({ onSend }) => {
                                 show();
                                 update()
                             }}
-                            className="text-center disabled:text-primary-800 text-primary border-0 font-semibold rounded-md focus:outline-none transform hover:-translate-y-0.5 transition duration-200 ease-in-out"
+                            className="text-center disabled:text-secondary-text/50 text-secondary-text border-0 font-semibold rounded-md focus:outline-none transform hover:-translate-y-0.5 transition duration-200 ease-in-out"
                         >
                             Need help?
                         </button>

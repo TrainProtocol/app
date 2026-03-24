@@ -1,18 +1,14 @@
 import { THEME, TonConnectUIProvider } from "@tonconnect/ui-react"
-import { ThemeData } from "../../Models/Theme";
 
-const TonConnectProvider = ({ children, basePath, themeData, appName }: { children: JSX.Element | JSX.Element[], basePath: string, themeData: ThemeData, appName: string | undefined }) => {
+const TonConnectProvider = ({ children, basePath, appName }: { children: JSX.Element | JSX.Element[], basePath: string, appName: string | undefined }) => {
 
-    const rgbToHex = (rgb: string) => {
-        const rgbArray = rgb.match(/\d+/g)
-        function componentToHex(c: number) {
-            var hex = c?.toString(16);
-            return hex.length == 1 ? "0" + hex : hex;
-        }
-
-        if (!rgbArray) return
-
-        return "#" + componentToHex(Number(rgbArray[0])) + componentToHex(Number(rgbArray[1])) + componentToHex(Number(rgbArray[2]));
+    const rgbCssVarToHex = (varName: string) => {
+        if (typeof window === 'undefined') return undefined
+        const value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
+        if (!value) return undefined
+        const parts = value.split(',').map(s => Number(s.trim()))
+        if (parts.length < 3) return undefined
+        return '#' + parts.slice(0, 3).map(c => c.toString(16).padStart(2, '0')).join('')
     }
 
     return (
@@ -28,27 +24,27 @@ const TonConnectProvider = ({ children, basePath, themeData, appName }: { childr
                                 white: '#f1f1f1f1',
                             },
                             connectButton: {
-                                background: rgbToHex(themeData?.primary?.[500] || ''),
-                                foreground: rgbToHex(themeData?.secondary?.[800] || ''),
+                                background: rgbCssVarToHex('--ls-colors-primary'),
+                                foreground: rgbCssVarToHex('--ls-colors-secondary-800'),
                             },
-                            accent: rgbToHex(themeData?.accent?.DEFAULT || ''),
-                            telegramButton: rgbToHex(themeData?.primary?.[500] || ''),
+                            accent: rgbCssVarToHex('--ls-colors-primary'),
+                            telegramButton: rgbCssVarToHex('--ls-colors-primary'),
                             icon: {
-                                primary: rgbToHex(themeData?.primary?.[500] || ''),
-                                secondary: rgbToHex(themeData?.secondary?.text || ''),
-                                tertiary: rgbToHex(themeData?.secondary?.[400] || ''),
-                                success: rgbToHex(themeData?.primary?.[500] || ''),
+                                primary: rgbCssVarToHex('--ls-colors-primary'),
+                                secondary: rgbCssVarToHex('--ls-colors-secondary-text'),
+                                tertiary: rgbCssVarToHex('--ls-colors-secondary-400'),
+                                success: rgbCssVarToHex('--ls-colors-primary'),
                             },
                             background: {
-                                primary: rgbToHex(themeData?.secondary?.[900] || ''),
-                                secondary: rgbToHex(themeData?.secondary?.[800] || ''),
-                                segment: rgbToHex(themeData?.secondary?.[200] || ''),
-                                tint: rgbToHex(themeData?.secondary?.[700] || ''),
+                                primary: rgbCssVarToHex('--ls-colors-secondary-900'),
+                                secondary: rgbCssVarToHex('--ls-colors-secondary-800'),
+                                segment: rgbCssVarToHex('--ls-colors-secondary-200'),
+                                tint: rgbCssVarToHex('--ls-colors-secondary-700'),
                                 qr: '#f1f1f1f1',
                             },
                             text: {
-                                primary: rgbToHex(themeData?.primary?.text || ''),
-                                secondary: rgbToHex(themeData?.secondary?.text || ''),
+                                primary: rgbCssVarToHex('--ls-colors-primary-text'),
+                                secondary: rgbCssVarToHex('--ls-colors-secondary-text'),
                             }
                         }
                     }

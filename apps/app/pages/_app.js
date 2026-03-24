@@ -10,6 +10,7 @@ import { useEffect } from "react";
 import { PostHogProvider } from 'posthog-js/react'
 import posthog from 'posthog-js'
 import { Analytics } from '@vercel/analytics/next';
+import { ThemeProvider } from 'next-themes';
 import { registerEvmSdk } from '@train-protocol/evm';
 
 if (typeof window !== 'undefined') {
@@ -68,9 +69,18 @@ function App({ Component, pageProps }) {
           dedupingInterval: 5000,
         }}
       >
-        <IntercomProvider appId={INTERCOM_APP_ID} initializeDelay={2500}>
-          <Component key={router.asPath} {...pageProps} />
-        </IntercomProvider>
+        <ThemeProvider
+          attribute="data-theme"
+          defaultTheme="default"
+          themes={["default", "light"]}
+          storageKey="theme"
+          disableTransitionOnChange
+          enableSystem={false}
+        >
+          <IntercomProvider appId={INTERCOM_APP_ID} initializeDelay={2500}>
+            <Component key={router.asPath} {...pageProps} />
+          </IntercomProvider>
+        </ThemeProvider>
       </SWRConfig>
       <Analytics />
     </PostHogProvider>

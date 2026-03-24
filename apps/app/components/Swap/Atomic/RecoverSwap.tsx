@@ -41,7 +41,7 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
                     <button
                         type="button"
                         onClick={() => setShowNetworkList(!showNetworkList)}
-                        className="w-full flex items-center justify-between bg-secondary-700 rounded-lg px-3 py-2.5 text-primary-text hover:bg-secondary-600 transition"
+                        className="w-full flex items-center justify-between bg-secondary-500 rounded-lg px-3 py-2.5 text-primary-text hover:bg-secondary-400 transition"
                     >
                         {selectedNetwork ? (
                             <div className="flex items-center space-x-2">
@@ -62,7 +62,7 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
                         <ChevronDown className="h-4 w-4 text-secondary-text" />
                     </button>
                     {showNetworkList && (
-                        <div className="absolute z-20 mt-1 w-full bg-secondary-600 rounded-lg shadow-lg max-h-64 overflow-y-auto styled-scroll">
+                        <div className="absolute z-20 mt-1 w-full bg-secondary-400 rounded-lg shadow-lg max-h-64 overflow-y-auto styled-scroll">
                             {networks.map(network => (
                                 <button
                                     key={network.caip2Id}
@@ -97,7 +97,7 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
                     value={txHash}
                     onChange={e => setTxHash(e.target.value.trim())}
                     placeholder="0x..."
-                    className="w-full bg-secondary-700 rounded-lg px-3 py-2.5 text-primary-text placeholder:text-secondary-text border-0 focus:ring-primary focus:outline-none"
+                    className="w-full bg-secondary-500 rounded-lg px-3 py-2.5 text-primary-text placeholder:text-secondary-text border-0 focus:ring-secondary-300 focus:outline-none"
                 />
             </div>
 

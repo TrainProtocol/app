@@ -11,8 +11,8 @@ function renderStepIcon(status: StepStatus) {
     switch (status) {
         case StepStatus.Complete:
             return (
-                <span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-accent/20">
-                    <Check className="h-5 w-5 text-accent" aria-hidden="true" />
+                <span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-primary/20">
+                    <Check className="h-5 w-5 text-primary" aria-hidden="true" />
                 </span>
             );
 
@@ -25,14 +25,14 @@ function renderStepIcon(status: StepStatus) {
 
         case StepStatus.Failed:
             return (
-                <span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-accent/20">
-                    <X className="h-5 w-5 text-accent" aria-hidden="true" />
+                <span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-primary/20">
+                    <X className="h-5 w-5 text-primary" aria-hidden="true" />
                 </span>
             );
 
         default:
             return (
-                <span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-accent/20">
+                <span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-primary/20">
                 </span>
             );
     }
@@ -42,7 +42,7 @@ const TxLink = ({ txLink }: { txLink: string }) => {
     return (
         <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>
-                <Link className="bg-secondary-400 hover:bg-secondary-600 rounded-full p-1 px-2 text-sm" target="_blank" href={txLink}>
+                <Link className="bg-secondary-400 hover:bg-secondary-300 rounded-full p-1 px-2 text-sm" target="_blank" href={txLink}>
                     <Link2 className="h-4 w-4" />
                 </Link>
             </TooltipTrigger>
@@ -59,8 +59,8 @@ function TimelineStep({ step, isLastStep }: { step: TimelineStepType, isLastStep
             <div className="flex items-center justify-between w-full">
                 {!isLastStep && (
                     <div className={clsx(`absolute top-1/2 left-4 -ml-px mt-2.5 h-[30%] w-0.5 `, {
-                        "bg-accent/20": step.status !== StepStatus.Complete && step.status !== StepStatus.Failed,
-                        "bg-accent": step.status === StepStatus.Complete || step.status === StepStatus.Failed
+                        "bg-primary/20": step.status !== StepStatus.Complete && step.status !== StepStatus.Failed,
+                        "bg-primary": step.status === StepStatus.Complete || step.status === StepStatus.Failed
                     })}
                         aria-hidden="true" />
                 )}
@@ -73,7 +73,7 @@ function TimelineStep({ step, isLastStep }: { step: TimelineStepType, isLastStep
                     </span>
                     <span className="ml-3 flex min-w-0 flex-col">
                         <span className={clsx(`text-sm font-medium`, {
-                            "text-accent": step.status === StepStatus.Current,
+                            "text-primary": step.status === StepStatus.Current,
                             "text-secondary-text/70": step.status === StepStatus.Upcoming,
                             "text-primary-text": step.status !== StepStatus.Current && step.status !== StepStatus.Upcoming
                         })}>

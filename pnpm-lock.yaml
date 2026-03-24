@@ -155,9 +155,6 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.0.7
         version: 1.2.8(@types/react-dom@18.3.7(@types/react@18.3.28))(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@rive-app/react-canvas':
-        specifier: ^4.18.3
-        version: 4.27.0(react@18.3.1)
       '@solana/spl-token':
         specifier: 'catalog:'
         version: 0.4.14(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10))(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
@@ -290,6 +287,9 @@ importers:
       next:
         specifier: 15.5.9
         version: 15.5.9(@opentelemetry/api@1.9.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      next-themes:
+        specifier: ^0.4.6
+        version: 0.4.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       posthog-js:
         specifier: ^1.161.6
         version: 1.354.4
@@ -3919,16 +3919,8 @@ packages:
   '@rive-app/canvas-lite@2.35.0':
     resolution: {integrity: sha512-WJ2JcIMlN7jV0YrapN7hByMahz46CT+5qcFLDqPga5WfJncOlrStuBCz0+DMkI1xlxnAdNelprKDLpfdZe7SeQ==}
 
-  '@rive-app/canvas@2.35.0':
-    resolution: {integrity: sha512-aBFgoM11X/YgpSKZDxOvt3P9EZz8siJ+AZ5aevwaiLwu9K1nHSumXDCdmJPp+9FWhW9Ssk9Le14BptnlCR1m7w==}
-
   '@rive-app/react-canvas-lite@4.27.0':
     resolution: {integrity: sha512-MU2JkKh20KDsNa8ZxUEvv7Uw2LTikEqdgGWd2KQDx68O7ASp3fmI7j3PGF6mKclGP7gYOUz+NJyv1J/Orbtcwg==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0
-
-  '@rive-app/react-canvas@4.27.0':
-    resolution: {integrity: sha512-3Mprp0sSe9KgRsMpvBhPgBVj2ZIHDTgQTGGvncsozAVkH1imF6Rl5VMNT/+7WWKRIXebpeLLSEGJ6RCegugEmw==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0
 
@@ -9229,6 +9221,12 @@ packages:
 
   new-date@1.0.3:
     resolution: {integrity: sha512-0fsVvQPbo2I18DT2zVHpezmeeNYV2JaJSrseiHLc17GNOxJzUdx5mvSigPu8LtIfZSij5i1wXnXFspEs2CD6hA==}
+
+  next-themes@0.4.6:
+    resolution: {integrity: sha512-pZvgD5L0IEvX5/9GWyHMf3m8BKiVQwsCMHfoFosXtXBMnaS0ZnIJ9ST4b4NqLVKDEm8QBxoNNGNaBv2JNF6XNA==}
+    peerDependencies:
+      react: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
 
   next-tick@1.1.0:
     resolution: {integrity: sha512-CXdUiJembsNjuToQvxayPZF9Vqht7hewsvy2sOWafLvi2awflj9mOC6bHIg50orX8IJvWKY9wYQ/zB2kogPslQ==}
@@ -16900,16 +16898,9 @@ snapshots:
 
   '@rive-app/canvas-lite@2.35.0': {}
 
-  '@rive-app/canvas@2.35.0': {}
-
   '@rive-app/react-canvas-lite@4.27.0(react@18.3.1)':
     dependencies:
       '@rive-app/canvas-lite': 2.35.0
-      react: 18.3.1
-
-  '@rive-app/react-canvas@4.27.0(react@18.3.1)':
-    dependencies:
-      '@rive-app/canvas': 2.35.0
       react: 18.3.1
 
   '@rollup/rollup-android-arm-eabi@4.59.0':
@@ -24257,6 +24248,11 @@ snapshots:
   new-date@1.0.3:
     dependencies:
       '@segment/isodate': 1.0.3
+
+  next-themes@0.4.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   next-tick@1.1.0: {}
 
