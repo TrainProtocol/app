@@ -18,10 +18,8 @@ export default function Custom404() {
         <main className="styled-scroll max-sm:bg-secondary-700">
             <div className="min-h-screen overflow-hidden relative font-robo">
                 <Navbar />
-                <div className="mx-auto w-full max-w-[482px]">
-                    <div className="relative p-px">
-                        <div className="invisible sm:visible absolute inset-0 rounded-[25px] bg-linear-to-t from-secondary-800 to-secondary-300 pointer-events-none" />
-                        <div className="bg-secondary-700 rounded-3xl w-full overflow-hidden relative p-4 sm:h-[444px] max-sm:h-[90svh]">
+                <div className="mx-auto w-full max-w-[480px]">
+                    <div className="bg-secondary-700 md:shadow-card rounded-3xl w-full overflow-hidden relative p-4 sm:h-[444px] max-sm:h-[90svh]">
                             <MessageComponent>
                                 <MessageComponent.Content icon="red" center>
                                     <MessageComponent.Header>
@@ -54,7 +52,6 @@ export default function Custom404() {
                                     </GoHomeButton>
                                 </MessageComponent.Buttons>
                             </MessageComponent>
-                        </div>
                     </div>
                 </div>
             </div>
