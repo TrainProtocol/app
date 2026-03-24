@@ -23,6 +23,7 @@ import { useSecretDerivationStore, LoginIdentity } from "@/stores/secretDerivati
 import { deriveSecretFromTimelock, secretToHashlock } from "@train-protocol/sdk";
 import { useSwapStore } from "@/stores/swapStore";
 import { useShallow } from "zustand/react/shallow";
+import { USER_LOCK_TX_FAILED_ERROR } from "@/hooks/htlc/useUserLockPolling";
 
 export type SwapViewType = "widget" | "contained"
 
@@ -59,11 +60,21 @@ type ResolveActionProps = {
 }
 
 const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, disableButton, error, quote, type }) => {
-    const { setError } = useAtomicState()
+    const { setError, hashlock } = useAtomicState()
+    const removeSwap = useSwapStore(s => s.removeSwap)
 
     if (error && !disableButton) {
+        const isTxFailed = error === USER_LOCK_TX_FAILED_ERROR
+
+        const handleRetry = () => {
+            if (isTxFailed && hashlock) {
+                removeSwap(hashlock)
+            }
+            setError(undefined)
+        }
+
         return (
-            <SubmitButton type="button" onClick={() => setError(undefined)}>
+            <SubmitButton type="button" onClick={handleRetry}>
                 Try again
             </SubmitButton>
         )
@@ -216,6 +227,9 @@ const TransactionMessage: FC<{ error: string | undefined, disableButton?: boolea
                 details="Unfortunately the time lock was expired, continuing the transaction is not recommended, cancel & refund to receive your assets back."
             />
         )
+    }
+    if (error === USER_LOCK_TX_FAILED_ERROR) {
+        return <></>
     }
     if (error) {
         return <TransactionMessages.UexpectedErrorMessage message={error} />

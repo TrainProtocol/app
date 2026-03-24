@@ -8,6 +8,7 @@ import { HTLCTransaction } from "@/lib/trainApiClient";
 import LockIcon from "@/components/Icons/LockIcon";
 import { HTLCStatus } from "@/Models/HTLCStatus";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
+import { USER_LOCK_TX_FAILED_ERROR } from "@/hooks/htlc/useUserLockPolling";
 
 // --- Types ---
 
@@ -25,6 +26,7 @@ type TxLinks = Record<string, string | undefined>;
 
 type StepTemplate = {
     activeName: string;
+    failedName?: string;
     completeName: string;
     linkKey?: string;
     isFailed?: boolean;
@@ -165,10 +167,11 @@ export function useSwapProgress(): SwapProgress {
         destination_network,
         htlcFromApi,
         consensusVerifying,
+        error
     } = useAtomicState();
 
-    const { verified, skipped, mismatches } = useSolverLockVerification();
-
+    const { verified, skipped } = useSolverLockVerification();
+    const mismatches = []
     return useMemo(() => {
         const sourceTxLink = buildExplorerLink(source_network?.caip2Id, lockTxId);
         const solverLockTx = htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCLock as string);
@@ -177,6 +180,8 @@ export function useSwapProgress(): SwapProgress {
         const refundTxLink = buildExplorerLink(source_network?.caip2Id, refundTxId);
 
         const isRefunded = sourceDetails?.status === LockStatus.Refunded;
+
+        const isUserLockFailed = error && error.message === USER_LOCK_TX_FAILED_ERROR
 
         // Timelock expired — awaiting refund action
         if (htlcStatus === HTLCStatus.TimelockExpired && !isRefunded && !refundTxId) {
@@ -239,7 +244,7 @@ export function useSwapProgress(): SwapProgress {
                 title: "Confirming transaction",
                 subtitle: "Your transaction is being confirmed on-chain.",
                 steps: buildSteps(HAPPY_STEPS, 0, { source: sourceTxLink }, {
-                    0: { description: "Transaction is confirming on source chain" },
+                    0: { status: isUserLockFailed ? StepStatus.Failed : StepStatus.Current, name: isUserLockFailed ? "Lock funds failed" : "Lock funds", description: isUserLockFailed ? error?.message : "Transaction is confirming on source chain" },
                 }),
             };
         }

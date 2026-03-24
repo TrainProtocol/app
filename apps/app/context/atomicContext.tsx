@@ -8,7 +8,7 @@ import { HTLCFromApi, HTLCTransaction, resolveHTLCStatus, IHTLCClient } from '@t
 import { SwapData, useSwapStore } from '@/stores/swapStore';
 import { useShallow } from 'zustand/react/shallow';
 import { resolvePersistantQueryParams } from '@/helpers/querryHelper';
-import useUserLockPolling from '@/hooks/htlc/useUserLockPolling';
+import useUserLockPolling, { USER_LOCK_TX_FAILED_ERROR } from '@/hooks/htlc/useUserLockPolling';
 import useSolverLockPolling from '@/hooks/htlc/useSolverLockPolling';
 import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus';
 import useOrderStreaming from '@/hooks/useOrderStreaming';
@@ -226,6 +226,10 @@ export function AtomicProvider({ children }) {
         }
     }, [hashlock, updateHTLCState])
 
+    const handleUserLockTxFailed = useCallback(() => {
+        setError({ message: USER_LOCK_TX_FAILED_ERROR })
+    }, [setError])
+
     useUserLockPolling({
         network: source_network,
         hashlock,
@@ -235,6 +239,7 @@ export function AtomicProvider({ children }) {
         client: sourceClient,
         txId: lockTxId as string | undefined,
         onSuccess: handleUserLockSuccess,
+        onTransactionFailed: handleUserLockTxFailed,
     })
 
     const destRpcConfig = useRpcConfigStore(s =>
