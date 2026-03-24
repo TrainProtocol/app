@@ -48,7 +48,8 @@ export default function useRecoverSwap(sourceNetwork: Network | null) {
                 destination: destNet.caip2Id,
                 source_asset: sourceToken?.symbol ?? '',
                 destination_asset: destToken?.symbol ?? data.dstToken ?? '',
-                solver: data.recipient,
+                //TODO: remove this once we can get the solver name from the backend
+                solver: 'plorex',
                 srcContract: data.srcContract,
                 destContract,
                 receiveAmount: formatAmount(data.dstAmount, destToken?.decimals ?? 18).toString(),

@@ -178,6 +178,41 @@ export function useSwapProgress(): SwapProgress {
 
         const isRefunded = sourceDetails?.status === LockStatus.Refunded;
 
+        // Timelock expired — awaiting refund action
+        if (htlcStatus === HTLCStatus.TimelockExpired && !isRefunded && !refundTxId) {
+            return {
+                gaugeValue: 25, gaugeIcon: "x",
+                title: "Timelock expired",
+                subtitle: "The response was not received in time.",
+                steps: buildSteps(REFUND_STEPS, 2, { source: sourceTxLink }, {
+                    1: { description: "Solver did not respond in time" },
+                    2: { status: StepStatus.Upcoming, description: "Cancel & refund to get your assets back" },
+                }),
+            };
+        }
+
+        // Refund tx submitted — processing
+        if (htlcStatus === HTLCStatus.TimelockExpired && refundTxId && !isRefunded) {
+            return {
+                gaugeValue: 50, gaugeIcon: "undo",
+                title: "Processing refund",
+                subtitle: "Your refund is being processed.",
+                steps: buildSteps(REFUND_STEPS, 2, { source: sourceTxLink }, {
+                    2: { name: "Refund pending", description: "Assets are being returned to your source wallet" },
+                }),
+            };
+        }
+
+        // Refund complete
+        if (htlcStatus === HTLCStatus.Refunded) {
+            return {
+                gaugeValue: 100, gaugeIcon: "undo",
+                title: "Refund complete",
+                subtitle: "Your assets have been returned to your wallet.",
+                steps: buildSteps(REFUND_STEPS, -1, { refund: refundTxLink, source: sourceTxLink }),
+            };
+        }
+
         // API error — overlay on current progress
         if (htlcFromApi?.error?.message) {
             const currentIndex = solverLockTx ? 2 : 1
@@ -293,41 +328,6 @@ export function useSwapProgress(): SwapProgress {
                 steps: buildSteps(HAPPY_STEPS, -1, { redeem: redeemTxLink, source: sourceTxLink, dest: destTxLink }, {
                     1: { description: <VerificationStatus /> },
                 }),
-            };
-        }
-
-        // Timelock expired — awaiting refund action
-        if (htlcStatus === HTLCStatus.TimelockExpired && !isRefunded && !refundTxId) {
-            return {
-                gaugeValue: 25, gaugeIcon: "x",
-                title: "Timelock expired",
-                subtitle: "The response was not received in time.",
-                steps: buildSteps(REFUND_STEPS, 2, { source: sourceTxLink }, {
-                    1: { description: "Solver did not respond in time" },
-                    2: { status: StepStatus.Upcoming, description: "Cancel & refund to get your assets back" },
-                }),
-            };
-        }
-
-        // Refund tx submitted — processing
-        if (htlcStatus === HTLCStatus.TimelockExpired && refundTxId && !isRefunded) {
-            return {
-                gaugeValue: 50, gaugeIcon: "undo",
-                title: "Processing refund",
-                subtitle: "Your refund is being processed.",
-                steps: buildSteps(REFUND_STEPS, 2, { source: sourceTxLink }, {
-                    2: { name: "Refund pending", description: "Assets are being returned to your source wallet" },
-                }),
-            };
-        }
-
-        // Refund complete
-        if (htlcStatus === HTLCStatus.Refunded) {
-            return {
-                gaugeValue: 100, gaugeIcon: "undo",
-                title: "Refund complete",
-                subtitle: "Your assets have been returned to your wallet.",
-                steps: buildSteps(REFUND_STEPS, -1, { refund: refundTxLink, source: sourceTxLink }),
             };
         }
 

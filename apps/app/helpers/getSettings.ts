@@ -1,9 +1,9 @@
 import { NetworkContract } from "@/Models/Network";
-// import TrainApiClient from "../lib/trainApiClient";
+import TrainApiClient from "../lib/trainApiClient";
 import KnownInternalNames from "@/lib/knownIds";
 import { resolveNodes } from "@/lib/rpc/nodeResolver";
 
-// const apiClient = new TrainApiClient()
+const apiClient = new TrainApiClient()
 
 export async function getServerSideProps(context) {
 
@@ -12,23 +12,14 @@ export async function getServerSideProps(context) {
         's-maxage=60, stale-while-revalidate'
     );
 
-    // const [networks, prices] = await Promise.all([
-    //     apiClient.GetNetworksAsync(),
-    //     apiClient.GetPricesAsync(),
-    // ])
+    const [networks, prices] = await Promise.all([
+        apiClient.GetNetworksAsync(),
+        apiClient.GetPricesAsync(),
+    ])
 
-    // if (!networks.length) return
+    if (!networks.length) return
 
-    // Mock prices while backend ngrok is off
-    const prices: Record<string, number> = {
-        "eip155:11155111:0x0000000000000000000000000000000000000000": 2500,
-        "eip155:421614:0x0000000000000000000000000000000000000000": 2500,
-        "eip155:84532:0x0000000000000000000000000000000000000000": 2500,
-        "solana:devnet:11111111111111111111111111111111": 150,
-    }
-
-    //const resolvedNetworks = (await Promise.all(networks.map(async network => {
-    const resolvedNetworks = (await Promise.all(MOCK_API_NETWORKS.map(async network => {
+    const resolvedNetworks = (await Promise.all(networks.map(async network => {
         const _network = mockData.data.find(n => n.caip2Id === network.caip2Id)
         const seedNodes = _network?.nodes ?? []
         const resolvedNodes = await resolveNodes(network.caip2Id, seedNodes)
