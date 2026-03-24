@@ -209,7 +209,7 @@ export const UserStatusHeader = () => {
             <button
                 type="button"
                 onClick={openLoginModal}
-                className="inline-flex items-center gap-2 py-2 px-3 rounded-full bg-secondary-500 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down"
+                className="inline-flex items-center gap-2 py-2 px-3 rounded-full bg-secondary-500 border border-black/15 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down"
             >
                 <Lock className="h-5 w-5" strokeWidth={2} />
                 <span className="text-sm font-medium">Login</span>
@@ -232,7 +232,7 @@ export const UserStatusHeader = () => {
         </>
     )
 
-    const pillClassName = "inline-flex items-center gap-2 py-2 px-3 rounded-full bg-secondary-500 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down"
+    const pillClassName = "inline-flex items-center gap-2 py-2 px-3 rounded-full bg-secondary-500 border border-black/15 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down"
 
     return (
         <>
@@ -270,7 +270,7 @@ export const UserStatusHeader = () => {
                             {pillContent}
                         </button>
                     </PopoverTrigger>
-                    <PopoverContent align="end" sideOffset={8} className="w-80 p-4 bg-secondary-600! border-secondary-600 rounded-xl">
+                    <PopoverContent align="end" sideOffset={8} className="w-80 p-4 bg-secondary-600! border-black/15 rounded-xl">
                         <UserStatusContent
                             method={method}
                             loginWallet={loginWallet}

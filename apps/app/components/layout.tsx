@@ -4,20 +4,19 @@ import { useRouter } from "next/router";
 import ThemeWrapper from "./themeWrapper";
 import { ErrorBoundary } from "react-error-boundary";
 import MaintananceContent from "./Maintanance";
-import { SettingsProvider } from "../context/settings";
-import { TrainAppSettings } from "../Models/TrainAppSettings";
-import { TrainSettings } from "../Models/TrainSettings";
+import { SettingsProvider } from "@/context/settings";
+import { TrainAppSettings } from "@/Models/TrainAppSettings";
+import { TrainSettings } from "@/Models/TrainSettings";
 import ErrorFallback from "./ErrorFallback";
-import { SendErrorMessage } from "../lib/telegram";
+import { SendErrorMessage } from "@/lib/telegram";
 import { QueryParams } from "../Models/QueryParams";
-import QueryProvider from "../context/query";
-import { THEME_COLORS, ThemeData } from "../Models/Theme";
+import QueryProvider from "@/context/query";
+import { THEME_COLORS, ThemeData } from "@/Models/Theme";
 import { TooltipProvider } from "./shadcn/tooltip";
-import ColorSchema from "./ColorSchema";
-import { IsExtensionError } from "../helpers/errorHelper";
-import { AsyncModalProvider } from "../context/asyncModal";
+import { IsExtensionError } from "@/helpers/errorHelper";
+import { AsyncModalProvider } from "@/context/asyncModal";
 import WalletsProviders from "./WalletProviders";
-import { AtomicProvider } from "../context/atomicContext";
+import { AtomicProvider } from "@/context/atomicContext";
 import { SwapAccountsProvider } from "@/context/swapAccounts";
 import { LoginModal } from "./SecretDerivation";
 import { useLoginModalStore } from "@/stores/loginModalStore";
@@ -103,10 +102,6 @@ export default function Layout({ children, settings, themeData }: Props) {
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={`https://app.train.tech/opengraphtw.jpg`} />
     </Head>
-    {
-      themeData &&
-      <ColorSchema themeData={themeData} />
-    }
     <QueryProvider query={query}>
       <SettingsProvider data={appSettings}>
         <TooltipProvider delayDuration={500}>

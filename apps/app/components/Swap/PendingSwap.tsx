@@ -30,7 +30,7 @@ export default function PendingSwap() {
             >
                 <div
                     onClick={() => setSwapModalOpen(true)}
-                    className="cursor-pointer relative bg-secondary-500 rounded-full hover:bg-secondary-400 transition-colors">
+                    className="cursor-pointer relative bg-secondary-500 border border-black/15 rounded-full hover:bg-secondary-400 transition-colors">
                     <div className="flex items-center">
                         <div className="text-primary-text flex px-3 p-2 items-center space-x-2">
                             <div className="shrink-0 h-5 w-5 relative">
