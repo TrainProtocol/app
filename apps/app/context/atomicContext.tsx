@@ -18,6 +18,7 @@ import useWallet from '@/hooks/useWallet';
 import { Address } from '@/lib/address';
 import { useRpcConfigStore } from '@/stores/rpcConfigStore';
 import { useLightClient } from '@/hooks/htlc/useLightClient'
+import { recoverSwapFromChain } from '@/lib/htlc/recoverSwapFromChain'
 
 const AtomicStateContext = createContext<DataContextType | null>(null);
 
@@ -69,17 +70,30 @@ export function AtomicProvider({ children }) {
     const activeHashlock = useSwapStore(s => s.activeHashlock)
     const updateSwap = useSwapStore(s => s.updateSwap)
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
-    const swaps = useSwapStore(s => s.swaps)
+    const findSwapByTx = useSwapStore(s => s.findSwapByTx)
+    const recoverSwap = useSwapStore(s => s.recoverSwap)
 
     useEffect(() => {
-        const hashlockFromUrl = router.query.hashlock as string | undefined
-        if (!hashlockFromUrl || activeHashlock) return
+        const sourceNetworkParam = router.query.sourceNetwork as string | undefined
+        const txHashParam = router.query.txHash as string | undefined
+        if (!sourceNetworkParam || !txHashParam || activeHashlock) return
 
-        const swap = swaps[hashlockFromUrl]
-        if (swap && !isTerminalStatus(swap.status)) {
-            setActiveHashlock(hashlockFromUrl)
+        const found = findSwapByTx(sourceNetworkParam, txHashParam)
+        if (found) {
+            const [hashlock, swap] = found
+            if (!isTerminalStatus(swap.status)) {
+                setActiveHashlock(hashlock)
+            }
+            return
         }
-    }, [router.query.hashlock, activeHashlock, swaps, setActiveHashlock])
+
+        const network = networks.find(n => n.caip2Id.toUpperCase() === sourceNetworkParam.toUpperCase())
+        if (!network) return
+
+        recoverSwapFromChain(network, txHashParam, networks, getEffectiveRpcUrls, recoverSwap)
+            .then(hashlock => setActiveHashlock(hashlock))
+            .catch(e => console.error('Auto-recovery from URL failed:', e))
+    }, [router.query.sourceNetwork, router.query.txHash, activeHashlock, networks, findSwapByTx, setActiveHashlock, getEffectiveRpcUrls, recoverSwap])
 
     const tempSwap = useSwapStore(s => s.tempSwap)
     const commitSwap = useSwapStore(s => s.commitSwap)
@@ -309,12 +323,15 @@ export function AtomicProvider({ children }) {
         // Move tempSwap → swaps[hashlock] in the store (also sets activeHashlock)
         commitSwap(hashlock, txId)
 
-        // Write only hashlock to URL
+        const swapData = useSwapStore.getState().swaps[hashlock]
+        if (!swapData?.source) return
+
+        // Write sourceNetwork + txHash to URL
         const basePath = router?.basePath || ""
         var atomicURL = window.location.protocol + "//"
             + window.location.host + `${basePath}/swap`;
         const params = resolvePersistantQueryParams(router.query)
-        const atomicParams = new URLSearchParams({ hashlock })
+        const atomicParams = new URLSearchParams({ sourceNetwork: swapData.source, txHash: txId })
         atomicURL += `?${atomicParams}`
         if (params && Object.keys(params).length) {
             const search = new URLSearchParams(params as any);

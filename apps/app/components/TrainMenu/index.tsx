@@ -27,9 +27,9 @@ const Comp = () => {
     const goBackToMenuStep = () => { goToStep(MenuStep.Menu, "back"); clearMenuPath(router) }
     const goBackToRpcConfiguration = () => { goToStep(MenuStep.RPCConfiguration, "back") }
 
-    const handleRecoverSwap = (hashlock: string) => {
+    const handleRecoverSwap = (sourceNetwork: string, txHash: string) => {
         setIsOpen(false)
-        router.push({ pathname: '/swap', query: { hashlock } })
+        router.push({ pathname: '/swap', query: { sourceNetwork, txHash } })
     }
 
     const handleGoToStep = (step: MenuStep, path?: string) => {

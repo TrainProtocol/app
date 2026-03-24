@@ -39,6 +39,7 @@ interface SwapStoreState {
     commitSwap: (hashlock: string, txId: string) => void
     updateSwap: (hashlock: string, updates: Partial<SwapData>) => void
     recoverSwap: (hashlock: string, data: SwapData) => void
+    findSwapByTx: (sourceNetwork: string, txHash: string) => [string, SwapData] | null
 }
 
 export const useSwapStore = create<SwapStoreState>()(
@@ -99,6 +100,15 @@ export const useSwapStore = create<SwapStoreState>()(
                         [hashlock]: { ...data, hashlock },
                     },
                 })
+            },
+
+            findSwapByTx: (sourceNetwork, txHash) => {
+                const { swaps } = get()
+                const entry = Object.entries(swaps).find(([, swap]) =>
+                    swap.source?.toUpperCase() === sourceNetwork.toUpperCase() &&
+                    swap.txId?.toUpperCase() === txHash.toUpperCase()
+                )
+                return entry ?? null
             },
         }),
         {

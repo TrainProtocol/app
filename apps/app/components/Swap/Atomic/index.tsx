@@ -35,7 +35,7 @@ export default function Form() {
     const [solverId, setSolverId] = useState<string | undefined>()
     const [polling, setPolling] = useState(true)
     const { getProvider } = useWallet()
-    const { hashlock, htlcStatus } = useAtomicState()
+    const { htlcStatus, source_network, lockTxId } = useAtomicState()
     const settings = useSettingsState()
     const swapModalOpen = useSwapStore(s => s.swapModalOpen)
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
@@ -47,14 +47,14 @@ export default function Form() {
     useEffect(() => {
         if (swapModalOpen) {
             setPolling(false);
-            if (hashlock) {
-                setHashlockInUrl(router, hashlock);
+            if (source_network?.caip2Id && lockTxId) {
+                setSwapInUrl(router, source_network.caip2Id, lockTxId);
             }
         } else {
             setPolling(true);
             removeSwapPath(router);
         }
-    }, [swapModalOpen, hashlock, router]);
+    }, [swapModalOpen, source_network?.caip2Id, lockTxId, router]);
 
     const handleShowSwapModal = useCallback((value: boolean) => {
         setSwapModalOpen(value);
@@ -184,11 +184,11 @@ const removeSwapPath = (router: NextRouter) => {
     window.history.replaceState({ ...window.history.state, as: router.asPath, url: homeURL }, '', homeURL);
 }
 
-const setHashlockInUrl = (router: NextRouter, hashlock: string) => {
+const setSwapInUrl = (router: NextRouter, sourceNetwork: string, txHash: string) => {
     const basePath = router?.basePath || ""
     let url = window.location.protocol + "//" + window.location.host + `${basePath}/swap`
     const params = resolvePersistantQueryParams(router.query)
-    const atomicParams = new URLSearchParams({ hashlock })
+    const atomicParams = new URLSearchParams({ sourceNetwork, txHash })
     url += `?${atomicParams}`
     if (params && Object.keys(params).length) {
         const search = new URLSearchParams(params as any);
