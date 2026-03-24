@@ -104,7 +104,7 @@ const ConnectedWallets: FC<Props> = ({ provider, notCompatibleWallets, onClick, 
                         </button>
                         {showIncompatibleWallets &&
                             notCompatibleWallets.map((wallet, index) => (
-                                <div key={`${index}${wallet.address}`} className="group/addressItem w-full rounded-md hover:bg-secondary-700! transition duration-200 opacity-50 cursor-not-allowed">
+                                <div key={`${index}${wallet.address}`} className="group/addressItem w-full rounded-md hover:bg-secondary-500! transition duration-200 opacity-50 cursor-not-allowed">
                                     <WalletItem
                                         account={wallet}
                                         selectable={true}

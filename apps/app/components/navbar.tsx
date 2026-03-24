@@ -39,7 +39,7 @@ export default function Navbar() {
                                         key={index}
                                         target={item.target || '_self'}
                                         className={clsx(`hover:opacity-80 transition-opacity duration-300 ${jetBrainsMono.className}`, {
-                                            'text-accent underline underline-offset-[3px] decoration-accent': item.current,
+                                            'text-primary underline underline-offset-[3px] decoration-primary': item.current,
                                         })}
                                     >
                                         {item.name}

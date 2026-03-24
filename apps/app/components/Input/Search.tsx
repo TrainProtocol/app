@@ -39,7 +39,7 @@ export const SearchComponent = ({ searchQuery, setSearchQuery, isOpen, container
     const showAnimatedPlaceholder = animatedPlaceholders?.length && !searchQuery;
     const currentPlaceholder = animatedPlaceholders?.[currentPlaceholderIndex] ?? "";
 
-    return <div className={`relative flex items-center bg-secondary-600 focus-within:bg-secondary-500 rounded-lg px-2 mb-2 h-10 ${containerClassName}`}>
+    return <div className={`relative flex items-center bg-secondary-400 focus-within:bg-secondary-500 rounded-lg px-2 mb-2 h-10 ${containerClassName}`}>
         {
             !hideSearchIcon &&
             <div className="w-6 h-6 flex items-center justify-center mr-2">
@@ -55,7 +55,7 @@ export const SearchComponent = ({ searchQuery, setSearchQuery, isOpen, container
                 autoFocus={isDesktop}
                 placeholder={showAnimatedPlaceholder ? "" : (props.placeholder ?? "Search")}
                 autoComplete="off"
-                className={clsx("placeholder:text-primary-text-tertiary border-0 border-b-0 border-primary-text bg-secondary-600 focus:bg-secondary-500 focus:border-primary-text appearance-none block py-2 px-0 w-full text-base outline-none focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50",
+                className={clsx("placeholder:text-primary-text-tertiary border-0 border-b-0 border-primary-text bg-secondary-400 focus:bg-secondary-500 focus:border-primary-text appearance-none block py-2 px-0 w-full text-base outline-none focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50",
                     props.className
                 )}
             />

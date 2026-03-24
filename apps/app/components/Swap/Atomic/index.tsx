@@ -21,7 +21,7 @@ import { useSecretDerivationStore } from "@/stores/secretDerivationStore";
 import { formatUnits } from "viem";
 import { NetworkContractType } from "@/Models/Network";
 import { HTLCStatus } from "@/Models/HTLCStatus";
-import { usePulsatingCircles } from "@/stores/pulsatingCirclesStore";
+
 import AtomicPage from "../AtomicChat";
 import { useRecentNetworksStore } from "@/stores/recentRoutesStore";
 
@@ -42,7 +42,6 @@ export default function Form() {
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
     const clearTempSwap = useSwapStore(s => s.clearTempSwap)
     const setTempSwap = useSwapStore(s => s.setTempSwap)
-    const { setPulseState } = usePulsatingCircles();
     const updateRecentNetworks = useRecentNetworksStore(s => s.updateRecentNetworks);
 
     useEffect(() => {
@@ -67,7 +66,6 @@ export default function Form() {
             const isTerminal = htlcStatus === HTLCStatus.RedeemCompleted || htlcStatus === HTLCStatus.Refunded
             if (isTerminal) {
                 setActiveHashlock(null)
-                setPulseState("initial");
             }
         }
     }, [clearTempSwap, htlcStatus, setActiveHashlock]);

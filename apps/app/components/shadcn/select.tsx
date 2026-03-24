@@ -37,7 +37,7 @@ const SelectContent = React.forwardRef<
         <SelectPrimitive.Content
             ref={ref}
             className={classNames(
-                "animate-in fade-in-80 relative z-50 min-w-[8rem] overflow-hidden rounded-md shadow-md ring-1 ring-secondary-500 bg-secondary-700 text-secondary-text",
+                "animate-in fade-in-80 relative z-50 min-w-[8rem] overflow-hidden rounded-md shadow-md ring-1 ring-secondary-500 bg-secondary-500 text-secondary-text",
                 className
             )}
             {...props}

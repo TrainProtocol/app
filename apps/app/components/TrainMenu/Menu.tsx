@@ -13,7 +13,7 @@ const Menu = ({ children }: { children: ReactNode }) => {
 const Group = ({ children }: { children: JSX.Element | JSX.Element[] }) => {
     return (
         <div>
-            <div className="divide-y divide-secondary-500 rounded-xl bg-secondary-700 overflow-hidden">
+            <div className="divide-y divide-secondary-300 rounded-xl bg-secondary-500 overflow-hidden">
                 {children}
             </div>
         </div>
@@ -26,7 +26,7 @@ const Item = (function Item({ children, pathname, onClick, icon, target = '_self
         <>
             {
                 pathname ?
-                    <LinkWrapper href={pathname} target={target} className="gap-4 flex relative cursor-pointer hover:bg-secondary-600 select-none w-full items-center px-4 py-3 outline-none text-primary-text">
+                    <LinkWrapper href={pathname} target={target} className="gap-4 flex relative cursor-pointer hover:bg-secondary-400 select-none w-full items-center px-4 py-3 outline-none text-primary-text">
                         <div>
                             {icon}
                         </div>
@@ -42,7 +42,7 @@ const Item = (function Item({ children, pathname, onClick, icon, target = '_self
                     <button
                         type="button"
                         onClick={onClick}
-                        className={`gap-4 flex relative cursor-pointer hover:bg-secondary-600 select-none items-center px-4 py-3 outline-none w-full text-primary-text`}
+                        className={`gap-4 flex relative cursor-pointer hover:bg-secondary-400 select-none items-center px-4 py-3 outline-none w-full text-primary-text`}
                     >
                         <div>
                             {icon}
@@ -128,7 +128,7 @@ const Footer = ({ children, hidden, sticky = true }: FooterProps) => {
                         inset-x-0
                         bottom-0 
                         z-30
-                        bg-secondary-900 
+                        bg-secondary-700
                         shadow-widget-footer 
                         p-4 
                         px-4 
@@ -162,14 +162,14 @@ const ToggleItem = ({ children, icon, checked, onChange }: ToggleItemProps) => {
         <button
             type="button"
             onClick={() => onChange(!checked)}
-            className="gap-4 flex relative cursor-pointer hover:bg-secondary-600 select-none items-center px-4 py-3 outline-none w-full text-primary-text"
+            className="gap-4 flex relative cursor-pointer hover:bg-secondary-400 select-none items-center px-4 py-3 outline-none w-full text-primary-text"
         >
             <div>
                 {icon}
             </div>
             <p className="text-primary-text">{children}</p>
             <div
-                className={`absolute right-4 w-10 h-6 rounded-full transition-colors duration-200 ${checked ? 'bg-accent' : 'bg-secondary-400'}`}
+                className={`absolute right-4 w-10 h-6 rounded-full transition-colors duration-200 ${checked ? 'bg-primary-500' : 'bg-secondary-400'}`}
             >
                 <div
                     className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform duration-200 ${checked ? 'translate-x-5' : 'translate-x-1'}`}

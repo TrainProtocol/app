@@ -13,7 +13,7 @@ function NoCookies(props) {
     return (
         <div className="styled-scroll">
             <div className="min-h-screen overflow-hidden relative font-robo">
-                <div className="mx-auto max-w-xl bg-secondary-900 shadow-card rounded-lg w-full overflow-hidden relative px-0 md:px-8 py-6 h-[500px] min-h-[550px]">
+                <div className="mx-auto max-w-xl bg-secondary-700 shadow-card rounded-lg w-full overflow-hidden relative px-0 md:px-8 py-6 h-[500px] min-h-[550px]">
                     <MessageComponent>
                         <MessageComponent.Content icon="red">
                             <MessageComponent.Header>
@@ -34,7 +34,7 @@ function NoCookies(props) {
                                 </div>
                                 {
                                     embedded &&
-                                    <Link target="_blank" href={window?.location?.href} className="bg-primary text-primary-buttonTextColor py-3 px-3 border border-primary disabled:border-primary-900 shadowed-button items-center space-x-1 disabled:text-opacity-40 disabled:bg-primary-900 disabled:cursor-not-allowed relative w-full flex justify-center font-semibold rounded-md shadow-md hover:shadow-xl transform hover:-translate-y-0.5 transition duration-200 ease-in-out">
+                                    <Link target="_blank" href={window?.location?.href} className="bg-actionButtonColor text-primary-buttonTextColor py-3 px-3 border border-primary disabled:border-primary-900 shadowed-button items-center space-x-1 disabled:text-opacity-40 disabled:bg-secondary-600 disabled:cursor-not-allowed relative w-full flex justify-center font-semibold rounded-md shadow-md hover:shadow-xl transform hover:-translate-y-0.5 transition duration-200 ease-in-out">
                                         Try on Train
                                     </Link>
                                 }

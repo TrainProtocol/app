@@ -179,7 +179,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                 </div>
 
                 {/* Default RPC Info */}
-                <div className="p-3 bg-secondary-800 rounded-lg">
+                <div className="p-3 bg-secondary-700 rounded-lg">
                     <div className="text-sm font-medium text-secondary-text mb-1">Default RPC URL</div>
                     <div className="text-sm text-primary-text font-mono break-all">{network.nodes?.[0]?.url}</div>
                 </div>
@@ -193,7 +193,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                     </label>
                     <button
                         onClick={handleAddUrl}
-                        className="flex items-center gap-1 px-2 py-1 text-xs text-primary hover:bg-secondary-700 rounded transition-colors"
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-primary-text hover:bg-secondary-500 rounded transition-colors"
                     >
                         <Plus className="w-3 h-3" />
                         Add URL
@@ -216,11 +216,11 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                                     value={url}
                                     onChange={(e) => handleUrlChange(index, e.target.value)}
                                     placeholder="https://your-rpc-endpoint.com"
-                                    className={`w-full px-3 py-2 pr-10 bg-secondary-900 border rounded-lg text-primary-text placeholder-secondary-text focus:outline-none focus:ring-2 ${validationErrors[index]
+                                    className={`w-full px-3 py-2 pr-10 bg-secondary-700 border rounded-lg text-primary-text placeholder-secondary-text focus:outline-none focus:ring-2 ${validationErrors[index]
                                         ? "border-red-500 focus:ring-red-500"
                                         : validatedUrls[index]
                                             ? "border-green-500 focus:ring-green-500"
-                                            : "border-secondary-600 focus:ring-primary"
+                                            : "border-secondary-600 focus:ring-secondary-300"
                                         }`}
                                 />
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-10">
@@ -236,7 +236,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                             {customUrls.length > 1 && (
                                 <button
                                     onClick={() => handleRemoveUrl(index)}
-                                    className="flex items-center justify-center w-10 h-10 text-red-500 hover:bg-secondary-700 rounded transition-colors"
+                                    className="flex items-center justify-center w-10 h-10 text-red-500 hover:bg-secondary-500 rounded transition-colors"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>

@@ -5,6 +5,7 @@ import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
 import { extractAztecAddress } from "./utils";
 import { useCallback, useMemo } from "react";
 import { useAztecWalletContext } from "@/components/WalletProviders/AztecWalletProvider";
+import { useActiveAztecAccount } from "@/components/WalletProviders/ActiveAztecAccount";
 import { useAztecWalletStore } from "@/stores/aztecWalletStore";
 import { useWalletStore } from "@/stores/walletStore";
 
@@ -19,6 +20,7 @@ export default function useAztec(): WalletProvider {
     const { networks } = useSettingsState()
 
     const { connect, disconnect } = useAztecWalletContext();
+    const { activeAddress: activeSelectedAddress, setActiveAddress } = useActiveAztecAccount();
     const { discoveredProviders } = useAztecWalletStore();
     const wallets = useWalletStore((state) => state.connectedWallets)
     const addWallet = useWalletStore((state) => state.connectWallet)
@@ -34,21 +36,26 @@ export default function useAztec(): WalletProvider {
         const wallet = connectedWallets[0]
         if (!wallet) return undefined;
 
+        const addresses = wallet.addresses.length > 0 ? wallet.addresses : [wallet.address]
+        const address = activeSelectedAddress && addresses.includes(activeSelectedAddress)
+            ? activeSelectedAddress
+            : wallet.address
+
         return {
             id: wallet.id,
             displayName: wallet.displayName,
-            addresses: [wallet.address],
-            address: wallet.address,
+            addresses,
+            address,
             providerName: name,
             isActive: true,
-            icon: resolveWalletConnectorIcon({ connector: wallet.id, address: wallet.address }),
+            icon: resolveWalletConnectorIcon({ connector: wallet.id, address }),
             disconnect: () => disconnectWallets(),
             withdrawalSupportedNetworks: commonSupportedNetworks,
             asSourceSupportedNetworks: commonSupportedNetworks,
             autofillSupportedNetworks: commonSupportedNetworks,
             networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logoUrl
         }
-    }, [wallets, networks, discoveredProviders, disconnectWallets])
+    }, [wallets, networks, discoveredProviders, disconnectWallets, activeSelectedAddress])
 
     const connectWallet = async (params?: { connector?: InternalConnector }) => {
         try {
@@ -59,7 +66,7 @@ export default function useAztec(): WalletProvider {
 
             const connectedWallet = await connect(providerId);
 
-            let connectedAddress: string | undefined;
+            let connectedAddresses: string[] = [];
             try {
                 const accounts = await Promise.race([
                     connectedWallet.getAccounts(),
@@ -67,23 +74,24 @@ export default function useAztec(): WalletProvider {
                         setTimeout(() => reject(new Error('getAccounts timeout')), 10000)
                     ),
                 ]);
-                connectedAddress = accounts.length > 0 ? extractAztecAddress(accounts[0]) : undefined;
+                connectedAddresses = accounts.map(account => extractAztecAddress(account));
             } catch {
                 throw new Error('No accounts found')
             }
 
-            if (connectedAddress) {
+            if (connectedAddresses.length > 0) {
                 const activeProvider = discoveredProviders.find(p => p.id === providerId);
                 const walletName = activeProvider?.name ?? 'Aztec Wallet';
+                const primaryAddress = connectedAddresses[0];
 
                 const newWallet: Wallet = {
                     id: activeProvider?.id ?? '',
                     displayName: `${walletName} - Aztec`,
-                    addresses: [connectedAddress],
-                    address: connectedAddress,
+                    addresses: connectedAddresses,
+                    address: primaryAddress,
                     providerName: name,
                     isActive: true,
-                    icon: resolveWalletConnectorIcon({ connector: activeProvider?.id ?? name, address: connectedAddress }),
+                    icon: resolveWalletConnectorIcon({ connector: activeProvider?.id ?? name, address: primaryAddress }),
                     disconnect: () => disconnectWallets(),
                     withdrawalSupportedNetworks: commonSupportedNetworks,
                     asSourceSupportedNetworks: commonSupportedNetworks,
@@ -110,11 +118,15 @@ export default function useAztec(): WalletProvider {
         }));
     }, [discoveredProviders])
 
+    const switchAccount = useCallback(async (_wallet: Wallet, address: string) => {
+        setActiveAddress(address);
+    }, [setActiveAddress]);
+
     const provider = {
         connectWallet,
         disconnectWallets,
+        switchAccount,
         availableWalletsForConnect,
-        activeAccountAddress: aztecWallet?.address,
         connectedWallets: aztecWallet ? [aztecWallet] : undefined,
         activeWallet: aztecWallet,
         withdrawalSupportedNetworks: commonSupportedNetworks,

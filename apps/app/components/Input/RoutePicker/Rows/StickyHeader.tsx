@@ -61,7 +61,7 @@ export function StickyHeader({
         <ReactPortal wrapperId="sticky_accordion_header">
             <div
                 onClick={onClick}
-                className="cursor-pointer bg-secondary-700 hover:bg-secondary-600 relative pb-1"
+                className="cursor-pointer bg-secondary-500 hover:bg-secondary-400 relative pb-1"
             >
                 <CollapsableHeader
                     item={item}
