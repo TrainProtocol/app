@@ -315,7 +315,10 @@ export class TonHTLCClient extends HTLCClient {
         try {
             const cleanHash = txHash.startsWith('0x') ? txHash.slice(2) : txHash
 
-            const url = `${this.rpcUrl.replace('/api/v2/jsonRPC', '')}/api/v3/transactions?msg_hash=${cleanHash}&limit=1`
+            const baseUrl = new URL(this.rpcUrl)
+            baseUrl.pathname = '/api/v3/transactions'
+            baseUrl.search = `?msg_hash=${cleanHash}&limit=1`
+            const url = baseUrl.toString()
             const response = await fetch(url)
             if (!response.ok) return null
 
@@ -328,7 +331,9 @@ export class TonHTLCClient extends HTLCClient {
                 hash: txHash,
                 status: tx.description?.aborted
                     ? TransactionStatus.Failed
-                    : TransactionStatus.Confirmed,
+                    : tx.description?.compute_phase
+                        ? TransactionStatus.Confirmed
+                        : TransactionStatus.Pending,
                 blockNumber: tx.block_ref?.seqno?.toString(),
                 blockTimestamp: tx.now ? tx.now * 1000 : undefined,
             }

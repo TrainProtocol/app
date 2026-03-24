@@ -41,8 +41,8 @@ type DataContextType = HTLCState & {
     destAtomicContract?: string,
     sourceClient?: IHTLCClient,
     destinationClient?: IHTLCClient,
-    error?: { message: string, disableButton?: boolean },
-    setError: (error: { message: string, disableButton?: boolean } | undefined) => void;
+    error?: { message: string, code?: string },
+    setError: (error: { message: string, code?: string } | undefined) => void;
     setManualClaimTxId: (txId: string | undefined) => void;
     onUserLock: (hashlock: string, txId: string) => void;
     updateHTLC: (field: keyof HTLCState, value: any) => void;
@@ -104,7 +104,7 @@ export function AtomicProvider({ children }) {
     const destinationSolverAddress = currentSwap?.destinationSolverAddress
 
     const [htlcStates, setHtlcStates] = useState<CommitStatesDict>({});
-    const [error, setError] = useState<{ message: string, disableButton?: boolean } | undefined>(undefined);
+    const [error, setError] = useState<{ message: string, code?: string } | undefined>(undefined);
     const [manualClaimTxId, setManualClaimTxId] = useState<string | undefined>(undefined);
 
     // Restore secretRevealed from persisted swap store on hydration
@@ -227,7 +227,7 @@ export function AtomicProvider({ children }) {
     }, [hashlock, updateHTLCState])
 
     const handleUserLockTxFailed = useCallback(() => {
-        setError({ message: USER_LOCK_TX_FAILED_ERROR })
+        setError({ message: USER_LOCK_TX_FAILED_ERROR, code: 'TX_FAILED' })
     }, [setError])
 
     useUserLockPolling({

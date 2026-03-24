@@ -23,7 +23,6 @@ import { useSecretDerivationStore, LoginIdentity } from "@/stores/secretDerivati
 import { deriveSecretFromTimelock, secretToHashlock } from "@train-protocol/sdk";
 import { useSwapStore } from "@/stores/swapStore";
 import { useShallow } from "zustand/react/shallow";
-import { USER_LOCK_TX_FAILED_ERROR } from "@/hooks/htlc/useUserLockPolling";
 
 export type SwapViewType = "widget" | "contained"
 
@@ -37,12 +36,12 @@ export const Actions: FC<ActionsProps> = ({ quote, type }) => {
 
     return (
         <>
-            {error && <TransactionMessage error={error.message} disableButton={error.disableButton} />}
+            {error && <TransactionMessage error={error.message} errorCode={error.code} />}
             <DestinationWalletWrapper>
                 <ResolveAction
                     commitStatus={commitStatus}
-                    disableButton={error?.disableButton}
                     error={error?.message}
+                    errorCode={error?.code}
                     quote={quote}
                     type={type}
                 />
@@ -53,30 +52,29 @@ export const Actions: FC<ActionsProps> = ({ quote, type }) => {
 
 type ResolveActionProps = {
     commitStatus: HTLCStatus
-    disableButton?: boolean
     error: string | undefined
+    errorCode?: string
     quote?: SwapQuote
     type: SwapViewType
 }
 
-const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, disableButton, error, quote, type }) => {
+const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode, quote, type }) => {
     const { setError, hashlock } = useAtomicState()
     const removeSwap = useSwapStore(s => s.removeSwap)
     const goHome = useGoHome()
 
-    if (error && !disableButton) {
-        const isTxFailed = error === USER_LOCK_TX_FAILED_ERROR
+    if (error) {
+        const isTxFailed = errorCode === 'TX_FAILED'
 
         const handleRetry = () => {
+            setError(undefined)
             if (isTxFailed && hashlock) {
                 removeSwap(hashlock)
-                setError(undefined)
                 if (type === 'widget') {
                     goHome()
                 }
                 return
             }
-            setError(undefined)
         }
 
         return (
@@ -209,16 +207,7 @@ const TerminalActions: FC<{ variant: 'success' | 'refund'; type: SwapViewType }>
     )
 }
 
-const TransactionMessage: FC<{ error: string | undefined, disableButton?: boolean }> = ({ error, disableButton }) => {
-    if (disableButton && error) {
-        return (
-            <WalletMessage
-                status="error"
-                header="Something went wrong"
-                details={error}
-            />
-        )
-    }
+const TransactionMessage: FC<{ error: string | undefined, errorCode?: string }> = ({ error, errorCode }) => {
     if (error === "An error occurred (USER_REFUSED_OP)" || error === "Execute failed" || error?.toLowerCase()?.includes('denied') || error?.toLowerCase()?.includes('user rejected')) {
         return <TransactionMessages.TransactionRejectedMessage />
     }
@@ -234,7 +223,7 @@ const TransactionMessage: FC<{ error: string | undefined, disableButton?: boolea
             />
         )
     }
-    if (error === USER_LOCK_TX_FAILED_ERROR) {
+    if (errorCode === 'TX_FAILED') {
         return <></>
     }
     if (error) {

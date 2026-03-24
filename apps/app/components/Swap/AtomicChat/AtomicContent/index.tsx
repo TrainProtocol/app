@@ -20,20 +20,10 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
     const {
         htlcStatus: commitStatus, destination_network, source_network,
         source_asset, destination_asset, amount,
-        solverLockDetails, destinationDetailsByLightClient, setError,
         hashlock,
     } = useAtomicState()
 
     const isInitial = commitStatus === HTLCStatus.Initial
-
-    // Hashlock mismatch safety check (preserved from old LpLockingAssets step)
-    useEffect(() => {
-        const lcHash = destinationDetailsByLightClient?.data?.hashlock
-        const solverHash = solverLockDetails?.hashlock
-        if (lcHash && solverHash && lcHash !== solverHash) {
-            setError({ message: 'Hashlock mismatch, please wait for refund.', disableButton: true })
-        }
-    }, [solverLockDetails, destinationDetailsByLightClient]);
 
     const values: SwapFormValues = {
         amount: amount?.toString(),

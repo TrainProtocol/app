@@ -1,3 +1,4 @@
+import { useRef } from "react"
 import useSWR from "swr"
 import { Network, Token } from "../../Models/Network"
 import { LockDetails } from "../../Models/phtlc/PHTLC"
@@ -30,6 +31,7 @@ const useUserLockPolling = ({
     onTransactionFailed,
 }: UseUserLockPollingParams) => {
     const type: 'erc20' | 'native' = sourceAsset?.contractAddress && sourceAsset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
+    const txFailedRef = useRef(false)
 
     const shouldPoll = !!(network && hashlock && contractAddress && enabled && client)
 
@@ -60,7 +62,7 @@ const useUserLockPolling = ({
         },
         {
             refreshInterval: (data) => {
-                if (data?.status === LockStatus.Redeemed) return 0
+                if (data?.status === LockStatus.Redeemed || txFailedRef.current) return 0
                 return shouldPoll ? 3000 : 0
             },
             revalidateOnFocus: false,
@@ -73,7 +75,7 @@ const useUserLockPolling = ({
     )
 
     const lockFound = !!data
-    const shouldPollTx = shouldPoll && !!txId && !lockFound
+    const shouldPollTx = shouldPoll && !!txId && !lockFound && !txFailedRef.current
 
     const txKey = shouldPollTx
         ? `/htlc/tx/${network!.caip2Id}/${txId}`
@@ -97,7 +99,8 @@ const useUserLockPolling = ({
             shouldRetryOnError: false,
             dedupingInterval: 1000,
             onSuccess: (data) => {
-                if (data?.status === TransactionStatus.Failed) {
+                if (data?.status === TransactionStatus.Failed && !txFailedRef.current) {
+                    txFailedRef.current = true
                     onTransactionFailed?.()
                 }
             },
@@ -106,7 +109,6 @@ const useUserLockPolling = ({
 
     return {
         details: data ?? undefined,
-        txFailed: txInfo?.status === TransactionStatus.Failed,
         isLoading,
         error,
         mutate,

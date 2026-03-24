@@ -254,33 +254,26 @@ export class EvmHTLCClient extends HTLCClient {
     // ── Public Helpers ─────────────────────────────────────────────────
 
     async getTransaction(txHash: string): Promise<TransactionInfo | null> {
-        const receipt = await this.rpc.getTransactionReceipt(txHash)
+        try {
+            const receipt = await this.rpc.getTransactionReceipt(txHash)
 
-        if (!receipt) {
-            const tx = await this.rpc.getTransaction(txHash)
-            if (!tx) return null
+            if (!receipt) {
+                const tx = await this.rpc.getTransaction(txHash)
+                if (!tx) return null
+
+                return {
+                    hash: txHash,
+                    status: TransactionStatus.Pending,
+                }
+            }
 
             return {
-                hash: txHash,
-                status: TransactionStatus.Pending,
-            }
-        }
-
-        let blockTimestamp: number | undefined
-        try {
-            const block = await this.rpc.getBlockByNumber(receipt.blockNumber)
-            if (block) {
-                blockTimestamp = Number(BigInt(block.timestamp)) * 1000
+                hash: receipt.transactionHash,
+                status: receipt.status === '0x1' ? TransactionStatus.Confirmed : TransactionStatus.Failed,
+                blockNumber: receipt.blockNumber,
             }
         } catch {
-            // Non-critical — proceed without timestamp
-        }
-
-        return {
-            hash: receipt.transactionHash,
-            status: receipt.status === '0x1' ? TransactionStatus.Confirmed : TransactionStatus.Failed,
-            blockNumber: receipt.blockNumber,
-            blockTimestamp,
+            return null
         }
     }
 

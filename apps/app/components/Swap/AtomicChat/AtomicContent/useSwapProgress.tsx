@@ -8,7 +8,6 @@ import { HTLCTransaction } from "@/lib/trainApiClient";
 import LockIcon from "@/components/Icons/LockIcon";
 import { HTLCStatus } from "@/Models/HTLCStatus";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
-import { USER_LOCK_TX_FAILED_ERROR } from "@/hooks/htlc/useUserLockPolling";
 
 // --- Types ---
 
@@ -26,7 +25,6 @@ type TxLinks = Record<string, string | undefined>;
 
 type StepTemplate = {
     activeName: string;
-    failedName?: string;
     completeName: string;
     linkKey?: string;
     isFailed?: boolean;
@@ -170,8 +168,8 @@ export function useSwapProgress(): SwapProgress {
         error
     } = useAtomicState();
 
-    const { verified, skipped } = useSolverLockVerification();
-    const mismatches = []
+    const { verified, skipped, mismatches } = useSolverLockVerification();
+
     return useMemo(() => {
         const sourceTxLink = buildExplorerLink(source_network?.caip2Id, lockTxId);
         const solverLockTx = htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCLock as string);
@@ -181,7 +179,7 @@ export function useSwapProgress(): SwapProgress {
 
         const isRefunded = sourceDetails?.status === LockStatus.Refunded;
 
-        const isUserLockFailed = error && error.message === USER_LOCK_TX_FAILED_ERROR
+        const isUserLockFailed = error?.code === 'TX_FAILED'
 
         // Timelock expired — awaiting refund action
         if (htlcStatus === HTLCStatus.TimelockExpired && !isRefunded && !refundTxId) {
@@ -350,5 +348,6 @@ export function useSwapProgress(): SwapProgress {
         skipped,
         mismatches,
         consensusVerifying,
+        error
     ]);
 }
