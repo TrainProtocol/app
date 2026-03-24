@@ -8,6 +8,8 @@ import {
     LockStatus,
     AtomicResult,
     RecoveredSwapData,
+    TransactionInfo,
+    TransactionStatus,
     HTLCClient,
     parseUnits,
     formatUnits,
@@ -246,6 +248,32 @@ export class EvmHTLCClient extends HTLCClient {
             dstAmount: lockEvent.dstAmount as bigint,
             dstToken: lockEvent.dstToken as string,
             srcContract: tx.to as string,
+        }
+    }
+
+    // ── Public Helpers ─────────────────────────────────────────────────
+
+    async getTransaction(txHash: string): Promise<TransactionInfo | null> {
+        try {
+            const receipt = await this.rpc.getTransactionReceipt(txHash)
+
+            if (!receipt) {
+                const tx = await this.rpc.getTransaction(txHash)
+                if (!tx) return null
+
+                return {
+                    hash: txHash,
+                    status: TransactionStatus.Pending,
+                }
+            }
+
+            return {
+                hash: receipt.transactionHash,
+                status: receipt.status === '0x1' ? TransactionStatus.Confirmed : TransactionStatus.Failed,
+                blockNumber: receipt.blockNumber,
+            }
+        } catch {
+            return null
         }
     }
 

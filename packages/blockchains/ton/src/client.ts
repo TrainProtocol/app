@@ -8,6 +8,8 @@ import {
     LockStatus,
     AtomicResult,
     RecoveredSwapData,
+    TransactionInfo,
+    TransactionStatus,
     HTLCClient,
     parseUnits,
     formatUnits,
@@ -304,6 +306,39 @@ export class TonHTLCClient extends HTLCClient {
             dstAmount: 0n, // Not stored in TON event
             dstToken: dstAsset,
             srcContract: '', // Derived from contract context when available
+        }
+    }
+
+    // ── Public Helpers ────────────────────────────────────────────────
+
+    async getTransaction(txHash: string): Promise<TransactionInfo | null> {
+        try {
+            const cleanHash = txHash.startsWith('0x') ? txHash.slice(2) : txHash
+
+            const baseUrl = new URL(this.rpcUrl)
+            baseUrl.pathname = '/api/v3/transactions'
+            baseUrl.search = `?msg_hash=${cleanHash}&limit=1`
+            const url = baseUrl.toString()
+            const response = await fetch(url)
+            if (!response.ok) return null
+
+            const data = await response.json() as { transactions: any[] }
+            if (!data.transactions?.length) return null
+
+            const tx = data.transactions[0]
+
+            return {
+                hash: txHash,
+                status: tx.description?.aborted
+                    ? TransactionStatus.Failed
+                    : tx.description?.compute_phase
+                        ? TransactionStatus.Confirmed
+                        : TransactionStatus.Pending,
+                blockNumber: tx.block_ref?.seqno?.toString(),
+                blockTimestamp: tx.now ? tx.now * 1000 : undefined,
+            }
+        } catch {
+            return null
         }
     }
 

@@ -24,3 +24,16 @@ export type LockDetails = {
     userData?: string,
     blockTimestamp?: number,
 }
+
+export enum TransactionStatus {
+    Pending = 'pending',
+    Confirmed = 'confirmed',
+    Failed = 'failed',
+}
+
+export type TransactionInfo = {
+    hash: string
+    status: TransactionStatus
+    blockNumber?: string
+    blockTimestamp?: number
+}

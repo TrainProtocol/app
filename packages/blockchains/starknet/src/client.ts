@@ -8,6 +8,8 @@ import {
     LockStatus,
     AtomicResult,
     RecoveredSwapData,
+    TransactionInfo,
+    TransactionStatus,
     HTLCClient,
     parseUnits,
     formatUnits,
@@ -219,6 +221,33 @@ export class StarknetHTLCClient extends HTLCClient {
             dstAmount: BigInt(event.dst_amount),
             dstToken,
             srcContract,
+        }
+    }
+
+    // ── Public Helpers ─────────────────────────────────────────────────
+
+    async getTransaction(txHash: string): Promise<TransactionInfo | null> {
+        try {
+            const receipt = await this.provider.getTransactionReceipt(txHash)
+            if (!receipt) return null
+
+            const executionStatus = 'execution_status' in receipt
+                ? (receipt as any).execution_status as string
+                : undefined
+
+            return {
+                hash: txHash,
+                status: executionStatus === 'REVERTED'
+                    ? TransactionStatus.Failed
+                    : executionStatus === 'SUCCEEDED'
+                        ? TransactionStatus.Confirmed
+                        : TransactionStatus.Pending,
+                blockNumber: 'block_number' in receipt
+                    ? String((receipt as any).block_number)
+                    : undefined,
+            }
+        } catch {
+            return null
         }
     }
 
