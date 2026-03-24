@@ -53,7 +53,7 @@ export type HTLCFromApi = {
     transactions: {
         type: HTLCTransaction,
         hash: string,
-        networkId: string
+        network: string
     }[],
     error?: {
         message: string;
