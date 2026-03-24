@@ -62,6 +62,7 @@ type ResolveActionProps = {
 const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, disableButton, error, quote, type }) => {
     const { setError, hashlock } = useAtomicState()
     const removeSwap = useSwapStore(s => s.removeSwap)
+    const goHome = useGoHome()
 
     if (error && !disableButton) {
         const isTxFailed = error === USER_LOCK_TX_FAILED_ERROR
@@ -69,6 +70,11 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, disableButton, er
         const handleRetry = () => {
             if (isTxFailed && hashlock) {
                 removeSwap(hashlock)
+                setError(undefined)
+                if (type === 'widget') {
+                    goHome()
+                }
+                return
             }
             setError(undefined)
         }
