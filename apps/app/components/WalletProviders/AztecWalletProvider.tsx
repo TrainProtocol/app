@@ -3,6 +3,7 @@ import type { Wallet as AztecWallet } from "@aztec/aztec.js/wallet";
 import type { WalletProvider as AztecSDKWalletProvider, PendingConnection } from "@aztec/wallet-sdk/manager";
 import { AZTEC_APP_ID, useAztecChainInfo } from "@/lib/wallets/aztec/configs";
 import { useAztecWalletStore } from "@/stores/aztecWalletStore";
+import { ActiveAztecAccountProvider } from "./ActiveAztecAccount";
 import SubmitButton from "../buttons/submitButton";
 
 interface AztecWalletContextType {
@@ -212,7 +213,9 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
             disconnect,
             startDiscovery,
         }}>
-            {children}
+            <ActiveAztecAccountProvider>
+                {children}
+            </ActiveAztecAccountProvider>
             {pendingConnection && verificationEmojis && (
                 <EmojiVerificationOverlay
                     emojis={verificationEmojis}
