@@ -1,4 +1,4 @@
-import { FC, useRef, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { useSwapData } from "@/hooks/useSwapData";
 import { useActiveSwapState, useClearSwapError } from "@/hooks/useActiveSwapState";
 import { RevealSecretAction } from "./RevealSecret";
@@ -103,6 +103,7 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const { autoRevealSecret, hasSeenAutoRevealPrompt } = useSwapPreferencesStore()
     const { revealSecret } = useRevealSecret()
     const [autoRevealFailed, setAutoRevealFailed] = useState(false)
+    const attemptedRef = useRef(false)
     const { verified, skipped, mismatches } = useSolverLockVerification()
     const { consensusVerified, consensusVerifying } = useActiveSwapState()
     const activeHashlock = useSwapStore(s => s.activeHashlock)
@@ -111,7 +112,16 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
 
     // Wait for both quote verification AND multi-RPC consensus before revealing
     const consensusReady = consensusVerified || skipped
-    const shouldAutoReveal = autoRevealSecret && hasSeenAutoRevealPrompt && !autoRevealFailed && verified && consensusReady
+    const shouldAutoReveal = autoRevealSecret && hasSeenAutoRevealPrompt && !autoRevealFailed && verified && consensusReady && !warning
+
+    useEffect(() => {
+        if (shouldAutoReveal && !attemptedRef.current) {
+            attemptedRef.current = true
+            revealSecret().catch(() => {
+                setAutoRevealFailed(true)
+            })
+        }
+    }, [shouldAutoReveal, revealSecret])
 
     if (warning) {
         return <WalletMessage status="warning" header={warning.header} details={warning.details} />
