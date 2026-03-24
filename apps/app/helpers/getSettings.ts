@@ -1,9 +1,14 @@
 import { NetworkContract } from "@/Models/Network";
-import { getThemeData } from "./settingsHelper";
 import KnownInternalNames from "@/lib/knownIds";
 import { resolveNodes } from "@/lib/rpc/nodeResolver";
+import { TrainApiClient } from "@train-protocol/sdk";
 
-// const apiClient = new TrainApiClient()
+if (!process.env.NEXT_PUBLIC_TRAIN_API)
+    throw new Error("NEXT_PUBLIC_TRAIN_API not provided")
+
+const apiClient = new TrainApiClient({
+    baseUrl: process.env.NEXT_PUBLIC_TRAIN_API
+})
 
 export async function getServerSideProps(context) {
 
@@ -12,23 +17,14 @@ export async function getServerSideProps(context) {
         's-maxage=60, stale-while-revalidate'
     );
 
-    // const [networks, prices] = await Promise.all([
-    //     apiClient.GetNetworksAsync(),
-    //     apiClient.GetPricesAsync(),
-    // ])
+    const [networks, prices] = await Promise.all([
+        apiClient.getNetworks(),
+        apiClient.getPrices(),
+    ])
 
-    // if (!networks.length) return
+    if (!networks.length) return
 
-    // Mock prices while backend ngrok is off
-    const prices: Record<string, number> = {
-        "eip155:11155111:0x0000000000000000000000000000000000000000": 2500,
-        "eip155:421614:0x0000000000000000000000000000000000000000": 2500,
-        "eip155:84532:0x0000000000000000000000000000000000000000": 2500,
-        "solana:devnet:11111111111111111111111111111111": 150,
-    }
-
-    //const resolvedNetworks = (await Promise.all(networks.map(async network => {
-    const resolvedNetworks = (await Promise.all(MOCK_API_NETWORKS.map(async network => {
+    const resolvedNetworks = (await Promise.all(networks.map(async network => {
         const _network = mockData.data.find(n => n.caip2Id === network.caip2Id)
         const seedNodes = _network?.nodes ?? []
         const resolvedNodes = await resolveNodes(network.caip2Id, seedNodes)
@@ -48,10 +44,8 @@ export async function getServerSideProps(context) {
         networks: resolvedNetworks,
     }
 
-    const themeData = await getThemeData(context.query)
-
     return {
-        props: { settings, themeData }
+        props: { settings }
     }
 }
 

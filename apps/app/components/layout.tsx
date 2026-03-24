@@ -4,18 +4,16 @@ import { useRouter } from "next/router";
 import ThemeWrapper from "./themeWrapper";
 import { ErrorBoundary } from "react-error-boundary";
 import MaintananceContent from "./Maintanance";
-import { SettingsProvider } from "../context/settings";
-import { TrainAppSettings } from "../Models/TrainAppSettings";
-import { TrainSettings } from "../Models/TrainSettings";
+import { SettingsProvider } from "@/context/settings";
+import { TrainAppSettings } from "@/Models/TrainAppSettings";
+import { TrainSettings } from "@/Models/TrainSettings";
 import ErrorFallback from "./ErrorFallback";
-import { SendErrorMessage } from "../lib/telegram";
+import { SendErrorMessage } from "@/lib/telegram";
 import { QueryParams } from "../Models/QueryParams";
-import QueryProvider from "../context/query";
-import { THEME_COLORS, ThemeData } from "../Models/Theme";
+import QueryProvider from "@/context/query";
 import { TooltipProvider } from "./shadcn/tooltip";
-import ColorSchema from "./ColorSchema";
-import { IsExtensionError } from "../helpers/errorHelper";
-import { AsyncModalProvider } from "../context/asyncModal";
+import { IsExtensionError } from "@/helpers/errorHelper";
+import { AsyncModalProvider } from "@/context/asyncModal";
 import WalletsProviders from "./WalletProviders";
 import { useSwapSync } from "@/hooks/useSwapSync";
 import { SwapAccountsProvider } from "@/context/swapAccounts";
@@ -25,17 +23,14 @@ import { SwapProvider } from "@train-protocol/react";
 import { useRpcConfigStore } from "@/stores/rpcConfigStore";
 import { LoginModal } from "./SecretDerivation";
 import { useLoginModalStore } from "@/stores/loginModalStore";
-
 type Props = {
   children: JSX.Element | JSX.Element[];
   hideFooter?: boolean;
   settings?: TrainSettings;
-  themeData?: ThemeData | null
 };
 
-export default function Layout({ children, settings, themeData }: Props) {
+export default function Layout({ children, settings }: Props) {
   const router = useRouter();
-
   if (!settings)
     return <ThemeWrapper>
       <MaintananceContent />
@@ -69,8 +64,6 @@ export default function Layout({ children, settings, themeData }: Props) {
     // datadogRum.addError(renderingError);
   }
 
-  themeData = themeData || THEME_COLORS.default
-
   const basePath = router?.basePath ?? ""
 
   const title = "TRAIN I The First Scalable Cross-Chain Bridge"
@@ -87,7 +80,7 @@ export default function Layout({ children, settings, themeData }: Props) {
       <link rel="manifest" href={`/favicon/site.webmanifest`} />
       <link rel="canonical" href="https://app.train.tech/" />
       <meta name="msapplication-TileColor" content="#ffffff" />
-      <meta name="theme-color" content={`rgb(${themeData.secondary?.[900]})`} />
+      <meta name="theme-color" content="rgb(var(--ls-colors-secondary-900))" />
       <meta name="description" content={description} />
 
       {/* Facebook Meta Tags */}
@@ -105,17 +98,13 @@ export default function Layout({ children, settings, themeData }: Props) {
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={`https://app.train.tech/opengraphtw.jpg`} />
     </Head>
-    {
-      themeData &&
-      <ColorSchema themeData={themeData} />
-    }
     <QueryProvider query={query}>
       <SettingsProvider data={appSettings}>
         <TooltipProvider delayDuration={500}>
           <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
             <TrainProviderWithRpc networks={appSettings.networks}>
               <ThemeWrapper>
-                <WalletsProviders basePath={basePath} themeData={themeData} appName={router.query.appName?.toString()}>
+                <WalletsProviders basePath={basePath} appName={router.query.appName?.toString()}>
                   <SwapAccountsProvider>
                     <SwapProvider>
                       <AppContent>

@@ -39,7 +39,7 @@ const ConnectWalletButton: FC<Props> = ({ provider, onConnect, descriptionText, 
             />
             <div className="h-full space-y-2">
                 <p className="text-sm font-medium text-secondary-text text-start">{descriptionText ?? 'Connect your wallet to browse and select from your addresses'}</p>
-                <div className="bg-primary-700/30 border-none text-primary! py-2 rounded-lg text-base font-semibold">
+                <div className="bg-secondary-300 border-none text-primary-text! py-2 rounded-lg text-base font-semibold">
                     {
                         !isProviderReady ?
                             <div className="flex items-center gap-1 justify-center">

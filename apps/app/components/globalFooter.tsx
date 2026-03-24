@@ -40,7 +40,7 @@ const GLobalFooter = () => {
             </div>
             <div className="flex space-x-6">
                 {footerNavigation.social.map((item) => (
-                    <Link target="_blank" key={item.name} href={item.href} className="text-gray-400 hover:text-gray-500">
+                    <Link target="_blank" key={item.name} href={item.href} className="text-secondary-text hover:text-primary-text">
                         <span className="sr-only">{item.name}</span>
                         <item.icon />
                     </Link>

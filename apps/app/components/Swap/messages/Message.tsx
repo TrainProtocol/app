@@ -16,9 +16,9 @@ const StatusIcon: FC<{ status: WalletMessageProps['status'] }> = ({ status }) =>
             return <FailIcon className="relative top-0 left-0 h-5 w-5" />
         case 'pending':
             return <>
-                <div className='absolute top-1.5 left-1.5 w-4 h-4 md:w-5 md:h-5 opacity-40 bg bg-primary rounded-full animate-ping'></div>
-                <div className='absolute top-2.5 left-2.5 w-2 h-2 md:w-3 md:h-3 opacity-40 bg bg-primary rounded-full animate-ping'></div>
-                <div className='relative top-0 left-0 w-6 h-6 md:w-7 md:h-7 scale-50 bg bg-primary rounded-full '></div>
+                <div className='absolute top-1.5 left-1.5 w-4 h-4 md:w-5 md:h-5 opacity-40 bg-primary-text rounded-full animate-ping'></div>
+                <div className='absolute top-2.5 left-2.5 w-2 h-2 md:w-3 md:h-3 opacity-40 bg-primary-text rounded-full animate-ping'></div>
+                <div className='relative top-0 left-0 w-6 h-6 md:w-7 md:h-7 scale-50 bg-primary-text rounded-full '></div>
             </>
     }
 }

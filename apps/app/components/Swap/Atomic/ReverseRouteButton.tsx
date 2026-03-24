@@ -62,7 +62,7 @@ const ReverseRouteButton: FC = () => {
                 transition={{ duration: 0.3 }}
                 style={{ pointerEvents: 'none' }}
             >
-                <ArrowUpDown className={`w-7 h-auto p-1 bg-secondary-400 hover:bg-secondary-600 rounded-lg ${disabled ? 'opacity-50' : ''}`} />
+                <ArrowUpDown className={`w-7 h-auto p-1 bg-secondary-400 hover:bg-secondary-300 rounded-lg ${disabled ? 'opacity-50' : ''}`} />
             </motion.div>
         </button>
     );

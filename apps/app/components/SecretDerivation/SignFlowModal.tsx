@@ -25,8 +25,8 @@ export function SignFlowModal({ isOpen, onClose }: SignFlowModalProps) {
       <VaulModal.Snap id="item-1">
         <div className="flex flex-col gap-4 min-h-[220px]">
           <div className="flex flex-col items-center justify-center gap-5 py-10">
-            <div className="w-14 h-14 rounded-2xl bg-secondary-700 flex items-center justify-center">
-              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            <div className="w-14 h-14 rounded-2xl bg-secondary-500 flex items-center justify-center">
+              <Loader2 className="w-8 h-8 text-primary-text animate-spin" />
             </div>
             <p className="text-center text-primary-text font-semibold">
               {derivationMessage || 'Please sign…'}

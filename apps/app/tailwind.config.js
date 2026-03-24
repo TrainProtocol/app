@@ -224,7 +224,7 @@ export default {
         widest: '.1em',
       },
       boxShadow: {
-        'widget-footer': '-1px -28px 21px -6px var(--ls-colors-secondary-700, #0C1527)',
+        'widget-footer': '-1px -28px 21px -6px var(--ls-colors-secondary-700, #181717)',
         'card': '5px 5px 40px rgba(0, 0, 0, 0.2), 0px 0px 20px rgba(0, 0, 0, 0.43)',
         'accordion-open': '0 8px 32px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.3)',
       },

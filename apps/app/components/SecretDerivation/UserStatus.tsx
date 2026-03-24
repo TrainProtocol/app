@@ -29,7 +29,7 @@ const LoginDataCard = ({
     loginWallet,
     passkeyCredentialId,
     onCopyAddress,
-    className = "flex items-center gap-3 p-3 bg-secondary-700 rounded-xl",
+    className = "flex items-center gap-3 p-3 bg-secondary-500 rounded-xl",
 }: LoginDataCardProps) => (
     <div className={className}>
         {method === 'passkey' ? (
@@ -43,7 +43,7 @@ const LoginDataCard = ({
                         <TooltipProvider delayDuration={200}>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <span className="text-secondary-text text-sm truncate cursor-default">{formatPasskeyIdForDisplay(passkeyCredentialId)}</span>
+                                    <span className="text-secondary-text text-sm truncate cursor-default w-fit">{formatPasskeyIdForDisplay(passkeyCredentialId)}</span>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     <p className="font-mono break-all max-w-[280px]">{passkeyCredentialId}</p>
@@ -147,7 +147,7 @@ const UserStatusContent = ({
                                 <TooltipProvider delayDuration={200}>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <span className="text-sm text-primary-text cursor-default">
+                                            <span className="text-sm text-primary-text cursor-default w-fit">
                                                 {formatPasskeyIdForDisplay(id)}
                                                 {id === activePasskeyCredentialId && <span className="text-success-foreground ml-1">(active)</span>}
                                             </span>
@@ -208,7 +208,7 @@ export const UserStatusHeader = () => {
             <button
                 type="button"
                 onClick={openLoginModal}
-                className="inline-flex items-center gap-2 py-2 px-3 rounded-full bg-secondary-500 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down"
+                className="inline-flex items-center gap-2 py-2 px-3 rounded-full bg-secondary-500 border border-black/15 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down"
             >
                 <Lock className="h-5 w-5" strokeWidth={2} />
                 <span className="text-sm font-medium">Login</span>
@@ -231,7 +231,7 @@ export const UserStatusHeader = () => {
         </>
     )
 
-    const pillClassName = "inline-flex items-center gap-2 py-2 px-3 rounded-full bg-secondary-500 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down"
+    const pillClassName = "inline-flex items-center gap-2 py-2 px-3 rounded-full bg-secondary-500 border border-black/15 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down"
 
     return (
         <>
@@ -269,7 +269,7 @@ export const UserStatusHeader = () => {
                             {pillContent}
                         </button>
                     </PopoverTrigger>
-                    <PopoverContent align="end" sideOffset={8} className="w-80 p-4 bg-secondary-900 border-secondary-600 rounded-xl">
+                    <PopoverContent align="end" sideOffset={8} className="w-80 p-4 bg-secondary-600! border-black/15 rounded-xl">
                         <UserStatusContent
                             method={method}
                             loginWallet={loginWallet}
@@ -294,7 +294,7 @@ export const UserStatusMenu = () => {
             <button
                 onClick={openLoginModal}
                 type="button"
-                className="py-3 px-4 bg-secondary-500 flex items-center w-full rounded-xl space-x-1 relative font-semibold transform border border-secondary-500 hover:bg-secondary-400 transition duration-200 ease-in-out outline-hidden"
+                className="py-3 px-4 bg-secondary-400 flex items-center w-full rounded-xl space-x-1 relative font-semibold transform border border-secondary-400 hover:bg-secondary-300 transition duration-200 ease-in-out outline-hidden"
             >
                 <div className="flex gap-4 items-center text-primary-text w-full">
                     <Lock className="h-5 w-5 shrink-0" strokeWidth={2} />
@@ -313,7 +313,7 @@ export const UserStatusMenu = () => {
             <button
                 onClick={() => setOpenModal(true)}
                 type="button"
-                className="py-3 px-4 bg-secondary-500 flex items-center w-full rounded-xl space-x-1 disabled:text-secondary-text/40 disabled:bg-primary-900 disabled:cursor-not-allowed relative font-semibold transform border border-secondary-500 hover:bg-secondary-400 transition duration-200 ease-in-out outline-hidden"
+                className="py-3 px-4 bg-secondary-400 flex items-center w-full rounded-xl space-x-1 disabled:text-secondary-text/40 disabled:bg-secondary-600 disabled:cursor-not-allowed relative font-semibold transform border border-secondary-400 hover:bg-secondary-300 transition duration-200 ease-in-out outline-hidden"
             >
                 <div className="flex gap-4 items-center text-primary-text w-full min-w-0">
                     {method === 'passkey' ? (

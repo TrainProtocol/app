@@ -21,7 +21,7 @@ import { useSwapActions } from "@train-protocol/react";
 import { formatUnits } from "viem";
 import { NetworkContractType } from "@/Models/Network";
 import { HTLCStatus } from "@/Models/HTLCStatus";
-import { usePulsatingCircles } from "@/stores/pulsatingCirclesStore";
+
 import AtomicPage from "../AtomicChat";
 import { useRecentNetworksStore } from "@/stores/recentRoutesStore";
 
@@ -42,7 +42,6 @@ export default function Form() {
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
     const { setCurrentSwap } = useSwap()
     const { clearCurrentSwap, setActiveHashlock } = useSwapActions()
-    const { setPulseState } = usePulsatingCircles();
     const updateRecentNetworks = useRecentNetworksStore(s => s.updateRecentNetworks);
 
     const loginIdentity = useMemo((): LoginIdentity | undefined => {
@@ -82,7 +81,6 @@ export default function Form() {
             const isTerminal = htlcStatus === HTLCStatus.RedeemCompleted || htlcStatus === HTLCStatus.Refunded
             if (isTerminal) {
                 setActiveHashlock(null)
-                setPulseState("initial");
             }
         }
     }, [clearCurrentSwap, htlcStatus, setActiveHashlock]);

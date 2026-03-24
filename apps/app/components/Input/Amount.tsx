@@ -87,7 +87,7 @@ const AmountField = forwardRef(function AmountField({ actionValue, actionValueUs
             type="button"
             onClick={handleToggle}
             className={clsx(
-                "inline-flex items-center p-0.5 rounded-md bg-secondary-400 hover:bg-secondary-500 text-secondary-text hover:text-primary-text transition cursor-pointer pointer-events-auto",
+                "inline-flex items-center p-0.5 rounded-md bg-secondary-400 hover:brightness-90 text-secondary-text hover:text-primary-text transition cursor-pointer pointer-events-auto",
                 !showToggle && "hidden group-hover/source:inline-flex"
             )}
         >
@@ -102,7 +102,7 @@ const AmountField = forwardRef(function AmountField({ actionValue, actionValueUs
         const previewToken = actionValueAsToken;
 
         return (
-            <div className={clsx("flex flex-col bg-secondary-700 space-y-0.5 relative w-full", className)}>
+            <div className={clsx("flex flex-col bg-secondary-500 space-y-0.5 relative w-full", className)}>
                 <div className="flex items-center h-12">
                     <span className="text-[28px] leading-[34px] text-primary-text font-normal mr-1 select-none">$</span>
                     <input
@@ -114,7 +114,7 @@ const AmountField = forwardRef(function AmountField({ actionValue, actionValueUs
                         value={previewUsd ?? usdAmount}
                         onChange={handleUsdInputChange}
                         className={clsx(
-                            "w-full text-[28px] leading-[34px] rounded-xl focus:outline-none focus:border-none focus:ring-0 duration-300 ease-in-out font-normal px-0 truncate bg-secondary-700 border-0",
+                            "w-full text-[28px] leading-[34px] rounded-xl focus:outline-none focus:border-none focus:ring-0 font-normal px-0 truncate bg-secondary-500 border-0",
                             previewUsd ? "text-secondary-text/45" : "text-primary-text",
                             "placeholder:text-secondary-text"
                         )}
@@ -138,7 +138,7 @@ const AmountField = forwardRef(function AmountField({ actionValue, actionValueUs
     // --- Token mode render (default) ---
 
     return (
-        <div className={clsx("flex flex-col bg-secondary-700 space-y-0.5 relative w-full group", className)}>
+        <div className={clsx("flex flex-col bg-secondary-500 space-y-0.5 relative w-full group", className)}>
             <NumericInput
                 placeholder={placeholder}
                 step={isNaN(step) ? 0.01 : step}
@@ -146,7 +146,7 @@ const AmountField = forwardRef(function AmountField({ actionValue, actionValueUs
                 ref={amountRef}
                 precision={fromCurrency?.decimals}
                 tempValue={actionValue}
-                className="w-full text-[28px] leading-[34px] rounded-xl text-primary-text focus:outline-none focus:border-none focus:ring-0 duration-300 ease-in-out bg-secondary-700! font-normal! px-0 truncate"
+                className="w-full text-[28px] leading-[34px] rounded-xl text-primary-text focus:outline-none focus:border-none focus:ring-0 bg-secondary-500! font-normal! px-0 truncate"
                 onChange={e => {
                     /^[0-9]*[.,]?[0-9]*$/.test(e.target.value) && handleChange(e);
                 }}

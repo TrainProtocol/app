@@ -85,12 +85,12 @@ const OptionItem = ({
             type="button"
             onClick={disabled ? undefined : onClick}
             disabled={disabled}
-            className={`w-full flex items-center gap-4 p-4 rounded-xl text-left transition-all duration-200 border-2 ${disabled
-                    ? 'border-secondary-800 bg-secondary-900 opacity-50 cursor-not-allowed'
-                    : 'border-secondary-700 bg-secondary-800 hover:border-secondary-600'
+            className={`w-full flex items-center gap-4 p-4 rounded-xl text-left transition-all duration-200 border ${disabled
+                    ? 'border-secondary-500 bg-secondary-600 opacity-50 cursor-not-allowed'
+                    : 'border-secondary-400 bg-secondary-500 hover:border-secondary-300'
                 }`}
         >
-            <div className="shrink-0 w-12 h-12 rounded-xl bg-secondary-500 flex items-center justify-center">
+            <div className="shrink-0 w-12 h-12 rounded-xl bg-secondary-400 flex items-center justify-center">
                 <Icon className="w-6 h-6 text-primary-text" />
             </div>
             <div className="flex-1 min-w-0">

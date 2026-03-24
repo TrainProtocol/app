@@ -46,7 +46,7 @@ export const Gauge = ({
                 className="transform -rotate-90"
             >
                 <circle
-                    className="text-accent/20"
+                    className="text-primary/20"
                     strokeWidth="12"
                     stroke="currentColor"
                     fill="transparent"
@@ -56,7 +56,7 @@ export const Gauge = ({
                     cy="60"
                 />
                 <circle
-                    className="text-accent animate-gauge_fill"
+                    className="text-primary animate-gauge_fill"
                     strokeWidth="12"
                     strokeDasharray={strokeDasharray}
                     strokeDashoffset={initialOffset}
@@ -75,7 +75,7 @@ export const Gauge = ({
             </svg>
             {showCheckmark && value === 100 ? (
                 <div className="absolute flex animate-gauge_fadeIn">
-                   <Check className="h-5 w-5 text-accent" strokeWidth={4} aria-hidden="true" />
+                    <Check className="h-5 w-5 text-primary" strokeWidth={4} aria-hidden="true" />
                 </div>
             ) : null}
         </div>

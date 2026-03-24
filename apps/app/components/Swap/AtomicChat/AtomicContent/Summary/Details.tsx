@@ -44,6 +44,15 @@ const AssetsReady: FC = () => {
             icon={LockIcon}
             title="Assets Ready"
             description={description}
+            //TODO:check destinationDetailsByLightClient
+            // titleDetails={
+            //     destinationDetailsByLightClient?.data
+            //         ? <div className="text-primary flex items-center gap-1">
+            //             <p>Light Client</p>
+            //             <LockIcon className="h-4 w-4 text-primary" />
+            //         </div>
+            //         : null
+            // }
         />
     )
 }

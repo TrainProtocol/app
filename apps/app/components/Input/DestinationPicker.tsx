@@ -16,7 +16,7 @@ const DestinationPicker = ({ quote, isQuoteLoading }: Props) => {
     const { toCurrency } = values
 
     return (
-        <div className="flex flex-col w-full bg-secondary-700 rounded-2xl p-4 pb-[15px] space-y-[27px]">
+        <div className="flex flex-col w-full bg-secondary-500 rounded-2xl p-4 pb-[15px] space-y-[27px]">
             <div className="grid grid-cols-9 gap-2 items-center h-7">
                 <label htmlFor="To" className="block col-span-4 font-normal text-secondary-text text-base leading-5">
                     Receive at

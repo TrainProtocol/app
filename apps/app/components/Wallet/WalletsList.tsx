@@ -109,7 +109,7 @@ export const WalletItem: FC<WalletItemProps> = ({ selectable, account: wallet, n
                 })}
                 className={clsx('w-full relative items-center justify-between gap-2 flex rounded-xl outline-hidden bg-secondary-500 text-primary-text p-3 group/addressItem', {
                     'hover:bg-secondary-400 cursor-pointer': selectable && wallet.addresses.length == 1,
-                    'bg-secondary-600 py-2': wallet.addresses.length > 1
+                    'bg-secondary-400 py-2': wallet.addresses.length > 1
                 })}>
 
                 <div className="flex space-x-2 items-center grow">
@@ -188,7 +188,7 @@ export const WalletItem: FC<WalletItemProps> = ({ selectable, account: wallet, n
                     !selectable && hasDisconnect(wallet) &&
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <button type="button" onClick={wallet.disconnect} className="text-xs text-secondary-text hover:text-primary-text rounded-full p-1.5 bg-secondary-700 transition-colors duration-200 ">
+                            <button type="button" onClick={wallet.disconnect} className="text-xs text-secondary-text hover:text-primary-text rounded-full p-1.5 bg-secondary-600 transition-colors duration-200 ">
                                 <Unplug className="h-3.5 w-3.5" />
                             </button>
                         </TooltipTrigger>

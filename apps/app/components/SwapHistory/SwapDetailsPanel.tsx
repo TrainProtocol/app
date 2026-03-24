@@ -61,7 +61,7 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
 
     return (
         <div className="space-y-3">
-            <div className="py-3 px-4 bg-secondary-700 rounded-xl text-sm flex flex-col gap-3">
+            <div className="py-3 px-4 bg-secondary-500 rounded-xl text-sm flex flex-col gap-3">
                 {/* Hashlock */}
                 <div className="flex justify-between items-center">
                     <p className="text-secondary-text">Hashlock</p>
@@ -101,7 +101,7 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
                 </div>
             </div>
 
-            <div className="py-3 px-4 bg-secondary-700 rounded-xl text-sm flex flex-col gap-3">
+            <div className="py-3 px-4 bg-secondary-500 rounded-xl text-sm flex flex-col gap-3">
                 {/* Source transaction */}
                 <div className="flex justify-between items-baseline gap-2">
                     <p className="text-secondary-text shrink-0">Source transaction</p>
@@ -155,7 +155,7 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
                 <button
                     type="button"
                     onClick={handleViewSwap}
-                    className="w-full py-3 px-4 rounded-xl bg-primary-500 text-primary-buttonTextColor font-semibold text-sm hover:bg-primary-500/80 transition-colors"
+                    className="w-full py-3 px-4 rounded-xl bg-actionButtonColor text-primary-buttonTextColor font-semibold text-sm hover:bg-actionButtonColor/80 transition-colors"
                 >
                     View Swap
                 </button>
@@ -165,7 +165,7 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
                 <button
                     type="button"
                     onClick={handleRepeatSwap}
-                    className="w-full py-3 px-4 rounded-xl bg-secondary-700 text-primary-text font-semibold text-sm hover:bg-secondary-600 transition-colors flex items-center justify-center gap-2"
+                    className="w-full py-3 px-4 rounded-xl bg-secondary-300 text-primary-text font-semibold text-sm hover:bg-secondary-200 transition-colors flex items-center justify-center gap-2"
                 >
                     <RefreshCw className="h-4 w-4" />
                     Repeat Swap

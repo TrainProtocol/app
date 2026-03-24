@@ -33,7 +33,7 @@ const DestinationWalletWrapper: FC<DestinationWalletWrapperProps> = ({ children 
 
     if ((needsDestinationWallet || needsSourceWallet) && (!availableDestWallets.length || !availableSourceWallets.length) && destination_network) {
         return (
-            <div className="border border-primary disabled:border-primary-900 items-center space-x-1 disabled:text-opacity-40 disabled:bg-primary-900 disabled:cursor-not-allowed relative w-full flex justify-center font-semibold rounded-xl transform hover:brightness-125 transition duration-200 ease-in-out bg-primary text-primary-buttonTextColor py-3 px-2 md:px-3"
+            <div className="border border-secondary-400 disabled:border-secondary-500 items-center space-x-1 disabled:text-opacity-40 disabled:bg-secondary-600 disabled:cursor-not-allowed relative w-full flex justify-center font-semibold rounded-xl transform hover:brightness-125 transition duration-200 ease-in-out bg-actionButtonColor text-primary-buttonTextColor py-3 px-2 md:px-3"
                 onClick={handleConnect}>
                 <div className="flex justify-center space-x-2">
                     <span className="order-first absolute left-0 inset-y-0 flex items-center pl-3">

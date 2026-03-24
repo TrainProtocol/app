@@ -45,7 +45,7 @@ const HistorySummaryCard: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => 
                         )}
                     </div>
                     <div className="flex min-w-0 flex-col items-start space-y-0.5 overflow-hidden">
-                        <div className="text-white text-sm sm:text-lg leading-5 flex items-center min-w-0 gap-1 w-full">
+                        <div className="text-primary-text text-sm sm:text-lg leading-5 flex items-center min-w-0 gap-1 w-full">
                             <span className="truncate block shrink">{swap.requestedAmount}</span>
                             <span className="shrink-0">{swap.source_asset}</span>
                         </div>
@@ -58,14 +58,14 @@ const HistorySummaryCard: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => 
                 {/* Center arrow */}
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none -z-10">
                     <div className="h-7 w-6 rounded-md bg-secondary-400 flex items-center justify-center">
-                        <ChevronRight className="h-5 w-5 text-white" />
+                        <ChevronRight className="h-5 w-5 text-primary-text" />
                     </div>
                 </div>
 
                 {/* Destination */}
                 <div className="col-span-6 flex items-center justify-end gap-2 bg-secondary-400 p-3 rounded-xl">
                     <div className="flex min-w-0 flex-col items-end space-y-0.5 overflow-hidden">
-                        <div className="text-white text-sm sm:text-lg leading-5 flex items-center min-w-0 gap-1 w-full justify-end">
+                        <div className="text-primary-text text-sm sm:text-lg leading-5 flex items-center min-w-0 gap-1 w-full justify-end">
                             <span className="truncate block shrink">{swap.receiveAmount ?? '—'}</span>
                             <span className="shrink-0">{swap.destination_asset}</span>
                         </div>

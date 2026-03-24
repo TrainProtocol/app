@@ -180,8 +180,8 @@ const Signing = ({
   const platformHint = getPlatformHint();
 
   const icon = error
-    ? <CircleX className="w-8 h-8 text-primary-500" />
-    : <Loader2 className="w-8 h-8 text-primary animate-spin" />;
+    ? <CircleX className="w-8 h-8 text-secondary-text" />
+    : <Loader2 className="w-8 h-8 text-primary-text animate-spin" />;
 
   const title = error
     ? 'Failed'
@@ -193,7 +193,7 @@ const Signing = ({
 
   return (
     <div className="flex flex-col items-center justify-center gap-5 pt-10">
-      <div className="w-14 h-14 rounded-2xl bg-secondary-700 flex items-center justify-center">
+      <div className="w-14 h-14 rounded-2xl bg-secondary-500 flex items-center justify-center">
         {icon}
       </div>
       <div className="text-center space-y-1">
@@ -205,7 +205,7 @@ const Signing = ({
           <button
             type="button"
             onClick={onRetry}
-            className="w-full py-3 px-4 rounded-xl font-semibold border-2 border-secondary-700 bg-secondary-800 text-primary-text hover:bg-secondary-700 transition-colors text-sm"
+            className="w-full py-3 px-4 rounded-xl font-semibold border-2 border-secondary-400 bg-secondary-500 text-primary-text hover:bg-secondary-400 transition-colors text-sm"
           >
             Try again
           </button>
@@ -213,7 +213,7 @@ const Signing = ({
         <button
           type="button"
           onClick={onCancel}
-          className="w-full py-3 px-4 rounded-xl font-semibold border-2 border-secondary-700 bg-secondary-800 text-primary-text hover:bg-secondary-700 transition-colors text-sm"
+          className="w-full py-3 px-4 rounded-xl font-semibold border-2 border-secondary-400 bg-secondary-500 text-primary-text hover:bg-secondary-400 transition-colors text-sm"
         >
           {error ? 'Back' : 'Cancel'}
         </button>

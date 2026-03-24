@@ -1,7 +1,6 @@
 import { FC } from "react"
 import TonConnectProvider from "./TonConnectProvider"
 import SolanaProvider from "./SolanaProvider"
-import { ThemeData } from "../../Models/Theme"
 import Wagmi from "./Wagmi";
 import StarknetProvider from "./StarknetProvider";
 import { ImtblPassportProvider } from "./ImtblPassportProvider";
@@ -12,9 +11,9 @@ import { EvmConnectorsProvider } from "@/context/evmConnectorsContext";
 import { WalletBridges } from "../WalletBridges";
 import FuelProviderWrapper from "./FuelProvider";
 
-const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], basePath: string, themeData: ThemeData, appName: string | undefined }> = ({ children, basePath, themeData, appName }) => {
+const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], basePath: string, appName: string | undefined }> = ({ children, basePath, appName }) => {
     return (
-        <TonConnectProvider basePath={basePath} themeData={themeData} appName={appName}>
+        <TonConnectProvider basePath={basePath} appName={appName}>
             <SolanaProvider>
                 <StarknetProvider>
                     <EvmConnectorsProvider>

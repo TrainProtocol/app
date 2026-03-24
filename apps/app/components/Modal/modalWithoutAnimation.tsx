@@ -67,7 +67,7 @@ export const ModalContent = forwardRef<HTMLDivElement, ModalContentProps>((props
     if (!isOpen) return null;
 
     const modalElement = (
-        <div className={clsx("fixed sm:absolute inset-0 z-50 bg-secondary-900 rounded-t-2xl sm:rounded-none flex flex-col overscroll-none", className)}>
+        <div className={clsx("fixed sm:absolute inset-0 z-50 bg-secondary-700 rounded-t-2xl sm:rounded-none flex flex-col overscroll-none", className)}>
             {(header || showCloseButton) && (
                 <div className="w-full relative z-20">
                     <div className="flex items-center w-full text-left justify-between px-4 mt-2 pb-2 gap-x-2 sm:gap-x-1">
@@ -129,7 +129,7 @@ export const ModalTrigger = (props: ModalTriggerProps) => {
                 type="button"
                 onClick={openModal}
                 disabled={disabled}
-                className={clsx("rounded-2xl focus:outline-none disabled:cursor-not-allowed relative grow flex items-center text-left justify-bottom w-full px-2 pr-0 bg-secondary-500 hover:bg-secondary-600 font-semibold", className)}
+                className={clsx("rounded-2xl focus:outline-none disabled:cursor-not-allowed relative grow flex items-center text-left justify-bottom w-full px-2 pr-0 bg-secondary-300 hover:bg-secondary-400 font-semibold", className)}
             >
                 {children}
             </button>

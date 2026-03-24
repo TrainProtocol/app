@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useRef, useState } from "react";
 import { useSwapData } from "@/hooks/useSwapData";
 import { useSwapState, useSwap } from "@train-protocol/react";
 import { RevealSecretAction } from "./RevealSecret";
@@ -105,23 +105,32 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const currentSwap = useCurrentSwap()
     const { warning } = useLoginIdentityMismatch(currentSwap?.loginIdentity)
 
-    if (warning) {
-        return <WalletMessage status="warning" header={warning.header} details={warning.details} />
-    }
+    //TODO: check these
+    // const isLoggedIn = useSecretDerivationStore(s => s.isLoggedIn)
+    // const recoveryWarning = useMemo(
+    //     () => checkRecoveryIdentity(swap?.loginIdentity, hashlock, sourceDetails?.userData, storedDerivedKey ?? undefined, isLoggedIn),
+    //     [swap?.loginIdentity, hashlock, sourceDetails?.userData, storedDerivedKey, isLoggedIn]
+    // )
+    // const warning = metadataWarning || recoveryWarning
+
+  
 
     // Wait for both quote verification AND multi-RPC consensus before revealing
     const consensusReady = consensusVerified || skipped
     const shouldAutoReveal = autoRevealSecret && hasSeenAutoRevealPrompt && !autoRevealFailed && verified && consensusReady
 
-    useEffect(() => {
-        if (shouldAutoReveal && !attemptedRef.current) {
-            attemptedRef.current = true
-            revealSecret().catch(() => {
-                setAutoRevealFailed(true)
-            })
-        }
-    }, [shouldAutoReveal, revealSecret])
+    // useEffect(() => {
+    //     if (shouldAutoReveal && !attemptedRef.current) {
+    //         attemptedRef.current = true
+    //         revealSecret().catch(() => {
+    //             setAutoRevealFailed(true)
+    //         })
+    //     }
+    // }, [shouldAutoReveal, revealSecret])
 
+    if (warning) {
+        return <WalletMessage status="warning" header={warning.header} details={warning.details} />
+    }
     // Wait for consensus verification before allowing secret reveal
     if (consensusVerifying) return <></>
 
@@ -222,3 +231,40 @@ const TransactionMessage: FC<{ error: string | undefined, disableButton?: boolea
     }
     return <></>
 }
+
+// function checkRecoveryIdentity(
+//     loginIdentity: LoginIdentity | undefined,
+//     hashlock: string | undefined,
+//     userData: string | undefined,
+//     storedDerivedKey: Buffer | undefined,
+//     isLoggedIn: boolean,
+// ): IdentityWarning {
+//     if (loginIdentity) return null
+
+//     if (!isLoggedIn || !storedDerivedKey) {
+//         if (!hashlock) return null
+//         return {
+//             header: 'Login required',
+//             details: 'Please log in to continue this swap.',
+//         }
+//     }
+
+//     if (!hashlock || !userData) return null
+
+//     const nonce = Number(userData)
+//     if (isNaN(nonce)) return null
+
+//     try {
+//         const derivedSecret = deriveSecretFromTimelock(storedDerivedKey, nonce)
+//         const testHashlock = secretToHashlock('0x' + derivedSecret.toString('hex'))
+
+//         if (testHashlock.toLowerCase() === hashlock.toLowerCase()) return null
+
+//         return {
+//             header: 'Identity mismatch',
+//             details: 'The current login does not match the identity that created this swap. Please log in with the correct passkey or wallet to continue.',
+//         }
+//     } catch {
+//         return null
+//     }
+// }

@@ -1,5 +1,6 @@
-import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info, Settings2, Zap, RotateCcw, ScrollText } from "lucide-react";
+import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info, Settings2, Zap, RotateCcw, ScrollText, Sun } from "lucide-react";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
+import { useTheme } from "next-themes";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
 import { useIntercom } from "react-use-intercom";
@@ -27,6 +28,7 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
     const [openFeedbackModal, setOpenFeedbackModal] = useState(false);
     const { isMobile } = useWindowDimensions()
     const { autoRevealSecret, setAutoRevealSecret } = useSwapPreferencesStore()
+    const { theme, setTheme } = useTheme()
 
     useEffect(() => {
         setEmbedded(inIframe())
@@ -69,6 +71,14 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
                         onChange={setAutoRevealSecret}
                     >
                         Auto Reveal Secret
+                    </Menu.ToggleItem>
+
+                    <Menu.ToggleItem
+                        icon={<Sun className="h-5 w-5" />}
+                        checked={theme === "light"}
+                        onChange={(checked) => setTheme(checked ? "light" : "default")}
+                    >
+                        Light Mode
                     </Menu.ToggleItem>
 
                 </>
@@ -136,7 +146,7 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
 
             <div className="grid grid-cols-2 gap-2 justify-center">
                 {navigation.social.map((item, index) => (
-                    <Link key={index} target="_blank" href={item.href} className={`flex relative bg-secondary-700 hover:bg-secondary-600 rounded-md cursor-pointer select-none items-center outline-none text-primary-text ${item.className}`}>
+                    <Link key={index} target="_blank" href={item.href} className={`flex relative bg-secondary-500 hover:bg-secondary-400 rounded-md cursor-pointer select-none items-center outline-none text-primary-text ${item.className}`}>
                         <div className="p-2 w-full flex justify-center gap-1">
                             <item.icon className="h-5 w-5" aria-hidden="true" />
                             <p>{item.name}</p>
