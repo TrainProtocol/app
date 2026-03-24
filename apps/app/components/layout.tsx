@@ -15,11 +15,9 @@ import { TooltipProvider } from "./shadcn/tooltip";
 import { IsExtensionError } from "@/helpers/errorHelper";
 import { AsyncModalProvider } from "@/context/asyncModal";
 import WalletsProviders from "./WalletProviders";
-import { useSwapSync } from "@/hooks/useSwapSync";
 import { SwapAccountsProvider } from "@/context/swapAccounts";
 import AppSettings from "@/lib/AppSettings";
 import { TrainProvider } from "@train-protocol/react";
-import { SwapProvider } from "@train-protocol/react";
 import { useRpcConfigStore } from "@/stores/rpcConfigStore";
 import { LoginModal } from "./SecretDerivation";
 import { useLoginModalStore } from "@/stores/loginModalStore";
@@ -106,13 +104,11 @@ export default function Layout({ children, settings }: Props) {
               <ThemeWrapper>
                 <WalletsProviders basePath={basePath} appName={router.query.appName?.toString()}>
                   <SwapAccountsProvider>
-                    <SwapProvider>
-                      <AppContent>
-                        {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
-                          <MaintananceContent />
-                          : children}
-                      </AppContent>
-                    </SwapProvider>
+                    <AppContent>
+                      {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
+                        <MaintananceContent />
+                        : children}
+                    </AppContent>
                   </SwapAccountsProvider>
                 </WalletsProviders>
               </ThemeWrapper>
@@ -143,7 +139,6 @@ function TrainProviderWithRpc({ networks, children }: { networks: import("@/Mode
 function AppContent({ children }: { children: React.ReactNode }) {
   const { isOpen: loginOpen, close: closeLogin } = useLoginModalStore();
 
-  useSwapSync()
   return (
     <AsyncModalProvider>
       <LoginModal

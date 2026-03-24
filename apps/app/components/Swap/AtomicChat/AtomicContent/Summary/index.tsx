@@ -1,9 +1,11 @@
 import { FC } from "react";
 import { useSwapData } from "@/hooks/useSwapData";
-import { useSwapState, useCurrentSwap } from "@train-protocol/react";
+import { useActiveSwapState } from "@/hooks/useActiveSwapState";
+import { useSwap } from "@train-protocol/react";
 import Summary from "./Summary";
 import type { SwapQuote } from "@train-protocol/sdk";
 import { formatUnits } from "viem";
+import { useSwapStore } from "@/stores/swapStore";
 
 type MotionSummaryProps = {
     quote?: SwapQuote
@@ -12,8 +14,9 @@ type MotionSummaryProps = {
 
 const MotionSummary: FC<MotionSummaryProps> = ({ quote, isQuoteLoading = false }) => {
     const { source_asset: source_token, destination_asset: destination_token, source_network, destination_network, amount } = useSwapData()
-    const { htlcFromApi } = useSwapState()
-    const currentSwap = useCurrentSwap()
+    const { htlcFromApi } = useActiveSwapState()
+    const activeHashlock = useSwapStore(s => s.activeHashlock)
+    const currentSwap = useSwap(activeHashlock)
 
     const storedReceiveAmount = currentSwap?.receiveAmount
 

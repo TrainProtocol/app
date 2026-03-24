@@ -5,7 +5,7 @@ import { useRecoverSwap } from '@train-protocol/react'
 import SubmitButton from '@/components/buttons/submitButton'
 import Image from 'next/image'
 import { ChevronDown } from 'lucide-react'
-import { useSwapActions } from '@train-protocol/react'
+import { useSwapStore } from '@/stores/swapStore'
 
 interface RecoverSwapProps {
     onRecovered: (hashlock: string) => void
@@ -17,12 +17,12 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
     const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null)
     const [showNetworkList, setShowNetworkList] = useState(false)
     const { recover, error, isRecovering } = useRecoverSwap()
-    const { setActiveHashlock } = useSwapActions()
+    const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
     const canRecover = !!selectedNetwork && txHash.length > 0 && !isRecovering
 
     const handleRecover = async () => {
         if (!canRecover) return
-        const { hashlock } = await recover(txHash, selectedNetwork.caip2Id, selectedNetwork.nodes[0].url) //TODO repcurl resolver or smthng
+        const hashlock = await recover(txHash, selectedNetwork.caip2Id, selectedNetwork.nodes[0].url)
         setActiveHashlock(hashlock)
         onRecovered(hashlock)
     }
@@ -111,4 +111,3 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
         </div>
     )
 }
-

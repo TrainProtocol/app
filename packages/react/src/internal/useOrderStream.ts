@@ -33,6 +33,7 @@ export function useOrderStream(options: UseOrderStreamOptions) {
 
     const eventHandlers = useMemo(() => ({
         order: (data: unknown) => {
+            if (!hashlock) return
             const response = data as HTLCFromApiResponse
             const orderData = response.order
             const merged = {
@@ -42,9 +43,10 @@ export function useOrderStream(options: UseOrderStreamOptions) {
                     ...accumulatedTxsRef.current,
                 ],
             }
-            store?.getState().setHtlcFromApi(merged)
+            store?.getState().setHtlcFromApi(hashlock, merged)
         },
         order_event: (data: unknown) => {
+            if (!hashlock) return
             const event = data as OrderStreamEvent
             if (event.eventType === 'order.transaction_created') {
                 const txData = event.data as TransactionCreatedEventData
@@ -55,9 +57,9 @@ export function useOrderStream(options: UseOrderStreamOptions) {
                 }
                 accumulatedTxsRef.current = [...accumulatedTxsRef.current, tx]
 
-                const currentOrder = store?.getState().activeSwap?.htlcFromApi
+                const currentOrder = store?.getState().activeSwaps[hashlock]?.htlcFromApi
                 if (currentOrder) {
-                    store?.getState().setHtlcFromApi({
+                    store?.getState().setHtlcFromApi(hashlock, {
                         ...currentOrder,
                         transactions: [...(currentOrder.transactions ?? []), tx],
                     })
@@ -72,7 +74,7 @@ export function useOrderStream(options: UseOrderStreamOptions) {
         done: (_data: unknown) => {
             return 'close' as const
         },
-    }), [store])
+    }), [store, hashlock])
 
     useEventSource(url, {
         enabled: enabled && !!url,

@@ -1,7 +1,8 @@
 import { FC, useState } from "react";
 import useWallet from "@/hooks/useWallet";
 import { useSwapData } from "@/hooks/useSwapData";
-import { useSwapState, useSwap } from "@train-protocol/react";
+import { useActiveSwapState, useClearSwapError } from "@/hooks/useActiveSwapState";
+import { useCreateSwap, useRefund } from "@train-protocol/react";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
 import { LockStatus } from "@train-protocol/sdk";
@@ -12,23 +13,36 @@ import { useSelectedAccount } from "@/context/swapAccounts";
 import { Address } from "@/lib/address";
 import { type StartSwapParams } from "@train-protocol/react";
 import { NetworkContractType } from "@/Models/Network";
+import { useSwapStore } from "@/stores/swapStore";
+import { useFormikContext } from "formik";
+import type { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 
 type UserCommitActionProps = {
     quote?: SwapQuote
+    solverId?: string
     type: SwapViewType
 }
 
-export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
-    const { source_network, destination_network, amount, address, source_asset, destination_asset, hashlock, srcAtomicContract, solver } = useSwapData();
-    const { setError } = useSwap();
-    const { startSwap } = useSwap();
+export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, type }) => {
+    // Before lock: read from Formik (form values have Network/Token objects)
+    const { values } = useFormikContext<SwapFormValues>()
+    const { hashlock } = useSwapData()
+    const { createSwap } = useCreateSwap()
+    const source_network = values.from
+    const destination_network = values.to
+    const source_asset = values.fromCurrency
+    const destination_asset = values.toCurrency
+    const amount = values.amount ? Number(values.amount) : undefined
+    const address = values.destination_address
+
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
     const { derivedKey } = useSharedSecretDerivation()
     const sourceAccount = useSelectedAccount('from', source_network?.caip2Id)
     const sourceWallet = (sourceAccount?.address && source_network) ? provider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, source_network)) : undefined
+    const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
 
-    const atomicContract = srcAtomicContract
+    const atomicContract = source_network?.contracts?.find(c => c.type === NetworkContractType.Train)?.address
     const destContract = destination_network?.contracts?.find(c => c.type === NetworkContractType.Train)?.address
     const destLpAddress = quote?.destinationSolverAddress
     const srcLpAddress = quote?.sourceSolverAddress
@@ -49,7 +63,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
                 destinationAsset: destination_asset,
                 sourceAddress: sourceWallet.address,
                 destinationAddress: address,
-                solverId: solver ?? '',
+                solverId: solverId ?? '',
                 quote: {
                     signature: quote.signature,
                     receiveAmount: quote.receiveAmount,
@@ -67,7 +81,8 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
                 chainId: source_network.chainId,
             }
 
-            await startSwap(params, derivedKey)
+            const hl = await createSwap(params, derivedKey)
+            setActiveHashlock(hl)
 
             posthog.capture("UserLock", {
                 amount: amount,
@@ -80,7 +95,6 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
         }
         catch (e) {
             console.error('[UserLock] failed', e?.message ?? String(e), ...(e?.logs ? [e.logs] : []))
-            setError(new Error(e?.details || e?.message || e?.code || e?.name || 'Unknown error'))
         }
     }
 
@@ -105,8 +119,9 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
 
 export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const { source_network, hashlock, source_asset, refundTxId, srcAtomicContract } = useSwapData()
-    const { sourceDetails } = useSwapState()
-    const { setError, refund } = useSwap()
+    const { sourceDetails } = useActiveSwapState()
+    const activeHashlock = useSwapStore(s => s.activeHashlock)
+    const { refund: doRefund } = useRefund(activeHashlock)
     const { provider: source_provider } = useWallet(source_network, 'withdrawal')
     const sourceAccount = useSelectedAccount('from', source_network?.caip2Id)
     const sourceWallet = (sourceAccount?.address && source_network) ? source_provider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, source_network)) : undefined
@@ -127,7 +142,7 @@ export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
             if (source_provider?.activeWallet && (source_provider.activeWallet.chainId != source_network.chainId) && source_provider.switchChain)
                 await source_provider.switchChain(source_provider.activeWallet, source_network.chainId)
 
-            const res = await refund()
+            const res = await doRefund()
 
             posthog.capture("Refund", {
                 userLock: sourceDetails,
@@ -141,7 +156,7 @@ export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
             }
         }
         catch (e) {
-            setError(new Error(e.details || e.message))
+            console.error('[Refund] failed', e)
         }
     }
 

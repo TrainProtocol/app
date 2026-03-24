@@ -8,6 +8,7 @@ import { trainQueryKeys } from './queryKeys'
 export interface UseUserLockPollingOptions {
     client: IHTLCClient | null
     params: LockParams | null
+    hashlock: string | null
     enabled: boolean
     store: SwapStore | null
 }
@@ -17,7 +18,7 @@ export interface UseUserLockPollingOptions {
  * Writes directly to the store. Stops when the lock status is Redeemed.
  */
 export function useUserLockPolling(options: UseUserLockPollingOptions) {
-    const { client, params, enabled, store } = options
+    const { client, params, hashlock, enabled, store } = options
 
     const query = useQuery({
         queryKey: trainQueryKeys.userLock(params?.id ?? ''),
@@ -36,8 +37,8 @@ export function useUserLockPolling(options: UseUserLockPollingOptions) {
     })
 
     useEffect(() => {
-        if (query.data && store) {
-            store.getState().setSourceDetails(query.data)
+        if (query.data && store && hashlock) {
+            store.getState().setSourceDetails(hashlock, query.data)
         }
-    }, [query.data, store])
+    }, [query.data, store, hashlock])
 }

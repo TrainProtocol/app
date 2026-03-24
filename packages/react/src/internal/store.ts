@@ -39,66 +39,69 @@ export interface ActiveSwapState {
     manualClaimStartedAt: number | null
 }
 
+export type InitActiveSwapParams = Omit<
+    ActiveSwapState,
+    'sourceDetails' | 'solverLockDetails' | 'htlcFromApi' | 'secretRevealedToApi' | 'consensusPhase' | 'error' | 'manualClaimStartedAt'
+> & { secretRevealed?: boolean }
+
 // --- Store ---
 
 export interface SwapStoreState {
     // Persisted
     swaps: Record<string, SwapData>
-    activeHashlock: string | null
-    currentSwap: SwapData | null
 
-    // Ephemeral (not persisted)
-    activeSwap: ActiveSwapState | null
+    // Ephemeral (not persisted) — keyed by hashlock
+    activeSwaps: Record<string, ActiveSwapState>
 
     // Persisted swap actions
-    setActiveHashlock: (hashlock: string | null) => void
-    setCurrentSwap: (data: SwapData) => void
-    clearCurrentSwap: () => void
-    commitSwap: (hashlock: string, txId: string) => void
+    addSwap: (hashlock: string, data: SwapData) => void
     updateSwap: (hashlock: string, updates: Partial<SwapData>) => void
-    recoverSwap: (hashlock: string, data: SwapData) => void
     clearSwap: (hashlock: string) => void
 
-    // Active swap actions
-    initActiveSwap: (params: Omit<ActiveSwapState, 'sourceDetails' | 'solverLockDetails' | 'htlcFromApi' | 'secretRevealedToApi' | 'consensusPhase' | 'error' | 'manualClaimStartedAt'> & { secretRevealed?: boolean }) => void
-    setSourceDetails: (details: UserLockDetails) => void
-    setSolverLockDetails: (details: SolverLockDetails) => void
-    setConsensusPhase: (phase: ConsensusPhase) => void
-    setHtlcFromApi: (order: HTLCFromApi) => void
-    setSecretRevealedToApi: () => void
-    setActiveSwapError: (error: Error | null) => void
-    setSecretAndNonce: (secret: string, nonce: number) => void
-    setManualClaimStartedAt: (timestamp: number) => void
-    resetActiveSwap: () => void
+    // Active swap actions (all hashlock-scoped)
+    /** Activate monitoring for a persisted swap. Reads swaps[hashlock] and builds active state. No-op if already active or not persisted. */
+    activateSwap: (hashlock: string) => void
+    /** Low-level init with full params — used by useCreateSwap/useRecoverSwap where extra data (secret, quote, assets) is available. */
+    initActiveSwap: (hashlock: string, params: InitActiveSwapParams) => void
+    removeActiveSwap: (hashlock: string) => void
+    setSourceDetails: (hashlock: string, details: UserLockDetails) => void
+    setSolverLockDetails: (hashlock: string, details: SolverLockDetails) => void
+    setConsensusPhase: (hashlock: string, phase: ConsensusPhase) => void
+    setHtlcFromApi: (hashlock: string, order: HTLCFromApi) => void
+    setSecretRevealedToApi: (hashlock: string) => void
+    setActiveSwapError: (hashlock: string, error: Error | null) => void
+    setSecretAndNonce: (hashlock: string, secret: string, nonce: number) => void
+    setManualClaimStartedAt: (hashlock: string, timestamp: number) => void
 }
 
 const STORAGE_KEY = 'train:swaps'
 
 const initialState = {
     swaps: {} as Record<string, SwapData>,
-    activeHashlock: null as string | null,
-    currentSwap: null as SwapData | null,
-    activeSwap: null as ActiveSwapState | null,
+    activeSwaps: {} as Record<string, ActiveSwapState>,
 }
 
 type SetFn = (fn: SwapStoreState | Partial<SwapStoreState> | ((state: SwapStoreState) => SwapStoreState | Partial<SwapStoreState>)) => void
 
+/** Helper to update a single active swap entry immutably */
+function updateActive(
+    state: SwapStoreState,
+    hashlock: string,
+    updater: (swap: ActiveSwapState) => ActiveSwapState,
+): Partial<SwapStoreState> {
+    const swap = state.activeSwaps[hashlock]
+    if (!swap) return state
+    return { activeSwaps: { ...state.activeSwaps, [hashlock]: updater(swap) } }
+}
+
 function createActions(set: SetFn) {
     return {
-        // --- Persisted swap actions (unchanged) ---
-        setActiveHashlock: (hashlock: string | null) => set({ activeHashlock: hashlock }),
-        setCurrentSwap: (data: SwapData) => set({ currentSwap: data, activeHashlock: null }),
-        clearCurrentSwap: () => set({ currentSwap: null }),
-        commitSwap: (hashlock: string, txId: string) =>
-            set((state) => {
-                const data = state.currentSwap
-                if (!data) return state
-                return {
-                    currentSwap: null,
-                    swaps: { ...state.swaps, [hashlock]: { ...data, hashlock, txId, createdAt: Date.now() } },
-                    activeHashlock: hashlock,
-                }
-            }),
+        // --- Persisted swap actions ---
+        addSwap: (hashlock: string, data: SwapData) =>
+            set((state) => ({
+                swaps: { ...state.swaps, [hashlock]: { ...data, hashlock, createdAt: Date.now() } },
+            })),
+
         updateSwap: (hashlock: string, updates: Partial<SwapData>) =>
             set((state) => {
                 if (!state.swaps[hashlock]) return state
@@ -106,96 +109,109 @@ function createActions(set: SetFn) {
                     swaps: { ...state.swaps, [hashlock]: { ...state.swaps[hashlock], ...updates } },
                 }
             }),
-        recoverSwap: (hashlock: string, data: SwapData) =>
-            set((state) => {
-                if (state.swaps[hashlock]) return state
-                return {
-                    swaps: { ...state.swaps, [hashlock]: data },
-                    activeHashlock: hashlock,
-                }
-            }),
+
         clearSwap: (hashlock: string) =>
             set((state) => {
                 const { [hashlock]: _, ...rest } = state.swaps
+                return { swaps: rest }
+            }),
+
+        // --- Active swap actions (hashlock-scoped) ---
+        activateSwap: (hashlock: string) =>
+            set((state) => {
+                // Already active or no persisted data — no-op
+                if (state.activeSwaps[hashlock] || !state.swaps[hashlock]) return state
+                const swap = state.swaps[hashlock]
                 return {
-                    swaps: rest,
-                    activeHashlock: state.activeHashlock === hashlock ? null : state.activeHashlock,
+                    activeSwaps: {
+                        ...state.activeSwaps,
+                        [hashlock]: {
+                            hashlock,
+                            nonce: null,
+                            secret: null,
+                            solverId: swap.solver ?? null,
+                            sourceNetwork: swap.source ?? '',
+                            destinationNetwork: swap.destination ?? '',
+                            srcContract: swap.srcContract ?? null,
+                            destContract: swap.destContract ?? null,
+                            tokenContractAddress: null,
+                            sourceAddress: swap.sourceAddress ?? swap.address ?? null,
+                            destinationAddress: swap.destinationAddress ?? null,
+                            chainId: swap.source?.split(':')[1] ?? null,
+                            txId: swap.txId ?? null,
+                            sourceAsset: null,
+                            destinationAsset: null,
+                            quote: null,
+                            requestedAmount: swap.requestedAmount ?? null,
+                            sourceDetails: null,
+                            solverLockDetails: null,
+                            htlcFromApi: null,
+                            secretRevealedToApi: swap.secretRevealed ?? false,
+                            consensusPhase: 'none',
+                            error: null,
+                            manualClaimStartedAt: null,
+                        },
+                    },
                 }
             }),
 
-        // --- Active swap actions ---
-        initActiveSwap: (params: Omit<ActiveSwapState, 'sourceDetails' | 'solverLockDetails' | 'htlcFromApi' | 'secretRevealedToApi' | 'consensusPhase' | 'error' | 'manualClaimStartedAt'> & { secretRevealed?: boolean }) =>
-            set({
-                activeSwap: {
-                    ...params,
-                    sourceDetails: null,
-                    solverLockDetails: null,
-                    htlcFromApi: null,
-                    secretRevealedToApi: params.secretRevealed ?? false,
-                    consensusPhase: 'none',
-                    error: null,
-                    manualClaimStartedAt: null,
+        initActiveSwap: (hashlock: string, params: InitActiveSwapParams) =>
+            set((state) => ({
+                activeSwaps: {
+                    ...state.activeSwaps,
+                    [hashlock]: {
+                        ...params,
+                        sourceDetails: null,
+                        solverLockDetails: null,
+                        htlcFromApi: null,
+                        secretRevealedToApi: params.secretRevealed ?? false,
+                        consensusPhase: 'none',
+                        error: null,
+                        manualClaimStartedAt: null,
+                    },
                 },
-            }),
+            })),
 
-        setSourceDetails: (details: UserLockDetails) =>
+        removeActiveSwap: (hashlock: string) =>
             set((state) => {
-                if (!state.activeSwap) return state
-                // Hashlock mismatch guard
-                if (details.hashlock && details.hashlock.toLowerCase() !== state.activeSwap.hashlock.toLowerCase()) return state
-                // Empty result guard (lock not yet mined — contract returns defaults with no sender)
-                if (!details.sender) return state
-                return { activeSwap: { ...state.activeSwap, sourceDetails: details } }
+                const { [hashlock]: _, ...rest } = state.activeSwaps
+                return { activeSwaps: rest }
             }),
 
-        setSolverLockDetails: (details: SolverLockDetails) =>
-            set((state) => {
-                if (!state.activeSwap) return state
-                return { activeSwap: { ...state.activeSwap, solverLockDetails: details } }
-            }),
+        setSourceDetails: (hashlock: string, details: UserLockDetails) =>
+            set((state) => updateActive(state, hashlock, (swap) => {
+                if (details.hashlock && details.hashlock.toLowerCase() !== swap.hashlock.toLowerCase()) return swap
+                if (!details.sender) return swap
+                return { ...swap, sourceDetails: details }
+            })),
 
-        setConsensusPhase: (phase: ConsensusPhase) =>
-            set((state) => {
-                if (!state.activeSwap) return state
-                return { activeSwap: { ...state.activeSwap, consensusPhase: phase } }
-            }),
+        setSolverLockDetails: (hashlock: string, details: SolverLockDetails) =>
+            set((state) => updateActive(state, hashlock, (swap) => ({ ...swap, solverLockDetails: details }))),
 
-        setHtlcFromApi: (order: HTLCFromApi) =>
-            set((state) => {
-                if (!state.activeSwap) return state
-                return { activeSwap: { ...state.activeSwap, htlcFromApi: order } }
-            }),
+        setConsensusPhase: (hashlock: string, phase: ConsensusPhase) =>
+            set((state) => updateActive(state, hashlock, (swap) => ({ ...swap, consensusPhase: phase }))),
 
-        setSecretRevealedToApi: () =>
-            set((state) => {
-                if (!state.activeSwap) return state
-                return { activeSwap: { ...state.activeSwap, secretRevealedToApi: true } }
-            }),
+        setHtlcFromApi: (hashlock: string, order: HTLCFromApi) =>
+            set((state) => updateActive(state, hashlock, (swap) => ({ ...swap, htlcFromApi: order }))),
 
-        setActiveSwapError: (error: Error | null) =>
-            set((state) => {
-                if (!state.activeSwap) return state
-                return { activeSwap: { ...state.activeSwap, error } }
-            }),
+        setSecretRevealedToApi: (hashlock: string) =>
+            set((state) => updateActive(state, hashlock, (swap) => ({ ...swap, secretRevealedToApi: true }))),
 
-        setSecretAndNonce: (secret: string, nonce: number) =>
-            set((state) => {
-                if (!state.activeSwap) return state
-                return { activeSwap: { ...state.activeSwap, secret, nonce } }
-            }),
+        setActiveSwapError: (hashlock: string, error: Error | null) =>
+            set((state) => updateActive(state, hashlock, (swap) => ({ ...swap, error }))),
 
-        setManualClaimStartedAt: (timestamp: number) =>
-            set((state) => {
-                if (!state.activeSwap) return state
-                if (state.activeSwap.manualClaimStartedAt) return state // only set once
-                return { activeSwap: { ...state.activeSwap, manualClaimStartedAt: timestamp } }
-            }),
+        setSecretAndNonce: (hashlock: string, secret: string, nonce: number) =>
+            set((state) => updateActive(state, hashlock, (swap) => ({ ...swap, secret, nonce }))),
 
-        resetActiveSwap: () => set({ activeSwap: null }),
+        setManualClaimStartedAt: (hashlock: string, timestamp: number) =>
+            set((state) => updateActive(state, hashlock, (swap) => {
+                if (swap.manualClaimStartedAt) return swap
+                return { ...swap, manualClaimStartedAt: timestamp }
+            })),
     }
 }
 
-function createPersistStorage(storage?: SwapStorage): PersistStorage<Pick<SwapStoreState, 'swaps' | 'activeHashlock'>> | undefined {
+function createPersistStorage(storage?: SwapStorage): PersistStorage<Pick<SwapStoreState, 'swaps'>> | undefined {
     if (typeof window === 'undefined' && !storage) return undefined
 
     const underlying = storage ?? (typeof window !== 'undefined' ? window.localStorage : undefined)
@@ -241,7 +257,6 @@ export function createSwapStore(options?: { persist?: boolean; storage?: SwapSto
                 storage: persistStorage,
                 partialize: (state) => ({
                     swaps: state.swaps,
-                    activeHashlock: state.activeHashlock,
                 }),
             },
         ),

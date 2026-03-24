@@ -1,5 +1,5 @@
 import { Formik, FormikProps } from "formik";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import React from "react";
 import MainStepValidation from "@/lib/mainStepValidator";
@@ -8,18 +8,14 @@ import { NextRouter, useRouter } from "next/router";
 import { useQueryState } from "@/context/query";
 import useWallet from "@/hooks/useWallet";
 import type { SwapQuote } from "@train-protocol/sdk";
-import { useSwapData } from "@/hooks/useSwapData";
-import { useSwapState, useSwap } from "@train-protocol/react";
+import { useSwapProgress } from "@train-protocol/react";
 import VaulDrawer from "../../Modal/vaulModal";
 import { Widget } from "../../Widget/Index";
 import { generateSwapInitialValues } from "@/lib/generateSwapInitialValues";
 import { useSettingsState } from "@/context/settings";
 import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
-import { useSharedSecretDerivation, type LoginIdentity } from "@train-protocol/react";
+import { useSharedSecretDerivation } from "@train-protocol/react";
 import { useSwapStore } from "@/stores/swapStore";
-import { useSwapActions } from "@train-protocol/react";
-import { formatUnits } from "viem";
-import { NetworkContractType } from "@/Models/Network";
 import { HTLCStatus } from "@/Models/HTLCStatus";
 
 import AtomicPage from "../AtomicChat";
@@ -29,47 +25,41 @@ export default function Form() {
     const formikRef = useRef<FormikProps<SwapFormValues>>(null);
     const router = useRouter();
     const query = useQueryState()
-    const { isLoggedIn, method, loginWallet, activePasskeyCredentialId } = useSharedSecretDerivation()
-
+    const { isLoggedIn } = useSharedSecretDerivation()
     const [quote, setQuote] = useState<SwapQuote | undefined>()
     const [solverId, setSolverId] = useState<string | undefined>()
     const [polling, setPolling] = useState(true)
     const { getProvider } = useWallet()
-    const { hashlock } = useSwapData()
-    const { status: htlcStatus } = useSwapState()
+    const activeHashlock = useSwapStore(s => s.activeHashlock)
+    const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
     const settings = useSettingsState()
     const swapModalOpen = useSwapStore(s => s.swapModalOpen)
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
-    const { setCurrentSwap } = useSwap()
-    const { clearCurrentSwap, setActiveHashlock } = useSwapActions()
     const updateRecentNetworks = useRecentNetworksStore(s => s.updateRecentNetworks);
 
-    const loginIdentity = useMemo((): LoginIdentity | undefined => {
-        if (method === 'passkey' && activePasskeyCredentialId) {
-            return { method: 'passkey', credentialId: activePasskeyCredentialId }
+    // Monitor the active swap lifecycle
+    const { status: htlcStatus } = useSwapProgress(activeHashlock)
+
+    // Restore hashlock from URL on mount
+    useEffect(() => {
+        const hashlockFromUrl = router.query.hashlock as string | undefined
+        if (hashlockFromUrl && !activeHashlock) {
+            setActiveHashlock(hashlockFromUrl)
+            setSwapModalOpen(true)
         }
-        if (method === 'wallet_sign' && loginWallet) {
-            return {
-                method: 'wallet_sign',
-                providerName: loginWallet.providerName,
-                displayName: loginWallet.displayName ?? loginWallet.providerName,
-                address: loginWallet.address,
-            }
-        }
-        return undefined
-    }, [method, activePasskeyCredentialId, loginWallet])
+    }, [router.query.hashlock])
 
     useEffect(() => {
         if (swapModalOpen) {
             setPolling(false);
-            if (hashlock) {
-                setHashlockInUrl(router, hashlock);
+            if (activeHashlock) {
+                setHashlockInUrl(router, activeHashlock);
             }
         } else {
             setPolling(true);
             removeSwapPath(router);
         }
-    }, [swapModalOpen, hashlock, router]);
+    }, [swapModalOpen, activeHashlock, router]);
 
     const handleShowSwapModal = useCallback((value: boolean) => {
         setSwapModalOpen(value);
@@ -77,67 +67,40 @@ export default function Form() {
 
     const handleDrawerAnimationEnd = useCallback((open: boolean) => {
         if (!open) {
-            clearCurrentSwap();
             const isTerminal = htlcStatus === HTLCStatus.RedeemCompleted || htlcStatus === HTLCStatus.Refunded
             if (isTerminal) {
                 setActiveHashlock(null)
             }
         }
-    }, [clearCurrentSwap, htlcStatus, setActiveHashlock]);
+    }, [htlcStatus, setActiveHashlock]);
 
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
-            // Check if user has logged in (chosen a derivation method)
             if (!isLoggedIn) {
                 throw new Error("Please login first")
             }
 
-            if (!values.amount) {
-                throw new Error("No amount specified")
-            }
-            if (!values.destination_address) {
-                throw new Error("Please enter a valid address")
-            }
-            if (!values.fromCurrency) {
-                throw new Error("No source asset")
-            }
-            if (!values.toCurrency) {
-                throw new Error("No destination asset")
-            }
+            if (!values.amount) throw new Error("No amount specified")
+            if (!values.destination_address) throw new Error("Please enter a valid address")
+            if (!values.fromCurrency) throw new Error("No source asset")
+            if (!values.toCurrency) throw new Error("No destination asset")
 
             const source_provider = values.from && getProvider(values.from, 'withdrawal')
             const destination_provider = values.to && getProvider(values.to, 'withdrawal')
-            const source_contract = values.from?.contracts?.find(c => c.type === NetworkContractType.Train)?.address
-            const destination_contract = values.to?.contracts?.find(c => c.type === NetworkContractType.Train)?.address
 
-            if (!source_provider) {
-                throw new Error("No source_provider")
-            }
-            if (!destination_provider) {
-                throw new Error("No destination_provider")
-            }
-            const formattedReceiveAmount = quote?.receiveAmount ? formatUnits(BigInt(quote?.receiveAmount), values.toCurrency.decimals) : undefined
+            if (!source_provider) throw new Error("No source_provider")
+            if (!destination_provider) throw new Error("No destination_provider")
 
             updateRecentNetworks({
                 from: values.from && values.fromCurrency ? { network: values.from.caip2Id, token: values.fromCurrency.symbol } : undefined,
                 to: values.to && values.toCurrency ? { network: values.to.caip2Id, token: values.toCurrency.symbol } : undefined,
             })
 
-            setCurrentSwap({
-                requestedAmount: values.amount,
-                address: values.destination_address,
-                source: values.from?.caip2Id!,
-                destination: values.to?.caip2Id!,
-                source_asset: values.fromCurrency.symbol,
-                destination_asset: values.toCurrency.symbol,
-                solver: solverId,
-                srcContract: source_contract,
-                destContract: destination_contract,
-                receiveAmount: formattedReceiveAmount,
-                sourceSolverAddress: quote?.sourceSolverAddress,
-                destinationSolverAddress: quote?.destinationSolverAddress,
-                loginIdentity,
-            })
+            // Reset any previous swap so the modal starts fresh
+            setActiveHashlock(null)
+
+            // Open the swap modal — pre-lock data comes from Formik context,
+            // UserLockAction inside will call createSwap
             setSwapModalOpen(true)
             setPolling(false)
         }

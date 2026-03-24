@@ -1,6 +1,6 @@
 import { FC, useEffect, useMemo, useState } from 'react'
 import { ChevronUp } from 'lucide-react'
-import { useSwaps, useSwapActions, useSwapStoreRead, type SwapData } from '@train-protocol/react'
+import { useSwaps, useUpdateSwap, type SwapData } from '@train-protocol/react'
 import { useSettingsState } from '@/context/settings'
 import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus'
 import { Network } from '@/Models/Network'
@@ -46,8 +46,7 @@ const apiClient = new TrainApiClient({ baseUrl: AppSettings.TrainApiUri ?? '' })
 
 const SwapHistory: FC = () => {
     const swaps = useSwaps()
-    const { getAllSwaps } = useSwapStoreRead()
-    const { updateSwap } = useSwapActions()
+    const updateSwap = useUpdateSwap()
     const { networks } = useSettingsState()
     const [expanded, setExpanded] = useState<string | undefined>(undefined)
     const [showAllOngoing, setShowAllOngoing] = useState(false)
@@ -79,8 +78,7 @@ const SwapHistory: FC = () => {
 
         const checkExpiry = () => {
             const now = Date.now()
-            const currentSwaps = getAllSwaps()
-            Object.entries(currentSwaps).forEach(([hashlock, swap]) => {
+            Object.entries(swaps).forEach(([hashlock, swap]) => {
                 if (
                     swap.timelock &&
                     !isTerminalStatus(swap.status) &&
@@ -96,7 +94,7 @@ const SwapHistory: FC = () => {
         checkExpiry()
         const id = setInterval(checkExpiry, 10_000)
         return () => clearInterval(id)
-    }, [ongoingEntries.length, updateSwap])
+    }, [ongoingEntries.length, swaps, updateSwap])
 
     useEffect(() => {
         entries.forEach(([hashlock, swap]) => {

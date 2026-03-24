@@ -1,7 +1,5 @@
 // --- Providers ---
 export { TrainProvider } from './providers/TrainProvider'
-export { SwapProvider } from './providers/SwapProvider'
-export type { ResumeSwapParams, SwapContextValue } from './providers/SwapProvider'
 
 // --- Data Hooks (require TrainProvider) ---
 export { useNetworks } from './hooks/useNetworks'
@@ -12,20 +10,21 @@ export { useQuote } from './hooks/useQuote'
 export { useSwapHistory } from './hooks/useSwapHistory'
 export { useOrder } from './hooks/useOrder'
 
-// --- Swap Data Hooks (require TrainProvider) ---
-export { useCurrentSwap, useSwapActions } from './hooks/useCurrentSwap'
-export { useSwaps, useActiveSwap } from './hooks/useSwapStore'
-export { useActiveHashlock } from './hooks/useActiveHashlock'
-export { useSwapStoreRead } from './hooks/useSwapStoreRead'
-
-// --- Swap Lifecycle Hooks (require SwapProvider) ---
+// --- Swap Hooks (require TrainProvider) ---
+// Read
 export { useSwap } from './hooks/useSwap'
+export { useSwaps } from './hooks/useSwaps'
+// Lifecycle
+export { useSwapProgress } from './hooks/useSwapProgress'
 export { useSwapState } from './hooks/useSwapState'
-export { useUserLock } from './hooks/useUserLock'
+export { useCreateSwap } from './hooks/useCreateSwap'
+export { useRecoverSwap } from './hooks/useRecoverSwap'
+// Actions (take hashlock)
 export { useRevealSecret } from './hooks/useRevealSecret'
 export { useRefund } from './hooks/useRefund'
 export { useManualClaim } from './hooks/useManualClaim'
-export { useRecoverSwap } from './hooks/useRecoverSwap'
+export { useClearSwapError } from './hooks/useClearSwapError'
+export { useUpdateSwap } from './hooks/useUpdateSwap'
 
 // --- Secret Derivation ---
 export { SecretDerivationProvider, useSharedSecretDerivation, useOptionalSecretDerivation } from './providers/SecretDerivationProvider'
@@ -97,11 +96,12 @@ export { LocalStoragePasskeyStorage } from './internal/LocalStoragePasskeyStorag
 
 export type { DerivationMethod } from './types'
 
+// --- Derived state type ---
+export type { DerivedSwapState } from './internal/useDerivedSwapState'
+
 // --- Hook result types ---
 export type { UseQuoteResult } from './hooks/useQuote'
-export type { UseSwapResult } from './hooks/useSwap'
-export type { UseSwapStateResult } from './hooks/useSwapState'
-export type { UseUserLockResult } from './hooks/useUserLock'
+export type { UseCreateSwapResult } from './hooks/useCreateSwap'
 export type { UseRevealSecretResult } from './hooks/useRevealSecret'
 export type { UseRefundResult } from './hooks/useRefund'
 export type { UseManualClaimResult } from './hooks/useManualClaim'

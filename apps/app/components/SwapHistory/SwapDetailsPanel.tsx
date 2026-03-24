@@ -1,7 +1,7 @@
 import { FC } from 'react'
 import { ExternalLink, RefreshCw } from 'lucide-react'
 import { useSwapStore } from '@/stores/swapStore'
-import { useSwapActions, type SwapData } from '@train-protocol/react'
+import { type SwapData } from '@train-protocol/react'
 import { Network } from '@/Models/Network'
 import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus'
 import { getExplorerUrl } from '@/lib/address'
@@ -21,7 +21,7 @@ type Props = {
 
 const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
     const router = useRouter()
-    const { setActiveHashlock } = useSwapActions()
+    const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
 
     const srcExplorerTemplate = sourceNetwork

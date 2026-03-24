@@ -3,7 +3,7 @@ import Link from "next/link";
 import shortenString from "@/components/utils/ShortenString";
 import { getExplorerUrl } from "@/lib/address";
 import { useSwapData } from "@/hooks/useSwapData";
-import { useSwapState } from "@train-protocol/react";
+import { useActiveSwapState } from "@/hooks/useActiveSwapState";
 import WalletIcon from "@/components/Icons/WalletIcon";
 import LockIcon from "@/components/Icons/LockIcon";
 import SignatureIcon from "@/components/Icons/SignatureIcon";
@@ -34,7 +34,7 @@ const Confirmed: FC = () => {
 
 const AssetsReady: FC = () => {
     const { destination_network } = useSwapData()
-    const { htlcFromApi } = useSwapState()
+    const { htlcFromApi } = useActiveSwapState()
 
     const lpLockTx = htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCLock)
     const description = (lpLockTx && destination_network) ? <p><span>Transaction ID:</span> <Link className="underline hover:no-underline" target="_blank" href={getExplorerUrl(NetworkSettings.KnownSettings[destination_network.caip2Id]?.TransactionExplorerTemplate, lpLockTx?.hash)}>{shortenString(lpLockTx.hash)}</Link></p> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />

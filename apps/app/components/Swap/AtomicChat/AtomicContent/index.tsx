@@ -1,6 +1,6 @@
-import { FC, useEffect } from "react";
+import { FC } from "react";
 import { useSwapData } from "@/hooks/useSwapData";
-import { useSwapState } from "@train-protocol/react";
+import { useActiveSwapState } from "@/hooks/useActiveSwapState";
 import Summary from "./Summary";
 import type { SwapQuote } from "@train-protocol/sdk";
 import SwapQuoteComp from "@/components/FeeDetails/SwapQuote";
@@ -22,25 +22,9 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
         source_asset, destination_asset, amount,
         hashlock,
     } = useSwapData()
-    const { status: commitStatus } = useSwapState()
+    const { status: commitStatus } = useActiveSwapState()
 
     const isInitial = commitStatus === HTLCStatus.Initial
-
-    //TODO: check the setPulseState
-    // Centralized pulse state
-    // useEffect(() => {
-    //     switch (commitStatus) {
-    //         case HTLCStatus.RedeemCompleted:
-    //             setPulseState("completed");
-    //             break;
-    //         case HTLCStatus.SecretRevealed:
-    //         case HTLCStatus.UserLocked:
-    //             setPulseState("pulsing");
-    //             break;
-    //         default:
-    //             setPulseState("initial");
-    //     }
-    // }, [commitStatus]);
 
     const values: SwapFormValues = {
         amount: amount?.toString(),

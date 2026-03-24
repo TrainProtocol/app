@@ -1,6 +1,6 @@
 import React, { FC, useMemo } from "react";
 import { useSwapData } from "@/hooks/useSwapData";
-import { useSwapState } from "@train-protocol/react";
+import { useActiveSwapState } from "@/hooks/useActiveSwapState";
 import { StepStatus, TimelineStep } from "./progressTypes";
 import { LockStatus } from "@train-protocol/sdk";
 import { getExplorerUrl } from "@/lib/address";
@@ -103,7 +103,7 @@ function buildSteps(
 // --- Verification Status ---
 
 const VerificationStatus: FC = () => {
-    const { consensusVerifying, consensusVerified } = useSwapState();
+    const { consensusVerifying, consensusVerified } = useActiveSwapState();
 
     // const lcHashlock = destinationDetailsByLightClient?.data?.hashlock;
     // const solverHashlock = solverLockDetails?.hashlock;
@@ -169,7 +169,7 @@ export function useSwapProgress(): SwapProgress {
         destRedeemTxId: destRedeemTx,
         htlcFromApi,
         consensusVerifying,
-    } = useSwapState();
+    } = useActiveSwapState();
 
     const { verified, skipped, mismatches } = useSolverLockVerification();
 

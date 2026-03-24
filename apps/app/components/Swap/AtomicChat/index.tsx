@@ -23,14 +23,14 @@ const Swap: FC<ContainerProps> = ({ type }) => {
         });
     }, [hashlock, source_network?.caip2Id, destination_network?.caip2Id, source_asset, destination_asset, amount]);
 
-    const { quote, isQuoteLoading } = useQuoteData(quoteParams, 42000);
+    const { quote, solverId, isQuoteLoading } = useQuoteData(quoteParams, 42000);
 
     return (
         <>
             <Widget.Content>
                 <AtomicContent quote={quote} isQuoteLoading={isQuoteLoading} />
             </Widget.Content>
-            <Actions quote={quote} type={type} />
+            <Actions quote={quote} solverId={solverId} type={type} />
         </>
     )
 }

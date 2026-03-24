@@ -1,15 +1,18 @@
 import { FC } from "react";
 import { useSwapData } from "@/hooks/useSwapData";
-import { useSwapState, useSwap } from "@train-protocol/react";
+import { useActiveSwapState } from "@/hooks/useActiveSwapState";
+import { useManualClaim } from "@train-protocol/react";
 import useWallet from "@/hooks/useWallet";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
 import { SwapViewType } from ".";
+import { useSwapStore } from "@/stores/swapStore";
 
 export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const { destination_network, hashlock } = useSwapData();
-    const { sourceDetails, destRedeemTxId } = useSwapState();
-    const { manualClaim, setError } = useSwap();
+    const { sourceDetails, destRedeemTxId } = useActiveSwapState();
+    const activeHashlock = useSwapStore(s => s.activeHashlock)
+    const { claim, isClaiming } = useManualClaim(activeHashlock);
 
     const { provider } = useWallet(destination_network, 'withdrawal');
     const wallet = provider?.activeWallet;
@@ -23,14 +26,14 @@ export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
             if (provider?.activeWallet && (provider.activeWallet.chainId != destination_network.chainId) && provider.switchChain)
                 await provider.switchChain(provider.activeWallet, destination_network.chainId);
 
-            await manualClaim(sourceDetails.secret.toString());
+            await claim(sourceDetails.secret.toString());
 
             posthog.capture("ManualClaim", {
                 hashlock,
                 destinationNetwork: destination_network.caip2Id,
             });
         } catch (e: any) {
-            setError(new Error(e.details || e.message));
+            console.error('[ManualClaim] failed', e);
         }
     };
 

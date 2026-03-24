@@ -21,6 +21,21 @@ export interface DerivedSwapState {
     consensusVerified: boolean
 }
 
+const EMPTY_STATE: DerivedSwapState = {
+    status: HTLCStatus.Initial,
+    hashlock: null,
+    sourceDetails: null,
+    solverLockDetails: null,
+    htlcFromApi: null,
+    secretRevealed: false,
+    isTimelockExpired: false,
+    manualClaimRequired: false,
+    destRedeemTxId: null,
+    error: null,
+    consensusVerifying: false,
+    consensusVerified: false,
+}
+
 function deriveDestRedeemTxId(activeSwap: ActiveSwapState): string | null {
     const redeemTx = activeSwap.htlcFromApi?.transactions?.find(
         (t: any) => t.type === 'HTLCRedeem' && t.network === activeSwap.destinationNetwork
@@ -33,13 +48,13 @@ function deriveSecretRevealed(activeSwap: ActiveSwapState): boolean {
 }
 
 /**
- * Hook that reads activeSwap from the store and derives all computed state.
+ * Hook that reads activeSwaps[hashlock] from the store and derives all computed state.
  * This is the single place where raw store data becomes the shape consumers expect.
  */
-export function useDerivedSwapState(store: SwapStore | null): DerivedSwapState {
+export function useDerivedSwapState(store: SwapStore | null, hashlock: string | null): DerivedSwapState {
     const activeSwap = useSyncExternalStore(
         (cb) => store ? store.subscribe(cb) : () => {},
-        () => store?.getState().activeSwap ?? null,
+        () => (store && hashlock) ? store.getState().activeSwaps[hashlock] ?? null : null,
         () => null,
     )
 
@@ -69,32 +84,18 @@ export function useDerivedSwapState(store: SwapStore | null): DerivedSwapState {
     useEffect(() => {
         if (
             store &&
+            hashlock &&
             activeSwap &&
             activeSwap.sourceDetails?.status === LockStatus.Redeemed &&
             activeSwap.solverLockDetails &&
             activeSwap.solverLockDetails.status !== LockStatus.Redeemed &&
             !activeSwap.manualClaimStartedAt
         ) {
-            store.getState().setManualClaimStartedAt(Date.now())
+            store.getState().setManualClaimStartedAt(hashlock, Date.now())
         }
-    }, [store, activeSwap?.sourceDetails?.status, activeSwap?.solverLockDetails?.status, activeSwap?.manualClaimStartedAt])
+    }, [store, hashlock, activeSwap?.sourceDetails?.status, activeSwap?.solverLockDetails?.status, activeSwap?.manualClaimStartedAt])
 
-    if (!activeSwap) {
-        return {
-            status: HTLCStatus.Initial,
-            hashlock: null,
-            sourceDetails: null,
-            solverLockDetails: null,
-            htlcFromApi: null,
-            secretRevealed: false,
-            isTimelockExpired: false,
-            manualClaimRequired: false,
-            destRedeemTxId: null,
-            error: null,
-            consensusVerifying: false,
-            consensusVerified: false,
-        }
-    }
+    if (!activeSwap) return EMPTY_STATE
 
     const secretRevealed = deriveSecretRevealed(activeSwap)
     const destRedeemTxId = deriveDestRedeemTxId(activeSwap)
