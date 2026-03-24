@@ -14,7 +14,7 @@ export interface UseOrderStreamOptions {
 
 /**
  * SSE stream for order events from Station API.
- * Writes directly to the store. Accumulates transactions from order_event messages.
+ * Writes to store.orderData. Accumulates transactions from order_event messages.
  */
 export function useOrderStream(options: UseOrderStreamOptions) {
     const { baseUrl, solverId, hashlock, enabled, store, onFailed } = options
@@ -35,15 +35,15 @@ export function useOrderStream(options: UseOrderStreamOptions) {
         order: (data: unknown) => {
             if (!hashlock) return
             const response = data as HTLCFromApiResponse
-            const orderData = response.order
+            const order = response.order
             const merged = {
-                ...orderData,
+                ...order,
                 transactions: [
-                    ...(orderData.transactions ?? []),
+                    ...(order.transactions ?? []),
                     ...accumulatedTxsRef.current,
                 ],
             }
-            store?.getState().setHtlcFromApi(hashlock, merged)
+            store?.getState().setOrderData(hashlock, merged)
         },
         order_event: (data: unknown) => {
             if (!hashlock) return
@@ -57,9 +57,9 @@ export function useOrderStream(options: UseOrderStreamOptions) {
                 }
                 accumulatedTxsRef.current = [...accumulatedTxsRef.current, tx]
 
-                const currentOrder = store?.getState().activeSwaps[hashlock]?.htlcFromApi
+                const currentOrder = store?.getState().orderData[hashlock]
                 if (currentOrder) {
-                    store?.getState().setHtlcFromApi(hashlock, {
+                    store?.getState().setOrderData(hashlock, {
                         ...currentOrder,
                         transactions: [...(currentOrder.transactions ?? []), tx],
                     })

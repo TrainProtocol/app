@@ -1,4 +1,4 @@
-import { useState, useCallback, useSyncExternalStore } from 'react'
+import { useState, useCallback } from 'react'
 import { HTLCStatus } from '@train-protocol/sdk'
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
@@ -40,9 +40,9 @@ export function useRefund(hashlock: string | null | undefined): UseRefundResult 
         setIsRefunding(true)
         setError(null)
 
-        const swap = hl ? store?.getState().activeSwaps[hl] : null
-        const srcNamespace = swap?.sourceNetwork?.split(':')[0] ?? null
-        if (!swap?.hashlock || !srcNamespace || !swap?.srcContract || !swap?.sourceAsset) {
+        const swapConfig = hl ? store?.getState().swapConfigs[hl] : null
+        const srcNamespace = swapConfig?.sourceNetwork?.split(':')[0] ?? null
+        if (!swapConfig?.hashlock || !srcNamespace || !swapConfig?.srcContract || !swapConfig?.sourceAsset) {
             const err = new TrainError('Cannot refund: missing required params', TrainErrorCode.RefundFailed)
             setError(err)
             setIsRefunding(false)
@@ -50,19 +50,19 @@ export function useRefund(hashlock: string | null | undefined): UseRefundResult 
         }
 
         try {
-            const signer = walletCtx.getSignerForNetwork(swap.sourceNetwork)
+            const signer = walletCtx.getSignerForNetwork(swapConfig.sourceNetwork)
             if (!signer) {
                 throw new TrainError(`No wallet adapter for ${srcNamespace}`, TrainErrorCode.WalletNotConnected)
             }
 
-            const adapterConfig = walletCtx.getClientConfigForNetwork(swap.sourceNetwork)
+            const adapterConfig = walletCtx.getClientConfigForNetwork(swapConfig.sourceNetwork)
             const client = sdk.createHTLCClient(srcNamespace, { ...adapterConfig, signer } as any)
             const txHash = await client.refund({
-                type: getLockType(swap.tokenContractAddress),
-                chainId: swap.chainId,
-                contractAddress: swap.srcContract,
-                id: swap.hashlock,
-                sourceAsset: swap.sourceAsset,
+                type: getLockType(swapConfig.tokenContractAddress),
+                chainId: swapConfig.chainId,
+                contractAddress: swapConfig.srcContract,
+                id: swapConfig.hashlock,
+                sourceAsset: swapConfig.sourceAsset,
             })
 
             if (store && hl) {

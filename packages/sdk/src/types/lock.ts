@@ -19,6 +19,7 @@ export type UserLockDetails = BaseLockDetails & {
     userData?: string,
     blockTimestamp?: number,
     secret?: bigint,
+    dstAmount?: string,
 }
 
 export type SolverLockDetails = BaseLockDetails & {

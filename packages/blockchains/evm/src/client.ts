@@ -149,6 +149,7 @@ export class EvmHTLCClient extends HTLCClient {
         const lockExists = result.sender !== ZERO_ADDRESS
         let userData: string | undefined
         let blockTimestamp: number | undefined
+        let dstAmount: string | undefined
 
         if (lockExists && txId) {
             try {
@@ -157,6 +158,9 @@ export class EvmHTLCClient extends HTLCClient {
                     const lockEvent = this.findUserLockedEvent(receipt.logs, id)
                     if (lockEvent?.userData && lockEvent.userData !== '0x') {
                         userData = BigInt(lockEvent.userData as string).toString()
+                    }
+                    if (lockEvent?.dstAmount != null) {
+                        dstAmount = BigInt(lockEvent.dstAmount as string | bigint).toString()
                     }
 
                     const block = await this.rpc.getBlockByNumber(receipt.blockNumber)
@@ -180,6 +184,7 @@ export class EvmHTLCClient extends HTLCClient {
             status: lockExists ? Number(result.status) as LockStatus : undefined,
             userData,
             blockTimestamp,
+            dstAmount,
         }
     }
 

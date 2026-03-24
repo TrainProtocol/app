@@ -49,11 +49,9 @@ export function useRecoverSwap(): UseRecoverSwapResult {
                 }
                 store.getState().addSwap(recovered.hashlock, swapData)
 
-                // Initialize active swap for immediate monitoring
-                store.getState().initActiveSwap(recovered.hashlock, {
+                // Initialize swap config for immediate monitoring
+                store.getState().setSwapConfig(recovered.hashlock, {
                     hashlock: recovered.hashlock,
-                    nonce: null,
-                    secret: null,
                     solverId: null,
                     sourceNetwork: recovered.srcChain,
                     destinationNetwork: recovered.dstChain,

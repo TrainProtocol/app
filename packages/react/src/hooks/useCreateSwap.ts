@@ -3,6 +3,7 @@ import {
     deriveSecretFromTimelock,
     secretToHashlock,
     bytesToHex,
+    formatUnits,
 } from '@train-protocol/sdk'
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
@@ -105,7 +106,7 @@ export function useCreateSwap(): UseCreateSwapResult {
                     solver: params.solverId,
                     srcContract: params.srcContract,
                     destContract: params.destContract,
-                    receiveAmount: params.quote.receiveAmount,
+                    receiveAmount: formatUnits(BigInt(params.quote.receiveAmount), params.destinationAsset.decimals),
                     hashlock: result.hashlock,
                     txId: result.hash,
                     sourceAddress: params.sourceAddress,
@@ -114,11 +115,9 @@ export function useCreateSwap(): UseCreateSwapResult {
                     destinationSolverAddress: params.quote.destinationSolverAddress,
                 })
 
-                // Initialize active swap in-memory (with secret for immediate use)
-                store.getState().initActiveSwap(result.hashlock, {
+                // Initialize swap config in-memory for monitoring
+                store.getState().setSwapConfig(result.hashlock, {
                     hashlock: result.hashlock,
-                    nonce,
-                    secret,
                     solverId: params.solverId,
                     sourceNetwork: params.sourceNetwork,
                     destinationNetwork: params.destinationNetwork,

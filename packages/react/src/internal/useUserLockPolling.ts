@@ -1,24 +1,21 @@
-import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { LockStatus } from '@train-protocol/sdk'
-import type { IHTLCClient, LockParams } from '@train-protocol/sdk'
-import type { SwapStore } from './store'
+import type { IHTLCClient, LockParams, UserLockDetails } from '@train-protocol/sdk'
 import { trainQueryKeys } from './queryKeys'
 
 export interface UseUserLockPollingOptions {
     client: IHTLCClient | null
     params: LockParams | null
-    hashlock: string | null
     enabled: boolean
-    store: SwapStore | null
 }
 
 /**
  * Polls the source chain for user lock details every 3 seconds.
- * Writes directly to the store. Stops when the lock status is Redeemed.
+ * Returns data directly via React Query — no store writes.
+ * Stops when the lock status is Redeemed.
  */
-export function useUserLockPolling(options: UseUserLockPollingOptions) {
-    const { client, params, hashlock, enabled, store } = options
+export function useUserLockPolling(options: UseUserLockPollingOptions): UserLockDetails | null {
+    const { client, params, enabled } = options
 
     const query = useQuery({
         queryKey: trainQueryKeys.userLock(params?.id ?? ''),
@@ -36,9 +33,5 @@ export function useUserLockPolling(options: UseUserLockPollingOptions) {
         gcTime: 0,
     })
 
-    useEffect(() => {
-        if (query.data && store && hashlock) {
-            store.getState().setSourceDetails(hashlock, query.data)
-        }
-    }, [query.data, store, hashlock])
+    return query.data ?? null
 }

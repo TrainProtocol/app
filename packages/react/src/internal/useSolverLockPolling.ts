@@ -1,7 +1,7 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { IHTLCClient, SolverLockDetails, LockParams } from '@train-protocol/sdk'
-import type { SwapStore } from './store'
+import type { ConsensusPhase } from './store'
 import { trainQueryKeys } from './queryKeys'
 
 export interface UseSolverLockPollingOptions {
@@ -10,25 +10,31 @@ export interface UseSolverLockPollingOptions {
     hashlock: string | null
     nodeUrls: string[]
     enabled: boolean
-    store: SwapStore | null
     onConsensusFailed?: (error: Error) => void
+}
+
+export interface SolverLockPollingResult {
+    solverLockDetails: SolverLockDetails | null
+    consensusPhase: ConsensusPhase
 }
 
 /**
  * Polls the destination chain for solver lock details every 3 seconds.
- * Writes directly to the store with consensus phase tracking.
+ * Returns data directly — no store writes.
  *
  * Lifecycle:
- *   1. First detection → store.setSolverLockDetails + consensusPhase='detecting'
- *   2. Multi-node consensus → store.setSolverLockDetails + consensusPhase='verified'
- *   3. Subsequent polls → store.setSolverLockDetails (phase stays 'verified')
+ *   1. First detection → consensusPhase='detecting'
+ *   2. Multi-node consensus → consensusPhase='verified'
+ *   3. Subsequent polls → phase stays 'verified'
  */
-export function useSolverLockPolling(options: UseSolverLockPollingOptions): void {
-    const { client, params, hashlock, nodeUrls, enabled, store, onConsensusFailed } = options
+export function useSolverLockPolling(options: UseSolverLockPollingOptions): SolverLockPollingResult {
+    const { client, params, hashlock, nodeUrls, enabled, onConsensusFailed } = options
 
     const detected = useRef(false)
     const verified = useRef(false)
     const failed = useRef(false)
+
+    const [consensusPhase, setConsensusPhase] = useState<ConsensusPhase>('none')
 
     const onConsensusFailedRef = useRef(onConsensusFailed)
     onConsensusFailedRef.current = onConsensusFailed
@@ -38,12 +44,13 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): void
         detected.current = false
         verified.current = false
         failed.current = false
+        setConsensusPhase('none')
     }, [hashlock])
 
-    useQuery({
+    const query = useQuery({
         queryKey: trainQueryKeys.solverLock(params?.id ?? ''),
         queryFn: async (): Promise<SolverLockDetails | null> => {
-            if (!client || !params || failed.current || !store || !hashlock) return null
+            if (!client || !params || failed.current) return null
             const primaryUrl = nodeUrls[0]
             if (!primaryUrl) throw new Error('No node url')
 
@@ -53,27 +60,24 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): void
 
                 // Already verified — just refresh
                 if (verified.current) {
-                    store.getState().setSolverLockDetails(hashlock, details)
                     return details
                 }
 
                 // First detection
                 if (!detected.current) {
                     detected.current = true
-                    store.getState().setSolverLockDetails(hashlock, details)
-                    store.getState().setConsensusPhase(hashlock, 'detecting')
+                    setConsensusPhase('detecting')
                 }
 
                 // Single node — skip consensus, verify immediately
                 if (nodeUrls.length <= 1) {
                     verified.current = true
-                    store.getState().setSolverLockDetails(hashlock, details)
-                    store.getState().setConsensusPhase(hashlock, 'verified')
+                    setConsensusPhase('verified')
                     return details
                 }
 
                 // Multi-node consensus
-                store.getState().setConsensusPhase(hashlock, 'verifying')
+                setConsensusPhase('verifying')
                 try {
                     const consensusDetails = await client.getSolverLockDetailsWithConsensus(
                         params,
@@ -81,19 +85,15 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): void
                         { prefetchedResult: details },
                     )
                     verified.current = true
-                    if (consensusDetails) {
-                        store.getState().setSolverLockDetails(hashlock, consensusDetails)
-                    }
-                    store.getState().setConsensusPhase(hashlock, 'verified')
+                    setConsensusPhase('verified')
                     return consensusDetails
                 } catch (err) {
                     const errorMsg = err instanceof Error ? err.message : String(err)
                     // Permanent failure: lock details mismatch across nodes
                     if (errorMsg.includes('do not match')) {
                         failed.current = true
-                        store.getState().setConsensusPhase(hashlock, 'failed')
+                        setConsensusPhase('failed')
                         const error = err instanceof Error ? err : new Error(errorMsg)
-                        store.getState().setActiveSwapError(hashlock, error)
                         onConsensusFailedRef.current?.(error)
                         return null
                     }
@@ -113,4 +113,9 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): void
         gcTime: 0,
         structuralSharing: false,
     })
+
+    return {
+        solverLockDetails: query.data ?? null,
+        consensusPhase,
+    }
 }

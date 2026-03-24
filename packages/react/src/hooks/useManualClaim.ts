@@ -1,9 +1,12 @@
 import { useState, useCallback } from 'react'
 import { HTLCStatus } from '@train-protocol/sdk'
+import type { SolverLockDetails } from '@train-protocol/sdk'
+import { useQueryClient } from '@tanstack/react-query'
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
 import { useStoreContext } from '../providers/TrainProvider'
 import { useDerivedSwapState } from '../internal/useDerivedSwapState'
+import { trainQueryKeys } from '../internal/queryKeys'
 import { TrainError, TrainErrorCode } from '../types'
 
 export interface UseManualClaimResult {
@@ -23,6 +26,7 @@ export function useManualClaim(hashlock: string | null | undefined): UseManualCl
     const { config, sdk } = useTrainContext()
     const walletCtx = useWalletContext()
     const store = useStoreContext()
+    const queryClient = useQueryClient()
     const derived = useDerivedSwapState(store, hl)
     const [isClaiming, setIsClaiming] = useState(false)
     const [error, setError] = useState<Error | null>(null)
@@ -33,10 +37,13 @@ export function useManualClaim(hashlock: string | null | undefined): UseManualCl
         setIsClaiming(true)
         setError(null)
 
-        const swap = hl ? store?.getState().activeSwaps[hl] : null
-        const dstNamespace = swap?.destinationNetwork?.split(':')[0] ?? null
-        const chainId = swap?.destinationNetwork?.split(':')[1]
-        if (!swap?.hashlock || !dstNamespace || !swap?.destinationNetwork || !swap?.destContract || !swap.destinationAddress || !chainId || !swap.solverLockDetails || !swap.destinationAsset || !swap.sourceAsset) {
+        const swapConfig = hl ? store?.getState().swapConfigs[hl] : null
+        const solverLockDetails = hl
+            ? queryClient.getQueryData<SolverLockDetails | null>(trainQueryKeys.solverLock(hl))
+            : null
+        const dstNamespace = swapConfig?.destinationNetwork?.split(':')[0] ?? null
+        const chainId = swapConfig?.destinationNetwork?.split(':')[1]
+        if (!swapConfig?.hashlock || !dstNamespace || !swapConfig?.destinationNetwork || !swapConfig?.destContract || !swapConfig.destinationAddress || !chainId || !solverLockDetails || !swapConfig.destinationAsset || !swapConfig.sourceAsset) {
             const err = new TrainError('Cannot claim: missing required params', TrainErrorCode.ClaimFailed)
             setError(err)
             setIsClaiming(false)
@@ -44,21 +51,21 @@ export function useManualClaim(hashlock: string | null | undefined): UseManualCl
         }
 
         try {
-            const signer = walletCtx.getSignerForNetwork(swap.destinationNetwork)
+            const signer = walletCtx.getSignerForNetwork(swapConfig.destinationNetwork)
             if (!signer) {
                 throw new TrainError(`No wallet adapter for ${dstNamespace}`, TrainErrorCode.WalletNotConnected)
             }
-            const solverIndex = swap.solverLockDetails.index
-            const adapterConfig = walletCtx.getClientConfigForNetwork(swap.destinationNetwork)
+            const solverIndex = solverLockDetails.index
+            const adapterConfig = walletCtx.getClientConfigForNetwork(swapConfig.destinationNetwork)
             const client = sdk.createHTLCClient(dstNamespace, { ...adapterConfig, signer } as any)
             const txHash = await client.redeemSolver({
                 chainId,
-                contractAddress: swap.destContract,
-                id: swap.hashlock,
+                contractAddress: swapConfig.destContract,
+                id: swapConfig.hashlock,
                 secret,
-                destinationAddress: swap.destinationAddress,
-                destinationAsset: swap.destinationAsset,
-                sourceAsset: swap.sourceAsset,
+                destinationAddress: swapConfig.destinationAddress,
+                destinationAsset: swapConfig.destinationAsset,
+                sourceAsset: swapConfig.sourceAsset,
                 index: solverIndex
             })
 
@@ -78,7 +85,7 @@ export function useManualClaim(hashlock: string | null | undefined): UseManualCl
         } finally {
             setIsClaiming(false)
         }
-    }, [hl, walletCtx, sdk, store, config])
+    }, [hl, walletCtx, sdk, store, config, queryClient])
 
     return { claim, isClaiming, canClaim, error }
 }
