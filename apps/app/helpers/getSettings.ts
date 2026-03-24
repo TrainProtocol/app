@@ -1,6 +1,5 @@
 import { NetworkContract } from "@/Models/Network";
 // import TrainApiClient from "../lib/trainApiClient";
-import { getThemeData } from "./settingsHelper";
 import KnownInternalNames from "@/lib/knownIds";
 import { resolveNodes } from "@/lib/rpc/nodeResolver";
 
@@ -49,10 +48,8 @@ export async function getServerSideProps(context) {
         networks: resolvedNetworks,
     }
 
-    const themeData = await getThemeData(context.query)
-
     return {
-        props: { settings, themeData }
+        props: { settings }
     }
 }
 

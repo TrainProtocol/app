@@ -11,7 +11,6 @@ import ErrorFallback from "./ErrorFallback";
 import { SendErrorMessage } from "@/lib/telegram";
 import { QueryParams } from "../Models/QueryParams";
 import QueryProvider from "@/context/query";
-import { THEME_COLORS, ThemeData } from "@/Models/Theme";
 import { TooltipProvider } from "./shadcn/tooltip";
 import { IsExtensionError } from "@/helpers/errorHelper";
 import { AsyncModalProvider } from "@/context/asyncModal";
@@ -20,18 +19,15 @@ import { AtomicProvider } from "@/context/atomicContext";
 import { SwapAccountsProvider } from "@/context/swapAccounts";
 import { LoginModal } from "./SecretDerivation";
 import { useLoginModalStore } from "@/stores/loginModalStore";
-
 type Props = {
   children: JSX.Element | JSX.Element[];
   hideFooter?: boolean;
   settings?: TrainSettings;
-  themeData?: ThemeData | null
 };
 
-export default function Layout({ children, settings, themeData }: Props) {
+export default function Layout({ children, settings }: Props) {
   const router = useRouter();
   const { isOpen: loginOpen, close: closeLogin } = useLoginModalStore();
-
   if (!settings)
     return <ThemeWrapper>
       <MaintananceContent />
@@ -65,8 +61,6 @@ export default function Layout({ children, settings, themeData }: Props) {
     // datadogRum.addError(renderingError);
   }
 
-  themeData = themeData || THEME_COLORS.default
-
   const basePath = router?.basePath ?? ""
 
   const title = "TRAIN I The First Scalable Cross-Chain Bridge"
@@ -84,7 +78,7 @@ export default function Layout({ children, settings, themeData }: Props) {
       <link rel="manifest" href={`/favicon/site.webmanifest`} />
       <link rel="canonical" href="https://app.train.tech/" />
       <meta name="msapplication-TileColor" content="#ffffff" />
-      <meta name="theme-color" content={`rgb(${themeData.secondary?.[900]})`} />
+      <meta name="theme-color" content="rgb(var(--ls-colors-secondary-900))" />
       <meta name="description" content={description} />
 
       {/* Facebook Meta Tags */}
@@ -107,7 +101,7 @@ export default function Layout({ children, settings, themeData }: Props) {
         <TooltipProvider delayDuration={500}>
           <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
             <ThemeWrapper>
-              <WalletsProviders basePath={basePath} themeData={themeData} appName={router.query.appName?.toString()}>
+              <WalletsProviders basePath={basePath} appName={router.query.appName?.toString()}>
                 <SwapAccountsProvider>
                   <AtomicProvider>
                     <AsyncModalProvider>
