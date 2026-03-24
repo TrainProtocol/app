@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import useSWR from 'swr'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import useSWR, { useSWRConfig } from 'swr'
 import { parseUnits } from 'viem'
 import { SwapFormValues } from '../components/DTOs/SwapFormValues'
 import TrainApiClient, { SwapQuote, AggregatedQuoteResponse } from '../lib/trainApiClient'
@@ -100,7 +100,6 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
 
     const [debouncedAmount, setDebouncedAmount] = useState(convertedAmount)
     const [isDebouncing, setIsDebouncing] = useState(false)
-    const cachedQuote = useRef<QuoteResult | null>(null)
 
     useEffect(() => {
         if (convertedAmount === debouncedAmount) return
@@ -129,6 +128,7 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
         : null
 
     const isQuoteLoading = useLoadingStore((state) => state.isLoading)
+    const { mutate: globalMutate } = useSWRConfig()
 
     const quoteFetchWrapper = useCallback(async (url: string): Promise<QuoteResult | null> => {
         const { setLoading, key, setKey } = useLoadingStore.getState()
@@ -161,19 +161,19 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
         }
     }, [])
 
-    const { data: rawData, mutate: mutateFee, error: quoteError } = useSWR<QuoteResult | null>(
+    const { data, mutate: mutateFee, error: quoteError } = useSWR<QuoteResult | null>(
         quoteURL,
         quoteFetchWrapper,
         {
             refreshInterval: (refreshInterval !== undefined && refreshInterval !== null) ? refreshInterval : 42000,
             dedupingInterval: 5000,
+            keepPreviousData: true,
+            onError: (_err, key) => {
+                globalMutate(key, null, { revalidate: false })
+            },
         }
     )
 
-    if (rawData) cachedQuote.current = rawData
-    if (quoteError) cachedQuote.current = null
-
-    const data = rawData ?? cachedQuote.current
     const resolvedQuote = (quoteError || !canGetQuote) ? undefined : data?.quote
     const resolvedSolverId = (quoteError || !canGetQuote) ? undefined : data?.solverId
     return {
