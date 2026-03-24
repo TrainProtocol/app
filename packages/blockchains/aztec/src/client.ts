@@ -118,12 +118,12 @@ export class AztecHTLCClient extends HTLCClient {
                 wait: { timeout: TX_TIMEOUT, dontThrowOnRevert: true },
             })
 
-            if (tx.hasExecutionReverted?.()) {
-                throw new Error(`user_lock reverted: ${tx.error ?? 'unknown error'}`)
+            if (tx.receipt.hasExecutionReverted()) {
+                throw new Error(`user_lock reverted: ${tx.receipt.error ?? 'unknown error'}`)
             }
 
             return {
-                hash: tx.txHash?.toString() ?? String(tx),
+                hash: tx.receipt.txHash?.toString() ?? String(tx),
                 hashlock: params.hashlock,
                 nonce: params.nonce,
             }
@@ -154,11 +154,11 @@ export class AztecHTLCClient extends HTLCClient {
                     wait: { timeout: TX_TIMEOUT, dontThrowOnRevert: true },
                 })
 
-            if (tx.hasExecutionReverted?.()) {
-                throw new Error(`refund_user reverted: ${tx.error ?? 'unknown error'}`)
+            if (tx.receipt.hasExecutionReverted()) {
+                throw new Error(`refund_user reverted: ${tx.receipt.error ?? 'unknown error'}`)
             }
 
-            return tx.txHash?.toString() ?? String(tx)
+            return tx.receipt.txHash?.toString() ?? String(tx)
         } catch (error) {
             console.error('Error in refund:', error)
             throw error
@@ -204,11 +204,11 @@ export class AztecHTLCClient extends HTLCClient {
                     wait: { timeout: TX_TIMEOUT, dontThrowOnRevert: true },
                 })
 
-            if (tx.hasExecutionReverted?.()) {
-                throw new Error(`redeem_solver reverted: ${tx.error ?? 'unknown error'}`)
+            if (tx.receipt.hasExecutionReverted()) {
+                throw new Error(`redeem_solver reverted: ${tx.receipt.error ?? 'unknown error'}`)
             }
 
-            return tx.txHash?.toString() ?? String(tx)
+            return tx.receipt.txHash?.toString() ?? String(tx)
         } catch (error) {
             console.error('Error in redeemSolver:', error)
             throw error
