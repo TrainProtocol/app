@@ -11,6 +11,11 @@ export const getEvmTypedData = (sandbox: boolean = false) => ({
         chainId: sandbox ? 11155111 : 1,
     },
     types: {
+        EIP712Domain: [
+            { name: 'name', type: 'string' },
+            { name: 'version', type: 'string' },
+            { name: 'chainId', type: 'uint256' },
+        ],
         Message: [
             { name: 'content', type: 'string' },
         ],
