@@ -62,9 +62,9 @@ const SwapForm: FC<SwapFormProps> = ({ polling = true, onQuoteChange }) => {
                     shouldConnectWallet={shouldConnectWallet}
                     shouldConnectDestinationWallet={shouldConnectDestinationWallet}
                     values={values}
-                    isValid={isValid && quote !== undefined}
+                    isValid={isValid && quote !== undefined && !isQuoteLoading}
                     errors={errors}
-                    isSubmitting={isSubmitting || isQuoteLoading}
+                    isSubmitting={isSubmitting}
                     actionDisplayName={actionDisplayName}
                 />
             </Widget.Footer>
