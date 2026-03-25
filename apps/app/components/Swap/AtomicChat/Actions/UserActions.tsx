@@ -1,7 +1,6 @@
 import { FC, useState } from "react";
 import useWallet from "@/hooks/useWallet";
-import { useSwapData } from "@/hooks/useSwapData";
-import { useActiveSwapState, useClearSwapError } from "@/hooks/useActiveSwapState";
+import { useActiveSwap, useClearSwapError } from "@/hooks/useActiveSwap";
 import { useCreateSwap, useRefund, LockStatus, type SwapQuote, useSharedSecretDerivation, type StartSwapParams } from "@train-protocol/react";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
@@ -22,7 +21,7 @@ type UserCommitActionProps = {
 export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, type }) => {
     // Before lock: read from Formik (form values have Network/Token objects)
     const { values } = useFormikContext<SwapFormValues>()
-    const { hashlock } = useSwapData()
+    const { hashlock } = useActiveSwap()
     const { createSwap } = useCreateSwap()
     const source_network = values.from
     const destination_network = values.to
@@ -114,13 +113,12 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, typ
 }
 
 export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
-    const { source_network, hashlock, source_asset, refundTxId, srcAtomicContract } = useSwapData()
-    const { sourceDetails } = useActiveSwapState()
+    const { sourceNetwork, hashlock, sourceToken, refundTxId, srcContract, sourceDetails } = useActiveSwap()
     const activeHashlock = useSwapStore(s => s.activeHashlock)
     const { refund: doRefund } = useRefund(activeHashlock)
-    const { provider: source_provider } = useWallet(source_network, 'withdrawal')
-    const sourceAccount = useSelectedAccount('from', source_network?.caip2Id)
-    const sourceWallet = (sourceAccount?.address && source_network) ? source_provider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, source_network)) : undefined
+    const { provider: source_provider } = useWallet(sourceNetwork, 'withdrawal')
+    const sourceAccount = useSelectedAccount('from', sourceNetwork?.caip2Id)
+    const sourceWallet = (sourceAccount?.address && sourceNetwork) ? source_provider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, sourceNetwork)) : undefined
 
     const [requestedRefund, setRequestedRefund] = useState(false)
 
@@ -128,23 +126,23 @@ export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
 
     const handleRefundAssets = async () => {
         try {
-            if (!source_network) throw new Error("No source network")
+            if (!sourceNetwork) throw new Error("No source network")
             if (!hashlock) throw new Error("No commitment details")
             if (!sourceDetails) throw new Error("No commitment")
-            if (!source_asset) throw new Error("No source asset")
-            if (!srcAtomicContract) throw new Error("No atomic contract")
+            if (!sourceToken) throw new Error("No source asset")
+            if (!srcContract) throw new Error("No atomic contract")
             if (!sourceWallet) throw new Error("No wallet client")
 
-            if (source_provider?.activeWallet && (source_provider.activeWallet.chainId != source_network.chainId) && source_provider.switchChain)
-                await source_provider.switchChain(source_provider.activeWallet, source_network.chainId)
+            if (source_provider?.activeWallet && (source_provider.activeWallet.chainId != sourceNetwork.chainId) && source_provider.switchChain)
+                await source_provider.switchChain(source_provider.activeWallet, sourceNetwork.chainId)
 
             const res = await doRefund()
 
             posthog.capture("Refund", {
                 userLock: sourceDetails,
                 hashlock: sourceDetails?.hashlock,
-                chainId: source_network.chainId,
-                contractAddress: srcAtomicContract
+                chainId: sourceNetwork.chainId,
+                contractAddress: srcContract
             })
 
             if (res) {
@@ -162,8 +160,8 @@ export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
     return <WalletActionButton
         activeChain={wallet?.chainId}
         isConnected={!!wallet}
-        network={source_network!}
-        networkChainId={Number(source_network?.chainId)}
+        network={sourceNetwork!}
+        networkChainId={Number(sourceNetwork?.chainId)}
         onClick={handleRefundAssets}
         type={type}
     >

@@ -62,8 +62,6 @@ export function useRecoverSwap(): UseRecoverSwapResult {
                     destinationAddress: recovered.dstAddress,
                     chainId: null,
                     txId: txHash,
-                    sourceAsset: null,
-                    destinationAsset: null,
                     quote: null,
                     requestedAmount: recovered.amount.toString(),
                 })

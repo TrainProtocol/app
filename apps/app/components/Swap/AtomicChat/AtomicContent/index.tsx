@@ -1,6 +1,5 @@
 import { FC } from "react";
-import { useSwapData } from "@/hooks/useSwapData";
-import { useActiveSwapState } from "@/hooks/useActiveSwapState";
+import { useActiveSwap } from "@/hooks/useActiveSwap";
 import Summary from "./Summary";
 import type { SwapQuote } from "@train-protocol/react";
 import SwapQuoteComp from "@/components/FeeDetails/SwapQuote";
@@ -10,6 +9,7 @@ import Timeline from "./Timeline";
 import { useSwapProgress } from "./useSwapProgress";
 import { CircleCheck, SearchX, Undo2, X } from "lucide-react";
 import { HTLCStatus } from "@train-protocol/react";
+import { useFormikContext } from "formik";
 
 type AtomicContentProps = {
     quote?: SwapQuote
@@ -17,16 +17,21 @@ type AtomicContentProps = {
 }
 
 const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }) => {
-    const {
-        destination_network, source_network,
-        source_asset, destination_asset, amount,
-        hashlock,
-    } = useSwapData()
-    const { status: commitStatus } = useActiveSwapState()
+    const swap = useActiveSwap()
+    const { values } = useFormikContext<SwapFormValues>()
 
+    // Post-lock: use derived state. Pre-lock: use Formik values.
+    const source_network = swap.sourceNetwork ?? values?.from
+    const destination_network = swap.destinationNetwork ?? values?.to
+    const source_asset = swap.sourceToken ?? values?.fromCurrency
+    const destination_asset = swap.destinationToken ?? values?.toCurrency
+    const amount = swap.requestedAmount ? Number(swap.requestedAmount) : (values?.amount ? Number(values.amount) : undefined)
+    const hashlock = swap.hashlock
+
+    const { status: commitStatus } = swap
     const isInitial = commitStatus === HTLCStatus.Initial
 
-    const values: SwapFormValues = {
+    const formValues: SwapFormValues = {
         amount: amount?.toString(),
         from: source_network,
         to: destination_network,
@@ -41,7 +46,7 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
             <Summary quote={quote} isQuoteLoading={isQuoteLoading} />
 
             {isInitial && !hashlock && (
-                <SwapQuoteComp values={values} quote={quote} isQuoteLoading={isQuoteLoading} />
+                <SwapQuoteComp values={formValues} quote={quote} isQuoteLoading={isQuoteLoading} />
             )}
 
             {(!isInitial || hashlock) && <SwapProgressPanel />}

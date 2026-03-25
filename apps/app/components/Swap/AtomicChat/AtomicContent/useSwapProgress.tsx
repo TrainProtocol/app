@@ -1,6 +1,5 @@
 import React, { FC, useMemo } from "react";
-import { useSwapData } from "@/hooks/useSwapData";
-import { useActiveSwapState } from "@/hooks/useActiveSwapState";
+import { useActiveSwap } from "@/hooks/useActiveSwap";
 import { StepStatus, TimelineStep } from "./progressTypes";
 import { LockStatus, HTLCTransaction, HTLCStatus, TrainErrorCode } from "@train-protocol/react";
 import { getExplorerUrl } from "@/lib/address";
@@ -101,31 +100,7 @@ function buildSteps(
 // --- Verification Status ---
 
 const VerificationStatus: FC = () => {
-    const { consensusVerifying, consensusVerified } = useActiveSwapState();
-
-    // const lcHashlock = destinationDetailsByLightClient?.data?.hashlock;
-    // const solverHashlock = solverLockDetails?.hashlock;
-
-    // if (verifyingByLightClient && !lcHashlock && solverHashlock) {
-    //     return (
-    //         <div className="flex items-center gap-1 text-sm">
-    //             <span>Verifying by Light Client</span>
-    //             <LockIcon className="h-4 w-4 text-accent animate-pulse" />
-    //         </div>
-    //     );
-    // }
-
-    // if (lcHashlock && solverHashlock && lcHashlock === solverHashlock) {
-    //     return (
-    //         <div className="flex items-center gap-1 text-sm">
-    //             <span>Verified by</span>
-    //             <span className="font-medium text-accent flex items-center gap-1">
-    //                 Light Client
-    //                 <LockIcon className="h-4 w-4 text-accent" />
-    //             </span>
-    //         </div>
-    //     );
-    // }
+    const { consensusVerifying, consensusVerified } = useActiveSwap();
 
     if (consensusVerifying) {
         return (
@@ -155,29 +130,26 @@ const VerificationStatus: FC = () => {
 
 export function useSwapProgress(): SwapProgress {
     const {
-        lockTxId,
+        txId: lockTxId,
         refundTxId,
-        source_network,
-        destination_network,
-    } = useSwapData();
-
-    const {
+        sourceNetwork,
+        destinationNetwork,
         status: htlcStatus,
         sourceDetails,
         destRedeemTxId: destRedeemTx,
         htlcFromApi,
         consensusVerifying,
         error
-    } = useActiveSwapState();
+    } = useActiveSwap();
 
     const { verified, skipped, mismatches } = useSolverLockVerification();
 
     return useMemo(() => {
-        const sourceTxLink = buildExplorerLink(source_network?.caip2Id, lockTxId);
+        const sourceTxLink = buildExplorerLink(sourceNetwork?.caip2Id, lockTxId);
         const solverLockTx = htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCLock as string);
-        const destTxLink = buildExplorerLink(destination_network?.caip2Id, solverLockTx?.hash);
-        const redeemTxLink = buildExplorerLink(destination_network?.caip2Id, destRedeemTx);
-        const refundTxLink = buildExplorerLink(source_network?.caip2Id, refundTxId);
+        const destTxLink = buildExplorerLink(destinationNetwork?.caip2Id, solverLockTx?.hash);
+        const redeemTxLink = buildExplorerLink(destinationNetwork?.caip2Id, destRedeemTx);
+        const refundTxLink = buildExplorerLink(sourceNetwork?.caip2Id, refundTxId);
 
         const isRefunded = sourceDetails?.status === LockStatus.Refunded;
 
@@ -343,8 +315,8 @@ export function useSwapProgress(): SwapProgress {
         sourceDetails,
         destRedeemTx,
         refundTxId,
-        source_network,
-        destination_network,
+        sourceNetwork,
+        destinationNetwork,
         htlcFromApi,
         verified,
         skipped,

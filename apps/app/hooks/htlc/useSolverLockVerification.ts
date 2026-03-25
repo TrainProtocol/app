@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
-import { useSwapData } from '@/hooks/useSwapData'
-import { useActiveSwapState } from '@/hooks/useActiveSwapState'
+import { useActiveSwap } from '@/hooks/useActiveSwap'
 import { verifySolverLock, VerificationResult } from '@train-protocol/sdk'
 import { formatUnits } from 'viem'
 import { Address } from '@/lib/address'
@@ -8,10 +7,9 @@ import { Address } from '@/lib/address'
 export type { VerificationResult }
 
 export function useSolverLockVerification(): VerificationResult {
-    const { address, destination_asset, destination_network } = useSwapData()
-    const { solverLockDetails, sourceDetails, hashlock } = useActiveSwapState()
-    const normalizedAddress = useMemo(() => (address && destination_network) ? new Address(address, destination_network).normalized : '', [address, destination_network])
-    const normalizedToken = useMemo(() => (destination_asset?.contractAddress && destination_network) ? new Address(destination_asset.contractAddress, destination_network).normalized : '', [destination_asset, destination_network])
+    const { destinationAddress, destinationToken, destinationNetwork, solverLockDetails, sourceDetails, hashlock } = useActiveSwap()
+    const normalizedAddress = useMemo(() => (destinationAddress && destinationNetwork) ? new Address(destinationAddress, destinationNetwork).normalized : '', [destinationAddress, destinationNetwork])
+    const normalizedToken = useMemo(() => (destinationToken?.contractAddress && destinationNetwork) ? new Address(destinationToken.contractAddress, destinationNetwork).normalized : '', [destinationToken, destinationNetwork])
 
 
     return useMemo(() => {
@@ -27,7 +25,7 @@ export function useSolverLockVerification(): VerificationResult {
         // dstAmount from the UserLocked event is in raw units (wei).
         // solverLockDetails.amount from the chain client is formatted (human-readable).
         // Convert to the same unit for comparison.
-        const decimals = destination_asset?.decimals ?? 18
+        const decimals = destinationToken?.decimals ?? 18
         const formattedExpected = Number(formatUnits(BigInt(sourceDetails.dstAmount), decimals))
 
         return verifySolverLock({
@@ -36,5 +34,5 @@ export function useSolverLockVerification(): VerificationResult {
             expectedRecipient: normalizedAddress,
             expectedToken: normalizedToken,
         })
-    }, [solverLockDetails, sourceDetails, address, destination_asset])
+    }, [solverLockDetails, sourceDetails, destinationAddress, destinationToken])
 }

@@ -43,8 +43,17 @@ export function useManualClaim(hashlock: string | null | undefined): UseManualCl
             : null
         const dstNamespace = swapConfig?.destinationNetwork?.split(':')[0] ?? null
         const chainId = swapConfig?.destinationNetwork?.split(':')[1]
-        if (!swapConfig?.hashlock || !dstNamespace || !swapConfig?.destinationNetwork || !swapConfig?.destContract || !swapConfig.destinationAddress || !chainId || !solverLockDetails || !swapConfig.destinationAsset || !swapConfig.sourceAsset) {
+        if (!swapConfig?.hashlock || !dstNamespace || !swapConfig?.destinationNetwork || !swapConfig?.destContract || !swapConfig.destinationAddress || !chainId || !solverLockDetails) {
             const err = new TrainError('Cannot claim: missing required params', TrainErrorCode.ClaimFailed)
+            setError(err)
+            setIsClaiming(false)
+            throw err
+        }
+
+        const sourceAsset = derived.sourceToken
+        const destinationAsset = derived.destinationToken
+        if (!sourceAsset || !destinationAsset) {
+            const err = new TrainError('Cannot claim: unable to resolve assets', TrainErrorCode.ClaimFailed)
             setError(err)
             setIsClaiming(false)
             throw err
@@ -64,8 +73,8 @@ export function useManualClaim(hashlock: string | null | undefined): UseManualCl
                 id: swapConfig.hashlock,
                 secret,
                 destinationAddress: swapConfig.destinationAddress,
-                destinationAsset: swapConfig.destinationAsset,
-                sourceAsset: swapConfig.sourceAsset,
+                destinationAsset,
+                sourceAsset,
                 index: solverIndex
             })
 
@@ -85,7 +94,7 @@ export function useManualClaim(hashlock: string | null | undefined): UseManualCl
         } finally {
             setIsClaiming(false)
         }
-    }, [hl, walletCtx, sdk, store, config, queryClient])
+    }, [hl, walletCtx, sdk, store, config, derived.sourceToken, derived.destinationToken, queryClient])
 
     return { claim, isClaiming, canClaim, error }
 }

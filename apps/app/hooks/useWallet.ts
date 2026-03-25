@@ -5,10 +5,10 @@ import { useCallback, useMemo } from "react";
 
 export type WalletPurpose = "autofill" | "withdrawal" | "asSource"
 
-export default function useWallet(network?: Network | undefined, purpose?: WalletPurpose) {
+export default function useWallet(network?: Network | null, purpose?: WalletPurpose) {
     const walletProviders = useWalletProviders()
 
-    const provider = useMemo(() => network && resolveProvider(network, walletProviders, purpose), [network, purpose, walletProviders])
+    const provider = useMemo(() => network ? resolveProvider(network, walletProviders, purpose) : undefined, [network, purpose, walletProviders])
 
     const wallets = useMemo(() => {
         let connectedWallets: Wallet[] = [];
@@ -45,7 +45,7 @@ export default function useWallet(network?: Network | undefined, purpose?: Walle
     return res
 }
 
-const resolveProvider = (network: Network | undefined, walletProviders: WalletProvider[], purpose?: WalletPurpose) => {
+const resolveProvider = (network: Network | null | undefined, walletProviders: WalletProvider[], purpose?: WalletPurpose) => {
     if (!purpose || !network) return
 
     let provider: WalletProvider | undefined = undefined
@@ -83,7 +83,7 @@ const resolveProvider = (network: Network | undefined, walletProviders: WalletPr
     return provider
 }
 
-const resolveWallet = (wallet: Wallet, network: Network | undefined, provider: WalletProvider, purpose?: WalletPurpose) => {
+const resolveWallet = (wallet: Wallet, network: Network | null | undefined, provider: WalletProvider, purpose?: WalletPurpose) => {
 
     if (provider.isNotAvailableCondition && network?.caip2Id && wallet.internalId && !purpose) {
         return {

@@ -1,7 +1,7 @@
 import { createStore as createZustandStore } from 'zustand/vanilla'
 import { persist, type PersistStorage } from 'zustand/middleware'
 import type { SwapData, SwapStorage, TrainError } from '../types'
-import type { HTLCFromApi, QuoteDetails, Token } from '@train-protocol/sdk'
+import type { HTLCFromApi, QuoteDetails } from '@train-protocol/sdk'
 
 // --- Swap config (in-memory, set once at creation/activation) ---
 
@@ -17,8 +17,6 @@ export interface SwapConfig {
     destinationAddress: string | null
     chainId: string | null
     txId: string | null
-    sourceAsset: Token | null
-    destinationAsset: Token | null
     quote: QuoteDetails | null
     requestedAmount: string | null
 }
@@ -149,8 +147,6 @@ function createActions(set: SetFn) {
                             destinationAddress: swap.destinationAddress ?? null,
                             chainId: swap.source?.split(':')[1] ?? null,
                             txId: swap.txId ?? null,
-                            sourceAsset: null,
-                            destinationAsset: null,
                             quote: null,
                             requestedAmount: swap.requestedAmount ?? null,
                         },

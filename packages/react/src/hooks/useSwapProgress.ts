@@ -80,13 +80,13 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         if (!swapConfig?.hashlock || !swapConfig?.destContract) return null
         const destChainId = swapConfig.destinationNetwork?.split(':')[1] ?? null
         return {
-            type: getLockType(swapConfig.quote?.route?.destination?.tokenContract ?? swapConfig.destinationAsset?.contractAddress),
+            type: getLockType(swapConfig.quote?.route?.destination?.tokenContract ?? derived.destinationToken?.contractAddress),
             id: swapConfig.hashlock,
             chainId: destChainId,
             contractAddress: swapConfig.destContract,
             solverAddress: swapConfig.quote?.destinationSolverAddress,
         }
-    }, [swapConfig?.hashlock, swapConfig?.destContract, swapConfig?.destinationNetwork, swapConfig?.quote, swapConfig?.destinationAsset])
+    }, [swapConfig?.hashlock, swapConfig?.destContract, swapConfig?.destinationNetwork, swapConfig?.quote, derived.destinationToken])
 
     // Resolve destination chain node URLs for solver lock verification
     const destNodeUrls = useMemo(() => {

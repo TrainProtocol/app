@@ -128,8 +128,6 @@ export function useCreateSwap(): UseCreateSwapResult {
                     destinationAddress: params.destinationAddress,
                     chainId: params.chainId ?? params.sourceNetwork.split(':')[1],
                     txId: result.hash,
-                    sourceAsset: params.sourceAsset,
-                    destinationAsset: params.destinationAsset,
                     quote: params.quote,
                     requestedAmount: params.amount,
                 })

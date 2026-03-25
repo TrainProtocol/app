@@ -1,6 +1,5 @@
 import { FC, useEffect, useRef, useState } from "react";
-import { useSwapData } from "@/hooks/useSwapData";
-import { useActiveSwapState, useClearSwapError } from "@/hooks/useActiveSwapState";
+import { useActiveSwap, useClearSwapError } from "@/hooks/useActiveSwap";
 import { RevealSecretAction } from "./RevealSecret";
 import { ManualClaimAction } from "./ManualClaim";
 import { UserRefundAction, UserLockAction } from "./UserActions";
@@ -17,7 +16,7 @@ import { Widget } from "@/components/Widget/Index";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
-import { useLoginIdentityMismatch, useSwap as useSwapRead, HTLCStatus } from "@train-protocol/react";
+import { useLoginIdentityMismatch, HTLCStatus } from "@train-protocol/react";
 import { useSwapStore } from "@/stores/swapStore";
 import { Drawer } from "@/components/Modal/vaul";
 
@@ -30,7 +29,7 @@ type ActionsProps = {
 }
 
 export const Actions: FC<ActionsProps> = ({ quote, solverId, type }) => {
-    const { status: commitStatus, error } = useActiveSwapState()
+    const { status: commitStatus, error } = useActiveSwap()
 
     return (
         <>
@@ -108,10 +107,8 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const [autoRevealFailed, setAutoRevealFailed] = useState(false)
     const attemptedRef = useRef(false)
     const { verified, skipped, mismatches } = useSolverLockVerification()
-    const { consensusVerified, consensusVerifying } = useActiveSwapState()
-    const activeHashlock = useSwapStore(s => s.activeHashlock)
-    const currentSwap = useSwapRead(activeHashlock)
-    const { warning } = useLoginIdentityMismatch(currentSwap?.loginIdentity)
+    const { consensusVerified, consensusVerifying, loginIdentity } = useActiveSwap()
+    const { warning } = useLoginIdentityMismatch(loginIdentity ?? undefined)
 
     // Wait for both quote verification AND multi-RPC consensus before revealing
     const consensusReady = consensusVerified || skipped
@@ -150,13 +147,12 @@ export const ActionWrapper: FC<{ children: React.ReactNode, type: SwapViewType }
 }
 
 const TerminalActions: FC<{ variant: 'success' | 'refund'; type: SwapViewType }> = ({ variant, type }) => {
-    const { destination_network, source_network, refundTxId } = useSwapData()
-    const { destRedeemTxId } = useActiveSwapState()
+    const { destinationNetwork, sourceNetwork, refundTxId, destRedeemTxId } = useActiveSwap()
     const goHome = useGoHome()
 
     const isSuccess = variant === 'success'
     const isModal = type === 'contained'
-    const networkSlug = isSuccess ? destination_network?.caip2Id : source_network?.caip2Id
+    const networkSlug = isSuccess ? destinationNetwork?.caip2Id : sourceNetwork?.caip2Id
     const txHash = isSuccess ? destRedeemTxId : refundTxId
     const txLink = networkSlug && txHash
         ? getExplorerUrl(NetworkSettings.KnownSettings[networkSlug]?.TransactionExplorerTemplate, txHash)

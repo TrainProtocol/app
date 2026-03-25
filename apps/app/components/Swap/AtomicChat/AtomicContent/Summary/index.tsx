@@ -1,10 +1,8 @@
 import { FC } from "react";
-import { useSwapData } from "@/hooks/useSwapData";
-import { useActiveSwapState } from "@/hooks/useActiveSwapState";
-import { useSwap, type SwapQuote } from "@train-protocol/react";
+import { useActiveSwap } from "@/hooks/useActiveSwap";
+import type { SwapQuote } from "@train-protocol/react";
 import Summary from "./Summary";
 import { formatUnits } from "viem";
-import { useSwapStore } from "@/stores/swapStore";
 
 type MotionSummaryProps = {
     quote?: SwapQuote
@@ -12,30 +10,30 @@ type MotionSummaryProps = {
 }
 
 const MotionSummary: FC<MotionSummaryProps> = ({ quote, isQuoteLoading = false }) => {
-    const { source_asset: source_token, destination_asset: destination_token, source_network, destination_network, amount } = useSwapData()
-    const { htlcFromApi } = useActiveSwapState()
-    const activeHashlock = useSwapStore(s => s.activeHashlock)
-    const currentSwap = useSwap(activeHashlock)
+    const {
+        sourceToken, destinationToken, sourceNetwork, destinationNetwork,
+        requestedAmount, receiveAmount: storedReceiveAmount, htlcFromApi,
+    } = useActiveSwap()
 
-    const storedReceiveAmount = currentSwap?.receiveAmount
+    const amount = requestedAmount ? Number(requestedAmount) : undefined
 
-    const receiveAmount = (htlcFromApi?.destinationAmount && destination_token?.decimals)
-        ? formatUnits(BigInt(htlcFromApi?.destinationAmount), destination_token?.decimals)
-        : (quote?.receiveAmount && destination_token?.decimals)
-            ? formatUnits(BigInt(quote.receiveAmount), destination_token?.decimals)
+    const receiveAmount = (htlcFromApi?.destinationAmount && destinationToken?.decimals)
+        ? formatUnits(BigInt(htlcFromApi?.destinationAmount), destinationToken?.decimals)
+        : (quote?.receiveAmount && destinationToken?.decimals)
+            ? formatUnits(BigInt(quote.receiveAmount), destinationToken?.decimals)
             : storedReceiveAmount
 
     return (
         <>
             {
-                destination_network && source_network && destination_token && source_token &&
+                destinationNetwork && sourceNetwork && destinationToken && sourceToken &&
                 <Summary
-                    destination={destination_network}
-                    source={source_network}
-                    destinationCurrency={destination_token}
+                    destination={destinationNetwork}
+                    source={sourceNetwork}
+                    destinationCurrency={destinationToken}
                     requestedAmount={amount}
-                    sourceCurrency={source_token}
-                    receiveAmount={receiveAmount}
+                    sourceCurrency={sourceToken}
+                    receiveAmount={receiveAmount ?? undefined}
                 />
             }
         </>

@@ -42,8 +42,16 @@ export function useRefund(hashlock: string | null | undefined): UseRefundResult 
 
         const swapConfig = hl ? store?.getState().swapConfigs[hl] : null
         const srcNamespace = swapConfig?.sourceNetwork?.split(':')[0] ?? null
-        if (!swapConfig?.hashlock || !srcNamespace || !swapConfig?.srcContract || !swapConfig?.sourceAsset) {
+        if (!swapConfig?.hashlock || !srcNamespace || !swapConfig?.srcContract) {
             const err = new TrainError('Cannot refund: missing required params', TrainErrorCode.RefundFailed)
+            setError(err)
+            setIsRefunding(false)
+            throw err
+        }
+
+        const sourceAsset = derived.sourceToken
+        if (!sourceAsset) {
+            const err = new TrainError('Cannot refund: unable to resolve source asset', TrainErrorCode.RefundFailed)
             setError(err)
             setIsRefunding(false)
             throw err
@@ -62,7 +70,7 @@ export function useRefund(hashlock: string | null | undefined): UseRefundResult 
                 chainId: swapConfig.chainId,
                 contractAddress: swapConfig.srcContract,
                 id: swapConfig.hashlock,
-                sourceAsset: swapConfig.sourceAsset,
+                sourceAsset,
             })
 
             if (store && hl) {
@@ -81,7 +89,7 @@ export function useRefund(hashlock: string | null | undefined): UseRefundResult 
         } finally {
             setIsRefunding(false)
         }
-    }, [hl, walletCtx, sdk, store, config])
+    }, [hl, walletCtx, sdk, store, config, derived.sourceToken])
 
     return { refund: doRefund, isRefunding, canRefund, error }
 }
