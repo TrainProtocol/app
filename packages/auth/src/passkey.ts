@@ -80,7 +80,7 @@ export const registerPasskey = async (
     storage?: PasskeyCredentialStorage
 ): Promise<RegisterPasskeyResult> => {
     if (!forceCreate && storage) {
-        const existing = storage.getActiveCredentialId();
+        const existing = await storage.getActiveCredentialId();
         if (existing) return { credentialId: existing };
     }
 
@@ -94,7 +94,7 @@ export const registerPasskey = async (
     window.crypto.getRandomValues(userIdBytes);
 
     const prfSalt = getPasskeyPrfSalt();
-    const existingIds = storage?.getAllCredentialIds() ?? [];
+    const existingIds = (await storage?.getAllCredentialIds()) ?? [];
     const excludeCredentials = existingIds.map(id => ({
         type: 'public-key' as const,
         id: base64URLStringToBuffer(id),
@@ -120,7 +120,7 @@ export const registerPasskey = async (
     if (!credential) throw new Error('Failed to create passkey credential');
 
     const credentialId = bufferToBase64URLString(credential.rawId);
-    storage?.storeCredentialId(credentialId);
+    await storage?.storeCredentialId(credentialId);
 
     const ext: any = credential.getClientExtensionResults?.() ?? {};
     const prfFirst: ArrayBuffer | undefined = ext?.prf?.results?.first;

@@ -61,14 +61,11 @@ export interface TrainConfig {
     /** Secret derivation options */
     secretDerivation?: {
         /**
-         * Persist derivedKey and method to localStorage (default: false).
-         * WARNING: When enabled, the master derived key is stored as plaintext hex
-         * in localStorage under a predictable key. Any XSS or malicious extension
-         * on the same origin can extract it. Prefer sessionStorage or explicit opt-in.
+         * Persist derivedKey and method to encrypted IndexedDB (default: false).
+         * When enabled, the master derived key is encrypted with a non-extractable
+         * AES-GCM CryptoKey stored in IndexedDB via the Web Crypto API.
          */
         persist?: boolean
-        /** localStorage key prefix (default: 'train:auth') */
-        persistKey?: string
         /** Passkey credential storage */
         passkeyStorage?: import('@train-protocol/auth').PasskeyCredentialStorage
         /** Auto-check passkey support on mount (default: true) */

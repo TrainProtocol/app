@@ -92,7 +92,8 @@ export {
     InMemoryPasskeyStorage,
 } from '@train-protocol/auth'
 
-export { LocalStoragePasskeyStorage } from './internal/LocalStoragePasskeyStorage'
+export { IndexedDBPasskeyStorage } from './internal/IndexedDBPasskeyStorage'
+export { SecureStorage } from './internal/SecureStorage'
 
 export type { DerivationMethod } from './types'
 

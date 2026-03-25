@@ -3,7 +3,8 @@ import { useStore } from 'zustand'
 import { useSecretDerivation as useSecretDerivationHook } from '../hooks/useSecretDerivation'
 import type { UseSecretDerivationOptions, UseSecretDerivationResult, PasskeyLoginOptions } from '../hooks/useSecretDerivation'
 import type { PrfSupportResult } from '@train-protocol/auth'
-import { LocalStoragePasskeyStorage } from '../internal/LocalStoragePasskeyStorage'
+import { SecureStorage } from '../internal/SecureStorage'
+import { IndexedDBPasskeyStorage } from '../internal/IndexedDBPasskeyStorage'
 import {
     createSecretDerivationStore,
     type SecretDerivationStore,
@@ -30,27 +31,74 @@ export interface SecretDerivationProviderProps extends UseSecretDerivationOption
     autoCheckPasskeySupport?: boolean
 }
 
-const defaultPasskeyStorage = new LocalStoragePasskeyStorage()
-
 export function SecretDerivationProvider({
     children,
     autoCheckPasskeySupport = true,
     persist = false,
-    persistKey = 'train:auth',
-    passkeyStorage = defaultPasskeyStorage,
+    passkeyStorage: externalPasskeyStorage,
 }: SecretDerivationProviderProps) {
-    const hook = useSecretDerivationHook({ persist, persistKey, passkeyStorage })
+    // Create SecureStorage and IndexedDBPasskeyStorage (stable across renders)
+    const secureStorageRef = useRef<SecureStorage | null>(null)
+    if (!secureStorageRef.current) {
+        secureStorageRef.current = new SecureStorage()
+    }
+
+    const passkeyStorageRef = useRef<IndexedDBPasskeyStorage | null>(null)
+    if (!passkeyStorageRef.current && !externalPasskeyStorage) {
+        passkeyStorageRef.current = new IndexedDBPasskeyStorage(secureStorageRef.current)
+    }
+
+    const passkeyStorage = externalPasskeyStorage ?? passkeyStorageRef.current ?? undefined
+
+    const hook = useSecretDerivationHook({ persist, passkeyStorage })
 
     // Create a dedicated store for loginWallet (persisted alongside the hook store)
     const walletStoreRef = useRef<SecretDerivationStore | null>(null)
     if (!walletStoreRef.current) {
-        walletStoreRef.current = createSecretDerivationStore({
-            persist,
-            persistKey: `${persistKey}:wallet`,
-        })
+        walletStoreRef.current = createSecretDerivationStore({ persist })
     }
     const walletStore = walletStoreRef.current
     const loginWallet = useStore(walletStore, (s) => s.loginWallet)
+
+    // Initialize SecureStorage + hydrate stores on mount
+    useEffect(() => {
+        if (!persist) return
+
+        const ss = secureStorageRef.current
+        if (!ss) return
+
+        let cancelled = false
+
+        const init = async () => {
+            await ss.init()
+
+            // Clean up old localStorage keys
+            if (typeof window !== 'undefined' && window.localStorage) {
+                try {
+                    localStorage.removeItem('train:auth')
+                    localStorage.removeItem('train:auth:wallet')
+                    localStorage.removeItem('train:passkey-credentials')
+                } catch { /* ignore */ }
+            }
+
+            if (cancelled) return
+
+            // Initialize IndexedDB passkey storage
+            if (passkeyStorageRef.current) {
+                await passkeyStorageRef.current.init()
+            }
+
+            // Hydrate the stores from IndexedDB
+            await Promise.all([
+                hook._store?.getState().hydrate(ss),
+                walletStore.getState().hydrate(ss),
+            ])
+        }
+
+        init().catch(() => {})
+
+        return () => { cancelled = true }
+    }, [persist]) // eslint-disable-line react-hooks/exhaustive-deps
 
     // Auto-check passkey support (fire-once on mount when enabled)
     const checkPasskeyRef = useRef(hook.checkPasskeySupport)

@@ -12,21 +12,17 @@ import {
 } from '@train-protocol/auth'
 import type { PrfSupportResult, PasskeyCredentialStorage } from '@train-protocol/auth'
 import type { DerivationMethod } from '../types'
-import { LocalStoragePasskeyStorage } from '../internal/LocalStoragePasskeyStorage'
 import { useWalletContextOptional } from '../wallet/WalletContext'
 import {
     createSecretDerivationStore,
     type SecretDerivationStore,
-    type SecretDerivationStoreState,
 } from '../internal/secretDerivationStore'
 
 export interface UseSecretDerivationOptions {
     /** Passkey credential storage (optional, uses in-memory if omitted) */
     passkeyStorage?: PasskeyCredentialStorage
-    /** Persist derivedKey and method to localStorage (default: false) */
+    /** Persist derivedKey to encrypted IndexedDB (default: false) */
     persist?: boolean
-    /** localStorage key prefix (default: 'train:auth') */
-    persistKey?: string
 }
 
 export interface PasskeyLoginOptions {
@@ -64,6 +60,9 @@ export interface UseSecretDerivationResult {
 
     prfSupport: PrfSupportResult | null
     checkPasskeySupport: () => Promise<PrfSupportResult>
+
+    /** @internal Exposed for SecretDerivationProvider to call hydrate() */
+    _store: SecretDerivationStore
 }
 
 function uint8ArrayToHex(bytes: Uint8Array): string {
@@ -72,14 +71,12 @@ function uint8ArrayToHex(bytes: Uint8Array): string {
 
 export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSecretDerivationResult {
     const shouldPersist = options?.persist === true
-    const persistKey = options?.persistKey ?? 'train:auth'
 
     // Create store once (stable across renders)
     const storeRef = useRef<SecretDerivationStore | null>(null)
     if (!storeRef.current) {
         storeRef.current = createSecretDerivationStore({
             persist: shouldPersist,
-            persistKey,
         })
     }
     const store = storeRef.current
@@ -95,13 +92,7 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
     // Wallet context (optional — works outside TrainProvider too)
     const walletCtx = useWalletContextOptional()
 
-    // Passkey storage: use provided, or create persistent/in-memory based on persist option
-    const passkeyStorageRef = useRef<PasskeyCredentialStorage | undefined>(undefined)
-    if (!passkeyStorageRef.current) {
-        passkeyStorageRef.current = options?.passkeyStorage ??
-            (shouldPersist ? new LocalStoragePasskeyStorage() : undefined)
-    }
-    const passkeyStorage = passkeyStorageRef.current
+    const passkeyStorage = options?.passkeyStorage
 
     const isLoggedIn = !!method && !!derivedKey
 
@@ -130,7 +121,7 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
                 ))
             }
 
-            passkeyStorage?.storeCredentialId(credentialId)
+            await passkeyStorage?.storeCredentialId(credentialId)
             store.getState().setLogin('passkey', key)
             store.getState().bumpCredentialVersion()
         } finally {
@@ -181,7 +172,7 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
             if (key) {
                 store.getState().setLogin('passkey', key)
             }
-            passkeyStorage?.storeCredentialId(credentialId)
+            await passkeyStorage?.storeCredentialId(credentialId)
             store.getState().bumpCredentialVersion()
         } finally {
             store.getState().setDerivationStatus('idle')
@@ -189,8 +180,9 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
         }
     }, [store, passkeyStorage])
 
-    const passkeyCredentials = passkeyStorage?.getAllCredentialIds() ?? []
-    const activePasskeyCredentialId = passkeyStorage?.getActiveCredentialId() ?? null
+    // Read from in-memory cache (sync) — IndexedDBPasskeyStorage returns sync from memory
+    const passkeyCredentials = (passkeyStorage?.getAllCredentialIds() ?? []) as string[]
+    const activePasskeyCredentialId = (passkeyStorage?.getActiveCredentialId() ?? null) as string | null
     // credentialVersion triggers re-read after mutations
     void credentialVersion
 
@@ -221,5 +213,6 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
         removePasskeyCredential,
         prfSupport,
         checkPasskeySupport,
+        _store: store,
     }
 }

@@ -1,9 +1,11 @@
-/** Injectable storage interface — implement with zustand, memory, or any other store. */
+/** Injectable storage interface — implement with zustand, memory, IndexedDB, or any other store.
+ *  Methods may return sync values or Promises, allowing both sync (in-memory/localStorage)
+ *  and async (IndexedDB) implementations. */
 export interface PasskeyCredentialStorage {
-    getActiveCredentialId(): string | null
-    getAllCredentialIds(): string[]
-    storeCredentialId(credId: string): void
-    removeCredentialId(credId: string): void
+    getActiveCredentialId(): string | null | Promise<string | null>
+    getAllCredentialIds(): string[] | Promise<string[]>
+    storeCredentialId(credId: string): void | Promise<void>
+    removeCredentialId(credId: string): void | Promise<void>
 }
 
 /** In-memory fallback storage (non-persistent). */
