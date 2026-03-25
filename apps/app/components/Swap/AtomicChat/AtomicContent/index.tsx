@@ -40,7 +40,7 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
         toCurrency: destination_asset,
     }
 
-    if (!source_network || !destination_network || !source_asset || !destination_asset) return <SwapNotFound />;
+    if (!source_network || !destination_network || !source_asset || !destination_asset) { console.log("klir"); return <SwapNotFound />; }
 
     return (
         <>

@@ -75,9 +75,14 @@ export function AtomicProvider({ children }) {
     const recoverSwap = useSwapStore(s => s.recoverSwap)
 
     useEffect(() => {
+        if (!router.isReady) return
+
         const sourceNetworkParam = router.query.sourceNetwork as string | undefined
         const txHashParam = router.query.txHash as string | undefined
-        if (!sourceNetworkParam || !txHashParam || activeHashlock) return
+        if (!sourceNetworkParam || !txHashParam || activeHashlock) {
+            setRecovering(false)
+            return
+        }
 
         const found = findSwapByTx(sourceNetworkParam, txHashParam)
         if (found) {
@@ -85,18 +90,22 @@ export function AtomicProvider({ children }) {
             if (!isTerminalStatus(swap.status)) {
                 setActiveHashlock(hashlock)
             }
+            setRecovering(false)
             return
         }
 
         const network = networks.find(n => n.caip2Id.toUpperCase() === sourceNetworkParam.toUpperCase())
-        if (!network) return
+        if (!network) {
+            setRecovering(false)
+            return
+        }
 
         setRecovering(true)
         recoverSwapFromChain(network, txHashParam, networks, getEffectiveRpcUrls, recoverSwap)
             .then(hashlock => setActiveHashlock(hashlock))
             .catch(e => console.error('Auto-recovery from URL failed:', e))
             .finally(() => setRecovering(false))
-    }, [router.query.sourceNetwork, router.query.txHash, activeHashlock, networks, findSwapByTx, setActiveHashlock, getEffectiveRpcUrls, recoverSwap])
+    }, [router.isReady, router.query.sourceNetwork, router.query.txHash, activeHashlock, networks, findSwapByTx, setActiveHashlock, getEffectiveRpcUrls, recoverSwap])
 
     const tempSwap = useSwapStore(s => s.tempSwap)
     const commitSwap = useSwapStore(s => s.commitSwap)
@@ -120,7 +129,7 @@ export function AtomicProvider({ children }) {
     const destAtomicContract = currentSwap?.destContract
     const destinationSolverAddress = currentSwap?.destinationSolverAddress
 
-    const [recovering, setRecovering] = useState(false);
+    const [recovering, setRecovering] = useState(!!(router.query.sourceNetwork && router.query.txHash && !activeHashlock));
     const [htlcStates, setHtlcStates] = useState<CommitStatesDict>({});
     const [error, setError] = useState<{ message: string, code?: string } | undefined>(undefined);
     const [manualClaimTxId, setManualClaimTxId] = useState<string | undefined>(undefined);
