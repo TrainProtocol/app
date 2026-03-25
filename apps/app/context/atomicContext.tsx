@@ -38,6 +38,7 @@ type DataContextType = HTLCState & {
     destinationDetailsByLightClient?: { data?: LockDetails, error?: string },
     consensusVerifying: boolean,
     consensusVerified: boolean,
+    recovering: boolean,
     srcAtomicContract?: string,
     destAtomicContract?: string,
     sourceClient?: IHTLCClient,
@@ -90,9 +91,11 @@ export function AtomicProvider({ children }) {
         const network = networks.find(n => n.caip2Id.toUpperCase() === sourceNetworkParam.toUpperCase())
         if (!network) return
 
+        setRecovering(true)
         recoverSwapFromChain(network, txHashParam, networks, getEffectiveRpcUrls, recoverSwap)
             .then(hashlock => setActiveHashlock(hashlock))
             .catch(e => console.error('Auto-recovery from URL failed:', e))
+            .finally(() => setRecovering(false))
     }, [router.query.sourceNetwork, router.query.txHash, activeHashlock, networks, findSwapByTx, setActiveHashlock, getEffectiveRpcUrls, recoverSwap])
 
     const tempSwap = useSwapStore(s => s.tempSwap)
@@ -117,6 +120,7 @@ export function AtomicProvider({ children }) {
     const destAtomicContract = currentSwap?.destContract
     const destinationSolverAddress = currentSwap?.destinationSolverAddress
 
+    const [recovering, setRecovering] = useState(false);
     const [htlcStates, setHtlcStates] = useState<CommitStatesDict>({});
     const [error, setError] = useState<{ message: string, code?: string } | undefined>(undefined);
     const [manualClaimTxId, setManualClaimTxId] = useState<string | undefined>(undefined);
@@ -370,6 +374,7 @@ export function AtomicProvider({ children }) {
             destRedeemTx: destinationRedeemTx,
             consensusVerifying,
             consensusVerified: isConsensusVerified,
+            recovering,
             srcAtomicContract,
             destAtomicContract,
             sourceClient,

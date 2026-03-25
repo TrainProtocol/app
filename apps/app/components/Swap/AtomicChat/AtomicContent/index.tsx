@@ -1,7 +1,6 @@
-import { FC, useEffect } from "react";
+import { FC } from "react";
 import { useAtomicState } from "@/context/atomicContext";
 import Summary from "./Summary";
-
 import { SwapQuote } from "@/lib/trainApiClient";
 import SwapQuoteComp from "@/components/FeeDetails/SwapQuote";
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
@@ -10,6 +9,7 @@ import Timeline from "./Timeline";
 import { useSwapProgress } from "./useSwapProgress";
 import { CircleCheck, SearchX, Undo2, X } from "lucide-react";
 import { HTLCStatus } from "@/Models/HTLCStatus";
+import CircularLoader from "@/components/Icons/CircularLoader";
 
 type AtomicContentProps = {
     quote?: SwapQuote
@@ -20,11 +20,18 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
     const {
         htlcStatus: commitStatus, destination_network, source_network,
         source_asset, destination_asset, amount,
-        hashlock,
+        hashlock, recovering,
     } = useAtomicState()
 
     const isInitial = commitStatus === HTLCStatus.Initial
-
+    if (recovering) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[318px] gap-3">
+                <CircularLoader className="w-12 h-12 animate-spin" />
+                <span className="text-sm text-secondary-text">Recovering swap...</span>
+            </div>
+        )
+    }
     const values: SwapFormValues = {
         amount: amount?.toString(),
         from: source_network,
@@ -33,8 +40,8 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
         toCurrency: destination_asset,
     }
 
-    if(!source_network || !destination_network || !source_asset || !destination_asset) return <SwapNotFound />;
-    
+    if (!source_network || !destination_network || !source_asset || !destination_asset) return <SwapNotFound />;
+
     return (
         <>
             <Summary quote={quote} isQuoteLoading={isQuoteLoading} />
