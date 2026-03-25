@@ -38,6 +38,7 @@ interface SwapStoreState {
     clearTempSwap: () => void
     commitSwap: (hashlock: string, txId: string) => void
     updateSwap: (hashlock: string, updates: Partial<SwapData>) => void
+    removeSwap: (hashlock: string) => void
     recoverSwap: (hashlock: string, data: SwapData) => void
     findSwapByTx: (sourceNetwork: string, txHash: string) => [string, SwapData] | null
 }
@@ -87,6 +88,15 @@ export const useSwapStore = create<SwapStoreState>()(
                         ...swaps,
                         [hashlock]: { ...existing, ...updates },
                     },
+                })
+            },
+
+            removeSwap: (hashlock) => {
+                const { swaps, activeHashlock } = get()
+                const { [hashlock]: _, ...rest } = swaps
+                set({
+                    swaps: rest,
+                    activeHashlock: activeHashlock === hashlock ? null : activeHashlock,
                 })
             },
 

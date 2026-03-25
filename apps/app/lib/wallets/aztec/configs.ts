@@ -4,7 +4,7 @@ import { useSettingsState } from "../../../context/settings";
 import KnownInternalNames from "../../knownIds";
 
 // Default Aztec node URL
-const DEFAULT_AZTEC_NODE_URL = "https://v4-devnet-2.aztec-labs.com";
+const DEFAULT_AZTEC_NODE_URL = "https://rpc.testnet.aztec-labs.com";
 
 // Application ID for wallet SDK discovery
 export const AZTEC_APP_ID = "Train Protocol";

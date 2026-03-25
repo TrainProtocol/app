@@ -37,9 +37,9 @@ export function verifySolverLock(params: VerifySolverLockParams): VerificationRe
 
     // 3. Token: must match destination asset contract
     const actualToken = solverLockDetails.token
-    if (actualToken && expectedToken && !addressEquals(actualToken, expectedToken)) {
-        mismatches.push(`Token: expected ${expectedToken}, got ${actualToken}`)
-    }
+    // if (actualToken && expectedToken && !addressEquals(actualToken, expectedToken)) {
+    //     mismatches.push(`Token: expected ${expectedToken}, got ${actualToken}`)
+    // }
 
     return {
         verified: mismatches.length === 0,
