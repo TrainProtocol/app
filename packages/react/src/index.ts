@@ -78,6 +78,7 @@ export type {
 export {
     HTLCStatus,
     LockStatus,
+    HTLCTransaction,
     isTerminalStatus,
     TERMINAL_STATUSES,
 } from '@train-protocol/sdk'

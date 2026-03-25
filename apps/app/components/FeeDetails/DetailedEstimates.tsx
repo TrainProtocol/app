@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Token } from "../../Models/Network";
-import type { SwapQuote } from "@train-protocol/sdk";
+import type { SwapQuote } from "@train-protocol/react";
 
 type DetailedEstimatesProps = {
     fromCurrency: Token | undefined

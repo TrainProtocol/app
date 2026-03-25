@@ -6,8 +6,7 @@ import { useSwapData } from "@/hooks/useSwapData";
 import { useActiveSwapState } from "@/hooks/useActiveSwapState";
 import WalletIcon from "@/components/Icons/WalletIcon";
 import LockIcon from "@/components/Icons/LockIcon";
-import SignatureIcon from "@/components/Icons/SignatureIcon";
-import { HTLCTransaction } from "@train-protocol/sdk";
+import { HTLCTransaction } from "@train-protocol/react";
 import NetworkSettings from "@/lib/NetworkSettings";
 
 const Details: FC = () => {

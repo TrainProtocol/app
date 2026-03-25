@@ -4,7 +4,7 @@ import { FC, useMemo, useState } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../shadcn/accordion';
 import clsx from 'clsx';
 import { ChevronDown } from 'lucide-react';
-import type { SwapQuote } from '@train-protocol/sdk';
+import type { SwapQuote } from '@train-protocol/react';
 import GasIcon from '../Icons/GasIcon';
 import Clock from '../Icons/Clock';
 import AverageCompletionTime from '../Common/AverageCompletionTime';

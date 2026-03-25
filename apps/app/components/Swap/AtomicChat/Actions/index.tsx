@@ -7,7 +7,7 @@ import { UserRefundAction, UserLockAction } from "./UserActions";
 import TransactionMessages from "@/components/Swap/messages/TransactionMessages";
 import WalletMessage from "@/components/Swap/messages/Message";
 import DestinationWalletWrapper from "./DestinationWalletWrapper";
-import type { SwapQuote } from "@train-protocol/sdk";
+import type { SwapQuote } from "@train-protocol/react";
 import SubmitButton from "@/components/buttons/submitButton";
 import { ExternalLink, Home } from "lucide-react";
 import { useGoHome } from "@/hooks/useGoHome";
@@ -17,10 +17,9 @@ import { Widget } from "@/components/Widget/Index";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
-import { useLoginIdentityMismatch, useSwap as useSwapRead } from "@train-protocol/react";
+import { useLoginIdentityMismatch, useSwap as useSwapRead, HTLCStatus } from "@train-protocol/react";
 import { useSwapStore } from "@/stores/swapStore";
 import { Drawer } from "@/components/Modal/vaul";
-import { HTLCStatus } from "@/Models/HTLCStatus";
 
 export type SwapViewType = "widget" | "contained"
 

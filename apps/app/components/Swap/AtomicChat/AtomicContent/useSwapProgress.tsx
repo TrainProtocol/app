@@ -2,11 +2,9 @@ import React, { FC, useMemo } from "react";
 import { useSwapData } from "@/hooks/useSwapData";
 import { useActiveSwapState } from "@/hooks/useActiveSwapState";
 import { StepStatus, TimelineStep } from "./progressTypes";
-import { LockStatus } from "@train-protocol/sdk";
+import { LockStatus, HTLCTransaction, HTLCStatus } from "@train-protocol/react";
 import { getExplorerUrl } from "@/lib/address";
 import NetworkSettings from "@/lib/NetworkSettings";
-import { HTLCTransaction } from "@train-protocol/sdk";
-import { HTLCStatus } from "@/Models/HTLCStatus";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
 import LockIcon from "@/components/Icons/LockIcon";
 

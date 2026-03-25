@@ -4,7 +4,7 @@ import AmountField from "./Amount"
 import { useFormikContext } from "formik";
 import { SwapFormValues } from "../DTOs/SwapFormValues";
 import MinMax from "./Amount/MinMax";
-import type { SwapQuote } from "@train-protocol/sdk";
+import type { SwapQuote } from "@train-protocol/react";
 import clsx from "clsx";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { useState } from "react";

@@ -1,9 +1,8 @@
 import { FC } from "react";
 import { useSwapData } from "@/hooks/useSwapData";
 import { useActiveSwapState } from "@/hooks/useActiveSwapState";
-import { useSwap } from "@train-protocol/react";
+import { useSwap, type SwapQuote } from "@train-protocol/react";
 import Summary from "./Summary";
-import type { SwapQuote } from "@train-protocol/sdk";
 import { formatUnits } from "viem";
 import { useSwapStore } from "@/stores/swapStore";
 

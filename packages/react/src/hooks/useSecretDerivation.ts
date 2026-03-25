@@ -183,8 +183,10 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
     // Read from in-memory cache (sync) — IndexedDBPasskeyStorage returns sync from memory
     const passkeyCredentials = (passkeyStorage?.getAllCredentialIds() ?? []) as string[]
     const activePasskeyCredentialId = (passkeyStorage?.getActiveCredentialId() ?? null) as string | null
-    // credentialVersion triggers re-read after mutations
-    void credentialVersion
+    // Subscribe to credentialVersion so React re-renders when credentials change.
+    // The value itself is unused — reading it is enough to create the dependency.
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    credentialVersion
 
     const removePasskeyCredential = useCallback((id: string) => {
         passkeyStorage?.removeCredentialId?.(id)

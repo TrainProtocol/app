@@ -2,14 +2,14 @@ import { FC } from "react";
 import { useSwapData } from "@/hooks/useSwapData";
 import { useActiveSwapState } from "@/hooks/useActiveSwapState";
 import Summary from "./Summary";
-import type { SwapQuote } from "@train-protocol/sdk";
+import type { SwapQuote } from "@train-protocol/react";
 import SwapQuoteComp from "@/components/FeeDetails/SwapQuote";
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import { Gauge } from "./Gauge";
 import Timeline from "./Timeline";
 import { useSwapProgress } from "./useSwapProgress";
 import { CircleCheck, Undo2, X } from "lucide-react";
-import { HTLCStatus } from "@/Models/HTLCStatus";
+import { HTLCStatus } from "@train-protocol/react";
 
 type AtomicContentProps = {
     quote?: SwapQuote

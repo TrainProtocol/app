@@ -7,16 +7,13 @@ import SwapForm from "./Form";
 import { NextRouter, useRouter } from "next/router";
 import { useQueryState } from "@/context/query";
 import useWallet from "@/hooks/useWallet";
-import type { SwapQuote } from "@train-protocol/sdk";
-import { useSwapProgress } from "@train-protocol/react";
+import { useSwapProgress, type SwapQuote, HTLCStatus, useSharedSecretDerivation } from "@train-protocol/react";
 import VaulDrawer from "../../Modal/vaulModal";
 import { Widget } from "../../Widget/Index";
 import { generateSwapInitialValues } from "@/lib/generateSwapInitialValues";
 import { useSettingsState } from "@/context/settings";
 import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
-import { useSharedSecretDerivation } from "@train-protocol/react";
 import { useSwapStore } from "@/stores/swapStore";
-import { HTLCStatus } from "@/Models/HTLCStatus";
 
 import AtomicPage from "../AtomicChat";
 import { useRecentNetworksStore } from "@/stores/recentRoutesStore";
