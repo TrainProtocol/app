@@ -12,14 +12,14 @@ export async function getServerSideProps(context) {
         's-maxage=60, stale-while-revalidate'
     );
 
-    // const [networks, prices] = await Promise.all([
-    //     apiClient.GetNetworksAsync(),
-    //     apiClient.GetPricesAsync(),
-    // ])
+    const [networks, prices] = await Promise.all([
+        apiClient.GetNetworksAsync(),
+        apiClient.GetPricesAsync(),
+    ])
 
-    // if (!networks.length) return
+    if (!networks.length) return
 
-    const resolvedNetworks = (await Promise.all(MOCK_API_NETWORKS.map(async network => {
+    const resolvedNetworks = (await Promise.all(networks.map(async network => {
         const _network = mockData.data.find(n => n.caip2Id === network.caip2Id)
         const seedNodes = _network?.nodes ?? []
         const resolvedNodes = await resolveNodes(network.caip2Id, seedNodes)
@@ -30,7 +30,7 @@ export async function getServerSideProps(context) {
             contracts: (_network?.contracts as NetworkContract[]) ?? [],
             tokens: network.tokens.map(token => ({
                 ...token,
-                // priceInUsd: prices[`${network.caip2Id}:${token.contractAddress}`] || 0,
+                priceInUsd: prices[`${network.caip2Id}:${token.contractAddress}`] || 0,
             })),
         }
     }))).filter(n => n?.nodes?.length > 0 && n?.contracts?.length > 0)

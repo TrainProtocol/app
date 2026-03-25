@@ -27,6 +27,7 @@ export class StarknetHTLCClient extends HTLCClient {
         super(config.apiClient)
         this.provider = new RpcProvider({ nodeUrl: config.rpcUrl })
         this.signer = config.signer
+        this.consensusOptions = { minQuorum: 1, batchSize: 1 }
     }
 
     // ── Write Operations ───────────────────────────────────────────────
