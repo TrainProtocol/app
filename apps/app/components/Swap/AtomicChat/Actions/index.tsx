@@ -36,12 +36,12 @@ export const Actions: FC<ActionsProps> = ({ quote, type }) => {
 
     return (
         <>
-            {error && <TransactionMessage error={error.message} disableButton={error.disableButton} />}
+            {error && <TransactionMessage error={error.message} errorCode={error.code} />}
             <DestinationWalletWrapper>
                 <ResolveAction
                     commitStatus={commitStatus}
-                    disableButton={error?.disableButton}
                     error={error?.message}
+                    errorCode={error?.code}
                     quote={quote}
                     type={type}
                 />
@@ -52,18 +52,33 @@ export const Actions: FC<ActionsProps> = ({ quote, type }) => {
 
 type ResolveActionProps = {
     commitStatus: HTLCStatus
-    disableButton?: boolean
     error: string | undefined
+    errorCode?: string
     quote?: SwapQuote
     type: SwapViewType
 }
 
-const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, disableButton, error, quote, type }) => {
-    const { setError } = useAtomicState()
+const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode, quote, type }) => {
+    const { setError, hashlock } = useAtomicState()
+    const removeSwap = useSwapStore(s => s.removeSwap)
+    const goHome = useGoHome()
 
-    if (error && !disableButton) {
+    if (error) {
+        const isTxFailed = errorCode === 'TX_FAILED'
+
+        const handleRetry = () => {
+            setError(undefined)
+            if (isTxFailed && hashlock) {
+                removeSwap(hashlock)
+                if (type === 'widget') {
+                    goHome()
+                }
+                return
+            }
+        }
+
         return (
-            <SubmitButton type="button" onClick={() => setError(undefined)}>
+            <SubmitButton type="button" onClick={handleRetry}>
                 Try again
             </SubmitButton>
         )
@@ -192,16 +207,7 @@ const TerminalActions: FC<{ variant: 'success' | 'refund'; type: SwapViewType }>
     )
 }
 
-const TransactionMessage: FC<{ error: string | undefined, disableButton?: boolean }> = ({ error, disableButton }) => {
-    if (disableButton && error) {
-        return (
-            <WalletMessage
-                status="error"
-                header="Something went wrong"
-                details={error}
-            />
-        )
-    }
+const TransactionMessage: FC<{ error: string | undefined, errorCode?: string }> = ({ error, errorCode }) => {
     if (error === "An error occurred (USER_REFUSED_OP)" || error === "Execute failed" || error?.toLowerCase()?.includes('denied') || error?.toLowerCase()?.includes('user rejected')) {
         return <TransactionMessages.TransactionRejectedMessage />
     }
@@ -216,6 +222,9 @@ const TransactionMessage: FC<{ error: string | undefined, disableButton?: boolea
                 details="Unfortunately the time lock was expired, continuing the transaction is not recommended, cancel & refund to receive your assets back."
             />
         )
+    }
+    if (errorCode === 'TX_FAILED') {
+        return <></>
     }
     if (error) {
         return <TransactionMessages.UexpectedErrorMessage message={error} />

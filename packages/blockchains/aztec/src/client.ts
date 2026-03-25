@@ -17,6 +17,8 @@ import {
     type AtomicResult,
     type RecoveredSwapData,
     type LockStatus,
+    type TransactionInfo,
+    TransactionStatus,
     HTLCClient,
 } from '@train-protocol/sdk'
 import { TokenContract } from './artifacts/Token'
@@ -38,6 +40,8 @@ export class AztecHTLCClient extends HTLCClient {
         this.signer = config.signer
         this.consensusOptions = { minQuorum: 1, batchSize: 1 }
     }
+
+    // ── Write Operations ───────────────────────────────────────────────
 
     async userLock(params: UserLockParams): Promise<AtomicResult> {
         try {
@@ -118,12 +122,12 @@ export class AztecHTLCClient extends HTLCClient {
                 wait: { timeout: TX_TIMEOUT, dontThrowOnRevert: true },
             })
 
-            if (tx.hasExecutionReverted?.()) {
-                throw new Error(`user_lock reverted: ${tx.error ?? 'unknown error'}`)
+            if (tx.receipt.hasExecutionReverted()) {
+                throw new Error(`user_lock reverted: ${tx.receipt.error ?? 'unknown error'}`)
             }
 
             return {
-                hash: tx.txHash?.toString() ?? String(tx),
+                hash: tx.receipt.txHash?.toString() ?? String(tx),
                 hashlock: params.hashlock,
                 nonce: params.nonce,
             }
@@ -154,11 +158,11 @@ export class AztecHTLCClient extends HTLCClient {
                     wait: { timeout: TX_TIMEOUT, dontThrowOnRevert: true },
                 })
 
-            if (tx.hasExecutionReverted?.()) {
-                throw new Error(`refund_user reverted: ${tx.error ?? 'unknown error'}`)
+            if (tx.receipt.hasExecutionReverted()) {
+                throw new Error(`refund_user reverted: ${tx.receipt.error ?? 'unknown error'}`)
             }
 
-            return tx.txHash?.toString() ?? String(tx)
+            return tx.receipt.txHash?.toString() ?? String(tx)
         } catch (error) {
             console.error('Error in refund:', error)
             throw error
@@ -204,16 +208,18 @@ export class AztecHTLCClient extends HTLCClient {
                     wait: { timeout: TX_TIMEOUT, dontThrowOnRevert: true },
                 })
 
-            if (tx.hasExecutionReverted?.()) {
-                throw new Error(`redeem_solver reverted: ${tx.error ?? 'unknown error'}`)
+            if (tx.receipt.hasExecutionReverted()) {
+                throw new Error(`redeem_solver reverted: ${tx.receipt.error ?? 'unknown error'}`)
             }
 
-            return tx.txHash?.toString() ?? String(tx)
+            return tx.receipt.txHash?.toString() ?? String(tx)
         } catch (error) {
             console.error('Error in redeemSolver:', error)
             throw error
         }
     }
+
+    // ── Read Operations ────────────────────────────────────────────────
 
     async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
         const signer = this.requireSigner()
@@ -336,6 +342,38 @@ export class AztecHTLCClient extends HTLCClient {
 
         throw new Error('This transaction does not contain a swap lock')
     }
+
+    // ── Public Helpers ─────────────────────────────────────────────────
+
+    async getTransaction(txHash: string): Promise<TransactionInfo | null> {
+        try {
+            const node = this.getNode()
+            const receipt = await node.getTxReceipt(TxHash.fromString(txHash))
+
+            if (!receipt) return null
+
+            let status: TransactionStatus
+            if (receipt.isDropped() || receipt.hasExecutionReverted()) {
+                status = TransactionStatus.Failed
+            } else if (receipt.isMined()) {
+                status = TransactionStatus.Confirmed
+            } else {
+                status = TransactionStatus.Pending
+            }
+
+            return {
+                hash: txHash,
+                status,
+                blockNumber: receipt.blockNumber != null
+                    ? String(receipt.blockNumber)
+                    : undefined,
+            }
+        } catch {
+            return null
+        }
+    }
+
+    // ── Private Helpers ────────────────────────────────────────────────
 
     private parseSecret(rawSecret: unknown): bigint | undefined {
         const secretBytes: number[] = Array.from((rawSecret as number[]) || [])

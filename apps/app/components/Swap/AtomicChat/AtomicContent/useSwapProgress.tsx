@@ -165,6 +165,7 @@ export function useSwapProgress(): SwapProgress {
         destination_network,
         htlcFromApi,
         consensusVerifying,
+        error
     } = useAtomicState();
 
     const { verified, skipped, mismatches } = useSolverLockVerification();
@@ -177,6 +178,8 @@ export function useSwapProgress(): SwapProgress {
         const refundTxLink = buildExplorerLink(source_network?.caip2Id, refundTxId);
 
         const isRefunded = sourceDetails?.status === LockStatus.Refunded;
+
+        const isUserLockFailed = error?.code === 'TX_FAILED'
 
         // Timelock expired — awaiting refund action
         if (htlcStatus === HTLCStatus.TimelockExpired && !isRefunded && !refundTxId) {
@@ -239,7 +242,7 @@ export function useSwapProgress(): SwapProgress {
                 title: "Confirming transaction",
                 subtitle: "Your transaction is being confirmed on-chain.",
                 steps: buildSteps(HAPPY_STEPS, 0, { source: sourceTxLink }, {
-                    0: { description: "Transaction is confirming on source chain" },
+                    0: { status: isUserLockFailed ? StepStatus.Failed : StepStatus.Current, name: isUserLockFailed ? "Lock funds failed" : "Lock funds", description: isUserLockFailed ? error?.message : "Transaction is confirming on source chain" },
                 }),
             };
         }
@@ -345,5 +348,6 @@ export function useSwapProgress(): SwapProgress {
         skipped,
         mismatches,
         consensusVerifying,
+        error
     ]);
 }

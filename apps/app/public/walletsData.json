@@ -1,5 +1,5 @@
 {
-  "count": 634,
+  "count": 635,
   "listings": {
     "00e39f835988d1bb783b2a0748e18bc6278dec03492d00b0e102a466cd8b3d77": {
       "app": {
@@ -21141,40 +21141,35 @@
       "app_type": "wallet",
       "category": null,
       "chains": [
-        "algorand:wGHE2Pwdvd7S12BL5FaOP20EGYesN73k",
-        "bip122:000000000019d6689c085ae165831e93",
         "bip122:12a765e31ffd4059bada1e25190f6e98",
         "bip122:Bitcoin Cash Mainnet",
-        "cip-34:1-764824073",
-        "cosmos:cosmoshub-4",
         "cosmos:thorchain-mainnet-v1",
         "eip155:1",
-        "eip155:10",
         "eip155:1329",
         "eip155:137",
         "eip155:143",
         "eip155:2000",
         "eip155:204",
-        "eip155:250",
         "eip155:2741",
+        "eip155:3",
         "eip155:324",
+        "eip155:4",
         "eip155:42161",
         "eip155:42220",
         "eip155:43114",
         "eip155:5000",
+        "eip155:56",
         "eip155:56288",
         "eip155:57073",
         "eip155:59144",
         "eip155:80094",
         "eip155:8453",
-        "near:mainnet",
-        "polkadot:91b171bb158e2d3848fa23a9f1c25182",
+        "eip155:97",
+        "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z",
         "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-        "stellar:pubnet",
-        "sui:mainnet",
-        "ton:-239",
+        "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
         "tron:0x2b6653dc",
-        "xrpl:0"
+        "tron:0x94a9059e"
       ],
       "description": "CornWallet is an innovative multi-chain decentralized wallet that integrates local encryption storage of private keys, cross-chain transfers, perpetual contract trading, and asset detail management. We are committed to providing users with a completely autonomous digital asset management experience. All operations are completed with local encryption, without relying on any centralized servers, ensuring absolute security of assets. \nAs the core entry point of the Corn ecosystem, CornWallet integr",
       "desktop": {
@@ -47503,6 +47498,68 @@
         "2"
       ]
     },
+    "e86b5fc56c3661726248a7a3f99fae68dca0cc7fa503e2ce96c1873973fea3f5": {
+      "app": {
+        "android": "https://play.google.com/store/apps/details?id=org.ciphertrade.app",
+        "browser": "",
+        "chrome": "",
+        "edge": "",
+        "firefox": "",
+        "ios": "",
+        "linux": "",
+        "mac": "",
+        "opera": "",
+        "safari": "",
+        "windows": ""
+      },
+      "app_type": "wallet",
+      "category": null,
+      "chains": [
+        "eip155:1",
+        "eip155:10",
+        "eip155:137",
+        "eip155:42161",
+        "eip155:56",
+        "eip155:8453"
+      ],
+      "description": "CipherTrade is a secure self-custody wallet for seamless crypto trading and portfolio management.",
+      "desktop": {
+        "native": "",
+        "universal": ""
+      },
+      "homepage": "https://ciphertrade.org",
+      "id": "e86b5fc56c3661726248a7a3f99fae68dca0cc7fa503e2ce96c1873973fea3f5",
+      "image_id": "f535e1e6-2189-4305-0a0d-147f83031c00",
+      "image_url": {
+        "lg": "https://explorer-api.walletconnect.com/v3/logo/md/f535e1e6-2189-4305-0a0d-147f83031c00?projectId=2aa85797257fe700f6ef5c2c632aaf3e",
+        "md": "https://explorer-api.walletconnect.com/v3/logo/md/f535e1e6-2189-4305-0a0d-147f83031c00?projectId=2aa85797257fe700f6ef5c2c632aaf3e",
+        "sm": "https://explorer-api.walletconnect.com/v3/logo/sm/f535e1e6-2189-4305-0a0d-147f83031c00?projectId=2aa85797257fe700f6ef5c2c632aaf3e"
+      },
+      "injected": null,
+      "metadata": {
+        "colors": {
+          "primary": null,
+          "secondary": null
+        },
+        "shortName": null
+      },
+      "mobile": {
+        "native": "ciphertrade://wc",
+        "universal": "https://ciphertrade.org/wc"
+      },
+      "name": "CipherTrade",
+      "rdns": "",
+      "sdks": [
+        "sign_v1",
+        "sign_v2"
+      ],
+      "slug": "ciphertrade",
+      "updatedAt": "2026-03-24T17:39:50.443198+00:00",
+      "versions": [
+        "1",
+        "2"
+      ]
+    },
     "e870e3dc750305af6a6bd7139538a85362963a8e21b6c6e0f9e27d80b92801c9": {
       "app": {
         "android": "https://play.google.com/store/apps/details?id=io.bimwallet",
@@ -52217,5 +52274,5 @@
       ]
     }
   },
-  "total": 634
+  "total": 635
 }

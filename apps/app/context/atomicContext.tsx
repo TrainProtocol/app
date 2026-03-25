@@ -8,7 +8,7 @@ import { HTLCFromApi, HTLCTransaction, resolveHTLCStatus, IHTLCClient } from '@t
 import { SwapData, useSwapStore } from '@/stores/swapStore';
 import { useShallow } from 'zustand/react/shallow';
 import { resolvePersistantQueryParams } from '@/helpers/querryHelper';
-import useUserLockPolling from '@/hooks/htlc/useUserLockPolling';
+import useUserLockPolling, { USER_LOCK_TX_FAILED_ERROR } from '@/hooks/htlc/useUserLockPolling';
 import useSolverLockPolling from '@/hooks/htlc/useSolverLockPolling';
 import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus';
 import useOrderStreaming from '@/hooks/useOrderStreaming';
@@ -41,8 +41,8 @@ type DataContextType = HTLCState & {
     destAtomicContract?: string,
     sourceClient?: IHTLCClient,
     destinationClient?: IHTLCClient,
-    error?: { message: string, disableButton?: boolean },
-    setError: (error: { message: string, disableButton?: boolean } | undefined) => void;
+    error?: { message: string, code?: string },
+    setError: (error: { message: string, code?: string } | undefined) => void;
     setManualClaimTxId: (txId: string | undefined) => void;
     onUserLock: (hashlock: string, txId: string) => void;
     updateHTLC: (field: keyof HTLCState, value: any) => void;
@@ -104,7 +104,7 @@ export function AtomicProvider({ children }) {
     const destinationSolverAddress = currentSwap?.destinationSolverAddress
 
     const [htlcStates, setHtlcStates] = useState<CommitStatesDict>({});
-    const [error, setError] = useState<{ message: string, disableButton?: boolean } | undefined>(undefined);
+    const [error, setError] = useState<{ message: string, code?: string } | undefined>(undefined);
     const [manualClaimTxId, setManualClaimTxId] = useState<string | undefined>(undefined);
 
     // Restore secretRevealed from persisted swap store on hydration
@@ -148,7 +148,7 @@ export function AtomicProvider({ children }) {
     const isTimelockExpired = hashlock ? htlcStates[hashlock]?.isTimelockExpired : false;
     const manualClaimRequired = hashlock ? htlcStates[hashlock]?.manualClaimRequired : false;
 
-    const destinationRedeemTx = manualClaimTxId ?? htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem && t.networkId === destination)?.hash
+    const destinationRedeemTx = manualClaimTxId ?? htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem && t.network === destination)?.hash
 
     const source_network = networks.find(n => n.caip2Id.toUpperCase() === (source as string)?.toUpperCase())
     const destination_network = networks.find(n => n.caip2Id.toUpperCase() === (destination as string)?.toUpperCase())
@@ -226,6 +226,10 @@ export function AtomicProvider({ children }) {
         }
     }, [hashlock, updateHTLCState])
 
+    const handleUserLockTxFailed = useCallback(() => {
+        setError({ message: USER_LOCK_TX_FAILED_ERROR, code: 'TX_FAILED' })
+    }, [setError])
+
     useUserLockPolling({
         network: source_network,
         hashlock,
@@ -235,6 +239,7 @@ export function AtomicProvider({ children }) {
         client: sourceClient,
         txId: lockTxId as string | undefined,
         onSuccess: handleUserLockSuccess,
+        onTransactionFailed: handleUserLockTxFailed,
     })
 
     const destRpcConfig = useRpcConfigStore(s =>

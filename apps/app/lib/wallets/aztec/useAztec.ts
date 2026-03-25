@@ -65,7 +65,6 @@ export default function useAztec(): WalletProvider {
             }
 
             const connectedWallet = await connect(providerId);
-
             let connectedAddresses: string[] = [];
             try {
                 const accounts = await Promise.race([
@@ -75,7 +74,8 @@ export default function useAztec(): WalletProvider {
                     ),
                 ]);
                 connectedAddresses = accounts.map(account => extractAztecAddress(account));
-            } catch {
+            } catch (error) {
+                console.error(`Error getting accounts:`, error);
                 throw new Error('No accounts found')
             }
 
