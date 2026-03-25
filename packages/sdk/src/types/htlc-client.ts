@@ -1,5 +1,5 @@
 import { RedeemSolverParams, UserLockParams, LockParams, RefundParams } from "./params"
-import { UserLockDetails, SolverLockDetails } from "./lock"
+import { UserLockDetails, SolverLockDetails, TransactionInfo } from "./lock"
 import { AtomicResult, RecoveredSwapData } from "./atomic"
 import type { TrainApiClient } from "../api/client"
 
@@ -8,6 +8,7 @@ export interface IHTLCClient {
     getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null>
     getSolverLockDetailsWithConsensus(params: LockParams, nodeUrls: string[], options?: ConsensusOptions & { prefetchedResult?: SolverLockDetails }): Promise<SolverLockDetails | null>
     recoverSwap(txHash: string): Promise<RecoveredSwapData>
+    getTransaction(txHash: string): Promise<TransactionInfo | null>
 
     userLock(params: UserLockParams): Promise<AtomicResult>
     refund(params: RefundParams): Promise<string>
@@ -107,6 +108,7 @@ export abstract class HTLCClient implements IHTLCClient {
     abstract getUserLockDetails(params: LockParams): Promise<UserLockDetails | null>
     abstract getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null>
     abstract recoverSwap(txHash: string): Promise<RecoveredSwapData>
+    abstract getTransaction(txHash: string): Promise<TransactionInfo | null>
     abstract userLock(params: UserLockParams): Promise<AtomicResult>
     abstract refund(params: RefundParams): Promise<string>
     abstract redeemSolver(params: RedeemSolverParams): Promise<string>

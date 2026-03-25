@@ -1,13 +1,13 @@
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import useWallet from "@/hooks/useWallet";
-import { useConnectModal, WalletModalConnector } from "@/components/WalletModal";
-import { InternalConnector, Wallet, WalletProvider } from "@/Models/WalletProvider";
+import useWallet from "../../hooks/useWallet";
+import { useConnectModal, WalletModalConnector } from ".";
+import { InternalConnector, Wallet, WalletProvider } from "../../Models/WalletProvider";
 import clsx from "clsx";
 import Connector from "./Connector";
-import { usePersistedState } from "@/hooks/usePersistedState";
-import { useConnectors } from "@/hooks/useConnectors";
-import { SearchComponent } from "@/components/Input/Search";
-import CircularLoader from "@/components/Icons/CircularLoader";
+import { usePersistedState } from "../../hooks/usePersistedState";
+import { useConnectors } from "../../hooks/useConnectors";
+import { SearchComponent } from "../Input/Search";
+import CircularLoader from "../Icons/CircularLoader";
 import { MultichainConnectorPicker } from "./MultichainConnectorPicker";
 import { ProviderPicker } from "./ProviderPicker";
 import { InstalledExtensionNotFound } from "./InstalledExtensionNotFound";
@@ -90,10 +90,10 @@ const ConnectorsList: FC<{ onFinish: (result: Wallet | undefined) => void }> = (
             setSelectedConnector(undefined)
         } catch (e) {
             console.log(e)
-            if (e?.message?.toLowerCase().includes('rejected') || e?.details?.toLowerCase().includes('rejected')) {
+            const message = (e?.message || e?.details || '').toLowerCase()
+            if (e?.name === 'WalletWindowClosedError' || message.includes('rejected') || message.includes('denied')) {
                 setConnectionError("You've declined the wallet connection request")
-            }
-            else {
+            } else {
                 setConnectionError(e.message || e.details || 'Something went wrong')
             }
         }
@@ -115,7 +115,10 @@ const ConnectorsList: FC<{ onFinish: (result: Wallet | undefined) => void }> = (
     }
 
     const filteredProviders = providers.filter(p => !p.hideFromList)
-    const featuredProviders = selectedProviderNames.length > 0 ? filteredProviders.filter(p => selectedProviderNames.includes(p.name)) : (selectedProvider ? [selectedProvider] : filteredProviders)
+    const resolvedSelectedProvider = selectedProvider && !selectedProvider.isSelectedFromFilter
+        ? filteredProviders.find(p => p.name === selectedProvider.name) || selectedProvider
+        : selectedProvider;
+    const featuredProviders = selectedProviderNames.length > 0 ? filteredProviders.filter(p => selectedProviderNames.includes(p.name)) : (resolvedSelectedProvider ? [resolvedSelectedProvider] : filteredProviders)
 
     const {
         featuredConnectors,

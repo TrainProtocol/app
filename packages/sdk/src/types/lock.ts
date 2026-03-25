@@ -36,3 +36,15 @@ export type SolverLockDetails = BaseLockDetails & {
 
 /** Backward-compatible union type */
 export type LockDetails = UserLockDetails | SolverLockDetails
+export enum TransactionStatus {
+    Pending = 'pending',
+    Confirmed = 'confirmed',
+    Failed = 'failed',
+}
+
+export type TransactionInfo = {
+    hash: string
+    status: TransactionStatus
+    blockNumber?: string
+    blockTimestamp?: number
+}

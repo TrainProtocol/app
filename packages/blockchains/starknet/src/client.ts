@@ -9,6 +9,8 @@ import {
     LockStatus,
     AtomicResult,
     RecoveredSwapData,
+    TransactionInfo,
+    TransactionStatus,
     HTLCClient,
     parseUnits,
     formatUnits,
@@ -17,6 +19,7 @@ import type { StarknetHTLCClientConfig, StarknetSigner } from './types.js'
 import htlcAbi from './abis/STARKNET_HTLC.json' with { type: 'json' }
 import { ERC20_ABI } from './abis/ERC20.js'
 import { ZERO_ADDRESS } from './constants.js'
+import { formatStarknetAddress } from './utils.js'
 
 export class StarknetHTLCClient extends HTLCClient {
     private provider: RpcProvider
@@ -26,6 +29,7 @@ export class StarknetHTLCClient extends HTLCClient {
         super()
         this.provider = new RpcProvider({ nodeUrl: config.rpcUrl })
         this.signer = config.signer
+        this.consensusOptions = { minQuorum: 1, batchSize: 1 }
     }
 
     // ── Write Operations ───────────────────────────────────────────────
@@ -154,10 +158,28 @@ export class StarknetHTLCClient extends HTLCClient {
         if (count === 0) return null
 
         for (let i = 1; i <= count; i++) {
-            const result = await this.getSolverLockByIndex(params, i, nodeUrl)
-            if (!result) continue
-            if (params.solverAddress && result.sender?.toLowerCase() !== params.solverAddress.toLowerCase()) continue
-            return result
+            const result = await contract.get_solver_lock(cairo.uint256(BigInt(id)), cairo.uint256(BigInt(i)))
+
+            const sender = '0x' + BigInt(result.sender).toString(16)
+            if (BigInt(result.sender) === 0n) continue
+
+            if (params.solverAddress && formatStarknetAddress(sender) !== formatStarknetAddress(params.solverAddress)) continue
+
+            return {
+                hashlock: id,
+                amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
+                secret: BigInt(result.secret) !== 0n ? BigInt(result.secret) : undefined,
+                sender,
+                recipient: BigInt(result.recipient) !== 0n ? formatStarknetAddress('0x' + BigInt(result.recipient).toString(16)) : undefined,
+                token: BigInt(result.token) !== 0n ? formatStarknetAddress('0x' + BigInt(result.token).toString(16)) : undefined,
+                timelock: Number(result.timelock),
+                reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? 18)),
+                rewardTimelock: Number(result.reward_timelock),
+                rewardRecipient: BigInt(result.reward_recipient) !== 0n ? '0x' + BigInt(result.reward_recipient).toString(16) : undefined,
+                rewardToken: BigInt(result.reward_token) !== 0n ? '0x' + BigInt(result.reward_token).toString(16) : undefined,
+                status: this.mapLockStatus(result.status),
+                index: i,
+            }
         }
 
         return null
@@ -229,6 +251,33 @@ export class StarknetHTLCClient extends HTLCClient {
             dstAmount: BigInt(event.dst_amount),
             dstToken,
             srcContract,
+        }
+    }
+
+    // ── Public Helpers ─────────────────────────────────────────────────
+
+    async getTransaction(txHash: string): Promise<TransactionInfo | null> {
+        try {
+            const receipt = await this.provider.getTransactionReceipt(txHash)
+            if (!receipt) return null
+
+            const executionStatus = 'execution_status' in receipt
+                ? (receipt as any).execution_status as string
+                : undefined
+
+            return {
+                hash: txHash,
+                status: executionStatus === 'REVERTED'
+                    ? TransactionStatus.Failed
+                    : executionStatus === 'SUCCEEDED'
+                        ? TransactionStatus.Confirmed
+                        : TransactionStatus.Pending,
+                blockNumber: 'block_number' in receipt
+                    ? String((receipt as any).block_number)
+                    : undefined,
+            }
+        } catch {
+            return null
         }
     }
 

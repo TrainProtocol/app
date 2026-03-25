@@ -8,7 +8,7 @@ import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import { Gauge } from "./Gauge";
 import Timeline from "./Timeline";
 import { useSwapProgress } from "./useSwapProgress";
-import { CircleCheck, Undo2, X } from "lucide-react";
+import { CircleCheck, SearchX, Undo2, X } from "lucide-react";
 import { HTLCStatus } from "@train-protocol/react";
 
 type AtomicContentProps = {
@@ -33,6 +33,8 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
         fromCurrency: source_asset,
         toCurrency: destination_asset,
     }
+
+    if (!source_network || !destination_network || !source_asset || !destination_asset) return <SwapNotFound />;
 
     return (
         <>
@@ -90,5 +92,17 @@ const SwapProgressPanel: FC = () => {
         </div>
     );
 };
+
+const SwapNotFound: FC = () => (
+    <div className="flex flex-col items-center justify-center gap-2 w-full min-h-[450px]">
+        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/20">
+            <SearchX className="h-10 w-10 text-primary" aria-hidden="true" />
+        </span>
+        <span className="font-medium text-primary-text text-xl">Swap not found</span>
+        <span className="text-sm text-secondary-text text-center">
+            The swap data could not be loaded.
+        </span>
+    </div>
+);
 
 export default AtomicContent;

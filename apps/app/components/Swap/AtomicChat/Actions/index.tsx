@@ -34,11 +34,12 @@ export const Actions: FC<ActionsProps> = ({ quote, solverId, type }) => {
 
     return (
         <>
-            {error && <TransactionMessage error={error.message} />}
+            {error && <TransactionMessage error={error.message} errorCode={error.code} />}
             <DestinationWalletWrapper>
                 <ResolveAction
                     commitStatus={commitStatus}
                     error={error?.message}
+                    errorCode={error?.code}
                     quote={quote}
                     solverId={solverId}
                     type={type}
@@ -50,29 +51,32 @@ export const Actions: FC<ActionsProps> = ({ quote, solverId, type }) => {
 
 type ResolveActionProps = {
     commitStatus: HTLCStatus
-    disableButton?: boolean
     error: string | undefined
+    errorCode?: string
     quote?: SwapQuote
     solverId?: string
     type: SwapViewType
 }
 
-const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, quote, solverId, type }) => {
-    const clearError = useClearSwapError()
-
-    // Verification/reveal errors: no button at all — revealing would be unsafe
-    const isVerificationError = error && (
-        error.includes('verification failed') || error.includes('VERIFICATION_FAILED') ||
-        error.includes('Cannot reveal') || error.includes('REVEAL_FAILED')
-    )
-
-    if (isVerificationError) {
-        return <></>
-    }
+const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode, quote, solverId, type }) => {
+    const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
+    const goHome = useGoHome()
 
     if (error) {
+        const isTxFailed = errorCode === 'TX_FAILED'
+
+        const handleRetry = () => {
+            if (isTxFailed) {
+                setActiveHashlock(null)
+                if (type === 'widget') {
+                    goHome()
+                }
+                return
+            }
+        }
+
         return (
-            <SubmitButton type="button" onClick={clearError}>
+            <SubmitButton type="button" onClick={handleRetry}>
                 Try again
             </SubmitButton>
         )
@@ -197,16 +201,7 @@ const TerminalActions: FC<{ variant: 'success' | 'refund'; type: SwapViewType }>
     )
 }
 
-const TransactionMessage: FC<{ error: string | undefined, disableButton?: boolean }> = ({ error, disableButton }) => {
-    if (disableButton && error) {
-        return (
-            <WalletMessage
-                status="error"
-                header="Something went wrong"
-                details={error}
-            />
-        )
-    }
+const TransactionMessage: FC<{ error: string | undefined, errorCode?: string }> = ({ error, errorCode }) => {
     if (error === "An error occurred (USER_REFUSED_OP)" || error === "Execute failed" || error?.toLowerCase()?.includes('denied') || error?.toLowerCase()?.includes('user rejected')) {
         return <TransactionMessages.TransactionRejectedMessage />
     }
@@ -220,6 +215,9 @@ const TransactionMessage: FC<{ error: string | undefined, disableButton?: boolea
         return <WalletMessage status="error" header="Reveal failed" details={error} />
     }
 
+    if (errorCode === 'TX_FAILED') {
+        return <></>
+    }
     if (error) {
         return <TransactionMessages.UexpectedErrorMessage message={error} />
     }

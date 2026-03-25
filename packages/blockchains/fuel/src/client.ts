@@ -9,6 +9,8 @@ import {
     LockStatus,
     AtomicResult,
     RecoveredSwapData,
+    TransactionInfo,
+    TransactionStatus,
     HTLCClient,
     parseUnits,
     formatUnits,
@@ -260,6 +262,30 @@ export class FuelHTLCClient extends HTLCClient {
             dstAmount: BigInt(userLockedLog.dstAmount ?? 0),
             dstToken: userLockedLog.dstAsset ?? '',
             srcContract: '', // Derived from contract context
+        }
+    }
+
+    // ── Public Helpers ─────────────────────────────────────────────────
+
+    async getTransaction(txHash: string): Promise<TransactionInfo | null> {
+        try {
+            const provider = new Provider(this.rpcUrl)
+            const txResponse = await provider.getTransactionResponse(txHash)
+            if (!txResponse) return null
+
+            const summary = await txResponse.waitForResult()
+
+            return {
+                hash: txHash,
+                status: summary.isStatusFailure
+                    ? TransactionStatus.Failed
+                    : summary.isStatusSuccess
+                        ? TransactionStatus.Confirmed
+                        : TransactionStatus.Pending,
+                blockNumber: summary.blockId ?? undefined,
+            }
+        } catch {
+            return null
         }
     }
 

@@ -121,7 +121,6 @@ export type OrderCreatedEventData = {
 export type TransactionCreatedEventData = {
     hashlock: string
     network: string
-    networkId: string
     transactionType: string
     transactionHash: string
 }

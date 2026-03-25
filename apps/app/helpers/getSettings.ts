@@ -132,7 +132,7 @@ const mockData = {
             "nodes": [
                 {
                     "providerName": "aztec-devnet",
-                    "url": "https://v4-devnet-2.aztec-labs.com"
+                    "url": "https://rpc.testnet.aztec-labs.com"
                 }
             ],
             "contracts": [

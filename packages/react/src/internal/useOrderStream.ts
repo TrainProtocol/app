@@ -53,7 +53,7 @@ export function useOrderStream(options: UseOrderStreamOptions) {
                 const tx = {
                     type: txData.transactionType as any,
                     hash: txData.transactionHash,
-                    network: txData.networkId,
+                    network: txData.network,
                 }
                 accumulatedTxsRef.current = [...accumulatedTxsRef.current, tx]
 

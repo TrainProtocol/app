@@ -2,7 +2,7 @@ import React, { FC, useMemo } from "react";
 import { useSwapData } from "@/hooks/useSwapData";
 import { useActiveSwapState } from "@/hooks/useActiveSwapState";
 import { StepStatus, TimelineStep } from "./progressTypes";
-import { LockStatus, HTLCTransaction, HTLCStatus } from "@train-protocol/react";
+import { LockStatus, HTLCTransaction, HTLCStatus, TrainErrorCode } from "@train-protocol/react";
 import { getExplorerUrl } from "@/lib/address";
 import NetworkSettings from "@/lib/NetworkSettings";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
@@ -167,6 +167,7 @@ export function useSwapProgress(): SwapProgress {
         destRedeemTxId: destRedeemTx,
         htlcFromApi,
         consensusVerifying,
+        error
     } = useActiveSwapState();
 
     const { verified, skipped, mismatches } = useSolverLockVerification();
@@ -179,6 +180,8 @@ export function useSwapProgress(): SwapProgress {
         const refundTxLink = buildExplorerLink(source_network?.caip2Id, refundTxId);
 
         const isRefunded = sourceDetails?.status === LockStatus.Refunded;
+
+        const isUserLockFailed = error?.code === TrainErrorCode.UserLockTransactionFailed
 
         // Timelock expired — awaiting refund action
         if (htlcStatus === HTLCStatus.TimelockExpired && !isRefunded && !refundTxId) {
@@ -241,7 +244,7 @@ export function useSwapProgress(): SwapProgress {
                 title: "Confirming transaction",
                 subtitle: "Your transaction is being confirmed on-chain.",
                 steps: buildSteps(HAPPY_STEPS, 0, { source: sourceTxLink }, {
-                    0: { description: "Transaction is confirming on source chain" },
+                    0: { status: isUserLockFailed ? StepStatus.Failed : StepStatus.Current, name: isUserLockFailed ? "Lock funds failed" : "Lock funds", description: isUserLockFailed ? error?.message : "Transaction is confirming on source chain" },
                 }),
             };
         }
@@ -347,5 +350,6 @@ export function useSwapProgress(): SwapProgress {
         skipped,
         mismatches,
         consensusVerifying,
+        error
     ]);
 }

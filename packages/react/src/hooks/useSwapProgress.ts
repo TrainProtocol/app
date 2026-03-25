@@ -120,11 +120,22 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         config.onError?.(trainError)
     }, [hl, store, config])
 
+    const onUserLockTxFailed = useCallback((tx: import('@train-protocol/sdk').TransactionInfo) => {
+        if (!hl || !store) return
+        const error = new TrainError(
+            `User lock transaction ${tx.hash} failed on-chain`,
+            TrainErrorCode.UserLockTransactionFailed,
+        )
+        store.getState().setActiveSwapError(hl, error)
+        config.onError?.(error)
+    }, [hl, store, config])
+
     // Activate polling hooks — data returned directly, not via store
     const sourceDetails = useUserLockPolling({
         client: sourceReadClient,
         params: userLockParams,
         enabled: isActive,
+        onTransactionFailed: onUserLockTxFailed,
     })
 
     const { solverLockDetails, consensusPhase } = useSolverLockPolling({

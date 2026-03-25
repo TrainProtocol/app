@@ -1,6 +1,6 @@
 import { createStore as createZustandStore } from 'zustand/vanilla'
 import { persist, type PersistStorage } from 'zustand/middleware'
-import type { SwapData, SwapStorage } from '../types'
+import type { SwapData, SwapStorage, TrainError } from '../types'
 import type { HTLCFromApi, QuoteDetails, Token } from '@train-protocol/sdk'
 
 // --- Swap config (in-memory, set once at creation/activation) ---
@@ -30,7 +30,7 @@ export type ConsensusPhase = 'none' | 'detecting' | 'verifying' | 'verified' | '
 export interface SwapFlags {
     secretRevealedToApi: boolean
     consensusPhase: ConsensusPhase
-    error: Error | null
+    error: TrainError | null
     manualClaimStartedAt: number | null
 }
 
@@ -72,7 +72,7 @@ export interface SwapStoreState {
     // Flag actions
     setSecretRevealedToApi: (hashlock: string) => void
     setConsensusPhase: (hashlock: string, phase: ConsensusPhase) => void
-    setActiveSwapError: (hashlock: string, error: Error | null) => void
+    setActiveSwapError: (hashlock: string, error: TrainError | null) => void
     setManualClaimStartedAt: (hashlock: string, timestamp: number) => void
 
     // Order data (SSE stream)
@@ -207,7 +207,7 @@ function createActions(set: SetFn) {
         setConsensusPhase: (hashlock: string, phase: ConsensusPhase) =>
             set((state) => updateFlags(state, hashlock, (flags) => ({ ...flags, consensusPhase: phase }))),
 
-        setActiveSwapError: (hashlock: string, error: Error | null) =>
+        setActiveSwapError: (hashlock: string, error: TrainError | null) =>
             set((state) => updateFlags(state, hashlock, (flags) => ({ ...flags, error }))),
 
         setManualClaimStartedAt: (hashlock: string, timestamp: number) =>

@@ -158,6 +158,10 @@ export class {Chain}HTLCClient extends HTLCClient {
     async getUserLockDetails(params: LockParams): Promise<LockDetails | null> { ... }
     async recoverSwap(txHash: string): Promise<RecoveredSwapData> { ... }
 
+    // ── Public Helpers ─────────────────────────────────────────────────
+
+    async getTransaction(txHash: string): Promise<TransactionInfo | null> { ... }
+
     // ── Private Helpers ────────────────────────────────────────────────
 
     private requireSigner(): {Chain}Signer { ... }
@@ -169,8 +173,9 @@ export class {Chain}HTLCClient extends HTLCClient {
 
 1. **Write operations first** — `userLock` → `refund` → `redeemSolver`
 2. **Read operations second** — `getUserLockDetails` → `getSolverLockDetails` → `recoverSwap`
-3. **Private helpers last** — `requireSigner()` first, then chain-specific utilities
-4. **Use section comments** — `// ── Write Operations ───...` separator style between groups
+3. **Public helpers third** — `getTransaction`
+4. **Private helpers last** — `requireSigner()` first, then chain-specific utilities
+5. **Use section comments** — `// ── Write Operations ───...` / `// ── Public Helpers ───...` separator style between groups
 
 ### Base class methods (do NOT override)
 
@@ -298,6 +303,41 @@ Key points:
 
 Then fetch transaction + receipt, parse the `UserLocked` event from logs, return `RecoveredSwapData`. If the event is not found, throw.
 
+### getTransaction
+
+Non-blocking status check for a transaction by hash. Used by `useUserLockPolling` to detect failed lock transactions before the lock appears on-chain. Returns `TransactionInfo | null`.
+
+```ts
+async getTransaction(txHash: string): Promise<TransactionInfo | null> {
+    try {
+        // 1. Fetch the transaction receipt/status using the chain's RPC
+        const receipt = /* chain-specific receipt fetch */
+
+        // 2. Map to TransactionStatus enum — must handle all three states:
+        //    - TransactionStatus.Pending   — tx exists but not yet finalized
+        //    - TransactionStatus.Confirmed — tx succeeded
+        //    - TransactionStatus.Failed    — tx reverted/dropped/aborted
+
+        // 3. Return TransactionInfo
+        return {
+            hash: txHash,
+            status,                    // Required
+            blockNumber: '...',        // Optional — string
+            blockTimestamp: 123456,     // Optional — ms since epoch (only if cheap to obtain)
+        }
+    } catch {
+        return null
+    }
+}
+```
+
+Rules:
+- **Always wrap in try/catch returning `null`** — this runs in a polling loop; thrown errors cause noisy console output
+- **Must distinguish all three statuses** — `Pending`, `Confirmed`, `Failed`. Binary mappings (e.g., only Failed/Confirmed) cause incorrect early signals
+- **Must be non-blocking** — do not use methods that wait for finalization (e.g., Fuel's `waitForResult`). If the chain SDK has no non-blocking alternative, document the limitation
+- **Avoid unnecessary RPC calls** — do not fetch block data for `blockTimestamp` if the polling consumer only needs `status`. Keep it minimal
+- **Do not fetch `blockTimestamp` by default** — only include it if the chain returns it alongside the receipt at no extra cost
+
 ---
 
 ## 7. index.ts — Registration & Exports
@@ -395,6 +435,8 @@ import {
     LockStatus,
     AtomicResult,
     RecoveredSwapData,
+    TransactionInfo,
+    TransactionStatus,
     BaseHTLCClientConfig,
     ConsensusOptions,
 } from '@train-protocol/sdk'
@@ -469,8 +511,9 @@ const ZERO_ADDRESS = '0x000...'     // Chain's empty/zero address representation
   - [ ] Define `{Chain}WalletSignConfig` type
   - [ ] Add `declare module '@train-protocol/sdk'` augmentation for `HTLCClientConfigMap` and `WalletSignConfigMap`
 - [ ] Implement `{Chain}HTLCClient extends HTLCClient` in `client.ts`
-- [ ] Follow function ordering: writes → reads → private helpers
+- [ ] Follow function ordering: writes → reads → public helpers → private helpers
 - [ ] Implement count-then-loop pattern in `getSolverLockDetails` (1-indexed, single-node version)
+- [ ] Implement `getTransaction(txHash)` — non-blocking, try/catch returning `null`, all three statuses (`Pending`/`Confirmed`/`Failed`)
 - [ ] Set `this.consensusOptions` in constructor if chain needs non-default quorum (default: `minQuorum: 2`)
 - [ ] Validate `txHash` format at the top of `recoverSwap` before any RPC calls
 - [ ] Define `{Chain}WalletLike` minimal interface in `login/wallet-sign.ts`

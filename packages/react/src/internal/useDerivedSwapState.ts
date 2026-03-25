@@ -2,6 +2,7 @@ import { useState, useEffect, useSyncExternalStore } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { resolveHTLCStatus, HTLCStatus, LockStatus } from '@train-protocol/sdk'
 import type { UserLockDetails, SolverLockDetails, HTLCFromApi } from '@train-protocol/sdk'
+import type { TrainError } from '../types'
 import type { SwapStore, SwapConfig, SwapFlags } from './store'
 import { useTimelockExpiry } from './useTimelockExpiry'
 import { trainQueryKeys } from './queryKeys'
@@ -18,7 +19,7 @@ export interface DerivedSwapState {
     isTimelockExpired: boolean
     manualClaimRequired: boolean
     destRedeemTxId: string | null
-    error: Error | null
+    error: TrainError | null
     consensusVerifying: boolean
     consensusVerified: boolean
 }
