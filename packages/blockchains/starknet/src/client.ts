@@ -18,6 +18,7 @@ import type { StarknetHTLCClientConfig, StarknetSigner } from './types.js'
 import htlcAbi from './abis/STARKNET_HTLC.json' with { type: 'json' }
 import { ERC20_ABI } from './abis/ERC20.js'
 import { ZERO_ADDRESS } from './constants.js'
+import { formatStarknetAddress } from './utils.js'
 
 export class StarknetHTLCClient extends HTLCClient {
     private provider: RpcProvider
@@ -161,7 +162,7 @@ export class StarknetHTLCClient extends HTLCClient {
             const sender = '0x' + BigInt(result.sender).toString(16)
             if (BigInt(result.sender) === 0n) continue
 
-            if (params.solverAddress && sender.toLowerCase() !== params.solverAddress.toLowerCase()) continue
+            if (params.solverAddress && formatStarknetAddress(sender) !== formatStarknetAddress(params.solverAddress)) continue
 
             return {
                 hashlock: id,

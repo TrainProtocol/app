@@ -1,5 +1,6 @@
 import { Network } from "@/Models/Network";
 import { Address } from "@ton/core";
+import { formatStarknetAddress } from "@train-protocol/starknet";
 
 type AddressFormatProps = {
     address: string;
@@ -16,18 +17,7 @@ export function addressFormat(props: AddressFormatProps): string {
         || providerName?.toLowerCase() == 'paradex'
         || providerName?.toLowerCase() == 'starknet'
     ) {
-        const removeHexPrefix = (hex: string) => {
-            return hex?.replace("0x", "");
-        }
-        const addHexPrefix = (hex: string) => {
-            return `0x${hex}`
-        }
-        const addAddressPadding = (address: string) => {
-            return addHexPrefix(removeHexPrefix(address)?.padStart(64, '0'))
-        }
-
-        return addAddressPadding(address?.toLowerCase());
-
+        return formatStarknetAddress(address);
     }
     else if (
         network?.caip2Id.toLowerCase().startsWith("ton")

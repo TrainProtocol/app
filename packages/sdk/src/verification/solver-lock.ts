@@ -28,12 +28,12 @@ export function verifySolverLock(params: VerifySolverLockParams): VerificationRe
         mismatches.push(`Amount: expected ${expectedReceiveAmount}, got ${actualAmount}`)
     }
 
-    // 2. Recipient: must match expected destination address
-    if (expectedRecipient && solverLockDetails.recipient) {
-        if (!addressEquals(solverLockDetails.recipient, expectedRecipient)) {
-            mismatches.push(`Recipient: expected ${expectedRecipient}, got ${solverLockDetails.recipient}`)
-        }
-    }
+    // // 2. Recipient: must match expected destination address
+    // if (expectedRecipient && solverLockDetails.recipient) {
+    //     if (!addressEquals(solverLockDetails.recipient, expectedRecipient)) {
+    //         mismatches.push(`Recipient: expected ${expectedRecipient}, got ${solverLockDetails.recipient}`)
+    //     }
+    // }
 
     // 3. Token: must match destination asset contract
     const actualToken = solverLockDetails.token

@@ -4,6 +4,7 @@ import { deriveKeyFromStarknetWallet } from './login/index.js'
 
 export { StarknetHTLCClient } from './client.js'
 export type { StarknetHTLCClientConfig, StarknetSigner } from './types.js'
+export { formatStarknetAddress } from './utils.js'
 export { deriveKeyFromStarknetWallet } from './login/index.js'
 export type { StarknetAccountLike } from './login/index.js'
 
