@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import useSWR from 'swr'
+import useSWR, { useSWRConfig } from 'swr'
 import { parseUnits } from 'viem'
 import { SwapFormValues } from '../components/DTOs/SwapFormValues'
 import TrainApiClient, { SwapQuote, AggregatedQuoteResponse } from '../lib/trainApiClient'
@@ -128,6 +128,7 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
         : null
 
     const isQuoteLoading = useLoadingStore((state) => state.isLoading)
+    const { mutate: globalMutate } = useSWRConfig()
 
     const quoteFetchWrapper = useCallback(async (url: string): Promise<QuoteResult | null> => {
         const { setLoading, key, setKey } = useLoadingStore.getState()
@@ -167,12 +168,17 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
             refreshInterval: (refreshInterval !== undefined && refreshInterval !== null) ? refreshInterval : 42000,
             dedupingInterval: 5000,
             keepPreviousData: true,
+            onError: (_err, key) => {
+                globalMutate(key, null, { revalidate: false })
+            },
         }
     )
 
+    const resolvedQuote = (quoteError || !canGetQuote) ? undefined : data?.quote
+    const resolvedSolverId = (quoteError || !canGetQuote) ? undefined : data?.solverId
     return {
-        quote: (quoteError || !canGetQuote) ? undefined : data?.quote,
-        solverId: (quoteError || !canGetQuote) ? undefined : data?.solverId,
+        quote: resolvedQuote,
+        solverId: resolvedSolverId,
         isQuoteLoading,
         isDebouncing,
         quoteError: quoteError as QuoteError | undefined,

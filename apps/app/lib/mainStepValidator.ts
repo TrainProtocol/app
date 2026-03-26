@@ -22,7 +22,7 @@ export default function MainStepValidation(): ((values: SwapFormValues) => Formi
         if (!amount) {
             errors.amount = 'Enter an amount';
         }
-        if (amount && !/^[0-9]*[.,]?[0-9]*$/i.test(amount.toString())) {
+        if (values.amount && !/^[0-9]*[.,]?[0-9]*$/i.test(values.amount)) {
             errors.amount = 'Invalid amount';
         }
         if (amount && amount < 0) {
