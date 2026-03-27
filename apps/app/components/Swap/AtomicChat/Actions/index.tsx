@@ -1,5 +1,5 @@
 import { FC, useEffect, useRef, useState } from "react";
-import { useActiveSwap, useClearSwapError } from "@/hooks/useActiveSwap";
+import { useActiveSwap } from "@/hooks/useActiveSwap";
 import { RevealSecretAction } from "./RevealSecret";
 import { ManualClaimAction } from "./ManualClaim";
 import { UserRefundAction, UserLockAction } from "./UserActions";
@@ -61,16 +61,11 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode,
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
     const goHome = useGoHome()
 
-    if (error) {
-        const isTxFailed = errorCode === 'TX_FAILED'
-
+    if (error && errorCode === 'TX_FAILED') {
         const handleRetry = () => {
-            if (isTxFailed) {
-                setActiveHashlock(null)
-                if (type === 'widget') {
-                    goHome()
-                }
-                return
+            setActiveHashlock(null)
+            if (type === 'widget') {
+                goHome()
             }
         }
 

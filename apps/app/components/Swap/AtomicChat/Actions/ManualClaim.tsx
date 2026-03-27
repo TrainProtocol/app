@@ -8,7 +8,7 @@ import { SwapViewType } from ".";
 import { useSwapStore } from "@/stores/swapStore";
 
 export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
-    const { destinationNetwork, hashlock, sourceDetails, destRedeemTxId } = useActiveSwap();
+    const { destinationNetwork, hashlock, sourceDetails, destRedeemTxId, error } = useActiveSwap();
     const activeHashlock = useSwapStore(s => s.activeHashlock)
     const { claim, isClaiming } = useManualClaim(activeHashlock);
 
@@ -47,7 +47,7 @@ export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
                 onClick={handleManualClaim}
                 type={type}
             >
-                Claim Assets
+                {error ? 'Try again' : 'Claim Assets'}
             </WalletActionButton>
         </div>
     );

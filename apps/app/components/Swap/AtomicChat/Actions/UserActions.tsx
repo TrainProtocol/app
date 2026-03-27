@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import useWallet from "@/hooks/useWallet";
-import { useActiveSwap, useClearSwapError } from "@/hooks/useActiveSwap";
+import { useActiveSwap } from "@/hooks/useActiveSwap";
 import { useCreateSwap, useRefund, LockStatus, type SwapQuote, useSharedSecretDerivation, type StartSwapParams } from "@train-protocol/react";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
