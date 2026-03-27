@@ -1,5 +1,11 @@
 import { useMemo } from 'react'
-import { useRegisterWallet, type TrainWalletAdapter } from '@train-protocol/react'
+import {
+    useRegisterWallet,
+    chainNamespace,
+    type TrainWalletAdapter,
+    type Caip2Id,
+} from '@train-protocol/react'
+import type { TrainSDK } from '@train-protocol/sdk'
 import { useConfig } from 'wagmi'
 import { getAccount, getWalletClient, getConnections } from 'wagmi/actions'
 import { useSettingsState } from '@/context/settings'
@@ -13,29 +19,27 @@ export function EvmWalletBridge() {
     const { networks } = useSettingsState()
     const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
 
-    const adapter = useMemo<TrainWalletAdapter>(() => ({
-        chainNamespace: 'eip155',
+    const adapter = useMemo<TrainWalletAdapter>(() => {
 
-        getSigner: () => null,
-        getClientConfig: () => ({}),
-
-        getSignerForNetwork: (caip2Id: string) => {
+        function getSignerForNetwork(caip2Id: Caip2Id) {
             const account = getAccount(config)
             if (!account.address) return null
 
             const address = account.address
-            const network = networks.find(n => n.caip2Id === caip2Id)
+            const network = networks.find(n => n.caip2Id === (caip2Id as string))
             const chain = network ? resolveChain(network) : undefined
 
             return {
                 address,
                 chainNamespace: 'eip155',
-                sendTransaction: async (tx) => {
+                sendTransaction: async (tx: { to: string; data: string; value?: bigint }) => {
                     const connection = getConnections(config)
                         .find(c => c.accounts.some(a => a.toLowerCase() === address.toLowerCase()))
 
+                    if(!chain?.id) throw new Error("No chain id")
+
                     const walletClient = await getWalletClient(config, {
-                        chainId: chain?.id,
+                        chainId: chain.id,
                         account: address as `0x${string}`,
                         connector: connection?.connector,
                     })
@@ -67,27 +71,40 @@ export function EvmWalletBridge() {
                     }
                 },
             }
-        },
+        }
 
-        getClientConfigForNetwork: (caip2Id: string) => {
-            const network = networks.find(n => n.caip2Id === caip2Id)
-            if (!network) return {}
-            const rpcUrl = getEffectiveRpcUrls(network)[0] ?? network.nodes?.[0]?.url ?? ''
-            return { rpcUrl }
-        },
+        function getRpcUrl(caip2Id: Caip2Id): string {
+            const network = networks.find(n => n.caip2Id === (caip2Id as string))
+            if (!network) return ''
+            return getEffectiveRpcUrls(network)[0] ?? network.nodes?.[0]?.url ?? ''
+        }
 
-        getLoginConfig: async () => {
-            const account = getAccount(config)
-            if (!account.connector || !account.address) return null
-            const provider = await account.connector.getProvider()
-            return {
-                provider,
-                address: account.address,
-                options: { sandbox: isSandbox, currentChainId: account.chainId },
-            }
-        },
+        return {
+            chainNamespace: chainNamespace('eip155'),
 
-    }), [config, networks, getEffectiveRpcUrls])
+            createClient(sdk: TrainSDK, networkId: Caip2Id) {
+                const rpcUrl = getRpcUrl(networkId)
+                return sdk.createHTLCClient('eip155', { rpcUrl })
+            },
+
+            createWriteClient(sdk: TrainSDK, networkId: Caip2Id) {
+                const rpcUrl = getRpcUrl(networkId)
+                const signer = getSignerForNetwork(networkId) ?? undefined
+                return sdk.createHTLCClient('eip155', { rpcUrl, signer })
+            },
+
+            getLoginConfig: async () => {
+                const account = getAccount(config)
+                if (!account.connector || !account.address) return null
+                const provider = await account.connector.getProvider()
+                return {
+                    provider,
+                    address: account.address,
+                    options: { sandbox: isSandbox, currentChainId: account.chainId },
+                }
+            },
+        }
+    }, [config, networks, getEffectiveRpcUrls])
 
     useRegisterWallet(adapter)
     return null

@@ -12,6 +12,7 @@ export type {
     SolverLockDetails,
     LockStatus,
     HTLCStatus,
+    IHTLCReadClient,
     IHTLCClient,
     UserLockParams,
     LockParams,

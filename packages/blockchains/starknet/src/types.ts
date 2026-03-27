@@ -1,4 +1,4 @@
-import type { Account } from 'starknet'
+import type { AccountInterface } from 'starknet'
 import type { StarknetAccountLike } from './login/wallet-sign.js'
 
 declare module '@train-protocol/sdk' {
@@ -31,7 +31,7 @@ export interface StarknetSigner {
      * The starknet.js Account (or compatible) used for executing transactions.
      * Must support `execute(calls)` and `waitForTransaction(hash)`.
      */
-    account: Account
+    account: AccountInterface
 }
 
 export type StarknetHTLCClientConfig = {

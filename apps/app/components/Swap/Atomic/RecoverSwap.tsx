@@ -22,7 +22,7 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
 
     const handleRecover = async () => {
         if (!canRecover) return
-        const hashlock = await recover(txHash, selectedNetwork.caip2Id, selectedNetwork.nodes[0].url)
+        const hashlock = await recover(txHash, selectedNetwork.caip2Id)
         setActiveHashlock(hashlock)
         onRecovered(hashlock)
     }

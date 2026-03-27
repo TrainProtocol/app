@@ -3,13 +3,15 @@ import { UserLockDetails, SolverLockDetails, TransactionInfo } from "./lock"
 import { AtomicResult, RecoveredSwapData } from "./atomic"
 import type { TrainApiClient } from "../api/client"
 
-export interface IHTLCClient {
+export interface IHTLCReadClient {
     getUserLockDetails(params: LockParams): Promise<UserLockDetails | null>
     getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null>
     getSolverLockDetailsWithConsensus(params: LockParams, nodeUrls: string[], options?: ConsensusOptions & { prefetchedResult?: SolverLockDetails }): Promise<SolverLockDetails | null>
     recoverSwap(txHash: string): Promise<RecoveredSwapData>
     getTransaction(txHash: string): Promise<TransactionInfo | null>
+}
 
+export interface IHTLCClient extends IHTLCReadClient {
     userLock(params: UserLockParams): Promise<AtomicResult>
     refund(params: RefundParams): Promise<string>
     redeemSolver(params: RedeemSolverParams): Promise<string>

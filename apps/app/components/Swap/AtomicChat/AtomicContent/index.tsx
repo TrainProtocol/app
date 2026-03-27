@@ -9,6 +9,7 @@ import Timeline from "./Timeline";
 import { useSwapProgress } from "./useSwapProgress";
 import { CircleCheck, SearchX, Undo2, X } from "lucide-react";
 import { HTLCStatus } from "@train-protocol/react";
+import { Loader2 } from "lucide-react";
 import { useFormikContext } from "formik";
 
 type AtomicContentProps = {
@@ -39,6 +40,7 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
         toCurrency: destination_asset,
     }
 
+    if (swap.isLoading) return <SwapLoading />;
     if (!source_network || !destination_network || !source_asset || !destination_asset) return <SwapNotFound />;
 
     return (
@@ -97,6 +99,13 @@ const SwapProgressPanel: FC = () => {
         </div>
     );
 };
+
+const SwapLoading: FC = () => (
+    <div className="flex flex-col items-center justify-center gap-2 w-full min-h-[450px]">
+        <Loader2 className="h-10 w-10 text-primary animate-spin" />
+        <span className="text-sm text-secondary-text">Loading swap data...</span>
+    </div>
+);
 
 const SwapNotFound: FC = () => (
     <div className="flex flex-col items-center justify-center gap-2 w-full min-h-[450px]">

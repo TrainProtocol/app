@@ -1,15 +1,12 @@
 import { createContext, useContext, useEffect, useCallback, useMemo, useRef, type ReactNode } from 'react'
 import { useStore } from 'zustand'
+import { useTrainContext } from './TrainContext'
 import { useSecretDerivation as useSecretDerivationHook } from '../hooks/useSecretDerivation'
 import type { UseSecretDerivationOptions, UseSecretDerivationResult, PasskeyLoginOptions } from '../hooks/useSecretDerivation'
 import type { PrfSupportResult } from '@train-protocol/auth'
 import { SecureStorage } from '../internal/SecureStorage'
 import { IndexedDBPasskeyStorage } from '../internal/IndexedDBPasskeyStorage'
-import {
-    createSecretDerivationStore,
-    type SecretDerivationStore,
-    type LoginWalletInfo,
-} from '../internal/secretDerivationStore'
+import type { LoginWalletInfo } from '../internal/secretDerivationStore'
 
 export type { LoginWalletInfo } from '../internal/secretDerivationStore'
 
@@ -37,6 +34,9 @@ export function SecretDerivationProvider({
     persist = false,
     passkeyStorage: externalPasskeyStorage,
 }: SecretDerivationProviderProps) {
+    // Read auth instance from TrainProvider context (fixes issue #2c)
+    const { auth } = useTrainContext()
+
     // Create SecureStorage and IndexedDBPasskeyStorage (stable across renders)
     const secureStorageRef = useRef<SecureStorage | null>(null)
     if (!secureStorageRef.current) {
@@ -50,17 +50,13 @@ export function SecretDerivationProvider({
 
     const passkeyStorage = externalPasskeyStorage ?? passkeyStorageRef.current ?? undefined
 
-    const hook = useSecretDerivationHook({ persist, passkeyStorage })
+    // Pass auth from context to the hook (fixes issue #2c — custom auth instances now work)
+    const hook = useSecretDerivationHook({ persist, passkeyStorage, auth })
 
-    // Create a dedicated store for loginWallet (persisted alongside the hook store)
-    const walletStoreRef = useRef<SecretDerivationStore | null>(null)
-    if (!walletStoreRef.current) {
-        walletStoreRef.current = createSecretDerivationStore({ persist })
-    }
-    const walletStore = walletStoreRef.current
-    const loginWallet = useStore(walletStore, (s) => s.loginWallet)
+    // Read loginWallet from the hook's store (fixes issue #8 — no second store)
+    const loginWallet = hook._store ? useStore(hook._store, (s) => s.loginWallet) : null
 
-    // Initialize SecureStorage + hydrate stores on mount
+    // Initialize SecureStorage + hydrate store on mount
     useEffect(() => {
         if (!persist) return
 
@@ -72,15 +68,7 @@ export function SecretDerivationProvider({
         const init = async () => {
             await ss.init()
 
-            // Clean up old localStorage keys
-            if (typeof window !== 'undefined' && window.localStorage) {
-                try {
-                    localStorage.removeItem('train:auth')
-                    localStorage.removeItem('train:auth:wallet')
-                    localStorage.removeItem('train:passkey-credentials')
-                } catch { /* ignore */ }
-            }
-
+           
             if (cancelled) return
 
             // Initialize IndexedDB passkey storage
@@ -88,11 +76,8 @@ export function SecretDerivationProvider({
                 await passkeyStorageRef.current.init()
             }
 
-            // Hydrate the stores from IndexedDB
-            await Promise.all([
-                hook._store?.getState().hydrate(ss),
-                walletStore.getState().hydrate(ss),
-            ])
+            // Hydrate the store from IndexedDB
+            await hook._store?.getState().hydrate(ss)
         }
 
         init().catch(() => {})
@@ -109,7 +94,7 @@ export function SecretDerivationProvider({
         }
     }, [autoCheckPasskeySupport])
 
-    // Wrap loginWithWallet to track wallet info
+    // Wrap loginWithWallet to track wallet info in the same store
     const originalLoginWithWallet = hook.loginWithWallet
     const loginWithWallet = useCallback(async (
         chainNamespace: string,
@@ -122,15 +107,15 @@ export function SecretDerivationProvider({
             displayName: (config?.displayName as string) ?? undefined,
             chainId: (config?.chainId as string | number) ?? undefined,
         }
-        walletStore.getState().setLoginWallet(walletInfo)
-    }, [originalLoginWithWallet, walletStore])
+        hook._store?.getState().setLoginWallet(walletInfo)
+    }, [originalLoginWithWallet, hook._store])
 
-    // Wrap logout to clear wallet info
+    // Wrap logout to clear wallet info and zeroize key material (fixes issue #22)
     const originalLogout = hook.logout
     const logout = useCallback(() => {
         originalLogout()
-        walletStore.getState().setLoginWallet(null)
-    }, [originalLogout, walletStore])
+        hook._store?.getState().setLoginWallet(null)
+    }, [originalLogout, hook._store])
 
     const value = useMemo<SecretDerivationContextValue>(() => ({
         ...hook,

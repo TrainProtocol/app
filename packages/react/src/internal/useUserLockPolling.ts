@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { LockStatus, TransactionStatus } from '@train-protocol/sdk'
-import type { IHTLCClient, LockParams, TransactionInfo, UserLockDetails } from '@train-protocol/sdk'
+import type { IHTLCReadClient, LockParams, TransactionInfo, UserLockDetails } from '@train-protocol/sdk'
 import { trainQueryKeys } from './queryKeys'
 
 export interface UseUserLockPollingOptions {
-    client: IHTLCClient | null
+    client: IHTLCReadClient | null
     params: LockParams | null
     enabled: boolean
     onTransactionFailed?: (tx: TransactionInfo) => void
@@ -34,7 +34,7 @@ export function useUserLockPolling(options: UseUserLockPollingOptions): UserLock
         },
         retry: false,
         staleTime: 0,
-        gcTime: 0,
+        gcTime: 30_000,
     })
 
     const lockFound = !!query.data
@@ -55,7 +55,7 @@ export function useUserLockPolling(options: UseUserLockPollingOptions): UserLock
         refetchInterval: () => shouldPollTx ? 3000 : false,
         retry: false,
         staleTime: 0,
-        gcTime: 0,
+        gcTime: 30_000,
     })
 
     useEffect(() => {

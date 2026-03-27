@@ -10,6 +10,8 @@ import { useWalletContext } from '../wallet/WalletContext'
 import { useStoreContext } from '../providers/TrainProvider'
 import { TrainError, TrainErrorCode } from '../types'
 import type { StartSwapParams } from '../types'
+import type { CreatedSwapConfig } from '../internal/store'
+import { caip2Id, parseCaip2Id } from '../internal/branded'
 
 export interface UseCreateSwapResult {
     /** Lock funds on source chain, persist swap, return hashlock */
@@ -32,7 +34,7 @@ export interface UseCreateSwapResult {
  * ```
  */
 export function useCreateSwap(): UseCreateSwapResult {
-    const { config, sdk } = useTrainContext()
+    const { config } = useTrainContext()
     const walletCtx = useWalletContext()
     const store = useStoreContext()
     const [isCreating, setIsCreating] = useState(false)
@@ -51,22 +53,12 @@ export function useCreateSwap(): UseCreateSwapResult {
             const secret = bytesToHex(Array.from(secretBytes))
             const hashlock = secretToHashlock(secret)
 
-            // Get signer from wallet adapter
-            const namespace = params.sourceNetwork.split(':')[0]
-            const signer = walletCtx.getSignerForNetwork(params.sourceNetwork)
-            if (!signer) {
-                throw new TrainError(
-                    `No wallet adapter registered for ${namespace}`,
-                    TrainErrorCode.WalletNotConnected,
-                )
-            }
+            const sourceNetwork = caip2Id(params.sourceNetwork)
+            const destinationNetwork = caip2Id(params.destinationNetwork)
+            const { reference: sourceChainRef } = parseCaip2Id(sourceNetwork)
 
-            // Create write client with signer
-            const adapterConfig = walletCtx.getClientConfigForNetwork(params.sourceNetwork)
-            const client = sdk.createHTLCClient(namespace, {
-                ...adapterConfig,
-                signer,
-            } as any)
+            // Create write client via wallet adapter (fully typed, no cast)
+            const client = walletCtx.createWriteClient(sourceNetwork)
 
             const result = await client.userLock({
                 sourceChain: params.sourceNetwork,
@@ -82,7 +74,7 @@ export function useCreateSwap(): UseCreateSwapResult {
                 sourceAddress: params.sourceAddress,
                 destinationAddress: params.destinationAddress,
                 tokenContractAddress: params.tokenContractAddress,
-                chainId: params.chainId ?? params.sourceNetwork.split(':')[1],
+                chainId: params.chainId ?? sourceChainRef,
                 quoteExpiry: params.quote.quoteExpirationTimestampInSeconds,
                 rewardToken: params.quote.reward?.rewardToken,
                 rewardRecipient: params.quote.reward?.rewardRecipientAddress,
@@ -116,21 +108,23 @@ export function useCreateSwap(): UseCreateSwapResult {
                 })
 
                 // Initialize swap config in-memory for monitoring
-                store.getState().setSwapConfig(result.hashlock, {
+                const swapConfig: CreatedSwapConfig = {
+                    origin: 'created',
                     hashlock: result.hashlock,
                     solverId: params.solverId,
-                    sourceNetwork: params.sourceNetwork,
-                    destinationNetwork: params.destinationNetwork,
+                    sourceNetwork,
+                    destinationNetwork,
                     srcContract: params.srcContract,
                     destContract: params.destContract,
                     tokenContractAddress: params.tokenContractAddress ?? null,
                     sourceAddress: params.sourceAddress,
                     destinationAddress: params.destinationAddress,
-                    chainId: params.chainId ?? params.sourceNetwork.split(':')[1],
+                    chainId: parseCaip2Id(sourceNetwork).reference,
                     txId: result.hash,
                     quote: params.quote,
                     requestedAmount: params.amount,
-                })
+                }
+                store.getState().setSwapConfig(result.hashlock, swapConfig)
             }
 
             return result.hashlock
@@ -149,7 +143,7 @@ export function useCreateSwap(): UseCreateSwapResult {
             inFlight.current = false
             setIsCreating(false)
         }
-    }, [walletCtx, store, config, sdk])
+    }, [walletCtx, store, config])
 
     return { createSwap, isCreating, error }
 }

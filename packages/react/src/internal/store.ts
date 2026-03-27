@@ -2,24 +2,56 @@ import { createStore as createZustandStore } from 'zustand/vanilla'
 import { persist, type PersistStorage } from 'zustand/middleware'
 import type { SwapData, SwapStorage, TrainError } from '../types'
 import type { HTLCFromApi, QuoteDetails } from '@train-protocol/sdk'
+import type { Caip2Id, ChainReference } from './branded'
+import { caip2Id, parseCaip2Id } from './branded'
 
 // --- Swap config (in-memory, set once at creation/activation) ---
 
-export interface SwapConfig {
+/** Fields common to all swap origins */
+interface SwapConfigBase {
     hashlock: string
-    solverId: string | null
-    sourceNetwork: string
-    destinationNetwork: string
-    srcContract: string | null
-    destContract: string | null
+    sourceNetwork: Caip2Id
+    destinationNetwork: Caip2Id
+    srcContract: string
+    sourceAddress: string
+    destinationAddress: string
+    txId: string
+}
+
+/** Config for a swap created through the normal quote flow */
+export interface CreatedSwapConfig extends SwapConfigBase {
+    origin: 'created'
+    solverId: string
+    destContract: string
+    chainId: ChainReference
     tokenContractAddress: string | null
-    sourceAddress: string | null
-    destinationAddress: string | null
-    chainId: string | null
-    txId: string | null
-    quote: QuoteDetails | null
+    quote: QuoteDetails
+    requestedAmount: string
+}
+
+/** Config for a swap recovered from an on-chain transaction */
+export interface RecoveredSwapConfig extends SwapConfigBase {
+    origin: 'recovered'
+    solverId?: undefined
+    destContract?: undefined
+    chainId?: undefined
+    tokenContractAddress?: undefined
+    quote?: undefined
+    requestedAmount: string
+}
+
+/** Config hydrated from persisted swap data (page reload) */
+export interface HydratedSwapConfig extends SwapConfigBase {
+    origin: 'hydrated'
+    solverId: string | null
+    destContract: string | null
+    chainId: ChainReference | null
+    tokenContractAddress: string | null
+    quote: null
     requestedAmount: string | null
 }
+
+export type SwapConfig = CreatedSwapConfig | RecoveredSwapConfig | HydratedSwapConfig
 
 // --- Swap flags (in-memory, mutated during lifecycle) ---
 
@@ -133,23 +165,27 @@ function createActions(set: SetFn) {
                 // First subscriber — hydrate config from persisted data if not already present
                 if (count === 1 && !state.swapConfigs[hashlock] && state.swaps[hashlock]) {
                     const swap = state.swaps[hashlock]
+                    const sourceNet = swap.source ? caip2Id(swap.source) : caip2Id('eip155:0')
+                    const destNet = swap.destination ? caip2Id(swap.destination) : caip2Id('eip155:0')
+                    const hydrated: HydratedSwapConfig = {
+                        origin: 'hydrated',
+                        hashlock,
+                        solverId: swap.solver ?? null,
+                        sourceNetwork: sourceNet,
+                        destinationNetwork: destNet,
+                        srcContract: swap.srcContract ?? '',
+                        destContract: swap.destContract ?? null,
+                        tokenContractAddress: null,
+                        sourceAddress: swap.sourceAddress ?? swap.address ?? '',
+                        destinationAddress: swap.destinationAddress ?? '',
+                        chainId: swap.source ? parseCaip2Id(sourceNet).reference : null,
+                        txId: swap.txId ?? '',
+                        quote: null,
+                        requestedAmount: swap.requestedAmount ?? null,
+                    }
                     updates.swapConfigs = {
                         ...state.swapConfigs,
-                        [hashlock]: {
-                            hashlock,
-                            solverId: swap.solver ?? null,
-                            sourceNetwork: swap.source ?? '',
-                            destinationNetwork: swap.destination ?? '',
-                            srcContract: swap.srcContract ?? null,
-                            destContract: swap.destContract ?? null,
-                            tokenContractAddress: null,
-                            sourceAddress: swap.sourceAddress ?? swap.address ?? null,
-                            destinationAddress: swap.destinationAddress ?? null,
-                            chainId: swap.source?.split(':')[1] ?? null,
-                            txId: swap.txId ?? null,
-                            quote: null,
-                            requestedAmount: swap.requestedAmount ?? null,
-                        },
+                        [hashlock]: hydrated,
                     }
                     updates.swapFlags = {
                         ...state.swapFlags,

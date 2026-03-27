@@ -4,6 +4,7 @@ import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
 import { useStoreContext } from '../providers/TrainProvider'
 import { useDerivedSwapState } from '../internal/useDerivedSwapState'
+import { parseCaip2Id } from '../internal/branded'
 import { TrainError, TrainErrorCode } from '../types'
 
 function getLockType(tokenContract: string | null | undefined): 'erc20' | 'native' {
@@ -27,7 +28,7 @@ export interface UseRefundResult {
  */
 export function useRefund(hashlock: string | null | undefined): UseRefundResult {
     const hl = hashlock ?? null
-    const { config, sdk } = useTrainContext()
+    const { config } = useTrainContext()
     const walletCtx = useWalletContext()
     const store = useStoreContext()
     const derived = useDerivedSwapState(store, hl)
@@ -41,8 +42,7 @@ export function useRefund(hashlock: string | null | undefined): UseRefundResult 
         setError(null)
 
         const swapConfig = hl ? store?.getState().swapConfigs[hl] : null
-        const srcNamespace = swapConfig?.sourceNetwork?.split(':')[0] ?? null
-        if (!swapConfig?.hashlock || !srcNamespace || !swapConfig?.srcContract) {
+        if (!swapConfig?.hashlock || !swapConfig?.srcContract) {
             const err = new TrainError('Cannot refund: missing required params', TrainErrorCode.RefundFailed)
             setError(err)
             setIsRefunding(false)
@@ -58,16 +58,14 @@ export function useRefund(hashlock: string | null | undefined): UseRefundResult 
         }
 
         try {
-            const signer = walletCtx.getSignerForNetwork(swapConfig.sourceNetwork)
-            if (!signer) {
-                throw new TrainError(`No wallet adapter for ${srcNamespace}`, TrainErrorCode.WalletNotConnected)
-            }
-
-            const adapterConfig = walletCtx.getClientConfigForNetwork(swapConfig.sourceNetwork)
-            const client = sdk.createHTLCClient(srcNamespace, { ...adapterConfig, signer } as any)
+            // Create write client via wallet adapter (fully typed, no cast)
+            const client = walletCtx.createWriteClient(swapConfig.sourceNetwork)
+            const chainId = swapConfig.origin === 'created'
+                ? swapConfig.chainId
+                : parseCaip2Id(swapConfig.sourceNetwork).reference
             const txHash = await client.refund({
-                type: getLockType(swapConfig.tokenContractAddress),
-                chainId: swapConfig.chainId,
+                type: getLockType(swapConfig.origin === 'created' ? swapConfig.tokenContractAddress : null),
+                chainId,
                 contractAddress: swapConfig.srcContract,
                 id: swapConfig.hashlock,
                 sourceAsset,
@@ -89,7 +87,7 @@ export function useRefund(hashlock: string | null | undefined): UseRefundResult 
         } finally {
             setIsRefunding(false)
         }
-    }, [hl, walletCtx, sdk, store, config, derived.sourceToken])
+    }, [hl, walletCtx, store, config, derived.sourceToken])
 
     return { refund: doRefund, isRefunding, canRefund, error }
 }

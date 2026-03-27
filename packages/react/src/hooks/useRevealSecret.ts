@@ -40,7 +40,26 @@ export function useRevealSecret(hashlock: string | null | undefined): UseRevealS
 
         const hl = hashlock ?? null
         const swapConfig = hl ? store?.getState().swapConfigs[hl] : null
-        if (!swapConfig?.solverId || !swapConfig?.hashlock) {
+
+        // Recovered swaps don't have a solverId — cannot reveal secret
+        if (swapConfig?.origin === 'recovered') {
+            const err = new TrainError(
+                'Cannot reveal secret for a recovered swap — solverId is unavailable. ' +
+                'The solver must detect the secret from on-chain data.',
+                TrainErrorCode.RevealFailed,
+            )
+            setError(err)
+            inFlight.current = false
+            setIsRevealing(false)
+            throw err
+        }
+
+        // Get solverId — available for 'created' (always) and 'hydrated' (maybe)
+        const solverId = swapConfig?.origin === 'created'
+            ? swapConfig.solverId
+            : swapConfig?.solverId
+
+        if (!solverId || !swapConfig?.hashlock) {
             const err = new TrainError('Cannot reveal: missing solverId or hashlock', TrainErrorCode.RevealFailed)
             setError(err)
             inFlight.current = false
@@ -57,6 +76,7 @@ export function useRevealSecret(hashlock: string | null | undefined): UseRevealS
             throw err
         }
 
+        // Point-in-time read is intentional here — this is a one-shot action, not a subscription
         const sourceDetails = queryClient.getQueryData<UserLockDetails | null>(trainQueryKeys.userLock(hl!))
         const nonce = sourceDetails?.userData ? Number(sourceDetails.userData) : null
         if (!nonce || isNaN(nonce)) {
@@ -71,7 +91,7 @@ export function useRevealSecret(hashlock: string | null | undefined): UseRevealS
             const secretBytes = deriveSecretFromTimelock(derivedKey, nonce)
             const secret = bytesToHex(Array.from(secretBytes))
 
-            await apiClient.revealSecret(swapConfig.solverId, swapConfig.hashlock, secret)
+            await apiClient.revealSecret(solverId, swapConfig.hashlock, secret)
             if (store && hl) {
                 store.getState().setSecretRevealedToApi(hl)
                 store.getState().updateSwap(hl, { secretRevealed: true })

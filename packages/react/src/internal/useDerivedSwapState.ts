@@ -1,10 +1,13 @@
-import { useState, useEffect, useMemo, useSyncExternalStore } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useStore } from 'zustand'
+import { shallow } from 'zustand/shallow'
+import { createStore } from 'zustand/vanilla'
 import { resolveHTLCStatus, HTLCStatus, LockStatus } from '@train-protocol/sdk'
 import type { Network, Token, UserLockDetails, SolverLockDetails, HTLCFromApi } from '@train-protocol/sdk'
 import type { TrainError, SwapData } from '../types'
 import type { LoginIdentity } from '../hooks/useLoginIdentityMismatch'
-import type { SwapStore, SwapConfig, SwapFlags } from './store'
+import type { SwapStore, SwapConfig, SwapFlags, SwapStoreState } from './store'
 import { useNetworksContext } from '../providers/NetworksProvider'
 import { resolveSwapTokens } from './resolveSwapTokens'
 import { useTimelockExpiry } from './useTimelockExpiry'
@@ -12,7 +15,30 @@ import { trainQueryKeys } from './queryKeys'
 
 const MANUAL_CLAIM_DELAY_MS = 3 * 60 * 1000
 
+/** Empty store used as a stable fallback so useStore is never called conditionally */
+const EMPTY_STORE = createStore<SwapStoreState>()(() => ({
+    swaps: {},
+    swapConfigs: {},
+    swapFlags: {},
+    orderData: {},
+    swapSubscribers: {},
+    addSwap: () => {},
+    updateSwap: () => {},
+    clearSwap: () => {},
+    subscribe: () => {},
+    unsubscribe: () => {},
+    setSwapConfig: () => {},
+    setSecretRevealedToApi: () => {},
+    setConsensusPhase: () => {},
+    setActiveSwapError: () => {},
+    setManualClaimStartedAt: () => {},
+    setOrderData: () => {},
+} as SwapStoreState))
+
 export interface DerivedSwapState {
+    /** True while networks or store data are still loading */
+    isLoading: boolean
+
     // Lifecycle
     status: HTLCStatus
     hashlock: string | null
@@ -50,6 +76,7 @@ export interface DerivedSwapState {
 }
 
 const EMPTY_STATE: DerivedSwapState = {
+    isLoading: false,
     status: HTLCStatus.Initial,
     hashlock: null,
     sourceDetails: null,
@@ -81,6 +108,15 @@ const EMPTY_STATE: DerivedSwapState = {
     destinationToken: null,
 }
 
+interface StoreSlice {
+    config: SwapConfig | null
+    flags: SwapFlags | null
+    htlcFromApi: HTLCFromApi | null
+    swapData: SwapData | null
+}
+
+const EMPTY_SLICE: StoreSlice = { config: null, flags: null, htlcFromApi: null, swapData: null }
+
 function deriveDestRedeemTxId(htlcFromApi: HTLCFromApi | null, destinationNetwork: string | undefined): string | null {
     const redeemTx = htlcFromApi?.transactions?.find(
         (t: any) => t.type === 'HTLCRedeem' && t.network === destinationNetwork
@@ -92,44 +128,42 @@ function deriveDestRedeemTxId(htlcFromApi: HTLCFromApi | null, destinationNetwor
  * Hook that reads swap state from multiple sources and derives all computed state:
  * 1. swapConfigs + swapFlags + orderData from the store (ephemeral)
  * 2. swaps[hashlock] from the store (persisted)
- * 3. sourceDetails & solverLockDetails from React Query cache (polling)
+ * 3. sourceDetails & solverLockDetails from React Query cache (subscribed)
  * 4. networks from NetworksProvider (resolved Network/Token objects)
  *
  * This is the single place where raw data becomes the shape consumers expect.
  */
 export function useDerivedSwapState(store: SwapStore | null, hashlock: string | null): DerivedSwapState {
-    const queryClient = useQueryClient()
-    const { networks } = useNetworksContext()
+    const { networks, networkMap, isLoading: networksLoading } = useNetworksContext()
 
-    // Read config from store
-    const config = useSyncExternalStore(
-        (cb) => store ? store.subscribe(cb) : () => {},
-        () => (store && hashlock) ? store.getState().swapConfigs[hashlock] ?? null : null,
-        () => null,
-    ) as SwapConfig | null
+    // Single store subscription with shallow comparison (fixes issue #4)
+    // Always call useStore unconditionally to satisfy React's rules of hooks.
+    // When store or hashlock is absent, we read from a static empty store.
+    const storeSlice = useStore(store ?? EMPTY_STORE, (state) => {
+        if (!hashlock) return EMPTY_SLICE
+        return {
+            config: state.swapConfigs[hashlock] ?? null,
+            flags: state.swapFlags[hashlock] ?? null,
+            htlcFromApi: state.orderData[hashlock] ?? null,
+            swapData: state.swaps[hashlock] ?? null,
+        }
+    }, shallow)
+    const { config, flags, htlcFromApi, swapData } = storeSlice
 
-    // Read flags from store
-    const flags = useSyncExternalStore(
-        (cb) => store ? store.subscribe(cb) : () => {},
-        () => (store && hashlock) ? store.getState().swapFlags[hashlock] ?? null : null,
-        () => null,
-    ) as SwapFlags | null
+    // Subscribe to React Query cache for polled data (fixes issue #3)
+    // enabled: false means we never fetch — data is written by polling hooks.
+    // useQuery subscribes to cache updates, unlike getQueryData which is point-in-time.
+    const { data: sourceDetails = null } = useQuery<UserLockDetails | null>({
+        queryKey: trainQueryKeys.userLock(hashlock ?? ''),
+        enabled: false,
+    })
 
-    // Read order data from store
-    const htlcFromApi = useSyncExternalStore(
-        (cb) => store ? store.subscribe(cb) : () => {},
-        () => (store && hashlock) ? store.getState().orderData[hashlock] ?? null : null,
-        () => null,
-    ) as HTLCFromApi | null
+    const { data: solverLockDetails = null } = useQuery<SolverLockDetails | null>({
+        queryKey: trainQueryKeys.solverLock(hashlock ?? ''),
+        enabled: false,
+    })
 
-    // Read persisted swap data from store
-    const swapData = useSyncExternalStore(
-        (cb) => store ? store.subscribe(cb) : () => {},
-        () => (store && hashlock) ? store.getState().swaps[hashlock] ?? null : null,
-        () => null,
-    ) as SwapData | null
-
-    // Resolve Network and Token objects from persisted CAIP-2 IDs / symbols
+    // Resolve Network and Token objects
     const { sourceToken, destinationToken } = useMemo(
         () => {
             const resolved = resolveSwapTokens(swapData ?? undefined, networks)
@@ -138,24 +172,16 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
         [swapData, networks],
     )
 
+    // O(1) network lookups via map (fixes issue #11)
     const sourceNetwork = useMemo(
-        () => swapData?.source ? networks.find(n => n.caip2Id.toUpperCase() === swapData.source.toUpperCase()) ?? null : null,
-        [swapData?.source, networks],
+        () => swapData?.source ? (networkMap.get(swapData.source.toUpperCase()) ?? null) : null,
+        [swapData?.source, networkMap],
     )
 
     const destinationNetwork = useMemo(
-        () => swapData?.destination ? networks.find(n => n.caip2Id.toUpperCase() === swapData.destination.toUpperCase()) ?? null : null,
-        [swapData?.destination, networks],
+        () => swapData?.destination ? (networkMap.get(swapData.destination.toUpperCase()) ?? null) : null,
+        [swapData?.destination, networkMap],
     )
-
-    // Read polled data from React Query cache
-    const sourceDetails = (hashlock
-        ? queryClient.getQueryData<UserLockDetails | null>(trainQueryKeys.userLock(hashlock))
-        : null) ?? null
-
-    const solverLockDetails = (hashlock
-        ? queryClient.getQueryData<SolverLockDetails | null>(trainQueryKeys.solverLock(hashlock))
-        : null) ?? null
 
     const isTimelockExpired = useTimelockExpiry(sourceDetails?.timelock)
 
@@ -194,51 +220,64 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
         }
     }, [store, hashlock, sourceDetails?.status, solverLockDetails?.status, flags?.manualClaimStartedAt])
 
-    if (!config || !flags) return EMPTY_STATE
+    // Memoize the return value to prevent unnecessary re-renders (fixes issue #5)
+    return useMemo<DerivedSwapState>(() => {
+        // Loading: hashlock provided but store data or networks not ready yet
+        if (hashlock && (!config || !flags || networksLoading)) {
+            return { ...EMPTY_STATE, isLoading: true, hashlock }
+        }
+        if (!config || !flags) return EMPTY_STATE
 
-    const secretRevealed = flags.secretRevealedToApi || !!sourceDetails?.secret
-    const destRedeemTxId = deriveDestRedeemTxId(htlcFromApi, config.destinationNetwork)
+        const secretRevealed = flags.secretRevealedToApi || !!sourceDetails?.secret
+        const destRedeemTxId = deriveDestRedeemTxId(htlcFromApi, config.destinationNetwork)
 
-    const status = resolveHTLCStatus({
-        sourceDetails: sourceDetails ?? undefined,
-        solverLockDetails: solverLockDetails ?? undefined,
-        timelockExpired: isTimelockExpired,
-        secretRevealed,
-        manualClaimRequired,
-        destRedeemTxId: destRedeemTxId ?? undefined,
-    })
+        const status = resolveHTLCStatus({
+            sourceDetails: sourceDetails ?? undefined,
+            solverLockDetails: solverLockDetails ?? undefined,
+            timelockExpired: isTimelockExpired,
+            secretRevealed,
+            manualClaimRequired,
+            destRedeemTxId: destRedeemTxId ?? undefined,
+        })
 
-    return {
-        status,
-        hashlock: config.hashlock,
-        sourceDetails,
-        solverLockDetails,
-        htlcFromApi,
-        secretRevealed,
-        isTimelockExpired,
-        manualClaimRequired,
-        destRedeemTxId,
-        error: flags.error,
-        consensusVerifying: flags.consensusPhase === 'verifying',
-        consensusVerified: flags.consensusPhase === 'verified',
+        return {
+            isLoading: false,
+            status,
+            hashlock: config.hashlock,
+            sourceDetails: sourceDetails ?? null,
+            solverLockDetails: solverLockDetails ?? null,
+            htlcFromApi,
+            secretRevealed,
+            isTimelockExpired,
+            manualClaimRequired,
+            destRedeemTxId,
+            error: flags.error,
+            consensusVerifying: flags.consensusPhase === 'verifying',
+            consensusVerified: flags.consensusPhase === 'verified',
 
-        source: swapData?.source ?? null,
-        destination: swapData?.destination ?? null,
-        sourceAddress: swapData?.sourceAddress ?? null,
-        destinationAddress: swapData?.destinationAddress ?? swapData?.address ?? null,
-        requestedAmount: swapData?.requestedAmount ?? null,
-        receiveAmount: swapData?.receiveAmount ?? null,
-        solver: swapData?.solver ?? null,
-        txId: swapData?.txId ?? null,
-        refundTxId: swapData?.refundTxId ?? null,
-        srcContract: swapData?.srcContract ?? null,
-        destContract: swapData?.destContract ?? null,
-        createdAt: swapData?.createdAt ?? null,
-        loginIdentity: swapData?.loginIdentity ?? null,
+            source: swapData?.source ?? null,
+            destination: swapData?.destination ?? null,
+            sourceAddress: swapData?.sourceAddress ?? null,
+            destinationAddress: swapData?.destinationAddress ?? swapData?.address ?? null,
+            requestedAmount: swapData?.requestedAmount ?? null,
+            receiveAmount: swapData?.receiveAmount ?? null,
+            solver: swapData?.solver ?? null,
+            txId: swapData?.txId ?? null,
+            refundTxId: swapData?.refundTxId ?? null,
+            srcContract: swapData?.srcContract ?? null,
+            destContract: swapData?.destContract ?? null,
+            createdAt: swapData?.createdAt ?? null,
+            loginIdentity: swapData?.loginIdentity ?? null,
 
-        sourceNetwork,
-        destinationNetwork,
-        sourceToken,
-        destinationToken,
-    }
+            sourceNetwork,
+            destinationNetwork,
+            sourceToken,
+            destinationToken,
+        }
+    }, [
+        hashlock, networksLoading,
+        config, flags, sourceDetails, solverLockDetails, htlcFromApi,
+        isTimelockExpired, manualClaimRequired, swapData,
+        sourceNetwork, destinationNetwork, sourceToken, destinationToken,
+    ])
 }

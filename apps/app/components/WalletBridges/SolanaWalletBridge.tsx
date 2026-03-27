@@ -1,5 +1,11 @@
 import { useMemo } from 'react'
-import { useRegisterWallet, type TrainWalletAdapter } from '@train-protocol/react'
+import {
+    useRegisterWallet,
+    chainNamespace,
+    type TrainWalletAdapter,
+    type Caip2Id,
+} from '@train-protocol/react'
+import type { TrainSDK } from '@train-protocol/sdk'
 import { useWallet, useConnection } from '@solana/wallet-adapter-react'
 import { useSettingsState } from '@/context/settings'
 import { useRpcConfigStore } from '@/stores/rpcConfigStore'
@@ -11,27 +17,30 @@ export function SolanaWalletBridge() {
     const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
 
     const adapter = useMemo<TrainWalletAdapter>(() => ({
-        chainNamespace: 'solana',
+        chainNamespace: chainNamespace('solana'),
 
-        getSigner: () => {
-            const connectedWallet = wallets.find(w => w.adapter.connected)
-            const publicKey = connectedWallet?.adapter.publicKey
-            if (!connectedWallet || !publicKey) return null
-
-            return {
-                address: publicKey.toBase58(),
-                chainNamespace: 'solana',
-                sendTransaction: async (tx) => {
-                    return connectedWallet.adapter.sendTransaction(tx as any, connection)
-                },
-            }
+        createClient(sdk: TrainSDK, networkId: Caip2Id) {
+            const solanaNetwork = networks.find(n => n.caip2Id.startsWith('solana:'))
+            const rpcUrl = (solanaNetwork ? getEffectiveRpcUrls(solanaNetwork)[0] ?? solanaNetwork.nodes?.[0]?.url : '')
+                ?? ''
+            return sdk.createHTLCClient('solana', { rpcUrl })
         },
 
-        getClientConfig: () => {
+        createWriteClient(sdk: TrainSDK, networkId: Caip2Id) {
             const solanaNetwork = networks.find(n => n.caip2Id.startsWith('solana:'))
-            if (!solanaNetwork) return {}
-            const rpcUrl = getEffectiveRpcUrls(solanaNetwork)[0] ?? solanaNetwork.nodes?.[0]?.url ?? ''
-            return { rpcUrl }
+            const rpcUrl = (solanaNetwork ? getEffectiveRpcUrls(solanaNetwork)[0] ?? solanaNetwork.nodes?.[0]?.url : '')
+                ?? ''
+            const connectedWallet = wallets.find(w => w.adapter.connected)
+            const publicKey = connectedWallet?.adapter.publicKey
+
+            const signer = (connectedWallet && publicKey) ? {
+                publicKey: publicKey.toBase58(),
+                sendTransaction: async (tx: any) => {
+                    return connectedWallet.adapter.sendTransaction(tx, connection)
+                },
+            } : undefined
+
+            return sdk.createHTLCClient('solana', { rpcUrl, signer })
         },
 
         getLoginConfig: () => {

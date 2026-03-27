@@ -38,6 +38,13 @@ export { useLoginIdentityMismatch } from './hooks/useLoginIdentityMismatch'
 export { useRegisterWallet } from './wallet/useRegisterWallet'
 export type { TrainSigner, TrainWalletAdapter } from './wallet/types'
 
+// --- Branded Types (chain identifiers) ---
+export type { Caip2Id, ChainNamespace, ChainReference } from './internal/branded'
+export { caip2Id, chainNamespace, chainReference, parseCaip2Id } from './internal/branded'
+
+// --- Swap Config Types ---
+export type { SwapConfig, CreatedSwapConfig, RecoveredSwapConfig, HydratedSwapConfig } from './internal/store'
+
 // --- Query Keys (for advanced consumers: prefetch/invalidate) ---
 export { trainQueryKeys } from './internal/queryKeys'
 
@@ -64,6 +71,7 @@ export type {
     LockDetails,
     UserLockDetails,
     SolverLockDetails,
+    IHTLCReadClient,
     IHTLCClient,
     HTLCFromApi,
     HTLCFromApiResponse,

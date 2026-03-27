@@ -1,3 +1,6 @@
+import type { IHTLCReadClient, IHTLCClient, TrainSDK } from '@train-protocol/sdk'
+import type { Caip2Id, ChainNamespace } from '../internal/branded'
+
 /** Minimal signer abstraction for chain-agnostic transaction sending */
 export interface TrainSigner {
     address: string
@@ -5,16 +8,22 @@ export interface TrainSigner {
     sendTransaction: (tx: { to: string; data: string; value?: bigint }) => Promise<string>
 }
 
-/** Wallet adapter interface — consumers implement this to bridge their wallet library */
+/**
+ * Wallet adapter interface — consumers implement this to bridge their wallet library.
+ *
+ * The adapter is responsible for creating HTLC clients with the correct
+ * chain-specific config. This keeps type safety at the adapter level where
+ * the chain knowledge lives, instead of leaking untyped config through hooks.
+ */
 export interface TrainWalletAdapter {
-    chainNamespace: string
-    getSigner: () => TrainSigner | null
-    /** Return chain-specific config for createHTLCClient (e.g. { rpcUrl, chainId }) */
-    getClientConfig?: () => Record<string, unknown>
-    /** Return config for deriveKeyFromWallet() — null means wallet not ready for login */
+    chainNamespace: ChainNamespace
+
+    /** Create a read-only HTLC client for monitoring/polling (no signer) */
+    createClient(sdk: TrainSDK, networkId: Caip2Id): IHTLCReadClient
+
+    /** Create a write HTLC client with signer for transactions */
+    createWriteClient(sdk: TrainSDK, networkId: Caip2Id): IHTLCClient
+
+    /** Return config for wallet-based secret derivation. Null = wallet not ready. */
     getLoginConfig?: () => Record<string, unknown> | null | Promise<Record<string, unknown> | null>
-    /** Return a signer targeting a specific network (CAIP-2 ID). Used for cross-chain operations within the same namespace (e.g. EVM→EVM). */
-    getSignerForNetwork?: (caip2Id: string) => TrainSigner | null
-    /** Return client config for a specific network (CAIP-2 ID). Used for cross-chain operations within the same namespace. */
-    getClientConfigForNetwork?: (caip2Id: string) => Record<string, unknown>
 }

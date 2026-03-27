@@ -7,6 +7,7 @@ import { useUserLockPolling } from '../internal/useUserLockPolling'
 import { useSolverLockPolling } from '../internal/useSolverLockPolling'
 import { useOrderStream } from '../internal/useOrderStream'
 import { useDerivedSwapState, type DerivedSwapState } from '../internal/useDerivedSwapState'
+import { parseCaip2Id } from '../internal/branded'
 import { TrainError, TrainErrorCode } from '../types'
 
 function getLockType(tokenContract: string | null | undefined): 'erc20' | 'native' {
@@ -34,7 +35,7 @@ function getLockType(tokenContract: string | null | undefined): 'erc20' | 'nativ
  */
 export function useSwapProgress(hashlock: string | null | undefined): DerivedSwapState {
     const hl = hashlock ?? null
-    const { config, sdk } = useTrainContext()
+    const { config } = useTrainContext()
     const walletCtx = useWalletContext()
     const store = useStoreContext()
 
@@ -56,37 +57,44 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
     // Derived state (status, secretRevealed, manualClaimRequired, etc.)
     const derived = useDerivedSwapState(store, hl)
 
-    // Determine chain namespaces from CAIP-2 IDs
-    const sourceNamespace = swapConfig?.sourceNetwork?.split(':')[0] ?? null
-    const destNamespace = swapConfig?.destinationNetwork?.split(':')[0] ?? null
-
     // Whether polling should be active
     const isActive = !!swapConfig?.hashlock && !TERMINAL_STATUSES.has(derived.status)
 
-    // Source chain polling params
+    // Source chain polling params — derive chainId from CAIP-2 ID
     const userLockParams = useMemo(() => {
-        if (!swapConfig?.hashlock || !swapConfig?.srcContract || !swapConfig?.chainId) return null
+        if (!swapConfig?.hashlock || !swapConfig?.srcContract) return null
+        const chainId = swapConfig.origin === 'created'
+            ? swapConfig.chainId
+            : parseCaip2Id(swapConfig.sourceNetwork).reference
         return {
-            type: getLockType(swapConfig.tokenContractAddress),
+            type: getLockType(swapConfig.origin === 'created' ? swapConfig.tokenContractAddress : null),
             id: swapConfig.hashlock,
-            chainId: swapConfig.chainId,
+            chainId,
             contractAddress: swapConfig.srcContract,
             txId: swapConfig.txId ?? undefined,
         }
-    }, [swapConfig?.hashlock, swapConfig?.srcContract, swapConfig?.chainId, swapConfig?.tokenContractAddress, swapConfig?.txId])
+    }, [swapConfig?.hashlock, swapConfig?.srcContract, swapConfig?.origin, swapConfig?.sourceNetwork, swapConfig?.txId])
 
-    // Destination chain polling params
+    // Destination chain polling params — only available for created/hydrated swaps with destContract
     const solverLockParams = useMemo(() => {
-        if (!swapConfig?.hashlock || !swapConfig?.destContract) return null
-        const destChainId = swapConfig.destinationNetwork?.split(':')[1] ?? null
+        if (!swapConfig?.hashlock) return null
+        const destContract = swapConfig.origin === 'created'
+            ? swapConfig.destContract
+            : swapConfig.origin === 'hydrated'
+                ? swapConfig.destContract
+                : undefined  // recovered: no destContract
+        if (!destContract) return null
+
+        const destChainId = parseCaip2Id(swapConfig.destinationNetwork).reference
+        const quote = swapConfig.origin === 'created' ? swapConfig.quote : null
         return {
-            type: getLockType(swapConfig.quote?.route?.destination?.tokenContract ?? derived.destinationToken?.contractAddress),
+            type: getLockType(quote?.route?.destination?.tokenContract ?? derived.destinationToken?.contractAddress),
             id: swapConfig.hashlock,
             chainId: destChainId,
-            contractAddress: swapConfig.destContract,
-            solverAddress: swapConfig.quote?.destinationSolverAddress,
+            contractAddress: destContract,
+            solverAddress: quote?.destinationSolverAddress,
         }
-    }, [swapConfig?.hashlock, swapConfig?.destContract, swapConfig?.destinationNetwork, swapConfig?.quote, derived.destinationToken])
+    }, [swapConfig?.hashlock, swapConfig?.origin, swapConfig?.destinationNetwork, derived.destinationToken])
 
     // Resolve destination chain node URLs for solver lock verification
     const destNodeUrls = useMemo(() => {
@@ -94,22 +102,20 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         return config.resolveNodeUrls(swapConfig.destinationNetwork)
     }, [swapConfig?.destinationNetwork, config.resolveNodeUrls])
 
-    // Create read-only HTLC clients for polling
+    // Create read-only HTLC clients for polling (via wallet adapter — no cast needed)
     const sourceReadClient = useMemo(() => {
-        if (!sourceNamespace || !swapConfig?.sourceNetwork) return null
+        if (!swapConfig?.sourceNetwork) return null
         try {
-            const adapterConfig = walletCtx.getClientConfigForNetwork(swapConfig.sourceNetwork)
-            return sdk.createHTLCClient(sourceNamespace, { ...adapterConfig } as any)
+            return walletCtx.createClient(swapConfig.sourceNetwork)
         } catch { return null }
-    }, [sourceNamespace, swapConfig?.sourceNetwork, walletCtx, sdk])
+    }, [swapConfig?.sourceNetwork, walletCtx])
 
     const destReadClient = useMemo(() => {
-        if (!destNamespace || !swapConfig?.destinationNetwork) return null
+        if (!swapConfig?.destinationNetwork) return null
         try {
-            const adapterConfig = walletCtx.getClientConfigForNetwork(swapConfig.destinationNetwork)
-            return sdk.createHTLCClient(destNamespace, { ...adapterConfig } as any)
+            return walletCtx.createClient(swapConfig.destinationNetwork)
         } catch { return null }
-    }, [destNamespace, swapConfig?.destinationNetwork, walletCtx, sdk])
+    }, [swapConfig?.destinationNetwork, walletCtx])
 
     const onConsensusFailed = useCallback((error: Error) => {
         if (!hl || !store) return
@@ -154,10 +160,16 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         }
     }, [store, hl, consensusPhase])
 
-    // Order streaming
+    // Order streaming — only for swaps with a solverId
     const destRedeemTx = derived.htlcFromApi?.transactions?.find(
         (t: any) => t.type === 'HTLCRedeem' && t.network === swapConfig?.destinationNetwork
     )
+
+    const solverId = swapConfig?.origin === 'created'
+        ? swapConfig.solverId
+        : swapConfig?.origin === 'hydrated'
+            ? swapConfig.solverId ?? undefined
+            : undefined  // recovered: no solverId
 
     const onOrderFailed = useCallback((reason: string) => {
         if (!hl) return
@@ -168,24 +180,30 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
 
     useOrderStream({
         baseUrl: config.baseUrl,
-        solverId: swapConfig?.solverId ?? undefined,
+        solverId: solverId ?? undefined,
         hashlock: hl ?? undefined,
         enabled: isActive && !!solverLockDetails && !destRedeemTx,
         store,
         onFailed: onOrderFailed,
     })
 
-    // Write-behind to persisted swap history
+    // Write-behind to persisted swap history (guard against redundant writes)
+    const prevStatusRef = useMemo(() => ({ current: null as any }), [])
     useEffect(() => {
         if (!store || !hl || !swapConfig?.hashlock) return
-        store.getState().updateSwap(hl, {
-            status: derived.status,
-            destTxId: derived.destRedeemTxId ?? undefined,
-            createdAt: sourceDetails?.blockTimestamp,
-            timelock: sourceDetails?.timelock,
-            sourceAddress: swapConfig.sourceAddress ?? undefined,
-            destinationAddress: swapConfig.destinationAddress ?? undefined,
-        })
+        const updates: Record<string, any> = {}
+        if (derived.status !== prevStatusRef.current) {
+            updates.status = derived.status
+            prevStatusRef.current = derived.status
+        }
+        if (derived.destRedeemTxId) updates.destTxId = derived.destRedeemTxId
+        if (sourceDetails?.blockTimestamp) updates.createdAt = sourceDetails.blockTimestamp
+        if (sourceDetails?.timelock) updates.timelock = sourceDetails.timelock
+        if (swapConfig.sourceAddress) updates.sourceAddress = swapConfig.sourceAddress
+        if (swapConfig.destinationAddress) updates.destinationAddress = swapConfig.destinationAddress
+        if (Object.keys(updates).length > 0) {
+            store.getState().updateSwap(hl, updates)
+        }
     }, [store, hl, swapConfig?.hashlock, derived.status, derived.destRedeemTxId, sourceDetails?.blockTimestamp, sourceDetails?.timelock])
 
     return derived

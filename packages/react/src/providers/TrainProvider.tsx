@@ -1,13 +1,16 @@
 import { useMemo, useCallback, useRef, createContext, useContext, type ReactNode } from 'react'
 import { TrainApiClient, defaultTrainSDK } from '@train-protocol/sdk'
+import type { IHTLCReadClient, IHTLCClient } from '@train-protocol/sdk'
 import { defaultTrainAuth } from '@train-protocol/auth'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { TrainContext } from './TrainContext'
 import { NetworksProvider } from './NetworksProvider'
 import { SecretDerivationProvider } from './SecretDerivationProvider'
 import { WalletContext, type WalletContextValue } from '../wallet/WalletContext'
-import type { TrainWalletAdapter, TrainSigner } from '../wallet/types'
+import type { TrainWalletAdapter } from '../wallet/types'
 import { createSwapStore, type SwapStore } from '../internal/store'
+import type { Caip2Id, ChainNamespace } from '../internal/branded'
+import { parseCaip2Id } from '../internal/branded'
 import type { TrainConfig } from '../types'
 
 const StoreContext = createContext<SwapStore | null>(null)
@@ -63,41 +66,39 @@ export function TrainProvider({
         }
     }, [])
 
-    const getSigner = useCallback((chainNamespace: string): TrainSigner | null => {
-        const adapter = adaptersRef.current.get(chainNamespace)
-        return adapter?.getSigner() ?? null
+    const findAdapter = useCallback((networkId: Caip2Id): TrainWalletAdapter => {
+        const { namespace } = parseCaip2Id(networkId)
+        const adapter = adaptersRef.current.get(namespace)
+        if (!adapter) {
+            throw new Error(
+                `No wallet adapter registered for namespace "${namespace}" (network: "${networkId}"). ` +
+                `Did you forget to call useRegisterWallet()?`
+            )
+        }
+        return adapter
     }, [])
 
-    const getClientConfig = useCallback((chainNamespace: string): Record<string, unknown> => {
-        const adapter = adaptersRef.current.get(chainNamespace)
-        return adapter?.getClientConfig?.() ?? {}
-    }, [])
+    const createClient = useCallback((networkId: Caip2Id): IHTLCReadClient => {
+        return findAdapter(networkId).createClient(sdk, networkId)
+    }, [findAdapter, sdk])
 
-    const getLoginConfig = useCallback(async (chainNamespace: string): Promise<Record<string, unknown> | null> => {
-        const adapter = adaptersRef.current.get(chainNamespace)
+    const createWriteClient = useCallback((networkId: Caip2Id): IHTLCClient => {
+        return findAdapter(networkId).createWriteClient(sdk, networkId)
+    }, [findAdapter, sdk])
+
+    const getLoginConfig = useCallback(async (namespace: ChainNamespace): Promise<Record<string, unknown> | null> => {
+        const adapter = adaptersRef.current.get(namespace)
         return (await adapter?.getLoginConfig?.()) ?? null
     }, [])
 
-    const getSignerForNetwork = useCallback((caip2Id: string): TrainSigner | null => {
-        const namespace = caip2Id.split(':')[0]
-        const adapter = adaptersRef.current.get(namespace)
-        return adapter?.getSignerForNetwork?.(caip2Id) ?? adapter?.getSigner() ?? null
-    }, [])
-
-    const getClientConfigForNetwork = useCallback((caip2Id: string): Record<string, unknown> => {
-        const namespace = caip2Id.split(':')[0]
-        const adapter = adaptersRef.current.get(namespace)
-        return adapter?.getClientConfigForNetwork?.(caip2Id) ?? adapter?.getClientConfig?.() ?? {}
-    }, [])
-
     const walletValue = useMemo<WalletContextValue>(
-        () => ({ adapters: adaptersRef.current, registerAdapter, getSigner, getClientConfig, getLoginConfig, getSignerForNetwork, getClientConfigForNetwork }),
-        [registerAdapter, getSigner, getClientConfig, getLoginConfig, getSignerForNetwork, getClientConfigForNetwork],
+        () => ({ registerAdapter, createClient, createWriteClient, getLoginConfig }),
+        [registerAdapter, createClient, createWriteClient, getLoginConfig],
     )
 
     const trainValue = useMemo(
         () => ({ apiClient, config, sdk, auth }),
-        [apiClient, config, sdk, auth],
+        [apiClient, sdk, auth, config.baseUrl, config.onError, config.resolveNodeUrls],
     )
 
     return (

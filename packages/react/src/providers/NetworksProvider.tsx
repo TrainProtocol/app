@@ -6,6 +6,8 @@ import { trainQueryKeys } from '../internal/queryKeys'
 
 export interface NetworksContextValue {
     networks: Network[]
+    /** O(1) network lookup by uppercased CAIP-2 ID */
+    networkMap: Map<string, Network>
     prices: Record<string, number>
     isLoading: boolean
     error: Error | null
@@ -47,14 +49,24 @@ export function NetworksProvider({ children }: { children: ReactNode }) {
         await pricesQuery.refetch()
     }, [pricesQuery])
 
+    // Build O(1) lookup map keyed by uppercased CAIP-2 ID
+    const networkMap = useMemo(() => {
+        const map = new Map<string, Network>()
+        for (const n of networksQuery.data ?? []) {
+            map.set(n.caip2Id.toUpperCase(), n)
+        }
+        return map
+    }, [networksQuery.data])
+
     const value = useMemo<NetworksContextValue>(() => ({
         networks: networksQuery.data ?? [],
+        networkMap,
         prices: pricesQuery.data ?? {},
         isLoading: networksQuery.isLoading,
         error: networksQuery.error instanceof Error ? networksQuery.error : networksQuery.error ? new Error(String(networksQuery.error)) : null,
         refetchNetworks,
         refetchPrices,
-    }), [networksQuery.data, networksQuery.isLoading, networksQuery.error, pricesQuery.data, refetchNetworks, refetchPrices])
+    }), [networksQuery.data, networkMap, networksQuery.isLoading, networksQuery.error, pricesQuery.data, refetchNetworks, refetchPrices])
 
     return (
         <NetworksContext.Provider value={value}>

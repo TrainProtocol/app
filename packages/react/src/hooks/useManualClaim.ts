@@ -7,6 +7,7 @@ import { useWalletContext } from '../wallet/WalletContext'
 import { useStoreContext } from '../providers/TrainProvider'
 import { useDerivedSwapState } from '../internal/useDerivedSwapState'
 import { trainQueryKeys } from '../internal/queryKeys'
+import { parseCaip2Id } from '../internal/branded'
 import { TrainError, TrainErrorCode } from '../types'
 
 export interface UseManualClaimResult {
@@ -23,7 +24,7 @@ export interface UseManualClaimResult {
  */
 export function useManualClaim(hashlock: string | null | undefined): UseManualClaimResult {
     const hl = hashlock ?? null
-    const { config, sdk } = useTrainContext()
+    const { config } = useTrainContext()
     const walletCtx = useWalletContext()
     const store = useStoreContext()
     const queryClient = useQueryClient()
@@ -41,9 +42,15 @@ export function useManualClaim(hashlock: string | null | undefined): UseManualCl
         const solverLockDetails = hl
             ? queryClient.getQueryData<SolverLockDetails | null>(trainQueryKeys.solverLock(hl))
             : null
-        const dstNamespace = swapConfig?.destinationNetwork?.split(':')[0] ?? null
-        const chainId = swapConfig?.destinationNetwork?.split(':')[1]
-        if (!swapConfig?.hashlock || !dstNamespace || !swapConfig?.destinationNetwork || !swapConfig?.destContract || !swapConfig.destinationAddress || !chainId || !solverLockDetails) {
+
+        // Manual claim requires destContract — only available for created/hydrated swaps
+        const destContract = swapConfig?.origin === 'created'
+            ? swapConfig.destContract
+            : swapConfig?.origin === 'hydrated'
+                ? swapConfig.destContract
+                : null
+
+        if (!swapConfig?.hashlock || !swapConfig?.destinationNetwork || !destContract || !swapConfig.destinationAddress || !solverLockDetails) {
             const err = new TrainError('Cannot claim: missing required params', TrainErrorCode.ClaimFailed)
             setError(err)
             setIsClaiming(false)
@@ -60,22 +67,18 @@ export function useManualClaim(hashlock: string | null | undefined): UseManualCl
         }
 
         try {
-            const signer = walletCtx.getSignerForNetwork(swapConfig.destinationNetwork)
-            if (!signer) {
-                throw new TrainError(`No wallet adapter for ${dstNamespace}`, TrainErrorCode.WalletNotConnected)
-            }
-            const solverIndex = solverLockDetails.index
-            const adapterConfig = walletCtx.getClientConfigForNetwork(swapConfig.destinationNetwork)
-            const client = sdk.createHTLCClient(dstNamespace, { ...adapterConfig, signer } as any)
+            // Create write client via wallet adapter (fully typed, no cast)
+            const client = walletCtx.createWriteClient(swapConfig.destinationNetwork)
+            const chainId = parseCaip2Id(swapConfig.destinationNetwork).reference
             const txHash = await client.redeemSolver({
                 chainId,
-                contractAddress: swapConfig.destContract,
+                contractAddress: destContract,
                 id: swapConfig.hashlock,
                 secret,
                 destinationAddress: swapConfig.destinationAddress,
                 destinationAsset,
                 sourceAsset,
-                index: solverIndex
+                index: solverLockDetails.index,
             })
 
             if (store && hl) {
@@ -94,7 +97,7 @@ export function useManualClaim(hashlock: string | null | undefined): UseManualCl
         } finally {
             setIsClaiming(false)
         }
-    }, [hl, walletCtx, sdk, store, config, derived.sourceToken, derived.destinationToken, queryClient])
+    }, [hl, walletCtx, store, config, derived.sourceToken, derived.destinationToken, queryClient])
 
     return { claim, isClaiming, canClaim, error }
 }

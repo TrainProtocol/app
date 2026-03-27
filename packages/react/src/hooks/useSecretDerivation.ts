@@ -12,6 +12,7 @@ import {
 } from '@train-protocol/auth'
 import type { PrfSupportResult, PasskeyCredentialStorage } from '@train-protocol/auth'
 import type { DerivationMethod } from '../types'
+import { chainNamespace as brandChainNamespace } from '../internal/branded'
 import { useWalletContextOptional } from '../wallet/WalletContext'
 import {
     createSecretDerivationStore,
@@ -23,6 +24,8 @@ export interface UseSecretDerivationOptions {
     passkeyStorage?: PasskeyCredentialStorage
     /** Persist derivedKey to encrypted IndexedDB (default: false) */
     persist?: boolean
+    /** TrainAuth instance for wallet-based login. Falls back to global default if omitted. */
+    auth?: import('@train-protocol/auth').TrainAuth
 }
 
 export interface PasskeyLoginOptions {
@@ -130,11 +133,13 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
         }
     }, [store, passkeyStorage])
 
-    const loginWithWallet = useCallback(async (chainNamespace: string, config?: Record<string, unknown>) => {
-        const resolvedConfig = config ?? (await walletCtx?.getLoginConfig(chainNamespace))
+    const authInstance = options?.auth
+    const loginWithWallet = useCallback(async (chainNs: string, config?: Record<string, unknown>) => {
+        const ns = brandChainNamespace(chainNs)
+        const resolvedConfig = config ?? (await walletCtx?.getLoginConfig(ns))
         if (!resolvedConfig) {
             throw new Error(
-                `No login config available for "${chainNamespace}". ` +
+                `No login config available for "${chainNs}". ` +
                 `Either pass config explicitly or ensure the wallet adapter implements getLoginConfig() and the wallet is connected.`
             )
         }
@@ -142,13 +147,16 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
         store.getState().setDerivationStatus('signing')
         store.getState().setDerivationMessage('Please sign in wallet')
         try {
-            const key = await deriveKeyFromWallet(chainNamespace, resolvedConfig)
+            // Use auth instance from context if provided, otherwise fall back to free function
+            const key = authInstance
+                ? await authInstance.deriveKeyFromWallet(chainNs, resolvedConfig)
+                : await deriveKeyFromWallet(chainNs, resolvedConfig)
             store.getState().setLogin('wallet_sign', key)
         } finally {
             store.getState().setDerivationStatus('idle')
             store.getState().setDerivationMessage('')
         }
-    }, [store, walletCtx])
+    }, [store, walletCtx, authInstance])
 
     const logout = useCallback(() => {
         store.getState().logout()

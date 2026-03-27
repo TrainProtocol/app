@@ -1,11 +1,11 @@
 import { useRef, useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import type { IHTLCClient, SolverLockDetails, LockParams } from '@train-protocol/sdk'
+import type { IHTLCReadClient, SolverLockDetails, LockParams } from '@train-protocol/sdk'
 import type { ConsensusPhase } from './store'
 import { trainQueryKeys } from './queryKeys'
 
 export interface UseSolverLockPollingOptions {
-    client: IHTLCClient | null
+    client: IHTLCReadClient | null
     params: LockParams | null
     hashlock: string | null
     nodeUrls: string[]
@@ -110,7 +110,7 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
         refetchInterval: () => failed.current ? false : 3000,
         retry: false,
         staleTime: 0,
-        gcTime: 0,
+        gcTime: 30_000,
         structuralSharing: false,
     })
 
