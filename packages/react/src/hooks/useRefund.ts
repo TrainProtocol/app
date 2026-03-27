@@ -5,14 +5,8 @@ import { useWalletContext } from '../wallet/WalletContext'
 import { useStoreContext } from '../providers/TrainProvider'
 import { useDerivedSwapState } from '../internal/useDerivedSwapState'
 import { parseCaip2Id } from '../internal/branded'
+import { getLockType } from '../internal/getLockType'
 import { TrainError, TrainErrorCode } from '../types'
-
-function getLockType(tokenContract: string | null | undefined): 'erc20' | 'native' {
-    if (!tokenContract || tokenContract === '0x0000000000000000000000000000000000000000') {
-        return 'native'
-    }
-    return 'erc20'
-}
 
 export interface UseRefundResult {
     refund: () => Promise<string>

@@ -163,13 +163,13 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
         enabled: false,
     })
 
-    // Resolve Network and Token objects
+    // Resolve Network and Token objects (uses networkMap for O(1) lookups)
     const { sourceToken, destinationToken } = useMemo(
         () => {
-            const resolved = resolveSwapTokens(swapData ?? undefined, networks)
+            const resolved = resolveSwapTokens(swapData ?? undefined, networkMap)
             return { sourceToken: resolved.sourceAsset, destinationToken: resolved.destinationAsset }
         },
-        [swapData, networks],
+        [swapData, networkMap],
     )
 
     // O(1) network lookups via map (fixes issue #11)

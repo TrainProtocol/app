@@ -44,11 +44,9 @@ export function useManualClaim(hashlock: string | null | undefined): UseManualCl
             : null
 
         // Manual claim requires destContract — only available for created/hydrated swaps
-        const destContract = swapConfig?.origin === 'created'
-            ? swapConfig.destContract
-            : swapConfig?.origin === 'hydrated'
-                ? swapConfig.destContract
-                : null
+        const destContract = swapConfig?.origin !== 'recovered'
+            ? swapConfig?.destContract ?? null
+            : null
 
         if (!swapConfig?.hashlock || !swapConfig?.destinationNetwork || !destContract || !swapConfig.destinationAddress || !solverLockDetails) {
             const err = new TrainError('Cannot claim: missing required params', TrainErrorCode.ClaimFailed)

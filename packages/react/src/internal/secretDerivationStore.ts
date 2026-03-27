@@ -93,10 +93,11 @@ export function createSecretDerivationStore(options?: CreateSecretDerivationStor
         bumpCredentialVersion: () => set((s) => ({ credentialVersion: s.credentialVersion + 1 })),
 
         logout: () => {
-            // Zeroize key material before clearing (defense-in-depth, issue #22)
+            // Clone then zeroize — prevents corrupting in-flight closures that
+            // captured the same Uint8Array reference (e.g. useRevealSecret).
             const current = get().derivedKey
-            if (current) current.fill(0)
             set({ method: null, derivedKey: null, loginWallet: null })
+            if (current) current.fill(0)
             if (secureStorage) {
                 secureStorage.clear().catch(() => {})
             }

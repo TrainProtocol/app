@@ -25,13 +25,22 @@ export function useNetworksContext(): NetworksContextValue {
     return ctx
 }
 
-export function NetworksProvider({ children }: { children: ReactNode }) {
+export interface NetworksProviderProps {
+    children: ReactNode
+    /** Pre-fetched networks (e.g. from SSR) to seed the cache and avoid a duplicate client-side fetch */
+    initialNetworks?: Network[]
+    /** Pre-fetched prices to seed the cache */
+    initialPrices?: Record<string, number>
+}
+
+export function NetworksProvider({ children, initialNetworks, initialPrices }: NetworksProviderProps) {
     const { apiClient } = useTrainContext()
 
     const networksQuery = useQuery({
         queryKey: trainQueryKeys.networks(),
         queryFn: () => apiClient.getNetworks(),
         staleTime: 5 * 60_000,
+        initialData: initialNetworks,
     })
 
     const pricesQuery = useQuery({
@@ -39,6 +48,7 @@ export function NetworksProvider({ children }: { children: ReactNode }) {
         queryFn: () => apiClient.getPrices(),
         staleTime: 60_000,
         retry: false,
+        initialData: initialPrices,
     })
 
     const refetchNetworks = useCallback(async () => {

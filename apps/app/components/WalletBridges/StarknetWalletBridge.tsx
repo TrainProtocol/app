@@ -15,37 +15,37 @@ export function StarknetWalletBridge() {
     const { networks } = useSettingsState()
     const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
 
-    const adapter = useMemo<TrainWalletAdapter>(() => ({
-        chainNamespace: chainNamespace('starknet'),
-
-        createClient(sdk: TrainSDK, networkId: Caip2Id) {
+    const adapter = useMemo<TrainWalletAdapter>(() => {
+        function getRpcUrl(): string {
             const starknetNetwork = networks.find(n => n.caip2Id.startsWith('starknet:'))
-            const rpcUrl = (starknetNetwork ? getEffectiveRpcUrls(starknetNetwork)[0] ?? starknetNetwork.nodes?.[0]?.url : '')
-                ?? ''
-            return sdk.createHTLCClient('starknet', { rpcUrl })
-        },
+            return (starknetNetwork ? getEffectiveRpcUrls(starknetNetwork)[0] ?? starknetNetwork.nodes?.[0]?.url : '') ?? ''
+        }
 
-        createWriteClient(sdk: TrainSDK, networkId: Caip2Id) {
-            const starknetNetwork = networks.find(n => n.caip2Id.startsWith('starknet:'))
-            const rpcUrl = (starknetNetwork ? getEffectiveRpcUrls(starknetNetwork)[0] ?? starknetNetwork.nodes?.[0]?.url : '')
-                ?? ''
-            return sdk.createHTLCClient('starknet', {
-                rpcUrl,
-                signer: address && account ? { address, account } : undefined,
-            })
-        },
+        return {
+            chainNamespace: chainNamespace('starknet'),
 
-        getLoginConfig: () => {
-            if (!account || !address) return null
-            const isSandbox = process.env.NEXT_PUBLIC_API_VERSION === 'sandbox'
-            return {
-                provider: account,
-                address,
-                options: { chainId: isSandbox ? 'SN_SEPOLIA' : 'SN_MAIN' },
-            }
-        },
+            createClient(sdk: TrainSDK, networkId: Caip2Id) {
+                return sdk.createHTLCClient('starknet', { rpcUrl: getRpcUrl() })
+            },
 
-    }), [account, address, networks, getEffectiveRpcUrls])
+            createWriteClient(sdk: TrainSDK, networkId: Caip2Id) {
+                return sdk.createHTLCClient('starknet', {
+                    rpcUrl: getRpcUrl(),
+                    signer: address && account ? { address, account } : undefined,
+                })
+            },
+
+            getLoginConfig: () => {
+                if (!account || !address) return null
+                const isSandbox = process.env.NEXT_PUBLIC_API_VERSION === 'sandbox'
+                return {
+                    provider: account,
+                    address,
+                    options: { chainId: isSandbox ? 'SN_SEPOLIA' : 'SN_MAIN' },
+                }
+            },
+        }
+    }, [account, address, networks, getEffectiveRpcUrls])
 
     useRegisterWallet(adapter)
     return null

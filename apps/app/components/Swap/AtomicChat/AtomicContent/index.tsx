@@ -45,7 +45,16 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
 
     return (
         <>
-            <Summary quote={quote} isQuoteLoading={isQuoteLoading} />
+            <Summary
+                sourceNetwork={source_network}
+                destinationNetwork={destination_network}
+                sourceToken={source_asset}
+                destinationToken={destination_asset}
+                requestedAmount={amount}
+                receiveAmount={swap.receiveAmount}
+                htlcFromApi={swap.htlcFromApi}
+                quote={quote}
+            />
 
             {isInitial && !hashlock && (
                 <SwapQuoteComp values={formValues} quote={quote} isQuoteLoading={isQuoteLoading} />

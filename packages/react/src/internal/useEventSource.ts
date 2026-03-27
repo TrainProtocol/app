@@ -9,6 +9,8 @@ export interface UseEventSourceOptions {
     onError?: (error: Event) => void
     /** Max reconnection attempts before giving up (default: 5) */
     maxRetries?: number
+    /** Custom EventSource constructor (for testing or polyfills). Defaults to global EventSource. */
+    EventSourceClass?: typeof EventSource
 }
 
 const BASE_DELAY_MS = 1000
@@ -22,7 +24,7 @@ export function useEventSource(
     url: string | null,
     options: UseEventSourceOptions,
 ): void {
-    const { enabled, onEvent, onError, maxRetries = 5 } = options
+    const { enabled, onEvent, onError, maxRetries = 5, EventSourceClass = EventSource } = options
     const onEventRef = useRef(onEvent)
     const onErrorRef = useRef(onError)
 
@@ -40,7 +42,7 @@ export function useEventSource(
         function connect() {
             if (closed || !url) return
 
-            es = new EventSource(url)
+            es = new EventSourceClass(url)
 
             for (const eventType of Object.keys(onEventRef.current)) {
                 es.addEventListener(eventType, (event: MessageEvent) => {
@@ -81,5 +83,5 @@ export function useEventSource(
             es?.close()
             if (retryTimer) clearTimeout(retryTimer)
         }
-    }, [url, enabled, maxRetries])
+    }, [url, enabled, maxRetries, EventSourceClass])
 }

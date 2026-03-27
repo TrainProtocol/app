@@ -97,9 +97,11 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
                         onConsensusFailedRef.current?.(error)
                         return null
                     }
-                    // Transient failure — retry next cycle
+                    // Transient failure — retry next cycle.
+                    // Return the already-fetched details so the UI stays stable
+                    // instead of clearing the cached solver lock to null.
                     console.warn('[SolverLockPolling] consensus transient error, will retry:', errorMsg)
-                    return null
+                    return details
                 }
             } catch (err) {
                 console.error('[SolverLockPolling] error:', err)

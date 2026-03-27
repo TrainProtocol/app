@@ -20,39 +20,32 @@ export function AztecWalletBridge() {
     const aztecWallet = connectedWallets.find(w => w.providerName === 'Aztec')
     const address = aztecWallet?.address ?? null
 
-    const aztecNetwork = networks.find(n => n.caip2Id.startsWith('aztec:'))
-    const rpcUrl = aztecNetwork
-        ? getEffectiveRpcUrls(aztecNetwork)[0] ?? aztecNetwork.nodes?.[0]?.url
-        : undefined
+    const adapter = useMemo<TrainWalletAdapter>(() => {
+        function getRpcUrl(): string {
+            const aztecNetwork = networks.find(n => n.caip2Id.startsWith('aztec:'))
+            return (aztecNetwork ? getEffectiveRpcUrls(aztecNetwork)[0] ?? aztecNetwork.nodes?.[0]?.url : '') ?? ''
+        }
 
-    const adapter = useMemo<TrainWalletAdapter>(() => ({
-        chainNamespace: chainNamespace('aztec'),
+        return {
+            chainNamespace: chainNamespace('aztec'),
 
-        createClient(sdk: TrainSDK, networkId: Caip2Id) {
-            const aztecNet = networks.find(n => n.caip2Id.startsWith('aztec:'))
-            const resolvedRpcUrl = rpcUrl
-                ?? aztecNet?.nodes?.[0]?.url
-                ?? ''
-            return sdk.createHTLCClient('aztec', { rpcUrl: resolvedRpcUrl })
-        },
+            createClient(sdk: TrainSDK, networkId: Caip2Id) {
+                return sdk.createHTLCClient('aztec', { rpcUrl: getRpcUrl() })
+            },
 
-        createWriteClient(sdk: TrainSDK, networkId: Caip2Id) {
-            const aztecNet = networks.find(n => n.caip2Id.startsWith('aztec:'))
-            const resolvedRpcUrl = rpcUrl
-                ?? aztecNet?.nodes?.[0]?.url
-                ?? ''
-            return sdk.createHTLCClient('aztec', {
-                rpcUrl: resolvedRpcUrl,
-                signer: wallet && address ? { wallet, address } : undefined,
-            })
-        },
+            createWriteClient(sdk: TrainSDK, networkId: Caip2Id) {
+                return sdk.createHTLCClient('aztec', {
+                    rpcUrl: getRpcUrl(),
+                    signer: wallet && address ? { wallet, address } : undefined,
+                })
+            },
 
-        getLoginConfig: () => {
-            if (!wallet || !address) return null
-            return { wallet, address }
-        },
-
-    }), [wallet, address, networks, rpcUrl])
+            getLoginConfig: () => {
+                if (!wallet || !address) return null
+                return { wallet, address }
+            },
+        }
+    }, [wallet, address, networks, getEffectiveRpcUrls])
 
     useRegisterWallet(adapter)
     return null

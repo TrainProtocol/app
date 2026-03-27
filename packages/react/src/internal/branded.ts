@@ -25,12 +25,6 @@ export type ChainNamespace = Brand<string, 'ChainNamespace'>
 /** Chain reference (the part after the colon in a CAIP-2 ID), e.g. "1", "137" */
 export type ChainReference = Brand<string, 'ChainReference'>
 
-/** Token ticker symbol, e.g. "USDC", "ETH" */
-export type TokenSymbol = Brand<string, 'TokenSymbol'>
-
-/** Token contract address on a specific chain */
-export type TokenAddress = Brand<string, 'TokenAddress'>
-
 // ---------------------------------------------------------------------------
 // Constructors with runtime validation
 // ---------------------------------------------------------------------------
@@ -58,14 +52,6 @@ export function chainNamespace(value: string): ChainNamespace {
 
 export function chainReference(value: string): ChainReference {
     return value as ChainReference
-}
-
-export function tokenSymbol(value: string): TokenSymbol {
-    return value as TokenSymbol
-}
-
-export function tokenAddress(value: string): TokenAddress {
-    return value as TokenAddress
 }
 
 // ---------------------------------------------------------------------------

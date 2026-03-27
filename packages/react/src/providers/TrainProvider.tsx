@@ -96,9 +96,27 @@ export function TrainProvider({
         [registerAdapter, createClient, createWriteClient, getLoginConfig],
     )
 
+    // Memoize a stable config object to prevent downstream re-renders
+    const stableConfig = useMemo<TrainConfig>(
+        () => ({
+            baseUrl: config.baseUrl,
+            onError: config.onError,
+            resolveNodeUrls: config.resolveNodeUrls,
+            persistSwaps: config.persistSwaps,
+            storage: config.storage,
+            sdk: config.sdk,
+            auth: config.auth,
+            queryClient: config.queryClient,
+            initialNetworks: config.initialNetworks,
+            initialPrices: config.initialPrices,
+            secretDerivation: config.secretDerivation,
+        }),
+        [config.baseUrl, config.onError, config.resolveNodeUrls, config.persistSwaps, config.storage, config.sdk, config.auth, config.queryClient, config.initialNetworks, config.initialPrices, config.secretDerivation],
+    )
+
     const trainValue = useMemo(
-        () => ({ apiClient, config, sdk, auth }),
-        [apiClient, sdk, auth, config.baseUrl, config.onError, config.resolveNodeUrls],
+        () => ({ apiClient, config: stableConfig, sdk, auth }),
+        [apiClient, stableConfig, sdk, auth],
     )
 
     return (
@@ -106,8 +124,8 @@ export function TrainProvider({
             <TrainContext.Provider value={trainValue}>
                 <WalletContext.Provider value={walletValue}>
                     <StoreContext.Provider value={storeRef.current}>
-                        <NetworksProvider>
-                            <SecretDerivationProvider {...config.secretDerivation}>
+                        <NetworksProvider initialNetworks={stableConfig.initialNetworks} initialPrices={stableConfig.initialPrices}>
+                            <SecretDerivationProvider {...stableConfig.secretDerivation}>
                                 {children}
                             </SecretDerivationProvider>
                         </NetworksProvider>

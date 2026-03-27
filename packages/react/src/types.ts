@@ -1,45 +1,6 @@
-import type { TrainApiClient } from '@train-protocol/sdk'
 import type { QueryClient } from '@tanstack/react-query'
 
 export type DerivationMethod = 'passkey' | 'wallet_sign'
-
-// Re-export key SDK types for consumer convenience
-export type {
-    Network,
-    Token,
-    LockDetails,
-    UserLockDetails,
-    SolverLockDetails,
-    LockStatus,
-    HTLCStatus,
-    IHTLCReadClient,
-    IHTLCClient,
-    UserLockParams,
-    LockParams,
-    RefundParams,
-    RedeemSolverParams,
-    AtomicResult,
-    RecoveredSwapData,
-    HTLCFromApi,
-    HTLCFromApiResponse,
-    SolverQuote,
-    SolverProfile,
-    QuoteDetails,
-    AggregatedQuoteResponse,
-    SwapQuote,
-    OrderStreamEvent,
-    TransactionCreatedEventData,
-    StatusChangedEventData,
-    StatusResolverInput,
-    VerificationResult,
-    VerifySolverLockParams,
-} from '@train-protocol/sdk'
-
-// Re-export auth types
-export type {
-    PrfSupportResult,
-    PasskeyCredentialStorage,
-} from '@train-protocol/auth'
 
 /** Configuration for TrainProvider */
 export interface TrainConfig {
@@ -59,6 +20,10 @@ export interface TrainConfig {
     resolveNodeUrls?: (networkId: string) => string[]
     /** Optional TanStack Query client (for sharing with app-level QueryClientProvider) */
     queryClient?: QueryClient
+    /** Pre-fetched networks (e.g. from SSR) to seed the cache and avoid a duplicate client-side fetch */
+    initialNetworks?: import('@train-protocol/sdk').Network[]
+    /** Pre-fetched prices to seed the cache */
+    initialPrices?: Record<string, number>
     /** Secret derivation options */
     secretDerivation?: {
         /**

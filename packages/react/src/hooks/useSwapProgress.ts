@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useCallback, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useCallback, useRef, useSyncExternalStore } from 'react'
 import { HTLCStatus, TERMINAL_STATUSES } from '@train-protocol/sdk'
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
@@ -8,14 +8,8 @@ import { useSolverLockPolling } from '../internal/useSolverLockPolling'
 import { useOrderStream } from '../internal/useOrderStream'
 import { useDerivedSwapState, type DerivedSwapState } from '../internal/useDerivedSwapState'
 import { parseCaip2Id } from '../internal/branded'
+import { getLockType } from '../internal/getLockType'
 import { TrainError, TrainErrorCode } from '../types'
-
-function getLockType(tokenContract: string | null | undefined): 'erc20' | 'native' {
-    if (!tokenContract || tokenContract === '0x0000000000000000000000000000000000000000') {
-        return 'native'
-    }
-    return 'erc20'
-}
 
 /**
  * Main hook for monitoring an active swap lifecycle.
@@ -78,11 +72,9 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
     // Destination chain polling params — only available for created/hydrated swaps with destContract
     const solverLockParams = useMemo(() => {
         if (!swapConfig?.hashlock) return null
-        const destContract = swapConfig.origin === 'created'
+        const destContract = swapConfig.origin !== 'recovered'
             ? swapConfig.destContract
-            : swapConfig.origin === 'hydrated'
-                ? swapConfig.destContract
-                : undefined  // recovered: no destContract
+            : undefined  // recovered: no destContract
         if (!destContract) return null
 
         const destChainId = parseCaip2Id(swapConfig.destinationNetwork).reference
@@ -188,19 +180,32 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
     })
 
     // Write-behind to persisted swap history (guard against redundant writes)
-    const prevStatusRef = useMemo(() => ({ current: null as any }), [])
+    const prevRef = useRef<{ status: HTLCStatus | null; destTxId: string | null; createdAt: number | null; timelock: number | null }>({
+        status: null, destTxId: null, createdAt: null, timelock: null,
+    })
     useEffect(() => {
         if (!store || !hl || !swapConfig?.hashlock) return
+        const prev = prevRef.current
         const updates: Record<string, any> = {}
-        if (derived.status !== prevStatusRef.current) {
+        if (derived.status !== prev.status) {
             updates.status = derived.status
-            prevStatusRef.current = derived.status
+            prev.status = derived.status
         }
-        if (derived.destRedeemTxId) updates.destTxId = derived.destRedeemTxId
-        if (sourceDetails?.blockTimestamp) updates.createdAt = sourceDetails.blockTimestamp
-        if (sourceDetails?.timelock) updates.timelock = sourceDetails.timelock
-        if (swapConfig.sourceAddress) updates.sourceAddress = swapConfig.sourceAddress
-        if (swapConfig.destinationAddress) updates.destinationAddress = swapConfig.destinationAddress
+        if (derived.destRedeemTxId && derived.destRedeemTxId !== prev.destTxId) {
+            updates.destTxId = derived.destRedeemTxId
+            prev.destTxId = derived.destRedeemTxId
+        }
+        if (sourceDetails?.blockTimestamp && sourceDetails.blockTimestamp !== prev.createdAt) {
+            updates.createdAt = sourceDetails.blockTimestamp
+            prev.createdAt = sourceDetails.blockTimestamp
+        }
+        if (sourceDetails?.timelock && sourceDetails.timelock !== prev.timelock) {
+            updates.timelock = sourceDetails.timelock
+            prev.timelock = sourceDetails.timelock
+        }
+        // sourceAddress and destinationAddress are static — write once
+        if (swapConfig.sourceAddress && !prev.status) updates.sourceAddress = swapConfig.sourceAddress
+        if (swapConfig.destinationAddress && !prev.status) updates.destinationAddress = swapConfig.destinationAddress
         if (Object.keys(updates).length > 0) {
             store.getState().updateSwap(hl, updates)
         }

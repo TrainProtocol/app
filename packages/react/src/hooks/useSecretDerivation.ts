@@ -1,8 +1,10 @@
 import { useCallback, useRef } from 'react'
 import { useStore } from 'zustand'
+import { shallow } from 'zustand/shallow'
 import {
     deriveSecretFromTimelock,
     secretToHashlock,
+    bytesToHex,
 } from '@train-protocol/sdk'
 import {
     deriveKeyWithPasskey,
@@ -63,16 +65,14 @@ export interface UseSecretDerivationResult {
 
     prfSupport: PrfSupportResult | null
     checkPasskeySupport: () => Promise<PrfSupportResult>
+}
 
-    /** @internal Exposed for SecretDerivationProvider to call hydrate() */
+/** @internal Full result including store — used by SecretDerivationProvider only */
+export interface UseSecretDerivationInternalResult extends UseSecretDerivationResult {
     _store: SecretDerivationStore
 }
 
-function uint8ArrayToHex(bytes: Uint8Array): string {
-    return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('')
-}
-
-export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSecretDerivationResult {
+export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSecretDerivationInternalResult {
     const shouldPersist = options?.persist === true
 
     // Create store once (stable across renders)
@@ -84,13 +84,15 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
     }
     const store = storeRef.current
 
-    // Subscribe to store state
-    const method = useStore(store, (s) => s.method)
-    const derivedKey = useStore(store, (s) => s.derivedKey)
-    const derivationStatus = useStore(store, (s) => s.derivationStatus)
-    const derivationMessage = useStore(store, (s) => s.derivationMessage)
-    const prfSupport = useStore(store, (s) => s.prfSupport)
-    const credentialVersion = useStore(store, (s) => s.credentialVersion)
+    // Single store subscription with shallow equality (consolidates 6 separate subscriptions)
+    const { method, derivedKey, derivationStatus, derivationMessage, prfSupport, credentialVersion } = useStore(store, (s) => ({
+        method: s.method,
+        derivedKey: s.derivedKey,
+        derivationStatus: s.derivationStatus,
+        derivationMessage: s.derivationMessage,
+        prfSupport: s.prfSupport,
+        credentialVersion: s.credentialVersion,
+    }), shallow)
 
     // Wallet context (optional — works outside TrainProvider too)
     const walletCtx = useWalletContextOptional()
@@ -167,7 +169,7 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
         if (!currentKey) return null
         const timestamp = nonce ?? Date.now()
         const secretBytes = deriveSecretFromTimelock(currentKey, timestamp)
-        const secret = '0x' + uint8ArrayToHex(secretBytes)
+        const secret = bytesToHex(Array.from(secretBytes))
         const hashlock = secretToHashlock(secret)
         return { secret, nonce: timestamp, hashlock }
     }, [store])

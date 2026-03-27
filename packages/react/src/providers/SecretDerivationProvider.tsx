@@ -1,12 +1,13 @@
 import { createContext, useContext, useEffect, useCallback, useMemo, useRef, type ReactNode } from 'react'
 import { useStore } from 'zustand'
+import { createStore } from 'zustand/vanilla'
 import { useTrainContext } from './TrainContext'
 import { useSecretDerivation as useSecretDerivationHook } from '../hooks/useSecretDerivation'
-import type { UseSecretDerivationOptions, UseSecretDerivationResult, PasskeyLoginOptions } from '../hooks/useSecretDerivation'
+import type { UseSecretDerivationOptions, UseSecretDerivationResult, UseSecretDerivationInternalResult, PasskeyLoginOptions } from '../hooks/useSecretDerivation'
 import type { PrfSupportResult } from '@train-protocol/auth'
 import { SecureStorage } from '../internal/SecureStorage'
 import { IndexedDBPasskeyStorage } from '../internal/IndexedDBPasskeyStorage'
-import type { LoginWalletInfo } from '../internal/secretDerivationStore'
+import type { LoginWalletInfo, SecretDerivationStoreState } from '../internal/secretDerivationStore'
 
 export type { LoginWalletInfo } from '../internal/secretDerivationStore'
 
@@ -53,8 +54,17 @@ export function SecretDerivationProvider({
     // Pass auth from context to the hook (fixes issue #2c — custom auth instances now work)
     const hook = useSecretDerivationHook({ persist, passkeyStorage, auth })
 
-    // Read loginWallet from the hook's store (fixes issue #8 — no second store)
-    const loginWallet = hook._store ? useStore(hook._store, (s) => s.loginWallet) : null
+    // Empty store fallback so useStore is never called conditionally (rules of hooks)
+    const EMPTY_SD_STORE = useRef(createStore<SecretDerivationStoreState>()(() => ({
+        method: null, derivedKey: null, loginWallet: null, hydrated: false,
+        derivationStatus: 'idle' as const, derivationMessage: '', prfSupport: null, credentialVersion: 0,
+        setLogin: () => {}, setLoginWallet: () => {}, setDerivationStatus: () => {},
+        setDerivationMessage: () => {}, setPrfSupport: () => {}, bumpCredentialVersion: () => {},
+        logout: () => {}, hydrate: async () => {},
+    }))).current
+
+    // Read loginWallet from the hook's store unconditionally (rules of hooks)
+    const loginWallet = useStore(hook._store ?? EMPTY_SD_STORE, (s) => s.loginWallet)
 
     // Initialize SecureStorage + hydrate store on mount
     useEffect(() => {
