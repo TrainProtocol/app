@@ -21,8 +21,7 @@ export async function getServerSideProps(context) {
 
     const resolvedNetworks = (await Promise.all(networks.map(async network => {
         const _network = mockData.data.find(n => n.caip2Id === network.caip2Id)
-        const seedNodes = _network?.nodes ?? []
-        const resolvedNodes = await resolveNodes(network.caip2Id, seedNodes)
+        const resolvedNodes = await resolveNodes(network.caip2Id)
 
         return {
             ...network,
@@ -48,13 +47,6 @@ const mockData = {
     "data": [
         {
             "caip2Id": "eip155:11155111",
-            "nodes": [
-                {
-                    "providerName": "publicnode",
-                    "url": "https://ethereum-sepolia-rpc.publicnode.com",
-                    "protocol": "Http"
-                }
-            ],
             "contracts": [
                 {
                     "type": "Train",
@@ -68,13 +60,6 @@ const mockData = {
         },
         {
             "caip2Id": "eip155:421614",
-            "nodes": [
-                {
-                    "providerName": "publicnode",
-                    "url": "https://arbitrum-sepolia-rpc.publicnode.com",
-                    "protocol": "Http"
-                }
-            ],
             "contracts": [
                 {
                     "type": "Train",
@@ -88,13 +73,6 @@ const mockData = {
         },
         {
             "caip2Id": "eip155:84532",
-            "nodes": [
-                {
-                    "providerName": "publicnode",
-                    "url": "https://base-sepolia-rpc.publicnode.com",
-                    "protocol": "Http"
-                }
-            ],
             "contracts": [
                 {
                     "type": "Train",
@@ -108,13 +86,6 @@ const mockData = {
         },
         {
             "caip2Id": KnownInternalNames.Networks.StarkNetSepolia,
-            "nodes": [
-                {
-                    "providerName": "publicnode",
-                    "url": "https://starknet-sepolia-rpc.publicnode.com",
-                    "protocol": "Http"
-                }
-            ],
             "contracts": [
                 {
                     "type": "Train",
@@ -124,12 +95,6 @@ const mockData = {
         },
         {
             "caip2Id": KnownInternalNames.Networks.AztecDevnet,
-            "nodes": [
-                {
-                    "providerName": "aztec-devnet",
-                    "url": "https://rpc.testnet.aztec-labs.com"
-                }
-            ],
             "contracts": [
                 {
                     "type": "Train",
@@ -139,13 +104,6 @@ const mockData = {
         },
         {
             "caip2Id": KnownInternalNames.Networks.SolanaDevnet,
-            "nodes": [
-                {
-                    "providerName": "solana-devnet",
-                    "url": "https://api.devnet.solana.com",
-                    "protocol": "Http"
-                }
-            ],
             "contracts": [
                 {
                     "type": "Train",
