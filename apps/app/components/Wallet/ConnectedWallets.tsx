@@ -6,30 +6,57 @@ import { useState } from "react"
 import WalletsList from "./WalletsList"
 import { Wallet } from "../../Models/WalletProvider"
 import VaulDrawer from "../Modal/vaulModal"
+import { ChevronDown } from "lucide-react"
 
-export const WalletsHeader = () => {
+type WalletsHeaderVariant = "mobile" | "navbar"
+
+const variantStyles: Record<WalletsHeaderVariant, string> = {
+    mobile: "p-1.5 max-sm:p-2 text-secondary-text hover:bg-secondary-500 max-sm:bg-secondary-500 hover:text-primary-text focus:outline-hidden inline-flex rounded-lg items-center active:animate-press-down",
+    navbar: "p-1.5 text-secondary-text bg-secondary-500 hover:bg-secondary-400 hover:text-primary-text focus:outline-hidden inline-flex rounded-lg items-center active:animate-press-down",
+}
+
+export const WalletsHeader = ({ variant = "mobile" }: { variant?: WalletsHeaderVariant }) => {
     const { wallets } = useWallet()
 
     if (wallets.length > 0) {
         return (
-            <WalletsHeaderWalletsList wallets={wallets} />
+            <WalletsHeaderWalletsList wallets={wallets} variant={variant} />
         )
     }
 
     return (
         <ConnectButton>
-            <div className="p-1.5 max-sm:p-2 active:animate-press-down justify-self-start text-secondary-text hover:bg-secondary-500 max-sm:bg-secondary-500 hover:text-primary-text focus:outline-hidden inline-flex rounded-lg items-center">
+            <div className={variantStyles[variant]}>
                 <WalletIcon className="h-6 w-6 mx-0.5" strokeWidth="2" />
             </div>
         </ConnectButton>
     )
 }
 
-const WalletsHeaderWalletsList = ({ wallets }: { wallets: Wallet[] }) => {
+const WalletsHeaderWalletsList = ({ wallets, variant = "mobile" }: { wallets: Wallet[]; variant?: WalletsHeaderVariant }) => {
     const [openModal, setOpenModal] = useState<boolean>(false)
+    const wallet = wallets[0]
+
     return <>
-        <button type="button" onClick={() => setOpenModal(true)} className="p-1.5 max-sm:p-2 justify-self-start text-secondary-text hover:bg-secondary-500 max-sm:bg-secondary-500 hover:text-primary-text focus:outline-hidden inline-flex rounded-lg items-center active:animate-press-down">
-            <WalletsIcons wallets={wallets} />
+        <button type="button" onClick={() => setOpenModal(true)} className={variantStyles[variant]}>
+            {variant === "navbar" ? (
+                wallets.length === 1 ? (
+                    <div className="flex gap-2 items-center text-sm text-secondary-text">
+                        <wallet.icon className="h-6 w-6" />
+                        {!wallet.isLoading && wallet.address && (
+                            <p>{new Address(wallet.address, null, wallet.providerName).toShortString()}</p>
+                        )}
+                        <ChevronDown className="h-5 w-5" />
+                    </div>
+                ) : (
+                    <div className="flex gap-2 items-center">
+                        <WalletsIcons wallets={wallets} />
+                        <ChevronDown className="h-5 w-5 text-secondary-text" />
+                    </div>
+                )
+            ) : (
+                <WalletsIcons wallets={wallets} />
+            )}
         </button>
         <VaulDrawer
             show={openModal}

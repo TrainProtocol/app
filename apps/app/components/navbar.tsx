@@ -4,12 +4,7 @@ import Link from 'next/link';
 import { JetBrains_Mono } from "next/font/google";
 import clsx from 'clsx';
 import { ArrowUpRight } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import PendingSwap from './Swap/PendingSwap';
-
-const UserStatusHeader = dynamic(() => import("./SecretDerivation/UserStatus").then((comp) => comp.UserStatusHeader), {
-   loading: () => <></>
-})
+import NavbarActions from './Sidebar/NavbarActions';
 
 const jetBrainsMono = JetBrains_Mono({
     variable: "--font-jb-mono",
@@ -53,10 +48,7 @@ export default function Navbar() {
                         }
                     </div>
                 </div>
-                <div className="flex items-center gap-x-2">
-                    <PendingSwap />
-                    <UserStatusHeader />
-                </div>
+                <NavbarActions />
             </div>
         </div>
     )

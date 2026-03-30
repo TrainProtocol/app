@@ -3,9 +3,8 @@ import LinkWrapper from "../LinkWraapper"
 import { ReactNode } from "react"
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react"
-
 const Menu = ({ children }: { children: ReactNode }) => {
-    return <div className="flex flex-col gap-3">
+    return <div className="flex flex-col gap-3 h-full">
         {children}
     </div>
 }

@@ -11,6 +11,7 @@ import useWallet from "@/hooks/useWallet";
 import useSuggestionsLimit from "@/hooks/useSuggestionsLimit";
 import Balance from "@/components/Input/Amount/Balance";
 import PickerWalletConnect from "./PickerWalletConnect";
+import useWindowDimensions from "@/hooks/useWindowDimensions";
 
 const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ direction, className }) => {
     const {
@@ -19,6 +20,7 @@ const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ dir
     } = useFormikContext<SwapFormValues>();
     const [searchQuery, setSearchQuery] = useState("")
     const { wallets } = useWallet()
+    const { isMobile } = useWindowDimensions()
 
     const { suggestionsLimit } = useSuggestionsLimit({ hasWallet: wallets.length > 0 });
 
@@ -44,7 +46,7 @@ const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ dir
                 <SelectorContent
                     isLoading={isLoading}
                     searchHint="Search"
-                    header={<PickerWalletConnect direction={direction} />}
+                    header={isMobile ? <PickerWalletConnect direction={direction} /> : undefined}
                 >
                     {({ closeModal }) => (
                         <Content

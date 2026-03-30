@@ -36,18 +36,14 @@ function HeaderWithMenu({ goBack }: { goBack: (() => void) | undefined | null })
                </div>
             }
          </div>
-         <div className="col-start-5 justify-self-end self-center flex items-center gap-x-2 sm:gap-x-1">
-            {
-               isMobile
-                  ? <>
-                     <PendingSwap />
-                     <UserStatusHeader />
-                  </>
-                  : null
-            }
-            <WalletsHeader />
-            <TrainMenu />
-         </div>
+         {isMobile && (
+            <div className="col-start-5 justify-self-end self-center flex items-center gap-x-2 sm:gap-x-1">
+               <PendingSwap />
+               <UserStatusHeader />
+               <WalletsHeader />
+               <TrainMenu />
+            </div>
+         )}
       </div>
    )
 }

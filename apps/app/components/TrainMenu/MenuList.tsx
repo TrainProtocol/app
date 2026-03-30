@@ -9,8 +9,6 @@ import inIframe from "@/components/utils/inIframe";
 import GitHubLogo from "@/components/Icons/GitHubLogo";
 import TwitterLogo from "@/components/Icons/TwitterLogo";
 import Link from "next/link";
-import VaulDrawer from "@/components/Modal/vaulModal";
-import SendFeedback from "@/components/sendFeedback";
 import Menu from "./Menu";
 import dynamic from "next/dynamic";
 import { MenuStep } from "@/Models/Wizard";
@@ -25,7 +23,6 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
     const router = useRouter();
     const { boot, show, update } = useIntercom()
     const [embedded, setEmbedded] = useState<boolean>()
-    const [openFeedbackModal, setOpenFeedbackModal] = useState(false);
     const { isMobile } = useWindowDimensions()
     const { autoRevealSecret, setAutoRevealSecret } = useSwapPreferencesStore()
     const { theme, setTheme } = useTheme()
@@ -34,9 +31,6 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
         setEmbedded(inIframe())
     }, [])
 
-    const handleCloseFeedback = () => {
-        setOpenFeedbackModal(false)
-    }
     return <div className="text-sm font-medium focus:outline-none h-full">
         <Menu>
 
@@ -121,25 +115,12 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
 
 
             <Menu.Group>
-                <Menu.Item onClick={() => setOpenFeedbackModal(true)} target="_blank" icon={<MessageSquarePlus className="h-5 w-5" />}>
+                <Menu.Item onClick={() => goToStep(MenuStep.SuggestFeature)} icon={<MessageSquarePlus className="h-5 w-5" />}>
                     Suggest a Feature
                 </Menu.Item>
             </Menu.Group>
-            <VaulDrawer
-                show={openFeedbackModal}
-                header="Suggest a Feature"
-                setShow={setOpenFeedbackModal}
-                modalId="suggestFeature"
-                mode="fitHeight"
-            >
-                <VaulDrawer.Snap id="item-1">
-                    <div className="p-0 md:max-w-md">
-                        <SendFeedback onSend={handleCloseFeedback} />
-                    </div>
-                </VaulDrawer.Snap>
-            </VaulDrawer>
 
-            <div className="space-y-3 w-full">
+            <div className="space-y-3 w-full mt-auto">
                 <hr className="border-secondary-500" />
                 <p className="text-primary-text-tertiary flex justify-center my-3">Media links & suggestions:</p>
             </div>

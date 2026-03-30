@@ -218,15 +218,17 @@ const Signing = ({
     : (platformHint || 'Complete the action in your passkey or wallet.');
 
   return (
-    <div className="flex flex-col items-center justify-center gap-5 pt-10">
-      <div className="w-14 h-14 rounded-2xl bg-secondary-500 flex items-center justify-center">
-        {icon}
+    <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center gap-3 pt-6">
+        <div className="w-14 h-14 rounded-2xl bg-secondary-500 flex items-center justify-center">
+          {icon}
+        </div>
+        <div className="text-center space-y-1">
+          <p className="text-primary-text font-semibold">{title}</p>
+          <p className="text-sm text-secondary-text max-w-[280px]">{subtitle}</p>
+        </div>
       </div>
-      <div className="text-center space-y-1">
-        <p className="text-primary-text font-semibold">{title}</p>
-        <p className="text-sm text-secondary-text max-w-[280px]">{subtitle}</p>
-      </div>
-      <div className="flex flex-col gap-2 w-full">
+      <div className="flex flex-col gap-2 w-full pt-5">
         {error && onRetry && (
           <button
             type="button"

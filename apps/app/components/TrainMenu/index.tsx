@@ -11,9 +11,10 @@ import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
 import { Modal, ModalContent } from "@/components/Modal/modalWithoutAnimation";
 import RpcNetworkListView from "@/components/Settings/RpcNetworkListView";
 import NetworkRpcEditView from "@/components/Settings/NetworkRpcEditView";
-import { Network } from "@/Models/Network";
 import RecoverSwap from "@/components/Swap/Atomic/RecoverSwap";
 import SwapHistory from "@/components/SwapHistory";
+import { useMenuNavigation } from "@/hooks/useMenuNavigation";
+import SendFeedback from "@/components/sendFeedback";
 
 const Comp = () => {
     const router = useRouter();
@@ -22,31 +23,27 @@ const Comp = () => {
     const { goBack, currentStepName } = useFormWizardState()
     const { goToStep } = useFormWizardaUpdate()
 
-    const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
+    const {
+        selectedNetwork,
+        setSelectedNetwork,
+        goBackToRpcConfiguration,
+        handleNetworkSelect,
+        handleNetworkSave,
+        handleRecoverSwap,
+    } = useMenuNavigation({ onClose: () => setIsOpen(false) })
 
-    const goBackToMenuStep = () => { goToStep(MenuStep.Menu, "back"); clearMenuPath(router) }
-    const goBackToRpcConfiguration = () => { goToStep(MenuStep.RPCConfiguration, "back") }
-
-    const handleRecoverSwap = (hashlock: string) => {
-        setIsOpen(false)
-        router.push({ pathname: '/swap', query: { hashlock } })
+    // Wrap to add URL history cleanup
+    const goBackToMenuStep = () => {
+        goToStep(MenuStep.Menu, "back")
+        clearMenuPath(router)
     }
 
+    // Wrap to add URL history push
     const handleGoToStep = (step: MenuStep, path?: string) => {
         goToStep(step)
         if (path) {
             setMenuPath(path, router)
         }
-    }
-
-    const handleNetworkSelect = (network: Network) => {
-        setSelectedNetwork(network)
-        goToStep(MenuStep.NetworkRPCEdit)
-    }
-
-    const handleNetworkSave = () => {
-        setSelectedNetwork(null)
-        goToStep(MenuStep.RPCConfiguration, "back")
     }
 
     useEffect(() => {
@@ -103,6 +100,9 @@ const Comp = () => {
                                 </WizardItem>
                                 <WizardItem StepName={MenuStep.Transactions} GoBack={goBackToMenuStep} inModal>
                                     <SwapHistory />
+                                </WizardItem>
+                                <WizardItem StepName={MenuStep.SuggestFeature} GoBack={goBackToMenuStep} inModal>
+                                    <SendFeedback onSend={goBackToMenuStep} />
                                 </WizardItem>
                             </Wizard>
                         </div>

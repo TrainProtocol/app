@@ -19,6 +19,8 @@ import { AtomicProvider } from "@/context/atomicContext";
 import { SwapAccountsProvider } from "@/context/swapAccounts";
 import { LoginModal } from "./SecretDerivation";
 import { useLoginModalStore } from "@/stores/loginModalStore";
+import { SidebarProvider } from "./shadcn/sidebar";
+
 type Props = {
   children: JSX.Element | JSX.Element[];
   hideFooter?: boolean;
@@ -100,23 +102,25 @@ export default function Layout({ children, settings }: Props) {
       <SettingsProvider data={appSettings}>
         <TooltipProvider delayDuration={500}>
           <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
-            <ThemeWrapper>
+            <SidebarProvider>
               <WalletsProviders basePath={basePath} appName={router.query.appName?.toString()}>
-                <SwapAccountsProvider>
-                  <AtomicProvider>
-                    <AsyncModalProvider>
-                      <LoginModal
-                        isOpen={loginOpen}
-                        onClose={closeLogin}
-                      />
-                      {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
-                        <MaintananceContent />
-                        : children}
-                    </AsyncModalProvider>
-                  </AtomicProvider>
-                </SwapAccountsProvider>
+                <ThemeWrapper>
+                  <SwapAccountsProvider>
+                    <AtomicProvider>
+                      <AsyncModalProvider>
+                        <LoginModal
+                          isOpen={loginOpen}
+                          onClose={closeLogin}
+                        />
+                        {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
+                          <MaintananceContent />
+                          : children}
+                      </AsyncModalProvider>
+                    </AtomicProvider>
+                  </SwapAccountsProvider>
+                </ThemeWrapper>
               </WalletsProviders>
-            </ThemeWrapper>
+            </SidebarProvider>
           </ErrorBoundary>
         </TooltipProvider>
       </SettingsProvider >

@@ -32,7 +32,7 @@ const GLobalFooter = () => {
     }
 
     return (
-        <footer className="z-30 hidden md:flex fixed bottom-0 py-4 justify-between items-center w-full px-4 lg:px-8 mt-auto">
+        <footer className="hidden md:flex py-4 justify-between items-center w-full px-4 lg:px-8 mt-auto">
             <div>
                 <p className="text-center text-xs text-primary-text-tertiary leading-6">
                     &copy; {new Date().getFullYear()} Layerswap Labs, Inc. All rights reserved.
