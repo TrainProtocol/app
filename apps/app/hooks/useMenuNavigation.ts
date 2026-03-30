@@ -5,11 +5,7 @@ import { Network } from "@/Models/Network"
 import { useRouter } from "next/router"
 import { useSwapStore } from "@/stores/swapStore"
 
-type UseMenuNavigationOptions = {
-    onClose: () => void
-}
-
-export function useMenuNavigation({ onClose }: UseMenuNavigationOptions) {
+export function useMenuNavigation() {
     const { goToStep } = useFormWizardaUpdate()
     const router = useRouter()
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
@@ -40,19 +36,17 @@ export function useMenuNavigation({ onClose }: UseMenuNavigationOptions) {
     }, [goToStep])
 
     const handleRecoverSwap = useCallback((hashlock: string) => {
-        onClose()
         router.push({ pathname: '/swap', query: { hashlock } })
-    }, [onClose, router])
+    }, [router])
 
     const handleViewSwap = useCallback((hashlock: string) => {
-        onClose()
         if (router.pathname === '/') {
             setActiveHashlock(hashlock)
             setSwapModalOpen(true)
         } else {
             router.push({ pathname: '/swap', query: { hashlock } })
         }
-    }, [onClose, router, setActiveHashlock, setSwapModalOpen])
+    }, [router, setActiveHashlock, setSwapModalOpen])
 
     return {
         selectedNetwork,

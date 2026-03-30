@@ -1,5 +1,5 @@
 import { FC, useEffect, useRef } from "react"
-import { Sidebar, SidebarContent, useSidebar } from "@/components/shadcn/sidebar"
+import { Sidebar, SidebarContent } from "@/components/shadcn/sidebar"
 import { FormWizardProvider, useFormWizardaUpdate, useFormWizardState } from "@/context/formWizardProvider"
 import { MenuStep } from "@/Models/Wizard"
 import WizardItem from "@/components/Wizard/WizardItem"
@@ -24,7 +24,6 @@ const AppSidebar: FC = () => {
 }
 
 const SidebarInner: FC = () => {
-    const { setOpen } = useSidebar()
     const { goBack, currentStepName, moving, wrapperWidth } = useFormWizardState()
     const { setWrapperWidth } = useFormWizardaUpdate()
     const wrapperRef = useRef<HTMLDivElement>(null)
@@ -38,7 +37,7 @@ const SidebarInner: FC = () => {
         handleNetworkSave,
         handleRecoverSwap,
         handleViewSwap,
-    } = useMenuNavigation({ onClose: () => setOpen(false) })
+    } = useMenuNavigation()
 
     // Measure width for WizardItem animations
     useEffect(() => {

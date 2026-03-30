@@ -30,7 +30,7 @@ const Comp = () => {
         handleNetworkSelect,
         handleNetworkSave,
         handleRecoverSwap,
-    } = useMenuNavigation({ onClose: () => setIsOpen(false) })
+    } = useMenuNavigation()
 
     // Wrap to add URL history cleanup
     const goBackToMenuStep = () => {
