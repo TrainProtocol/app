@@ -21,7 +21,7 @@ export default function Navbar() {
     ]
 
     return (
-        <div className='mt-5 mb-8  px-8 overflow-hidden hidden md:block relative z-20 w-full'>
+        <div className='mt-5 mb-8  px-8 hidden md:block relative z-20 w-full'>
             <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-8">
                     <GoHomeButton className='h-auto w-36 text-primary-logoColor fill-primary-text cursor-pointer headerLogo' />

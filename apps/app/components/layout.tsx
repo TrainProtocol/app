@@ -19,7 +19,7 @@ import { AtomicProvider } from "@/context/atomicContext";
 import { SwapAccountsProvider } from "@/context/swapAccounts";
 import { LoginModal } from "./SecretDerivation";
 import { useLoginModalStore } from "@/stores/loginModalStore";
-import { SidebarProvider } from "./shadcn/sidebar";
+
 
 type Props = {
   children: JSX.Element | JSX.Element[];
@@ -102,7 +102,6 @@ export default function Layout({ children, settings }: Props) {
       <SettingsProvider data={appSettings}>
         <TooltipProvider delayDuration={500}>
           <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
-            <SidebarProvider>
               <WalletsProviders basePath={basePath} appName={router.query.appName?.toString()}>
                 <ThemeWrapper>
                   <SwapAccountsProvider>
@@ -120,7 +119,6 @@ export default function Layout({ children, settings }: Props) {
                   </SwapAccountsProvider>
                 </ThemeWrapper>
               </WalletsProviders>
-            </SidebarProvider>
           </ErrorBoundary>
         </TooltipProvider>
       </SettingsProvider >

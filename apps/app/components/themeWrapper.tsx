@@ -3,6 +3,7 @@ import toast, { ToastBar, Toaster } from "react-hot-toast"
 import Navbar from "./navbar"
 import GlobalFooter from "./globalFooter";
 import AppSidebar from "./Sidebar/AppSidebar";
+import { SidebarProvider } from "./shadcn/sidebar";
 
 type Props = {
     children: JSX.Element | JSX.Element[]
@@ -10,7 +11,7 @@ type Props = {
 export default function ThemeWrapper({ children }: Props) {
     return <div className='styled-scroll'>
         <div className="invisible light"></div>
-        <main className="styled-scroll flex min-h-screen w-full overflow-x-hidden">
+        <SidebarProvider defaultOpen={false} className="styled-scroll flex min-h-screen w-full overflow-x-hidden">
                 <div className={`flex-1 flex flex-col items-center min-h-screen overflow-hidden relative font-robo`}>
                     <Toaster position="top-center" toastOptions={{
                         duration: 5000,
@@ -52,6 +53,6 @@ export default function ThemeWrapper({ children }: Props) {
                     <GlobalFooter />
                 </div>
                 <AppSidebar />
-        </main>
+        </SidebarProvider>
     </div>
 }

@@ -15,7 +15,7 @@ import SendFeedback from "@/components/sendFeedback"
 
 const AppSidebar: FC = () => {
     return (
-        <Sidebar>
+        <Sidebar side="right" collapsible="offcanvas">
             <FormWizardProvider noToolBar hideMenu initialStep={MenuStep.Menu}>
                 <SidebarInner />
             </FormWizardProvider>
