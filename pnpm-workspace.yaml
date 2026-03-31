@@ -23,3 +23,5 @@ catalog:
   vitest: 4.0.18
   wagmi: 2.14.11
   zustand: ^4.5.7
+
+minimumReleaseAge: 4320
