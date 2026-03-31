@@ -29,12 +29,14 @@ const Widget = ({ children, className, hideMenu }: Props) => {
    const handleBack = router.pathname === "/" ? null : goBack
 
    return <>
-      <div id='widget' className={`bg-secondary-700 md:shadow-card rounded-3xl w-full sm:overflow-hidden has-expandContainerHeight:min-h-[675px] max-sm:has-openpicker:min-h-svh max-sm:min-h-[99.8svh] sm:has-openpicker:min-h-[79svh]! relative ${AppSettings.ApiVersion === 'sandbox' && 'border-t-[2px] border-[#D95E1B]'}`}>
+      <div id='widget' className={`bg-secondary-700 md:shadow-card rounded-3xl w-full sm:overflow-hidden has-expandContainerHeight:min-h-[675px] max-sm:has-openpicker:min-h-svh max-sm:min-h-[99.8svh] sm:has-openpicker:min-h-[79svh]! relative`}>
          <div className="relative z-20 pb-1 sm:pb-0">
             {
                AppSettings.ApiVersion === 'sandbox' &&
-               <div className="absolute -top-1 right-[calc(50%-68px)] bg-[#D95E1B] py-0.5 px-10 rounded-b-md text-xs scale-75">
-                  TESTNET
+               <div className="relative z-20">
+                  <div className="absolute -top-1 right-[calc(50%-68px)] bg-[#D95E1B] py-0.5 px-10 rounded-b-md text-xs scale-75">
+                     TESTNET
+                  </div>
                </div>
             }
          </div>
