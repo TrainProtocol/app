@@ -1,9 +1,7 @@
 import { useRef } from "react"
 import useSWR from "swr"
 import { Network, Token } from "../../Models/Network"
-import { LockDetails } from "../../Models/phtlc/PHTLC"
-import { LockParams } from "../../Models/phtlc"
-import { IHTLCClient, LockStatus, TransactionStatus } from "@train-protocol/sdk"
+import { IHTLCClient, LockStatus, TransactionStatus, GetUserLockParams, LockDetails } from "@train-protocol/sdk"
 
 export const USER_LOCK_TX_FAILED_ERROR = 'Your lock transaction has failed on-chain. No funds were locked — you can safely retry the swap.'
 
@@ -44,16 +42,16 @@ const useUserLockPolling = ({
     const { data, error, isLoading, mutate } = useSWR<LockDetails | null>(
         key,
         async () => {
-            if (!network || !hashlock || !contractAddress || !client || !sourceAsset) return null
+            if (!network || !hashlock || !contractAddress || !client || !sourceAsset || !destinationAsset) return null
 
-            const params: LockParams = {
+            const params: GetUserLockParams = {
                 type,
                 chainId: network.chainId,
                 id: hashlock,
                 trainContractAddress: contractAddress,
                 txId,
-                tokenDecimals: sourceAsset?.decimals,
-                destinationTokenDecimals: destinationAsset?.decimals
+                tokenDecimals: sourceAsset.decimals,
+                destinationTokenDecimals: destinationAsset.decimals
             }
 
             try {

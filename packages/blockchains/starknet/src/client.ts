@@ -1,7 +1,8 @@
 import { cairo, Contract, hash, num, addAddressPadding, ProviderOrAccount, RpcProvider, type Call } from 'starknet'
 import {
     UserLockParams,
-    LockParams,
+    GetLockParams,
+    GetUserLockParams,
     RefundParams,
     RedeemSolverParams,
     LockDetails,
@@ -119,7 +120,7 @@ export class StarknetHTLCClient extends HTLCClient {
 
     // ── Read Operations ────────────────────────────────────────────────
 
-    async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
+    async getUserLockDetails(params: GetUserLockParams): Promise<LockDetails | null> {
         const { id, trainContractAddress, txId } = params
         const contract = this.createContract(trainContractAddress, this.provider)
 
@@ -150,7 +151,7 @@ export class StarknetHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: GetLockParams, nodeUrl: string): Promise<LockDetails | null> {
         const { id, trainContractAddress } = params
         const provider = new RpcProvider({ nodeUrl })
         const contract = this.createContract(trainContractAddress, provider)

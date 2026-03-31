@@ -25,7 +25,7 @@ export type UserLockParams = {
     nonce: number
 }
 
-export type LockParams = {
+export type GetLockParams = {
     type?: 'erc20' | 'native';
     id: string,
     txId?: string,
@@ -33,8 +33,11 @@ export type LockParams = {
     chainId: string | null,
     trainContractAddress: string,
     tokenDecimals: number,
-    destinationTokenDecimals?: number,
     solverAddress?: string,
+}
+
+export type GetUserLockParams = GetLockParams & {
+    destinationTokenDecimals: number,
 }
 
 export type RefundParams = {

@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback, useState } from "react"
 import useSWR from "swr"
 import { Network, Token } from "@/Models/Network"
 import { LockDetails } from "@/Models/phtlc/PHTLC"
-import { LockParams } from "@/Models/phtlc"
+import { GetLockParams } from "@/Models/phtlc"
 import { IHTLCClient } from "@train-protocol/sdk"
 
 const CONSENSUS_ERROR_PREFIX = 'Lock details do not match'
@@ -64,7 +64,7 @@ const useSolverLockPolling = ({
         async () => {
             if (!client || !network || !hashlock || !contractAddress || !destinationAsset) return null
 
-            const params: LockParams = {
+            const params: GetLockParams = {
                 type,
                 chainId: network.chainId,
                 id: hashlock,

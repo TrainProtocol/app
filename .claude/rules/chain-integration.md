@@ -151,8 +151,8 @@ export class {Chain}HTLCClient extends HTLCClient {
 
     // ── Read Operations ────────────────────────────────────────────────
 
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> { ... }
-    async getUserLockDetails(params: LockParams): Promise<LockDetails | null> { ... }
+    async getSolverLockDetails(params: GetLockParams, nodeUrl: string): Promise<LockDetails | null> { ... }
+    async getUserLockDetails(params: GetUserLockParams): Promise<LockDetails | null> { ... }
     async recoverSwap(txHash: string): Promise<RecoveredSwapData> { ... }
 
     // ── Public Helpers ─────────────────────────────────────────────────
@@ -255,7 +255,7 @@ try {
 **This is a critical shared pattern.** The base class calls `getSolverLockDetails` for each node URL and verifies results match via `getSolverLockDetailsWithConsensus()`. Your subclass implements the single-node version. The contract stores multiple solver locks per hashlock. Always:
 
 ```ts
-async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+async getSolverLockDetails(params: GetLockParams, nodeUrl: string): Promise<LockDetails | null> {
     // 1. Get the count of solver locks for this hashlock
     const count = /* call getSolverLockCount(hashlock) */
 
@@ -483,7 +483,8 @@ import { hexToBytes, bytesToHex, toHex32 } from '@train-protocol/sdk'
 import {
     HTLCClient,
     UserLockParams,
-    LockParams,
+    GetLockParams,
+    GetUserLockParams,
     RefundParams,
     RedeemSolverParams,
     LockDetails,

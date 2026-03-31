@@ -1,7 +1,8 @@
 import { AbiFunction, AbiEvent } from 'ox'
 import {
     UserLockParams,
-    LockParams,
+    GetLockParams,
+    GetUserLockParams,
     RefundParams,
     RedeemSolverParams,
     LockDetails,
@@ -139,7 +140,7 @@ export class EvmHTLCClient extends HTLCClient {
 
     // ── Read Operations ────────────────────────────────────────────────
 
-    async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
+    async getUserLockDetails(params: GetUserLockParams): Promise<LockDetails | null> {
         const { id, txId } = params
 
         const calldata = AbiFunction.encodeData(htlcFunctions.getUserLock, [hex(id)])
@@ -173,7 +174,7 @@ export class EvmHTLCClient extends HTLCClient {
         return { ...details, userData, dstAmount }
     }
 
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: GetLockParams, nodeUrl: string): Promise<LockDetails | null> {
         const { id, trainContractAddress } = params
         const rpc = new JsonRpcClient(nodeUrl)
 

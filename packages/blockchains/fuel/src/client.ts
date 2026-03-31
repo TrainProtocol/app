@@ -1,7 +1,8 @@
 import { Provider, Contract, Address, DateTime } from 'fuels'
 import {
     UserLockParams,
-    LockParams,
+    GetLockParams,
+    GetUserLockParams,
     RefundParams,
     RedeemSolverParams,
     LockDetails,
@@ -145,7 +146,7 @@ export class FuelHTLCClient extends HTLCClient {
 
     // ── Read Operations ────────────────────────────────────────────────
 
-    async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
+    async getUserLockDetails(params: GetUserLockParams): Promise<LockDetails | null> {
         const { id, trainContractAddress, txId } = params
 
         try {
@@ -186,7 +187,7 @@ export class FuelHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: GetLockParams, nodeUrl: string): Promise<LockDetails | null> {
         const { id, trainContractAddress } = params
 
         try {

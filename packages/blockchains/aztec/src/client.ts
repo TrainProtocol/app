@@ -10,7 +10,8 @@ import type { Wallet } from '@aztec/aztec.js/wallet'
 import { SponsoredFPCContract } from '@aztec/noir-contracts.js/SponsoredFPC'
 import {
     type UserLockParams,
-    type LockParams,
+    type GetLockParams,
+    type GetUserLockParams,
     type RefundParams,
     type RedeemSolverParams,
     type LockDetails,
@@ -221,7 +222,7 @@ export class AztecHTLCClient extends HTLCClient {
 
     // ── Read Operations ────────────────────────────────────────────────
 
-    async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
+    async getUserLockDetails(params: GetUserLockParams): Promise<LockDetails | null> {
         const signer = this.requireSigner()
         const { id, trainContractAddress, txId } = params
         const { contract, userAztecAddress } = await this.getContractInstance(trainContractAddress, signer)
@@ -247,7 +248,7 @@ export class AztecHTLCClient extends HTLCClient {
         return { ...details, userData, dstAmount }
     }
 
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: GetLockParams, nodeUrl: string): Promise<LockDetails | null> {
         const signer = this.requireSigner()
         const { id, trainContractAddress } = params
         const { contract, userAztecAddress } = await this.getContractInstance(trainContractAddress, signer, nodeUrl)

@@ -1,7 +1,8 @@
 import { Cell, toNano, Address, TupleBuilder } from '@ton/ton'
 import {
     UserLockParams,
-    LockParams,
+    GetLockParams,
+    GetUserLockParams,
     RefundParams,
     RedeemSolverParams,
     LockDetails,
@@ -164,7 +165,7 @@ export class TonHTLCClient extends HTLCClient {
 
     // ── Read Operations ────────────────────────────────────────────────
 
-    async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
+    async getUserLockDetails(params: GetUserLockParams): Promise<LockDetails | null> {
         const { id, trainContractAddress } = params
 
         try {
@@ -184,7 +185,7 @@ export class TonHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: GetLockParams, nodeUrl: string): Promise<LockDetails | null> {
         const { id, trainContractAddress } = params
         const rpc = TonRpcClient.fromUrl(nodeUrl, this.apiKey)
 

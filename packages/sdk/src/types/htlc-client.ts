@@ -1,4 +1,4 @@
-import { RedeemSolverParams, UserLockParams, LockParams, RefundParams } from "./params"
+import { RedeemSolverParams, GetUserLockParams, GetLockParams, RefundParams, UserLockParams } from "./params"
 import { LockDetails, TransactionInfo } from "./lock"
 import { AtomicResult, RecoveredSwapData } from "./atomic"
 import type { TrainApiClient } from "../api/client"
@@ -8,9 +8,9 @@ export type BaseHTLCClientConfig = {
 }
 
 export interface IHTLCClient {
-    getUserLockDetails(params: LockParams): Promise<LockDetails | null>
-    getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null>
-    getSolverLockDetailsWithConsensus(params: LockParams, nodeUrls: string[], options?: ConsensusOptions & { prefetchedResult?: LockDetails }): Promise<LockDetails | null>
+    getUserLockDetails(params: GetUserLockParams): Promise<LockDetails | null>
+    getSolverLockDetails(params: GetLockParams, nodeUrl: string): Promise<LockDetails | null>
+    getSolverLockDetailsWithConsensus(params: GetLockParams, nodeUrls: string[], options?: ConsensusOptions & { prefetchedResult?: LockDetails }): Promise<LockDetails | null>
     recoverSwap(txHash: string): Promise<RecoveredSwapData>
     getTransaction(txHash: string): Promise<TransactionInfo | null>
 
@@ -33,7 +33,7 @@ export abstract class HTLCClient implements IHTLCClient {
     }
 
     async getSolverLockDetailsWithConsensus(
-        params: LockParams,
+        params: GetLockParams,
         nodeUrls: string[],
         options?: ConsensusOptions & { prefetchedResult?: LockDetails }
     ): Promise<LockDetails | null> {
@@ -109,8 +109,8 @@ export abstract class HTLCClient implements IHTLCClient {
         )
     }
 
-    abstract getUserLockDetails(params: LockParams): Promise<LockDetails | null>
-    abstract getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null>
+    abstract getUserLockDetails(params: GetUserLockParams): Promise<LockDetails | null>
+    abstract getSolverLockDetails(params: GetLockParams, nodeUrl: string): Promise<LockDetails | null>
     abstract recoverSwap(txHash: string): Promise<RecoveredSwapData>
     abstract getTransaction(txHash: string): Promise<TransactionInfo | null>
     abstract userLock(params: UserLockParams): Promise<AtomicResult>

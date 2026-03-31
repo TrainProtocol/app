@@ -3,7 +3,8 @@ import { Connection, PublicKey, Transaction, VersionedTransaction } from '@solan
 import {
     HTLCClient,
     UserLockParams,
-    LockParams,
+    GetLockParams,
+    GetUserLockParams,
     RefundParams,
     RedeemSolverParams,
     LockDetails,
@@ -136,7 +137,7 @@ export class SolanaHTLCClient extends HTLCClient {
 
     // ── Read Operations ────────────────────────────────────────────────
 
-    async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
+    async getUserLockDetails(params: GetUserLockParams): Promise<LockDetails | null> {
         const { trainContractAddress, id } = params
 
         let program: ReturnType<typeof this.buildProgram>
@@ -190,7 +191,7 @@ export class SolanaHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: GetLockParams, nodeUrl: string): Promise<LockDetails | null> {
         const { trainContractAddress, id } = params
 
         const connection = new Connection(nodeUrl, 'confirmed')
