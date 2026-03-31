@@ -1,4 +1,4 @@
-import { Context, createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { Context, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { SwapDirection } from '@/components/DTOs/SwapFormValues';
 import useWallet from '@/hooks/useWallet';
 import { Wallet, WalletProvider } from '@/Models/WalletProvider';
@@ -58,23 +58,25 @@ export function SwapAccountsProvider({ children }: PickerAccountsProviderProps) 
             const selectedAccountAddress = selectedWallet ? selectedSourceAccounts.find(acc => acc.providerName === provider.name && acc.id === selectedWallet.id)?.address : undefined
             const address = selectedAccountAddress ? selectedAccountAddress : wallet.address;
 
-            const res = ResolveWalletSwapAccount(provider, wallet, address);
-
-            if (!selectedAccountAddress) {
-                setSelectedSourceAccounts(prev => {
-                    const existingAccountIndex = prev.findIndex(acc => acc.providerName === res.providerName);
-                    if (existingAccountIndex !== -1) {
-                        const updatedAccounts = [...prev];
-                        updatedAccounts[existingAccountIndex] = res;
-                        return updatedAccounts;
-                    }
-                    return [...prev, res];
-                });
-            }
-
-            return res
+            return ResolveWalletSwapAccount(provider, wallet, address);
         }).filter(Boolean) as AccountIdentityWithSupportedNetworks[];
     }, [providers, selectedSourceAccounts])
+
+    // Auto-select default source accounts for providers that don't have one yet
+    useEffect(() => {
+        const defaults: BaseAccountIdentity[] = [];
+        for (const account of sourceAccounts) {
+            const alreadySelected = selectedSourceAccounts.some(
+                acc => acc.providerName === account.providerName
+            );
+            if (!alreadySelected) {
+                defaults.push(account);
+            }
+        }
+        if (defaults.length > 0) {
+            setSelectedSourceAccounts(prev => [...prev, ...defaults]);
+        }
+    }, [sourceAccounts, selectedSourceAccounts])
 
     const destinationAccounts: AccountIdentity[] = useMemo(() => {
         return providers.map(provider => {

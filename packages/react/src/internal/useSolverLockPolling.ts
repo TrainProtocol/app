@@ -39,13 +39,14 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
     const onConsensusFailedRef = useRef(onConsensusFailed)
     onConsensusFailedRef.current = onConsensusFailed
 
-    // Reset when hashlock changes
+    // Reset when hashlock, client, or node URLs change
+    const nodeUrlsKey = nodeUrls.join(',')
     useEffect(() => {
         detected.current = false
         verified.current = false
         failed.current = false
         setConsensusPhase('none')
-    }, [hashlock])
+    }, [hashlock, client, nodeUrlsKey])
 
     const query = useQuery({
         queryKey: trainQueryKeys.solverLock(params?.id ?? ''),

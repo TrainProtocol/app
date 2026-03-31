@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useStore } from 'zustand'
 import { shallow } from 'zustand/shallow'
 import {
@@ -47,6 +47,8 @@ export interface UseSecretDerivationResult {
     derivedKey: Uint8Array | null
     derivationStatus: 'idle' | 'signing'
     derivationMessage: string
+    /** Error from the last login/register attempt, cleared on next attempt */
+    error: Error | null
 
     loginWithPasskey: (options?: PasskeyLoginOptions) => Promise<void>
     /**
@@ -103,8 +105,10 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
     const passkeyStorage = options?.passkeyStorage
 
     const isLoggedIn = !!method && !!derivedKey
+    const [error, setError] = useState<Error | null>(null)
 
     const loginWithPasskey = useCallback(async (options?: PasskeyLoginOptions) => {
+        setError(null)
         store.getState().setDerivationStatus('signing')
         store.getState().setDerivationMessage('Confirm with passkey')
         try {
@@ -132,6 +136,10 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
             await passkeyStorage?.storeCredentialId(credentialId)
             store.getState().setLogin('passkey', key)
             store.getState().bumpCredentialVersion()
+        } catch (err) {
+            const error = err instanceof Error ? err : new Error(String(err))
+            setError(error)
+            throw error
         } finally {
             store.getState().setDerivationStatus('idle')
             store.getState().setDerivationMessage('')
@@ -140,13 +148,16 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
 
     const authInstance = options?.auth
     const loginWithWallet = useCallback(async (chainNs: string, config?: Record<string, unknown>) => {
+        setError(null)
         const ns = brandChainNamespace(chainNs)
         const resolvedConfig = config ?? (await walletCtx?.getLoginConfig(ns))
         if (!resolvedConfig) {
-            throw new Error(
+            const error = new Error(
                 `No login config available for "${chainNs}". ` +
                 `Either pass config explicitly or ensure the wallet adapter implements getLoginConfig() and the wallet is connected.`
             )
+            setError(error)
+            throw error
         }
 
         store.getState().setDerivationStatus('signing')
@@ -157,6 +168,10 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
                 ? await authInstance.deriveKeyFromWallet(chainNs, resolvedConfig)
                 : await deriveKeyFromWallet(chainNs, resolvedConfig)
             store.getState().setLogin('wallet_sign', key)
+        } catch (err) {
+            const error = err instanceof Error ? err : new Error(String(err))
+            setError(error)
+            throw error
         } finally {
             store.getState().setDerivationStatus('idle')
             store.getState().setDerivationMessage('')
@@ -178,6 +193,7 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
     }, [store])
 
     const registerPasskey = useCallback(async (displayName?: string) => {
+        setError(null)
         store.getState().setDerivationStatus('signing')
         store.getState().setDerivationMessage('Register passkey')
         try {
@@ -187,6 +203,10 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
             }
             await passkeyStorage?.storeCredentialId(credentialId)
             store.getState().bumpCredentialVersion()
+        } catch (err) {
+            const error = err instanceof Error ? err : new Error(String(err))
+            setError(error)
+            throw error
         } finally {
             store.getState().setDerivationStatus('idle')
             store.getState().setDerivationMessage('')
@@ -222,6 +242,7 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
         derivedKey,
         derivationStatus,
         derivationMessage,
+        error,
         loginWithPasskey,
         loginWithWallet,
         logout,

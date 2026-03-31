@@ -143,7 +143,7 @@ export function SecretDerivationProvider({
         logout,
         loginWallet,
         prfSupportDetails: hook.prfSupport,
-    }), [hook.derivedKey, hook.method, hook.derivationStatus, hook.prfSupport, hook.isLoggedIn, hook.derivationMessage, hook.passkeyCredentials, hook.activePasskeyCredentialId, isReady, loginWithWallet, logout, loginWallet])
+    }), [hook.derivedKey, hook.method, hook.derivationStatus, hook.derivationMessage, hook.error, hook.prfSupport, hook.isLoggedIn, hook.passkeyCredentials, hook.activePasskeyCredentialId, isReady, loginWithWallet, logout, loginWallet])
 
     return (
         <SecretDerivationContext.Provider value={value}>
