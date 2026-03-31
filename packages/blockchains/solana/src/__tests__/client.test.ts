@@ -256,7 +256,6 @@ describe('SolanaHTLCClient', () => {
         it('returns signature for token refund', async () => {
             const result = await client.refund({
                 ...baseParams,
-                type: 'erc20',
                 sourceAsset: { symbol: 'USDC', contractAddress: TOKEN_MINT, decimals: 6 },
             })
 

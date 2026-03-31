@@ -8,7 +8,9 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useTrainContext } from '../providers/TrainContext'
 import { useStoreContext } from '../providers/TrainProvider'
 import { useSharedSecretDerivation } from '../providers/SecretDerivationProvider'
+import { useWalletContext } from '../wallet/WalletContext'
 import { trainQueryKeys } from '../internal/queryKeys'
+import { parseCaip2Id } from '../internal/branded'
 import { TrainError, TrainErrorCode } from '../types'
 
 export interface UseRevealSecretResult {
@@ -27,6 +29,7 @@ export function useRevealSecret(hashlock: string | null | undefined): UseRevealS
     const { apiClient, config } = useTrainContext()
     const store = useStoreContext()
     const { derivedKey } = useSharedSecretDerivation()
+    const walletCtx = useWalletContext()
     const queryClient = useQueryClient()
     const [isRevealing, setIsRevealing] = useState(false)
     const [error, setError] = useState<Error | null>(null)
@@ -76,11 +79,40 @@ export function useRevealSecret(hashlock: string | null | undefined): UseRevealS
             throw err
         }
 
-        // Point-in-time read is intentional here — this is a one-shot action, not a subscription
+        // Resolve nonce: try cache first, fall back to on-chain read
+        let nonce: number | null = null
+
+        // Tier 1: React Query cache (fast path — works when polling is active)
         const sourceDetails = queryClient.getQueryData<UserLockDetails | null>(trainQueryKeys.userLock(hl!))
-        const nonce = sourceDetails?.userData ? Number(sourceDetails.userData) : null
-        if (!nonce || isNaN(nonce)) {
-            const err = new TrainError('Cannot reveal: nonce unavailable from source lock data', TrainErrorCode.RevealFailed)
+        const cachedNonce = sourceDetails?.userData ? Number(sourceDetails.userData) : null
+        if (cachedNonce && !isNaN(cachedNonce)) {
+            nonce = cachedNonce
+        }
+
+        // Tier 2: on-chain RPC fallback (cache was GC'd or not yet populated)
+        if (!nonce && swapConfig) {
+            try {
+                const client = walletCtx.createClient(swapConfig.sourceNetwork)
+                const chainId = swapConfig.origin === 'created'
+                    ? swapConfig.chainId
+                    : parseCaip2Id(swapConfig.sourceNetwork).reference
+                const details = await client.getUserLockDetails({
+                    id: swapConfig.hashlock,
+                    chainId,
+                    contractAddress: swapConfig.srcContract,
+                    txId: swapConfig.txId ?? undefined,
+                })
+                const onChainNonce = details?.userData ? Number(details.userData) : null
+                if (onChainNonce && !isNaN(onChainNonce)) {
+                    nonce = onChainNonce
+                }
+            } catch {
+                // Fall through to error below
+            }
+        }
+
+        if (!nonce) {
+            const err = new TrainError('Cannot reveal: nonce unavailable from cache or on-chain data', TrainErrorCode.RevealFailed)
             setError(err)
             inFlight.current = false
             setIsRevealing(false)
@@ -110,7 +142,7 @@ export function useRevealSecret(hashlock: string | null | undefined): UseRevealS
             inFlight.current = false
             setIsRevealing(false)
         }
-    }, [hashlock, apiClient, store, config, derivedKey, queryClient])
+    }, [hashlock, apiClient, store, config, derivedKey, queryClient, walletCtx])
 
     return { reveal, isRevealing, error }
 }

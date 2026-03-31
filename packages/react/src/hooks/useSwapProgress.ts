@@ -8,7 +8,6 @@ import { useSolverLockPolling } from '../internal/useSolverLockPolling'
 import { useOrderStream } from '../internal/useOrderStream'
 import { useDerivedSwapState, type DerivedSwapState } from '../internal/useDerivedSwapState'
 import { parseCaip2Id } from '../internal/branded'
-import { getLockType } from '../internal/getLockType'
 import { TrainError, TrainErrorCode } from '../types'
 
 /**
@@ -61,7 +60,6 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
             ? swapConfig.chainId
             : parseCaip2Id(swapConfig.sourceNetwork).reference
         return {
-            type: getLockType(swapConfig.origin === 'created' ? swapConfig.tokenContractAddress : null),
             id: swapConfig.hashlock,
             chainId,
             contractAddress: swapConfig.srcContract,
@@ -80,7 +78,6 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         const destChainId = parseCaip2Id(swapConfig.destinationNetwork).reference
         const quote = swapConfig.origin === 'created' ? swapConfig.quote : null
         return {
-            type: getLockType(quote?.route?.destination?.tokenContract ?? derived.destinationToken?.contractAddress),
             id: swapConfig.hashlock,
             chainId: destChainId,
             contractAddress: destContract,

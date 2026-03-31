@@ -34,7 +34,7 @@ export function useUserLockPolling(options: UseUserLockPollingOptions): UserLock
         },
         retry: false,
         staleTime: 0,
-        gcTime: 30_000,
+        gcTime: Infinity,
     })
 
     const lockFound = !!query.data
@@ -55,7 +55,7 @@ export function useUserLockPolling(options: UseUserLockPollingOptions): UserLock
         refetchInterval: () => shouldPollTx ? 3000 : false,
         retry: false,
         staleTime: 0,
-        gcTime: 30_000,
+        gcTime: Infinity,
     })
 
     useEffect(() => {

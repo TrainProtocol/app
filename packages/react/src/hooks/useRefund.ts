@@ -5,7 +5,6 @@ import { useWalletContext } from '../wallet/WalletContext'
 import { useStoreContext } from '../providers/TrainProvider'
 import { useDerivedSwapState } from '../internal/useDerivedSwapState'
 import { parseCaip2Id } from '../internal/branded'
-import { getLockType } from '../internal/getLockType'
 import { TrainError, TrainErrorCode } from '../types'
 
 export interface UseRefundResult {
@@ -58,7 +57,6 @@ export function useRefund(hashlock: string | null | undefined): UseRefundResult 
                 ? swapConfig.chainId
                 : parseCaip2Id(swapConfig.sourceNetwork).reference
             const txHash = await client.refund({
-                type: getLockType(swapConfig.origin === 'created' ? swapConfig.tokenContractAddress : null),
                 chainId,
                 contractAddress: swapConfig.srcContract,
                 id: swapConfig.hashlock,

@@ -112,7 +112,7 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
         refetchInterval: () => failed.current ? false : 3000,
         retry: false,
         staleTime: 0,
-        gcTime: 30_000,
+        gcTime: Infinity,
         structuralSharing: false,
     })
 

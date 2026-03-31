@@ -27,7 +27,6 @@ export type UserLockParams = {
 }
 
 export type LockParams = {
-    type?: 'erc20' | 'native';
     id: string,
     chainId: string | null,
     contractAddress: string,
@@ -38,7 +37,6 @@ export type LockParams = {
 }
 
 export type RefundParams = {
-    type: 'erc20' | 'native';
     chainId: string | null,
     contractAddress: string,
     id: string,

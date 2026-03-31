@@ -1,12 +1,9 @@
 import { useState, useCallback } from 'react'
 import { HTLCStatus } from '@train-protocol/sdk'
-import type { SolverLockDetails } from '@train-protocol/sdk'
-import { useQueryClient } from '@tanstack/react-query'
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
 import { useStoreContext } from '../providers/TrainProvider'
 import { useDerivedSwapState } from '../internal/useDerivedSwapState'
-import { trainQueryKeys } from '../internal/queryKeys'
 import { parseCaip2Id } from '../internal/branded'
 import { TrainError, TrainErrorCode } from '../types'
 
@@ -27,7 +24,6 @@ export function useManualClaim(hashlock: string | null | undefined): UseManualCl
     const { config } = useTrainContext()
     const walletCtx = useWalletContext()
     const store = useStoreContext()
-    const queryClient = useQueryClient()
     const derived = useDerivedSwapState(store, hl)
     const [isClaiming, setIsClaiming] = useState(false)
     const [error, setError] = useState<Error | null>(null)
@@ -39,9 +35,7 @@ export function useManualClaim(hashlock: string | null | undefined): UseManualCl
         setError(null)
 
         const swapConfig = hl ? store?.getState().swapConfigs[hl] : null
-        const solverLockDetails = hl
-            ? queryClient.getQueryData<SolverLockDetails | null>(trainQueryKeys.solverLock(hl))
-            : null
+        const solverLockDetails = derived.solverLockDetails
 
         // Manual claim requires destContract — only available for created/hydrated swaps
         const destContract = swapConfig?.origin !== 'recovered'
@@ -95,7 +89,7 @@ export function useManualClaim(hashlock: string | null | undefined): UseManualCl
         } finally {
             setIsClaiming(false)
         }
-    }, [hl, walletCtx, store, config, derived.sourceToken, derived.destinationToken, queryClient])
+    }, [hl, walletCtx, store, config, derived.sourceToken, derived.destinationToken, derived.solverLockDetails])
 
     return { claim, isClaiming, canClaim, error }
 }

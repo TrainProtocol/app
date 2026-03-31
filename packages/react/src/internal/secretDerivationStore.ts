@@ -93,11 +93,12 @@ export function createSecretDerivationStore(options?: CreateSecretDerivationStor
         bumpCredentialVersion: () => set((s) => ({ credentialVersion: s.credentialVersion + 1 })),
 
         logout: () => {
-            // Clone then zeroize — prevents corrupting in-flight closures that
-            // captured the same Uint8Array reference (e.g. useRevealSecret).
-            const current = get().derivedKey
+            // Null the store reference — do NOT zeroize the Uint8Array buffer.
+            // In-flight closures (e.g. useRevealSecret mid-reveal) may still hold
+            // a reference to the same buffer; mutating it would corrupt their key
+            // and could lock user funds. GC will reclaim the buffer once no
+            // references remain.
             set({ method: null, derivedKey: null, loginWallet: null })
-            if (current) current.fill(0)
             if (secureStorage) {
                 secureStorage.clear().catch(() => {})
             }

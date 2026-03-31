@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, skipToken } from '@tanstack/react-query'
 import { useStore } from 'zustand'
 import { shallow } from 'zustand/shallow'
 import { createStore } from 'zustand/vanilla'
@@ -155,12 +155,12 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
     // useQuery subscribes to cache updates, unlike getQueryData which is point-in-time.
     const { data: sourceDetails = null } = useQuery<UserLockDetails | null>({
         queryKey: trainQueryKeys.userLock(hashlock ?? ''),
-        enabled: false,
+        queryFn: skipToken,
     })
 
     const { data: solverLockDetails = null } = useQuery<SolverLockDetails | null>({
         queryKey: trainQueryKeys.solverLock(hashlock ?? ''),
-        enabled: false,
+        queryFn: skipToken,
     })
 
     // Resolve Network and Token objects (uses networkMap for O(1) lookups)
