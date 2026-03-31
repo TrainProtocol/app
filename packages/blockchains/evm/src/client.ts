@@ -168,7 +168,9 @@ export class EvmHTLCClient extends HTLCClient {
             }
         }
 
-        return resolveLock(result, id, params.tokenDecimals)
+        const details = resolveLock(result, id, params.tokenDecimals)
+        if (!details) return null
+        return { ...details, userData, blockTimestamp }
     }
 
     async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
@@ -190,8 +192,9 @@ export class EvmHTLCClient extends HTLCClient {
 
             if (params.solverAddress && result.sender.toLowerCase() !== params.solverAddress.toLowerCase()) continue
 
-            const solverLock = resolveLock(result, id, params.tokenDecimals, params.rewardTokenDecimals)
-            return solverLock
+            const solverLock = resolveLock(result, id, params.tokenDecimals)
+            if (!solverLock) continue
+            return { ...solverLock, index: i }
         }
 
         return null

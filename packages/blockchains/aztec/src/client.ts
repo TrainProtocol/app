@@ -264,7 +264,7 @@ export class AztecHTLCClient extends HTLCClient {
             const sender = result.sender?.toString()
             if (params.solverAddress && sender?.toLowerCase() !== params.solverAddress.toLowerCase()) continue
 
-            const solverLock = resolveLock(result, id, params.tokenDecimals, params.rewardTokenDecimals)
+            const solverLock = resolveLock(result, id, params.tokenDecimals)
             if (!solverLock) continue
             return { ...solverLock, index: i }
         }

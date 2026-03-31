@@ -81,33 +81,10 @@ describe('Aztec resolveLock', () => {
             reward_recipient: { toString: () => '0xRewardR' },
             reward_token: { toString: () => '0xRewardT' },
         }, hashlock, 18)
-        expect(result!.reward).toBe(0.1)
+        expect(result!.reward).toBe(100000000000000000)
         expect(result!.rewardTimelock).toBe(1700001000)
         expect(result!.rewardRecipient).toBe('0xRewardR')
         expect(result!.rewardToken).toBe('0xRewardT')
-    })
-
-    it('uses rewardTokenDecimals for reward formatting', () => {
-        const result = resolveLock({
-            sender: { toString: () => 'S' }, recipient: { toString: () => 'R' },
-            token: { toString: () => 'T' },
-            amount: 1000000000000000000n, timelock: 0n, status: 1, secret: [],
-            reward: 500000n, reward_timelock: 0n,
-            reward_recipient: { toString: () => 'RR' }, reward_token: { toString: () => 'RT' },
-        }, hashlock, 18, 6)
-        expect(result!.reward).toBe(0.5)
-    })
-
-    it('falls back to assetDecimals when rewardTokenDecimals not provided', () => {
-        const result = resolveLock({
-            sender: { toString: () => 'S' }, recipient: { toString: () => 'R' },
-            token: { toString: () => 'T' },
-            amount: 1000000n, timelock: 0n, status: 1, secret: [],
-            reward: 500000n, reward_timelock: 0n,
-            reward_recipient: { toString: () => 'RR' }, reward_token: { toString: () => 'RT' },
-        }, hashlock, 6)
-        expect(result!.amount).toBe(1)
-        expect(result!.reward).toBe(0.5)
     })
 
     it('does not include reward fields for user locks', () => {

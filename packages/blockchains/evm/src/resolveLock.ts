@@ -1,7 +1,9 @@
 import { formatUnits, type LockDetails, LockStatus } from '@train-protocol/sdk'
 import { ZERO_ADDRESS } from './constants.js'
 
-export function resolveLock(result: any, id: string, assetDecimals: number, rewardTokenDecimals?: number): LockDetails | null {
+export function resolveLock(result: any, id: string, assetDecimals: number): LockDetails | null {
+    if (result.sender === ZERO_ADDRESS) return null
+
     const isSolverLock = 'reward' in result
 
     return {
@@ -14,7 +16,7 @@ export function resolveLock(result: any, id: string, assetDecimals: number, rewa
         timelock: Number(result.timelock),
         status: Number(result.status) as LockStatus,
         ...(isSolverLock ? {
-            reward: Number(formatUnits(BigInt(result.reward), rewardTokenDecimals ?? assetDecimals)),
+            reward: Number(result.reward),
             rewardTimelock: Number(result.rewardTimelock),
             rewardRecipient: result.rewardRecipient !== ZERO_ADDRESS ? result.rewardRecipient : undefined,
             rewardToken: result.rewardToken !== ZERO_ADDRESS ? result.rewardToken : undefined,

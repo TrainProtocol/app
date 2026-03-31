@@ -14,7 +14,7 @@ export function mapLockStatus(status: number): LockStatus {
     }
 }
 
-export function resolveLock(result: any, id: string, tokenDecimals: number, rewardTokenDecimals?: number): LockDetails | null {
+export function resolveLock(result: any, id: string, tokenDecimals: number): LockDetails | null {
     const sender = result.sender?.bits ?? null
     if (!sender || sender === ZERO_B256) return null
 
@@ -33,7 +33,7 @@ export function resolveLock(result: any, id: string, tokenDecimals: number, rewa
         timelock,
         status: mapLockStatus(Number(result.claimed ?? result.status ?? 0)),
         ...(isSolverLock ? {
-            reward: Number(formatUnits(BigInt(result.reward), rewardTokenDecimals ?? tokenDecimals)),
+            reward: Number(result.reward),
             rewardTimelock: result.rewardTimelock
                 ? DateTime.fromTai64(result.rewardTimelock).toUnixSeconds()
                 : undefined,

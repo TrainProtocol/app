@@ -147,7 +147,7 @@ export class StarknetHTLCClient extends HTLCClient {
 
             if (params.solverAddress && formatStarknetAddress(sender) !== formatStarknetAddress(params.solverAddress)) continue
 
-            const solverLock = resolveLock(result, id, params.tokenDecimals, params.rewardTokenDecimals)
+            const solverLock = resolveLock(result, id, params.tokenDecimals)
             if (!solverLock) continue
             return { ...solverLock, index: i }
         }

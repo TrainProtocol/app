@@ -83,7 +83,7 @@ describe('Starknet resolveLock', () => {
             reward: 100000000000000000n, reward_timelock: 1700001000n,
             reward_recipient: 0xaaan, reward_token: 0xbbbn,
         }, hashlock, 18)
-        expect(result!.reward).toBe(0.1)
+        expect(result!.reward).toBe(100000000000000000)
         expect(result!.rewardTimelock).toBe(1700001000)
         expect(result!.rewardRecipient).toBe('0xaaa')
         expect(result!.rewardToken).toBe('0xbbb')
@@ -97,25 +97,6 @@ describe('Starknet resolveLock', () => {
         }, hashlock, 18)
         expect(result!.rewardRecipient).toBeUndefined()
         expect(result!.rewardToken).toBeUndefined()
-    })
-
-    it('uses rewardTokenDecimals for reward formatting', () => {
-        const result = resolveLock({
-            sender: 0x123n, recipient: 0x456n, token: 0x789n,
-            amount: 1000000000000000000n, timelock: 0n, status: 1, secret: 0n,
-            reward: 500000n, reward_timelock: 0n, reward_recipient: 0xaaan, reward_token: 0xbbbn,
-        }, hashlock, 18, 6)
-        expect(result!.reward).toBe(0.5)
-    })
-
-    it('falls back to assetDecimals when rewardTokenDecimals not provided', () => {
-        const result = resolveLock({
-            sender: 0x123n, recipient: 0x456n, token: 0x789n,
-            amount: 1000000n, timelock: 0n, status: 1, secret: 0n,
-            reward: 500000n, reward_timelock: 0n, reward_recipient: 0xaaan, reward_token: 0xbbbn,
-        }, hashlock, 6)
-        expect(result!.amount).toBe(1)
-        expect(result!.reward).toBe(0.5)
     })
 
     it('does not include reward fields for user locks', () => {

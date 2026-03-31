@@ -32,7 +32,7 @@ export function mapLockStatus(cairoStatus: any): LockStatus {
     return LockStatus.Empty
 }
 
-export function resolveLock(result: any, id: string, tokenDecimals: number, rewardTokenDecimals?: number): LockDetails | null {
+export function resolveLock(result: any, id: string, tokenDecimals: number): LockDetails | null {
     const sender = '0x' + BigInt(result.sender).toString(16)
     if (sender === ZERO_ADDRESS || BigInt(result.sender) === 0n) return null
 
@@ -48,7 +48,7 @@ export function resolveLock(result: any, id: string, tokenDecimals: number, rewa
         timelock: Number(result.timelock),
         status: mapLockStatus(result.status),
         ...(isSolverLock ? {
-            reward: Number(formatUnits(BigInt(result.reward), rewardTokenDecimals ?? tokenDecimals)),
+            reward: Number(result.reward),
             rewardTimelock: Number(result.reward_timelock),
             rewardRecipient: BigInt(result.reward_recipient) !== 0n ? '0x' + BigInt(result.reward_recipient).toString(16) : undefined,
             rewardToken: BigInt(result.reward_token) !== 0n ? '0x' + BigInt(result.reward_token).toString(16) : undefined,

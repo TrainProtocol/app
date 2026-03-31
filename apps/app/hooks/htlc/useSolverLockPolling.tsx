@@ -70,7 +70,6 @@ const useSolverLockPolling = ({
                 id: hashlock,
                 trainContractAddress: contractAddress,
                 tokenDecimals: destinationAsset?.decimals,
-                rewardTokenDecimals: destinationAsset?.decimals,
                 solverAddress,
             }
 

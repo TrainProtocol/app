@@ -272,7 +272,7 @@ async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDet
         if (params.solverAddress && sender.toLowerCase() !== params.solverAddress.toLowerCase()) continue
 
         // 5. Resolve using resolveLock() from resolveLock.ts and return with index
-        const solverLock = resolveLock(result, id, params.tokenDecimals, params.rewardTokenDecimals)
+        const solverLock = resolveLock(result, id, params.tokenDecimals)
         if (!solverLock) continue
         return { ...solverLock, index: i }
     }
@@ -351,7 +351,6 @@ export function resolveLock(
     result: any,
     id: string,
     tokenDecimals: number,
-    rewardTokenDecimals?: number
 ): LockDetails | null {
     // 1. Check for empty/zero sender — return null if not found
     //    Chain-specific: compare against ZERO_ADDRESS, NATIVE_SOL_ADDRESS, ZERO_B256, status === 0, etc.
@@ -369,7 +368,7 @@ export function resolveLock(
         timelock: Number(result.timelock),
         status: /* Number cast or chain-specific mapper */,
         ...(isSolverLock ? {
-            reward: Number(formatUnits(BigInt(result.reward), rewardTokenDecimals ?? tokenDecimals)),
+            reward: Number(result.reward),
             rewardTimelock: Number(result.rewardTimelock),
             rewardRecipient: /* undefined if zero/empty */,
             rewardToken: /* undefined if zero/empty */,
@@ -384,7 +383,7 @@ export function resolveLock(
 - **Return `null`** for empty/non-existent locks (zero sender, status === 0, etc.)
 - **Map zero/empty addresses to `undefined`** — recipient, token, rewardRecipient, rewardToken
 - **Map zero secret to `undefined`**, non-zero to `bigint`
-- **Use `rewardTokenDecimals` when provided**, fall back to `tokenDecimals` (via `?? tokenDecimals`)
+- **Store reward as raw value** — `Number(result.reward)`, do not format with decimals (reward is never displayed to users)
 - **Solver lock detection** via `'reward' in result` — only spread reward fields when present
 - **Export additional helpers** when the chain needs them:
   - `parseSecret(bytes)` — Solana, Aztec (byte array → bigint | undefined)
@@ -558,11 +557,9 @@ describe('{Chain} resolveLock', () => {
     // 6. maps zero/empty secret to undefined
     // 7. formats amount with correct decimals — use 6 decimals, 1500000n → 1.5
     // 8. maps status values correctly — loop or explicit checks for all LockStatus values
-    // 9. resolves solver lock with reward fields — check reward, rewardTimelock, rewardRecipient, rewardToken
+    // 9. resolves solver lock with reward fields — reward stored as raw value (not formatted), check rewardTimelock, rewardRecipient, rewardToken
     // 10. maps empty/zero reward recipient and reward token to undefined
-    // 11. uses rewardTokenDecimals for reward formatting
-    // 12. falls back to assetDecimals when rewardTokenDecimals not provided
-    // 13. does not include reward fields for user locks — check all 4: reward, rewardTimelock, rewardRecipient, rewardToken
+    // 11. does not include reward fields for user locks — check all 4: reward, rewardTimelock, rewardRecipient, rewardToken
 })
 ```
 
@@ -613,7 +610,7 @@ const TX_TIMEOUT = 120000           // Transaction confirmation timeout (ms)
   - [ ] Handle zero/empty sender → return `null`
   - [ ] Map zero/empty addresses (recipient, token, rewardRecipient, rewardToken) → `undefined`
   - [ ] Map zero secret → `undefined`, non-zero → `bigint`
-  - [ ] Use `rewardTokenDecimals ?? tokenDecimals` for reward formatting
+  - [ ] Store reward as raw value — `Number(result.reward)`, no decimal formatting
   - [ ] Export any chain-specific helpers (`parseSecret`, `mapLockStatus`)
 - [ ] Implement `{Chain}HTLCClient extends HTLCClient` in `client.ts`
   - [ ] Import and call `resolveLock()` from `./resolveLock.js` (not as private method)

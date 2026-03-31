@@ -130,29 +130,8 @@ describe('Fuel resolveLock', () => {
             amount: 2000000000n, secret: 0n, status: 0,
             reward: 100000000n, rewardTimelock: '4611686018427387904',
         }, hashlock, 9)
-        expect(result!.reward).toBeCloseTo(0.1, 5)
+        expect(result!.reward).toBe(100000000)
         expect(result!.rewardTimelock).toBeDefined()
-    })
-
-    it('uses rewardTokenDecimals for reward formatting', () => {
-        const result = resolveLock({
-            sender: { bits: validSender },
-            srcReceiver: { bits: '0x22' },
-            amount: 1000000000000000000n, secret: 0n, status: 0,
-            reward: 500000n, rewardTimelock: '4611686018427387904',
-        }, hashlock, 18, 6)
-        expect(result!.reward).toBe(0.5)
-    })
-
-    it('falls back to assetDecimals when rewardTokenDecimals not provided', () => {
-        const result = resolveLock({
-            sender: { bits: validSender },
-            srcReceiver: { bits: '0x22' },
-            amount: 1000000n, secret: 0n, status: 0,
-            reward: 500000n, rewardTimelock: '4611686018427387904',
-        }, hashlock, 6)
-        expect(result!.amount).toBe(1)
-        expect(result!.reward).toBe(0.5)
     })
 
     it('does not include reward fields for user locks', () => {

@@ -104,7 +104,7 @@ describe('Solana resolveLock', () => {
             rewardTokenMint: PublicKey.unique(),
         }
         const result = resolveLock(data, hashlock, 9)
-        expect(result!.reward).toBeCloseTo(0.1, 5)
+        expect(result!.reward).toBe(100000000)
         expect(result!.rewardTimelock).toBe(1700001000)
         expect(result!.rewardRecipient).toBe(data.rewardRecipient.toString())
         expect(result!.rewardToken).toBe(data.rewardTokenMint.toString())
@@ -120,31 +120,6 @@ describe('Solana resolveLock', () => {
         }
         const result = resolveLock(data, hashlock, 9)
         expect(result!.rewardToken).toBeUndefined()
-    })
-
-    it('uses rewardTokenDecimals for reward formatting', () => {
-        const data = {
-            ...mockUserLock({ amount: new BN('1000000000000000000') }),
-            reward: new BN('500000'),
-            rewardTimelock: new BN('0'),
-            rewardRecipient: PublicKey.unique(),
-            rewardTokenMint: PublicKey.unique(),
-        }
-        const result = resolveLock(data, hashlock, 18, 6)
-        expect(result!.reward).toBe(0.5)
-    })
-
-    it('falls back to assetDecimals when rewardTokenDecimals not provided', () => {
-        const data = {
-            ...mockUserLock({ amount: new BN('1000000') }),
-            reward: new BN('500000'),
-            rewardTimelock: new BN('0'),
-            rewardRecipient: PublicKey.unique(),
-            rewardTokenMint: PublicKey.unique(),
-        }
-        const result = resolveLock(data, hashlock, 6)
-        expect(result!.amount).toBe(1)
-        expect(result!.reward).toBe(0.5)
     })
 
     it('does not include reward fields for user locks', () => {

@@ -23,7 +23,7 @@ export function parseSecret(secretBytes: Uint8Array | number[]): bigint | undefi
     return Array.from(secretBytes).some(b => b !== 0) ? BigInt(bytesToHex(Array.from(secretBytes))) : undefined
 }
 
-export function resolveLock(result: UserLockData | SolverLockData, id: string, tokenDecimals: number, rewardTokenDecimals?: number): LockDetails | null {
+export function resolveLock(result: UserLockData | SolverLockData, id: string, tokenDecimals: number): LockDetails | null {
     const sender = new PublicKey(result.sender).toString()
     if (sender === NATIVE_SOL_ADDRESS) return null
 
@@ -41,7 +41,7 @@ export function resolveLock(result: UserLockData | SolverLockData, id: string, t
             : undefined,
         status: Number(result.status) as LockStatus,
         ...(isSolverLock ? {
-            reward: Number(formatUnits(BigInt((result as SolverLockData).reward.toString()), rewardTokenDecimals ?? tokenDecimals)),
+            reward: Number((result as SolverLockData).reward),
             rewardTimelock: Number((result as SolverLockData).rewardTimelock),
             rewardRecipient: new PublicKey((result as SolverLockData).rewardRecipient).toString(),
             rewardToken: (result as SolverLockData).rewardTokenMint && (result as SolverLockData).rewardTokenMint.toString() !== NATIVE_SOL_ADDRESS

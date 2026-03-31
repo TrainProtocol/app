@@ -99,11 +99,10 @@ Each chain tests its `resolveLock()` (extracted to `resolveLock.ts`) with a cons
 4. Parses non-zero secret / maps zero secret to undefined
 5. Formats amount with correct decimals
 6. Maps status values correctly
-7. Resolves solver lock with reward fields
+7. Resolves solver lock with reward fields (reward stored as raw value, not formatted)
 8. Maps empty/zero reward fields to undefined
-9. Tests rewardTokenDecimals / fallback to assetDecimals
-10. Does not include reward fields for user locks
-11. recoverSwap tx hash format validation
+9. Does not include reward fields for user locks
+10. recoverSwap tx hash format validation
 
 Chain-specific extras: Starknet `mapLockStatus` (CairoCustomEnum), Fuel `mapLockStatus` (claimed vs status), Solana `parseSecret` (byte arrays), Aztec `parseSecret` (byte arrays), Solana hashlock 0x normalization.
 

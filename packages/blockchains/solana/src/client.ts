@@ -220,7 +220,7 @@ export class SolanaHTLCClient extends HTLCClient {
                 // Filter by solver address if provided
                 if (params.solverAddress && sender.toLowerCase() !== params.solverAddress.toLowerCase()) continue
 
-                const solverLock = resolveLock(result, id, params.tokenDecimals, params.rewardTokenDecimals)
+                const solverLock = resolveLock(result, id, params.tokenDecimals)
                 if (!solverLock) continue
                 return { ...solverLock, index: i }
             } catch (e) {

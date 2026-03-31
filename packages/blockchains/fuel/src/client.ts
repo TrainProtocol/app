@@ -221,7 +221,7 @@ export class FuelHTLCClient extends HTLCClient {
                     continue
                 }
 
-                const solverLock = resolveLock(result, id, params.tokenDecimals, params.rewardTokenDecimals)
+                const solverLock = resolveLock(result, id, params.tokenDecimals)
                 if (!solverLock) continue
                 return { ...solverLock, index: i }
             }

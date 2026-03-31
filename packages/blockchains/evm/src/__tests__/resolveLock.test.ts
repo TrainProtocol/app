@@ -27,6 +27,14 @@ describe('EVM resolveLock', () => {
         expect(result!.secret).toBeUndefined()
     })
 
+    it('returns null when sender is ZERO_ADDRESS', () => {
+        const result = resolveLock({
+            sender: ZERO_ADDRESS, recipient: '0xRecipient', token: '0xToken',
+            amount: 0n, timelock: 0n, status: 0n, secret: 0n,
+        }, hashlock, 18)
+        expect(result).toBeNull()
+    })
+
     it('maps ZERO_ADDRESS recipient to undefined', () => {
         const result = resolveLock({
             sender: '0xSender', recipient: ZERO_ADDRESS, token: '0xToken',
@@ -89,7 +97,7 @@ describe('EVM resolveLock', () => {
             reward: 100000000000000000n, rewardTimelock: 1700001000n,
             rewardRecipient: '0xRewardRecipient', rewardToken: '0xRewardToken',
         }, hashlock, 18)
-        expect(result!.reward).toBe(0.1)
+        expect(result!.reward).toBe(100000000000000000)
         expect(result!.rewardTimelock).toBe(1700001000)
         expect(result!.rewardRecipient).toBe('0xRewardRecipient')
         expect(result!.rewardToken).toBe('0xRewardToken')
@@ -104,25 +112,6 @@ describe('EVM resolveLock', () => {
         }, hashlock, 18)
         expect(result!.rewardRecipient).toBeUndefined()
         expect(result!.rewardToken).toBeUndefined()
-    })
-
-    it('uses rewardTokenDecimals when provided', () => {
-        const result = resolveLock({
-            sender: '0xSolver', recipient: '0xUser', token: '0xToken',
-            amount: 1000000000000000000n, timelock: 0n, status: 0n, secret: 0n,
-            reward: 500000n, rewardTimelock: 0n, rewardRecipient: '0xR', rewardToken: '0xRT',
-        }, hashlock, 18, 6)
-        expect(result!.reward).toBe(0.5)
-    })
-
-    it('falls back to assetDecimals for reward when rewardTokenDecimals not provided', () => {
-        const result = resolveLock({
-            sender: '0xSolver', recipient: '0xUser', token: '0xToken',
-            amount: 1000000n, timelock: 0n, status: 0n, secret: 0n,
-            reward: 500000n, rewardTimelock: 0n, rewardRecipient: '0xR', rewardToken: '0xRT',
-        }, hashlock, 6)
-        expect(result!.amount).toBe(1)
-        expect(result!.reward).toBe(0.5)
     })
 
     it('does not include reward fields for user locks', () => {
