@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { HTLCStatus } from '@train-protocol/sdk'
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
@@ -27,10 +27,13 @@ export function useRefund(hashlock: string | null | undefined): UseRefundResult 
     const derived = useDerivedSwapState(store, hl)
     const [isRefunding, setIsRefunding] = useState(false)
     const [error, setError] = useState<Error | null>(null)
+    const inFlight = useRef(false)
 
     const canRefund = derived.isTimelockExpired && derived.status === HTLCStatus.TimelockExpired
 
     const doRefund = useCallback(async (): Promise<string> => {
+        if (inFlight.current) throw new TrainError('Refund already in progress', TrainErrorCode.RefundFailed)
+        inFlight.current = true
         setIsRefunding(true)
         setError(null)
 
@@ -38,6 +41,7 @@ export function useRefund(hashlock: string | null | undefined): UseRefundResult 
         if (!swapConfig?.hashlock || !swapConfig?.srcContract) {
             const err = new TrainError('Cannot refund: missing required params', TrainErrorCode.RefundFailed)
             setError(err)
+            inFlight.current = false
             setIsRefunding(false)
             throw err
         }
@@ -46,6 +50,7 @@ export function useRefund(hashlock: string | null | undefined): UseRefundResult 
         if (!sourceAsset) {
             const err = new TrainError('Cannot refund: unable to resolve source asset', TrainErrorCode.RefundFailed)
             setError(err)
+            inFlight.current = false
             setIsRefunding(false)
             throw err
         }
@@ -77,6 +82,7 @@ export function useRefund(hashlock: string | null | undefined): UseRefundResult 
             config.onError?.(trainError)
             throw trainError
         } finally {
+            inFlight.current = false
             setIsRefunding(false)
         }
     }, [hl, walletCtx, store, config, derived.sourceToken])

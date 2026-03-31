@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { HTLCStatus } from '@train-protocol/sdk'
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
@@ -27,10 +27,13 @@ export function useManualClaim(hashlock: string | null | undefined): UseManualCl
     const derived = useDerivedSwapState(store, hl)
     const [isClaiming, setIsClaiming] = useState(false)
     const [error, setError] = useState<Error | null>(null)
+    const inFlight = useRef(false)
 
     const canClaim = derived.status === HTLCStatus.ManualClaimRequired
 
     const claim = useCallback(async (secret: string): Promise<string> => {
+        if (inFlight.current) throw new TrainError('Claim already in progress', TrainErrorCode.ClaimFailed)
+        inFlight.current = true
         setIsClaiming(true)
         setError(null)
 
@@ -45,6 +48,7 @@ export function useManualClaim(hashlock: string | null | undefined): UseManualCl
         if (!swapConfig?.hashlock || !swapConfig?.destinationNetwork || !destContract || !swapConfig.destinationAddress || !solverLockDetails) {
             const err = new TrainError('Cannot claim: missing required params', TrainErrorCode.ClaimFailed)
             setError(err)
+            inFlight.current = false
             setIsClaiming(false)
             throw err
         }
@@ -54,6 +58,7 @@ export function useManualClaim(hashlock: string | null | undefined): UseManualCl
         if (!sourceAsset || !destinationAsset) {
             const err = new TrainError('Cannot claim: unable to resolve assets', TrainErrorCode.ClaimFailed)
             setError(err)
+            inFlight.current = false
             setIsClaiming(false)
             throw err
         }
@@ -87,6 +92,7 @@ export function useManualClaim(hashlock: string | null | undefined): UseManualCl
             config.onError?.(trainError)
             throw trainError
         } finally {
+            inFlight.current = false
             setIsClaiming(false)
         }
     }, [hl, walletCtx, store, config, derived.sourceToken, derived.destinationToken, derived.solverLockDetails])

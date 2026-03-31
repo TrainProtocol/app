@@ -266,9 +266,13 @@ function createPersistStorage(storage?: SwapStorage): PersistStorage<Pick<SwapSt
         getItem: (name) => {
             const raw = underlying.getItem(name)
             if (raw instanceof Promise) {
-                return raw.then(v => v ? JSON.parse(v) : null)
+                return raw.then(v => {
+                    if (!v) return null
+                    try { return JSON.parse(v) } catch { return null }
+                })
             }
-            return raw ? JSON.parse(raw) : null
+            if (!raw) return null
+            try { return JSON.parse(raw) } catch { return null }
         },
         setItem: (name, value) => {
             underlying.setItem(name, JSON.stringify(value))

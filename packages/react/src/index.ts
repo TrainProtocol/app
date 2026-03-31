@@ -23,6 +23,7 @@ export { useRecoverSwap } from './hooks/useRecoverSwap'
 export { useRevealSecret } from './hooks/useRevealSecret'
 export { useRefund } from './hooks/useRefund'
 export { useManualClaim } from './hooks/useManualClaim'
+export { useSolverLockVerification } from './hooks/useSolverLockVerification'
 export { useClearSwapError } from './hooks/useClearSwapError'
 export { useUpdateSwap } from './hooks/useUpdateSwap'
 
@@ -81,6 +82,7 @@ export type {
     AggregatedQuoteResponse,
     SwapQuote,
     RecoveredSwapData,
+    VerificationResult,
 } from '@train-protocol/sdk'
 
 export {
@@ -115,6 +117,7 @@ export type { UseCreateSwapResult } from './hooks/useCreateSwap'
 export type { UseRevealSecretResult } from './hooks/useRevealSecret'
 export type { UseRefundResult } from './hooks/useRefund'
 export type { UseManualClaimResult } from './hooks/useManualClaim'
+export type { UseSolverLockVerificationResult } from './hooks/useSolverLockVerification'
 export type { UseRecoverSwapResult } from './hooks/useRecoverSwap'
 export type { UseSecretDerivationResult, PasskeyLoginOptions } from './hooks/useSecretDerivation'
 export type { UsePasskeyLoginResult } from './hooks/usePasskeyLogin'

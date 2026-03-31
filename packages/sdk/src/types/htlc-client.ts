@@ -18,17 +18,7 @@ export interface IHTLCClient extends IHTLCReadClient {
 }
 
 export abstract class HTLCClient implements IHTLCClient {
-    protected apiClient?: TrainApiClient
     protected consensusOptions: Required<ConsensusOptions> = { minQuorum: 2, batchSize: 3 }
-
-    constructor(apiClient?: TrainApiClient) {
-        this.apiClient = apiClient
-    }
-
-    revealSecret(solverId: string, hashlock: string, secret: string): Promise<void> {
-        if (!this.apiClient) throw new Error('apiClient is required for revealSecret')
-        return this.apiClient.revealSecret(solverId, hashlock, secret)
-    }
 
     async getSolverLockDetailsWithConsensus(
         params: LockParams,

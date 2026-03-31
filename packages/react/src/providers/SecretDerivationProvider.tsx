@@ -63,8 +63,9 @@ export function SecretDerivationProvider({
         logout: () => {}, hydrate: async () => {},
     }))).current
 
-    // Read loginWallet from the hook's store unconditionally (rules of hooks)
+    // Read loginWallet and hydrated from the hook's store unconditionally (rules of hooks)
     const loginWallet = useStore(hook._store ?? EMPTY_SD_STORE, (s) => s.loginWallet)
+    const hydrated = useStore(hook._store ?? EMPTY_SD_STORE, (s) => s.hydrated)
 
     // Initialize SecureStorage + hydrate store on mount
     useEffect(() => {
@@ -90,7 +91,10 @@ export function SecretDerivationProvider({
             await hook._store?.getState().hydrate(ss)
         }
 
-        init().catch(() => {})
+        init().catch(() => {
+            // Storage init failed (e.g. IndexedDB blocked) — mark hydrated so isReady doesn't hang forever
+            hook._store?.setState({ hydrated: true })
+        })
 
         return () => { cancelled = true }
     }, [persist]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -127,10 +131,10 @@ export function SecretDerivationProvider({
         hook._store?.getState().setLoginWallet(null)
     }, [originalLogout, hook._store])
 
-    // When autoCheckPasskeySupport is disabled, don't block isReady on PRF check
+    // When autoCheckPasskeySupport is disabled, skip the PRF gate but still require hydration
     const isReady = autoCheckPasskeySupport
         ? hook.isReady
-        : hook.isReady || hook.prfSupport === null
+        : hydrated
 
     const value = useMemo<SecretDerivationContextValue>(() => ({
         ...hook,
@@ -139,7 +143,7 @@ export function SecretDerivationProvider({
         logout,
         loginWallet,
         prfSupportDetails: hook.prfSupport,
-    }), [hook.derivedKey, hook.method, hook.derivationStatus, hook.prfSupport, hook.isLoggedIn, hook.derivationMessage, hook.passkeyCredentials, isReady, loginWithWallet, logout, loginWallet])
+    }), [hook.derivedKey, hook.method, hook.derivationStatus, hook.prfSupport, hook.isLoggedIn, hook.derivationMessage, hook.passkeyCredentials, hook.activePasskeyCredentialId, isReady, loginWithWallet, logout, loginWallet])
 
     return (
         <SecretDerivationContext.Provider value={value}>
