@@ -1,5 +1,5 @@
 import { sha256 } from "@noble/hashes/sha2.js";
-import { deriveKeyMaterial, IDENTITY_SALT } from './key-derivation'
+import { createProtectedKey, IDENTITY_SALT } from './key-derivation'
 import type { PasskeyCredentialStorage } from './storage'
 import { base64URLStringToBuffer, bufferToBase64URLString } from './utils'
 
@@ -71,7 +71,7 @@ export const checkPrfSupport = async (): Promise<PrfSupportResult> => {
 
 export interface RegisterPasskeyResult {
     credentialId: string;
-    key?: Uint8Array;
+    key?: CryptoKey;
 }
 
 export const registerPasskey = async (
@@ -127,8 +127,8 @@ export const registerPasskey = async (
 
     if (prfFirst) {
         const ikm = new Uint8Array(prfFirst);
-        const identitySalt = new TextEncoder().encode(IDENTITY_SALT);
-        const key = new Uint8Array(deriveKeyMaterial(ikm, identitySalt));
+        const key = await createProtectedKey(ikm);
+        ikm.fill(0);
         return { credentialId, key };
     }
 
@@ -138,7 +138,7 @@ export const registerPasskey = async (
 export const deriveKeyWithPasskey = async (
     options?: { createIfMissing?: boolean },
     storage?: PasskeyCredentialStorage
-): Promise<{ key: Uint8Array; credentialId: string }> => {
+): Promise<{ key: CryptoKey; credentialId: string }> => {
     const createIfMissing = options?.createIfMissing !== false;
 
     if (typeof window === 'undefined') throw new Error('Passkey auth must run in a browser');
@@ -172,8 +172,8 @@ export const deriveKeyWithPasskey = async (
     if (!prfFirst) throw new Error('Passkey PRF extension not available in this browser/authenticator');
 
     const ikm = new Uint8Array(prfFirst);
-    const identitySalt = new TextEncoder().encode(IDENTITY_SALT);
-    const key = new Uint8Array(deriveKeyMaterial(ikm, identitySalt));
+    const key = await createProtectedKey(ikm);
+    ikm.fill(0);
 
     return { key, credentialId };
 };

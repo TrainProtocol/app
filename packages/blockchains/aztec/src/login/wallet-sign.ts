@@ -1,4 +1,4 @@
-import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/auth'
+import { createProtectedKey } from '@train-protocol/auth'
 
 /**
  * Minimal interface for the Aztec wallet needed by the login flow.
@@ -17,7 +17,7 @@ export interface AztecWalletLike {
 export const deriveKeyFromAztecWallet = async (
     wallet: AztecWalletLike,
     address: string,
-): Promise<Uint8Array> => {
+): Promise<CryptoKey> => {
     if (!wallet) {
         throw new Error('Aztec wallet not connected')
     }
@@ -42,6 +42,5 @@ export const deriveKeyFromAztecWallet = async (
     // Serialize the witness into bytes for key derivation
     const witnessBuffer = authWitness.toBuffer()
 
-    const identitySalt = new TextEncoder().encode(IDENTITY_SALT)
-    return new Uint8Array(deriveKeyMaterial(witnessBuffer, identitySalt))
+    return createProtectedKey(witnessBuffer)
 }

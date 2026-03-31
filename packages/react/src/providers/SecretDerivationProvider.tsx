@@ -147,7 +147,7 @@ export function SecretDerivationProvider({
         ? hook.isReady
         : hydrated
 
-    // Exclude derivedKey and _store from the public context value
+    // Exclude derivedKey (CryptoKey) and _store from the public context value
     const { derivedKey: _dk, _store: _s, ...publicHook } = hook
 
     const value = useMemo<SecretDerivationContextValue>(() => ({

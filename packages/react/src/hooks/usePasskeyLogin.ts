@@ -7,8 +7,8 @@ import {
 import type { PrfSupportResult, PasskeyCredentialStorage } from '@train-protocol/auth'
 
 export interface UsePasskeyLoginResult {
-    login: () => Promise<{ key: Uint8Array; credentialId: string }>
-    register: (displayName?: string) => Promise<{ credentialId: string; key?: Uint8Array }>
+    login: () => Promise<{ key: CryptoKey; credentialId: string }>
+    register: (displayName?: string) => Promise<{ credentialId: string; key?: CryptoKey }>
     isSupported: boolean | null
     prfDetails: PrfSupportResult | null
     checkSupport: () => Promise<PrfSupportResult>

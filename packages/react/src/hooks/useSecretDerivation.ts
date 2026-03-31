@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react'
 import { useStore } from 'zustand'
 import { shallow } from 'zustand/shallow'
 import {
-    deriveSecretFromTimelock,
+    deriveSecretFromCryptoKey,
     secretToHashlock,
     bytesToHex,
 } from '@train-protocol/sdk'
@@ -58,7 +58,7 @@ export interface UseSecretDerivationResult {
     loginWithWallet: (chainNamespace: string, config?: Record<string, unknown>) => Promise<void>
     logout: () => void
 
-    deriveSecret: (nonce?: number) => { secret: string; nonce: number; hashlock: string } | null
+    deriveSecret: (nonce?: number) => Promise<{ secret: string; nonce: number; hashlock: string } | null>
 
     // Passkey management
     registerPasskey: (displayName?: string) => Promise<void>
@@ -72,8 +72,8 @@ export interface UseSecretDerivationResult {
 
 /** @internal Full result including store and derivedKey — used by SecretDerivationProvider only */
 export interface UseSecretDerivationInternalResult extends UseSecretDerivationResult {
-    /** @internal Raw key material — not exposed to consumers */
-    derivedKey: Uint8Array | null
+    /** @internal Non-extractable CryptoKey — not exposed to consumers */
+    derivedKey: CryptoKey | null
     _store: SecretDerivationStore
 }
 
@@ -113,7 +113,7 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
         store.getState().setDerivationStatus('signing')
         store.getState().setDerivationMessage('Confirm with passkey')
         try {
-            let key: Uint8Array
+            let key: CryptoKey
             let credentialId: string
 
             if (options?.forceCreate) {
@@ -183,11 +183,11 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
         store.getState().logout()
     }, [store])
 
-    const deriveSecret = useCallback((nonce?: number) => {
+    const deriveSecret = useCallback(async (nonce?: number) => {
         const currentKey = store.getState().derivedKey
         if (!currentKey) return null
         const timestamp = nonce ?? Date.now()
-        const secretBytes = deriveSecretFromTimelock(currentKey, timestamp)
+        const secretBytes = await deriveSecretFromCryptoKey(currentKey, timestamp)
         const secret = bytesToHex(Array.from(secretBytes))
         const hashlock = secretToHashlock(secret)
         return { secret, nonce: timestamp, hashlock }

@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
 import {
-    deriveSecretFromTimelock,
+    deriveSecretFromCryptoKey,
     bytesToHex,
 } from '@train-protocol/sdk'
 import type { UserLockDetails } from '@train-protocol/sdk'
@@ -121,7 +121,7 @@ export function useRevealSecret(hashlock: string | null | undefined): UseRevealS
         }
 
         try {
-            const secretBytes = deriveSecretFromTimelock(derivedKey, nonce)
+            const secretBytes = await deriveSecretFromCryptoKey(derivedKey, nonce)
             const secret = bytesToHex(Array.from(secretBytes))
 
             await apiClient.revealSecret(solverId, swapConfig.hashlock, secret)

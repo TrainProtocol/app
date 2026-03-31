@@ -390,26 +390,29 @@ The `{namespace}` is the chain identifier used in the registry (e.g., `'eip155'`
 Each chain needs a `login/wallet-sign.ts` that derives a deterministic login key:
 
 ```ts
-import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/sdk'
+import { createProtectedKey } from '@train-protocol/auth'
 
 export const deriveKeyFrom{Chain}Wallet = async (
     /* chain-specific wallet/provider */
-): Promise<Buffer> => {
+): Promise<CryptoKey> => {
     // 1. Sign a fixed message: "I am using TRAIN"
     //    Use the chain's native signing mechanism
-    const signature = /* sign the message */
+    const signature = /* sign the message — get as Uint8Array */
 
-    // 2. Derive key material from signature
-    const inputMaterial = Buffer.from(/* signature bytes */)
-    const identitySalt = Buffer.from(IDENTITY_SALT, 'utf8')
-    return Buffer.from(deriveKeyMaterial(inputMaterial, identitySalt))
+    // 2. Import signature as non-extractable CryptoKey
+    const key = await createProtectedKey(signature)
+    signature.fill(0) // zero raw bytes
+    return key
 }
 ```
 
 Rules:
 - Always use `"I am using TRAIN"` as the message content
-- Always use `IDENTITY_SALT` and `deriveKeyMaterial` from the base SDK
+- Always use `createProtectedKey` from `@train-protocol/auth` to import — do NOT run intermediate HKDF in JS memory
+- Return `CryptoKey` (non-extractable), never raw `Uint8Array`
+- Zero signature bytes after import where practical
 - Define a minimal wallet/provider interface (don't import the full chain SDK for the type)
+- See `.claude/rules/secret-derivation.md` for full security invariants
 
 ---
 
@@ -441,8 +444,8 @@ import {
     ConsensusOptions,
 } from '@train-protocol/sdk'
 
-// Key derivation
-import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/sdk'
+// Key derivation (for wallet-sign implementations)
+import { createProtectedKey } from '@train-protocol/auth'
 ```
 
 ---

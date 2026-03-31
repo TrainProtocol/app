@@ -11,7 +11,7 @@ export interface LoginWalletInfo {
     chainId?: string | number
 }
 
-const DERIVED_KEY_STORAGE_KEY = 'derived-key'
+const DERIVED_CRYPTO_KEY_STORAGE_KEY = 'derived-crypto-key'
 const AUTH_META_STORAGE_KEY = 'auth-meta'
 
 interface AuthMeta {
@@ -22,7 +22,7 @@ interface AuthMeta {
 export interface SecretDerivationStoreState {
     // Persisted state
     method: DerivationMethod | null
-    derivedKey: Uint8Array | null
+    derivedKey: CryptoKey | null
     loginWallet: LoginWalletInfo | null
 
     // Hydration state
@@ -35,7 +35,7 @@ export interface SecretDerivationStoreState {
     credentialVersion: number
 
     // Actions
-    setLogin: (method: DerivationMethod, key: Uint8Array) => void
+    setLogin: (method: DerivationMethod, key: CryptoKey) => void
     setLoginWallet: (wallet: LoginWalletInfo | null) => void
     setDerivationStatus: (status: 'idle' | 'signing') => void
     setDerivationMessage: (message: string) => void
@@ -70,7 +70,7 @@ export function createSecretDerivationStore(options?: CreateSecretDerivationStor
         setLogin: (method, key) => {
             set({ method, derivedKey: key })
             if (secureStorage) {
-                secureStorage.encryptAndStore(DERIVED_KEY_STORAGE_KEY, key).catch(() => {})
+                secureStorage.storeCryptoKey(DERIVED_CRYPTO_KEY_STORAGE_KEY, key).catch(() => {})
                 const meta: AuthMeta = { method, loginWallet: get().loginWallet }
                 secureStorage.setJSON(AUTH_META_STORAGE_KEY, meta).catch(() => {})
             }
@@ -93,11 +93,9 @@ export function createSecretDerivationStore(options?: CreateSecretDerivationStor
         bumpCredentialVersion: () => set((s) => ({ credentialVersion: s.credentialVersion + 1 })),
 
         logout: () => {
-            // Null the store reference — do NOT zeroize the Uint8Array buffer.
-            // In-flight closures (e.g. useRevealSecret mid-reveal) may still hold
-            // a reference to the same buffer; mutating it would corrupt their key
-            // and could lock user funds. GC will reclaim the buffer once no
-            // references remain.
+            // Null the store reference. The CryptoKey is non-extractable —
+            // no raw bytes to zeroize. In-flight closures holding a reference
+            // can still derive secrets until GC reclaims the key.
             set({ method: null, derivedKey: null, loginWallet: null })
             if (secureStorage) {
                 secureStorage.clear().catch(() => {})
@@ -108,7 +106,7 @@ export function createSecretDerivationStore(options?: CreateSecretDerivationStor
             secureStorage = storage
             try {
                 const [derivedKey, meta] = await Promise.all([
-                    storage.loadAndDecrypt(DERIVED_KEY_STORAGE_KEY),
+                    storage.loadCryptoKey(DERIVED_CRYPTO_KEY_STORAGE_KEY),
                     storage.getJSON<AuthMeta>(AUTH_META_STORAGE_KEY),
                 ])
 

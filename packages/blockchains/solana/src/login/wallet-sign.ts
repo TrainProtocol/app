@@ -1,4 +1,4 @@
-import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/auth'
+import { createProtectedKey } from '@train-protocol/auth'
 
 /**
  * Minimal interface for the Solana wallet needed by the login flow.
@@ -15,7 +15,7 @@ export interface SolanaWalletLike {
  */
 export const deriveKeyFromSolanaWallet = async (
     wallet: SolanaWalletLike,
-): Promise<Uint8Array> => {
+): Promise<CryptoKey> => {
     if (!wallet?.signMessage) {
         throw new Error('Solana wallet does not support message signing')
     }
@@ -23,6 +23,5 @@ export const deriveKeyFromSolanaWallet = async (
     const message = new TextEncoder().encode('I am using TRAIN')
     const signature = await wallet.signMessage(message)
 
-    const identitySalt = new TextEncoder().encode(IDENTITY_SALT)
-    return new Uint8Array(deriveKeyMaterial(signature, identitySalt))
+    return createProtectedKey(signature)
 }

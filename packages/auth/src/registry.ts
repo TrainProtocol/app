@@ -8,14 +8,14 @@ type WalletSignConfigFor<N extends string> = N extends keyof WalletSignConfigMap
     ? WalletSignConfigMap[N]
     : Record<string, unknown>
 
-type WalletSignFactory = (config: any) => Promise<Uint8Array>
+type WalletSignFactory = (config: any) => Promise<CryptoKey>
 
 export class TrainAuth {
     private walletSignRegistry = new Map<string, WalletSignFactory>()
 
     registerWalletSign<N extends string>(
         providerName: N,
-        factory: (config: WalletSignConfigFor<N>) => Promise<Uint8Array>,
+        factory: (config: WalletSignConfigFor<N>) => Promise<CryptoKey>,
     ): void {
         this.walletSignRegistry.set(providerName, factory)
     }
@@ -23,7 +23,7 @@ export class TrainAuth {
     deriveKeyFromWallet<N extends string>(
         providerName: N,
         config: WalletSignConfigFor<N>,
-    ): Promise<Uint8Array> {
+    ): Promise<CryptoKey> {
         const factory = this.walletSignRegistry.get(providerName)
         if (!factory) {
             throw new Error(
@@ -44,7 +44,7 @@ export const defaultTrainAuth = new TrainAuth()
 
 export function registerWalletSign<N extends string>(
     providerName: N,
-    factory: (config: WalletSignConfigFor<N>) => Promise<Uint8Array>,
+    factory: (config: WalletSignConfigFor<N>) => Promise<CryptoKey>,
 ): void {
     return defaultTrainAuth.registerWalletSign(providerName, factory)
 }
@@ -52,7 +52,7 @@ export function registerWalletSign<N extends string>(
 export function deriveKeyFromWallet<N extends string>(
     providerName: N,
     config: WalletSignConfigFor<N>,
-): Promise<Uint8Array> {
+): Promise<CryptoKey> {
     return defaultTrainAuth.deriveKeyFromWallet(providerName, config)
 }
 

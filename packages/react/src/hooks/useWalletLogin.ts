@@ -2,7 +2,7 @@ import { useCallback } from 'react'
 import { deriveKeyFromWallet } from '@train-protocol/auth'
 
 export interface UseWalletLoginResult {
-    login: (providerName: string, config: Record<string, unknown>) => Promise<Uint8Array>
+    login: (providerName: string, config: Record<string, unknown>) => Promise<CryptoKey>
 }
 
 export function useWalletLogin(): UseWalletLoginResult {
