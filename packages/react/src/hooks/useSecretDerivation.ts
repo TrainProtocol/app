@@ -40,6 +40,8 @@ export interface PasskeyLoginOptions {
 }
 
 export interface UseSecretDerivationResult {
+    /** True once all async initialization is complete (passkey support detection, store hydration). Safe to render UI. */
+    isReady: boolean
     method: DerivationMethod | null
     isLoggedIn: boolean
     derivedKey: Uint8Array | null
@@ -85,12 +87,13 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
     const store = storeRef.current
 
     // Single store subscription with shallow equality (consolidates 6 separate subscriptions)
-    const { method, derivedKey, derivationStatus, derivationMessage, prfSupport, credentialVersion } = useStore(store, (s) => ({
+    const { method, derivedKey, derivationStatus, derivationMessage, prfSupport, hydrated, credentialVersion } = useStore(store, (s) => ({
         method: s.method,
         derivedKey: s.derivedKey,
         derivationStatus: s.derivationStatus,
         derivationMessage: s.derivationMessage,
         prfSupport: s.prfSupport,
+        hydrated: s.hydrated,
         credentialVersion: s.credentialVersion,
     }), shallow)
 
@@ -209,7 +212,11 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
         return result
     }, [store])
 
+    // isReady: PRF support detected AND store hydrated (hydrated is true by default when persist is off)
+    const isReady = prfSupport !== null && hydrated
+
     return {
+        isReady,
         method,
         isLoggedIn,
         derivedKey,

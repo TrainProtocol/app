@@ -127,13 +127,19 @@ export function SecretDerivationProvider({
         hook._store?.getState().setLoginWallet(null)
     }, [originalLogout, hook._store])
 
+    // When autoCheckPasskeySupport is disabled, don't block isReady on PRF check
+    const isReady = autoCheckPasskeySupport
+        ? hook.isReady
+        : hook.isReady || hook.prfSupport === null
+
     const value = useMemo<SecretDerivationContextValue>(() => ({
         ...hook,
+        isReady,
         loginWithWallet,
         logout,
         loginWallet,
         prfSupportDetails: hook.prfSupport,
-    }), [hook.derivedKey, hook.method, hook.derivationStatus, hook.prfSupport, hook.isLoggedIn, hook.derivationMessage, hook.passkeyCredentials, loginWithWallet, logout, loginWallet])
+    }), [hook.derivedKey, hook.method, hook.derivationStatus, hook.prfSupport, hook.isLoggedIn, hook.derivationMessage, hook.passkeyCredentials, isReady, loginWithWallet, logout, loginWallet])
 
     return (
         <SecretDerivationContext.Provider value={value}>
