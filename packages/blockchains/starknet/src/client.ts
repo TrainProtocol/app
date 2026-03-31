@@ -135,7 +135,7 @@ export class StarknetHTLCClient extends HTLCClient {
                 try {
                     const eventData = await this.findUserDataFromLogs(txId, trainContractAddress)
                     userData = eventData.userData
-                    if (eventData.dstAmount != null) {
+                    if (eventData.dstAmount != null && params.destinationTokenDecimals) {
                         dstAmount = Number(formatUnits(eventData.dstAmount, params.destinationTokenDecimals))
                     }
                 } catch (e) {

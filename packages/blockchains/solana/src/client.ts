@@ -180,7 +180,7 @@ export class SolanaHTLCClient extends HTLCClient {
 
             const details = resolveLock(result, id, params.tokenDecimals)
             if (!details) return null
-            const dstAmount = rawDstAmount != null
+            const dstAmount = (rawDstAmount != null && params.destinationTokenDecimals)
                 ? Number(formatUnits(rawDstAmount, params.destinationTokenDecimals))
                 : undefined
             return { ...details, userData, dstAmount }

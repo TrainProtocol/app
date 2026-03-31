@@ -239,7 +239,7 @@ export class AztecHTLCClient extends HTLCClient {
         if (txId) {
             const eventData = await this.findUserDataFromLogs(txId, id)
             userData = eventData.userData
-            if (eventData.dstAmount != null) {
+            if (eventData.dstAmount != null && params.destinationTokenDecimals) {
                 dstAmount = Number(formatUnits(eventData.dstAmount, params.destinationTokenDecimals))
             }
         }

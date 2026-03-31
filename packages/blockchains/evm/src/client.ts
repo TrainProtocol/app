@@ -158,7 +158,7 @@ export class EvmHTLCClient extends HTLCClient {
                     if (lockEvent?.userData && lockEvent.userData !== '0x') {
                         userData = BigInt(lockEvent.userData as string).toString()
                     }
-                    if (lockEvent?.dstAmount) {
+                    if (lockEvent?.dstAmount && params.destinationTokenDecimals) {
                         dstAmount = Number(formatUnits(BigInt(lockEvent.dstAmount as string), params.destinationTokenDecimals))
                     }
          

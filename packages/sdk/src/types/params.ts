@@ -33,7 +33,7 @@ export type LockParams = {
     chainId: string | null,
     trainContractAddress: string,
     tokenDecimals: number,
-    destinationTokenDecimals: number,
+    destinationTokenDecimals?: number,
     solverAddress?: string,
 }
 
