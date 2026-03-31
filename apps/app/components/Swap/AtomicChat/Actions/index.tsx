@@ -6,7 +6,7 @@ import { UserRefundAction, UserLockAction } from "./UserActions";
 import TransactionMessages from "@/components/Swap/messages/TransactionMessages";
 import WalletMessage from "@/components/Swap/messages/Message";
 import DestinationWalletWrapper from "./DestinationWalletWrapper";
-import type { SwapQuote } from "@train-protocol/react";
+import { SwapQuote, TrainErrorCode } from "@train-protocol/react";
 import SubmitButton from "@/components/buttons/submitButton";
 import { ExternalLink, Home } from "lucide-react";
 import { useGoHome } from "@/hooks/useGoHome";
@@ -51,7 +51,7 @@ export const Actions: FC<ActionsProps> = ({ quote, solverId, type }) => {
 type ResolveActionProps = {
     commitStatus: HTLCStatus
     error: string | undefined
-    errorCode?: string
+    errorCode?: TrainErrorCode
     quote?: SwapQuote
     solverId?: string
     type: SwapViewType
@@ -61,7 +61,7 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode,
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
     const goHome = useGoHome()
 
-    if (error && errorCode === 'TX_FAILED') {
+    if (error && errorCode === TrainErrorCode.UserLockTransactionFailed) {
         const handleRetry = () => {
             setActiveHashlock(null)
             if (type === 'widget') {
@@ -192,21 +192,21 @@ const TerminalActions: FC<{ variant: 'success' | 'refund'; type: SwapViewType }>
     )
 }
 
-const TransactionMessage: FC<{ error: string | undefined, errorCode?: string }> = ({ error, errorCode }) => {
+const TransactionMessage: FC<{ error: string | undefined, errorCode?: TrainErrorCode }> = ({ error, errorCode }) => {
     if (error === "An error occurred (USER_REFUSED_OP)" || error === "Execute failed" || error?.toLowerCase()?.includes('denied') || error?.toLowerCase()?.includes('user rejected')) {
         return <TransactionMessages.TransactionRejectedMessage />
     }
     if (error?.includes('insufficient funds')) {
         return <TransactionMessages.InsufficientFundsMessage />
     }
-    if (error?.includes('verification failed') || error?.includes('VERIFICATION_FAILED')) {
-        return <WalletMessage status="error" header="Verification failed" details={error} />
+    if (error?.includes('verification failed') || error?.includes('VERIFICATION_FAILED') || errorCode === TrainErrorCode.VerificationFailed) {
+        return <WalletMessage status="error" header="Verification failed" details={error || "Verification of the solver lock transaction has failed. Please do not reveal you seceret untill you have verified the transaction."} />
     }
-    if (error?.includes('Cannot reveal') || error?.includes('REVEAL_FAILED')) {
-        return <WalletMessage status="error" header="Reveal failed" details={error} />
+    if (error?.includes('Cannot reveal') || error?.includes('REVEAL_FAILED') || errorCode === TrainErrorCode.RevealFailed) {
+        return <WalletMessage status="error" header="Reveal failed" details={error || "Secret reveal failed"} />
     }
 
-    if (errorCode === 'TX_FAILED') {
+    if (errorCode === TrainErrorCode.UserLockTransactionFailed) {
         return <></>
     }
     if (error) {
