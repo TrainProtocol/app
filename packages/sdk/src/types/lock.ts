@@ -11,6 +11,7 @@ export type LockDetails = {
     recipient?: string,
     timelock: number,
     amount: number,
+    dstAmount?: number,
     hashlock: string | undefined,
     secret: bigint | undefined,
     ownership?: string,
@@ -21,8 +22,7 @@ export type LockDetails = {
     status?: LockStatus,
     rewardRecipient?: string,
     rewardToken?: string,
-    userData?: string,
-    blockTimestamp?: number,
+    userData?: string
 }
 
 export enum TransactionStatus {
@@ -35,5 +35,4 @@ export type TransactionInfo = {
     hash: string
     status: TransactionStatus
     blockNumber?: string
-    blockTimestamp?: number
 }

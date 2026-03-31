@@ -318,7 +318,6 @@ async getTransaction(txHash: string): Promise<TransactionInfo | null> {
             hash: txHash,
             status,                    // Required
             blockNumber: '...',        // Optional — string
-            blockTimestamp: 123456,     // Optional — ms since epoch (only if cheap to obtain)
         }
     } catch {
         return null
@@ -330,8 +329,6 @@ Rules:
 - **Always wrap in try/catch returning `null`** — this runs in a polling loop; thrown errors cause noisy console output
 - **Must distinguish all three statuses** — `Pending`, `Confirmed`, `Failed`. Binary mappings (e.g., only Failed/Confirmed) cause incorrect early signals
 - **Must be non-blocking** — do not use methods that wait for finalization (e.g., Fuel's `waitForResult`). If the chain SDK has no non-blocking alternative, document the limitation
-- **Avoid unnecessary RPC calls** — do not fetch block data for `blockTimestamp` if the polling consumer only needs `status`. Keep it minimal
-- **Do not fetch `blockTimestamp` by default** — only include it if the chain returns it alongside the receipt at no extra cost
 
 ---
 

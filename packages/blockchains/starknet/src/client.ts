@@ -11,6 +11,7 @@ import {
     TransactionStatus,
     HTLCClient,
     parseUnits,
+    formatUnits,
 } from '@train-protocol/sdk'
 import type { StarknetHTLCClientConfig, StarknetSigner } from './types.js'
 import htlcAbi from './abis/STARKNET_HTLC.json' with { type: 'json' }
@@ -119,12 +120,30 @@ export class StarknetHTLCClient extends HTLCClient {
     // ── Read Operations ────────────────────────────────────────────────
 
     async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
-        const { id, trainContractAddress } = params
+        const { id, trainContractAddress, txId } = params
         const contract = this.createContract(trainContractAddress, this.provider)
 
         try {
             const result = await contract.get_user_lock(cairo.uint256(BigInt(id)))
-            return resolveLock(result, id, params.tokenDecimals)
+            const details = resolveLock(result, id, params.tokenDecimals)
+            if (!details) return null
+
+            let userData: string | undefined
+            let dstAmount: number | undefined
+
+            if (txId) {
+                try {
+                    const eventData = await this.findUserDataFromLogs(txId, trainContractAddress)
+                    userData = eventData.userData
+                    if (eventData.dstAmount != null) {
+                        dstAmount = Number(formatUnits(eventData.dstAmount, params.destinationTokenDecimals))
+                    }
+                } catch (e) {
+                    console.error('Error fetching event data from Starknet receipt:', e)
+                }
+            }
+
+            return { ...details, userData, dstAmount }
         } catch (error) {
             console.error('Error in getUserLockDetails:', error)
             return null
@@ -235,4 +254,27 @@ export class StarknetHTLCClient extends HTLCClient {
         return new Contract({ abi: htlcAbi, address, providerOrAccount })
     }
 
+    private async findUserDataFromLogs(
+        txHash: string,
+        contractAddress: string,
+    ): Promise<{ userData?: string; dstAmount?: bigint }> {
+        const receipt = await this.provider.getTransactionReceipt(txHash)
+        if (!receipt || !('events' in receipt)) return {}
+
+        const contract = this.createContract(contractAddress, this.provider)
+        const parsed = contract.parseEvents(receipt)
+
+        const userLockedEntry = parsed.find(
+            ev => Object.keys(ev).some(k => k.includes('UserLocked'))
+        )
+        if (!userLockedEntry) return {}
+
+        const eventKey = Object.keys(userLockedEntry).find(k => k.includes('UserLocked'))!
+        const event = userLockedEntry[eventKey] as Record<string, any>
+
+        const userData = event.user_data != null ? String(event.user_data) : undefined
+        const dstAmount = event.dst_amount != null ? BigInt(event.dst_amount) : undefined
+
+        return { userData, dstAmount }
+    }
 }

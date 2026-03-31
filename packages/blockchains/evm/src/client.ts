@@ -11,6 +11,7 @@ import {
     TransactionStatus,
     HTLCClient,
     parseUnits,
+    formatUnits,
     toHex32
 } from '@train-protocol/sdk'
 import { htlcFunctions, htlcEvents, erc20Functions } from './abi.js'
@@ -147,7 +148,7 @@ export class EvmHTLCClient extends HTLCClient {
 
         const lockExists = result.sender !== ZERO_ADDRESS
         let userData: string | undefined
-        let blockTimestamp: number | undefined
+        let dstAmount: number | undefined
 
         if (lockExists && txId) {
             try {
@@ -157,11 +158,10 @@ export class EvmHTLCClient extends HTLCClient {
                     if (lockEvent?.userData && lockEvent.userData !== '0x') {
                         userData = BigInt(lockEvent.userData as string).toString()
                     }
-
-                    const block = await this.rpc.getBlockByNumber(receipt.blockNumber)
-                    if (block) {
-                        blockTimestamp = Number(BigInt(block.timestamp)) * 1000
+                    if (lockEvent?.dstAmount) {
+                        dstAmount = Number(formatUnits(BigInt(lockEvent.dstAmount as string), params.destinationTokenDecimals))
                     }
+         
                 }
             } catch (e) {
                 console.error('Error fetching userData from tx receipt:', e)
@@ -170,7 +170,7 @@ export class EvmHTLCClient extends HTLCClient {
 
         const details = resolveLock(result, id, params.tokenDecimals)
         if (!details) return null
-        return { ...details, userData, blockTimestamp }
+        return { ...details, userData, dstAmount }
     }
 
     async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {

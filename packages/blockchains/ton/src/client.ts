@@ -334,7 +334,6 @@ export class TonHTLCClient extends HTLCClient {
                         ? TransactionStatus.Confirmed
                         : TransactionStatus.Pending,
                 blockNumber: tx.block_ref?.seqno?.toString(),
-                blockTimestamp: tx.now ? tx.now * 1000 : undefined,
             }
         } catch {
             return null

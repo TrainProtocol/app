@@ -12,7 +12,7 @@ import {
     RecoveredSwapData,
     TransactionInfo,
     TransactionStatus,
-    
+    formatUnits,
 } from '@train-protocol/sdk'
 import { NATIVE_SOL_ADDRESS } from './constants.js'
 import type { SolanaHTLCClientConfig, SolanaSigner } from './types.js'
@@ -165,7 +165,6 @@ export class SolanaHTLCClient extends HTLCClient {
                         hashlock: `0x${id.replace('0x', '')}`,
                         amount: 0, timelock: 0, secret: undefined,
                         status: name === 'userrefunded' ? LockStatus.Refunded : LockStatus.Redeemed,
-                        blockTimestamp: closedTx?.blockTime ? closedTx.blockTime * 1000 : undefined,
                     }
                 }
             }
@@ -177,11 +176,14 @@ export class SolanaHTLCClient extends HTLCClient {
 
             if (!result) return null
 
-            const { userData, blockTimestamp } = params.txId ? await this.findUserDataFromLogs(params.txId, id, program) : {}
+            const { userData, dstAmount: rawDstAmount } = params.txId ? await this.findUserDataFromLogs(params.txId, id, program) : {}
 
             const details = resolveLock(result, id, params.tokenDecimals)
             if (!details) return null
-            return { ...details, userData, blockTimestamp }
+            const dstAmount = rawDstAmount != null
+                ? Number(formatUnits(rawDstAmount, params.destinationTokenDecimals))
+                : undefined
+            return { ...details, userData, dstAmount }
         } catch (e) {
             console.error('[SolanaHTLC][getUserLockDetails] fetch failed', e)
             return null
@@ -330,7 +332,6 @@ export class SolanaHTLCClient extends HTLCClient {
             hash: txHash,
             status: tx.meta?.err ? TransactionStatus.Failed : TransactionStatus.Confirmed,
             blockNumber: tx.slot?.toString(),
-            blockTimestamp: tx.blockTime ? tx.blockTime * 1000 : undefined,
         }
     }
 
@@ -373,7 +374,7 @@ export class SolanaHTLCClient extends HTLCClient {
         txId: string,
         id: string,
         program: Program
-    ): Promise<{ userData?: string; blockTimestamp?: number }> {
+    ): Promise<{ userData?: string; dstAmount?: bigint }> {
         try {
             let tx = await this.connection.getTransaction(txId, {
                 commitment: 'confirmed',
@@ -388,7 +389,8 @@ export class SolanaHTLCClient extends HTLCClient {
             }
             if (!tx) return {}
 
-            const blockTimestamp = tx.blockTime ? tx.blockTime * 1000 : undefined
+            let userData: string | undefined
+            let dstAmount: bigint | undefined
             const logs = tx.meta?.logMessages ?? []
 
             for (const event of this.parseLogEvents(logs, program)) {
@@ -399,14 +401,15 @@ export class SolanaHTLCClient extends HTLCClient {
                 if (eventHashlock.toLowerCase() !== `0x${id.replace('0x', '')}`.toLowerCase()) continue
 
                 const userDataBytes: number[] = Array.from((event.data as Record<string, unknown>).user_data as Buffer ?? [])
-                const userData = userDataBytes.length > 0
+                userData = userDataBytes.length > 0
                     ? Buffer.from(userDataBytes).toString('utf8').replace(/\0/g, '').trim() || undefined
                     : undefined
 
-                return { userData, blockTimestamp }
+                const rawDstAmount = (event.data as Record<string, unknown>).dst_amount
+                dstAmount = rawDstAmount ? BigInt(rawDstAmount.toString()) : undefined
             }
 
-            return { blockTimestamp }
+            return { userData, dstAmount }
         } catch (e) {
             console.error('Error fetching userData from Solana logs:', e)
             return {}

@@ -12,6 +12,7 @@ interface UseUserLockPollingParams {
     hashlock: string | undefined
     contractAddress: string | undefined
     sourceAsset: Token | undefined
+    destinationAsset: Token | undefined
     enabled?: boolean
     client: IHTLCClient | undefined
     txId?: string
@@ -24,6 +25,7 @@ const useUserLockPolling = ({
     hashlock,
     contractAddress,
     sourceAsset,
+    destinationAsset,
     enabled = true,
     client,
     txId,
@@ -50,7 +52,8 @@ const useUserLockPolling = ({
                 id: hashlock,
                 trainContractAddress: contractAddress,
                 txId,
-                tokenDecimals: sourceAsset?.decimals
+                tokenDecimals: sourceAsset?.decimals,
+                destinationTokenDecimals: destinationAsset?.decimals
             }
 
             try {

@@ -16,7 +16,6 @@ import {
     type LockDetails,
     type AtomicResult,
     type RecoveredSwapData,
-    type LockStatus,
     type TransactionInfo,
     TransactionStatus,
     HTLCClient,
@@ -24,8 +23,8 @@ import {
 import { TokenContract } from './artifacts/Token'
 import { TrainContract } from './artifacts/Train'
 import type { AztecHTLCClientConfig, AztecSigner } from './types'
-import { bytesToHex, hexToBytes, parseUnits } from '@train-protocol/sdk'
-import { resolveLock, parseSecret } from './resolveLock'
+import { bytesToHex, hexToBytes, parseUnits, formatUnits } from '@train-protocol/sdk'
+import { resolveLock } from './resolveLock'
 
 const TX_TIMEOUT = 120000
 
@@ -236,11 +235,16 @@ export class AztecHTLCClient extends HTLCClient {
         if (!details) return null
 
         let userData: string | undefined
+        let dstAmount: number | undefined
         if (txId) {
-            userData = await this.findUserDataFromLogs(txId, id)
+            const eventData = await this.findUserDataFromLogs(txId, id)
+            userData = eventData.userData
+            if (eventData.dstAmount != null) {
+                dstAmount = Number(formatUnits(eventData.dstAmount, params.destinationTokenDecimals))
+            }
         }
 
-        return { ...details, userData }
+        return { ...details, userData, dstAmount }
     }
 
     async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
@@ -399,7 +403,7 @@ export class AztecHTLCClient extends HTLCClient {
         await wallet.registerContract(fpcInstance, SponsoredFPCContract.artifact)
     }
 
-    private async findUserDataFromLogs(txHash: string, hashlock: string): Promise<string | undefined> {
+    private async findUserDataFromLogs(txHash: string, hashlock: string): Promise<{ userData?: string; dstAmount?: bigint }> {
         try {
             const node = this.getNode()
             const { logs } = await node.getPublicLogs({
@@ -425,17 +429,21 @@ export class AztecHTLCClient extends HTLCClient {
                 if (decodedHashlock.toLowerCase() !== hashlock.toLowerCase()) continue
 
                 const userDataBytes: bigint[] = decoded.userData
-                if (!userDataBytes) return undefined
+                const userData = userDataBytes
+                    ? Buffer.from(userDataBytes.map(Number))
+                        .toString('utf8')
+                        .replace(/\0/g, '')
+                        .trim() || undefined
+                    : undefined
 
-                return Buffer.from(userDataBytes.map(Number))
-                    .toString('utf8')
-                    .replace(/\0/g, '')
-                    .trim() || undefined
+                const dstAmount = decoded.dst_amount != null ? BigInt(decoded.dst_amount) : undefined
+
+                return { userData, dstAmount }
             }
         } catch (e) {
             console.error('Error fetching userData from Aztec logs:', e)
         }
-        return undefined
+        return {}
     }
 
     private strToBytes(str: string, length: number): number[] {

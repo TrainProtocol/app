@@ -210,9 +210,6 @@ export function AtomicProvider({ children }) {
             updateHTLCState(hashlock, { sourceDetails: details })
             const stored = useSwapStore.getState().swaps[hashlock]
             const updates: Partial<SwapData> = {}
-            if (details.blockTimestamp && !stored?.createdAt) {
-                updates.createdAt = details.blockTimestamp
-            }
             if (details.timelock && !stored?.timelock) {
                 updates.timelock = details.timelock
             }
@@ -235,6 +232,7 @@ export function AtomicProvider({ children }) {
         hashlock,
         contractAddress: srcAtomicContract,
         sourceAsset: source_token,
+        destinationAsset: destination_token,
         enabled: !!hashlock && !isTerminal,
         client: sourceClient,
         txId: lockTxId as string | undefined,
