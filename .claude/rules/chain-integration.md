@@ -5,7 +5,7 @@ paths:
 
 # Chain SDK Integration Rules
 
-Rules and patterns for adding new blockchain HTLC client SDKs. Derived from `evm`, `starknet`, `solana`, and `aztec` implementations.
+Rules and patterns for adding new blockchain HTLC client SDKs. Derived from `evm`, `starknet`, `solana`, `ton`, `aztec`, and `fuel` implementations.
 
 ---
 
@@ -15,14 +15,16 @@ Rules and patterns for adding new blockchain HTLC client SDKs. Derived from `evm
 packages/blockchains/{chain}/
 ├── src/
 │   ├── client.ts           # Main HTLC client class
+│   ├── resolveLock.ts      # Lock resolution logic (pure functions, exported)
 │   ├── index.ts            # Registration + public exports
 │   ├── types.ts            # Signer interface + client config type
+│   ├── constants.ts        # Chain-specific constants (ZERO_ADDRESS, etc.)
 │   ├── login/
 │   │   ├── index.ts        # Re-exports from wallet-sign.ts
 │   │   └── wallet-sign.ts  # Key derivation for this chain's wallet
 │   ├── abis/ or artifacts/ # Contract ABI/artifacts (chain-specific format)
 │   └── __tests__/
-│       └── register{Chain}Sdk.test.ts
+│       └── resolveLock.test.ts
 ├── package.json
 ├── tsconfig.json
 └── vitest.config.ts
@@ -127,6 +129,7 @@ export type {Chain}HTLCClientConfig = BaseHTLCClientConfig & {
 
 ```ts
 import { HTLCClient } from '@train-protocol/sdk'
+import { resolveLock } from './resolveLock.js'
 
 export class {Chain}HTLCClient extends HTLCClient {
     private rpc: ...             // RPC/node client for read operations
@@ -159,9 +162,11 @@ export class {Chain}HTLCClient extends HTLCClient {
     // ── Private Helpers ────────────────────────────────────────────────
 
     private requireSigner(): {Chain}Signer { ... }
-    // ... chain-specific helpers
+    // ... chain-specific helpers (but NOT resolveLock — see resolveLock.ts)
 }
 ```
+
+**Important:** Lock resolution logic (`resolveLock`, `parseSecret`, `mapLockStatus`, etc.) must be in `resolveLock.ts` as exported pure functions, NOT as private methods on the client class. The client imports and calls them. This keeps the logic independently testable without mocking RPC.
 
 ### Ordering rules
 
@@ -266,14 +271,10 @@ async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDet
         // 4. Optional: filter by solver address (case-insensitive)
         if (params.solverAddress && sender.toLowerCase() !== params.solverAddress.toLowerCase()) continue
 
-        // 5. Return first matching lock (include index in result)
-        return {
-            hashlock: id,
-            amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
-            // ... all other fields
-            status: Number(result.status) as LockStatus,
-            index: i,  // Include the index
-        }
+        // 5. Resolve using resolveLock() from resolveLock.ts and return with index
+        const solverLock = resolveLock(result, id, params.tokenDecimals, params.rewardTokenDecimals)
+        if (!solverLock) continue
+        return { ...solverLock, index: i }
     }
 
     return null
@@ -334,7 +335,72 @@ Rules:
 
 ---
 
-## 7. index.ts — Registration & Exports
+## 7. resolveLock.ts — Lock Resolution (Pure Functions)
+
+Lock resolution logic **must** be in a separate `resolveLock.ts` file as exported functions — not as private methods on the client class. This enables direct unit testing without mocking RPC.
+
+### Required exports
+
+Every chain must export a `resolveLock` function. Additional helpers (`parseSecret`, `mapLockStatus`) are exported when the chain needs them.
+
+```ts
+import { formatUnits, type LockDetails, LockStatus } from '@train-protocol/sdk'
+import { ZERO_ADDRESS } from './constants.js'  // chain-specific zero check
+
+export function resolveLock(
+    result: any,
+    id: string,
+    tokenDecimals: number,
+    rewardTokenDecimals?: number
+): LockDetails | null {
+    // 1. Check for empty/zero sender — return null if not found
+    //    Chain-specific: compare against ZERO_ADDRESS, NATIVE_SOL_ADDRESS, ZERO_B256, status === 0, etc.
+
+    // 2. Detect solver lock: const isSolverLock = 'reward' in result
+
+    // 3. Return LockDetails with all fields mapped:
+    return {
+        hashlock: id,
+        amount: Number(formatUnits(BigInt(result.amount), tokenDecimals)),
+        secret: /* non-zero → BigInt, zero/empty → undefined */,
+        sender: /* chain-specific address format */,
+        recipient: /* undefined if zero/empty */,
+        token: /* undefined if zero/empty (native token) */,
+        timelock: Number(result.timelock),
+        status: /* Number cast or chain-specific mapper */,
+        ...(isSolverLock ? {
+            reward: Number(formatUnits(BigInt(result.reward), rewardTokenDecimals ?? tokenDecimals)),
+            rewardTimelock: Number(result.rewardTimelock),
+            rewardRecipient: /* undefined if zero/empty */,
+            rewardToken: /* undefined if zero/empty */,
+        } : {}),
+    }
+}
+```
+
+### Rules
+
+- **Pure function** — no RPC calls, no side effects, no `this`
+- **Return `null`** for empty/non-existent locks (zero sender, status === 0, etc.)
+- **Map zero/empty addresses to `undefined`** — recipient, token, rewardRecipient, rewardToken
+- **Map zero secret to `undefined`**, non-zero to `bigint`
+- **Use `rewardTokenDecimals` when provided**, fall back to `tokenDecimals` (via `?? tokenDecimals`)
+- **Solver lock detection** via `'reward' in result` — only spread reward fields when present
+- **Export additional helpers** when the chain needs them:
+  - `parseSecret(bytes)` — Solana, Aztec (byte array → bigint | undefined)
+  - `mapLockStatus(status)` — Starknet (CairoCustomEnum), Fuel (claimed vs status field)
+  - Constants like `ZERO_B256` — Fuel
+
+### Naming convention
+
+The file is always `resolveLock.ts`. The primary export is always `resolveLock`. Client imports it as:
+```ts
+import { resolveLock } from './resolveLock.js'
+```
+
+---
+
+## 8. index.ts — Registration & Exports
 
 Because `types.ts` augments `HTLCClientConfigMap` and `WalletSignConfigMap`, the factory callbacks receive fully-typed configs — no `as` casts needed.
 
@@ -378,7 +444,7 @@ The `{namespace}` is the chain identifier used in the registry (e.g., `'eip155'`
 
 ---
 
-## 8. Login / Key Derivation
+## 9. Login / Key Derivation
 
 Each chain needs a `login/wallet-sign.ts` that derives a deterministic login key:
 
@@ -406,7 +472,7 @@ Rules:
 
 ---
 
-## 9. Shared SDK Imports
+## 10. Shared SDK Imports
 
 Always import these utilities from `@train-protocol/sdk` instead of reimplementing:
 
@@ -440,7 +506,7 @@ import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/sdk'
 
 ---
 
-## 10. Error Handling
+## 11. Error Handling
 
 | Context | Pattern |
 |---------|---------|
@@ -452,46 +518,86 @@ import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/sdk'
 
 ---
 
-## 11. Testing
+## 12. Testing
 
-Minimal test in `__tests__/register{Chain}Sdk.test.ts`:
+### vitest.config.ts
+
+Every blockchain package must alias `@train-protocol/sdk` to the SDK source to avoid ESM directory import issues:
 
 ```ts
-import { describe, it, expect, beforeEach } from 'vitest'
-import { getRegisteredNamespaces, createHTLCClient } from '@train-protocol/sdk'
-import { register{Chain}Sdk } from '../index'
+import { defineConfig } from 'vitest/config'
+import path from 'path'
 
-describe('register{Chain}Sdk', () => {
-    beforeEach(() => { register{Chain}Sdk() })
+export default defineConfig({
+    resolve: {
+        alias: {
+            '@train-protocol/sdk': path.resolve(__dirname, '../../sdk/src/index.ts'),
+        },
+    },
+    test: {
+        include: ['src/__tests__/**/*.test.ts'],
+    },
+})
+```
 
-    it('registers the {namespace} namespace', () => {
-        expect(getRegisteredNamespaces()).toContain('{namespace}')
-    })
+### resolveLock.test.ts — Required test structure
 
-    it('creates a client with required methods', () => {
-        const client = createHTLCClient('{namespace}', {
-            rpcUrl: 'https://...',
-            apiClient: { /* mock */ } as any,
-        })
-        expect(typeof client.getUserLockDetails).toBe('function')
-        expect(typeof client.getSolverLockDetails).toBe('function')
-        expect(typeof client.getSolverLockDetailsWithConsensus).toBe('function')
-        expect(typeof client.userLock).toBe('function')
-        expect(typeof client.refund).toBe('function')
-        expect(typeof client.redeemSolver).toBe('function')
-    })
+Every chain must have `__tests__/resolveLock.test.ts` that imports directly from `../resolveLock` (no mocking, no client instantiation). Tests follow a consistent structure — include all that apply to the chain:
+
+```ts
+import { describe, it, expect } from 'vitest'
+import { LockStatus } from '@train-protocol/sdk'
+import { resolveLock } from '../resolveLock'
+
+describe('{Chain} resolveLock', () => {
+    // 1. resolves a basic user lock — individual field assertions (not toEqual)
+    // 2. returns null for empty/zero sender — chain-specific zero check
+    // 3. maps empty/zero recipient to undefined
+    // 4. maps empty/zero token to undefined
+    // 5. parses non-zero secret
+    // 6. maps zero/empty secret to undefined
+    // 7. formats amount with correct decimals — use 6 decimals, 1500000n → 1.5
+    // 8. maps status values correctly — loop or explicit checks for all LockStatus values
+    // 9. resolves solver lock with reward fields — check reward, rewardTimelock, rewardRecipient, rewardToken
+    // 10. maps empty/zero reward recipient and reward token to undefined
+    // 11. uses rewardTokenDecimals for reward formatting
+    // 12. falls back to assetDecimals when rewardTokenDecimals not provided
+    // 13. does not include reward fields for user locks — check all 4: reward, rewardTimelock, rewardRecipient, rewardToken
+})
+```
+
+**Skip a test only when the chain genuinely doesn't support the feature** (e.g., TON has no reward fields yet, TON secret is always undefined). Do not skip tests because they seem redundant.
+
+**Chain-specific test blocks** (add as separate `describe` blocks after the main one):
+- `parseSecret` — Solana, Aztec (byte array handling, zero bytes, Uint8Array, null/undefined)
+- `mapLockStatus` — Starknet (CairoCustomEnum, number, bigint, variant object), Fuel (0/1/2/default)
+- `parseSolverLockFromStack` — TON (separate stack parser for solver locks)
+- Chain-specific behaviors: Solana hashlock 0x normalization, Fuel claimed vs status field
+
+**Tx hash validation** — every chain must have a `recoverSwap tx hash validation` describe block testing the regex pattern:
+```ts
+describe('{Chain} recoverSwap tx hash validation', () => {
+    const regex = /* chain-specific regex */
+    it('accepts valid {chain} tx hash', () => { ... })
+    it('rejects invalid formats', () => { ... })
 })
 ```
 
 ---
 
-## 12. Constants
+## 13. Constants
 
-Define chain-specific constants at the top of `client.ts`, after imports:
+Define chain-specific constants in `constants.ts` (shared between `client.ts` and `resolveLock.ts`):
+
+```ts
+// constants.ts
+export const ZERO_ADDRESS = '0x000...'     // Chain's empty/zero address representation
+```
+
+Client-only constants stay in `client.ts`:
 
 ```ts
 const TX_TIMEOUT = 120000           // Transaction confirmation timeout (ms)
-const ZERO_ADDRESS = '0x000...'     // Chain's empty/zero address representation
 ```
 
 ---
@@ -503,16 +609,26 @@ const ZERO_ADDRESS = '0x000...'     // Chain's empty/zero address representation
   - [ ] Define `{Chain}Signer` interface and `{Chain}HTLCClientConfig` type
   - [ ] Define `{Chain}WalletSignConfig` type
   - [ ] Add `declare module '@train-protocol/sdk'` augmentation for `HTLCClientConfigMap` and `WalletSignConfigMap`
+- [ ] Implement `resolveLock()` as an exported pure function in `resolveLock.ts`
+  - [ ] Handle zero/empty sender → return `null`
+  - [ ] Map zero/empty addresses (recipient, token, rewardRecipient, rewardToken) → `undefined`
+  - [ ] Map zero secret → `undefined`, non-zero → `bigint`
+  - [ ] Use `rewardTokenDecimals ?? tokenDecimals` for reward formatting
+  - [ ] Export any chain-specific helpers (`parseSecret`, `mapLockStatus`)
 - [ ] Implement `{Chain}HTLCClient extends HTLCClient` in `client.ts`
-- [ ] Follow function ordering: writes → reads → public helpers → private helpers
+  - [ ] Import and call `resolveLock()` from `./resolveLock.js` (not as private method)
+  - [ ] Follow function ordering: writes → reads → public helpers → private helpers
 - [ ] Implement count-then-loop pattern in `getSolverLockDetails` (1-indexed, single-node version)
 - [ ] Implement `getTransaction(txHash)` — non-blocking, try/catch returning `null`, all three statuses (`Pending`/`Confirmed`/`Failed`)
 - [ ] Set `this.consensusOptions` in constructor if chain needs non-default quorum (default: `minQuorum: 2`)
 - [ ] Validate `txHash` format at the top of `recoverSwap` before any RPC calls
+- [ ] Define chain constants (`ZERO_ADDRESS`, etc.) in `constants.ts`
 - [ ] Define `{Chain}WalletLike` minimal interface in `login/wallet-sign.ts`
 - [ ] Implement key derivation in `login/wallet-sign.ts` using `deriveKeyMaterial` + `IDENTITY_SALT`
 - [ ] Create idempotent `register{Chain}Sdk()` in `index.ts` — pass config directly (no `as` casts)
 - [ ] Export: registration fn, client class, config type, signer type, wallet sign config type, key derivation fn, wallet-like type
 - [ ] Use shared SDK utils (`parseUnits`, `formatUnits`, `hexToBytes`, etc.)
-- [ ] Add registration test in `__tests__/`
+- [ ] Add `resolveLock.test.ts` in `__tests__/` following the consistent 13-point test structure
+- [ ] Add `recoverSwap tx hash validation` describe block in the test file
+- [ ] Configure `vitest.config.ts` with `@train-protocol/sdk` source alias
 - [ ] Add contract ABI/artifacts in `abis/` or `artifacts/`

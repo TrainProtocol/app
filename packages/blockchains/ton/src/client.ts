@@ -5,14 +5,12 @@ import {
     RefundParams,
     RedeemSolverParams,
     LockDetails,
-    LockStatus,
     AtomicResult,
     RecoveredSwapData,
     TransactionInfo,
     TransactionStatus,
     HTLCClient,
     parseUnits,
-    formatUnits,
 } from '@train-protocol/sdk'
 import type { TonHTLCClientConfig, TonSigner } from './types.js'
 import { TonRpcClient } from './rpc.js'
@@ -30,6 +28,7 @@ import {
     TOKEN_LOCKED_JETTON_OPCODE,
     TOKEN_LOCKED_NATIVE_OPCODE,
 } from './constants.js'
+import { parseHTLCFromStack, parseSolverLockFromStack } from './resolveLock.js'
 
 export class TonHTLCClient extends HTLCClient {
     private rpc: TonRpcClient
@@ -166,19 +165,19 @@ export class TonHTLCClient extends HTLCClient {
     // ── Read Operations ────────────────────────────────────────────────
 
     async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
-        const { id, contractAddress } = params
+        const { id, trainContractAddress } = params
 
         try {
             const args = new TupleBuilder()
             args.writeNumber(BigInt(id))
 
             const stack = await this.rpc.runMethod(
-                contractAddress,
+                trainContractAddress,
                 'getUserLock',
                 args.build(),
             )
 
-            return this.parseHTLCFromStack(stack, id, params.decimals)
+            return parseHTLCFromStack(stack, id, params.tokenDecimals)
         } catch (error) {
             console.error('Error in getUserLockDetails:', error)
             return null
@@ -186,7 +185,7 @@ export class TonHTLCClient extends HTLCClient {
     }
 
     async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
-        const { id, contractAddress } = params
+        const { id, trainContractAddress } = params
         const rpc = TonRpcClient.fromUrl(nodeUrl, this.apiKey)
 
         try {
@@ -195,7 +194,7 @@ export class TonHTLCClient extends HTLCClient {
             countArgs.writeNumber(BigInt(id))
 
             const countStack = await rpc.runMethod(
-                contractAddress,
+                trainContractAddress,
                 'getSolverLockCount',
                 countArgs.build(),
             )
@@ -209,12 +208,12 @@ export class TonHTLCClient extends HTLCClient {
                 args.writeNumber(BigInt(i))
 
                 const stack = await rpc.runMethod(
-                    contractAddress,
+                    trainContractAddress,
                     'getSolverLock',
                     args.build(),
                 )
 
-                const details = this.parseSolverLockFromStack(stack, id, params.decimals)
+                const details = parseSolverLockFromStack(stack, id, params.tokenDecimals)
                 if (!details) continue
 
                 // Filter by solver address if provided (case-insensitive)
@@ -355,85 +354,6 @@ export class TonHTLCClient extends HTLCClient {
         return buffer.toString('hex')
     }
 
-    /**
-     * Parse the TupleReader stack from getHTLCDetails into LockDetails.
-     *
-     * The Tact contract returns an HTLC struct as a tuple:
-     * [sender, senderPubKey, srcReceiver, hashlock, amount, timelock]
-     * (for Jetton contract: also includes jettonMasterAddress)
-     */
-    private parseHTLCFromStack(
-        stack: any,
-        id: string,
-        decimals?: number,
-    ): LockDetails | null {
-        try {
-            // The getter returns an optional HTLC? — if not found, stack may be empty or contain null
-            const items = (stack as any)?.items?.[0]?.items ?? null
-            if (!items) return null
-
-            const sender = items[0]?.beginParse?.()?.loadAddress?.()?.toString() ?? null
-            if (!sender) return null
-
-            const senderPubKey = items[1] ? BigInt(items[1]) : 0n
-            const srcReceiver = items[2]?.beginParse?.()?.loadAddress?.()?.toString() ?? undefined
-            const hashlock = items[3] ? BigInt(items[3]) : 0n
-            const amount = items[4] ? Number(items[4]) : 0
-            const timelock = items[5] ? Number(items[5]) : 0
-
-            return {
-                hashlock: hashlock !== 0n ? '0x' + hashlock.toString(16) : id,
-                amount: decimals ? Number(formatUnits(BigInt(amount), decimals)) : amount,
-                secret: undefined, // Not stored in HTLC struct — only revealed on redeem
-                sender,
-                recipient: srcReceiver,
-                timelock,
-                status: LockStatus.Pending, // TON contract doesn't have status enum — presence means Pending
-            }
-        } catch {
-            return null
-        }
-    }
-
-    /**
-     * Parse the TupleReader stack from getSolverLock into LockDetails.
-     *
-     * Separate from parseHTLCFromStack because the solver lock tuple
-     * may differ (e.g. includes reward fields). Layout will be finalized
-     * when the TON contract is available.
-     */
-    private parseSolverLockFromStack(
-        stack: any,
-        id: string,
-        decimals?: number,
-    ): LockDetails | null {
-        try {
-            const items = (stack as any)?.items?.[0]?.items ?? null
-            if (!items) return null
-
-            const sender = items[0]?.beginParse?.()?.loadAddress?.()?.toString() ?? null
-            if (!sender) return null
-
-            const srcReceiver = items[1]?.beginParse?.()?.loadAddress?.()?.toString() ?? undefined
-            const hashlock = items[2] ? BigInt(items[2]) : 0n
-            const amount = items[3] ? Number(items[3]) : 0
-            const timelock = items[4] ? Number(items[4]) : 0
-
-            // TODO: Parse reward, rewardTimelock, rewardRecipient, rewardToken, status
-            // when TON contract is available
-            return {
-                hashlock: hashlock !== 0n ? '0x' + hashlock.toString(16) : id,
-                amount: decimals ? Number(formatUnits(BigInt(amount), decimals)) : amount,
-                secret: undefined,
-                sender,
-                recipient: srcReceiver,
-                timelock,
-                status: LockStatus.Pending,
-            }
-        } catch {
-            return null
-        }
-    }
 }
 
 // ── Internal types for TonCenter API v3 ─────────────────────────────────

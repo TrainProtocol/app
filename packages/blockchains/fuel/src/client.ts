@@ -5,25 +5,21 @@ import {
     RefundParams,
     RedeemSolverParams,
     LockDetails,
-    LockStatus,
     AtomicResult,
     RecoveredSwapData,
     TransactionInfo,
     TransactionStatus,
     HTLCClient,
     parseUnits,
-    formatUnits,
     toHex32,
 } from '@train-protocol/sdk'
 import type { FuelHTLCClientConfig, FuelSigner } from './types.js'
+import { resolveLock, ZERO_B256 } from './resolveLock.js'
 
 // TODO: Replace with actual HTLC contract ABI when available
 // The ABI should define: userLock, refundUser, redeemSolver,
 // getUserLock, getSolverLock, getSolverLockCount
 const HTLC_ABI: any = null
-
-const ZERO_B256 = '0x' + '0'.repeat(64)
-const TX_TIMEOUT = 120_000
 
 export class FuelHTLCClient extends HTLCClient {
     private rpcUrl: string
@@ -150,19 +146,19 @@ export class FuelHTLCClient extends HTLCClient {
     // ── Read Operations ────────────────────────────────────────────────
 
     async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
-        const { id, contractAddress, txId } = params
+        const { id, trainContractAddress, txId } = params
 
         try {
             const provider = new Provider(this.rpcUrl)
-            const contract = new Contract(contractAddress, HTLC_ABI, provider)
+            const contract = new Contract(trainContractAddress, HTLC_ABI, provider)
 
             // TODO: Update function name when contract ABI is finalized
             const { value: details } = await contract.functions.get_user_lock(id).get()
 
             if (!details) return null
 
-            const sender = details.sender?.bits ?? null
-            if (!sender || sender === ZERO_B256) return null
+            const lock = resolveLock(details, id, params.tokenDecimals)
+            if (!lock) return null
 
             let userData: string | undefined
 
@@ -183,20 +179,7 @@ export class FuelHTLCClient extends HTLCClient {
                 }
             }
 
-            const timelock = details.timelock
-                ? DateTime.fromTai64(details.timelock).toUnixSeconds()
-                : 0
-
-            return {
-                hashlock: id,
-                amount: Number(formatUnits(BigInt(details.amount), params.decimals ?? 9)),
-                secret: details.secret && details.secret !== 0n ? BigInt(details.secret) : undefined,
-                sender,
-                recipient: details.srcReceiver?.bits ?? undefined,
-                timelock,
-                status: this.mapLockStatus(Number(details.claimed ?? details.status ?? 0)),
-                userData,
-            }
+            return { ...lock, userData }
         } catch (error) {
             console.error('Error in getUserLockDetails:', error)
             return null
@@ -204,11 +187,11 @@ export class FuelHTLCClient extends HTLCClient {
     }
 
     async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
-        const { id, contractAddress } = params
+        const { id, trainContractAddress } = params
 
         try {
             const provider = new Provider(nodeUrl)
-            const contract = new Contract(contractAddress, HTLC_ABI, provider)
+            const contract = new Contract(trainContractAddress, HTLC_ABI, provider)
 
             // Step 1: Get solver lock count for this hashlock
             // TODO: Update function name when contract ABI is finalized
@@ -238,24 +221,9 @@ export class FuelHTLCClient extends HTLCClient {
                     continue
                 }
 
-                const timelock = result.timelock
-                    ? DateTime.fromTai64(result.timelock).toUnixSeconds()
-                    : 0
-
-                return {
-                    hashlock: id,
-                    amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 9)),
-                    secret: result.secret && result.secret !== 0n ? BigInt(result.secret) : undefined,
-                    sender,
-                    recipient: result.srcReceiver?.bits ?? undefined,
-                    timelock,
-                    reward: result.reward ? Number(formatUnits(BigInt(result.reward), params.decimals ?? 9)) : undefined,
-                    rewardTimelock: result.rewardTimelock
-                        ? DateTime.fromTai64(result.rewardTimelock).toUnixSeconds()
-                        : undefined,
-                    status: this.mapLockStatus(Number(result.claimed ?? result.status ?? 0)),
-                    index: i,
-                }
+                const solverLock = resolveLock(result, id, params.tokenDecimals, params.rewardTokenDecimals)
+                if (!solverLock) continue
+                return { ...solverLock, index: i }
             }
 
             return null
@@ -335,17 +303,4 @@ export class FuelHTLCClient extends HTLCClient {
         return this.signer
     }
 
-    /**
-     * Map the contract's lock status number to the LockStatus enum.
-     * Old contract uses `claimed` field (u8): 0=Pending, 1=Redeemed, 2=Refunded
-     * New contract will use `status` field — mapping may need updating.
-     */
-    private mapLockStatus(status: number): LockStatus {
-        switch (status) {
-            case 0: return LockStatus.Pending
-            case 1: return LockStatus.Redeemed
-            case 2: return LockStatus.Refunded
-            default: return LockStatus.Empty
-        }
-    }
 }

@@ -21,7 +21,8 @@
     "build:esm+types": "tsc --project tsconfig.json --rootDir ./src --outDir ./dist/esm --declaration --declarationMap --declarationDir ./dist/types",
     "clean": "rimraf dist tsconfig.tsbuildinfo",
     "dev": "tsc --project tsconfig.json --rootDir ./src --outDir ./dist/esm --declaration --declarationMap --declarationDir ./dist/types --watch",
-    "check:types": "tsc --noEmit"
+    "check:types": "tsc --noEmit",
+    "test": "vitest run"
   },
   "peerDependencies": {
     "@noble/hashes": "catalog:"
@@ -30,7 +31,8 @@
     "@noble/hashes": "catalog:",
     "@types/node": "^20",
     "rimraf": "^6.0.1",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=18"

@@ -5,20 +5,19 @@ import {
     RefundParams,
     RedeemSolverParams,
     LockDetails,
-    LockStatus,
     AtomicResult,
     RecoveredSwapData,
     TransactionInfo,
     TransactionStatus,
     HTLCClient,
     parseUnits,
-    formatUnits,
 } from '@train-protocol/sdk'
 import type { StarknetHTLCClientConfig, StarknetSigner } from './types.js'
 import htlcAbi from './abis/STARKNET_HTLC.json' with { type: 'json' }
 import { ERC20_ABI } from './abis/ERC20.js'
-import { ZERO_ADDRESS } from './constants.js'
 import { formatStarknetAddress } from './utils.js'
+import { resolveLock } from './resolveLock.js'
+import { ZERO_ADDRESS } from './constants.js'
 
 export class StarknetHTLCClient extends HTLCClient {
     private provider: RpcProvider
@@ -120,28 +119,12 @@ export class StarknetHTLCClient extends HTLCClient {
     // ── Read Operations ────────────────────────────────────────────────
 
     async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
-        const { id, contractAddress } = params
-        const contract = this.createContract(contractAddress, this.provider)
+        const { id, trainContractAddress } = params
+        const contract = this.createContract(trainContractAddress, this.provider)
 
         try {
             const result = await contract.get_user_lock(cairo.uint256(BigInt(id)))
-
-            const sender = '0x' + BigInt(result.sender).toString(16)
-            if (sender === ZERO_ADDRESS || BigInt(result.sender) === 0n) {
-                return null
-            }
-
-            const status = this.mapLockStatus(result.status)
-            return {
-                hashlock: id,
-                amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
-                secret: BigInt(result.secret) !== 0n ? BigInt(result.secret) : undefined,
-                sender,
-                recipient: BigInt(result.recipient) !== 0n ? '0x' + BigInt(result.recipient).toString(16) : undefined,
-                token: BigInt(result.token) !== 0n ? '0x' + BigInt(result.token).toString(16) : undefined,
-                timelock: Number(result.timelock),
-                status,
-            }
+            return resolveLock(result, id, params.tokenDecimals)
         } catch (error) {
             console.error('Error in getUserLockDetails:', error)
             return null
@@ -149,9 +132,9 @@ export class StarknetHTLCClient extends HTLCClient {
     }
 
     async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
-        const { id, contractAddress } = params
+        const { id, trainContractAddress } = params
         const provider = new RpcProvider({ nodeUrl })
-        const contract = this.createContract(contractAddress, provider)
+        const contract = this.createContract(trainContractAddress, provider)
 
         const count = Number(await contract.get_solver_lock_count(cairo.uint256(BigInt(id))))
         if (count === 0) return null
@@ -164,21 +147,9 @@ export class StarknetHTLCClient extends HTLCClient {
 
             if (params.solverAddress && formatStarknetAddress(sender) !== formatStarknetAddress(params.solverAddress)) continue
 
-            return {
-                hashlock: id,
-                amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
-                secret: BigInt(result.secret) !== 0n ? BigInt(result.secret) : undefined,
-                sender,
-                recipient: BigInt(result.recipient) !== 0n ? formatStarknetAddress('0x' + BigInt(result.recipient).toString(16)) : undefined,
-                token: BigInt(result.token) !== 0n ? formatStarknetAddress('0x' + BigInt(result.token).toString(16)) : undefined,
-                timelock: Number(result.timelock),
-                reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? 18)),
-                rewardTimelock: Number(result.reward_timelock),
-                rewardRecipient: BigInt(result.reward_recipient) !== 0n ? '0x' + BigInt(result.reward_recipient).toString(16) : undefined,
-                rewardToken: BigInt(result.reward_token) !== 0n ? '0x' + BigInt(result.reward_token).toString(16) : undefined,
-                status: this.mapLockStatus(result.status),
-                index: i,
-            }
+            const solverLock = resolveLock(result, id, params.tokenDecimals, params.rewardTokenDecimals)
+            if (!solverLock) continue
+            return { ...solverLock, index: i }
         }
 
         return null
@@ -264,33 +235,4 @@ export class StarknetHTLCClient extends HTLCClient {
         return new Contract({ abi: htlcAbi, address, providerOrAccount })
     }
 
-    private mapLockStatus(cairoStatus: any): LockStatus {
-        // CairoCustomEnum — activeVariant is a METHOD, must be called
-        if (typeof cairoStatus?.activeVariant === 'function') {
-            const variant = cairoStatus.activeVariant() as string
-            switch (variant) {
-                case 'Pending': return LockStatus.Pending
-                case 'Redeemed': return LockStatus.Redeemed
-                case 'Refunded': return LockStatus.Refunded
-                default: return LockStatus.Empty
-            }
-        }
-        // Fallback: plain number/bigint
-        if (typeof cairoStatus === 'number' || typeof cairoStatus === 'bigint') {
-            return Number(cairoStatus) as LockStatus
-        }
-        // Fallback: { variant: { Refunded: {}, ... } } — active key has an object value
-        if (cairoStatus?.variant && typeof cairoStatus.variant === 'object') {
-            const variantKey = Object.keys(cairoStatus.variant).find(
-                k => cairoStatus.variant[k] !== undefined
-            )
-            switch (variantKey) {
-                case 'Pending': return LockStatus.Pending
-                case 'Redeemed': return LockStatus.Redeemed
-                case 'Refunded': return LockStatus.Refunded
-                default: return LockStatus.Empty
-            }
-        }
-        return LockStatus.Empty
-    }
 }

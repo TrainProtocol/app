@@ -5,20 +5,19 @@ import {
     RefundParams,
     RedeemSolverParams,
     LockDetails,
-    LockStatus,
     AtomicResult,
     RecoveredSwapData,
     TransactionInfo,
     TransactionStatus,
     HTLCClient,
     parseUnits,
-    formatUnits,
     toHex32
 } from '@train-protocol/sdk'
 import { htlcFunctions, htlcEvents, erc20Functions } from './abi.js'
 import { JsonRpcClient } from './rpc.js'
 import type { EvmHTLCClientConfig, EvmSigner, RpcLog, RpcTransactionReceipt } from './types.js'
 import { ZERO_ADDRESS } from './constants.js'
+import { resolveLock } from './resolveLock.js'
 
 export class EvmHTLCClient extends HTLCClient {
     private rpc: JsonRpcClient
@@ -140,10 +139,10 @@ export class EvmHTLCClient extends HTLCClient {
     // ── Read Operations ────────────────────────────────────────────────
 
     async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
-        const { id, contractAddress, txId } = params
+        const { id, txId } = params
 
         const calldata = AbiFunction.encodeData(htlcFunctions.getUserLock, [hex(id)])
-        const raw = await this.rpc.ethCall(contractAddress, calldata)
+        const raw = await this.rpc.ethCall(params.trainContractAddress, calldata)
         const result = AbiFunction.decodeResult(htlcFunctions.getUserLock, hex(raw)) as any
 
         const lockExists = result.sender !== ZERO_ADDRESS
@@ -169,53 +168,29 @@ export class EvmHTLCClient extends HTLCClient {
             }
         }
 
-        return {
-            hashlock: lockExists ? id : undefined,
-            amount: Number(formatUnits(BigInt(result.amount), 18)),
-            secret: result.secret !== 0n ? BigInt(result.secret) : undefined,
-            sender: lockExists ? result.sender : undefined,
-            recipient: result.recipient !== ZERO_ADDRESS ? result.recipient : undefined,
-            token: result.token !== ZERO_ADDRESS ? result.token : undefined,
-            timelock: Number(result.timelock),
-            status: lockExists ? Number(result.status) as LockStatus : undefined,
-            userData,
-            blockTimestamp,
-        }
+        return resolveLock(result, id, params.tokenDecimals)
     }
 
     async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
-        const { id, contractAddress } = params
+        const { id, trainContractAddress } = params
         const rpc = new JsonRpcClient(nodeUrl)
 
         const countData = AbiFunction.encodeData(htlcFunctions.getSolverLockCount, [hex(id)])
-        const countRaw = await rpc.ethCall(contractAddress, countData)
+        const countRaw = await rpc.ethCall(trainContractAddress, countData)
         const count = Number(AbiFunction.decodeResult(htlcFunctions.getSolverLockCount, hex(countRaw)))
 
         if (count === 0) return null
 
         for (let i = 1; i <= count; i++) {
             const lockData = AbiFunction.encodeData(htlcFunctions.getSolverLock, [hex(id), BigInt(i)])
-            const lockRaw = await rpc.ethCall(contractAddress, lockData)
+            const lockRaw = await rpc.ethCall(trainContractAddress, lockData)
             const result = AbiFunction.decodeResult(htlcFunctions.getSolverLock, hex(lockRaw)) as any
 
             if (result.sender === ZERO_ADDRESS) continue
 
             if (params.solverAddress && result.sender.toLowerCase() !== params.solverAddress.toLowerCase()) continue
 
-            const solverLock = {
-                hashlock: id,
-                amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
-                secret: result.secret !== 0n ? BigInt(result.secret) : undefined,
-                sender: result.sender,
-                recipient: result.recipient !== ZERO_ADDRESS ? result.recipient : undefined,
-                token: result.token !== ZERO_ADDRESS ? result.token : undefined,
-                timelock: Number(result.timelock),
-                reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? 18)),
-                rewardTimelock: Number(result.rewardTimelock),
-                rewardRecipient: result.rewardRecipient !== ZERO_ADDRESS ? result.rewardRecipient : undefined,
-                rewardToken: result.rewardToken !== ZERO_ADDRESS ? result.rewardToken : undefined,
-                status: Number(result.status) as LockStatus,
-            }
+            const solverLock = resolveLock(result, id, params.tokenDecimals, params.rewardTokenDecimals)
             return solverLock
         }
 
@@ -310,7 +285,7 @@ export class EvmHTLCClient extends HTLCClient {
         const timeout = options?.timeout ?? 120_000
         const interval = options?.interval ?? 2_000
         const start = Date.now()
-    
+
         while (Date.now() - start < timeout) {
             const receipt = await rpc.getTransactionReceipt(txHash)
             if (receipt) {

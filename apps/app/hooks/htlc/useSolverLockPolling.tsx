@@ -62,14 +62,15 @@ const useSolverLockPolling = ({
     const { data, error, isLoading, mutate } = useSWR<LockDetails | null>(
         key,
         async () => {
-            if (!client || !network || !hashlock || !contractAddress) return null
+            if (!client || !network || !hashlock || !contractAddress || !destinationAsset) return null
 
             const params: LockParams = {
                 type,
                 chainId: network.chainId,
                 id: hashlock,
-                contractAddress,
-                decimals: destinationAsset?.decimals,
+                trainContractAddress: contractAddress,
+                tokenDecimals: destinationAsset?.decimals,
+                rewardTokenDecimals: destinationAsset?.decimals,
                 solverAddress,
             }
 

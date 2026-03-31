@@ -2,8 +2,6 @@
 export type {
     UserLockParams,
     LockParams,
-    OldLockParams,
     RefundParams,
     RedeemSolverParams,
-    GetCommitsParams,
 } from '@train-protocol/sdk'

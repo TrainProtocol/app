@@ -24,7 +24,8 @@ import {
 import { TokenContract } from './artifacts/Token'
 import { TrainContract } from './artifacts/Train'
 import type { AztecHTLCClientConfig, AztecSigner } from './types'
-import { bytesToHex, hexToBytes, parseUnits, formatUnits } from '@train-protocol/sdk'
+import { bytesToHex, hexToBytes, parseUnits } from '@train-protocol/sdk'
+import { resolveLock, parseSecret } from './resolveLock'
 
 const TX_TIMEOUT = 120000
 
@@ -223,39 +224,29 @@ export class AztecHTLCClient extends HTLCClient {
 
     async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
         const signer = this.requireSigner()
-        const { id, contractAddress, txId } = params
-        const { contract, userAztecAddress } = await this.getContractInstance(contractAddress, signer)
+        const { id, trainContractAddress, txId } = params
+        const { contract, userAztecAddress } = await this.getContractInstance(trainContractAddress, signer)
 
         const hashlockBytes = hexToBytes(id, 32)
         const result: any = await contract.methods
             .get_user_lock(hashlockBytes)
             .simulate({ from: userAztecAddress })
 
-        const status = Number(result.status) as LockStatus
-        if (status === 0) return null
+        const details = resolveLock(result, id, params.tokenDecimals)
+        if (!details) return null
 
         let userData: string | undefined
         if (txId) {
             userData = await this.findUserDataFromLogs(txId, id)
         }
 
-        return {
-            hashlock: id,
-            amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
-            sender: result.sender?.toString(),
-            recipient: result.recipient?.toString(),
-            token: result.token?.toString(),
-            timelock: Number(result.timelock),
-            secret: this.parseSecret(result.secret),
-            status,
-            userData,
-        }
+        return { ...details, userData }
     }
 
     async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
         const signer = this.requireSigner()
-        const { id, contractAddress } = params
-        const { contract, userAztecAddress } = await this.getContractInstance(contractAddress, signer, nodeUrl)
+        const { id, trainContractAddress } = params
+        const { contract, userAztecAddress } = await this.getContractInstance(trainContractAddress, signer, nodeUrl)
 
         const hashlockBytes = hexToBytes(id, 32)
 
@@ -270,27 +261,12 @@ export class AztecHTLCClient extends HTLCClient {
                 .get_solver_lock(hashlockBytes, BigInt(i))
                 .simulate({ from: userAztecAddress })
 
-            const status = Number(result.status) as LockStatus
-            if (status === 0) continue
-
             const sender = result.sender?.toString()
             if (params.solverAddress && sender?.toLowerCase() !== params.solverAddress.toLowerCase()) continue
 
-            return {
-                hashlock: id,
-                amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
-                sender,
-                recipient: result.recipient?.toString(),
-                token: result.token?.toString(),
-                timelock: Number(result.timelock),
-                reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? 18)),
-                rewardTimelock: Number(result.reward_timelock),
-                rewardRecipient: result.reward_recipient?.toString(),
-                rewardToken: result.reward_token?.toString(),
-                status,
-                secret: this.parseSecret(result.secret),
-                index: i,
-            }
+            const solverLock = resolveLock(result, id, params.tokenDecimals, params.rewardTokenDecimals)
+            if (!solverLock) continue
+            return { ...solverLock, index: i }
         }
 
         return null
@@ -374,13 +350,6 @@ export class AztecHTLCClient extends HTLCClient {
     }
 
     // ── Private Helpers ────────────────────────────────────────────────
-
-    private parseSecret(rawSecret: unknown): bigint | undefined {
-        const secretBytes: number[] = Array.from((rawSecret as number[]) || [])
-        const secretHex = secretBytes.length > 0 ? bytesToHex(secretBytes) : '0x0'
-        const secretBigInt = BigInt(secretHex)
-        return secretBigInt !== 0n ? secretBigInt : undefined
-    }
 
     private requireSigner(): AztecSigner {
         if (!this.signer) throw new Error('Signer required')

@@ -42,15 +42,15 @@ const useUserLockPolling = ({
     const { data, error, isLoading, mutate } = useSWR<LockDetails | null>(
         key,
         async () => {
-            if (!network || !hashlock || !contractAddress || !client) return null
+            if (!network || !hashlock || !contractAddress || !client || !sourceAsset) return null
 
             const params: LockParams = {
                 type,
                 chainId: network.chainId,
                 id: hashlock,
-                contractAddress,
+                trainContractAddress: contractAddress,
                 txId,
-                decimals: sourceAsset?.decimals,
+                tokenDecimals: sourceAsset?.decimals
             }
 
             try {
@@ -81,7 +81,7 @@ const useUserLockPolling = ({
         ? `/htlc/tx/${network!.caip2Id}/${txId}`
         : null
 
-    const { data: txInfo } = useSWR(
+    useSWR(
         txKey,
         async () => {
             if (!client || !txId) return null

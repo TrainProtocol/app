@@ -12,37 +12,13 @@ import {
     RecoveredSwapData,
     TransactionInfo,
     TransactionStatus,
-    formatUnits,
-    bytesToHex,
+    
 } from '@train-protocol/sdk'
 import { NATIVE_SOL_ADDRESS } from './constants.js'
 import type { SolanaHTLCClientConfig, SolanaSigner } from './types.js'
+import { resolveLock, UserLockData, SolverLockData } from './resolveLock.js'
 import { TrainHtlc } from './idl/trainHtlc.js'
 import { userLockTransactionBuilder, refundTransactionBuilder, redeemSolverTransactionBuilder } from './transactionBuilder.js'
-
-interface UserLockData {
-    amount: BN
-    timelock: BN
-    sender: PublicKey
-    recipient: PublicKey
-    secret: number[]
-    tokenMint: PublicKey
-    status: number
-}
-
-interface SolverLockData {
-    amount: BN
-    reward: BN
-    timelock: BN
-    rewardTimelock: BN
-    sender: PublicKey
-    recipient: PublicKey
-    rewardRecipient: PublicKey
-    secret: number[]
-    tokenMint: PublicKey
-    rewardTokenMint: PublicKey
-    status: number
-}
 
 type TypedProgramAccounts = {
     userLock: { fetch(pda: PublicKey): Promise<UserLockData> }
@@ -161,13 +137,11 @@ export class SolanaHTLCClient extends HTLCClient {
     // ── Read Operations ────────────────────────────────────────────────
 
     async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
-        const { contractAddress, id } = params
-
-        if (!contractAddress) throw new Error('No contract address')
+        const { trainContractAddress, id } = params
 
         let program: ReturnType<typeof this.buildProgram>
         try {
-            program = this.buildProgram(contractAddress)
+            program = this.buildProgram(trainContractAddress)
         } catch {
             return null
         }
@@ -205,21 +179,9 @@ export class SolanaHTLCClient extends HTLCClient {
 
             const { userData, blockTimestamp } = params.txId ? await this.findUserDataFromLogs(params.txId, id, program) : {}
 
-            const details: LockDetails = {
-                hashlock: `0x${id.replace('0x', '')}`,
-                amount: Number(formatUnits(BigInt(result.amount.toString()), params.decimals ?? 6)),
-                timelock: Number(result.timelock),
-                sender: new PublicKey(result.sender).toString(),
-                recipient: new PublicKey(result.recipient).toString(),
-                secret: this.parseSecret(result.secret),
-                token: result.tokenMint && result.tokenMint.toString() !== NATIVE_SOL_ADDRESS
-                    ? result.tokenMint.toString()
-                    : undefined,
-                status: Number(result.status) as LockStatus,
-                userData,
-                blockTimestamp,
-            }
-            return details
+            const details = resolveLock(result, id, params.tokenDecimals)
+            if (!details) return null
+            return { ...details, userData, blockTimestamp }
         } catch (e) {
             console.error('[SolanaHTLC][getUserLockDetails] fetch failed', e)
             return null
@@ -227,13 +189,11 @@ export class SolanaHTLCClient extends HTLCClient {
     }
 
     async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
-        const { contractAddress, id } = params
-
-        if (!contractAddress) throw new Error('No contract address')
+        const { trainContractAddress, id } = params
 
         const connection = new Connection(nodeUrl, 'confirmed')
         const hashlockBuffer = Buffer.from(id.replace('0x', ''), 'hex')
-        const program = this.buildProgram(contractAddress, undefined, connection)
+        const program = this.buildProgram(trainContractAddress, undefined, connection)
 
         const hashlockArray = Array.from(hashlockBuffer)
         const count = Number(await program.methods.getSolverLockCount(hashlockArray).view())
@@ -260,25 +220,9 @@ export class SolanaHTLCClient extends HTLCClient {
                 // Filter by solver address if provided
                 if (params.solverAddress && sender.toLowerCase() !== params.solverAddress.toLowerCase()) continue
 
-                return {
-                    hashlock: `0x${id.replace('0x', '')}`,
-                    amount: Number(formatUnits(BigInt(result.amount.toString()), params.decimals ?? 6)),
-                    reward: Number(formatUnits(BigInt(result.reward.toString()), params.decimals ?? 6)),
-                    timelock: Number(result.timelock),
-                    rewardTimelock: Number(result.rewardTimelock),
-                    sender,
-                    recipient: new PublicKey(result.recipient).toString(),
-                    rewardRecipient: new PublicKey(result.rewardRecipient).toString(),
-                    secret: this.parseSecret(result.secret),
-                    token: result.tokenMint && result.tokenMint.toString() !== NATIVE_SOL_ADDRESS
-                        ? result.tokenMint.toString()
-                        : undefined,
-                    rewardToken: result.rewardTokenMint && result.rewardTokenMint.toString() !== NATIVE_SOL_ADDRESS
-                        ? result.rewardTokenMint.toString()
-                        : undefined,
-                    status: Number(result.status) as LockStatus,
-                    index: i,
-                }
+                const solverLock = resolveLock(result, id, params.tokenDecimals, params.rewardTokenDecimals)
+                if (!solverLock) continue
+                return { ...solverLock, index: i }
             } catch (e) {
                 console.error('Error fetching Solana solver lock details:', e)
                 continue
@@ -395,10 +339,6 @@ export class SolanaHTLCClient extends HTLCClient {
     private requireSigner(): SolanaSigner {
         if (!this.signer) throw new Error('Solana signer not configured')
         return this.signer
-    }
-
-    private parseSecret(secretBytes: Uint8Array | number[]): bigint | undefined {
-        return Array.from(secretBytes).some(b => b !== 0) ? BigInt(bytesToHex(Array.from(secretBytes))) : undefined
     }
 
     private buildReadOnlyProvider(publicKey: PublicKey, connection?: Connection): AnchorProvider {
