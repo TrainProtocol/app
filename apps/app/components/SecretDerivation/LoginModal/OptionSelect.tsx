@@ -1,37 +1,35 @@
-import { useMemo } from 'react';
-import { Fingerprint, Wallet as WalletIcon } from 'lucide-react';
+import { Fingerprint } from 'lucide-react';
 import { useSharedSecretDerivation } from '@train-protocol/react';
-import { useConnectModal } from '@/components/WalletModal';
-import useWallet from '@/hooks/useWallet';
-import { Wallet } from '@/Models/WalletProvider';
-import { getRegisteredWalletSignProviders } from '@train-protocol/auth';
 
-const OptionSelect = ({ onPasskeyLogin, goToStep, onConnectFinish }: {
+
+
+const OptionSelect = ({ onPasskeyLogin }: {
     onPasskeyLogin: () => void;
-    goToStep: (step: string) => void;
-    onConnectFinish: (wallet?: Wallet) => void;
+    // goToStep: (step: string) => void;
+    // onConnectFinish: (wallet?: Wallet) => void;
 }) => {
-    const { connect } = useConnectModal();
-    const { providers } = useWallet();
+    // const { connect } = useConnectModal();
+    // const { providers } = useWallet();
     const { prfSupportDetails } = useSharedSecretDerivation();
 
-    const connectedWallets = useMemo(() => {
-        const registeredProviders = getRegisteredWalletSignProviders();
-        const loginProviders = providers.filter(p => registeredProviders.includes(p.id.toLowerCase()));
-        return loginProviders.flatMap(p => p.connectedWallets || []);
-    }, [providers]);
+    // Wallet login temporarily disabled — passkey is the default
+    // const connectedWallets = useMemo(() => {
+    //     const registeredProviders = getRegisteredWalletSignProviders();
+    //     const loginProviders = providers.filter(p => registeredProviders.includes(p.id.toLowerCase()));
+    //     return loginProviders.flatMap(p => p.connectedWallets || []);
+    // }, [providers]);
 
-    const selectWallet = async () => {
-        if (connectedWallets.length < 1) {
-            const wallet = await connect();
-            const provider = providers.find(p => p.name === wallet?.providerName)
-            if (wallet && provider && getRegisteredWalletSignProviders().includes(provider.id.toLowerCase())) {
-                onConnectFinish(wallet);
-                return;
-            }
-        }
-        goToStep('wallet_select')
-    }
+    // const selectWallet = async () => {
+    //     if (connectedWallets.length < 1) {
+    //         const wallet = await connect();
+    //         const provider = providers.find(p => p.name === wallet?.providerName)
+    //         if (wallet && provider && getRegisteredWalletSignProviders().includes(provider.id.toLowerCase())) {
+    //             onConnectFinish(wallet);
+    //             return;
+    //         }
+    //     }
+    //     goToStep('wallet_select')
+    // }
 
     const passkeyDisabled = prfSupportDetails && !prfSupportDetails.supported;
     const windowsHint = prfSupportDetails?.platformHint === 'windows_hello_no_prf';
@@ -42,9 +40,9 @@ const OptionSelect = ({ onPasskeyLogin, goToStep, onConnectFinish }: {
             ? "Requires a security key on Windows"
             : "Face ID, Touch ID, or security key";
 
-    const walletDescription = passkeyDisabled
-        ? "Recommended for this device"
-        : "Select or connect a wallet";
+    // const walletDescription = passkeyDisabled
+    //     ? "Recommended for this device"
+    //     : "Select or connect a wallet";
 
     return (
         <div className="flex flex-col gap-2">
@@ -56,12 +54,13 @@ const OptionSelect = ({ onPasskeyLogin, goToStep, onConnectFinish }: {
                 description={passkeyDescription}
                 disabled={!!passkeyDisabled}
             />
-            <OptionItem
+            {/* Wallet login temporarily disabled — passkey is the default */}
+            {/* <OptionItem
                 onClick={selectWallet}
                 icon={WalletIcon}
                 title="Wallet"
                 description={walletDescription}
-            />
+            /> */}
         </div>
     )
 }
