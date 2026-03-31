@@ -1,7 +1,7 @@
 import { FC, useState } from "react";
 import useWallet from "@/hooks/useWallet";
 import { useActiveSwap } from "@/hooks/useActiveSwap";
-import { useCreateSwap, useRefund, LockStatus, type SwapQuote, useSharedSecretDerivation, type StartSwapParams } from "@train-protocol/react";
+import { useCreateSwap, useRefund, LockStatus, type SwapQuote, useSharedSecretDerivation, type StartSwapParams } from "@train-protocol/react"
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
 import { SwapViewType } from ".";
@@ -32,7 +32,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, typ
 
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet
-    const { derivedKey } = useSharedSecretDerivation()
+    const { isLoggedIn } = useSharedSecretDerivation()
     const sourceAccount = useSelectedAccount('from', source_network?.caip2Id)
     const sourceWallet = (sourceAccount?.address && source_network) ? provider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, source_network)) : undefined
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
@@ -48,7 +48,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, typ
 
             if (provider && sourceWallet && (sourceWallet.chainId != source_network.chainId) && provider.switchChain) await provider.switchChain(sourceWallet, source_network.chainId)
 
-            if (!derivedKey) throw new Error('Please login first')
+            if (!isLoggedIn) throw new Error('Please login first')
 
             const params: StartSwapParams = {
                 sourceNetwork: source_network.caip2Id,
@@ -76,7 +76,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, typ
                 chainId: source_network.chainId,
             }
 
-            const hl = await createSwap(params, derivedKey)
+            const hl = await createSwap(params)
             setActiveHashlock(hl)
 
             posthog.capture("UserLock", {

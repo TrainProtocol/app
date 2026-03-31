@@ -1,5 +1,5 @@
-import { registerHTLCClient, type TrainSDK, defaultTrainSDK } from '@train-protocol/sdk'
-import { registerWalletSign, type TrainAuth, defaultTrainAuth } from '@train-protocol/auth'
+import { type TrainSDK, defaultTrainSDK } from '@train-protocol/sdk'
+import { type TrainAuth, defaultTrainAuth } from '@train-protocol/auth'
 import { EvmHTLCClient } from './client.js'
 import { deriveKeyFromEvmSignature } from './login/index.js'
 

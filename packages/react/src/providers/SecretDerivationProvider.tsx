@@ -7,7 +7,18 @@ import type { UseSecretDerivationOptions, UseSecretDerivationResult, UseSecretDe
 import type { PrfSupportResult } from '@train-protocol/auth'
 import { SecureStorage } from '../internal/SecureStorage'
 import { IndexedDBPasskeyStorage } from '../internal/IndexedDBPasskeyStorage'
-import type { LoginWalletInfo, SecretDerivationStoreState } from '../internal/secretDerivationStore'
+import type { LoginWalletInfo, SecretDerivationStoreState, SecretDerivationStore } from '../internal/secretDerivationStore'
+
+/**
+ * @internal Context exposing the raw SD store for internal hooks (useRevealSecret, useCreateSwap).
+ * NOT exported from the package — consumers should use useSharedSecretDerivation() instead.
+ */
+const SDStoreContext = createContext<SecretDerivationStore | null>(null)
+
+/** @internal Read derivedKey from the SD store. Throws outside TrainProvider. */
+export function useSDStoreContext(): SecretDerivationStore | null {
+    return useContext(SDStoreContext)
+}
 
 export type { LoginWalletInfo } from '../internal/secretDerivationStore'
 
@@ -136,19 +147,24 @@ export function SecretDerivationProvider({
         ? hook.isReady
         : hydrated
 
+    // Exclude derivedKey and _store from the public context value
+    const { derivedKey: _dk, _store: _s, ...publicHook } = hook
+
     const value = useMemo<SecretDerivationContextValue>(() => ({
-        ...hook,
+        ...publicHook,
         isReady,
         loginWithWallet,
         logout,
         loginWallet,
         prfSupportDetails: hook.prfSupport,
-    }), [hook.derivedKey, hook.method, hook.derivationStatus, hook.derivationMessage, hook.error, hook.prfSupport, hook.isLoggedIn, hook.passkeyCredentials, hook.activePasskeyCredentialId, isReady, loginWithWallet, logout, loginWallet])
+    }), [hook.method, hook.derivationStatus, hook.derivationMessage, hook.error, hook.prfSupport, hook.isLoggedIn, hook.passkeyCredentials, hook.activePasskeyCredentialId, isReady, loginWithWallet, logout, loginWallet])
 
     return (
-        <SecretDerivationContext.Provider value={value}>
-            {children}
-        </SecretDerivationContext.Provider>
+        <SDStoreContext.Provider value={hook._store}>
+            <SecretDerivationContext.Provider value={value}>
+                {children}
+            </SecretDerivationContext.Provider>
+        </SDStoreContext.Provider>
     )
 }
 

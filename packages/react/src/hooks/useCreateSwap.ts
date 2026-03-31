@@ -8,6 +8,7 @@ import {
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
 import { useStoreContext } from '../providers/TrainProvider'
+import { useSDStoreContext } from '../providers/SecretDerivationProvider'
 import { TrainError, TrainErrorCode } from '../types'
 import type { StartSwapParams } from '../types'
 import type { CreatedSwapConfig } from '../internal/store'
@@ -15,7 +16,7 @@ import { caip2Id, parseCaip2Id } from '../internal/branded'
 
 export interface UseCreateSwapResult {
     /** Lock funds on source chain, persist swap, return hashlock */
-    createSwap: (params: StartSwapParams, derivedKey: Uint8Array) => Promise<string>
+    createSwap: (params: StartSwapParams) => Promise<string>
     isCreating: boolean
     error: Error | null
 }
@@ -29,7 +30,7 @@ export interface UseCreateSwapResult {
  * Usage:
  * ```tsx
  * const { createSwap, isCreating, error } = useCreateSwap()
- * const hashlock = await createSwap(params, derivedKey)
+ * const hashlock = await createSwap(params)
  * // pass hashlock to useSwapProgress or navigate to swap page
  * ```
  */
@@ -37,17 +38,23 @@ export function useCreateSwap(): UseCreateSwapResult {
     const { config } = useTrainContext()
     const walletCtx = useWalletContext()
     const store = useStoreContext()
+    const sdStore = useSDStoreContext()
     const [isCreating, setIsCreating] = useState(false)
     const [error, setError] = useState<Error | null>(null)
     const inFlight = useRef(false)
 
-    const createSwap = useCallback(async (params: StartSwapParams, derivedKey: Uint8Array): Promise<string> => {
+    const createSwap = useCallback(async (params: StartSwapParams): Promise<string> => {
         if (inFlight.current) throw new TrainError('Swap creation already in progress', TrainErrorCode.LockFailed)
         inFlight.current = true
         setIsCreating(true)
         setError(null)
 
         try {
+            const derivedKey = sdStore?.getState().derivedKey
+            if (!derivedKey) {
+                throw new TrainError('Cannot create swap: not logged in (derivedKey unavailable)', TrainErrorCode.LockFailed)
+            }
+
             const nonce = Date.now()
             const secretBytes = deriveSecretFromTimelock(derivedKey, nonce)
             const secret = bytesToHex(Array.from(secretBytes))
@@ -143,7 +150,7 @@ export function useCreateSwap(): UseCreateSwapResult {
             inFlight.current = false
             setIsCreating(false)
         }
-    }, [walletCtx, store, config])
+    }, [walletCtx, store, sdStore, config])
 
     return { createSwap, isCreating, error }
 }

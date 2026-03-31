@@ -7,7 +7,7 @@ import type { UserLockDetails } from '@train-protocol/sdk'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTrainContext } from '../providers/TrainContext'
 import { useStoreContext } from '../providers/TrainProvider'
-import { useSharedSecretDerivation } from '../providers/SecretDerivationProvider'
+import { useSDStoreContext } from '../providers/SecretDerivationProvider'
 import { useWalletContext } from '../wallet/WalletContext'
 import { trainQueryKeys } from '../internal/queryKeys'
 import { parseCaip2Id } from '../internal/branded'
@@ -21,14 +21,14 @@ export interface UseRevealSecretResult {
 
 /**
  * Action hook to reveal the swap secret to the solver API.
- * Derives the secret on-demand from derivedKey + nonce (from sourceDetails.userData in React Query cache).
+ * Derives the secret on-demand from the internal key store + nonce (from sourceDetails.userData in React Query cache).
  *
  * @param hashlock - The hashlock of the swap whose secret to reveal
  */
 export function useRevealSecret(hashlock: string | null | undefined): UseRevealSecretResult {
     const { apiClient, config } = useTrainContext()
     const store = useStoreContext()
-    const { derivedKey } = useSharedSecretDerivation()
+    const sdStore = useSDStoreContext()
     const walletCtx = useWalletContext()
     const queryClient = useQueryClient()
     const [isRevealing, setIsRevealing] = useState(false)
@@ -71,6 +71,7 @@ export function useRevealSecret(hashlock: string | null | undefined): UseRevealS
         }
 
         // Derive secret on-demand from derivedKey + nonce
+        const derivedKey = sdStore?.getState().derivedKey
         if (!derivedKey) {
             const err = new TrainError('Cannot reveal: not logged in (derivedKey unavailable)', TrainErrorCode.RevealFailed)
             setError(err)
@@ -142,7 +143,7 @@ export function useRevealSecret(hashlock: string | null | undefined): UseRevealS
             inFlight.current = false
             setIsRevealing(false)
         }
-    }, [hashlock, apiClient, store, config, derivedKey, queryClient, walletCtx])
+    }, [hashlock, apiClient, store, sdStore, config, queryClient, walletCtx])
 
     return { reveal, isRevealing, error }
 }

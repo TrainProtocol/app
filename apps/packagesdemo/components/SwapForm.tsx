@@ -58,7 +58,6 @@ export function SwapForm() {
     // Secret derivation (with persistence across page refresh)
     const {
         isLoggedIn,
-        derivedKey,
         derivationStatus,
         derivationMessage,
         loginWithWallet,
@@ -89,7 +88,7 @@ export function SwapForm() {
 
     // Start swap
     const handleSwap = useCallback(async () => {
-        if (!derivedKey || !bestQuote || !bestSolver || !sourceAsset || !sourceNetwork || !destNetwork || !address) return
+        if (!isLoggedIn || !bestQuote || !bestSolver || !sourceAsset || !sourceNetwork || !destNetwork || !address) return
 
         const srcContract = sourceNetwork.contracts?.find(c => c.type === 'Train')?.address
         const dstContract = destNetwork.contracts?.find(c => c.type === 'Train')?.address
@@ -131,12 +130,12 @@ export function SwapForm() {
         }
 
         try {
-            await startSwap(params, derivedKey)
+            await startSwap(params)
         } catch (err) {
             console.error('Swap failed:', err)
         }
     }, [
-        derivedKey, bestQuote, bestSolver, sourceAsset, sourceNetwork, destNetwork,
+        isLoggedIn, bestQuote, bestSolver, sourceAsset, sourceNetwork, destNetwork,
         address, amount, sourceNetworkId, destNetworkId, sourceToken, destToken,
         destAddress, setCurrentSwap, startSwap,
     ])

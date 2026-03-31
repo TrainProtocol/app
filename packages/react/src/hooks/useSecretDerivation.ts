@@ -44,7 +44,6 @@ export interface UseSecretDerivationResult {
     isReady: boolean
     method: DerivationMethod | null
     isLoggedIn: boolean
-    derivedKey: Uint8Array | null
     derivationStatus: 'idle' | 'signing'
     derivationMessage: string
     /** Error from the last login/register attempt, cleared on next attempt */
@@ -71,8 +70,10 @@ export interface UseSecretDerivationResult {
     checkPasskeySupport: () => Promise<PrfSupportResult>
 }
 
-/** @internal Full result including store — used by SecretDerivationProvider only */
+/** @internal Full result including store and derivedKey — used by SecretDerivationProvider only */
 export interface UseSecretDerivationInternalResult extends UseSecretDerivationResult {
+    /** @internal Raw key material — not exposed to consumers */
+    derivedKey: Uint8Array | null
     _store: SecretDerivationStore
 }
 
