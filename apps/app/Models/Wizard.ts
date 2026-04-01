@@ -55,6 +55,8 @@ export enum AuthStep {
 
 export enum MenuStep {
     Menu = "Menu",
+    Login = "Login",
+    LoginStatus = "Login Status",
     Transactions = "Transactions",
     TransactionDetails = "Transaction Details",
     RPCConfiguration = "RPC Configuration",

@@ -13,9 +13,8 @@ import Menu from "./Menu";
 import dynamic from "next/dynamic";
 import { MenuStep } from "@/Models/Wizard";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
-import { UserStatusMenu } from "../SecretDerivation";
 
-const WalletsMenu = dynamic(() => import("../Wallet/ConnectedWallets").then((comp) => comp.WalletsMenu), {
+const AuthBlock = dynamic(() => import("@/components/AuthBlock"), {
     loading: () => <></>
 })
 
@@ -34,8 +33,7 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
     return <div className="text-sm font-medium focus:outline-none h-full">
         <Menu>
 
-            <UserStatusMenu />
-            <WalletsMenu />
+            <AuthBlock />
 
 
             <Menu.Group>
@@ -120,7 +118,7 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
                 </Menu.Item>
             </Menu.Group>
 
-            <div className="space-y-3 w-full mt-auto">
+            <div className="space-y-3 w-full">
                 <hr className="border-secondary-500" />
                 <p className="text-primary-text-tertiary flex justify-center my-3">Media links & suggestions:</p>
             </div>

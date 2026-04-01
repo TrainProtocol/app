@@ -1,12 +1,14 @@
 import IconButton from "@/components/buttons/iconButton"
 import GoHomeButton from "@/components/utils/GoHome"
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Settings } from 'lucide-react'
 import TrainMenu from "@/components/TrainMenu"
 import { useQueryState } from "@/context/query"
 import { UserStatusHeader } from "../SecretDerivation"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
 import dynamic from "next/dynamic"
+import { useState } from "react"
 import PendingSwap from "../Swap/PendingSwap"
+import SettingsModal from "@/components/Settings/SettingsModal"
 
 const WalletsHeader = dynamic(() => import("../Wallet/ConnectedWallets").then((comp) => comp.WalletsHeader), {
    loading: () => <></>
@@ -15,6 +17,7 @@ const WalletsHeader = dynamic(() => import("../Wallet/ConnectedWallets").then((c
 function HeaderWithMenu({ goBack }: { goBack: (() => void) | undefined | null }) {
    const query = useQueryState()
    const { isMobile } = useWindowDimensions()
+   const [settingsOpen, setSettingsOpen] = useState(false)
 
    return (
       <div className="items-center justify-between sm:flex sm:items-center grid grid-cols-5 w-full sm:grid-cols-none sm:grid-none mt-2 pb-2 px-4">
@@ -36,14 +39,24 @@ function HeaderWithMenu({ goBack }: { goBack: (() => void) | undefined | null })
                </div>
             }
          </div>
-         {isMobile && (
+         {isMobile ? (
             <div className="col-start-5 justify-self-end self-center flex items-center gap-x-2 sm:gap-x-1">
                <PendingSwap />
                <UserStatusHeader />
                <WalletsHeader />
                <TrainMenu />
             </div>
+         ) : (
+            <div className="col-start-5 justify-self-end self-center flex items-center">
+               <IconButton
+                  onClick={() => setSettingsOpen(true)}
+                  aria-label="Settings"
+                  className="inline-flex active:animate-press-down"
+                  icon={<Settings strokeWidth={2} />}
+               />
+            </div>
          )}
+         <SettingsModal show={settingsOpen} setShow={setSettingsOpen} />
       </div>
    )
 }

@@ -6,57 +6,30 @@ import { useState } from "react"
 import WalletsList from "./WalletsList"
 import { Wallet } from "../../Models/WalletProvider"
 import VaulDrawer from "../Modal/vaulModal"
-import { ChevronDown } from "lucide-react"
 
-type WalletsHeaderVariant = "mobile" | "navbar"
-
-const variantStyles: Record<WalletsHeaderVariant, string> = {
-    mobile: "p-1.5 max-sm:p-2 text-secondary-text hover:bg-secondary-500 max-sm:bg-secondary-500 hover:text-primary-text focus:outline-hidden inline-flex rounded-lg items-center active:animate-press-down",
-    navbar: "p-1.5 text-secondary-text bg-secondary-500 hover:bg-secondary-400 hover:text-primary-text focus:outline-hidden inline-flex rounded-lg items-center active:animate-press-down",
-}
-
-export const WalletsHeader = ({ variant = "mobile" }: { variant?: WalletsHeaderVariant }) => {
+export const WalletsHeader = () => {
     const { wallets } = useWallet()
 
     if (wallets.length > 0) {
         return (
-            <WalletsHeaderWalletsList wallets={wallets} variant={variant} />
+            <WalletsHeaderWalletsList wallets={wallets} />
         )
     }
 
     return (
         <ConnectButton>
-            <div className={variantStyles[variant]}>
+            <div className="p-1.5 max-sm:p-2 active:animate-press-down justify-self-start text-secondary-text hover:bg-secondary-500 max-sm:bg-secondary-500 hover:text-primary-text focus:outline-hidden inline-flex rounded-lg items-center">
                 <WalletIcon className="h-6 w-6 mx-0.5" strokeWidth="2" />
             </div>
         </ConnectButton>
     )
 }
 
-const WalletsHeaderWalletsList = ({ wallets, variant = "mobile" }: { wallets: Wallet[]; variant?: WalletsHeaderVariant }) => {
+const WalletsHeaderWalletsList = ({ wallets }: { wallets: Wallet[] }) => {
     const [openModal, setOpenModal] = useState<boolean>(false)
-    const wallet = wallets[0]
-
     return <>
-        <button type="button" onClick={() => setOpenModal(true)} className={variantStyles[variant]}>
-            {variant === "navbar" ? (
-                wallets.length === 1 ? (
-                    <div className="flex gap-2 items-center text-sm text-secondary-text">
-                        <wallet.icon className="h-6 w-6" />
-                        {!wallet.isLoading && wallet.address && (
-                            <p>{new Address(wallet.address, null, wallet.providerName).toShortString()}</p>
-                        )}
-                        <ChevronDown className="h-5 w-5" />
-                    </div>
-                ) : (
-                    <div className="flex gap-2 items-center">
-                        <WalletsIcons wallets={wallets} />
-                        <ChevronDown className="h-5 w-5 text-secondary-text" />
-                    </div>
-                )
-            ) : (
-                <WalletsIcons wallets={wallets} />
-            )}
+        <button type="button" onClick={() => setOpenModal(true)} className="p-1.5 max-sm:p-2 justify-self-start text-secondary-text hover:bg-secondary-500 max-sm:bg-secondary-500 hover:text-primary-text focus:outline-hidden inline-flex rounded-lg items-center active:animate-press-down">
+            <WalletsIcons wallets={wallets} />
         </button>
         <VaulDrawer
             show={openModal}
@@ -115,7 +88,7 @@ export const WalletsMenu = () => {
 
     return (
         <ConnectButton>
-            <div className="active:animate-press-down items-center space-x-1 disabled:cursor-not-allowed relative w-full flex justify-center font-semibold rounded-xl transform hover:brightness-125 transition duration-200 ease-in-out py-3 md:px-3 bg-secondary-400 border-none text-primary-text! px-4!" >
+            <div className="active:animate-press-down items-center space-x-1 disabled:cursor-not-allowed relative w-full flex justify-center font-semibold rounded-xl transform hover:brightness-125 transition duration-200 ease-in-out py-3 md:px-3 bg-actionButtonColor border-none text-primary-buttonTextColor px-4!" >
                 <span className="order-first absolute left-0 inset-y-0 flex items-center pl-3">
                     <WalletIcon className="h-6 w-6" strokeWidth="2" />
                 </span>
@@ -133,18 +106,18 @@ const WalletsMenuWalletsList = ({ wallets }: { wallets: Wallet[] }) => {
         <button onClick={() => setOpenModal(true)} type="button" className="py-3 px-4 bg-secondary-400 flex items-center w-full rounded-xl space-x-1 disabled:text-secondary-text/40 disabled:bg-secondary-600 disabled:cursor-not-allowed relative font-semibold transform border border-secondary-400 hover:bg-secondary-300 transition duration-200 ease-in-out outline-hidden">
             {
                 wallets.length === 1 ?
-                    <div className="flex gap-4 items-start text-primary-text">
-                        <wallet.icon className='h-5 w-5' />
-                        {!wallet.isLoading && wallet.address && <p>{new Address(wallet.address, null, wallet.providerName).toShortString()}</p>}
-                    </div>
+                    <>
+                        <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+                            <wallet.icon className='h-5 w-5' />
+                        </span>
+                        {!wallet.isLoading && wallet.address && <span className="grow text-center text-primary-text">{new Address(wallet.address, null, wallet.providerName).toShortString()}</span>}
+                    </>
                     :
                     <>
-                        <div className="flex justify-center w-full">
-                            Connected wallets
-                        </div>
-                        <div className="place-items-end absolute left-2.5">
+                        <span className="absolute left-0 inset-y-0 flex items-center pl-2.5">
                             <WalletsIcons wallets={wallets} />
-                        </div>
+                        </span>
+                        <span className="grow text-center">Connected wallets</span>
                     </>
             }
         </button>

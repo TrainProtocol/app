@@ -24,7 +24,7 @@ interface LoginDataCardProps {
     className?: string
 }
 
-const LoginDataCard = ({
+export const LoginDataCard = ({
     method,
     loginWallet,
     passkeyCredentialId,
@@ -37,7 +37,7 @@ const LoginDataCard = ({
                 <div className="p-2.5 bg-secondary-500 rounded-lg shrink-0">
                     <Fingerprint className="h-5 w-5 text-primary-text" strokeWidth={2} />
                 </div>
-                <div className="flex flex-col flex-1 min-w-0">
+                <div className="flex flex-col flex-1 min-w-0 text-left">
                     <span className="text-primary-text font-semibold">Passkey</span>
                     {passkeyCredentialId && (
                         <TooltipProvider delayDuration={200}>
@@ -58,7 +58,7 @@ const LoginDataCard = ({
                 <div className="p-2.5 bg-secondary-500 rounded-lg shrink-0">
                     <WalletIcon className="h-5 w-5 text-primary-text" strokeWidth={2} />
                 </div>
-                <div className="flex flex-col flex-1 min-w-0">
+                <div className="flex flex-col flex-1 min-w-0 text-left">
                     <span className="text-primary-text font-semibold">
                         {loginWallet?.displayName || 'EVM Wallet'}
                     </span>
@@ -86,7 +86,7 @@ interface UserStatusContentProps {
     showPasskeyWarning?: boolean
 }
 
-const UserStatusContent = ({
+export const UserStatusContent = ({
     method,
     loginWallet,
     logout,
@@ -171,15 +171,6 @@ const UserStatusContent = ({
                     ))}
                 </div>
             )}
-
-            {showPasskeyWarning && method === 'passkey' && (
-                <div className="rounded-xl bg-warning-background border border-warning-foreground/30 px-3 py-2.5">
-                    <p className="text-warning-foreground text-sm leading-snug">
-                        Store your passkeys securely. Losing your passkey means losing access to your account and any associated funds permanently.
-                    </p>
-                </div>
-            )}
-
             <button
                 type="button"
                 onClick={handleLogout}
@@ -284,23 +275,25 @@ export const UserStatusHeader = () => {
     )
 }
 
-export const UserStatusMenu = () => {
+export const UserStatusMenu = ({ onLogin, onViewLoginStatus }: { onLogin?: () => void; onViewLoginStatus?: () => void } = {}) => {
     const { isLoggedIn, method, loginWallet, logout } = useSecretDerivationStore()
     const openLoginModal = useLoginModalStore((s) => s.open)
     const [openModal, setOpenModal] = useState(false)
     const activeCredentialId = usePasskeyCredentialId()
 
+    const handleLogin = onLogin ?? openLoginModal
+
     if (!isLoggedIn) {
         return (
             <button
-                onClick={openLoginModal}
+                onClick={handleLogin}
                 type="button"
-                className="py-3 px-4 bg-secondary-400 flex items-center w-full rounded-xl space-x-1 relative font-semibold transform border border-secondary-400 hover:bg-secondary-300 transition duration-200 ease-in-out outline-hidden"
+                className="py-3 px-4 bg-secondary-400 flex items-center w-full rounded-xl relative font-semibold transform border border-secondary-400 hover:bg-secondary-300 transition duration-200 ease-in-out outline-hidden text-primary-text"
             >
-                <div className="flex gap-4 items-center text-primary-text w-full">
-                    <Lock className="h-5 w-5 shrink-0" strokeWidth={2} />
-                    <span>Login</span>
-                </div>
+                <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+                    <Lock className="h-5 w-5" strokeWidth={2} />
+                </span>
+                <span className="grow text-center">Login</span>
             </button>
         )
     }
@@ -312,24 +305,24 @@ export const UserStatusMenu = () => {
     return (
         <>
             <button
-                onClick={() => setOpenModal(true)}
+                onClick={onViewLoginStatus ?? (() => setOpenModal(true))}
                 type="button"
-                className="py-3 px-4 bg-secondary-400 flex items-center w-full rounded-xl space-x-1 disabled:text-secondary-text/40 disabled:bg-secondary-600 disabled:cursor-not-allowed relative font-semibold transform border border-secondary-400 hover:bg-secondary-300 transition duration-200 ease-in-out outline-hidden"
+                className="py-3 px-4 bg-secondary-400 flex items-center w-full rounded-xl relative font-semibold transform border border-secondary-400 hover:bg-secondary-300 transition duration-200 ease-in-out outline-hidden text-primary-text"
             >
-                <div className="flex gap-4 items-center text-primary-text w-full min-w-0">
+                <span className="absolute left-0 inset-y-0 flex items-center pl-3">
                     {method === 'passkey' ? (
-                        <div className="relative shrink-0">
+                        <div className="relative">
                             <Fingerprint className="h-5 w-5" strokeWidth={2} />
                             <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-success-foreground rounded-full" />
                         </div>
                     ) : (
-                        <div className="relative shrink-0">
+                        <div className="relative">
                             <WalletIcon className="h-5 w-5" strokeWidth={2} />
                             <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-success-foreground rounded-full" />
                         </div>
                     )}
-                    <span className="truncate">{menuLabel}</span>
-                </div>
+                </span>
+                <span className="grow text-center truncate">{menuLabel}</span>
             </button>
             <UserStatusDrawer
                 isOpen={openModal}

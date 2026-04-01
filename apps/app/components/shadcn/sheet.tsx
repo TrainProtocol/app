@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { X } from "lucide-react"
 import { classNames } from "../utils/classNames"
 
 const Sheet = DialogPrimitive.Root

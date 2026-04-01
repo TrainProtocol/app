@@ -35,14 +35,9 @@ const FormButton = ({
     // Check derivation method first (before any other checks)
     if (!isLoggedIn) {
         return (
-            <>
-                <SubmitButton
-                    type="button"
-                    onClick={openLogin}
-                >
-                    Login to continue
-                </SubmitButton>
-            </>
+            <SubmitButton type="button" onClick={openLogin}>
+                Login to continue
+            </SubmitButton>
         );
     }
 

@@ -29,7 +29,8 @@ type Props = {
 
 export default function Layout({ children, settings }: Props) {
   const router = useRouter();
-  const { isOpen: loginOpen, close: closeLogin } = useLoginModalStore();
+  const loginOpen = useLoginModalStore((s) => s.isOpen && s.target === 'modal');
+  const closeLogin = useLoginModalStore((s) => s.close);
   if (!settings)
     return <ThemeWrapper>
       <MaintananceContent />
