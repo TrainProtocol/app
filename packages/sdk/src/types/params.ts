@@ -21,7 +21,7 @@ export type UserLockParams = {
     rewardRecipient?: string;
     rewardAmount?: string;
     rewardTimelockDelta?: number;
-    timelockDelta?: number;
+    timelockDelta: number;
     hashlock: string;
     nonce: number
 }

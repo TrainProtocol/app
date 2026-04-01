@@ -28,14 +28,14 @@ export function StarknetWalletBridge() {
                 return sdk.createHTLCClient('starknet', { rpcUrl: getRpcUrl() })
             },
 
-            createWriteClient(sdk: TrainSDK, networkId: Caip2Id) {
+            createWriteClient(sdk: TrainSDK, networkId: Caip2Id, _address?: string) {
                 return sdk.createHTLCClient('starknet', {
                     rpcUrl: getRpcUrl(),
                     signer: address && account ? { address, account } : undefined,
                 })
             },
 
-            getLoginConfig: () => {
+            getLoginConfig: (_address?: string) => {
                 if (!account || !address) return null
                 const isSandbox = process.env.NEXT_PUBLIC_API_VERSION === 'sandbox'
                 return {

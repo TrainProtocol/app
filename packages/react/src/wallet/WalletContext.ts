@@ -7,10 +7,12 @@ export interface WalletContextValue {
     registerAdapter: (adapter: TrainWalletAdapter) => () => void
     /** Create a read-only HTLC client for the given network (delegates to adapter) */
     createClient: (networkId: Caip2Id) => IHTLCReadClient
-    /** Create a write HTLC client with signer for the given network (delegates to adapter) */
-    createWriteClient: (networkId: Caip2Id) => IHTLCClient
-    /** Get login config for wallet-based secret derivation */
-    getLoginConfig: (chainNamespace: ChainNamespace) => Record<string, unknown> | null | Promise<Record<string, unknown> | null>
+    /** Create a write HTLC client with signer for the given network (delegates to adapter).
+     *  @param address - When provided, use this specific account as signer. */
+    createWriteClient: (networkId: Caip2Id, address?: string) => IHTLCClient
+    /** Get login config for wallet-based secret derivation.
+     *  @param address - When provided, resolve config for this specific account. */
+    getLoginConfig: (chainNamespace: ChainNamespace, address?: string) => Record<string, unknown> | null | Promise<Record<string, unknown> | null>
 }
 
 export const WalletContext = createContext<WalletContextValue | null>(null)

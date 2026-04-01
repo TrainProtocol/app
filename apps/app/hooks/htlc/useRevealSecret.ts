@@ -8,7 +8,7 @@ import { useSwapStore } from "@/stores/swapStore";
 export function useRevealSecret() {
     const { sourceNetwork, hashlock, solver } = useActiveSwap()
     const activeHashlock = useSwapStore(s => s.activeHashlock)
-    const { reveal: revealSecretAction } = useRevealSecretHook(activeHashlock)
+    const { reveal: revealSecretAction } = useRevealSecretHook()
     const { provider } = useWallet(sourceNetwork, 'withdrawal')
     const wallet = provider?.activeWallet
 
@@ -16,11 +16,11 @@ export function useRevealSecret() {
 
     const revealSecret = useCallback(async () => {
         try {
-            if (!hashlock) throw new Error("No hashlock")
+            if (!activeHashlock) throw new Error("No hashlock")
 
             setIsRevealing(true)
 
-            await revealSecretAction()
+            await revealSecretAction(activeHashlock)
 
             posthog.capture("RevealSecret", {
                 hashlock,
@@ -33,7 +33,7 @@ export function useRevealSecret() {
         finally {
             setIsRevealing(false)
         }
-    }, [hashlock, solver, revealSecretAction])
+    }, [activeHashlock, hashlock, solver, revealSecretAction])
 
     return { revealSecret, isRevealing, source_network: sourceNetwork, wallet }
 }

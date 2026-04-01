@@ -21,9 +21,13 @@ export interface TrainWalletAdapter {
     /** Create a read-only HTLC client for monitoring/polling (no signer) */
     createClient(sdk: TrainSDK, networkId: Caip2Id): IHTLCReadClient
 
-    /** Create a write HTLC client with signer for transactions */
-    createWriteClient(sdk: TrainSDK, networkId: Caip2Id): IHTLCClient
+    /** Create a write HTLC client with signer for transactions.
+     *  @param address - When provided, use this specific account as signer
+     *  (e.g. the user-selected account). When omitted, fall back to the
+     *  framework's active/default account. */
+    createWriteClient(sdk: TrainSDK, networkId: Caip2Id, address?: string): IHTLCClient
 
-    /** Return config for wallet-based secret derivation. Null = wallet not ready. */
-    getLoginConfig?: () => Record<string, unknown> | null | Promise<Record<string, unknown> | null>
+    /** Return config for wallet-based secret derivation. Null = wallet not ready.
+     *  @param address - When provided, resolve config for this specific account. */
+    getLoginConfig?: (address?: string) => Record<string, unknown> | null | Promise<Record<string, unknown> | null>
 }

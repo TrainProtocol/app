@@ -33,14 +33,14 @@ export function AztecWalletBridge() {
                 return sdk.createHTLCClient('aztec', { rpcUrl: getRpcUrl() })
             },
 
-            createWriteClient(sdk: TrainSDK, networkId: Caip2Id) {
+            createWriteClient(sdk: TrainSDK, networkId: Caip2Id, _address?: string) {
                 return sdk.createHTLCClient('aztec', {
                     rpcUrl: getRpcUrl(),
                     signer: wallet && address ? { wallet, address } : undefined,
                 })
             },
 
-            getLoginConfig: () => {
+            getLoginConfig: (_address?: string) => {
                 if (!wallet || !address) return null
                 return { wallet, address }
             },

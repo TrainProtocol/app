@@ -17,8 +17,8 @@ import {
     InvalidTxHashError,
 } from '@train-protocol/sdk'
 import type { UserLockDetails, SolverLockDetails } from '@train-protocol/sdk'
-import { htlcFunctions, htlcEvents, erc20Functions } from './abi.js'
-import { JsonRpcClient } from './rpc.js'
+import { htlcFunctions, htlcEvents, erc20Functions, htlcErrorsBySelector } from './abi.js'
+import { JsonRpcClient, JsonRpcError } from './rpc.js'
 import type { EvmHTLCClientConfig, EvmSigner, RpcLog, RpcTransactionReceipt } from './types.js'
 import { ZERO_ADDRESS } from './constants.js'
 
@@ -97,6 +97,8 @@ export class EvmHTLCClient extends HTLCClient {
 
             return { hash, hashlock: params.hashlock, nonce: params.nonce };
         } catch (error) {
+            const errorName = decodeContractError(error)
+            if (errorName) throw new Error(`Contract error: ${errorName}`)
             console.error('Error in userLock:', error);
             throw error;
         }
@@ -113,6 +115,8 @@ export class EvmHTLCClient extends HTLCClient {
 
             return signer.sendTransaction({ to: contractAddress, data: calldata })
         } catch (error) {
+            const errorName = decodeContractError(error)
+            if (errorName) throw new Error(`Contract error: ${errorName}`)
             console.error('Error in refund:', error);
             throw error;
         }
@@ -134,6 +138,8 @@ export class EvmHTLCClient extends HTLCClient {
 
             return signer.sendTransaction({ to: contractAddress, data: calldata })
         } catch (error) {
+            const errorName = decodeContractError(error)
+            if (errorName) throw new Error(`Contract error: ${errorName}`)
             console.error('Error in claim:', error);
             throw error;
         }
@@ -356,6 +362,14 @@ export class EvmHTLCClient extends HTLCClient {
         }
         return null
     }
+}
+
+function decodeContractError(error: unknown): string | null {
+    if (error instanceof JsonRpcError && typeof error.data === 'string' && error.data.startsWith('0x')) {
+        const selector = error.data.slice(0, 10)
+        return htlcErrorsBySelector[selector] ?? null
+    }
+    return null
 }
 
 type Hex = `0x${string}`

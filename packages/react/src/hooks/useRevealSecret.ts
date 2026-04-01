@@ -14,18 +14,24 @@ import { parseCaip2Id } from '../internal/branded'
 import { TrainError, TrainErrorCode } from '../types'
 
 export interface UseRevealSecretResult {
-    reveal: () => Promise<void>
+    /** Reveal the swap secret to the solver API. */
+    reveal: (hashlock: string) => Promise<void>
     isRevealing: boolean
     error: Error | null
 }
 
 /**
  * Action hook to reveal the swap secret to the solver API.
- * Derives the secret on-demand from the internal key store + nonce (from sourceDetails.userData in React Query cache).
+ * Derives the secret on-demand from the internal key store + nonce
+ * (from sourceDetails.userData in React Query cache).
  *
- * @param hashlock - The hashlock of the swap whose secret to reveal
+ * Usage:
+ * ```tsx
+ * const { reveal, isRevealing } = useRevealSecret()
+ * await reveal(hashlock)
+ * ```
  */
-export function useRevealSecret(hashlock: string | null | undefined): UseRevealSecretResult {
+export function useRevealSecret(): UseRevealSecretResult {
     const { apiClient, config } = useTrainContext()
     const store = useStoreContext()
     const sdStore = useSDStoreContext()
@@ -35,14 +41,13 @@ export function useRevealSecret(hashlock: string | null | undefined): UseRevealS
     const [error, setError] = useState<Error | null>(null)
     const inFlight = useRef(false)
 
-    const reveal = useCallback(async () => {
+    const reveal = useCallback(async (hashlock: string) => {
         if (inFlight.current) return
         inFlight.current = true
         setIsRevealing(true)
         setError(null)
 
-        const hl = hashlock ?? null
-        const swapConfig = hl ? store?.getState().swapConfigs[hl] : null
+        const swapConfig = store?.getState().swapConfigs[hashlock]
 
         // Recovered swaps don't have a solverId — cannot reveal secret
         if (swapConfig?.origin === 'recovered') {
@@ -84,7 +89,7 @@ export function useRevealSecret(hashlock: string | null | undefined): UseRevealS
         let nonce: number | null = null
 
         // Tier 1: React Query cache (fast path — works when polling is active)
-        const sourceDetails = queryClient.getQueryData<UserLockDetails | null>(trainQueryKeys.userLock(hl!))
+        const sourceDetails = queryClient.getQueryData<UserLockDetails | null>(trainQueryKeys.userLock(hashlock))
         const cachedNonce = sourceDetails?.userData ? Number(sourceDetails.userData) : null
         if (cachedNonce && !isNaN(cachedNonce)) {
             nonce = cachedNonce
@@ -125,9 +130,9 @@ export function useRevealSecret(hashlock: string | null | undefined): UseRevealS
             const secret = bytesToHex(Array.from(secretBytes))
 
             await apiClient.revealSecret(solverId, swapConfig.hashlock, secret)
-            if (store && hl) {
-                store.getState().setSecretRevealedToApi(hl)
-                store.getState().updateSwap(hl, { secretRevealed: true })
+            if (store) {
+                store.getState().setSecretRevealedToApi(hashlock)
+                store.getState().updateSwap(hashlock, { secretRevealed: true })
             }
         } catch (err) {
             const trainError = new TrainError(
@@ -136,14 +141,14 @@ export function useRevealSecret(hashlock: string | null | undefined): UseRevealS
                 err,
             )
             setError(trainError)
-            if (store && hl) store.getState().setActiveSwapError(hl, trainError)
+            if (store) store.getState().setActiveSwapError(hashlock, trainError)
             config.onError?.(trainError)
             throw trainError
         } finally {
             inFlight.current = false
             setIsRevealing(false)
         }
-    }, [hashlock, apiClient, store, sdStore, config, queryClient, walletCtx])
+    }, [apiClient, store, sdStore, config, queryClient, walletCtx])
 
     return { reveal, isRevealing, error }
 }

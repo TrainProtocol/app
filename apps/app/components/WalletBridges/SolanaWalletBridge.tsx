@@ -29,9 +29,16 @@ export function SolanaWalletBridge() {
                 return sdk.createHTLCClient('solana', { rpcUrl: getRpcUrl() })
             },
 
-            createWriteClient(sdk: TrainSDK, networkId: Caip2Id) {
+            createWriteClient(sdk: TrainSDK, networkId: Caip2Id, address?: string) {
                 const rpcUrl = getRpcUrl()
-                const connectedWallet = wallets.find(w => w.adapter.connected)
+                const connectedWallet = address
+                    ? wallets.find(w => w.adapter.connected && w.adapter.publicKey?.toBase58() === address)
+                    : wallets.find(w => w.adapter.connected)
+
+                if (address && !connectedWallet) {
+                    throw new Error(`No connected Solana wallet found for address "${address}"`)
+                }
+
                 const publicKey = connectedWallet?.adapter.publicKey
 
                 const signer = (connectedWallet && publicKey) ? {
@@ -44,8 +51,10 @@ export function SolanaWalletBridge() {
                 return sdk.createHTLCClient('solana', { rpcUrl, signer })
             },
 
-            getLoginConfig: () => {
-                const connectedAdapter = wallets.find(w => w.adapter.connected)?.adapter
+            getLoginConfig: (address?: string) => {
+                const connectedAdapter = address
+                    ? wallets.find(w => w.adapter.connected && w.adapter.publicKey?.toBase58() === address)?.adapter
+                    : wallets.find(w => w.adapter.connected)?.adapter
                 const signMessage = connectedAdapter && 'signMessage' in connectedAdapter
                     ? (msg: Uint8Array) => connectedAdapter.signMessage(msg)
                     : undefined

@@ -228,6 +228,11 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
         }
         if (!config || !flags) return EMPTY_STATE
 
+        // Hydrated swap waiting for first poll — show loading, not a stale status
+        if (config.origin === 'hydrated' && !sourceDetails) {
+            return { ...EMPTY_STATE, isLoading: true, hashlock }
+        }
+
         const secretRevealed = flags.secretRevealedToApi || !!sourceDetails?.secret
         const destRedeemTxId = deriveDestRedeemTxId(htlcFromApi, config.destinationNetwork)
 

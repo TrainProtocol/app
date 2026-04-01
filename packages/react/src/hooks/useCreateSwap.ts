@@ -60,12 +60,14 @@ export function useCreateSwap(): UseCreateSwapResult {
             const secret = bytesToHex(Array.from(secretBytes))
             const hashlock = secretToHashlock(secret)
 
+
             const sourceNetwork = caip2Id(params.sourceNetwork)
             const destinationNetwork = caip2Id(params.destinationNetwork)
             const { reference: sourceChainRef } = parseCaip2Id(sourceNetwork)
 
-            // Create write client via wallet adapter (fully typed, no cast)
-            const client = walletCtx.createWriteClient(sourceNetwork)
+            // Create write client via wallet adapter — pass source address so the
+            // bridge resolves the correct connector / signer for this account.
+            const client = walletCtx.createWriteClient(sourceNetwork, params.sourceAddress)
 
             const result = await client.userLock({
                 sourceChain: params.sourceNetwork,
@@ -87,7 +89,7 @@ export function useCreateSwap(): UseCreateSwapResult {
                 rewardRecipient: params.quote.reward?.rewardRecipientAddress,
                 rewardAmount: params.quote.reward?.amount,
                 rewardTimelockDelta: params.quote.reward?.rewardTimelockTimeSpanInSeconds,
-                timelockDelta: params.quote.timelock?.timelockTimeSpanInSeconds,
+                timelockDelta: params.quote.timelockTimeSpanInSeconds,
                 hashlock,
                 nonce,
                 solverData: params.quote.signature,

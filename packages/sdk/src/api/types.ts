@@ -79,9 +79,7 @@ export type QuoteDetails = {
     destinationSolverAddress: string;
     quoteExpirationTimestampInSeconds: number;
     route: QuoteRoute;
-    timelock: {
-        timelockTimeSpanInSeconds: number;
-    };
+    timelockTimeSpanInSeconds: number;
     reward: {
         amount: string;
         rewardTimelockTimeSpanInSeconds: number;

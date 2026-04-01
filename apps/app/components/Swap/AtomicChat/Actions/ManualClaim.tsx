@@ -10,21 +10,21 @@ import { useSwapStore } from "@/stores/swapStore";
 export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const { destinationNetwork, hashlock, sourceDetails, destRedeemTxId, error } = useActiveSwap();
     const activeHashlock = useSwapStore(s => s.activeHashlock)
-    const { claim, isClaiming } = useManualClaim(activeHashlock);
+    const { claim, isClaiming } = useManualClaim();
 
     const { provider } = useWallet(destinationNetwork, 'withdrawal');
     const wallet = provider?.activeWallet;
 
     const handleManualClaim = async () => {
         try {
-            if (!hashlock) throw new Error("No hashlock");
+            if (!activeHashlock) throw new Error("No hashlock");
             if (!sourceDetails?.secret) throw new Error("Secret not available");
             if (!destinationNetwork) throw new Error("No destination network");
 
             if (provider?.activeWallet && (provider.activeWallet.chainId != destinationNetwork.chainId) && provider.switchChain)
                 await provider.switchChain(provider.activeWallet, destinationNetwork.chainId);
 
-            await claim(sourceDetails.secret.toString());
+            await claim({ hashlock: activeHashlock, secret: sourceDetails.secret.toString() });
 
             posthog.capture("ManualClaim", {
                 hashlock,

@@ -65,7 +65,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, typ
                     sourceSolverAddress: srcLpAddress,
                     destinationSolverAddress: destLpAddress,
                     quoteExpirationTimestampInSeconds: quote.quoteExpirationTimestampInSeconds,
-                    timelock: quote.timelock,
+                    timelockTimeSpanInSeconds: quote.timelockTimeSpanInSeconds,
                     reward: quote.reward,
                     totalFee: quote.totalFee,
                     route: quote.route,
@@ -115,7 +115,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, typ
 export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const { sourceNetwork, hashlock, sourceToken, refundTxId, srcContract, sourceDetails } = useActiveSwap()
     const activeHashlock = useSwapStore(s => s.activeHashlock)
-    const { refund: doRefund } = useRefund(activeHashlock)
+    const { refund: doRefund } = useRefund()
     const { provider: source_provider } = useWallet(sourceNetwork, 'withdrawal')
     const sourceAccount = useSelectedAccount('from', sourceNetwork?.caip2Id)
     const sourceWallet = (sourceAccount?.address && sourceNetwork) ? source_provider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, sourceNetwork)) : undefined
@@ -127,7 +127,7 @@ export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const handleRefundAssets = async () => {
         try {
             if (!sourceNetwork) throw new Error("No source network")
-            if (!hashlock) throw new Error("No commitment details")
+            if (!activeHashlock) throw new Error("No commitment details")
             if (!sourceDetails) throw new Error("No commitment")
             if (!sourceToken) throw new Error("No source asset")
             if (!srcContract) throw new Error("No atomic contract")
@@ -136,7 +136,7 @@ export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
             if (source_provider?.activeWallet && (source_provider.activeWallet.chainId != sourceNetwork.chainId) && source_provider.switchChain)
                 await source_provider.switchChain(source_provider.activeWallet, sourceNetwork.chainId)
 
-            const res = await doRefund()
+            const res = await doRefund({ hashlock: activeHashlock, address: sourceAccount?.address })
 
             posthog.capture("Refund", {
                 userLock: sourceDetails,

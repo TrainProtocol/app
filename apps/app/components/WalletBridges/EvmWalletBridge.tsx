@@ -21,21 +21,25 @@ export function EvmWalletBridge() {
 
     const adapter = useMemo<TrainWalletAdapter>(() => {
 
-        function getSignerForNetwork(caip2Id: Caip2Id) {
-            const account = getAccount(config)
-            if (!account.address) return null
+        function getSignerForNetwork(caip2Id: Caip2Id, signerAddress?: string) {
+            const address = signerAddress ?? getAccount(config).address
+            if (!address) return null
 
-            const address = account.address
             const network = networks.find(n => n.caip2Id === (caip2Id as string))
             const chain = network ? resolveChain(network) : undefined
+
+            const connection = getConnections(config)
+                .find(c => c.accounts.some(a => a.toLowerCase() === address.toLowerCase()))
+
+            // When an explicit address was requested, fail fast if no connector found
+            if (signerAddress && !connection) {
+                throw new Error(`No connected EVM wallet found for address "${signerAddress}"`)
+            }
 
             return {
                 address,
                 chainNamespace: 'eip155',
                 sendTransaction: async (tx: { to: string; data: string; value?: bigint }) => {
-                    const connection = getConnections(config)
-                        .find(c => c.accounts.some(a => a.toLowerCase() === address.toLowerCase()))
-
                     if(!chain?.id) throw new Error("No chain id")
 
                     const walletClient = await getWalletClient(config, {
@@ -87,20 +91,25 @@ export function EvmWalletBridge() {
                 return sdk.createHTLCClient('eip155', { rpcUrl })
             },
 
-            createWriteClient(sdk: TrainSDK, networkId: Caip2Id) {
+            createWriteClient(sdk: TrainSDK, networkId: Caip2Id, address?: string) {
                 const rpcUrl = getRpcUrl(networkId)
-                const signer = getSignerForNetwork(networkId) ?? undefined
+                const signer = getSignerForNetwork(networkId, address) ?? undefined
                 return sdk.createHTLCClient('eip155', { rpcUrl, signer })
             },
 
-            getLoginConfig: async () => {
-                const account = getAccount(config)
-                if (!account.connector || !account.address) return null
-                const provider = await account.connector.getProvider()
+            getLoginConfig: async (address?: string) => {
+                const targetAddress = address ?? getAccount(config).address
+                if (!targetAddress) return null
+
+                const connection = getConnections(config)
+                    .find(c => c.accounts.some(a => a.toLowerCase() === targetAddress.toLowerCase()))
+                if (!connection?.connector) return null
+
+                const provider = await connection.connector.getProvider()
                 return {
                     provider,
-                    address: account.address,
-                    options: { sandbox: isSandbox, currentChainId: account.chainId },
+                    address: targetAddress,
+                    options: { sandbox: isSandbox, currentChainId: getAccount(config).chainId },
                 }
             },
         }

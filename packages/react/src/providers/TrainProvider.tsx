@@ -82,13 +82,13 @@ export function TrainProvider({
         return findAdapter(networkId).createClient(sdk, networkId)
     }, [findAdapter, sdk])
 
-    const createWriteClient = useCallback((networkId: Caip2Id): IHTLCClient => {
-        return findAdapter(networkId).createWriteClient(sdk, networkId)
+    const createWriteClient = useCallback((networkId: Caip2Id, address?: string): IHTLCClient => {
+        return findAdapter(networkId).createWriteClient(sdk, networkId, address)
     }, [findAdapter, sdk])
 
-    const getLoginConfig = useCallback(async (namespace: ChainNamespace): Promise<Record<string, unknown> | null> => {
+    const getLoginConfig = useCallback(async (namespace: ChainNamespace, address?: string): Promise<Record<string, unknown> | null> => {
         const adapter = adaptersRef.current.get(namespace)
-        return (await adapter?.getLoginConfig?.()) ?? null
+        return (await adapter?.getLoginConfig?.(address)) ?? null
     }, [])
 
     const walletValue = useMemo<WalletContextValue>(
