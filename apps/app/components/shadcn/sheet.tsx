@@ -66,7 +66,7 @@ function SheetContent({
       <DialogPrimitive.Content
         data-slot="sheet-content"
         className={cn(
-          "fixed z-50 gap-4 bg-popover text-popover-foreground shadow-lg ring-1 ring-foreground/5 transition ease-in-out dark:ring-foreground/10 data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=open]:animate-in data-[state=closed]:animate-out",
+          "fixed z-50 gap-4 rounded-l-3xl bg-popover text-popover-foreground shadow-lg ring-1 ring-foreground/5 transition ease-in-out dark:ring-foreground/10 data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=open]:animate-in data-[state=closed]:animate-out",
           sheetVariants[side],
           className
         )}

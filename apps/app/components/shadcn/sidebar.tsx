@@ -230,7 +230,7 @@ function Sidebar({
           type="button"
           onClick={toggleSidebar}
           aria-label="Close sidebar"
-          className="absolute inset-y-0 -left-8 -z-10 flex items-start justify-center w-14 pr-6 pt-6 hover:bg-sidebar-accent text-muted-foreground hover:text-sidebar-accent-foreground transition-colors cursor-pointer"
+          className="absolute inset-y-0 -left-8 -z-10 flex items-start justify-center w-14 pr-6 pt-6 rounded-l-3xl hover:bg-secondary-300 text-muted-foreground hover:text-sidebar-accent-foreground transition-colors cursor-pointer"
         >
           <ChevronsRight className="h-6 w-6" strokeWidth={2} />
         </button>
