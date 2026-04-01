@@ -1,5 +1,5 @@
 {
-  "count": 636,
+  "count": 637,
   "listings": {
     "00e39f835988d1bb783b2a0748e18bc6278dec03492d00b0e102a466cd8b3d77": {
       "app": {
@@ -37347,6 +37347,72 @@
         "2"
       ]
     },
+    "bccfdfe020b6df7bf7bdec60297be63b8ca4ab6468bd0e0fd95a472da076baa3": {
+      "app": {
+        "android": "https://play.google.com/store/apps/details?id=com.grrn.ng.pay&pcampaignid=web_share",
+        "browser": "",
+        "chrome": "",
+        "edge": "",
+        "firefox": "",
+        "ios": "",
+        "linux": "",
+        "mac": "",
+        "opera": "",
+        "safari": "",
+        "windows": ""
+      },
+      "app_type": "wallet",
+      "category": null,
+      "chains": [
+        "eip155:1",
+        "eip155:100",
+        "eip155:10001",
+        "eip155:137",
+        "eip155:200",
+        "eip155:421614",
+        "eip155:56",
+        "eip155:8453",
+        "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z",
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+      ],
+      "description": "Africa's Digital Wallet for Crypto & Transaction. Send, receive, trade USDC/ETH/NGN across Base, Ethereum, Polygon networks",
+      "desktop": {
+        "native": "",
+        "universal": ""
+      },
+      "homepage": "https://www.grrn.ng",
+      "id": "bccfdfe020b6df7bf7bdec60297be63b8ca4ab6468bd0e0fd95a472da076baa3",
+      "image_id": "ac873a52-f775-4098-fd54-1f0a8848da00",
+      "image_url": {
+        "lg": "https://explorer-api.walletconnect.com/v3/logo/md/ac873a52-f775-4098-fd54-1f0a8848da00?projectId=34357d3c125c2bcf2ce2bc3309d98715",
+        "md": "https://explorer-api.walletconnect.com/v3/logo/md/ac873a52-f775-4098-fd54-1f0a8848da00?projectId=34357d3c125c2bcf2ce2bc3309d98715",
+        "sm": "https://explorer-api.walletconnect.com/v3/logo/sm/ac873a52-f775-4098-fd54-1f0a8848da00?projectId=34357d3c125c2bcf2ce2bc3309d98715"
+      },
+      "injected": null,
+      "metadata": {
+        "colors": {
+          "primary": null,
+          "secondary": null
+        },
+        "shortName": null
+      },
+      "mobile": {
+        "native": "grrnpay://wc",
+        "universal": "https://grrnpay.grrn.io/wc"
+      },
+      "name": "GRRNPay",
+      "rdns": "",
+      "sdks": [
+        "sign_v1",
+        "sign_v2"
+      ],
+      "slug": "grrnpay",
+      "updatedAt": "2026-04-01T12:44:42.020891+00:00",
+      "versions": [
+        "1",
+        "2"
+      ]
+    },
     "bd0a2043ad2de4b70567d990d76c4bff7e483f6cda88814ee502b4ff25471293": {
       "app": {
         "android": "https://play.google.com/store/apps/details?id=capital.spatium.wallet",
@@ -52423,5 +52489,5 @@
       ]
     }
   },
-  "total": 636
+  "total": 637
 }
