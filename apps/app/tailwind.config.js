@@ -231,32 +231,9 @@ export default {
       typography: (theme) => ({
         DEFAULT: {
           css: {
-            h1: {
-              color: '#FFF',
-              textAlign: 'center',
-            },
-            h2: {
-              color: '#FFF',
-              textAlign: 'center',
-            },
-            h3: {
-              color: '#FFF',
-            },
-            h4: {
-              color: '#FFF',
-            },
-            h5: {
-              color: '#FFF',
-            },
             a: {
               color: theme('colors.primary.400'),
             },
-            strong: {
-              color: '#FFF'
-            },
-            blockquote: {
-              color: '#FFF'
-            }
           },
         }
       }),

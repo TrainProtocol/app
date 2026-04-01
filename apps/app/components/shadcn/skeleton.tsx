@@ -1,17 +1,16 @@
-"use client"
-
-import { classNames } from "../utils/classNames"
+import { cn } from "@/lib/utils"
 
 function Skeleton({
-    className,
-    ...props
+  className,
+  ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-    return (
-        <div
-            className={classNames("animate-pulse rounded-md bg-secondary-500", className)}
-            {...props}
-        />
-    )
+  return (
+    <div
+      data-slot="skeleton"
+      className={cn("animate-pulse rounded-md bg-muted", className)}
+      {...props}
+    />
+  )
 }
 
 export { Skeleton }
