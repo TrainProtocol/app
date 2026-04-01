@@ -110,7 +110,7 @@ const resolveQuote = (quote: SwapQuote) => {
         rewardAmount: quote?.reward ? quote?.reward.amount : undefined,
         rewardTimelockDelta: quote?.reward ? quote?.reward.rewardTimelockTimeSpanInSeconds : undefined,
         destinationAmount: quote?.receiveAmount,
-        timelockDelta: quote?.timelock.timelockTimeSpanInSeconds,
+        timelockDelta: quote?.timelockTimeSpanInSeconds,
     }
 }
 
