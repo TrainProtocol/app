@@ -64,16 +64,16 @@
   --ls-colors-buttonTextColor: 255, 255, 255;
   --ls-colors-actionButtonColor: 39, 142, 246;
   --ls-colors-logo: 249, 251, 251;
-  --ls-colors-secondary: 22, 27, 29;
-  --ls-colors-secondary-100: 61, 68, 70;
-  --ls-colors-secondary-200: 50, 57, 60;
-  --ls-colors-secondary-300: 41, 47, 49;
-  --ls-colors-secondary-400: 31, 37, 39;
-  --ls-colors-secondary-500: 22, 27, 29;
-  --ls-colors-secondary-600: 16, 21, 22;
-  --ls-colors-secondary-700: 12, 15, 16;
-  --ls-colors-secondary-800: 9, 11, 12;
-  --ls-colors-secondary-900: 5, 6, 7;
+  --ls-colors-secondary: 28, 34, 36;
+  --ls-colors-secondary-100: 38, 48, 50;
+  --ls-colors-secondary-200: 36, 45, 47;
+  --ls-colors-secondary-300: 33, 41, 43;
+  --ls-colors-secondary-400: 31, 38, 40;
+  --ls-colors-secondary-500: 28, 34, 36;
+  --ls-colors-secondary-600: 25, 31, 33;
+  --ls-colors-secondary-700: 22, 27, 29;
+  --ls-colors-secondary-800: 19, 24, 26;
+  --ls-colors-secondary-900: 16, 20, 22;
   --ls-colors-secondary-text: 156, 168, 171;
   --ls-colors-warning-foreground: 255, 201, 74;
   --ls-colors-warning-background: 47, 43, 29;
@@ -118,7 +118,7 @@
 }
 
 [data-theme="light"] {
-  --ls-colors-background: 255, 255, 255;
+  --ls-colors-background: 242, 243, 243;
   --ls-colors-primary: 39, 142, 246;
   --ls-colors-primary-100: 220, 235, 252;
   --ls-colors-primary-200: 185, 215, 248;
@@ -142,8 +142,8 @@
   --ls-colors-secondary-500: 237, 239, 239;
   --ls-colors-secondary-600: 244, 245, 246;
   --ls-colors-secondary-700: 251, 252, 252;
-  --ls-colors-secondary-800: 255, 255, 255;
-  --ls-colors-secondary-900: 247, 249, 249;
+  --ls-colors-secondary-800: 242, 243, 243;
+  --ls-colors-secondary-900: 242, 243, 243;
   --ls-colors-secondary-text: 103, 120, 124;
   --ls-colors-warning-foreground: 211, 115, 0;
   --ls-colors-warning-background: 249, 238, 209;
@@ -153,7 +153,7 @@
   --ls-colors-success-background: 218, 247, 227;
 
   /* shadcn variables (light mode) */
-  --background: oklch(1 0 0);
+  --background: oklch(0.9634 0.0011 197.14);
   --foreground: oklch(0.148 0.004 228.8);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.148 0.004 228.8);
@@ -252,7 +252,7 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
+  /* --color-primary: var(--primary); */
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -306,25 +306,6 @@
 
   .rdxCommandList {
     max-height: var(--radix-popper-available-height);
-  }
-}
-
-@layer base {
-
-  body {
-    @apply bg-background sm:bg-background text-foreground;
-  }
-
-  /* Transparent background for immutable theme (iframe embedding) */
-  html:has(#widget[style*="transparent"]),
-  body:has(#widget[style*="transparent"]) {
-    background: transparent !important;
-  }
-
-  /* On iOS disabled inputs have default opacitiy */
-  .ntdi {
-    opacity: 1;
-    /* required on iOS */
   }
 }
 
