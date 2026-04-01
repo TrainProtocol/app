@@ -1,5 +1,9 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 @config '../tailwind.config.js';
+
+@custom-variant dark (&:is([data-theme="default"] *));
 
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
@@ -35,12 +39,16 @@
     outline: none;
     transition: outline 0s;
   }
+
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 
 /* Theme variable definitions — scoped to [data-theme] attribute set by next-themes before paint */
 :root,
 [data-theme="default"] {
-  --ls-colors-background: 14, 14, 14;
+  --ls-colors-background: 9, 11, 12;
   --ls-colors-primary: 39, 142, 246;
   --ls-colors-primary-100: 220, 235, 252;
   --ls-colors-primary-200: 185, 215, 248;
@@ -51,32 +59,66 @@
   --ls-colors-primary-700: 30, 110, 195;
   --ls-colors-primary-800: 25, 90, 165;
   --ls-colors-primary-900: 20, 70, 135;
-  --ls-colors-primary-text: 233, 233, 233;
-  --ls-colors-text-tertiary: 113, 113, 113;
-  --ls-colors-buttonTextColor: 0, 0, 0;
-  --ls-colors-actionButtonColor: 255, 255, 255;
-  --ls-colors-logo: 255, 255, 255;
-  --ls-colors-secondary: 32, 31, 31;
-  --ls-colors-secondary-100: 72, 72, 71;
-  --ls-colors-secondary-200: 62, 61, 61;
-  --ls-colors-secondary-300: 52, 51, 51;
-  --ls-colors-secondary-400: 42, 41, 41;
-  --ls-colors-secondary-500: 32, 31, 31;
-  --ls-colors-secondary-600: 25, 25, 25;
-  --ls-colors-secondary-700: 19, 19, 19;
-  --ls-colors-secondary-800: 17, 17, 17;
-  --ls-colors-secondary-900: 14, 14, 14;
-  --ls-colors-secondary-text: 173, 170, 170;
+  --ls-colors-primary-text: 249, 251, 251;
+  --ls-colors-text-tertiary: 103, 120, 124;
+  --ls-colors-buttonTextColor: 255, 255, 255;
+  --ls-colors-actionButtonColor: 39, 142, 246;
+  --ls-colors-logo: 249, 251, 251;
+  --ls-colors-secondary: 28, 34, 36;
+  --ls-colors-secondary-100: 38, 48, 50;
+  --ls-colors-secondary-200: 36, 45, 47;
+  --ls-colors-secondary-300: 33, 41, 43;
+  --ls-colors-secondary-400: 31, 38, 40;
+  --ls-colors-secondary-500: 28, 34, 36;
+  --ls-colors-secondary-600: 25, 31, 33;
+  --ls-colors-secondary-700: 22, 27, 29;
+  --ls-colors-secondary-800: 19, 24, 26;
+  --ls-colors-secondary-900: 16, 20, 22;
+  --ls-colors-secondary-text: 156, 168, 171;
   --ls-colors-warning-foreground: 255, 201, 74;
   --ls-colors-warning-background: 47, 43, 29;
   --ls-colors-error-foreground: 255, 97, 97;
   --ls-colors-error-background: 46, 27, 27;
   --ls-colors-success-foreground: 89, 224, 125;
   --ls-colors-success-background: 14, 43, 22;
+
+  /* shadcn variables (dark mode) */
+  --background: oklch(0.148 0.004 228.8);
+  --foreground: oklch(0.987 0.002 197.1);
+  --card: oklch(0.218 0.008 223.9);
+  --card-foreground: oklch(0.987 0.002 197.1);
+  --popover: oklch(0.218 0.008 223.9);
+  --popover-foreground: oklch(0.987 0.002 197.1);
+  --primary: oklch(0.424 0.199 265.638);
+  --primary-foreground: oklch(0.97 0.014 254.604);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.275 0.011 216.9);
+  --muted-foreground: oklch(0.723 0.014 214.4);
+  --accent: oklch(0.275 0.011 216.9);
+  --accent-foreground: oklch(0.987 0.002 197.1);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.56 0.021 213.5);
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.218 0.008 223.9);
+  --sidebar-foreground: oklch(0.987 0.002 197.1);
+  --sidebar-primary: oklch(0.623 0.214 259.815);
+  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
+  --sidebar-accent: oklch(0.275 0.011 216.9);
+  --sidebar-accent-foreground: oklch(0.987 0.002 197.1);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.56 0.021 213.5);
 }
 
 [data-theme="light"] {
-  --ls-colors-background: 246, 246, 246;
+  --ls-colors-background: 242, 243, 243;
   --ls-colors-primary: 39, 142, 246;
   --ls-colors-primary-100: 220, 235, 252;
   --ls-colors-primary-200: 185, 215, 248;
@@ -87,28 +129,62 @@
   --ls-colors-primary-700: 30, 110, 195;
   --ls-colors-primary-800: 25, 90, 165;
   --ls-colors-primary-900: 20, 70, 135;
-  --ls-colors-primary-text: 23, 23, 23;
-  --ls-colors-text-tertiary: 130, 130, 130;
+  --ls-colors-primary-text: 9, 11, 12;
+  --ls-colors-text-tertiary: 103, 120, 124;
   --ls-colors-buttonTextColor: 255, 255, 255;
   --ls-colors-actionButtonColor: 39, 142, 246;
-  --ls-colors-logo: 23, 23, 23;
-  --ls-colors-secondary: 252, 252, 252;
-  --ls-colors-secondary-100: 195, 195, 195;
-  --ls-colors-secondary-200: 210, 210, 210;
-  --ls-colors-secondary-300: 224, 224, 224;
-  --ls-colors-secondary-400: 232, 232, 232;
-  --ls-colors-secondary-500: 240, 240, 240;
-  --ls-colors-secondary-600: 245, 245, 245;
-  --ls-colors-secondary-700: 255, 255, 255;
-  --ls-colors-secondary-800: 255, 255, 255;
-  --ls-colors-secondary-900: 248, 248, 248;
-  --ls-colors-secondary-text: 90, 90, 90;
-  --ls-colors-warning-foreground: 180, 100, 0;
-  --ls-colors-warning-background: 255, 247, 230;
-  --ls-colors-error-foreground: 220, 50, 50;
-  --ls-colors-error-background: 255, 240, 240;
-  --ls-colors-success-foreground: 22, 163, 74;
-  --ls-colors-success-background: 235, 255, 240;
+  --ls-colors-logo: 9, 11, 12;
+  --ls-colors-secondary: 244, 244, 245;
+  --ls-colors-secondary-100: 187, 190, 192;
+  --ls-colors-secondary-200: 202, 206, 208;
+  --ls-colors-secondary-300: 219, 222, 224;
+  --ls-colors-secondary-400: 230, 232, 233;
+  --ls-colors-secondary-500: 237, 239, 239;
+  --ls-colors-secondary-600: 244, 245, 246;
+  --ls-colors-secondary-700: 251, 252, 252;
+  --ls-colors-secondary-800: 242, 243, 243;
+  --ls-colors-secondary-900: 242, 243, 243;
+  --ls-colors-secondary-text: 103, 120, 124;
+  --ls-colors-warning-foreground: 211, 115, 0;
+  --ls-colors-warning-background: 249, 238, 209;
+  --ls-colors-error-foreground: 231, 0, 11;
+  --ls-colors-error-background: 255, 231, 230;
+  --ls-colors-success-foreground: 24, 154, 48;
+  --ls-colors-success-background: 218, 247, 227;
+
+  /* shadcn variables (light mode) */
+  --background: oklch(0.9634 0.0011 197.14);
+  --foreground: oklch(0.148 0.004 228.8);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.148 0.004 228.8);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.148 0.004 228.8);
+  --primary: oklch(0.488 0.243 264.376);
+  --primary-foreground: oklch(0.97 0.014 254.604);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.963 0.002 197.1);
+  --muted-foreground: oklch(0.56 0.021 213.5);
+  --accent: oklch(0.963 0.002 197.1);
+  --accent-foreground: oklch(0.218 0.008 223.9);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.925 0.005 214.3);
+  --input: oklch(0.925 0.005 214.3);
+  --ring: oklch(0.723 0.014 214.4);
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.987 0.002 197.1);
+  --sidebar-foreground: oklch(0.148 0.004 228.8);
+  --sidebar-primary: oklch(0.546 0.245 262.881);
+  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
+  --sidebar-accent: oklch(0.963 0.002 197.1);
+  --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
+  --sidebar-border: oklch(0.925 0.005 214.3);
+  --sidebar-ring: oklch(0.723 0.014 214.4);
 }
 
 @theme static {
@@ -151,6 +227,46 @@
   --color-background: rgb(var(--ls-colors-background, var(--ls-colors-secondary-900, 14, 14, 14)));
 }
 
+@theme inline {
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  /* --color-primary: var(--primary); */
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
 
 @layer base {
   button:not(:disabled),
@@ -183,32 +299,13 @@
     -moz-appearance: textfield;
     appearance: textfield;
   }
-  
+
   .styled-scroll {
     @apply scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-secondary-500 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-500/50 ;
   }
-  
+
   .rdxCommandList {
     max-height: var(--radix-popper-available-height);
-  }
-}
-
-@layer base {
-
-  body {
-    @apply bg-background sm:bg-background;
-  }
-
-  /* Transparent background for immutable theme (iframe embedding) */
-  html:has(#widget[style*="transparent"]),
-  body:has(#widget[style*="transparent"]) {
-    background: transparent !important;
-  }
-
-  /* On iOS disabled inputs have default opacitiy */
-  .ntdi {
-    opacity: 1;
-    /* required on iOS */
   }
 }
 
@@ -423,7 +520,6 @@ a:focus-visible {
   box-shadow: inset 0 0 0 1px rgb(var(--ls-colors-primary-500)) !important;
   border-radius: inherit;
 }
-
 
 /* Prevent SVG and child elements from being focusable */
 svg,

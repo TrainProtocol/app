@@ -19,7 +19,7 @@ const MobileTooltip: FC<MobileTooltipProps> = ({ children, trigger }) => {
                         <PopoverTrigger asChild>
                             {trigger}
                         </PopoverTrigger>
-                        <PopoverContent side="top" className="max-w-[300px] !border-0 !bg-secondary-600 p-3 space-y-1 !rounded-lg text-sm">
+                        <PopoverContent side="top" className="max-w-[300px] text-sm">
                             {children}
                         </PopoverContent>
                     </Popover>
@@ -28,7 +28,7 @@ const MobileTooltip: FC<MobileTooltipProps> = ({ children, trigger }) => {
                         <TooltipTrigger className="inline-flex" asChild>
                             {trigger}
                         </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-[300px] !border-0 !bg-secondary-600 p-3 space-y-1 !rounded-lg text-sm">
+                        <TooltipContent side="top" className="max-w-[300px] text-sm">
                             {children}
                         </TooltipContent>
                     </Tooltip>
