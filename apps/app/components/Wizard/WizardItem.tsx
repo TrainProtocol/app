@@ -11,9 +11,10 @@ type Props = {
     fitHeight?: boolean,
     className?: string;
     inModal?: boolean;
+    disableAnimation?: boolean;
 }
 
-const WizardItem: FC<Props> = (({ StepName, children, GoBack, PositionPercent, fitHeight = false, className, inModal }: Props) => {
+const WizardItem: FC<Props> = (({ StepName, children, GoBack, PositionPercent, fitHeight = false, className, inModal, disableAnimation }: Props) => {
     const { currentStepName, wrapperWidth, moving } = useFormWizardState()
     const { setGoBack, setPositionPercent } = useFormWizardaUpdate()
     const styleConfigs = fitHeight ? { width: `${wrapperWidth}px`, height: '100%' } : { width: `${wrapperWidth}px`, minHeight: inModal ? 'inherit' : '350px', height: '100%' }
@@ -25,7 +26,19 @@ const WizardItem: FC<Props> = (({ StepName, children, GoBack, PositionPercent, f
         }
     }, [currentStepName, StepName])
 
-    return currentStepName === StepName ?
+    if (currentStepName !== StepName) return null
+
+    if (disableAnimation) {
+        return (
+            <div className='h-full'>
+                <div style={styleConfigs} className={className}>
+                    {Number(wrapperWidth) > 1 && children}
+                </div>
+            </div>
+        )
+    }
+
+    return (
         <motion.div
             className='h-full'
             whileInView="done"
@@ -39,7 +52,7 @@ const WizardItem: FC<Props> = (({ StepName, children, GoBack, PositionPercent, f
                 {Number(wrapperWidth) > 1 && children}
             </div>
         </motion.div>
-        : null
+    )
 })
 
 let variants = {

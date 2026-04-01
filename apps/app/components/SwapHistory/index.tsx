@@ -1,5 +1,5 @@
 import { FC, useEffect, useMemo, useState } from 'react'
-import { ChevronUp } from 'lucide-react'
+import { ChevronRight, ChevronUp } from 'lucide-react'
 import { SwapData, useSwapStore } from '@/stores/swapStore'
 import { useSettingsState } from '@/context/settings'
 import { HTLCStatus, isTerminalStatus } from '@/Models/HTLCStatus'
@@ -226,8 +226,8 @@ const SwapAccordionItem: FC<SwapAccordionItemProps> = ({ hashlock, swap, sourceN
 const EmptyState = () => (
     <div className="w-full flex flex-col justify-center items-center py-10 gap-6">
         <div className="relative">
-            <SkeletonCard className="scale-[.63] w-72 shadow-card mr-7" />
-            <SkeletonCard className="scale-[.63] -mt-12 shadow-card ml-7 w-72" />
+            <SkeletonCard className="scale-[.78] w-72 shadow-card mr-7" />
+            <SkeletonCard className="scale-[.78] -mt-8 shadow-card ml-7 w-72" />
         </div>
         <div className="text-center space-y-2">
             <h1 className="text-secondary-text text-2xl font-bold tracking-wide">
@@ -241,13 +241,18 @@ const EmptyState = () => (
 )
 
 const SkeletonCard = ({ className }: { className?: string }) => (
-    <div className={`${className ?? ''} bg-secondary-500 rounded-xl overflow-hidden animate-pulse`}>
-        <div className="grid grid-cols-12 items-center gap-2">
+    <div className={`${className ?? ''} bg-secondary-500 rounded-xl overflow-hidden`}>
+        <div className="grid grid-cols-12 items-center gap-2 relative">
             <div className="col-span-6 flex items-center gap-2 p-3">
-                <div className="w-8 h-8 rounded-full bg-secondary-500 shrink-0" />
+                <div className="w-8 h-8 rounded-full bg-secondary-400 shrink-0" />
                 <div className="flex flex-col gap-1.5 flex-1">
-                    <div className="h-3 rounded bg-secondary-500 w-3/4" />
-                    <div className="h-2.5 rounded bg-secondary-500 w-1/2" />
+                    <div className="h-3 rounded bg-secondary-400 w-3/4" />
+                    <div className="h-2.5 rounded bg-secondary-400 w-1/2" />
+                </div>
+            </div>
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                <div className="h-7 w-6 rounded-md bg-secondary-400 flex items-center justify-center">
+                    <ChevronRight className="h-5 w-5 text-secondary-text" />
                 </div>
             </div>
             <div className="col-span-6 flex items-center justify-end gap-2 bg-secondary-400 p-3 rounded-xl">
@@ -258,7 +263,6 @@ const SkeletonCard = ({ className }: { className?: string }) => (
                 <div className="w-8 h-8 rounded-full bg-secondary-500 shrink-0" />
             </div>
         </div>
-        <div className="h-8 bg-secondary-400 w-full" />
     </div>
 )
 

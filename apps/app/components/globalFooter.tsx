@@ -32,8 +32,16 @@ const GLobalFooter = () => {
     }
 
     return (
-        <footer className="hidden md:flex py-4 justify-between items-center w-full px-4 lg:px-8 mt-auto">
+        <footer className="hidden md:flex py-4 justify-between items-center w-full pl-4 pr-5 lg:pl-8 lg:pr-9 mt-auto">
             <div>
+                <div className="flex gap-6">
+                    <Link target="_blank" href="https://docs.layerswap.io/user-docs/information/privacy-policy/" className="text-xs leading-6 text-primary-text-tertiary underline hover:no-underline hover:text-primary-text-tertiary/70 duration-200 transition-all">
+                        Privacy Policy
+                    </Link>
+                    <Link target="_blank" href="https://docs.layerswap.io/user-docs/information/terms-of-services/" className="text-xs leading-6 text-primary-text-tertiary underline hover:no-underline hover:text-primary-text-tertiary/70 duration-200 transition-all">
+                        Terms of Services
+                    </Link>
+                </div>
                 <p className="text-center text-xs text-primary-text-tertiary leading-6">
                     &copy; {new Date().getFullYear()} Layerswap Labs, Inc. All rights reserved.
                 </p>

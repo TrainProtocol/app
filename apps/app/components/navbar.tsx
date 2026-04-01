@@ -17,11 +17,12 @@ export default function Navbar() {
     const navigation = [
         { name: 'app', href: '/', current: true },
         { name: 'home', href: 'https://www.train.tech/', current: false, target: '_blank' },
-        { name: isTestnet ? 'mainnet' : 'testnet', href: isTestnet ? 'https://app.train.tech/' : 'https://testnet.train.tech/', current: false, target: '_blank' }
+        { name: isTestnet ? 'mainnet' : 'testnet', href: isTestnet ? 'https://app.train.tech/' : 'https://testnet.train.tech/', current: false, target: '_blank' },
+        { name: 'docs', href: 'https://v8-docs.layerswap.io/protocol/introduction', current: false, target: '_blank' }
     ]
 
     return (
-        <div className='mt-5 mb-8  px-8 hidden md:block relative z-20 w-full'>
+        <div className='mt-5 mb-8  pl-8 pr-9 hidden md:block relative z-20 w-full'>
             <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-8">
                     <GoHomeButton className='h-auto w-36 text-primary-logoColor fill-primary-text cursor-pointer headerLogo' />

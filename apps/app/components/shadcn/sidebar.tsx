@@ -225,12 +225,12 @@ function Sidebar({
         className="sticky top-0 h-screen text-primary-text"
         style={{ width: `var(--sidebar-width)` }}
       >
-        {/* Close button — absolute, sticks out left */}
+        {/* Close button — absolute, sticks out left, full height */}
         <button
           type="button"
           onClick={toggleSidebar}
           aria-label="Close sidebar"
-          className="absolute top-4 -left-8 -z-10 flex items-center justify-center w-10 h-10 rounded-l-xl bg-secondary-500 hover:bg-secondary-400 text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
+          className="absolute inset-y-0 -left-8 -z-10 flex items-start justify-center w-14 pr-6 pt-6 hover:bg-secondary-500 text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
         >
           <ChevronsRight className="h-6 w-6" strokeWidth={2} />
         </button>
