@@ -184,9 +184,13 @@ export class Address {
   ): boolean {
     if (!addr1 || !addr2) return false;
 
-    const norm1 = addressFormat({ address: addr1, network, providerName });
-    const norm2 = addressFormat({ address: addr2, network, providerName });
-    return norm1 === norm2;
+    try {
+      const norm1 = addressFormat({ address: addr1, network, providerName });
+      const norm2 = addressFormat({ address: addr2, network, providerName });
+      return norm1 === norm2;
+    } catch {
+      return addr1 === addr2;
+    }
   }
 
 }

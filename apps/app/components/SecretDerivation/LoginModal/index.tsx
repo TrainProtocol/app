@@ -70,14 +70,18 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   };
 
   // Auto-trigger passkey login when modal opens, or show unsupported screen
+  // Delay so the modal can render and measure snap points before the browser passkey prompt blocks the UI
   useEffect(() => {
     if (isOpen && isReady && !loginTriggered.current) {
       loginTriggered.current = true;
       if (passkeyUnsupported) {
         goToStep('unsupported');
-      } else {
-        startPasskeyLogin(hasStoredPasskeys ? {} : { forceCreate: true });
+        return;
       }
+      const timer = setTimeout(() => {
+        startPasskeyLogin(hasStoredPasskeys ? {} : { forceCreate: true });
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [isOpen, isReady]);
 

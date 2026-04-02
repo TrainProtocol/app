@@ -92,7 +92,7 @@ export class EVMBalanceProvider extends BalanceProvider {
         })
 
         const contract = balanceGetterContracts.find(c => c.networks.includes(network.caip2Id))
-        if (!contract) throw new Error(`No contract found for network ${network.caip2Id}`)
+        if (!contract) return null
 
         const erc20Tokens = network.tokens?.filter(a => a.contractAddress !== network.nativeTokenAddress)
         const tokenContracts = erc20Tokens.map(a => a.contractAddress as `0x${string}`)
