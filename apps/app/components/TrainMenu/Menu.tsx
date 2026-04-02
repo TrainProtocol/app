@@ -3,6 +3,7 @@ import LinkWrapper from "../LinkWraapper"
 import { ReactNode } from "react"
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/shadcn/select"
 
 const Menu = ({ children }: { children: ReactNode }) => {
     return <div className="flex flex-col gap-3">
@@ -179,9 +180,54 @@ const ToggleItem = ({ children, icon, checked, onChange }: ToggleItemProps) => {
     )
 }
 
+type SelectOption = {
+    value: string;
+    label: string;
+    icon?: React.ComponentType<{ className?: string }>;
+};
+
+type SelectorItemProps = {
+    label: string;
+    icon?: JSX.Element;
+    value: string;
+    onValueChange: (value: string) => void;
+    options: SelectOption[];
+};
+
+const SelectorItem = ({ label, icon, value, onValueChange, options }: SelectorItemProps) => {
+    const current = options.find(o => o.value === value) ?? options[0]
+    const CurrentIcon = current.icon
+
+    return (
+        <div className="gap-4 flex relative select-none items-center px-4 py-1.5 w-full text-primary-text">
+            {icon && <div>{icon}</div>}
+            <p className="text-primary-text">{label}</p>
+            <div className="ml-auto">
+                <Select value={value} onValueChange={onValueChange}>
+                    <SelectTrigger>
+                        <SelectValue>
+                            {CurrentIcon && <CurrentIcon className="h-4 w-4" />}
+                            {current.label}
+                        </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                        {options.map(({ value: val, icon: Icon, label: optLabel }) => (
+                            <SelectItem key={val} value={val}>
+                                {Icon && <Icon className="h-4 w-4" />}
+                                {optLabel}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+        </div>
+    )
+}
+
 Menu.Group = Group
 Menu.Item = Item
 Menu.Footer = Footer
 Menu.ToggleItem = ToggleItem
+Menu.SelectorItem = SelectorItem
 
 export default Menu

@@ -446,7 +446,7 @@ textarea:disabled::placeholder {
   animation: bblFadInOut 1.8s infinite ease-in-out;
 }
 .loader {
-  color: #FFF;
+  color: rgb(var(--ls-colors-primary-text));
   font-size: 7px;
   position: relative;
   text-indent: -9999em;

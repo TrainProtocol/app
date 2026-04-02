@@ -1,4 +1,4 @@
-import { cairo, Contract, hash, num, addAddressPadding, ProviderOrAccount, RpcProvider, type Call } from 'starknet'
+import { cairo, CallData, Contract, hash, num, addAddressPadding, ProviderOrAccount, RpcProvider, type Call, byteArray } from 'starknet'
 import {
     UserLockParams,
     LockParams,
@@ -44,31 +44,34 @@ export class StarknetHTLCClient extends HTLCClient {
         const approveCall: Call = erc20.populate("approve", [params.atomicContract, cairo.uint256(parsedAmount)])
 
         // Build user_lock call
-        const htlcContract = this.createContract(params.atomicContract, signer.account)
-        const userLockCall: Call = htlcContract.populate('user_lock', [
-            {
-                hashlock: cairo.uint256(BigInt(params.hashlock)),
-                amount: cairo.uint256(parsedAmount),
-                reward_amount: cairo.uint256(params.rewardAmount ? BigInt(params.rewardAmount) : 0n),
-                timelock_delta: params.timelockDelta ?? 150,
-                reward_timelock_delta: params.rewardTimelockDelta ?? 0,
-                quote_expiry: params.quoteExpiry,
-                sender: params.sourceAddress,
-                recipient: params.srcLpAddress,
-                token: tokenAddress,
-                reward_token: params.rewardToken ?? '',
-                reward_recipient: params.rewardRecipient ?? '',
-                src_chain: params.sourceChain || '',
-            },
-            {
-                dst_chain: params.destinationChain,
-                dst_address: params.destinationAddress,
-                dst_amount: cairo.uint256(BigInt(params.destinationAmount)),
-                dst_token: params.destinationAsset,
-            },
-            String(params.nonce),  // userData — nonce timestamp for recovery
-            params.solverData || '',
-        ])
+        const userLockCall: Call = {
+            contractAddress: params.atomicContract,
+            entrypoint: 'user_lock',
+            calldata: CallData.compile([
+                {
+                    hashlock: cairo.uint256(BigInt(params.hashlock)),
+                    amount: cairo.uint256(parsedAmount),
+                    reward_amount: cairo.uint256(params.rewardAmount ? BigInt(params.rewardAmount) : 0n),
+                    timelock_delta: params.timelockDelta ?? 150,
+                    reward_timelock_delta: params.rewardTimelockDelta ?? 0,
+                    quote_expiry: params.quoteExpiry,
+                    sender: params.sourceAddress,
+                    recipient: params.srcLpAddress,
+                    token: tokenAddress,
+                    reward_token: byteArray.byteArrayFromString(params.rewardToken ?? ''),
+                    reward_recipient: byteArray.byteArrayFromString(params.rewardRecipient ?? ''),
+                    src_chain: byteArray.byteArrayFromString(params.sourceChain || ''),
+                },
+                {
+                    dst_chain: byteArray.byteArrayFromString(params.destinationChain),
+                    dst_address: byteArray.byteArrayFromString(params.destinationAddress),
+                    dst_amount: cairo.uint256(BigInt(params.destinationAmount)),
+                    dst_token: byteArray.byteArrayFromString(params.destinationAsset),
+                },
+                byteArray.byteArrayFromString(String(params.nonce)),  // userData — nonce timestamp for recovery
+                byteArray.byteArrayFromString(params.solverData || ''),
+            ]),
+        }
 
         try {
             const { transaction_hash } = await signer.account.execute([approveCall, userLockCall])

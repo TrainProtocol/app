@@ -42,7 +42,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
 
             if (!sourceClient) throw new Error("No source client")
 
-                const result = await sourceClient.userLock({
+            const result = await sourceClient.userLock({
                 ...resolveQuote(quote),
                 sourceAddress: sourceWallet.address,
                 destinationAddress: address,
@@ -77,6 +77,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
             }
         }
         catch (e) {
+            debugger
             console.error('[UserLock] failed', e?.message ?? String(e), ...(e?.logs ? [e.logs] : []))
             setError({ message: e?.details || e?.message || e?.code || e?.name || 'Unknown error' })
         }
