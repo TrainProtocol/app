@@ -32,7 +32,7 @@ const SubmitButton: FC<SubmitButtonProps> = ({ isDisabled, isSubmitting, icon, c
             style={style}
             className={clsx('navigation-focus-ring-text-bold-lg enabled:active:animate-press-down focus:outline-none focus:ring-0 items-center space-x-1 disabled:bg-actionButtonColor/50 disabled:text-primary-buttonTextColor/50 disabled:cursor-not-allowed relative w-full flex justify-center font-medium rounded-xl transform hover:brightness-125 transition duration-200 ease-in-out', {
                 className,
-                'text-primary-buttonTextColor bg-actionButtonColor hover:bg-actionButtonColor/80': buttonStyle === 'filled',
+                'text-primary-buttonTextColor bg-actionButtonColor hover:brightness-80': buttonStyle === 'filled',
                 'text-primary-text bg-secondary-300 hover:bg-secondary-400': buttonStyle === 'secondary',
                 'py-4 px-4': size === 'large',
                 'py-3 px-2 md:px-3': size === 'medium',

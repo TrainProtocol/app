@@ -26,7 +26,7 @@ export class EVMBalanceProvider extends BalanceProvider {
             const balances = await this.contractGetBalances(address, chain, network, options)
             return balances
         } catch (e) {
-            console.log(e)
+            // console.log(e)
         }
 
         const balances = await this.getBalances(address, chain, network, options)

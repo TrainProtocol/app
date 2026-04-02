@@ -123,7 +123,7 @@ const VerificationStatus: FC = () => {
         );
     }
 
-    return <span className="text-sm">Verified by RPCs. Reveal your secret to complete the swap.</span>;
+    return <span className="text-sm">Verified by RPCs</span>;
 };
 
 // --- Main Hook ---

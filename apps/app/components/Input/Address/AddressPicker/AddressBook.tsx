@@ -1,4 +1,4 @@
-import { CommandGroup, CommandList, CommandWrapper } from "@/components/shadcn/command";
+// import { CommandGroup, CommandList, CommandWrapper } from "@/components/shadcn/command";
 import { Address } from "@/lib/address";
 import FilledCheck from "@/components/Icons/FilledCheck";
 import { AddressGroup, AddressItem } from ".";
@@ -21,7 +21,7 @@ const AddressBook: FC<AddressBookProps> = ({ addressBook, onSelectAddress, desti
 
     return (
         <div className="text-left mt-1!">
-            <CommandWrapper>
+            {/* <CommandWrapper>
                 <CommandList>
                     <CommandGroup
                         heading={
@@ -52,7 +52,7 @@ const AddressBook: FC<AddressBookProps> = ({ addressBook, onSelectAddress, desti
                         </div>
                     </CommandGroup>
                 </CommandList>
-            </CommandWrapper>
+            </CommandWrapper> */}
         </div>
     )
 }

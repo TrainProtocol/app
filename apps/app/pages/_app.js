@@ -12,8 +12,10 @@ import posthog from 'posthog-js'
 import { Analytics } from '@vercel/analytics/next';
 import { ThemeProvider } from 'next-themes';
 import { registerEvmSdk } from '@train-protocol/evm';
+import { initFaro } from '../lib/faro';
 
 if (typeof window !== 'undefined') {
+  initFaro();
   registerEvmSdk();
   import('@train-protocol/aztec').then(m => m.registerAztecSdk());
   import('@train-protocol/solana').then(m => m.registerSolanaSdk());
@@ -71,11 +73,12 @@ function App({ Component, pageProps }) {
       >
         <ThemeProvider
           attribute="data-theme"
-          defaultTheme="default"
+          defaultTheme="system"
           themes={["default", "light"]}
           storageKey="theme"
           disableTransitionOnChange
-          enableSystem={false}
+          enableSystem={true}
+          value={{ light: "light", dark: "default" }}
         >
           <IntercomProvider appId={INTERCOM_APP_ID} initializeDelay={2500}>
             <Component key={router.asPath} {...pageProps} />

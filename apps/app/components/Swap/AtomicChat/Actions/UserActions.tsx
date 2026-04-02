@@ -59,21 +59,11 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, typ
                 sourceAddress: sourceWallet.address,
                 destinationAddress: address,
                 solverId: solverId ?? '',
-                quote: {
-                    signature: quote.signature,
-                    receiveAmount: quote.receiveAmount,
-                    sourceSolverAddress: srcLpAddress,
-                    destinationSolverAddress: destLpAddress,
-                    quoteExpirationTimestampInSeconds: quote.quoteExpirationTimestampInSeconds,
-                    timelockTimeSpanInSeconds: quote.timelockTimeSpanInSeconds,
-                    reward: quote.reward,
-                    totalFee: quote.totalFee,
-                    route: quote.route,
-                },
                 srcContract: atomicContract,
                 destContract: destContract,
                 tokenContractAddress: source_asset.contractAddress,
                 chainId: source_network.chainId,
+                quote
             }
 
             const hl = await createSwap(params)

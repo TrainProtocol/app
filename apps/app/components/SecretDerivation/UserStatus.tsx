@@ -269,7 +269,7 @@ export const UserStatusHeader = () => {
                             {pillContent}
                         </button>
                     </PopoverTrigger>
-                    <PopoverContent align="end" sideOffset={8} className="w-80 p-4 bg-secondary-600! border-black/15 rounded-xl">
+                    <PopoverContent align="end" sideOffset={8} className="w-80">
                         <UserStatusContent
                             method={method}
                             loginWallet={loginWallet}

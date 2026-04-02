@@ -25,8 +25,8 @@ export const LoadingConnect: FC<{ onRetry: () => void, selectedConnector: Wallet
                     <div className="flex flex-col gap-3 items-center justify-end row-start-2 row-span-1">
                         <div className="flex-col flex items-center">
                             <div className="grid grid-cols-3 items-center gap-2">
-                                <div className="p-3 bg-secondary-700 rounded-lg z-10">
-                                    <TrainLogoSymbol className="w-11 h-11" />
+                                <div className="p-3 bg-secondary-500 rounded-lg z-10">
+                                    <TrainLogoSymbol className="w-11 h-11 text-primary-logoColor" />
                                 </div>
                                 {
                                     connectionError ?
@@ -34,7 +34,7 @@ export const LoadingConnect: FC<{ onRetry: () => void, selectedConnector: Wallet
                                         :
                                         <div className="loader text-[3px]! place-self-center" />
                                 }
-                                <div className="p-3 bg-secondary-700 rounded-lg z-10">
+                                <div className="p-3 bg-secondary-500 rounded-lg z-10">
                                     <ConnectorIcon className="w-11 h-auto" />
                                 </div>
                             </div>

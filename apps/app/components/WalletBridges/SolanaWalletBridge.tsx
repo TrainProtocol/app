@@ -9,6 +9,7 @@ import type { TrainSDK } from '@train-protocol/sdk'
 import { useWallet, useConnection } from '@solana/wallet-adapter-react'
 import { useSettingsState } from '@/context/settings'
 import { useRpcConfigStore } from '@/stores/rpcConfigStore'
+import { Address } from '@/lib/address'
 
 export function SolanaWalletBridge() {
     const { wallets } = useWallet()
@@ -53,10 +54,10 @@ export function SolanaWalletBridge() {
 
             getLoginConfig: (address?: string) => {
                 const connectedAdapter = address
-                    ? wallets.find(w => w.adapter.connected && w.adapter.publicKey?.toBase58() === address)?.adapter
+                    ? wallets.find(w => w.adapter.connected && w.adapter.publicKey && Address.equals(w.adapter.publicKey?.toBase58(), address, null, 'solana'))?.adapter
                     : wallets.find(w => w.adapter.connected)?.adapter
                 const signMessage = connectedAdapter && 'signMessage' in connectedAdapter
-                    ? (msg: Uint8Array) => connectedAdapter.signMessage(msg)
+                    ? (msg: Uint8Array) => (connectedAdapter as any).signMessage(msg)
                     : undefined
                 if (!signMessage) return null
                 return { wallet: { signMessage } }
