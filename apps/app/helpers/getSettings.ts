@@ -50,7 +50,7 @@ const mockData = {
             "contracts": [
                 {
                     "type": "Train",
-                    "address": "0x9A0E4E619d391f6352E112cC4c452344a3EB4119"
+                    "address": "0x8cEa9E4Bee95c6029A41750F66f13Cf50c918Ce6"
                 },
                 {
                     "type": "Multicall",
@@ -63,7 +63,7 @@ const mockData = {
             "contracts": [
                 {
                     "type": "Train",
-                    "address": "0xcf6d47cdd0cb259e78262832b4db3f4f4f909dcb"
+                    "address": "0x39c58617d355d8b432a3675714b93ec840872236"
                 },
                 {
                     "type": "Multicall",
@@ -76,7 +76,7 @@ const mockData = {
             "contracts": [
                 {
                     "type": "Train",
-                    "address": "0xed6e07caf602feb2d535267b06b24bc6cb457975"
+                    "address": "0x1573acd71a67440ba25f9fae9388b5b94e1ab881"
                 },
                 {
                     "type": "Multicall",
