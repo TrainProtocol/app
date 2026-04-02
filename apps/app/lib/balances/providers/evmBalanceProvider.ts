@@ -26,7 +26,7 @@ export class EVMBalanceProvider extends BalanceProvider {
             const balances = await this.contractGetBalances(address, chain, network, options)
             return balances
         } catch (e) {
-            console.log(e)
+            // console.log(e)
         }
 
         const balances = await this.getBalances(address, chain, network, options)
@@ -92,7 +92,7 @@ export class EVMBalanceProvider extends BalanceProvider {
         })
 
         const contract = balanceGetterContracts.find(c => c.networks.includes(network.caip2Id))
-        if (!contract) return null
+        if (!contract) throw new Error(`No contract found for network ${network.caip2Id}`)
 
         const erc20Tokens = network.tokens?.filter(a => a.contractAddress !== network.nativeTokenAddress)
         const tokenContracts = erc20Tokens.map(a => a.contractAddress as `0x${string}`)

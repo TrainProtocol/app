@@ -67,7 +67,7 @@ export const GasFee = ({ values, quote }: { values: SwapFormValues, quote: SwapQ
                         </span>
                     )}
                 </TooltipTrigger>
-                <TooltipContent className="bg-secondary-400! border-secondary-400! text-primary-text!">
+                <TooltipContent>
                     <span>{truncatedGas || '-'} </span>
                     <span>{gasData ? gasData.token.symbol : ''}</span>
                 </TooltipContent>
@@ -114,7 +114,7 @@ const Fees = ({ quote, values }: { quote: SwapQuote | undefined, values: SwapFor
                     </span>
                 )}
             </TooltipTrigger>
-            <TooltipContent className="bg-secondary-400! border-secondary-400! text-primary-text!">
+            <TooltipContent>
                 <span>{displayFee || '-'} </span>
                 <span>{displayFee && displayFee !== 'Free' ? currencyName : ''}</span>
             </TooltipContent>
