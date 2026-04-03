@@ -11,6 +11,7 @@ import { CircleCheck, SearchX, Undo2, X } from "lucide-react";
 import { HTLCStatus } from "@train-protocol/react";
 import { Loader2 } from "lucide-react";
 import { useFormikContext } from "formik";
+import { useSettingsState } from "@/context/settings";
 
 type AtomicContentProps = {
     quote?: SwapQuote
@@ -20,12 +21,13 @@ type AtomicContentProps = {
 const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }) => {
     const swap = useActiveSwap()
     const { values } = useFormikContext<SwapFormValues>()
+    const { networks } = useSettingsState()
 
     // Post-lock: use derived state. Pre-lock: use Formik values.
-    const source_network = swap.sourceNetwork ?? values?.from
-    const destination_network = swap.destinationNetwork ?? values?.to
-    const source_asset = swap.sourceToken ?? values?.fromCurrency
-    const destination_asset = swap.destinationToken ?? values?.toCurrency
+    const source_network = swap.sourceNetwork ? networks.find(n => n.caip2Id == swap.sourceNetwork?.caip2Id) : values?.from
+    const destination_network = swap.destinationNetwork ? networks.find(n => n.caip2Id == swap.destinationNetwork?.caip2Id) : values?.to
+    const source_asset = swap.sourceToken ? source_network?.tokens.find(t => t.contractAddress == swap.sourceToken?.contractAddress) : values?.fromCurrency
+    const destination_asset = swap.destinationToken ? destination_network?.tokens.find(t => t.contractAddress == swap.destinationToken?.contractAddress) : values?.toCurrency
     const amount = swap.requestedAmount ? Number(swap.requestedAmount) : (values?.amount ? Number(values.amount) : undefined)
     const hashlock = swap.hashlock
 
