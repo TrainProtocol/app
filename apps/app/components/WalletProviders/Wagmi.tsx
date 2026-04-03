@@ -1,8 +1,7 @@
 import { useSettingsState } from "../../context/settings";
 import resolveChain from "../../lib/resolveChain";
 import React, { useMemo } from "react";
-import NetworkSettings from "../../lib/NetworkSettings";
-import { WagmiProvider, createConfig, Config, usePublicClient, useWalletClient } from 'wagmi'
+import { WagmiProvider, createConfig, Config } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Chain, http, fallback, Transport } from 'viem';
 import { useEvmConnectors } from "../../context/evmConnectorsContext";
@@ -36,12 +35,8 @@ function WagmiComponent({ children }: Props) {
         if (cachedConfig) return cachedConfig
 
         const chains = settings?.networks
-            .sort((a, b) =>
-                (NetworkSettings.KnownSettings[a.caip2Id]?.ChainOrder || Number(a.chainId))
-                - (NetworkSettings.KnownSettings[b.caip2Id]?.ChainOrder || Number(b.chainId))
-            )
             .filter(net =>
-                net.type?.name === NetworkTypes.EVM
+                net.networkType === NetworkTypes.EVM
                 && !isNaN(Number(net.chainId))
                 && net.nodes?.[0]?.url
                 && getNativeToken(net)

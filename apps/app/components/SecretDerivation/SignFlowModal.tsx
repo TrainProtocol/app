@@ -1,7 +1,7 @@
 // components/SecretDerivation/SignFlowModal.tsx
 // Single flow: choose method (if needed) → signing state until commit completes
 
-import { useSecretDerivation } from '@/context/secretDerivationContext';
+import { useSharedSecretDerivation } from '@train-protocol/react';
 import VaulModal from '../Modal/vaulModal';
 import { Loader2 } from 'lucide-react';
 
@@ -11,7 +11,7 @@ interface SignFlowModalProps {
 }
 
 export function SignFlowModal({ isOpen, onClose }: SignFlowModalProps) {
-  const { derivationMessage } = useSecretDerivation();
+  const { derivationMessage } = useSharedSecretDerivation();
 
   return (
     <VaulModal

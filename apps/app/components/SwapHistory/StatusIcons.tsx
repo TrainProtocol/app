@@ -1,4 +1,4 @@
-import { HTLCStatus } from '@/Models/HTLCStatus'
+import { HTLCStatus } from '@train-protocol/react'
 import CircleCheckIcon from '@/components/Icons/CircleCheckIcon'
 
 export default function StatusIcons({ status }: { status: HTLCStatus | undefined }) {

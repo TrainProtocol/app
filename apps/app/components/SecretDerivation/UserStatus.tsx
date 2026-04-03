@@ -2,11 +2,11 @@ import { useState } from "react"
 import { Fingerprint, Lock, LogOut } from "lucide-react"
 import VaulDrawer from "../Modal/vaulModal"
 import { Popover, PopoverContent, PopoverTrigger } from "../shadcn/popover"
-import { useSecretDerivationStore, usePasskeyCredentialId, usePasskeyCredentialIds } from "@/stores/secretDerivationStore"
+import { useSharedSecretDerivation, useOptionalSecretDerivation } from "@train-protocol/react"
 import { useLoginModalStore } from "@/stores/loginModalStore"
 import { Address } from "@/lib/address"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
-import { formatPasskeyIdForDisplay } from "@/lib/htlc/secretDerivation/passkeyService"
+import { formatPasskeyIdForDisplay } from "@train-protocol/auth"
 import WalletIcon from "../Icons/WalletIcon"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../shadcn/tooltip"
 
@@ -94,10 +94,10 @@ const UserStatusContent = ({
     showHeader = true,
     showPasskeyWarning = true,
 }: UserStatusContentProps) => {
-    const credentialIds = usePasskeyCredentialIds();
-    const activeId = usePasskeyCredentialId();
-    const removeCredential = useSecretDerivationStore((s) => s.removePasskeyCredential);
+    const { passkeyCredentials, removePasskeyCredential, activePasskeyCredentialId } = useSharedSecretDerivation();
+
     const { isMobile } = useWindowDimensions();
+
 
     const handleLogout = () => {
         logout()
@@ -111,7 +111,7 @@ const UserStatusContent = ({
     }
 
     const handleRemoveCredential = (credId: string) => {
-        removeCredential(credId);
+        removePasskeyCredential(credId);
     };
 
     return (
@@ -122,21 +122,21 @@ const UserStatusContent = ({
             <LoginDataCard
                 method={method}
                 loginWallet={loginWallet}
-                passkeyCredentialId={activeId}
+                passkeyCredentialId={activePasskeyCredentialId}
                 onCopyAddress={handleCopyAddress}
             />
 
-            {method === 'passkey' && credentialIds.length > 0 && (
+            {method === 'passkey' && passkeyCredentials.length > 0 && (
                 <div className="flex flex-col gap-2">
                     <p className="text-secondary-text text-xs font-medium uppercase">Registered passkeys</p>
-                    {credentialIds.map(id => (
-                        <div key={id} className="flex items-center justify-between p-2 bg-secondary-500 rounded-lg">
+                    {passkeyCredentials.map(id => (
+                        <div key={id} className="flex items-center justify-between p-2 bg-secondary-700 rounded-lg">
                             {isMobile ? (
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <span className="text-sm text-primary-text cursor-pointer">
                                             {formatPasskeyIdForDisplay(id)}
-                                            {id === activeId && <span className="text-success-foreground ml-1">(active)</span>}
+                                            {id === activePasskeyCredentialId && <span className="text-success-foreground ml-1">(active)</span>}
                                         </span>
                                     </PopoverTrigger>
                                     <PopoverContent side="top" className="w-auto p-2 bg-secondary-500! rounded-lg!">
@@ -149,7 +149,7 @@ const UserStatusContent = ({
                                         <TooltipTrigger asChild>
                                             <span className="text-sm text-primary-text cursor-default w-fit">
                                                 {formatPasskeyIdForDisplay(id)}
-                                                {id === activeId && <span className="text-success-foreground ml-1">(active)</span>}
+                                                {id === activePasskeyCredentialId && <span className="text-success-foreground ml-1">(active)</span>}
                                             </span>
                                         </TooltipTrigger>
                                         <TooltipContent>
@@ -158,7 +158,7 @@ const UserStatusContent = ({
                                     </Tooltip>
                                 </TooltipProvider>
                             )}
-                            {credentialIds.length > 1 && (
+                            {passkeyCredentials.length > 1 && (
                                 <button
                                     type="button"
                                     onClick={() => handleRemoveCredential(id)}
@@ -193,16 +193,15 @@ const UserStatusContent = ({
 }
 
 export const UserStatusHeader = () => {
-    const {
-        method,
-        isLoggedIn,
-        loginWallet,
-        logout,
-    } = useSecretDerivationStore()
+    const secretDerivation = useOptionalSecretDerivation()
     const openLoginModal = useLoginModalStore((s) => s.open)
     const [openDrawer, setOpenDrawer] = useState(false)
     const [openPopover, setOpenPopover] = useState(false)
     const { isMobile } = useWindowDimensions()
+
+    if (!secretDerivation) return null
+
+    const { method, isLoggedIn, loginWallet, logout } = secretDerivation
 
     if (!isLoggedIn) {
         return (
@@ -270,7 +269,7 @@ export const UserStatusHeader = () => {
                             {pillContent}
                         </button>
                     </PopoverTrigger>
-                    <PopoverContent align="end" sideOffset={8} className="w-80 p-4 bg-secondary-600! border-black/15 rounded-xl">
+                    <PopoverContent align="end" sideOffset={8} className="w-80">
                         <UserStatusContent
                             method={method}
                             loginWallet={loginWallet}
@@ -285,10 +284,10 @@ export const UserStatusHeader = () => {
 }
 
 export const UserStatusMenu = () => {
-    const { isLoggedIn, method, loginWallet, logout } = useSecretDerivationStore()
+    const { isLoggedIn, method, loginWallet, logout } = useSharedSecretDerivation()
     const openLoginModal = useLoginModalStore((s) => s.open)
     const [openModal, setOpenModal] = useState(false)
-    const activeCredentialId = usePasskeyCredentialId()
+    const { activePasskeyCredentialId } = useSharedSecretDerivation();
 
     if (!isLoggedIn) {
         return (
@@ -306,7 +305,7 @@ export const UserStatusMenu = () => {
     }
 
     const menuLabel = method === 'passkey'
-        ? (activeCredentialId ? `Passkey · ${formatPasskeyIdForDisplay(activeCredentialId)}` : 'Passkey')
+        ? (activePasskeyCredentialId ? `Passkey · ${formatPasskeyIdForDisplay(activePasskeyCredentialId)}` : 'Passkey')
         : `${loginWallet?.displayName || 'Wallet'}${loginWallet?.address ? ` · ${new Address(loginWallet.address, null, loginWallet.providerName).toShortString()}` : ''}`
 
     return (

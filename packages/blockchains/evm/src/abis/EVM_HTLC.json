@@ -329,6 +329,12 @@
       },
       {
         "indexed": false,
+        "internalType": "uint48",
+        "name": "quoteExpiry",
+        "type": "uint48"
+      },
+      {
+        "indexed": false,
         "internalType": "bytes",
         "name": "userData",
         "type": "bytes"

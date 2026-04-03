@@ -71,11 +71,12 @@ function App({ Component, pageProps }) {
       >
         <ThemeProvider
           attribute="data-theme"
-          defaultTheme="default"
+          defaultTheme="system"
           themes={["default", "light"]}
           storageKey="theme"
           disableTransitionOnChange
-          enableSystem={false}
+          enableSystem={true}
+          value={{ light: "light", dark: "default" }}
         >
           <IntercomProvider appId={INTERCOM_APP_ID} initializeDelay={2500}>
             <Component key={router.asPath} {...pageProps} />

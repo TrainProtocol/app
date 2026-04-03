@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Token } from "../../Models/Network";
-import { SwapQuote } from "../../lib/trainApiClient";
+import type { SwapQuote } from "@train-protocol/react";
 import { truncateDecimals } from "../utils/RoundDecimals";
 import formatAmount from "@/lib/formatAmount";
 

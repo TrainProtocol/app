@@ -1,14 +1,14 @@
 // Re-exported from @train-protocol/sdk — single source of truth
-export {
-    NetworkContractType,
-    Network,
+import {
     Token,
+    Network
+} from '@train-protocol/sdk'
+export {
     getNativeToken,
+    Network,
+    Token
 } from '@train-protocol/sdk'
 export type {
-    NetworkTypeInfo,
-    NetworkNode,
-    NetworkContract,
     ExplorerUrlTemplate,
 } from '@train-protocol/sdk'
 
@@ -18,4 +18,30 @@ export enum NetworkTypes {
     Starknet = "starknet",
     Aztec = "aztec",
     TON = "ton",
+}
+
+export class ExtendedNetwork extends Network {
+    nodes: NetworkNode[];
+    contracts: NetworkContract[];
+    tokens: ExtendedToken[]
+}
+
+
+export type NetworkNode = {
+    providerName: string;
+    url: string;
+}
+
+export enum NetworkContractType {
+    Train = "Train",
+    Multicall = "Multicall",
+}
+
+export type NetworkContract = {
+    type: NetworkContractType;
+    address: string;
+}
+
+export class ExtendedToken extends Token {
+    priceInUsd?: number;
 }

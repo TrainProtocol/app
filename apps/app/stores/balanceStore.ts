@@ -1,12 +1,12 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { NetworkBalance } from '../Models/Balance'
-import { Network } from '../Models/Network'
+import { ExtendedNetwork } from '../Models/Network'
 import { BalanceResolver } from '../lib/balances/balanceResolver'
 
-export function getKey(address: string, network: Network): string
+export function getKey(address: string, network: ExtendedNetwork): string
 export function getKey(address: string, networkName: string): string
-export function getKey(address: string, networkOrName: Network | string): string {
+export function getKey(address: string, networkOrName: ExtendedNetwork | string): string {
   const name = typeof networkOrName === 'string' ? networkOrName : networkOrName.caip2Id
   return `${address}:${name}`
 }
@@ -31,7 +31,7 @@ interface BalanceStore {
   lastFetchMap: Record<string, number>
   fetchBalance: (
     address: string,
-    network: Network,
+    network: ExtendedNetwork,
     options?: Options,
   ) => Promise<NetworkBalance>
 
@@ -43,7 +43,7 @@ interface BalanceStore {
   sortingTimerId?: ReturnType<typeof setTimeout>
   sortingUnsubscribe?: () => void
   initSortingBalances: (
-    pairs: Array<{ address: string; network: Network }>
+    pairs: Array<{ address: string; network: ExtendedNetwork }>
   ) => void
   cleanupSortingBalances: () => void
 }

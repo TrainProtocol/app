@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Network, Token } from '@/Models/Network'
-import { LockDetails } from '@/Models/phtlc/PHTLC'
 import LightClient from '@/lib/lightClient'
 import { supportsLightClient } from '@/lib/lightClient/supportsNetwork'
+import { LockDetails } from '@train-protocol/sdk'
 
 interface UseLightClientParams {
     destination_network?: Network
@@ -90,16 +90,6 @@ export function useLightClient({
                     atomicContract: destAtomicContract,
                 })
                 if (!cancelled && data) {
-                    console.log('[LightClient] Fetched solver lock details:', {
-                        hashlock: data.hashlock,
-                        sender: data.sender,
-                        recipient: data.recipient,
-                        amount: data.amount,
-                        token: data.token,
-                        status: data.status,
-                        timelock: data.timelock,
-                        secret: data.secret?.toString(),
-                    })
                     setDestinationDetailsByLightClient({ data })
                 }
             } catch (e) {

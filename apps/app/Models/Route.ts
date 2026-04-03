@@ -1,11 +1,11 @@
-import { Network, Token } from "./Network";
+import { ExtendedNetwork, ExtendedToken } from "./Network";
 
 /**
  * Represents a network row with expandable token list
  */
 export type NetworkElement = {
     type: 'network';
-    network: Network;  // Changed from 'route: NetworkRoute'
+    network: ExtendedNetwork;  // Changed from 'route: NetworkRoute'
 }
 
 /**
@@ -14,8 +14,8 @@ export type NetworkElement = {
 export type NetworkTokenElement = {
     type: 'network_token' | 'suggested_token';
     data: {
-        token: Token;  // Changed from NetworkRouteToken
-        network: Network;  // Changed from 'route: NetworkRoute'
+        token: ExtendedToken;  // Changed from NetworkRouteToken
+        network: ExtendedNetwork;  // Changed from 'route: NetworkRoute'
     }
 }
 

@@ -6,7 +6,7 @@ import KnownInternalNames from "../../knownIds";
  * @param network - The destination network
  * @returns boolean indicating if wallet connection is required
  */
-export const destinationRequiresWallet = (network: Network | undefined): boolean => {
+export const destinationRequiresWallet = (network: Network | null | undefined): boolean => {
     if (!network) return false;
     // For now, only Aztec requires destination wallet connection
     return network.caip2Id === KnownInternalNames.Networks.AztecDevnet;
@@ -18,7 +18,7 @@ export const destinationRequiresWallet = (network: Network | undefined): boolean
  * @param providers - Array of wallet providers
  * @returns boolean indicating if required destination wallet is connected
  */
-export const hasRequiredDestinationWallet = (network: Network | undefined, providers: any[]): boolean => {
+export const hasRequiredDestinationWallet = (network: Network | null | undefined, providers: any[]): boolean => {
     if (!destinationRequiresWallet(network)) {
         return true; // No wallet required, so consider it "connected"
     }

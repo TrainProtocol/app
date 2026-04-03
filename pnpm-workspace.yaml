@@ -23,3 +23,7 @@ catalog:
   "@ton/core": ^0.53.0
   "@ton/crypto": ^3.2.0
   fuels: ^0.101.3
+
+minimumReleaseAge: 4320
+minimumReleaseAgeExclude:
+  - shadcn

@@ -1,11 +1,13 @@
-import type { Account } from 'starknet'
-import type { BaseHTLCClientConfig } from '@train-protocol/sdk'
+import type { AccountInterface } from 'starknet'
 import type { StarknetAccountLike } from './login/wallet-sign.js'
 
 declare module '@train-protocol/sdk' {
     interface HTLCClientConfigMap {
         starknet: StarknetHTLCClientConfig
     }
+}
+
+declare module '@train-protocol/auth' {
     interface WalletSignConfigMap {
         starknet: StarknetWalletSignConfig
     }
@@ -29,10 +31,10 @@ export interface StarknetSigner {
      * The starknet.js Account (or compatible) used for executing transactions.
      * Must support `execute(calls)` and `waitForTransaction(hash)`.
      */
-    account: Account
+    account: AccountInterface
 }
 
-export type StarknetHTLCClientConfig = BaseHTLCClientConfig & {
+export type StarknetHTLCClientConfig = {
     /** RPC URL for read operations */
     rpcUrl: string
     /** Optional signer for write operations */

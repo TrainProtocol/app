@@ -1,4 +1,4 @@
-import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info, Settings2, Zap, RotateCcw, ScrollText, Sun } from "lucide-react";
+import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info, Settings2, Zap, RotateCcw, ScrollText, Sun, Moon, Monitor } from "lucide-react";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/router";
@@ -73,13 +73,17 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
                         Auto Reveal Secret
                     </Menu.ToggleItem>
 
-                    <Menu.ToggleItem
+                    <Menu.SelectorItem
+                        label="Theme"
                         icon={<Sun className="h-5 w-5" />}
-                        checked={theme === "light"}
-                        onChange={(checked) => setTheme(checked ? "light" : "default")}
-                    >
-                        Light Mode
-                    </Menu.ToggleItem>
+                        value={theme ?? "system"}
+                        onValueChange={setTheme}
+                        options={[
+                            { value: "system", icon: Monitor, label: "System" },
+                            { value: "light", icon: Sun, label: "Light" },
+                            { value: "default", icon: Moon, label: "Dark" },
+                        ]}
+                    />
 
                 </>
             </Menu.Group>

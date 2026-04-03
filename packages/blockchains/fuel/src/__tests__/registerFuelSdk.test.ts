@@ -14,7 +14,6 @@ describe('registerFuelSdk', () => {
     it('creates a client with required methods', () => {
         const client = createHTLCClient('fuel', {
             rpcUrl: 'https://mainnet.fuel.network/v1/graphql',
-            apiClient: {} as any,
         })
         expect(typeof client.getUserLockDetails).toBe('function')
         expect(typeof client.getSolverLockDetails).toBe('function')

@@ -17,7 +17,7 @@ export default function useSVM(): WalletProvider {
 
     const network = networks.find(n => solanaNames.some(name => n.caip2Id === name))
     const commonSupportedNetworks = [
-        ...networks.filter(network => network.type?.name === "solana").map(l => l.caip2Id)
+        ...networks.filter(network => network.networkType === "solana").map(l => l.caip2Id)
     ]
 
     const name = 'Solana'

@@ -1,20 +1,19 @@
-import { registerHTLCClient, registerWalletSign } from '@train-protocol/sdk'
+import { type TrainSDK, defaultTrainSDK } from '@train-protocol/sdk'
+import { type TrainAuth, defaultTrainAuth } from '@train-protocol/auth'
 import { FuelHTLCClient } from './client.js'
 import { deriveKeyFromFuelWallet } from './login/index.js'
 
-let registered = false
-
 /**
  * Explicitly register the Fuel HTLC client and wallet-sign factories.
- * Call once at app startup. Safe to call multiple times (idempotent).
+ * Call once at app startup. Accepts optional SDK/Auth instances for testing isolation.
  */
-export function registerFuelSdk(): void {
-    if (registered) return
-    registered = true
+export function registerFuelSdk(sdk?: TrainSDK, auth?: TrainAuth): void {
+    const s = sdk ?? defaultTrainSDK
+    const a = auth ?? defaultTrainAuth
 
-    registerHTLCClient('fuel', (config) => new FuelHTLCClient(config))
+    s.registerHTLCClient('fuel', (config) => new FuelHTLCClient(config))
 
-    registerWalletSign('fuel', async (config) => {
+    a.registerWalletSign('fuel', async (config) => {
         return deriveKeyFromFuelWallet(config.wallet)
     })
 }

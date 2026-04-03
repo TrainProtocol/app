@@ -1,4 +1,4 @@
-import { LockDetails } from '../types/lock'
+import { SolverLockDetails } from '../types/lock'
 
 export interface VerificationResult {
     verified: boolean
@@ -7,7 +7,7 @@ export interface VerificationResult {
 }
 
 export interface VerifySolverLockParams {
-    solverLockDetails: LockDetails
+    solverLockDetails: SolverLockDetails
     expectedReceiveAmount: number
     expectedRecipient: string
     expectedToken: string | undefined | null
@@ -28,7 +28,7 @@ export function verifySolverLock(params: VerifySolverLockParams): VerificationRe
         mismatches.push(`Amount: expected ${expectedReceiveAmount}, got ${actualAmount}`)
     }
 
-    // 2. Recipient: must match expected destination address
+    // // 2. Recipient: must match expected destination address
     if (expectedRecipient && solverLockDetails.recipient) {
         if (!addressEquals(solverLockDetails.recipient, expectedRecipient)) {
             mismatches.push(`Recipient: expected ${expectedRecipient}, got ${solverLockDetails.recipient}`)
@@ -37,9 +37,9 @@ export function verifySolverLock(params: VerifySolverLockParams): VerificationRe
 
     // 3. Token: must match destination asset contract
     const actualToken = solverLockDetails.token
-    // if (actualToken && expectedToken && !addressEquals(actualToken, expectedToken)) {
-    //     mismatches.push(`Token: expected ${expectedToken}, got ${actualToken}`)
-    // }
+    if (actualToken && expectedToken && !addressEquals(actualToken, expectedToken)) {
+        mismatches.push(`Token: expected ${expectedToken}, got ${actualToken}`)
+    }
 
     return {
         verified: mismatches.length === 0,

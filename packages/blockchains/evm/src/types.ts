@@ -1,10 +1,12 @@
-import type { BaseHTLCClientConfig } from '@train-protocol/sdk'
 import type { Eip1193Provider } from './login/wallet-sign.js'
 
 declare module '@train-protocol/sdk' {
     interface HTLCClientConfigMap {
         eip155: EvmHTLCClientConfig
     }
+}
+
+declare module '@train-protocol/auth' {
     interface WalletSignConfigMap {
         eip155: EvmWalletSignConfig
     }
@@ -37,7 +39,7 @@ export interface EvmSigner {
     }): Promise<string>
 }
 
-export type EvmHTLCClientConfig = BaseHTLCClientConfig & {
+export type EvmHTLCClientConfig = {
     /** RPC URL for read operations */
     rpcUrl: string
     /** Optional signer for write operations (createHTLC, refund, claim) */

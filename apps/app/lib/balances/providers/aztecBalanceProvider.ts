@@ -28,7 +28,7 @@ export class AztecBalanceProvider extends BalanceProvider {
 
         for (const token of network.tokens) {
             try {
-                const tokenAddr = AztecAddress.fromString(token.contractAddress)
+                const tokenAddr = AztecAddress.fromString(token.contract)
                 // Type assertions needed: @aztec/aztec.js and @aztec/stdlib resolve to different @aztec/foundation versions
                 const slot = await deriveStorageSlotInMap(TOKEN_PUBLIC_BALANCES_SLOT as any, owner as any)
                 const balanceField = await client.getPublicStorageAt('latest', tokenAddr, slot as any)
@@ -41,7 +41,7 @@ export class AztecBalanceProvider extends BalanceProvider {
                     amount,
                     request_time: new Date().toJSON(),
                     decimals: token.decimals,
-                    isNativeCurrency: token.contractAddress === network.nativeTokenAddress,
+                    isNativeCurrency: token.contract === network.nativeTokenAddress,
                 })
             } catch (e) {
                 balances.push(this.resolveTokenBalanceFetchError(e as Error, token, network))

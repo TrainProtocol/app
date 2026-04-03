@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
     getRegisteredNamespaces,
-    getRegisteredWalletSignProviders,
     createHTLCClient,
-    deriveKeyFromWallet,
-    type TrainApiClient,
 } from '@train-protocol/sdk'
+import {
+    getRegisteredWalletSignProviders,
+    deriveKeyFromWallet,
+} from '@train-protocol/auth'
 
-const mockApiClient = {} as TrainApiClient
 import { registerEvmSdk } from '../index.js'
 
 describe('registerEvmSdk', () => {
@@ -28,7 +28,7 @@ describe('registerEvmSdk', () => {
     })
 
     it('createHTLCClient works for evm after registration', () => {
-        const client = createHTLCClient('eip155', { rpcUrl: 'https://example.com', apiClient: mockApiClient })
+        const client = createHTLCClient('eip155', { rpcUrl: 'https://example.com' })
         expect(client).toBeDefined()
         expect(typeof client.getUserLockDetails).toBe('function')
         expect(typeof client.getSolverLockDetails).toBe('function')

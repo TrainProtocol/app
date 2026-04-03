@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { Network } from '../Models/Network'
+import { ExtendedNetwork } from '../Models/Network'
 
 function isValidRpcUrl(url: string): boolean {
   try {
@@ -24,8 +24,8 @@ interface RpcConfigStore {
   rpcConfigs: Record<string, RpcConfig>
   setCustomRpc: (networkId: string, config: Partial<RpcConfig>) => void
   removeCustomRpc: (networkId: string) => void
-  getEffectiveRpcUrl: (network: Network) => string
-  getEffectiveRpcUrls: (network: Network) => string[]  // New method to get all URLs
+  getEffectiveRpcUrl: (network: ExtendedNetwork) => string
+  getEffectiveRpcUrls: (network: ExtendedNetwork) => string[]  // New method to get all URLs
   isUsingCustomRpc: (networkId: string) => boolean
   clearAllCustomRpc: () => void
   addRpcUrl: (networkId: string, url: string) => void  // Add a new URL
@@ -73,7 +73,7 @@ export const useRpcConfigStore = create<RpcConfigStore>()(
         })
       },
 
-      getEffectiveRpcUrl: (network: Network) => {
+      getEffectiveRpcUrl: (network: ExtendedNetwork) => {
         const state = get()
         const config = state.rpcConfigs[network.caip2Id]
 
@@ -91,7 +91,7 @@ export const useRpcConfigStore = create<RpcConfigStore>()(
         return network.nodes?.[0]?.url ?? ''
       },
 
-      getEffectiveRpcUrls: (network: Network) => {
+      getEffectiveRpcUrls: (network: ExtendedNetwork) => {
         const state = get()
         const config = state.rpcConfigs[network.caip2Id]
 

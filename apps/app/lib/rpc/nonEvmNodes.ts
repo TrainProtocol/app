@@ -1,4 +1,4 @@
-import { NetworkNode } from '@train-protocol/sdk'
+import { NetworkNode } from "@/Models/Network";
 
 /**
  * Curated public RPC endpoints for non-EVM chains.
@@ -25,6 +25,7 @@ export const NON_EVM_NODES: Record<string, NetworkNode[]> = {
         { url: 'https://rpc.starknet.lava.build', providerName: 'lava' },
     ],
     'starknet:SN_SEPOLIA': [
+        { url: 'https://starknet-sepolia.drpc.org', providerName: 'drpc' },
         { url: 'https://starknet-sepolia-rpc.publicnode.com', providerName: 'publicnode' },
         { url: 'https://free-rpc.nethermind.io/sepolia-juno/', providerName: 'nethermind' },
     ],

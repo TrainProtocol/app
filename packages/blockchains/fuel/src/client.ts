@@ -4,7 +4,8 @@ import {
     LockParams,
     RefundParams,
     RedeemSolverParams,
-    LockDetails,
+    UserLockDetails,
+    SolverLockDetails,
     LockStatus,
     AtomicResult,
     RecoveredSwapData,
@@ -30,7 +31,7 @@ export class FuelHTLCClient extends HTLCClient {
     private signer: FuelSigner | undefined
 
     constructor(config: FuelHTLCClientConfig) {
-        super(config.apiClient)
+        super()
         this.rpcUrl = config.rpcUrl
         this.signer = config.signer
     }
@@ -53,7 +54,7 @@ export class FuelHTLCClient extends HTLCClient {
         } = params
 
         const parsedAmount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
-        const isNativeToken = !sourceAsset.contractAddress
+        const isNativeToken = !sourceAsset.contract
 
         try {
             const provider = new Provider(this.rpcUrl)
@@ -62,7 +63,7 @@ export class FuelHTLCClient extends HTLCClient {
             // Resolve asset ID: native → base asset, token → derived from contract address
             const assetId = isNativeToken
                 ? await provider.getBaseAssetId()
-                : Address.fromAddressOrString(sourceAsset.contractAddress!).toAssetId().bits
+                : Address.fromAddressOrString(sourceAsset.contract!).toAssetId().bits
 
             // Encode userData with nonce for recovery
             const userData = toHex32(BigInt(nonce))
@@ -149,7 +150,7 @@ export class FuelHTLCClient extends HTLCClient {
 
     // ── Read Operations ────────────────────────────────────────────────
 
-    async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
+    async getUserLockDetails(params: LockParams): Promise<UserLockDetails | null> {
         const { id, contractAddress, txId } = params
 
         try {
@@ -203,61 +204,21 @@ export class FuelHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> {
         const { id, contractAddress } = params
 
         try {
             const provider = new Provider(nodeUrl)
             const contract = new Contract(contractAddress, HTLC_ABI, provider)
 
-            // Step 1: Get solver lock count for this hashlock
-            // TODO: Update function name when contract ABI is finalized
+            // TODO: Implement count-then-loop pattern with getSolverLockByIndex when contract ABI is finalized
             const { value: count } = await contract.functions
                 .get_solver_lock_count(id)
                 .get()
 
             if (!count || Number(count) === 0) return null
 
-            // Step 2: Loop from 1 to count (1-indexed)
-            for (let i = 1; i <= Number(count); i++) {
-                // TODO: Update function name when contract ABI is finalized
-                const { value: result } = await contract.functions
-                    .get_solver_lock(id, i)
-                    .get()
-
-                if (!result) continue
-
-                const sender = result.sender?.bits ?? null
-                if (!sender || sender === ZERO_B256) continue
-
-                // Filter by solver address if provided (case-insensitive)
-                if (
-                    params.solverAddress &&
-                    sender.toLowerCase() !== params.solverAddress.toLowerCase()
-                ) {
-                    continue
-                }
-
-                const timelock = result.timelock
-                    ? DateTime.fromTai64(result.timelock).toUnixSeconds()
-                    : 0
-
-                return {
-                    hashlock: id,
-                    amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 9)),
-                    secret: result.secret && result.secret !== 0n ? BigInt(result.secret) : undefined,
-                    sender,
-                    recipient: result.srcReceiver?.bits ?? undefined,
-                    timelock,
-                    reward: result.reward ? Number(formatUnits(BigInt(result.reward), params.decimals ?? 9)) : undefined,
-                    rewardTimelock: result.rewardTimelock
-                        ? DateTime.fromTai64(result.rewardTimelock).toUnixSeconds()
-                        : undefined,
-                    status: this.mapLockStatus(Number(result.claimed ?? result.status ?? 0)),
-                    index: i,
-                }
-            }
-
+            // TODO: Loop through solver locks by index once getSolverLock ABI is available
             return null
         } catch (error) {
             console.error('Error in getSolverLockDetails:', error)

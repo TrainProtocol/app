@@ -1,10 +1,10 @@
-import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/sdk'
+import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/auth'
 
 /**
  * Minimal interface for the Aztec wallet needed by the login flow.
  */
 export interface AztecWalletLike {
-    createAuthWit(from: any, intent: { consumer: any; innerHash: any }): Promise<{ toBuffer(): Buffer }>
+    createAuthWit(from: any, intent: { consumer: any; innerHash: any }): Promise<{ toBuffer(): Uint8Array }>
 }
 
 /**
@@ -17,7 +17,7 @@ export interface AztecWalletLike {
 export const deriveKeyFromAztecWallet = async (
     wallet: AztecWalletLike,
     address: string,
-): Promise<Buffer> => {
+): Promise<Uint8Array> => {
     if (!wallet) {
         throw new Error('Aztec wallet not connected')
     }
@@ -29,7 +29,7 @@ export const deriveKeyFromAztecWallet = async (
     // Same conceptual message as EVM ("I am using TRAIN").
     const messageBytes = new TextEncoder().encode('I am using TRAIN')
     const hashBuffer = await crypto.subtle.digest('SHA-256', messageBytes)
-    const innerHash = Fr.fromBuffer(Buffer.from(hashBuffer))
+    const innerHash = Fr.fromBuffer(new Uint8Array(hashBuffer) as any)
 
     const accountAddress = AztecAddress.fromString(address)
 
@@ -42,6 +42,6 @@ export const deriveKeyFromAztecWallet = async (
     // Serialize the witness into bytes for key derivation
     const witnessBuffer = authWitness.toBuffer()
 
-    const identitySalt = Buffer.from(IDENTITY_SALT, 'utf8')
-    return Buffer.from(deriveKeyMaterial(witnessBuffer, identitySalt))
+    const identitySalt = new TextEncoder().encode(IDENTITY_SALT)
+    return new Uint8Array(deriveKeyMaterial(witnessBuffer, identitySalt))
 }

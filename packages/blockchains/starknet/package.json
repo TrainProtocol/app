@@ -28,10 +28,12 @@
     "starknet": "catalog:"
   },
   "peerDependencies": {
-    "@train-protocol/sdk": "workspace:^"
+    "@train-protocol/sdk": "workspace:^",
+    "@train-protocol/auth": "workspace:^"
   },
   "devDependencies": {
     "@train-protocol/sdk": "workspace:^",
+    "@train-protocol/auth": "workspace:^",
     "@types/node": "^20",
     "rimraf": "catalog:",
     "typescript": "catalog:",

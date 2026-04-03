@@ -1,5 +1,5 @@
 import { GasProps } from "../../../Models/Balance"
-import { Network, getNativeToken, NetworkContractType } from "../../../Models/Network"
+import { ExtendedNetwork, getNativeToken, NetworkContractType } from "../../../Models/Network"
 import { GasProvider } from "./types"
 import { PublicClient, TransactionSerializedEIP1559, encodeFunctionData, serializeTransaction, zeroAddress, getContract, formatUnits } from "viem"
 import HTLCAbi from "../../abis/atomic/EVM_HTLC.json"
@@ -13,8 +13,8 @@ import { buildNetworkTransport } from "../../rpc/resolveNetworkRpcUrl"
 const ERC20_TRANSFER_FROM_GAS_BUFFER = 65_000n
 
 export class EVMGasProvider implements GasProvider {
-    supportsNetwork(network: Network): boolean {
-        return network.type?.name === "eip155" && !!getNativeToken(network)
+    supportsNetwork(network: ExtendedNetwork): boolean {
+        return network.networkType === "eip155" && !!getNativeToken(network)
     }
 
     getGas = async ({ address, network, token }: GasProps) => {
@@ -40,7 +40,7 @@ export class EVMGasProvider implements GasProvider {
             const nativeToken = getNativeToken(network)
             if (!nativeToken) return
 
-            const isERC20 = !!token?.contractAddress && token.contractAddress !== zeroAddress && token.contractAddress !== network.nativeTokenAddress
+            const isERC20 = !!token?.contract && token.contract !== zeroAddress && token.contract !== network.nativeTokenAddress
 
             const isOpStack = network.contracts?.some(c => c.type === ("GasPriceOracle" as any))
             const calculator = isOpStack
@@ -62,7 +62,7 @@ class EthereumGasCalculator {
     protected publicClient: PublicClient
     protected chainId: number
     protected account: `0x${string}`
-    protected network: Network
+    protected network: ExtendedNetwork
     protected atomicContract: `0x${string}`
     protected nativeTokenDecimals: number
 
@@ -70,7 +70,7 @@ class EthereumGasCalculator {
         publicClient: PublicClient,
         chainId: number,
         account: `0x${string}`,
-        network: Network,
+        network: ExtendedNetwork,
         atomicContract: `0x${string}`,
         nativeTokenDecimals: number,
     ) {

@@ -1,7 +1,7 @@
 import formatAmount from "../../../formatAmount"
 import _LightClient from "../../types/lightClient"
 import EVM_HTLC from '../../../abis/atomic/EVM_HTLC.json'
-import { LockDetails, LockStatus } from "../../../../Models/phtlc/PHTLC"
+import type { LockDetails, LockStatus } from "@train-protocol/sdk"
 import KnownInternalNames from "../../../knownIds"
 import { Network, Token } from "../../../../Models/Network"
 import { hexToBigInt } from "viem"
