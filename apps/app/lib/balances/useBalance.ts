@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { getKey, useBalanceStore } from '../../stores/balanceStore'
-import { Network } from '../../Models/Network'
+import { ExtendedNetwork } from '../../Models/Network'
 
 export interface Opts {
     refreshInterval?: number
@@ -11,7 +11,7 @@ export interface Opts {
 
 export function useBalance(
     address: string | undefined,
-    network: Network | undefined,
+    network: ExtendedNetwork | undefined,
     opts?: Opts
 ) {
     const key = useMemo(() => (address && network) ? getKey(address, network) : 'unknown', [address, network])

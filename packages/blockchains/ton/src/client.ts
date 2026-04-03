@@ -4,7 +4,8 @@ import {
     LockParams,
     RefundParams,
     RedeemSolverParams,
-    LockDetails,
+    UserLockDetails,
+    SolverLockDetails,
     LockStatus,
     AtomicResult,
     RecoveredSwapData,
@@ -38,7 +39,7 @@ export class TonHTLCClient extends HTLCClient {
     private signer: TonSigner | undefined
 
     constructor(config: TonHTLCClientConfig) {
-        super(config.apiClient)
+        super()
         this.rpc = new TonRpcClient(config.rpcUrl, config.apiKey)
         this.rpcUrl = config.rpcUrl
         this.apiKey = config.apiKey
@@ -166,7 +167,7 @@ export class TonHTLCClient extends HTLCClient {
 
     // ── Read Operations ────────────────────────────────────────────────
 
-    async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
+    async getUserLockDetails(params: LockParams): Promise<UserLockDetails | null> {
         const { id, contractAddress } = params
 
         try {
@@ -186,12 +187,11 @@ export class TonHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> {
         const { id, contractAddress } = params
         const rpc = TonRpcClient.fromUrl(nodeUrl, this.apiKey)
 
         try {
-            // Step 1: Get solver lock count for this hashlock
             const countArgs = new TupleBuilder()
             countArgs.writeNumber(BigInt(id))
 
@@ -203,33 +203,7 @@ export class TonHTLCClient extends HTLCClient {
             const count = Number(countStack.readNumber())
             if (count === 0) return null
 
-            // Step 2: Loop from 1 to count (1-indexed)
-            for (let i = 1; i <= count; i++) {
-                const args = new TupleBuilder()
-                args.writeNumber(BigInt(id))
-                args.writeNumber(BigInt(i))
-
-                const stack = await rpc.runMethod(
-                    contractAddress,
-                    'getSolverLock',
-                    args.build(),
-                )
-
-                const details = this.parseSolverLockFromStack(stack, id, params.decimals)
-                if (!details) continue
-
-                // Filter by solver address if provided (case-insensitive)
-                if (
-                    params.solverAddress &&
-                    details.sender &&
-                    details.sender.toLowerCase() !== params.solverAddress.toLowerCase()
-                ) {
-                    continue
-                }
-
-                return { ...details, index: i }
-            }
-
+            // TODO: Loop through solver locks by index once getSolverLock is available
             return null
         } catch (error) {
             console.error('Error in getSolverLockDetails:', error)
@@ -367,7 +341,7 @@ export class TonHTLCClient extends HTLCClient {
         stack: any,
         id: string,
         decimals?: number,
-    ): LockDetails | null {
+    ): UserLockDetails | null {
         try {
             // The getter returns an optional HTLC? — if not found, stack may be empty or contain null
             const items = (stack as any)?.items?.[0]?.items ?? null
@@ -407,7 +381,7 @@ export class TonHTLCClient extends HTLCClient {
         stack: any,
         id: string,
         decimals?: number,
-    ): LockDetails | null {
+    ): Omit<SolverLockDetails, 'index'> | null {
         try {
             const items = (stack as any)?.items?.[0]?.items ?? null
             if (!items) return null

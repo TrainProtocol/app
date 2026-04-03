@@ -1,10 +1,12 @@
 // Re-exported from @train-protocol/sdk — single source of truth
 import {
-    Token as BaseToken,
-    Network as BaseNetwork
+    Token,
+    Network
 } from '@train-protocol/sdk'
 export {
     getNativeToken,
+    Network,
+    Token
 } from '@train-protocol/sdk'
 export type {
     ExplorerUrlTemplate,
@@ -18,10 +20,10 @@ export enum NetworkTypes {
     TON = "ton",
 }
 
-export class Network extends BaseNetwork {
+export class ExtendedNetwork extends Network {
     nodes: NetworkNode[];
     contracts: NetworkContract[];
-    tokens: Token[]
+    tokens: ExtendedToken[]
 }
 
 
@@ -40,6 +42,6 @@ export type NetworkContract = {
     address: string;
 }
 
-export class Token extends BaseToken {
+export class ExtendedToken extends Token {
     priceInUsd?: number;
 }

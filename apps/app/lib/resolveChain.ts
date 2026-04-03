@@ -1,11 +1,11 @@
 import { Chain, defineChain, parseGwei } from "viem";
-import { Network, getNativeToken } from "../Models/Network";
+import { ExtendedNetwork, getNativeToken } from "../Models/Network";
 import NetworkSettings from "./NetworkSettings";
 import { SendErrorMessage } from "./telegram";
 import { chainConfig } from 'viem/op-stack'
 import { getNetworkRpcUrl } from "./rpc/resolveNetworkRpcUrl";
 
-export default function resolveChain(network: Network, customRpcUrl?: string) {
+export default function resolveChain(network: ExtendedNetwork, customRpcUrl?: string) {
 
     const nativeToken = getNativeToken(network);
     const nativeCurrency = nativeToken?.symbol;

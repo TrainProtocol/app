@@ -4,7 +4,8 @@ import {
     LockParams,
     RefundParams,
     RedeemSolverParams,
-    LockDetails,
+    UserLockDetails,
+    SolverLockDetails,
     LockStatus,
     AtomicResult,
     RecoveredSwapData,
@@ -25,7 +26,7 @@ export class StarknetHTLCClient extends HTLCClient {
     private signer: StarknetSigner | undefined
 
     constructor(config: StarknetHTLCClientConfig) {
-        super(config.apiClient)
+        super()
         this.provider = new RpcProvider({ nodeUrl: config.rpcUrl })
         this.signer = config.signer
         this.consensusOptions = { minQuorum: 1, batchSize: 1 }
@@ -122,7 +123,7 @@ export class StarknetHTLCClient extends HTLCClient {
 
     // ── Read Operations ────────────────────────────────────────────────
 
-    async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
+    async getUserLockDetails(params: LockParams): Promise<UserLockDetails | null> {
         const { id, contractAddress } = params
         const contract = this.createContract(contractAddress, this.provider)
 
@@ -151,7 +152,7 @@ export class StarknetHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> {
         const { id, contractAddress } = params
         const provider = new RpcProvider({ nodeUrl })
         const contract = this.createContract(contractAddress, provider)
@@ -185,6 +186,33 @@ export class StarknetHTLCClient extends HTLCClient {
         }
 
         return null
+    }
+
+    async getSolverLockByIndex(params: LockParams, index: number, nodeUrl: string): Promise<SolverLockDetails | null> {
+        const { id, contractAddress } = params
+        const provider = new RpcProvider({ nodeUrl })
+        const contract = this.createContract(contractAddress, provider)
+
+        const result = await contract.get_solver_lock(cairo.uint256(BigInt(id)), cairo.uint256(BigInt(index)))
+
+        const sender = '0x' + BigInt(result.sender).toString(16)
+        if (BigInt(result.sender) === 0n) return null
+
+        return {
+            hashlock: id,
+            amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
+            secret: BigInt(result.secret) !== 0n ? BigInt(result.secret) : undefined,
+            sender,
+            recipient: BigInt(result.recipient) !== 0n ? '0x' + BigInt(result.recipient).toString(16) : undefined,
+            token: BigInt(result.token) !== 0n ? '0x' + BigInt(result.token).toString(16) : undefined,
+            timelock: Number(result.timelock),
+            reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? 18)),
+            rewardTimelock: Number(result.reward_timelock),
+            rewardRecipient: BigInt(result.reward_recipient) !== 0n ? '0x' + BigInt(result.reward_recipient).toString(16) : undefined,
+            rewardToken: BigInt(result.reward_token) !== 0n ? '0x' + BigInt(result.reward_token).toString(16) : undefined,
+            status: this.mapLockStatus(result.status),
+            index,
+        }
     }
 
     async recoverSwap(txHash: string): Promise<RecoveredSwapData> {

@@ -61,7 +61,7 @@ async function estimateSolanaGas(params: {
         connection,
         program,
         walletPublicKey,
-        hashlock: '0x' + Buffer.alloc(32).toString('hex'),
+        hashlock: '0x' + '0'.repeat(64),
         sourceChain: 'solana',
         destinationChain: 'eip155:1',
         destinationAsset: 'ETH',

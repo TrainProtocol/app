@@ -1,4 +1,4 @@
-import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/sdk'
+import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/auth'
 
 /**
  * Minimal interface for a Starknet account needed by the login flow.
@@ -18,7 +18,7 @@ export const deriveKeyFromStarknetWallet = async (
     account: StarknetAccountLike,
     _address: string,
     options?: { chainId?: string },
-): Promise<Buffer> => {
+): Promise<Uint8Array> => {
     if (!account) {
         throw new Error('Starknet wallet not connected')
     }
@@ -48,7 +48,7 @@ export const deriveKeyFromStarknetWallet = async (
     const signature = await account.signMessage(typedData)
 
     // Serialize signature array into bytes for key derivation
-    const sigBytes = signature.flatMap(s => {
+    const sigBytes: number[] = signature.flatMap(s => {
         const hex = BigInt(s).toString(16).padStart(64, '0')
         const bytes: number[] = []
         for (let i = 0; i < hex.length; i += 2) {
@@ -57,7 +57,7 @@ export const deriveKeyFromStarknetWallet = async (
         return bytes
     })
 
-    const inputMaterial = Buffer.from(sigBytes)
-    const identitySalt = Buffer.from(IDENTITY_SALT, 'utf8')
-    return Buffer.from(deriveKeyMaterial(inputMaterial, identitySalt))
+    const inputMaterial = new Uint8Array(sigBytes)
+    const identitySalt = new TextEncoder().encode(IDENTITY_SALT)
+    return new Uint8Array(deriveKeyMaterial(inputMaterial, identitySalt))
 }

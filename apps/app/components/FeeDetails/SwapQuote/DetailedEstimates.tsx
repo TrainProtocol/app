@@ -1,7 +1,7 @@
 import { FC, useMemo } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../shadcn/tooltip'
 import { RateElement } from '../Rate'
-import { SwapQuote } from '@/lib/trainApiClient'
+import type { SwapQuote } from '@train-protocol/react'
 import { SwapFormValues } from '../../DTOs/SwapFormValues'
 import useWallet from '@/hooks/useWallet'
 import useSWRGas from '@/lib/gases/useSWRGas'

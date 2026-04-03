@@ -1,7 +1,7 @@
 
 import { Chain, formatUnits, PublicClient } from "viem"
 import { TokenBalance } from "@/Models/Balance"
-import { Network, NetworkTypes, Token, getNativeToken } from "@/Models/Network"
+import { ExtendedNetwork, NetworkTypes, ExtendedToken, getNativeToken } from "@/Models/Network"
 import { createConfig } from '@wagmi/core'
 import { erc20Abi } from 'viem'
 import { multicall } from '@wagmi/core'
@@ -34,7 +34,7 @@ export class EVMBalanceProvider extends BalanceProvider {
         return balances
     }
 
-    getBalances = async (address: string, chain: Chain, network: Network, options?: { timeoutMs?: number, retryCount?: number }): Promise<TokenBalance[] | undefined> => {
+    getBalances = async (address: string, chain: Chain, network: ExtendedNetwork, options?: { timeoutMs?: number, retryCount?: number }): Promise<TokenBalance[] | undefined> => {
         try {
             const { createPublicClient } = await import("viem")
             const publicClient: PublicClient = createPublicClient({
@@ -79,7 +79,7 @@ export class EVMBalanceProvider extends BalanceProvider {
         }
     }
 
-    contractGetBalances = async (address: string, chain: Chain, network: Network, options?: { timeoutMs?: number, retryCount?: number }): Promise<TokenBalance[] | null> => {
+    contractGetBalances = async (address: string, chain: Chain, network: ExtendedNetwork, options?: { timeoutMs?: number, retryCount?: number }): Promise<TokenBalance[] | null> => {
         if (!network) throw new Error("Network is required for contract get balances")
 
         const { createPublicClient } = await import("viem")
@@ -139,7 +139,7 @@ export class EVMBalanceProvider extends BalanceProvider {
 
     resolveERC20Balances = (
         multicallRes: ERC20ContractRes[],
-        network: Network,
+        network: ExtendedNetwork,
     ) => {
         const assets = network?.tokens?.filter(a => a.contract !== network.nativeTokenAddress)
         if (!assets)
@@ -163,8 +163,8 @@ export class EVMBalanceProvider extends BalanceProvider {
     }
 
     resolveBalance = (
-        network: Network,
-        token: Token,
+        network: ExtendedNetwork,
+        token: ExtendedToken,
         balanceData: NativeBalanceResponse
     ) => {
 
@@ -196,8 +196,8 @@ export type ERC20ContractRes = ({
 
 type GetBalanceArgs = {
     address: string,
-    network: Network,
-    assets: Token[],
+    network: ExtendedNetwork,
+    assets: ExtendedToken[],
     publicClient: PublicClient,
     hasMulticall: boolean,
     timeoutMs?: number,
@@ -318,7 +318,7 @@ type NativeBalanceResponse = (GetBalanceReturnType & {
     error: string
 })
 
-export const getTokenBalance = async (address: `0x${string}`, network: Network, contract?: `0x${string}` | null, timeoutMs?: number, retryCount?: number): Promise<NativeBalanceResponse | null> => {
+export const getTokenBalance = async (address: `0x${string}`, network: ExtendedNetwork, contract?: `0x${string}` | null, timeoutMs?: number, retryCount?: number): Promise<NativeBalanceResponse | null> => {
 
     try {
         const chain = resolveChain(network)

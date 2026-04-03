@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { Loader2, ChevronLeft, CircleX, AlertTriangle } from 'lucide-react';
 import VaulModal from '@/components/Modal/vaulModal';
-import { useSecretDerivation } from '@/context/secretDerivationContext';
-import { mapPasskeyError } from '@/lib/htlc/secretDerivation/passkeyService';
+import { useSharedSecretDerivation } from '@train-protocol/react';
+import { mapPasskeyError } from '@train-protocol/auth';
 import { PasskeyChoice } from './PasskeyChoice';
 // import { Wallet } from '@/Models/WalletProvider';
 import { useSteps } from '@/hooks/useSteps';
 import { Steps, Step } from '@/components/Step';
 // import OptionSelect from './OptionSelect';
 import IconButton from '@/components/buttons/iconButton';
-// import WalletSelect from './SelectWallet';
-import { usePasskeyCredentialIds } from '@/stores/secretDerivationStore';
+import { toChainNamespace } from '@/lib/chainNamespace';
 
 //type LoginStep = 'pick' | 'passkey_recovery' | 'wallet_select' | 'signing';
 type LoginStep = 'unsupported' | 'passkey_recovery' | 'signing';
@@ -27,9 +26,8 @@ interface LoginModalProps {
 }
 
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
-  const { loginWithPasskey, derivationMessage, prfSupportDetails, isReady } = useSecretDerivation();
-  const storedPasskeyIds = usePasskeyCredentialIds();
-  const hasStoredPasskeys = storedPasskeyIds.length > 0;
+  const { loginWithPasskey, loginWithWallet, derivationMessage, passkeyCredentials, isReady, prfSupportDetails } = useSharedSecretDerivation();
+  const hasStoredPasskeys = passkeyCredentials.length > 0;
   const { currentStep, goToStep, goBack, canGoBack, reset, isStep } = useSteps<LoginStep>({ initial: 'signing' });
   const [passkeyError, setPasskeyError] = useState<string | null>(null);
   const [signingError, setSigningError] = useState<string | null>(null);

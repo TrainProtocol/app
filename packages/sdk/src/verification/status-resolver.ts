@@ -1,9 +1,9 @@
-import { LockDetails, LockStatus } from '../types/lock'
+import { UserLockDetails, SolverLockDetails, LockStatus } from '../types/lock'
 import { HTLCStatus } from '../types/htlc-status'
 
 export interface StatusResolverInput {
-    sourceDetails?: LockDetails
-    solverLockDetails?: LockDetails
+    sourceDetails?: UserLockDetails
+    solverLockDetails?: SolverLockDetails
     timelockExpired: boolean
     secretRevealed?: boolean
     manualClaimRequired?: boolean
@@ -21,7 +21,7 @@ export function resolveHTLCStatus(input: StatusResolverInput): HTLCStatus {
     if (redeemCompleted) return HTLCStatus.RedeemCompleted
     else if (manualClaimRequired) return HTLCStatus.ManualClaimRequired
     else if (refunded) return HTLCStatus.Refunded
-    else if (timelockExpired && !redeemCompleted) return HTLCStatus.TimelockExpired
+    else if (timelockExpired && userLocked && !redeemCompleted) return HTLCStatus.TimelockExpired
     else if ((secretRevealed || sourceDetails?.secret) && sourceDetails) return HTLCStatus.SecretRevealed
     else if (solverLocked && !sourceDetails?.secret && sourceDetails) return HTLCStatus.SolverLockDetected
     else if (userLocked) return HTLCStatus.UserLocked

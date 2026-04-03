@@ -11,7 +11,7 @@ import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
 import { Modal, ModalContent } from "@/components/Modal/modalWithoutAnimation";
 import RpcNetworkListView from "@/components/Settings/RpcNetworkListView";
 import NetworkRpcEditView from "@/components/Settings/NetworkRpcEditView";
-import { Network } from "@/Models/Network";
+import { ExtendedNetwork } from "@/Models/Network";
 import RecoverSwap from "@/components/Swap/Atomic/RecoverSwap";
 import SwapHistory from "@/components/SwapHistory";
 
@@ -22,7 +22,7 @@ const Comp = () => {
     const { goBack, currentStepName } = useFormWizardState()
     const { goToStep } = useFormWizardaUpdate()
 
-    const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
+    const [selectedNetwork, setSelectedNetwork] = useState<ExtendedNetwork | null>(null);
 
     const goBackToMenuStep = () => { goToStep(MenuStep.Menu, "back"); clearMenuPath(router) }
     const goBackToRpcConfiguration = () => { goToStep(MenuStep.RPCConfiguration, "back") }
@@ -39,7 +39,7 @@ const Comp = () => {
         }
     }
 
-    const handleNetworkSelect = (network: Network) => {
+    const handleNetworkSelect = (network: ExtendedNetwork) => {
         setSelectedNetwork(network)
         goToStep(MenuStep.NetworkRPCEdit)
     }

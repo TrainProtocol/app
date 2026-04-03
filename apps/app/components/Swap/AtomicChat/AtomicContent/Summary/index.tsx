@@ -1,42 +1,40 @@
 import { FC } from "react";
-import { useAtomicState } from "@/context/atomicContext";
+import type { SwapQuote } from "@train-protocol/react";
+import type { ExtendedNetwork, ExtendedToken } from "@/Models/Network";
+import type { HTLCFromApi } from "@train-protocol/sdk";
 import Summary from "./Summary";
-import { SwapQuote } from "@/lib/trainApiClient";
-import { useSwapStore } from "@/stores/swapStore";
 import { formatUnits } from "viem";
 
 type MotionSummaryProps = {
+    sourceNetwork: ExtendedNetwork
+    destinationNetwork: ExtendedNetwork
+    sourceToken: ExtendedToken
+    destinationToken: ExtendedToken
+    requestedAmount?: number
+    receiveAmount?: string | null
+    htlcFromApi?: HTLCFromApi | null
     quote?: SwapQuote
-    isQuoteLoading?: boolean
 }
 
-const MotionSummary: FC<MotionSummaryProps> = ({ quote, isQuoteLoading = false }) => {
-    const { htlcFromApi, source_asset: source_token, destination_asset: destination_token, source_network, destination_network, amount, hashlock } = useAtomicState()
-
-    const storedReceiveAmount = useSwapStore(s =>
-        hashlock ? s.swaps[hashlock]?.receiveAmount : undefined
-    )
-
-    const receiveAmount = (htlcFromApi?.destinationAmount && destination_token?.decimals)
-        ? formatUnits(BigInt(htlcFromApi?.destinationAmount), destination_token?.decimals)
-        : (quote?.receiveAmount && destination_token?.decimals)
-            ? formatUnits(BigInt(quote.receiveAmount), destination_token?.decimals)
+const MotionSummary: FC<MotionSummaryProps> = ({
+    sourceNetwork, destinationNetwork, sourceToken, destinationToken,
+    requestedAmount, receiveAmount: storedReceiveAmount, htlcFromApi, quote,
+}) => {
+    const receiveAmount = (htlcFromApi?.destinationAmount && destinationToken?.decimals)
+        ? formatUnits(BigInt(htlcFromApi?.destinationAmount), destinationToken?.decimals)
+        : (quote?.receiveAmount && destinationToken?.decimals)
+            ? formatUnits(BigInt(quote.receiveAmount), destinationToken?.decimals)
             : storedReceiveAmount
 
     return (
-        <>
-            {
-                destination_network && source_network && destination_token && source_token &&
-                <Summary
-                    destination={destination_network}
-                    source={source_network}
-                    destinationCurrency={destination_token}
-                    requestedAmount={amount}
-                    sourceCurrency={source_token}
-                    receiveAmount={receiveAmount}
-                />
-            }
-        </>
+        <Summary
+            destination={destinationNetwork}
+            source={sourceNetwork}
+            destinationCurrency={destinationToken}
+            requestedAmount={requestedAmount}
+            sourceCurrency={sourceToken}
+            receiveAmount={receiveAmount ?? undefined}
+        />
     )
 }
 

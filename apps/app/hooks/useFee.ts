@@ -1,12 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import useSWR from 'swr'
+import { useMemo, useState, useEffect } from 'react'
 import { parseUnits } from 'viem'
 import { SwapFormValues } from '../components/DTOs/SwapFormValues'
-import TrainApiClient, { SwapQuote, AggregatedQuoteResponse } from '../lib/trainApiClient'
+import type { SwapQuote } from '@train-protocol/react'
 import { Token } from '../Models/Network'
-import { create } from 'zustand'
-
-const apiClient = new TrainApiClient()
+import { useQuote } from '@train-protocol/react'
 
 type UseQuoteData = {
     quote?: SwapQuote
@@ -45,47 +42,6 @@ type Props = {
     amount: string | number | undefined
 }
 
-export type QuoteUrlArgs = {
-    sourceNetwork: string
-    destinationNetwork: string
-    amount: string
-    sourceTokenContract?: string
-    destinationTokenContract?: string
-}
-
-export function buildQuoteUrl(args: QuoteUrlArgs): string {
-    const {
-        sourceNetwork,
-        destinationNetwork,
-        amount,
-        sourceTokenContract,
-        destinationTokenContract,
-    } = args
-
-    const includeReward = 'true'
-
-    const params = new URLSearchParams({
-        amount,
-        sourceNetwork,
-        destinationNetwork,
-        includeReward,
-    })
-
-    if (sourceTokenContract) {
-        params.append('sourceTokenContract', sourceTokenContract)
-    }
-    if (destinationTokenContract) {
-        params.append('destinationTokenContract', destinationTokenContract)
-    }
-
-    return `/quote?${params.toString()}`
-}
-
-type QuoteResult = {
-    quote: SwapQuote
-    solverId: string
-}
-
 export function useQuoteData(formValues: Props | undefined, refreshInterval?: number): UseQuoteData {
     const { fromCurrency, toCurrency, from, to, amount } = formValues || {}
 
@@ -115,68 +71,27 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
         }
     }, [convertedAmount, debouncedAmount])
 
-    const canGetQuote = from && to && fromCurrency && toCurrency && debouncedAmount
+    const canGetQuote = !!(from && to && fromCurrency && toCurrency && debouncedAmount && !isDebouncing)
 
-    const quoteURL = (canGetQuote && !isDebouncing)
-        ? buildQuoteUrl({
-            sourceNetwork: from,
-            destinationNetwork: to,
-            amount: String(debouncedAmount),
-            sourceTokenContract: fromCurrency?.contract ? fromCurrency.contract : undefined,
-            destinationTokenContract: toCurrency?.contract ? toCurrency.contract : undefined,
-        })
-        : null
-
-    const isQuoteLoading = useLoadingStore((state) => state.isLoading)
-
-    const quoteFetchWrapper = useCallback(async (url: string): Promise<QuoteResult | null> => {
-        const { setLoading, key, setKey } = useLoadingStore.getState()
-        try {
-            if (key !== url) {
-                setLoading(true)
-            }
-
-            const response = await apiClient.fetcher(url) as { data?: AggregatedQuoteResponse; error?: { message: string } }
-
-            setKey(url)
-            setLoading(false)
-
-            if (response.error) {
-                throw new Error(response.error.message)
-            }
-
-            const best = response.data?.quotes?.find(q => q.isBest)
-
-            if (!best?.quote) {
-                throw new Error('No quote available')
-            }
-
-            return { quote: best.quote, solverId: best.solver.id }
-        }
-        catch (error) {
-            setLoading(false)
-            setKey(null)
-            throw error
-        }
-    }, [])
-
-    const { data, mutate: mutateFee, error: quoteError } = useSWR<QuoteResult | null>(
-        quoteURL,
-        quoteFetchWrapper,
-        {
-            refreshInterval: (refreshInterval !== undefined && refreshInterval !== null) ? refreshInterval : 42000,
-            dedupingInterval: 5000,
-            keepPreviousData: true,
-        }
-    )
+    // Use React package's useQuote hook
+    const { bestQuote, bestSolver, isLoading, error, refetch } = useQuote({
+        amount: debouncedAmount ?? '',
+        sourceNetwork: from ?? '',
+        destinationNetwork: to ?? '',
+        sourceTokenContract: fromCurrency?.contract || undefined,
+        destinationTokenContract: toCurrency?.contract || undefined,
+        enabled: canGetQuote,
+        refreshInterval: (refreshInterval !== undefined && refreshInterval !== null) ? refreshInterval : 42000,
+        debounceMs: 0,
+    })
 
     return {
-        quote: (quoteError || !canGetQuote) ? undefined : data?.quote,
-        solverId: (quoteError || !canGetQuote) ? undefined : data?.solverId,
-        isQuoteLoading,
+        quote: (error || !canGetQuote) ? undefined : bestQuote as SwapQuote | undefined,
+        solverId: (error || !canGetQuote) ? undefined : bestSolver?.solver?.id,
+        isQuoteLoading: isLoading,
         isDebouncing,
-        quoteError: quoteError as QuoteError | undefined,
-        mutateFee,
+        quoteError: error as unknown as QuoteError | undefined,
+        mutateFee: refetch,
     }
 }
 
@@ -207,17 +122,3 @@ export function buildQuoteParamsFromAtomic(params: {
         amount: String(params.amount),
     }
 }
-
-type LoadingState = {
-    key: string | null;
-    setKey: (value: string | null) => void;
-    isLoading: boolean;
-    setLoading: (loading: boolean) => void;
-};
-
-export const useLoadingStore = create<LoadingState>((set) => ({
-    key: null,
-    setKey: (value) => set({ key: value }),
-    isLoading: false,
-    setLoading: (loading) => set({ isLoading: loading }),
-}));

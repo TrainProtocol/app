@@ -1,10 +1,10 @@
 import { Token } from './network'
-import { LockDetails } from './lock'
 
 export type UserLockParams = {
     destinationChain: string,
     sourceChain: string,
     amount: string,
+    decimals: number,
     destinationAmount: string,
     destinationAsset: string,
     sourceAsset: Token;
@@ -21,13 +21,12 @@ export type UserLockParams = {
     rewardRecipient?: string;
     rewardAmount?: string;
     rewardTimelockDelta?: number;
-    timelockDelta?: number;
-    hashlock: string; 
+    timelockDelta: number;
+    hashlock: string;
     nonce: number
 }
 
 export type LockParams = {
-    type?: 'erc20' | 'native';
     id: string,
     chainId: string | null,
     contractAddress: string,
@@ -37,20 +36,7 @@ export type LockParams = {
     solverAddress?: string,
 }
 
-export type OldLockParams = {
-    type: 'erc20' | 'native';
-    id: string,
-    lockData?: LockDetails,
-    hashlock: string,
-    chainId: string | null,
-    contractAddress: string,
-    lockDataResolver?: (data: any[]) => LockDetails,
-    sourceAsset?: Token,
-    solver: string,
-}
-
 export type RefundParams = {
-    type: 'erc20' | 'native';
     chainId: string | null,
     contractAddress: string,
     id: string,
@@ -60,20 +46,13 @@ export type RefundParams = {
 }
 
 export type RedeemSolverParams = {
-    type: 'erc20' | 'native';
     chainId: string | null,
     contractAddress: string,
     id: string,
     secret: string | bigint,
     sourceAsset: Token,
-    destLpAddress: string,
-    destinationAddress?: string,
-    destinationAsset?: Token,
+    destinationAddress: string,
+    destinationAsset: Token,
     index?: number,
 }
 
-export type GetCommitsParams = {
-    type: 'erc20' | 'native';
-    contractAddress: string,
-    chainId: string,
-}

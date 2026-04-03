@@ -1,8 +1,7 @@
 import { useFormikContext } from "formik";
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import useSWRGas from "@/lib/gases/useSWRGas";
-import { Token } from "@/Models/Network";
-import { Network } from "@/Models/Network";
+import { ExtendedNetwork, ExtendedToken } from "@/Models/Network";
 import React, { useMemo } from "react";
 import { resolveMaxAllowedAmount } from "./helpers";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip";
@@ -13,8 +12,8 @@ import { useUsdModeStore } from "@/stores/usdModeStore";
 import { skipNextUsdSync } from "@/hooks/useUsdTokenSync";
 
 type MinMaxProps = {
-    fromCurrency: Token,
-    from: Network,
+    fromCurrency: ExtendedToken,
+    from: ExtendedNetwork,
     limitsMaxAmount: number | undefined,
     limitsMinAmount: number | undefined,
     onActionHover: (value: number | undefined, usdValue?: string) => void,

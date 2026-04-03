@@ -10,7 +10,7 @@ import {
     TokenSkeletonElement,
 } from "../Models/Route";
 import { useQueryState } from "../context/query";
-import { Network, Token } from "../Models/Network";
+import { ExtendedNetwork, ExtendedToken } from "../Models/Network";
 import { NetworkBalance } from "../Models/Balance";
 import { useRouteSortingStore, SortingOption } from "@/stores/routeSortingStore";
 import { useRouteTokenSwitchStore } from "@/stores/routeTokenSwitchStore";
@@ -98,10 +98,10 @@ type QueryFilterParams = {
 };
 
 function filterNetworksByQuery(
-    networks: Network[],
+    networks: ExtendedNetwork[],
     direction: SwapDirection,
     queryParams: QueryFilterParams
-): Network[] {
+): ExtendedNetwork[] {
     const { lockFrom, from, lockTo, to, lockFromAsset, fromAsset, lockToAsset, toAsset } = queryParams;
 
     const hasNetworkLock = direction === 'from' ? !!lockFrom : !!lockTo;
@@ -134,7 +134,7 @@ function filterNetworksByQuery(
 // ---------- Network Grouping ----------
 
 type GroupNetworksProps = {
-    networks: Network[];
+    networks: ExtendedNetwork[];
     direction: SwapDirection;
     balances: Record<string, NetworkBalance> | null;
     groupBy: 'token' | 'network';
@@ -186,7 +186,7 @@ const mergeGroups = (
 // ---------- Network Mode ----------
 
 const resolveNetworkElements = (
-    networks: Network[],
+    networks: ExtendedNetwork[],
     balances: Record<string, NetworkBalance> | null,
     direction: SwapDirection,
     routesHistory: RoutesHistory,
@@ -205,7 +205,7 @@ const resolveNetworkElements = (
 // ---------- Token Mode ----------
 
 const resolveTokenNetworks = (
-    networks: Network[],
+    networks: ExtendedNetwork[],
     balances: Record<string, NetworkBalance> | null,
     direction: SwapDirection,
     routesHistory: RoutesHistory,
@@ -215,7 +215,7 @@ const resolveTokenNetworks = (
     return sortGroupedTokens(grouped, sortingOption, direction, balances, routesHistory);
 }
 
-function groupByTokens(networks: Network[]): GroupedTokenElement[] {
+function groupByTokens(networks: ExtendedNetwork[]): GroupedTokenElement[] {
     const tokenMap: Record<string, NetworkTokenElement[]> = {};
     for (const network of networks) {
         for (const token of network.tokens || []) {
@@ -234,7 +234,7 @@ function groupByTokens(networks: Network[]): GroupedTokenElement[] {
 // ---------- Search ----------
 
 function resolveSearch(
-    networks: Network[],
+    networks: ExtendedNetwork[],
     search: string,
     direction: SwapDirection,
     balances: Record<string, NetworkBalance> | null,
@@ -250,7 +250,7 @@ function resolveSearch(
 }
 
 const searchInNetworks = (
-    networks: Network[],
+    networks: ExtendedNetwork[],
     search: string,
     direction: SwapDirection,
     balances: Record<string, NetworkBalance> | null
@@ -272,7 +272,7 @@ const searchInNetworks = (
     }));
 }
 
-const searchInTokens = (networks: Network[], search: string): NetworkTokenElement[] => {
+const searchInTokens = (networks: ExtendedNetwork[], search: string): NetworkTokenElement[] => {
     const lower = search.toLowerCase().replace(/\s+/g, " ").trim();
     const elements: NetworkTokenElement[] = [];
 
@@ -310,7 +310,7 @@ const searchInTokens = (networks: Network[], search: string): NetworkTokenElemen
 // ---------- Suggestions ----------
 
 function getSuggestedTokens(
-    networks: Network[],
+    networks: ExtendedNetwork[],
     balances: Record<string, NetworkBalance> | null,
     routesHistory: RoutesHistory,
     direction: SwapDirection,
@@ -329,7 +329,7 @@ function getSuggestedTokens(
     return sorted.slice(0, effectiveLimit);
 }
 
-const extractTokenElementsAsSuggested = (networks: Network[]): NetworkTokenElement[] =>
+const extractTokenElementsAsSuggested = (networks: ExtendedNetwork[]): NetworkTokenElement[] =>
     networks.flatMap(network =>
         (network.tokens || []).map(token => ({
             type: 'suggested_token' as const,
@@ -373,19 +373,19 @@ const getUsedCount = (item: NetworkTokenElement, history: RoutesHistory, directi
 
 const BALANCE_EPSILON = 0.001; // sub-cent threshold for floating-point comparison
 
-function resolveTokenUSDBalance(network: Network, token: Token, balances: Record<string, NetworkBalance>): number {
+function resolveTokenUSDBalance(network: ExtendedNetwork, token: ExtendedToken, balances: Record<string, NetworkBalance>): number {
     const networkBalance = balances?.[network.caip2Id]?.balances || [];
     const match = networkBalance.find(b => b.token === token.symbol);
     return match?.amount && match.amount > 0 ? match.amount * (token.priceInUsd || 0) : 0;
 }
 
 function sortNetworks(
-    networks: Network[],
+    networks: ExtendedNetwork[],
     sortingOption: SortingOption,
     direction: SwapDirection,
     balances: Record<string, NetworkBalance> | null,
     routesHistory: RoutesHistory
-): Network[] {
+): ExtendedNetwork[] {
     switch (sortingOption) {
         case SortingOption.RELEVANCE:
             return sortNetworksByRelevance(networks, balances, routesHistory, direction);
@@ -402,11 +402,11 @@ function sortNetworks(
 }
 
 function sortNetworksByRelevance(
-    networks: Network[],
+    networks: ExtendedNetwork[],
     balances: Record<string, NetworkBalance> | null,
     routesHistory: RoutesHistory,
     direction: SwapDirection
-): Network[] {
+): ExtendedNetwork[] {
     const historyKey = direction === 'from' ? 'sourceRoutes' : 'destinationRoutes';
     const history = routesHistory[historyKey] || {};
 
@@ -442,10 +442,10 @@ function sortNetworksByRelevance(
 }
 
 function sortNetworksByMostUsed(
-    networks: Network[],
+    networks: ExtendedNetwork[],
     routesHistory: RoutesHistory,
     direction: SwapDirection
-): Network[] {
+): ExtendedNetwork[] {
     const historyKey = direction === 'from' ? 'sourceRoutes' : 'destinationRoutes';
     const history = routesHistory[historyKey] || {};
 
@@ -462,7 +462,7 @@ function sortNetworksByMostUsed(
     });
 }
 
-function sortNetworksAlphabetically(networks: Network[], ascending: boolean): Network[] {
+function sortNetworksAlphabetically(networks: ExtendedNetwork[], ascending: boolean): ExtendedNetwork[] {
     return [...networks].sort((a, b) => {
         const comparison = a.displayName.localeCompare(b.displayName);
         return ascending ? comparison : -comparison;
@@ -470,13 +470,13 @@ function sortNetworksAlphabetically(networks: Network[], ascending: boolean): Ne
 }
 
 function sortTokens(
-    tokens: Token[],
-    network: Network,
+    tokens: ExtendedToken[],
+    network: ExtendedNetwork,
     sortingOption: SortingOption,
     direction: SwapDirection,
     balances: Record<string, NetworkBalance> | null,
     routesHistory: RoutesHistory
-): Token[] {
+): ExtendedToken[] {
     switch (sortingOption) {
         case SortingOption.RELEVANCE:
             return sortTokensByRelevance(tokens, network, balances, routesHistory, direction);
@@ -493,12 +493,12 @@ function sortTokens(
 }
 
 function sortTokensByRelevance(
-    tokens: Token[],
-    network: Network,
+    tokens: ExtendedToken[],
+    network: ExtendedNetwork,
     balances: Record<string, NetworkBalance> | null,
     routesHistory: RoutesHistory,
     direction: SwapDirection
-): Token[] {
+): ExtendedToken[] {
     const historyKey = direction === 'from' ? 'sourceRoutes' : 'destinationRoutes';
     const routeHistory = routesHistory[historyKey]?.[network.caip2Id] || {};
 
@@ -519,11 +519,11 @@ function sortTokensByRelevance(
 }
 
 function sortTokensByMostUsed(
-    tokens: Token[],
-    network: Network,
+    tokens: ExtendedToken[],
+    network: ExtendedNetwork,
     routesHistory: RoutesHistory,
     direction: SwapDirection
-): Token[] {
+): ExtendedToken[] {
     const historyKey = direction === 'from' ? 'sourceRoutes' : 'destinationRoutes';
     const routeHistory = routesHistory[historyKey]?.[network.caip2Id] || {};
 
@@ -535,7 +535,7 @@ function sortTokensByMostUsed(
     });
 }
 
-function sortNetworkTokensByBalance(network: Network, balances: Record<string, NetworkBalance>): Token[] {
+function sortNetworkTokensByBalance(network: ExtendedNetwork, balances: Record<string, NetworkBalance>): ExtendedToken[] {
     return [...(network.tokens || [])].sort((a, b) => {
         const balanceA = resolveTokenUSDBalance(network, a, balances);
         const balanceB = resolveTokenUSDBalance(network, b, balances);
@@ -668,11 +668,11 @@ function sortTokenItemsByRelevance(
 
 // ---------- Resolvers ----------
 
-function resolveSelectedNetwork(values: SwapFormValues, direction: SwapDirection): Network | undefined {
+function resolveSelectedNetwork(values: SwapFormValues, direction: SwapDirection): ExtendedNetwork | undefined {
     return direction === 'from' ? values.from as any : values.to as any;
 }
 
-function resolveSelectedToken(values: SwapFormValues, direction: SwapDirection): Token | undefined {
+function resolveSelectedToken(values: SwapFormValues, direction: SwapDirection): ExtendedToken | undefined {
     return direction === 'from' ? values.fromCurrency : values.toCurrency;
 }
 

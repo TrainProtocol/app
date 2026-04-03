@@ -1,8 +1,13 @@
 import { NetworkContract, NetworkContractType } from "@/Models/Network";
-import TrainApiClient from "../lib/trainApiClient";
 import { resolveNodes } from "@/lib/rpc/nodeResolver";
+import { TrainApiClient } from "@train-protocol/sdk";
 
-const apiClient = new TrainApiClient()
+if (!process.env.NEXT_PUBLIC_TRAIN_API)
+    throw new Error("NEXT_PUBLIC_TRAIN_API not provided")
+
+const apiClient = new TrainApiClient({
+    baseUrl: process.env.NEXT_PUBLIC_TRAIN_API
+})
 
 export async function getServerSideProps(context) {
 
@@ -12,8 +17,8 @@ export async function getServerSideProps(context) {
     );
 
     const [networks, prices] = await Promise.all([
-        apiClient.GetNetworksAsync(),
-        apiClient.GetPricesAsync(),
+        apiClient.getNetworks(),
+        apiClient.getPrices(),
     ])
 
     if (!networks.length) return
