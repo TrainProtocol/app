@@ -38,7 +38,7 @@ export class StarknetHTLCClient extends HTLCClient {
         const signer = this.requireSigner()
 
         const parsedAmount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
-        const tokenAddress = params.tokenContractAddress || params.sourceAsset.contractAddress || ZERO_ADDRESS
+        const tokenAddress = params.tokenContractAddress || params.sourceAsset.contract || ZERO_ADDRESS
 
         // ERC20 approval
         const erc20 = new Contract({ abi: ERC20_ABI, address: tokenAddress, providerOrAccount: signer.account })

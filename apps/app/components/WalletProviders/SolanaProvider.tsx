@@ -27,7 +27,7 @@ function SolanaProvider({ children }: { children: ReactNode }) {
 
     // Find Solana network in settings
     const solanaNetwork = settings?.networks?.find(
-        n => n.type?.name === "solana"
+        n => n.networkType === "solana"
     );
 
     // Use custom RPC if configured, otherwise use default

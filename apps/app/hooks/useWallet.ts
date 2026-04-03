@@ -1,11 +1,11 @@
 import { useWalletProviders } from "@/context/walletHookProviders";
-import { Network } from "../Models/Network"
 import { Wallet, WalletProvider } from "../Models/WalletProvider";
 import { useCallback, useMemo } from "react";
+import { Network } from "@train-protocol/sdk";
 
 export type WalletPurpose = "autofill" | "withdrawal" | "asSource"
 
-export default function useWallet(network?: Network | null, purpose?: WalletPurpose) {
+export default function useWallet(network?: Network | null | undefined, purpose?: WalletPurpose) {
     const walletProviders = useWalletProviders()
 
     const provider = useMemo(() => network ? resolveProvider(network, walletProviders, purpose) : undefined, [network, purpose, walletProviders])

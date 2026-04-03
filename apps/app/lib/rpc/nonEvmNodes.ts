@@ -1,4 +1,4 @@
-import { NetworkNode } from '@train-protocol/sdk'
+import { NetworkNode } from "@/Models/Network";
 
 /**
  * Curated public RPC endpoints for non-EVM chains.

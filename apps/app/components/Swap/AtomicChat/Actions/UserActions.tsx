@@ -37,8 +37,8 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, typ
     const sourceWallet = (sourceAccount?.address && source_network) ? provider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, source_network)) : undefined
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
 
-    const atomicContract = source_network?.contracts?.find(c => c.type === NetworkContractType.Train)?.address
-    const destContract = destination_network?.contracts?.find(c => c.type === NetworkContractType.Train)?.address
+    const atomicContract = source_network?.trainContract
+    const destContract = destination_network?.trainContract
     const destLpAddress = quote?.destinationSolverAddress
     const srcLpAddress = quote?.sourceSolverAddress
 
@@ -61,7 +61,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, typ
                 solverId: solverId ?? '',
                 srcContract: atomicContract,
                 destContract: destContract,
-                tokenContractAddress: source_asset.contractAddress,
+                tokenContractAddress: source_asset.contract,
                 chainId: source_network.chainId,
                 quote
             }
@@ -103,7 +103,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, typ
 }
 
 export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
-    const { sourceNetwork, hashlock, sourceToken, refundTxId, srcContract, sourceDetails } = useActiveSwap()
+    const { sourceNetwork, sourceToken, refundTxId, srcContract, sourceDetails } = useActiveSwap()
     const activeHashlock = useSwapStore(s => s.activeHashlock)
     const { refund: doRefund } = useRefund()
     const { provider: source_provider } = useWallet(sourceNetwork, 'withdrawal')

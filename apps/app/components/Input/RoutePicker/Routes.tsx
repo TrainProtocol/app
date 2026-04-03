@@ -1,4 +1,4 @@
-import { Network, Token } from "@/Models/Network";
+import { ExtendedNetwork, ExtendedToken } from "@/Models/Network";
 import { SwapDirection } from "@/components/DTOs/SwapFormValues";
 import { truncateDecimals } from "@/components/utils/RoundDecimals";
 import { SelectItem } from "@/components/Select/Selector/SelectItem";
@@ -14,8 +14,8 @@ import { getTotalBalanceInUSD } from "@/helpers/balanceHelper";
 import { getKey, useBalanceStore } from "@/stores/balanceStore";
 
 type TokenItemProps = {
-    network: Network;
-    item: Token;
+    network: ExtendedNetwork;
+    item: ExtendedToken;
     type?: RowElement['type'];
     selected: boolean;
     direction: SwapDirection;
@@ -37,8 +37,8 @@ export const CurrencySelectItemDisplay = memo((props: TokenItemProps) => {
 CurrencySelectItemDisplay.displayName = 'CurrencySelectItemDisplay';
 
 type NetworkTokenItemProps = {
-    network: Network;
-    item: Token;
+    network: ExtendedNetwork;
+    item: ExtendedToken;
     direction: SwapDirection;
 }
 
@@ -85,7 +85,7 @@ export const NetworkTokenTitle = (props: NetworkTokenItemProps) => {
 }
 
 type NetworkItemProps = {
-    item: Network;
+    item: ExtendedNetwork;
     selected: boolean;
     direction: SwapDirection;
 }
@@ -172,7 +172,7 @@ export const GroupedTokenHeader = ({
                 ?.includes(caip2Id)
         )?.address;
 
-    const networksWithBalance: Network[] = Array.from(
+    const networksWithBalance: ExtendedNetwork[] = Array.from(
         new Map(
             tokens
                 .map(({ data }) => {
@@ -183,7 +183,7 @@ export const GroupedTokenHeader = ({
                     );
                     return balanceEntry ? [data.network.caip2Id, data.network] as const : null;
                 })
-                .filter((e): e is readonly [string, Network] => !!e)
+                .filter((e): e is readonly [string, ExtendedNetwork] => !!e)
         ).values()
     );
 
@@ -250,8 +250,8 @@ export const GroupedTokenHeader = ({
 };
 
 type SelectedRouteDisplayProps = {
-    network?: Network;
-    token?: Token;
+    network?: ExtendedNetwork;
+    token?: ExtendedToken;
     placeholder: string;
 }
 

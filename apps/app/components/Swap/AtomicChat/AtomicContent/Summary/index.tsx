@@ -1,15 +1,15 @@
 import { FC } from "react";
 import type { SwapQuote } from "@train-protocol/react";
-import type { Network, Token } from "@/Models/Network";
+import type { ExtendedNetwork, ExtendedToken } from "@/Models/Network";
 import type { HTLCFromApi } from "@train-protocol/sdk";
 import Summary from "./Summary";
 import { formatUnits } from "viem";
 
 type MotionSummaryProps = {
-    sourceNetwork: Network
-    destinationNetwork: Network
-    sourceToken: Token
-    destinationToken: Token
+    sourceNetwork: ExtendedNetwork
+    destinationNetwork: ExtendedNetwork
+    sourceToken: ExtendedToken
+    destinationToken: ExtendedToken
     requestedAmount?: number
     receiveAmount?: string | null
     htlcFromApi?: HTLCFromApi | null

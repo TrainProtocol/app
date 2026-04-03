@@ -1,10 +1,10 @@
-import { Network, Token } from "./Network"
+import { ExtendedNetwork, ExtendedToken } from "./Network"
 import { Wallet } from "./WalletProvider"
 import { NodeErrorCategory } from "@/lib/balances/nodeErrorClassifier"
 
 export type GasProps = {
-    network: Network,
-    token: Token,
+    network: ExtendedNetwork,
+    token: ExtendedToken,
     address?: string,
     recipientAddress?: string,
     wallet?: Wallet,

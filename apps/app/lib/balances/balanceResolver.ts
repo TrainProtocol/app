@@ -1,7 +1,7 @@
 import posthog from "posthog-js";
 import { NetworkBalance, TokenBalance } from "@/Models/Balance";
 import { BalanceProvider } from "@/Models/BalanceProvider";
-import { Network } from "@/Models/Network";
+import { ExtendedNetwork } from "@/Models/Network";
 import { classifyNodeError } from "./nodeErrorClassifier";
 import { extractErrorDetails } from "./errorUtils";
 import {
@@ -57,7 +57,7 @@ export class BalanceResolver {
         // new HyperliquidBalanceProvider()
     ];
 
-    async getBalance(network: Network, address?: string, options?: { timeoutMs?: number, retryCount?: number }): Promise<NetworkBalance> {
+    async getBalance(network: ExtendedNetwork, address?: string, options?: { timeoutMs?: number, retryCount?: number }): Promise<NetworkBalance> {
         try {
             if (!address)
                 throw new Error(`No address provided for network ${network.caip2Id}`)

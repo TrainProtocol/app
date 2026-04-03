@@ -75,7 +75,7 @@ export function useCreateSwap(): UseCreateSwapResult {
                 amount: params.amount,
                 destinationAmount: params.quote.receiveAmount,
                 decimals: params.sourceAsset.decimals,
-                destinationAsset: params.destinationAsset.contractAddress,
+                destinationAsset: params.destinationAsset.contract,
                 sourceAsset: params.sourceAsset,
                 destLpAddress: params.quote.destinationSolverAddress,
                 srcLpAddress: params.quote.sourceSolverAddress,

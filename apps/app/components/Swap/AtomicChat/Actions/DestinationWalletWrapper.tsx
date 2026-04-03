@@ -1,9 +1,10 @@
 import { FC, ReactNode } from "react";
 import { useActiveSwap } from "@/hooks/useActiveSwap";
-import useWallet from "../../../../hooks/useWallet";
-import { hasRequiredDestinationWallet } from "../../../../lib/wallets/utils/destinationWalletUtils";
+import useWallet from "@/hooks/useWallet";
+import { hasRequiredDestinationWallet } from "@/lib/wallets/utils/destinationWalletUtils";
 import { useConnectModal } from "../../../WalletModal";
 import { PlusIcon } from "lucide-react";
+import { useSettingsState } from "@/context/settings";
 
 interface DestinationWalletWrapperProps {
     children: ReactNode;
@@ -15,13 +16,17 @@ interface DestinationWalletWrapperProps {
  */
 const DestinationWalletWrapper: FC<DestinationWalletWrapperProps> = ({ children }) => {
     const { destinationNetwork, sourceNetwork } = useActiveSwap();
-    const { providers, provider: destProvider } = useWallet(destinationNetwork, 'withdrawal');
-    const { provider: sourceProvider } = useWallet(sourceNetwork, 'withdrawal');
+    const { networks } = useSettingsState()
+    const resolvedSourceNetwork = networks.find(n => n.caip2Id == sourceNetwork?.caip2Id)
+    const resolvedDestinationNetwork = networks.find(n => n.caip2Id == destinationNetwork?.caip2Id)
+
+    const { providers, provider: destProvider } = useWallet(resolvedDestinationNetwork, 'withdrawal');
+    const { provider: sourceProvider } = useWallet(resolvedSourceNetwork, 'withdrawal');
     const { connect } = useConnectModal();
 
     // Check if destination wallet is required and connected
-    const needsDestinationWallet = !hasRequiredDestinationWallet(destinationNetwork, providers);
-    const needsSourceWallet = !hasRequiredDestinationWallet(sourceNetwork, providers);
+    const needsDestinationWallet = !hasRequiredDestinationWallet(resolvedDestinationNetwork, providers);
+    const needsSourceWallet = !hasRequiredDestinationWallet(resolvedSourceNetwork, providers);
 
     const handleConnect = async () => {
         const result = await connect((needsDestinationWallet ? destProvider : sourceProvider) ?? undefined);

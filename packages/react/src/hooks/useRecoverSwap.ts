@@ -47,8 +47,8 @@ export function useRecoverSwap(): UseRecoverSwapResult {
                 // Resolve contract addresses from on-chain data to token symbols
                 const srcNetwork = networks.find(n => n.caip2Id.toUpperCase() === recovered.srcChain.toUpperCase())
                 const dstNetwork = networks.find(n => n.caip2Id.toUpperCase() === recovered.dstChain.toUpperCase())
-                const srcToken = srcNetwork?.tokens.find(t => t.contractAddress?.toLowerCase() === recovered.token.toLowerCase())
-                const dstToken = dstNetwork?.tokens.find(t => t.contractAddress?.toLowerCase() === recovered.dstToken.toLowerCase())
+                const srcToken = srcNetwork?.tokens.find(t => t.contract?.toLowerCase() === recovered.token.toLowerCase())
+                const dstToken = dstNetwork?.tokens.find(t => t.contract?.toLowerCase() === recovered.dstToken.toLowerCase())
 
                 const swapData: SwapData = {
                     requestedAmount: recovered.amount.toString(),

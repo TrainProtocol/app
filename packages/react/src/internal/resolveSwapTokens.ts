@@ -11,7 +11,7 @@ function resolveToken(
 
     // Match by symbol (primary), fall back to contract address (legacy recovered swaps)
     return network.tokens.find(t => t.symbol === assetRef)
-        ?? network.tokens.find(t => t.contractAddress?.toLowerCase() === assetRef.toLowerCase())
+        ?? network.tokens.find(t => t.contract?.toLowerCase() === assetRef.toLowerCase())
         ?? null
 }
 

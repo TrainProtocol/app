@@ -1,7 +1,7 @@
 import { FC, useEffect, useRef, useState } from "react";
 import { useActiveSwap } from "@/hooks/useActiveSwap";
 import { RevealSecretAction } from "./RevealSecret";
-import { ManualClaimAction } from "./ManualClaim";
+import { ManualRedeemAction } from "./ManualClaim";
 import { UserRefundAction, UserLockAction } from "./UserActions";
 import TransactionMessages from "@/components/Swap/messages/TransactionMessages";
 import WalletMessage from "@/components/Swap/messages/Message";
@@ -84,7 +84,7 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode,
         case HTLCStatus.TimelockExpired:
             return <UserRefundAction type={type} />
         case HTLCStatus.ManualClaimRequired:
-            return <ManualClaimAction type={type} />
+            return <ManualRedeemAction type={type} />
         case HTLCStatus.SecretRevealed:
             return <></>
         case HTLCStatus.SolverLockDetected:

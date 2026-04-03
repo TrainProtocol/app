@@ -1,7 +1,6 @@
 import { NON_EVM_NODES } from './nonEvmNodes'
 import { resolveEvmNodes } from './evmNodes'
-import { NetworkNode } from '@train-protocol/sdk';
-import { NetworkTypes } from '@/Models/Network';
+import { NetworkNode, NetworkTypes } from '@/Models/Network';
 
 /**
  * Resolves RPC node URLs for a given CAIP-2 network ID.

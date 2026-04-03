@@ -7,7 +7,6 @@ export { useNetwork } from './hooks/useNetwork'
 export { useTokens } from './hooks/useTokens'
 export { usePrices } from './hooks/usePrices'
 export { useQuote } from './hooks/useQuote'
-export { useSwapHistory } from './hooks/useSwapHistory'
 export { useOrder } from './hooks/useOrder'
 
 // --- Swap Hooks (require TrainProvider) ---
@@ -123,5 +122,4 @@ export type { UseSecretDerivationResult, PasskeyLoginOptions } from './hooks/use
 export type { UsePasskeyLoginResult } from './hooks/usePasskeyLogin'
 export type { UseWalletLoginResult } from './hooks/useWalletLogin'
 export type { LoginIdentity, IdentityWarning, IdentityMismatchResult, LoginIdentityState } from './hooks/useLoginIdentityMismatch'
-export type { UseSwapHistoryResult } from './hooks/useSwapHistory'
 export type { UseOrderResult } from './hooks/useOrder'

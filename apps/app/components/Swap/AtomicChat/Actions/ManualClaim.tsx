@@ -7,10 +7,10 @@ import posthog from "posthog-js";
 import { SwapViewType } from ".";
 import { useSwapStore } from "@/stores/swapStore";
 
-export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
+export const ManualRedeemAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const { destinationNetwork, hashlock, sourceDetails, destRedeemTxId, error } = useActiveSwap();
     const activeHashlock = useSwapStore(s => s.activeHashlock)
-    const { claim, isClaiming } = useManualClaim();
+    const { claim } = useManualClaim();
 
     const { provider } = useWallet(destinationNetwork, 'withdrawal');
     const wallet = provider?.activeWallet;
