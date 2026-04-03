@@ -8,7 +8,7 @@ import { ChevronDown } from 'lucide-react'
 import { useSwapStore } from '@/stores/swapStore'
 
 interface RecoverSwapProps {
-    onRecovered: (hashlock: string) => void
+    onRecovered: (sourceNetwork: string, txHash: string) => void
 }
 
 export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
@@ -22,9 +22,13 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
 
     const handleRecover = async () => {
         if (!canRecover) return
-        const hashlock = await recover(txHash, selectedNetwork.caip2Id)
-        setActiveHashlock(hashlock)
-        onRecovered(hashlock)
+        try {
+            const hashlock = await recover(txHash, selectedNetwork.caip2Id)
+            setActiveHashlock(hashlock)
+            onRecovered(selectedNetwork.caip2Id, txHash)
+        } catch {
+            // error managed by hook
+        }
     }
 
     return (

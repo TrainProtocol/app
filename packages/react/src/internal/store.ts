@@ -88,6 +88,8 @@ export interface SwapStoreState {
     addSwap: (hashlock: string, data: SwapData) => void
     updateSwap: (hashlock: string, updates: Partial<SwapData>) => void
     clearSwap: (hashlock: string) => void
+    /** Find an existing swap by source network + txHash (case-insensitive). Returns [hashlock, SwapData] or null. */
+    findSwapByTx: (sourceNetwork: string, txHash: string) => [string, SwapData] | null
 
     // Subscriber actions
     /** Increment subscriber count. On first subscriber, hydrates config from persisted data if not already present. */
@@ -120,6 +122,7 @@ const initialState = {
 }
 
 type SetFn = (fn: SwapStoreState | Partial<SwapStoreState> | ((state: SwapStoreState) => SwapStoreState | Partial<SwapStoreState>)) => void
+type GetFn = () => SwapStoreState
 
 /** Helper to update a single swap flags entry immutably */
 function updateFlags(
@@ -132,7 +135,7 @@ function updateFlags(
     return { swapFlags: { ...state.swapFlags, [hashlock]: updater(flags) } }
 }
 
-function createActions(set: SetFn) {
+function createActions(set: SetFn, get: GetFn) {
     return {
         // --- Persisted swap actions ---
         addSwap: (hashlock: string, data: SwapData) =>
@@ -153,6 +156,17 @@ function createActions(set: SetFn) {
                 const { [hashlock]: _, ...rest } = state.swaps
                 return { swaps: rest }
             }),
+
+        findSwapByTx: (sourceNetwork: string, txHash: string): [string, SwapData] | null => {
+            const { swaps } = get()
+            const upperNetwork = sourceNetwork.toUpperCase()
+            const upperTxHash = txHash.toUpperCase()
+            const entry = Object.entries(swaps).find(([, swap]) =>
+                swap.source?.toUpperCase() === upperNetwork &&
+                swap.txId?.toUpperCase() === upperTxHash
+            )
+            return entry ? [entry[0], entry[1]] as [string, SwapData] : null
+        },
 
         // --- Subscriber actions ---
         subscribe: (hashlock: string) =>
@@ -287,9 +301,9 @@ export function createSwapStore(options?: { persist?: boolean; storage?: SwapSto
     const shouldPersist = options?.persist !== false
 
     if (!shouldPersist) {
-        return createZustandStore<SwapStoreState>()((set) => ({
+        return createZustandStore<SwapStoreState>()((set, get) => ({
             ...initialState,
-            ...createActions(set),
+            ...createActions(set, get),
         }))
     }
 
@@ -297,9 +311,9 @@ export function createSwapStore(options?: { persist?: boolean; storage?: SwapSto
 
     return createZustandStore<SwapStoreState>()(
         persist(
-            (set) => ({
+            (set, get) => ({
                 ...initialState,
-                ...createActions(set),
+                ...createActions(set, get),
             }),
             {
                 name: STORAGE_KEY,

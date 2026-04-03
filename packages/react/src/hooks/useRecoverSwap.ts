@@ -18,6 +18,10 @@ export interface UseRecoverSwapResult {
 /**
  * Action hook to recover a lost swap from a transaction hash.
  *
+ * First checks the local persisted store for a swap matching the given
+ * sourceNetwork + txHash. If found, returns the hashlock immediately without
+ * making any network calls. Otherwise, goes to chain to recover the swap data.
+ *
  * Returns the recovered hashlock on success. Pass it to `useSwapProgress`
  * to start monitoring.
  *
@@ -39,7 +43,15 @@ export function useRecoverSwap(): UseRecoverSwapResult {
             // Validate and brand the network ID — throws if it looks like a namespace
             const sourceNetwork = caip2Id(networkId)
 
-            // Create read-only client via wallet adapter (no signer needed for recovery)
+            // Check local store first — avoid network call if swap already persisted
+            if (store) {
+                const found = store.getState().findSwapByTx(networkId, txHash)
+                if (found) {
+                    return found[0]
+                }
+            }
+
+            // Not found locally — recover from chain
             const client = walletCtx.createClient(sourceNetwork)
             const recovered = await client.recoverSwap(txHash)
 

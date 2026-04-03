@@ -25,6 +25,7 @@ const EMPTY_STORE = createStore<SwapStoreState>()(() => ({
     addSwap: () => {},
     updateSwap: () => {},
     clearSwap: () => {},
+    findSwapByTx: () => null,
     subscribe: () => {},
     unsubscribe: () => {},
     setSwapConfig: () => {},
