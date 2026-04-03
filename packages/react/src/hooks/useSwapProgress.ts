@@ -171,7 +171,7 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         baseUrl: config.baseUrl,
         solverId: solverId ?? undefined,
         hashlock: hl ?? undefined,
-        enabled: isActive && !!solverLockDetails && !destRedeemTx,
+        enabled: !!swapConfig?.hashlock && !destRedeemTx,
         store,
         onFailed: onOrderFailed,
     })
