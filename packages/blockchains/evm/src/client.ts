@@ -40,12 +40,12 @@ export class EvmHTLCClient extends HTLCClient {
         } = params
 
         const parsedAmount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
-        const tokenAddress = sourceAsset.contractAddress || ZERO_ADDRESS
-        const isNativeToken = !sourceAsset.contractAddress || sourceAsset.contractAddress === ZERO_ADDRESS
+        const tokenAddress = sourceAsset.contract || ZERO_ADDRESS
+        const isNativeToken = !sourceAsset.contract || sourceAsset.contract === ZERO_ADDRESS
 
         if (!isNativeToken) {
             await this.ensureERC20Allowance(
-                sourceAsset.contractAddress!,
+                sourceAsset.contract!,
                 sourceAddress,
                 params.atomicContract,
                 parsedAmount,

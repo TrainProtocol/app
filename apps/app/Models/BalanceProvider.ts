@@ -18,7 +18,7 @@ export abstract class BalanceProvider {
             amount: undefined,
             request_time: new Date().toJSON(),
             decimals: Number(token?.decimals),
-            isNativeCurrency: isNativeCurrency ?? !token.contractAddress,
+            isNativeCurrency: isNativeCurrency ?? !token.contract,
             error: {
                 message: errorDetails.message,
                 name: errorDetails.name,

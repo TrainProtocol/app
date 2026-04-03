@@ -36,7 +36,7 @@ function WagmiComponent({ children }: Props) {
 
         const chains = settings?.networks
             .filter(net =>
-                net.type?.name === NetworkTypes.EVM
+                net.networkType === NetworkTypes.EVM
                 && !isNaN(Number(net.chainId))
                 && net.nodes?.[0]?.url
                 && getNativeToken(net)

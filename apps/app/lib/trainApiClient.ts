@@ -5,7 +5,6 @@ import {
     TrainApiClient as SdkTrainApiClient,
     Network,
 } from '@train-protocol/sdk'
-import KnownInternalNames from './knownIds'
 
 // Re-export all types from SDK so existing imports keep working
 export type {
@@ -46,11 +45,6 @@ export default class TrainApiClient {
 
     async GetPricesAsync(): Promise<Record<string, number>> {
         return this._sdk.getPrices()
-    }
-
-    async GetSwapsAsync(addresses: string[], page?: number) {
-        const data = await this._sdk.getSwaps(addresses, page)
-        return { data }
     }
 
     async GetOrder(solverId: string, hashlock: string) {

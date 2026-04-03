@@ -36,7 +36,7 @@ const useSolverLockPolling = ({
     onSuccess,
     onConsensusFailed,
 }: UseSolverLockPollingParams) => {
-    const type: 'erc20' | 'native' = destinationAsset?.contractAddress && destinationAsset.contractAddress !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
+    const type: 'erc20' | 'native' = destinationAsset?.contract && destinationAsset.contract !== '0x0000000000000000000000000000000000000000' ? 'erc20' : 'native'
     const consensusVerified = useRef(false)
     const consensusFailed = useRef(false)
     const [consensusVerifying, setConsensusVerifying] = useState(false)

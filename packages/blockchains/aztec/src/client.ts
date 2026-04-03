@@ -179,8 +179,8 @@ export class AztecHTLCClient extends HTLCClient {
             const senderAddress = accounts[0].item
 
             // Register Token contract if provided (needed for redeem)
-            if (params.destinationAsset?.contractAddress) {
-                const tokenAddress = AztecAddress.fromString(params.destinationAsset.contractAddress)
+            if (params.destinationAsset?.contract) {
+                const tokenAddress = AztecAddress.fromString(params.destinationAsset.contract)
                 const tokenInstance = await node.getContract(tokenAddress)
                 if (!tokenInstance) {
                     throw new Error(

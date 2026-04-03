@@ -279,7 +279,7 @@ const searchInTokens = (networks: Network[], search: string): NetworkTokenElemen
     networks.forEach(network => {
         network.tokens.forEach(token => {
             const symbolMatch = token.symbol.toLowerCase().includes(lower);
-            const contractMatch = token.contractAddress?.toLowerCase().includes(lower);
+            const contractMatch = token.contract?.toLowerCase().includes(lower);
 
             const splitted = lower.split(' ');
             const firstpart = splitted?.[0];

@@ -14,7 +14,7 @@ import { buildNetworkTransport } from "@/lib/rpc/resolveNetworkRpcUrl"
 
 export class EVMBalanceProvider extends BalanceProvider {
     supportsNetwork: BalanceProvider['supportsNetwork'] = (network) => {
-        return network.type?.name === NetworkTypes.EVM && !!getNativeToken(network)
+        return network.networkType === NetworkTypes.EVM && !!getNativeToken(network)
     }
 
     fetchBalance: BalanceProvider['fetchBalance'] = async (address, network, options) => {
@@ -94,8 +94,8 @@ export class EVMBalanceProvider extends BalanceProvider {
         const contract = balanceGetterContracts.find(c => c.networks.includes(network.caip2Id))
         if (!contract) throw new Error(`No contract found for network ${network.caip2Id}`)
 
-        const erc20Tokens = network.tokens?.filter(a => a.contractAddress !== network.nativeTokenAddress)
-        const tokenContracts = erc20Tokens.map(a => a.contractAddress as `0x${string}`)
+        const erc20Tokens = network.tokens?.filter(a => a.contract !== network.nativeTokenAddress)
+        const tokenContracts = erc20Tokens.map(a => a.contract as `0x${string}`)
 
         const balances = await publicClient.readContract({
             address: contract.address,
@@ -141,7 +141,7 @@ export class EVMBalanceProvider extends BalanceProvider {
         multicallRes: ERC20ContractRes[],
         network: Network,
     ) => {
-        const assets = network?.tokens?.filter(a => a.contractAddress !== network.nativeTokenAddress)
+        const assets = network?.tokens?.filter(a => a.contract !== network.nativeTokenAddress)
         if (!assets)
             return null
         const contractBalances = multicallRes?.map((d, index) => {
@@ -214,10 +214,10 @@ export const getErc20Balances = async ({
     retryCount
 }: GetBalanceArgs): Promise<ERC20ContractRes[] | null> => {
 
-    const erc20Assets = assets?.filter(a => a.contractAddress !== network.nativeTokenAddress)
+    const erc20Assets = assets?.filter(a => a.contract !== network.nativeTokenAddress)
 
     const contracts = erc20Assets.map(a => ({
-        address: a.contractAddress as `0x${string}`,
+        address: a.contract as `0x${string}`,
         abi: erc20Abi,
         functionName: 'balanceOf',
         args: [address],

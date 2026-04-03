@@ -10,48 +10,6 @@ export interface TrainApiClientConfig {
     baseUrl: string
 }
 
-type StationNetworkResponse = {
-    caip2Id: string;
-    displayName: string;
-    chainId: string;
-    networkType: string;
-    logoUrl?: string;
-    nativeTokenAddress: string;
-    explorerUrlTemplate?: {
-        transaction?: string;
-        address?: string;
-    };
-    tokens: {
-        symbol: string;
-        contract: string;
-        decimals: number;
-        logoUrl?: string;
-    }[];
-}
-
-function mapStationNetwork(n: StationNetworkResponse): Network {
-    const tokens: Token[] = n.tokens.map(t => ({
-        symbol: t.symbol,
-        contractAddress: t.contract,
-        decimals: t.decimals,
-        logo: t.logoUrl,
-    }))
-
-    return {
-        caip2Id: n.caip2Id,
-        displayName: n.displayName,
-        chainId: n.chainId,
-        nativeTokenAddress: n.nativeTokenAddress,
-        type: { name: n.networkType },
-        tokens,
-        nodes: [],
-        contracts: [],
-        metadata: [],
-        explorerUrlTemplate: n.explorerUrlTemplate,
-        logoUrl: n.logoUrl,
-    } as unknown as Network
-}
-
 export class TrainApiError extends Error {
     override name = 'TrainApiError' as const
     constructor(message: string, public status: number) {
@@ -70,19 +28,13 @@ export class TrainApiClient {
     }
 
     async getNetworks(): Promise<Network[]> {
-        const data = await this.request<{ data: StationNetworkResponse[] }>('GET', '/networks')
-        return (data.data ?? []).map(mapStationNetwork)
+        const data = await this.request<{ data: Network[] }>('GET', '/networks')
+        return (data.data ?? [])
     }
 
     async getPrices(): Promise<Record<string, number>> {
         const data = await this.request<{ data: Record<string, number> }>('GET', '/prices')
         return data.data ?? {}
-    }
-
-    async getSwaps(addresses: string[], page: number = 1): Promise<HTLCFromApi[]> {
-        const query = addresses.map(a => `addresses=${encodeURIComponent(a)}`).join('&')
-        const data = await this.request<{ data: HTLCFromApi[] }>('GET', `/swaps?${query}&page=${page}`)
-        return data.data ?? []
     }
 
     async getOrder(solverId: string, hashlock: string): Promise<HTLCFromApiResponse> {

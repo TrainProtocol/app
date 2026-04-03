@@ -122,8 +122,8 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
             sourceNetwork: from,
             destinationNetwork: to,
             amount: String(debouncedAmount),
-            sourceTokenContract: fromCurrency?.contractAddress ? fromCurrency.contractAddress : undefined,
-            destinationTokenContract: toCurrency?.contractAddress ? toCurrency.contractAddress : undefined,
+            sourceTokenContract: fromCurrency?.contract ? fromCurrency.contract : undefined,
+            destinationTokenContract: toCurrency?.contract ? toCurrency.contract : undefined,
         })
         : null
 

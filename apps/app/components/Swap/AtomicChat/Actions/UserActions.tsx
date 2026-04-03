@@ -49,11 +49,11 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type }) => {
                 amount: amount.toString(),
                 destinationChain: destination_network.caip2Id,
                 sourceChain: source_network.caip2Id,
-                destinationAsset: destination_asset.contractAddress,
+                destinationAsset: destination_asset.contract,
                 sourceAsset: source_asset,
                 destLpAddress,
                 srcLpAddress,
-                tokenContractAddress: source_asset.contractAddress,
+                tokenContractAddress: source_asset.contract,
                 atomicContract,
                 chainId: source_network.chainId,
                 hashlock,
@@ -140,7 +140,7 @@ export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
                 await source_provider.switchChain(source_provider.activeWallet, source_network.chainId)
 
             const res = await sourceClient.refund({
-                type: (source_asset?.contractAddress && source_asset.contractAddress !== '0x0000000000000000000000000000000000000000') ? 'erc20' : 'native',
+                type: (source_asset?.contract && source_asset.contract !== '0x0000000000000000000000000000000000000000') ? 'erc20' : 'native',
                 id: hashlock,
                 hashlock: sourceDetails?.hashlock,
                 chainId: source_network.chainId,

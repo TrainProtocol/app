@@ -51,7 +51,8 @@ export class TonHTLCClient extends HTLCClient {
         const signer = this.requireSigner()
 
         const parsedAmount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
-        const isNativeToken = !params.sourceAsset.contractAddress
+        //TODO fix this check, contract address always have value
+        const isNativeToken = !params.sourceAsset.contract
 
         try {
             let result: { boc: string }
@@ -86,7 +87,7 @@ export class TonHTLCClient extends HTLCClient {
                 // Resolve Jetton wallet addresses via the RPC client
                 const client = this.rpc.getClient()
                 const { JettonMaster } = await import('@ton/ton')
-                const jettonMasterAddress = Address.parse(params.sourceAsset.contractAddress!)
+                const jettonMasterAddress = Address.parse(params.sourceAsset.contract!)
                 const jettonMaster = client.open(JettonMaster.create(jettonMasterAddress))
 
                 const atomicContractAddress = Address.parse(params.atomicContract)
@@ -110,7 +111,7 @@ export class TonHTLCClient extends HTLCClient {
                     hopAssets: [],
                     hopAddresses: [],
                     userData: BigInt(params.nonce),
-                    jettonMasterAddress: params.sourceAsset.contractAddress!,
+                    jettonMasterAddress: params.sourceAsset.contract!,
                     htlcJettonWalletAddress: htlcJettonWallet.toString(),
                     senderJettonWalletAddress: senderJettonWallet.toString(),
                     atomicContract: params.atomicContract,

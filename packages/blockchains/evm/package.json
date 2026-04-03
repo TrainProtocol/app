@@ -1,6 +1,6 @@
 {
   "name": "@train-protocol/evm",
-  "version": "0.1.0",
+  "version": "0.1.0-dev.0",
   "description": "Train Protocol SDK — EVM HTLC client",
   "type": "module",
   "main": "dist/esm/index.js",

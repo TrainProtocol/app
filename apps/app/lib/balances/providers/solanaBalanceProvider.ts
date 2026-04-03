@@ -43,8 +43,8 @@ export class SolanaBalanceProvider extends BalanceProvider {
             try {
                 let result: number | null = null
 
-                if (token.contractAddress !== network.nativeTokenAddress) {
-                    const sourceToken = new PublicKey(token.contractAddress);
+                if (token.contract !== network.nativeTokenAddress) {
+                    const sourceToken = new PublicKey(token.contract);
                     const associatedTokenFrom = await getAssociatedTokenAddress(
                         sourceToken,
                         walletPublicKey
@@ -63,7 +63,7 @@ export class SolanaBalanceProvider extends BalanceProvider {
                         amount: result,
                         request_time: new Date().toJSON(),
                         decimals: Number(token?.decimals),
-                        isNativeCurrency: token.contractAddress === network.nativeTokenAddress
+                        isNativeCurrency: token.contract === network.nativeTokenAddress
                     }
 
                     balances.push(balance)

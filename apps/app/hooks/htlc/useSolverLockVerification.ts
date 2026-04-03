@@ -10,7 +10,7 @@ export type { VerificationResult }
 export function useSolverLockVerification(): VerificationResult {
     const { solverLockDetails, address, destination_asset, hashlock, destination_network } = useAtomicState()
     const normalizedAddress = useMemo(() => (address && destination_network) ? new Address(address, destination_network).normalized : '', [address, destination_network])
-    const normalizedToken = useMemo(() => (destination_asset?.contractAddress && destination_network) ? new Address(destination_asset.contractAddress, destination_network).normalized : '', [destination_asset, destination_network])
+    const normalizedToken = useMemo(() => (destination_asset?.contract && destination_network) ? new Address(destination_asset.contract, destination_network).normalized : '', [destination_asset, destination_network])
 
     const swap = useSwapStore(
         useShallow(s => hashlock ? s.swaps[hashlock] ?? null : null)

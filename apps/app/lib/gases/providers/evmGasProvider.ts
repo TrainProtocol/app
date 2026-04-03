@@ -14,7 +14,7 @@ const ERC20_TRANSFER_FROM_GAS_BUFFER = 65_000n
 
 export class EVMGasProvider implements GasProvider {
     supportsNetwork(network: Network): boolean {
-        return network.type?.name === "eip155" && !!getNativeToken(network)
+        return network.networkType === "eip155" && !!getNativeToken(network)
     }
 
     getGas = async ({ address, network, token }: GasProps) => {
@@ -40,7 +40,7 @@ export class EVMGasProvider implements GasProvider {
             const nativeToken = getNativeToken(network)
             if (!nativeToken) return
 
-            const isERC20 = !!token?.contractAddress && token.contractAddress !== zeroAddress && token.contractAddress !== network.nativeTokenAddress
+            const isERC20 = !!token?.contract && token.contract !== zeroAddress && token.contract !== network.nativeTokenAddress
 
             const isOpStack = network.contracts?.some(c => c.type === ("GasPriceOracle" as any))
             const calculator = isOpStack

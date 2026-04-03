@@ -53,7 +53,7 @@ export class FuelHTLCClient extends HTLCClient {
         } = params
 
         const parsedAmount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
-        const isNativeToken = !sourceAsset.contractAddress
+        const isNativeToken = !sourceAsset.contract
 
         try {
             const provider = new Provider(this.rpcUrl)
@@ -62,7 +62,7 @@ export class FuelHTLCClient extends HTLCClient {
             // Resolve asset ID: native → base asset, token → derived from contract address
             const assetId = isNativeToken
                 ? await provider.getBaseAssetId()
-                : Address.fromAddressOrString(sourceAsset.contractAddress!).toAssetId().bits
+                : Address.fromAddressOrString(sourceAsset.contract!).toAssetId().bits
 
             // Encode userData with nonce for recovery
             const userData = toHex32(BigInt(nonce))

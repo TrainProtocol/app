@@ -36,7 +36,7 @@ export const ManualClaimAction: FC<{ type: SwapViewType }> = ({ type }) => {
             if (!destinationClient) throw new Error("No destination client");
 
             const txHash = await destinationClient.redeemSolver({
-                type: destination_asset.contractAddress ? 'erc20' : 'native',
+                type: destination_asset.contract ? 'erc20' : 'native',
                 chainId: destination_network.chainId,
                 contractAddress: destAtomicContract,
                 id: hashlock,

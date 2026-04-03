@@ -33,10 +33,10 @@ export default function useRecoverSwap(sourceNetwork: Network | null) {
             }
 
             const sourceToken = sourceNet.tokens.find(
-                t => t.contractAddress?.toLowerCase() === data.token?.toLowerCase()
+                t => t.contract?.toLowerCase() === data.token?.toLowerCase()
             )
             const destToken = destNet.tokens.find(
-                t => t.symbol === data.dstToken || t.contractAddress?.toLowerCase() === data.dstToken?.toLowerCase()
+                t => t.symbol === data.dstToken || t.contract?.toLowerCase() === data.dstToken?.toLowerCase()
             )
 
             const destContract = destNet.contracts?.find(c => c.type === 'Train')?.address

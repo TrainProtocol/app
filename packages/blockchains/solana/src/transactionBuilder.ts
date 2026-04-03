@@ -57,9 +57,9 @@ export const userLockTransactionBuilder = async (params: UserLockParams): Promis
 
     const tx = new Transaction()
 
-    if (params.sourceAsset.contractAddress && params.sourceAsset.contractAddress !== NATIVE_SOL_ADDRESS) {
+    if (params.sourceAsset.contract && params.sourceAsset.contract !== NATIVE_SOL_ADDRESS) {
         const { getAssociatedTokenAddress, TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
-        const tokenMint = new PublicKey(params.sourceAsset.contractAddress)
+        const tokenMint = new PublicKey(params.sourceAsset.contract)
         const senderTokenAccount = await getAssociatedTokenAddress(tokenMint, walletPublicKey)
         const [vault] = PublicKey.findProgramAddressSync(
             [Buffer.from("user_vault"), hashlock],
@@ -126,9 +126,9 @@ export const refundTransactionBuilder = async (params: RefundTxParams): Promise<
     )
 
     let refundIx: TransactionInstruction
-    if (params.sourceAsset.contractAddress && params.sourceAsset.contractAddress !== NATIVE_SOL_ADDRESS) {
+    if (params.sourceAsset.contract && params.sourceAsset.contract !== NATIVE_SOL_ADDRESS) {
         const { getAssociatedTokenAddress, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
-        const tokenMint = new PublicKey(params.sourceAsset.contractAddress)
+        const tokenMint = new PublicKey(params.sourceAsset.contract)
         const senderTokenAccount = await getAssociatedTokenAddress(tokenMint, walletPublicKey)
         const [vault] = PublicKey.findProgramAddressSync(
             [Buffer.from("user_vault"), hashlockBuffer],
@@ -191,9 +191,9 @@ export const redeemSolverTransactionBuilder = async (params: RedeemSolverTxParam
     const recipient = params.destinationAddress ? new PublicKey(params.destinationAddress) : walletPublicKey
 
     let tx: Transaction
-    if (params.sourceAsset.contractAddress && params.sourceAsset.contractAddress !== NATIVE_SOL_ADDRESS) {
+    if (params.sourceAsset.contract && params.sourceAsset.contract !== NATIVE_SOL_ADDRESS) {
         const { getAssociatedTokenAddress, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
-        const tokenMint = new PublicKey(params.sourceAsset.contractAddress)
+        const tokenMint = new PublicKey(params.sourceAsset.contract)
         const [vault] = PublicKey.findProgramAddressSync(
             [Buffer.from("solver_vault"), hashlockBuffer, indexBuffer],
             program.programId
