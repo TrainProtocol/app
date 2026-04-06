@@ -1,7 +1,6 @@
 import { RedeemSolverParams, UserLockParams, LockParams, RefundParams } from "./params"
 import { UserLockDetails, SolverLockDetails, TransactionInfo } from "./lock"
 import { AtomicResult, RecoveredSwapData } from "./atomic"
-import type { TrainApiClient } from "../api/client"
 
 export interface IHTLCReadClient {
     getUserLockDetails(params: LockParams): Promise<UserLockDetails | null>

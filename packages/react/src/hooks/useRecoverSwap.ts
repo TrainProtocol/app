@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
-import { useStoreContext } from '../providers/TrainProvider'
+import { useSwapActions } from '../internal/useSwapActions'
 import { useNetworksContext } from '../providers/NetworksProvider'
 import { TrainError, TrainErrorCode } from '../types'
 import type { SwapData } from '../types'
@@ -26,7 +26,7 @@ export interface UseRecoverSwapResult {
 export function useRecoverSwap(): UseRecoverSwapResult {
     const { config } = useTrainContext()
     const walletCtx = useWalletContext()
-    const store = useStoreContext()
+    const actions = useSwapActions()
     const { networks } = useNetworksContext()
     const [isRecovering, setIsRecovering] = useState(false)
     const [error, setError] = useState<Error | null>(null)
@@ -43,40 +43,42 @@ export function useRecoverSwap(): UseRecoverSwapResult {
             const client = walletCtx.createClient(sourceNetwork)
             const recovered = await client.recoverSwap(txHash)
 
-            if (store) {
-                // Resolve contract addresses from on-chain data to token symbols
-                const srcNetwork = networks.find(n => n.caip2Id.toUpperCase() === recovered.srcChain.toUpperCase())
-                const dstNetwork = networks.find(n => n.caip2Id.toUpperCase() === recovered.dstChain.toUpperCase())
-                const srcToken = srcNetwork?.tokens.find(t => t.contract?.toLowerCase() === recovered.token.toLowerCase())
-                const dstToken = dstNetwork?.tokens.find(t => t.contract?.toLowerCase() === recovered.dstToken.toLowerCase())
+            // Resolve contract addresses from on-chain data to token symbols
+            const srcNetwork = networks.find(n => n.caip2Id.toUpperCase() === recovered.srcChain.toUpperCase())
+            const dstNetwork = networks.find(n => n.caip2Id.toUpperCase() === recovered.dstChain.toUpperCase())
+            const srcToken = srcNetwork?.tokens.find(t => t.contract?.toLowerCase() === recovered.token.toLowerCase())
+            const dstToken = dstNetwork?.tokens.find(t => t.contract?.toLowerCase() === recovered.dstToken.toLowerCase())
 
-                const swapData: SwapData = {
-                    requestedAmount: recovered.amount.toString(),
-                    address: recovered.sender,
-                    source: recovered.srcChain,
-                    destination: recovered.dstChain,
-                    source_asset: srcToken?.symbol ?? recovered.token,
-                    destination_asset: dstToken?.symbol ?? recovered.dstToken,
-                    srcContract: recovered.srcContract,
-                    hashlock: recovered.hashlock,
-                    txId: txHash,
-                }
-                store.getState().addSwap(recovered.hashlock, swapData)
-
-                // Initialize swap config — recovered swaps have limited data
-                const swapConfig: RecoveredSwapConfig = {
-                    origin: 'recovered',
-                    hashlock: recovered.hashlock,
-                    sourceNetwork,
-                    destinationNetwork: caip2Id(recovered.dstChain),
-                    srcContract: recovered.srcContract,
-                    sourceAddress: recovered.sender,
-                    destinationAddress: recovered.dstAddress,
-                    txId: txHash,
-                    requestedAmount: recovered.amount.toString(),
-                }
-                store.getState().setSwapConfig(recovered.hashlock, swapConfig)
+            const swapData: SwapData = {
+                requestedAmount: recovered.amount.toString(),
+                address: recovered.sender,
+                source: recovered.srcChain,
+                destination: recovered.dstChain,
+                source_asset: srcToken?.symbol ?? recovered.token,
+                destination_asset: dstToken?.symbol ?? recovered.dstToken,
+                srcContract: recovered.srcContract,
+                srcTokenContract: recovered.token,
+                destTokenContract: recovered.dstToken,
+                hashlock: recovered.hashlock,
+                txId: txHash,
             }
+            actions.addSwap(recovered.hashlock, swapData)
+
+            // Initialize swap config — recovered swaps have limited data
+            const swapConfig: RecoveredSwapConfig = {
+                origin: 'recovered',
+                hashlock: recovered.hashlock,
+                sourceNetwork,
+                destinationNetwork: caip2Id(recovered.dstChain),
+                srcContract: recovered.srcContract,
+                srcTokenContractAddress: recovered.token,
+                destTokenContractAddress: recovered.dstToken,
+                sourceAddress: recovered.sender,
+                destinationAddress: recovered.dstAddress,
+                txId: txHash,
+                requestedAmount: recovered.amount.toString(),
+            }
+            actions.setSwapConfig(recovered.hashlock, swapConfig)
 
             return recovered.hashlock
         } catch (err) {
@@ -91,7 +93,7 @@ export function useRecoverSwap(): UseRecoverSwapResult {
         } finally {
             setIsRecovering(false)
         }
-    }, [walletCtx, store, config, networks])
+    }, [walletCtx, actions, config, networks])
 
     return { recover, isRecovering, error }
 }

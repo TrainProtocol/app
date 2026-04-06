@@ -36,12 +36,9 @@ export class EvmHTLCClient extends HTLCClient {
 
     async userLock(params: UserLockParams): Promise<AtomicResult> {
         const signer = this.requireSigner()
-        const {
-            sourceAsset,
-            sourceAddress
-        } = params
+        const { sourceAsset, sourceAddress } = params
 
-        const parsedAmount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
+        const parsedAmount = parseUnits(params.amount.toString(), sourceAsset.decimals)
         const tokenAddress = sourceAsset.contract || ZERO_ADDRESS
         const isNativeToken = !sourceAsset.contract || sourceAsset.contract === ZERO_ADDRESS
 
@@ -65,7 +62,7 @@ export class EvmHTLCClient extends HTLCClient {
                 rewardTimelockDelta: params.rewardTimelockDelta ?? 0,
                 quoteExpiry: params.quoteExpiry,
                 sender: hex(params.sourceAddress),
-                recipient: hex(params.srcLpAddress),
+                recipient: hex(params.srcSolverAddress),
                 token: hex(tokenAddress),
                 rewardToken: params.rewardToken ?? '',
                 rewardRecipient: params.rewardRecipient ?? '',
@@ -75,7 +72,7 @@ export class EvmHTLCClient extends HTLCClient {
                 dstChain: params.destinationChain,
                 dstAddress: params.destinationAddress,
                 dstAmount: params.destinationAmount,
-                dstToken: params.destinationAsset,
+                dstToken: params.destinationAsset.contract,
             },
             hex(userData),
             hex(params.solverData || '0x'),

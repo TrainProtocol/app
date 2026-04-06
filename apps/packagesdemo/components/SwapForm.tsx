@@ -125,7 +125,6 @@ export function SwapForm() {
             quote: bestQuote,
             srcContract,
             destContract: dstContract,
-            tokenContractAddress: sourceToken,
             chainId: sourceNetwork.chainId,
         }
 

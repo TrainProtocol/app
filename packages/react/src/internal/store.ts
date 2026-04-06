@@ -16,6 +16,8 @@ interface SwapConfigBase {
     sourceAddress: string
     destinationAddress: string
     txId: string
+    srcTokenContractAddress: string | null
+    destTokenContractAddress: string | null
 }
 
 /** Config for a swap created through the normal quote flow */
@@ -24,7 +26,6 @@ export interface CreatedSwapConfig extends SwapConfigBase {
     solverId: string
     destContract: string
     chainId: ChainReference
-    tokenContractAddress: string | null
     quote: QuoteDetails
     requestedAmount: string
 }
@@ -35,7 +36,6 @@ export interface RecoveredSwapConfig extends SwapConfigBase {
     solverId?: undefined
     destContract?: undefined
     chainId?: undefined
-    tokenContractAddress?: undefined
     quote?: undefined
     requestedAmount: string
 }
@@ -46,7 +46,6 @@ export interface HydratedSwapConfig extends SwapConfigBase {
     solverId: string | null
     destContract: string | null
     chainId: ChainReference | null
-    tokenContractAddress: string | null
     quote: null
     requestedAmount: string | null
 }
@@ -100,13 +99,17 @@ export interface SwapStoreState {
     setSwapConfig: (hashlock: string, config: SwapConfig) => void
 
     // Flag actions
-    setSecretRevealedToApi: (hashlock: string) => void
-    setConsensusPhase: (hashlock: string, phase: ConsensusPhase) => void
-    setActiveSwapError: (hashlock: string, error: TrainError | null) => void
-    setManualClaimStartedAt: (hashlock: string, timestamp: number) => void
+    /** Update one or more flags for a swap. `manualClaimStartedAt` is write-once (ignored if already set). */
+    updateSwapFlags: (hashlock: string, updates: Partial<SwapFlags>) => void
 
     // Order data (SSE stream)
     setOrderData: (hashlock: string, data: HTLCFromApi) => void
+
+    // Convenience accessors (point-in-time reads without selector boilerplate)
+    getSwap: (hashlock: string) => SwapData | undefined
+    getSwapConfig: (hashlock: string) => SwapConfig | undefined
+    getSwapFlags: (hashlock: string) => SwapFlags | undefined
+    getOrderData: (hashlock: string) => HTLCFromApi | undefined
 }
 
 const STORAGE_KEY = 'train:swaps'
@@ -120,6 +123,7 @@ const initialState = {
 }
 
 type SetFn = (fn: SwapStoreState | Partial<SwapStoreState> | ((state: SwapStoreState) => SwapStoreState | Partial<SwapStoreState>)) => void
+type GetFn = () => SwapStoreState
 
 /** Helper to update a single swap flags entry immutably */
 function updateFlags(
@@ -132,7 +136,7 @@ function updateFlags(
     return { swapFlags: { ...state.swapFlags, [hashlock]: updater(flags) } }
 }
 
-function createActions(set: SetFn) {
+function createActions(set: SetFn, get: GetFn) {
     return {
         // --- Persisted swap actions ---
         addSwap: (hashlock: string, data: SwapData) =>
@@ -175,7 +179,8 @@ function createActions(set: SetFn) {
                         destinationNetwork: destNet,
                         srcContract: swap.srcContract ?? '',
                         destContract: swap.destContract ?? null,
-                        tokenContractAddress: null,
+                        srcTokenContractAddress: swap.srcTokenContract ?? null,
+                        destTokenContractAddress: swap.destTokenContract ?? null,
                         sourceAddress: swap.sourceAddress ?? swap.address ?? '',
                         destinationAddress: swap.destinationAddress ?? '',
                         chainId: swap.source ? parseCaip2Id(sourceNet).reference : null,
@@ -233,19 +238,14 @@ function createActions(set: SetFn) {
             })),
 
         // --- Flag actions ---
-        setSecretRevealedToApi: (hashlock: string) =>
-            set((state) => updateFlags(state, hashlock, (flags) => ({ ...flags, secretRevealedToApi: true }))),
-
-        setConsensusPhase: (hashlock: string, phase: ConsensusPhase) =>
-            set((state) => updateFlags(state, hashlock, (flags) => ({ ...flags, consensusPhase: phase }))),
-
-        setActiveSwapError: (hashlock: string, error: TrainError | null) =>
-            set((state) => updateFlags(state, hashlock, (flags) => ({ ...flags, error }))),
-
-        setManualClaimStartedAt: (hashlock: string, timestamp: number) =>
+        updateSwapFlags: (hashlock: string, updates: Partial<SwapFlags>) =>
             set((state) => updateFlags(state, hashlock, (flags) => {
-                if (flags.manualClaimStartedAt) return flags
-                return { ...flags, manualClaimStartedAt: timestamp }
+                // manualClaimStartedAt is write-once
+                if (updates.manualClaimStartedAt && flags.manualClaimStartedAt) {
+                    const { manualClaimStartedAt: _, ...rest } = updates
+                    return { ...flags, ...rest }
+                }
+                return { ...flags, ...updates }
             })),
 
         // --- Order data ---
@@ -253,6 +253,12 @@ function createActions(set: SetFn) {
             set((state) => ({
                 orderData: { ...state.orderData, [hashlock]: data },
             })),
+
+        // --- Convenience accessors ---
+        getSwap: (hashlock: string) => get().swaps[hashlock],
+        getSwapConfig: (hashlock: string) => get().swapConfigs[hashlock],
+        getSwapFlags: (hashlock: string) => get().swapFlags[hashlock],
+        getOrderData: (hashlock: string) => get().orderData[hashlock],
     }
 }
 
@@ -287,9 +293,9 @@ export function createSwapStore(options?: { persist?: boolean; storage?: SwapSto
     const shouldPersist = options?.persist !== false
 
     if (!shouldPersist) {
-        return createZustandStore<SwapStoreState>()((set) => ({
+        return createZustandStore<SwapStoreState>()((set, get) => ({
             ...initialState,
-            ...createActions(set),
+            ...createActions(set, get),
         }))
     }
 
@@ -297,9 +303,9 @@ export function createSwapStore(options?: { persist?: boolean; storage?: SwapSto
 
     return createZustandStore<SwapStoreState>()(
         persist(
-            (set) => ({
+            (set, get) => ({
                 ...initialState,
-                ...createActions(set),
+                ...createActions(set, get),
             }),
             {
                 name: STORAGE_KEY,

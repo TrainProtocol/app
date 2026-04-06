@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useRef, createContext, useContext, type ReactNode } from 'react'
+import { useMemo, useCallback, useRef, useState, createContext, useContext, type ReactNode } from 'react'
 import { TrainApiClient, defaultTrainSDK } from '@train-protocol/sdk'
 import type { IHTLCReadClient, IHTLCClient } from '@train-protocol/sdk'
 import { defaultTrainAuth } from '@train-protocol/auth'
@@ -56,13 +56,17 @@ export function TrainProvider({
         })
     }
 
-    // Wallet adapter registry
+    // Wallet adapter registry — adapterVersion triggers re-render when adapters change,
+    // so consumers whose useMemo depends on walletCtx can retry after initial "no adapter" failures.
     const adaptersRef = useRef(new Map<string, TrainWalletAdapter>())
+    const [adapterVersion, setAdapterVersion] = useState(0)
 
     const registerAdapter = useCallback((adapter: TrainWalletAdapter) => {
         adaptersRef.current.set(adapter.chainNamespace, adapter)
+        setAdapterVersion(v => v + 1)
         return () => {
             adaptersRef.current.delete(adapter.chainNamespace)
+            setAdapterVersion(v => v + 1)
         }
     }, [])
 
@@ -78,13 +82,15 @@ export function TrainProvider({
         return adapter
     }, [])
 
+    // adapterVersion in deps ensures these callbacks get new references when adapters register,
+    // which propagates through walletValue → walletCtx → consumer useMemos.
     const createClient = useCallback((networkId: Caip2Id): IHTLCReadClient => {
         return findAdapter(networkId).createClient(sdk, networkId)
-    }, [findAdapter, sdk])
+    }, [findAdapter, sdk, adapterVersion])
 
     const createWriteClient = useCallback((networkId: Caip2Id, address?: string): IHTLCClient => {
         return findAdapter(networkId).createWriteClient(sdk, networkId, address)
-    }, [findAdapter, sdk])
+    }, [findAdapter, sdk, adapterVersion])
 
     const getLoginConfig = useCallback(async (namespace: ChainNamespace, address?: string): Promise<Record<string, unknown> | null> => {
         const adapter = adaptersRef.current.get(namespace)

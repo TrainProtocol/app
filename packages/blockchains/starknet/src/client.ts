@@ -38,7 +38,7 @@ export class StarknetHTLCClient extends HTLCClient {
         const signer = this.requireSigner()
 
         const parsedAmount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
-        const tokenAddress = params.tokenContractAddress || params.sourceAsset.contract || ZERO_ADDRESS
+        const tokenAddress = params.sourceAsset.contract || ZERO_ADDRESS
 
         // ERC20 approval
         const erc20 = new Contract({ abi: ERC20_ABI, address: tokenAddress, providerOrAccount: signer.account })
@@ -57,7 +57,7 @@ export class StarknetHTLCClient extends HTLCClient {
                     reward_timelock_delta: params.rewardTimelockDelta,
                     quote_expiry: params.quoteExpiry,
                     sender: params.sourceAddress,
-                    recipient: params.srcLpAddress,
+                    recipient: params.srcSolverAddress,
                     token: tokenAddress,
                     reward_token: byteArray.byteArrayFromString(params.rewardToken ?? ''),
                     reward_recipient: byteArray.byteArrayFromString(params.rewardRecipient ?? ''),
@@ -67,7 +67,7 @@ export class StarknetHTLCClient extends HTLCClient {
                     dst_chain: byteArray.byteArrayFromString(params.destinationChain),
                     dst_address: byteArray.byteArrayFromString(params.destinationAddress),
                     dst_amount: cairo.uint256(BigInt(params.destinationAmount)),
-                    dst_token: byteArray.byteArrayFromString(params.destinationAsset),
+                    dst_token: byteArray.byteArrayFromString(params.destinationAsset.contract),
                 },
                 byteArray.byteArrayFromString(String(params.nonce)),  // userData — nonce timestamp for recovery
                 byteArray.byteArrayFromString(params.solverData || ''),

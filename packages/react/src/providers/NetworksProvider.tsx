@@ -63,7 +63,7 @@ export function NetworksProvider({ children, initialNetworks, initialPrices }: N
     const networkMap = useMemo(() => {
         const map = new Map<string, Network>()
         for (const n of networksQuery.data ?? []) {
-            map.set(n.caip2Id.toUpperCase(), n)
+            map.set(n.caip2Id, n)
         }
         return map
     }, [networksQuery.data])

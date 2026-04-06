@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { useActiveSwap } from "@/hooks/useActiveSwap";
-import { useManualClaim } from "@train-protocol/react";
+import { useManualClaim, useClearSwapError } from "@train-protocol/react";
 import useWallet from "@/hooks/useWallet";
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
@@ -11,11 +11,13 @@ export const ManualRedeemAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const { destinationNetwork, hashlock, sourceDetails, destRedeemTxId, error } = useActiveSwap();
     const activeHashlock = useSwapStore(s => s.activeHashlock)
     const { claim } = useManualClaim();
+    const clearError = useClearSwapError(activeHashlock);
 
     const { provider } = useWallet(destinationNetwork, 'withdrawal');
     const wallet = provider?.activeWallet;
 
     const handleManualClaim = async () => {
+        clearError();
         try {
             if (!activeHashlock) throw new Error("No hashlock");
             if (!sourceDetails?.secret) throw new Error("Secret not available");
@@ -24,7 +26,7 @@ export const ManualRedeemAction: FC<{ type: SwapViewType }> = ({ type }) => {
             if (provider?.activeWallet && (provider.activeWallet.chainId != destinationNetwork.chainId) && provider.switchChain)
                 await provider.switchChain(provider.activeWallet, destinationNetwork.chainId);
 
-            await claim({ hashlock: activeHashlock, secret: sourceDetails.secret.toString() });
+            await claim({ hashlock: activeHashlock, secret: '0x' + sourceDetails.secret.toString(16).padStart(64, '0') });
 
             posthog.capture("ManualClaim", {
                 hashlock,

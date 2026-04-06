@@ -51,7 +51,7 @@ const SwapHistory: FC = () => {
     const [showAllOngoing, setShowAllOngoing] = useState(false)
 
     const networkByCaip2Id = useMemo(() =>
-        new Map(networks.map(n => [n.caip2Id.toUpperCase(), n])),
+        new Map(networks.map(n => [n.caip2Id, n])),
         [networks]
     )
 
@@ -120,8 +120,8 @@ const SwapHistory: FC = () => {
             className="w-full flex flex-col gap-3"
         >
             {visibleOngoing.map(([hashlock, swap], idx) => {
-                const sourceNetwork = networkByCaip2Id.get(swap.source?.toUpperCase() ?? '')
-                const destNetwork = networkByCaip2Id.get(swap.destination?.toUpperCase() ?? '')
+                const sourceNetwork = networkByCaip2Id.get(swap.source ?? '')
+                const destNetwork = networkByCaip2Id.get(swap.destination ?? '')
                 const isLastVisible = idx === visibleOngoing.length - 1
                 const shouldShowToggle = hiddenOngoingCount > 0 && isLastVisible
                 return (
@@ -159,8 +159,8 @@ const SwapHistory: FC = () => {
                         {label}
                     </p>
                     {items.map(([hashlock, swap]) => {
-                        const sourceNetwork = networkByCaip2Id.get(swap.source?.toUpperCase() ?? '')
-                        const destNetwork = networkByCaip2Id.get(swap.destination?.toUpperCase() ?? '')
+                        const sourceNetwork = networkByCaip2Id.get(swap.source ?? '')
+                        const destNetwork = networkByCaip2Id.get(swap.destination ?? '')
                         return (
                             <SwapAccordionItem
                                 key={hashlock}

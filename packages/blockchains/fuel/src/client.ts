@@ -45,7 +45,7 @@ export class FuelHTLCClient extends HTLCClient {
             atomicContract,
             hashlock,
             nonce,
-            srcLpAddress,
+            srcSolverAddress,
             destinationChain,
             destinationAsset,
             destinationAddress,
@@ -53,7 +53,7 @@ export class FuelHTLCClient extends HTLCClient {
             sourceChain,
         } = params
 
-        const parsedAmount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
+        const parsedAmount = parseUnits(params.amount.toString(), sourceAsset.decimals)
         const isNativeToken = !sourceAsset.contract
 
         try {
@@ -73,7 +73,7 @@ export class FuelHTLCClient extends HTLCClient {
             const timeLockS = Math.floor(Date.now() / 1000) + timelockDelta
             const timelock = DateTime.fromUnixSeconds(timeLockS).toTai64()
 
-            const srcReceiver = { bits: srcLpAddress }
+            const srcReceiver = { bits: srcSolverAddress }
 
             // TODO: Update function name and params when contract ABI is finalized
             const { transactionId, waitForResult } = await contract.functions
@@ -84,7 +84,7 @@ export class FuelHTLCClient extends HTLCClient {
                     userData,
                     params.solverData || '0x',
                     destinationChain,
-                    destinationAsset,
+                    destinationAsset.contract,
                     destinationAddress,
                     destinationAmount,
                     sourceChain || '',
