@@ -6,8 +6,8 @@ import { extractAztecAddress } from "./utils";
 import { useCallback, useMemo } from "react";
 import { useAztecWalletContext } from "@/components/WalletProviders/AztecWalletProvider";
 import { useActiveAztecAccount } from "@/components/WalletProviders/ActiveAztecAccount";
-import { useAztecWalletStore } from "@/stores/aztecWalletStore";
 import { useWalletStore } from "@/stores/walletStore";
+import KnownAztecConnectors from "./KnownAztecConnectors";
 
 const commonSupportedNetworks = [
     KnownInternalNames.Networks.AztecDevnet,
@@ -21,7 +21,6 @@ export default function useAztec(): WalletProvider {
 
     const { connect, disconnect } = useAztecWalletContext();
     const { activeAddress: activeSelectedAddress, setActiveAddress } = useActiveAztecAccount();
-    const { discoveredProviders } = useAztecWalletStore();
     const wallets = useWalletStore((state) => state.connectedWallets)
     const addWallet = useWalletStore((state) => state.connectWallet)
     const removeWallet = useWalletStore((state) => state.disconnectWallet)
@@ -55,7 +54,7 @@ export default function useAztec(): WalletProvider {
             autofillSupportedNetworks: commonSupportedNetworks,
             networkIcon: networks.find(n => commonSupportedNetworks.some(name => name === n.caip2Id))?.logoUrl
         }
-    }, [wallets, networks, discoveredProviders, disconnectWallets, activeSelectedAddress])
+    }, [wallets, networks, disconnectWallets, activeSelectedAddress])
 
     const connectWallet = async (params?: { connector?: InternalConnector }) => {
         try {
@@ -80,18 +79,17 @@ export default function useAztec(): WalletProvider {
             }
 
             if (connectedAddresses.length > 0) {
-                const activeProvider = discoveredProviders.find(p => p.id === providerId);
-                const walletName = activeProvider?.name ?? 'Aztec Wallet';
+                const walletName = params?.connector?.name ?? 'Azguard';
                 const primaryAddress = connectedAddresses[0];
 
                 const newWallet: Wallet = {
-                    id: activeProvider?.id ?? '',
+                    id: providerId,
                     displayName: `${walletName} - Aztec`,
                     addresses: connectedAddresses,
                     address: primaryAddress,
                     providerName: name,
                     isActive: true,
-                    icon: resolveWalletConnectorIcon({ connector: activeProvider?.id ?? name, address: primaryAddress }),
+                    icon: resolveWalletConnectorIcon({ connector: providerId, address: primaryAddress }),
                     disconnect: () => disconnectWallets(),
                     withdrawalSupportedNetworks: commonSupportedNetworks,
                     asSourceSupportedNetworks: commonSupportedNetworks,
@@ -102,21 +100,27 @@ export default function useAztec(): WalletProvider {
                 return newWallet;
             }
         } catch (error) {
+            if (error instanceof Error && error.message.includes('not found')) {
+                const err = new Error('Azguard wallet extension not found. Please install it and try again.');
+                (err as any).extensionNotFound = true;
+                throw err;
+            }
             console.error(`Error connecting Aztec wallet:`, error);
             throw error;
         }
     }
 
     const availableWalletsForConnect: InternalConnector[] = useMemo(() => {
-        return discoveredProviders.map(provider => ({
-            id: provider.id,
-            name: provider.name,
-            icon: provider.icon,
+        const azguard = KnownAztecConnectors[0];
+        return [{
+            id: azguard.id,
+            name: azguard.name,
             providerName: name,
             extensionNotFound: false,
             hasBrowserExtension: true,
-        }));
-    }, [discoveredProviders])
+            installUrl: 'https://azguardwallet.io/',
+        }];
+    }, [])
 
     const switchAccount = useCallback(async (_wallet: Wallet, address: string) => {
         setActiveAddress(address);
