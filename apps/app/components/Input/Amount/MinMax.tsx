@@ -132,7 +132,6 @@ const ActionButton = React.forwardRef<HTMLButtonElement, ActionButtonProps>(({ l
             ref={ref}
             onMouseEnter={onMouseEnter}
             onClick={onClick}
-            typeof="button"
             type="button"
             disabled={disabled}
             className="px-1.5 py-0.5 rounded-md duration-200 break-keep transition bg-secondary-300 hover:brightness-90 text-secondary-text hover:text-primary-text cursor-pointer enabled:active:animate-press-down"

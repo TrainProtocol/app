@@ -26,5 +26,17 @@
     ".next/types/**/*.ts",
     "pages/_app.js"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "references": [
+    { "path": "../../packages/sdk" },
+    { "path": "../../packages/auth" },
+    { "path": "../../packages/react" },
+    { "path": "../../packages/blockchains/evm" },
+    { "path": "../../packages/blockchains/solana" },
+    { "path": "../../packages/blockchains/starknet" },
+    { "path": "../../packages/blockchains/aztec" },
+    { "path": "../../packages/blockchains/ton" },
+    { "path": "../../packages/blockchains/fuel" },
+    { "path": "../../packages/blockchains/tron" }
+  ]
 }
