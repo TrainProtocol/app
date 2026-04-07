@@ -10,7 +10,7 @@ import { useSwapActions } from '../internal/useSwapActions'
 import { useSDStoreContext } from '../providers/SecretDerivationProvider'
 import { useWalletContext } from '../wallet/WalletContext'
 import { trainQueryKeys } from '../internal/queryKeys'
-import { parseCaip2Id } from '../internal/branded'
+import { caip2Id, parseCaip2Id } from '../internal/branded'
 import { TrainError, TrainErrorCode } from '../types'
 import { useNetworksContext } from '../providers/NetworksProvider'
 
@@ -25,12 +25,6 @@ export interface UseRevealSecretResult {
  * Action hook to reveal the swap secret to the solver API.
  * Derives the secret on-demand from the internal key store + nonce
  * (from sourceDetails.userData in React Query cache).
- *
- * Usage:
- * ```tsx
- * const { reveal, isRevealing } = useRevealSecret()
- * await reveal(hashlock)
- * ```
  */
 export function useRevealSecret(): UseRevealSecretResult {
     const { apiClient, config } = useTrainContext()
@@ -38,7 +32,7 @@ export function useRevealSecret(): UseRevealSecretResult {
     const sdStore = useSDStoreContext()
     const walletCtx = useWalletContext()
     const queryClient = useQueryClient()
-    const { networks } = useNetworksContext()
+    const { networks, networkMap } = useNetworksContext()
     const [isRevealing, setIsRevealing] = useState(false)
     const [error, setError] = useState<Error | null>(null)
     const inFlight = useRef(false)
@@ -49,13 +43,11 @@ export function useRevealSecret(): UseRevealSecretResult {
         setIsRevealing(true)
         setError(null)
 
-        const swapConfig = actions.getSwapConfig(hashlock)
+        const swap = actions.getSwap(hashlock)
 
-        // Recovered swaps don't have a solverId — cannot reveal secret
-        if (swapConfig?.origin === 'recovered') {
+        if (!swap?.solver) {
             const err = new TrainError(
-                'Cannot reveal secret for a recovered swap — solverId is unavailable. ' +
-                'The solver must detect the secret from on-chain data.',
+                'Cannot reveal: missing solverId',
                 TrainErrorCode.RevealFailed,
             )
             setError(err)
@@ -64,13 +56,8 @@ export function useRevealSecret(): UseRevealSecretResult {
             throw err
         }
 
-        // Get solverId — available for 'created' (always) and 'hydrated' (maybe)
-        const solverId = swapConfig?.origin === 'created'
-            ? swapConfig.solverId
-            : swapConfig?.solverId
-
-        if (!solverId || !swapConfig?.hashlock) {
-            const err = new TrainError('Cannot reveal: missing solverId or hashlock', TrainErrorCode.RevealFailed)
+        if (!swap.hashlock) {
+            const err = new TrainError('Cannot reveal: missing hashlock', TrainErrorCode.RevealFailed)
             setError(err)
             inFlight.current = false
             setIsRevealing(false)
@@ -98,20 +85,19 @@ export function useRevealSecret(): UseRevealSecretResult {
         }
 
         // Tier 2: on-chain RPC fallback (cache was GC'd or not yet populated)
-        if (!nonce && swapConfig) {
+        if (!nonce && swap.source && swap.srcContract) {
             try {
-                const sourceTokenDecimals = networks.find(n => n.caip2Id == swapConfig.sourceNetwork)?.tokens.find(t => t.contract == swapConfig.srcTokenContractAddress)?.decimals
+                const sourceNetwork = caip2Id(swap.source)
+                const sourceTokenDecimals = networkMap.get(swap.source)?.tokens.find(t => t.symbol == swap.source_asset)?.decimals
                 if (!sourceTokenDecimals) return
-                const client = walletCtx.createClient(swapConfig.sourceNetwork)
-                const chainId = swapConfig.origin === 'created'
-                    ? swapConfig.chainId
-                    : parseCaip2Id(swapConfig.sourceNetwork).reference
+                const client = walletCtx.createClient(sourceNetwork)
+                const chainId = parseCaip2Id(sourceNetwork).reference
                 const details = await client.getUserLockDetails({
-                    id: swapConfig.hashlock,
+                    id: swap.hashlock,
                     chainId,
                     decimals: sourceTokenDecimals,
-                    contractAddress: swapConfig.srcContract,
-                    txId: swapConfig.txId ?? undefined,
+                    contractAddress: swap.srcContract,
+                    txId: swap.txId ?? undefined,
                 })
                 const onChainNonce = details?.userData ? Number(details.userData) : null
                 if (onChainNonce && !isNaN(onChainNonce)) {
@@ -134,7 +120,7 @@ export function useRevealSecret(): UseRevealSecretResult {
             const secretBytes = deriveSecretFromTimelock(derivedKey, nonce)
             const secret = bytesToHex(Array.from(secretBytes))
 
-            await apiClient.revealSecret(solverId, swapConfig.hashlock, secret)
+            await apiClient.revealSecret(swap.solver, swap.hashlock, secret)
             actions.updateSwapFlags(hashlock, { secretRevealedToApi: true })
             actions.updateSwap(hashlock, { secretRevealed: true })
         } catch (err) {

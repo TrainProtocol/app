@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useStoreContext } from '../providers/TrainProvider'
 import type { SwapData } from '../types'
 import type { HTLCFromApi } from '@train-protocol/sdk'
-import type { SwapConfig, SwapFlags } from './store'
+import type { SwapFlags } from './store'
 
 /**
  * Null-safe wrapper around the swap store.
@@ -21,8 +21,6 @@ export function useSwapActions() {
         // --- Point-in-time reads ---
         getSwap: (hashlock: string): SwapData | undefined =>
             store?.getState().getSwap(hashlock),
-        getSwapConfig: (hashlock: string): SwapConfig | undefined =>
-            store?.getState().getSwapConfig(hashlock),
         getSwapFlags: (hashlock: string): SwapFlags | undefined =>
             store?.getState().getSwapFlags(hashlock),
         getOrderData: (hashlock: string): HTLCFromApi | undefined =>
@@ -35,8 +33,6 @@ export function useSwapActions() {
             store?.getState().updateSwap(hashlock, updates),
         clearSwap: (hashlock: string) =>
             store?.getState().clearSwap(hashlock),
-        setSwapConfig: (hashlock: string, config: SwapConfig) =>
-            store?.getState().setSwapConfig(hashlock, config),
         updateSwapFlags: (hashlock: string, updates: Partial<SwapFlags>) =>
             store?.getState().updateSwapFlags(hashlock, updates),
         setOrderData: (hashlock: string, data: HTLCFromApi) =>

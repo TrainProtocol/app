@@ -268,7 +268,6 @@ export class SolanaHTLCClient extends HTLCClient {
 
         for (let i = 1; i <= count; i++) {
             const result = await this.getSolverLockByIndex(params, i, nodeUrl)
-            console.log(result)
             if (!result) continue
             if (params.solverAddress && result.sender?.toLowerCase() !== params.solverAddress.toLowerCase()) continue
           

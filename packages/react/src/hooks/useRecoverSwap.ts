@@ -5,7 +5,6 @@ import { useSwapActions } from '../internal/useSwapActions'
 import { useNetworksContext } from '../providers/NetworksProvider'
 import { TrainError, TrainErrorCode } from '../types'
 import type { SwapData } from '../types'
-import type { RecoveredSwapConfig } from '../internal/store'
 import { caip2Id } from '../internal/branded'
 
 export interface UseRecoverSwapResult {
@@ -61,24 +60,10 @@ export function useRecoverSwap(): UseRecoverSwapResult {
                 destTokenContract: recovered.dstToken,
                 hashlock: recovered.hashlock,
                 txId: txHash,
-            }
-            actions.addSwap(recovered.hashlock, swapData)
-
-            // Initialize swap config — recovered swaps have limited data
-            const swapConfig: RecoveredSwapConfig = {
-                origin: 'recovered',
-                hashlock: recovered.hashlock,
-                sourceNetwork,
-                destinationNetwork: caip2Id(recovered.dstChain),
-                srcContract: recovered.srcContract,
-                srcTokenContractAddress: recovered.token,
-                destTokenContractAddress: recovered.dstToken,
                 sourceAddress: recovered.sender,
                 destinationAddress: recovered.dstAddress,
-                txId: txHash,
-                requestedAmount: recovered.amount.toString(),
             }
-            actions.setSwapConfig(recovered.hashlock, swapConfig)
+            actions.addSwap(recovered.hashlock, swapData)
 
             return recovered.hashlock
         } catch (err) {
