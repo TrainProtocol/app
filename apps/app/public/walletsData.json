@@ -32635,7 +32635,7 @@
         "shortName": null
       },
       "mobile": {
-        "native": "domawallet://",
+        "native": "goldwallet://",
         "universal": ""
       },
       "name": "DomaWallet",

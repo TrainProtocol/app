@@ -3,7 +3,6 @@ import { useActiveSwap } from "@/hooks/useActiveSwap";
 import { StepStatus, TimelineStep } from "./progressTypes";
 import { LockStatus, HTLCTransaction, HTLCStatus, TrainErrorCode } from "@train-protocol/react";
 import { getExplorerUrl } from "@/lib/address";
-import NetworkSettings from "@/lib/NetworkSettings";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
 import LockIcon from "@/components/Icons/LockIcon";
 
@@ -52,9 +51,9 @@ const REFUND_STEPS: StepTemplate[] = [
 
 // --- Helpers ---
 
-function buildExplorerLink(networkSlug?: string, txHash?: string | null): string | undefined {
-    if (!networkSlug || !txHash) return undefined;
-    return getExplorerUrl(NetworkSettings.KnownSettings[networkSlug]?.TransactionExplorerTemplate, txHash);
+function buildExplorerLink(network?: { explorerUrlTemplate?: { transaction?: string } } | null, txHash?: string | null): string | undefined {
+    if (!network || !txHash) return undefined;
+    return getExplorerUrl(network.explorerUrlTemplate?.transaction, txHash);
 }
 
 function buildSteps(
@@ -145,11 +144,11 @@ export function useSwapProgress(): SwapProgress {
     const { verified, skipped, mismatches } = useSolverLockVerification();
 
     return useMemo(() => {
-        const sourceTxLink = buildExplorerLink(sourceNetwork?.caip2Id, lockTxId);
+        const sourceTxLink = buildExplorerLink(sourceNetwork, lockTxId);
         const solverLockTx = htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCLock as string);
-        const destTxLink = buildExplorerLink(destinationNetwork?.caip2Id, solverLockTx?.hash);
-        const redeemTxLink = buildExplorerLink(destinationNetwork?.caip2Id, destRedeemTx);
-        const refundTxLink = buildExplorerLink(sourceNetwork?.caip2Id, refundTxId);
+        const destTxLink = buildExplorerLink(destinationNetwork, solverLockTx?.hash);
+        const redeemTxLink = buildExplorerLink(destinationNetwork, destRedeemTx);
+        const refundTxLink = buildExplorerLink(sourceNetwork, refundTxId);
 
         const isRefunded = sourceDetails?.status === LockStatus.Refunded;
 

@@ -98,7 +98,12 @@ export class Address {
    * Check if this address is valid for its network
    */
   static isValid(address: string, network: Network | null = null): boolean {
-    return isValidAddress(address, network);
+    try {
+      return isValidAddress(address, network);
+    }
+    catch {
+      return false
+    }
   }
 
   /**

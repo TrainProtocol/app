@@ -6,6 +6,7 @@ const PROVIDER_TO_NAMESPACE: Record<string, string> = {
     aztec: 'aztec',
     fuel: 'fuel',
     ton: 'ton',
+    tron: 'tron',
 }
 
 export function toChainNamespace(providerName: string): string {

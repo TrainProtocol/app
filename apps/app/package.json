@@ -70,6 +70,7 @@
     "@train-protocol/sdk": "workspace:^",
     "@train-protocol/solana": "workspace:^",
     "@train-protocol/starknet": "workspace:^",
+    "@train-protocol/tron": "workspace:^",
     "@tronweb3/tronwallet-adapter-bitkeep": "^1.1.5",
     "@tronweb3/tronwallet-adapter-bybit": "^1.0.1",
     "@tronweb3/tronwallet-adapter-foxwallet": "^1.0.1",
