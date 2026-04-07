@@ -10,6 +10,10 @@ export default class KnownInternalNames {
 
         public static readonly SolanaDevnet: string = "solana:devnet";
 
+        public static readonly TronMainnet: string = "TRON_MAINNET"
+
+        public static readonly TronTestnet: string = "tron:3448148188"
+
         public static readonly CronosMainnet: string = "CRONOS_MAINNET";
 
         public static readonly OsmosisMainnet: string = "OSMOSIS_MAINNET";
@@ -141,10 +145,6 @@ export default class KnownInternalNames {
         public static readonly FuelTestnet: string = "FUEL_TESTNET"
 
         public static readonly FuelDevnet: string = "FUEL_DEVNET"
-
-        public static readonly TronMainnet: string = "TRON_MAINNET"
-
-        public static readonly TronTestnet: string = "TRON_TESTNET"
 
         public static readonly EclipseTestnet: string = "ECLIPSE_TESTNET"
 
