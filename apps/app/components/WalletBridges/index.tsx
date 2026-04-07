@@ -2,6 +2,7 @@ import { EvmWalletBridge } from './EvmWalletBridge'
 import { SolanaWalletBridge } from './SolanaWalletBridge'
 import { StarknetWalletBridge } from './StarknetWalletBridge'
 import { AztecWalletBridge } from './AztecWalletBridge'
+import { TronWalletBridge } from './TronWalletBridge'
 
 export function WalletBridges() {
     return (
@@ -10,6 +11,7 @@ export function WalletBridges() {
             <SolanaWalletBridge />
             <StarknetWalletBridge />
             <AztecWalletBridge />
+            <TronWalletBridge />
         </>
     )
 }

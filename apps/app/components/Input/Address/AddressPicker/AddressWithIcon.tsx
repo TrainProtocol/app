@@ -12,7 +12,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/too
 import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
 import clsx from "clsx";
 import shortenString from "@/components/utils/ShortenString";
-import NetworkSettings from "@/lib/NetworkSettings";
 
 type Props = {
     addressItem: AddressItem;
@@ -186,7 +185,7 @@ export const ExtendedAddress: FC<ExtendedAddressProps> = ({ address, network, pr
             ...((network && !isNativeToken && isAddressValid) ? [{
                 title: 'View',
                 Icon: SquareArrowOutUpRight,
-                href: getExplorerUrl(NetworkSettings.KnownSettings[network.caip2Id]?.AccountExplorerTemplate, addr.full)
+                href: getExplorerUrl(network?.explorerUrlTemplate?.address, addr.full)
             }] : []),
             ...(onDisconnect ? [{
                 title: 'Disconnect',

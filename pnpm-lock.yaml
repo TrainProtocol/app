@@ -248,6 +248,9 @@ importers:
       '@train-protocol/starknet':
         specifier: workspace:^
         version: link:../../packages/blockchains/starknet
+      '@train-protocol/tron':
+        specifier: workspace:^
+        version: link:../../packages/blockchains/tron
       '@tronweb3/tronwallet-adapter-bitkeep':
         specifier: ^1.1.5
         version: 1.1.8(bufferutil@4.1.0)(utf-8-validate@5.0.10)
@@ -663,6 +666,34 @@ importers:
       '@ton/ton':
         specifier: 'catalog:'
         version: 13.11.2(@ton/core@0.53.0(@ton/crypto@3.3.0))(@ton/crypto@3.3.0)
+    devDependencies:
+      '@train-protocol/auth':
+        specifier: workspace:^
+        version: link:../../auth
+      '@train-protocol/sdk':
+        specifier: workspace:^
+        version: link:../../sdk
+      '@types/node':
+        specifier: ^20
+        version: 20.19.34
+      rimraf:
+        specifier: 'catalog:'
+        version: 6.1.3
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.14(@types/node@20.19.34)(typescript@5.9.3))
+
+  packages/blockchains/tron:
+    dependencies:
+      '@noble/hashes':
+        specifier: ^1.7.0
+        version: 1.8.0
+      ox:
+        specifier: ^0.13.2
+        version: 0.13.2(typescript@5.9.3)(zod@3.25.76)
     devDependencies:
       '@train-protocol/auth':
         specifier: workspace:^

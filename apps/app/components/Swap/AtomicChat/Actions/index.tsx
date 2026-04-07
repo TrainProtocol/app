@@ -11,7 +11,6 @@ import SubmitButton from "@/components/buttons/submitButton";
 import { ExternalLink, Home } from "lucide-react";
 import { useGoHome } from "@/hooks/useGoHome";
 import { getExplorerUrl } from "@/lib/address";
-import NetworkSettings from "@/lib/NetworkSettings";
 import { Widget } from "@/components/Widget/Index";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
@@ -147,10 +146,10 @@ const TerminalActions: FC<{ variant: 'success' | 'refund'; type: SwapViewType }>
 
     const isSuccess = variant === 'success'
     const isModal = type === 'contained'
-    const networkSlug = isSuccess ? destinationNetwork?.caip2Id : sourceNetwork?.caip2Id
+    const network = isSuccess ? destinationNetwork : sourceNetwork
     const txHash = isSuccess ? destRedeemTxId : refundTxId
-    const txLink = networkSlug && txHash
-        ? getExplorerUrl(NetworkSettings.KnownSettings[networkSlug]?.TransactionExplorerTemplate, txHash)
+    const txLink = network && txHash
+        ? getExplorerUrl(network.explorerUrlTemplate?.transaction, txHash)
         : undefined
 
     const swapMoreButton = (
