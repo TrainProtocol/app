@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
 import { useSwapActions } from '../internal/useSwapActions'
+import { useStoreContext } from '../providers/TrainProvider'
 import { useNetworksContext } from '../providers/NetworksProvider'
 import { TrainError, TrainErrorCode } from '../types'
 import type { SwapData } from '../types'
@@ -30,6 +31,7 @@ export interface UseRecoverSwapResult {
 export function useRecoverSwap(): UseRecoverSwapResult {
     const { config } = useTrainContext()
     const walletCtx = useWalletContext()
+    const store = useStoreContext()
     const actions = useSwapActions()
     const { networks } = useNetworksContext()
     const [isRecovering, setIsRecovering] = useState(false)
@@ -105,7 +107,7 @@ export function useRecoverSwap(): UseRecoverSwapResult {
         } finally {
             setIsRecovering(false)
         }
-    }, [walletCtx, actions, config, networks])
+    }, [store, walletCtx, actions, config, networks])
 
     return { recover, isRecovering, error }
 }

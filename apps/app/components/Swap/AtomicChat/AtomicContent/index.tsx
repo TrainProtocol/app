@@ -112,14 +112,14 @@ const SwapProgressPanel: FC = () => {
 };
 
 const SwapLoading: FC = () => (
-    <div className="flex flex-col items-center justify-center gap-2 w-full min-h-[450px]">
+    <div className="flex flex-col items-center justify-center gap-2 w-full min-h-[374px]">
         <Loader2 className="h-10 w-10 text-primary animate-spin" />
         <span className="text-sm text-secondary-text">Loading swap data...</span>
     </div>
 );
 
 const SwapNotFound: FC = () => (
-    <div className="flex flex-col items-center justify-center gap-2 w-full min-h-[450px]">
+    <div className="flex flex-col items-center justify-center gap-2 w-full min-h-[374px]">
         <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/20">
             <SearchX className="h-10 w-10 text-primary" aria-hidden="true" />
         </span>

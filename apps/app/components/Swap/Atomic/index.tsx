@@ -7,7 +7,7 @@ import SwapForm from "./Form";
 import { NextRouter, useRouter } from "next/router";
 import { useQueryState } from "@/context/query";
 import useWallet from "@/hooks/useWallet";
-import { useSwapProgress, useRecoverSwap, type SwapQuote, HTLCStatus, useSharedSecretDerivation } from "@train-protocol/react";
+import { useSwapProgress, type SwapQuote, HTLCStatus, useSharedSecretDerivation } from "@train-protocol/react";
 import VaulDrawer from "../../Modal/vaulModal";
 import { Widget } from "../../Widget/Index";
 import { generateSwapInitialValues } from "@/lib/generateSwapInitialValues";
@@ -34,24 +34,10 @@ export default function Form() {
     const swapModalOpen = useSwapStore(s => s.swapModalOpen)
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
     const updateRecentNetworks = useRecentNetworksStore(s => s.updateRecentNetworks);
-    const { recover } = useRecoverSwap()
     const swap = useActiveSwap()
 
     // Monitor the active swap lifecycle
     const { status: htlcStatus } = useSwapProgress(activeHashlock)
-
-    // Restore swap from URL on mount (sourceNetwork + txHash)
-    useEffect(() => {
-        if (!router.isReady) return
-
-        const sn = router.query.sourceNetwork as string | undefined
-        const tx = router.query.txHash as string | undefined
-        if (!sn || !tx || activeHashlock) return
-
-        recover(tx, sn)
-            .then(hashlock => { setActiveHashlock(hashlock); setSwapModalOpen(true) })
-            .catch(e => console.error('Auto-recovery failed:', e))
-    }, [router.isReady, router.query.sourceNetwork, router.query.txHash])
 
     useEffect(() => {
         if (swapModalOpen) {
