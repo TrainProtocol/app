@@ -6,7 +6,7 @@ import { useRevealSecret as useRevealSecretHook } from "@train-protocol/react";
 import { useSwapStore } from "@/stores/swapStore";
 
 export function useRevealSecret() {
-    const { sourceNetwork, hashlock, solver } = useActiveSwap()
+    const { sourceNetwork, hashlock } = useActiveSwap()
     const activeHashlock = useSwapStore(s => s.activeHashlock)
     const { reveal: revealSecretAction } = useRevealSecretHook()
     const { provider } = useWallet(sourceNetwork, 'withdrawal')
@@ -24,7 +24,6 @@ export function useRevealSecret() {
 
             posthog.capture("RevealSecret", {
                 hashlock,
-                solver,
             })
         }
         catch (e: any) {
@@ -33,7 +32,7 @@ export function useRevealSecret() {
         finally {
             setIsRevealing(false)
         }
-    }, [activeHashlock, hashlock, solver, revealSecretAction])
+    }, [activeHashlock, hashlock, revealSecretAction])
 
     return { revealSecret, isRevealing, source_network: sourceNetwork, wallet }
 }

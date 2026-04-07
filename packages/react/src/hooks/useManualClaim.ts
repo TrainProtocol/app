@@ -4,7 +4,7 @@ import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
 import { useNetworksContext } from '../providers/NetworksProvider'
 import { useSwapActions } from '../internal/useSwapActions'
-import { parseCaip2Id } from '../internal/branded'
+import { caip2Id, parseCaip2Id } from '../internal/branded'
 import { resolveSwapTokens } from '../internal/resolveSwapTokens'
 import { trainQueryKeys } from '../internal/queryKeys'
 import { TrainError, TrainErrorCode } from '../types'
@@ -28,12 +28,6 @@ export interface UseManualClaimResult {
 
 /**
  * Action hook to manually claim (redeem) funds on the destination chain.
- *
- * Usage:
- * ```tsx
- * const { claim, isClaiming } = useManualClaim()
- * await claim({ hashlock, secret, address })
- * ```
  */
 export function useManualClaim(): UseManualClaimResult {
     const { config } = useTrainContext()
@@ -52,14 +46,9 @@ export function useManualClaim(): UseManualClaimResult {
         setError(null)
 
         const { hashlock, secret, address } = params
-        const swapConfig = actions.getSwapConfig(hashlock)
+        const swap = actions.getSwap(hashlock)
 
-        // Manual claim requires destContract — only available for created/hydrated swaps
-        const destContract = swapConfig?.origin !== 'recovered'
-            ? swapConfig?.destContract ?? null
-            : null
-
-        if (!swapConfig?.hashlock || !swapConfig?.destinationNetwork || !destContract || !swapConfig.destinationAddress) {
+        if (!swap?.hashlock || !swap?.destination || !swap?.destContract || !swap?.destinationAddress) {
             const err = new TrainError('Cannot claim: missing required params', TrainErrorCode.ClaimFailed)
             setError(err)
             inFlight.current = false
@@ -76,8 +65,7 @@ export function useManualClaim(): UseManualClaimResult {
             throw err
         }
 
-        const swapData = actions.getSwap(hashlock)
-        const { sourceAsset, destinationAsset } = resolveSwapTokens(swapData ?? undefined, networkMap)
+        const { sourceAsset, destinationAsset } = resolveSwapTokens(swap, networkMap)
         if (!sourceAsset || !destinationAsset) {
             const err = new TrainError('Cannot claim: unable to resolve assets', TrainErrorCode.ClaimFailed)
             setError(err)
@@ -87,14 +75,15 @@ export function useManualClaim(): UseManualClaimResult {
         }
 
         try {
-            const client = walletCtx.createWriteClient(swapConfig.destinationNetwork, address)
-            const chainId = parseCaip2Id(swapConfig.destinationNetwork).reference
+            const destNetwork = caip2Id(swap.destination)
+            const client = walletCtx.createWriteClient(destNetwork, address)
+            const chainId = parseCaip2Id(destNetwork).reference
             const txHash = await client.redeemSolver({
                 chainId,
-                contractAddress: destContract,
-                id: swapConfig.hashlock,
+                contractAddress: swap.destContract,
+                id: swap.hashlock,
                 secret,
-                destinationAddress: swapConfig.destinationAddress,
+                destinationAddress: swap.destinationAddress,
                 destinationAsset,
                 sourceAsset,
                 index: solverLockDetails.index,

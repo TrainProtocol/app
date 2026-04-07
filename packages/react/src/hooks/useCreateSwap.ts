@@ -11,7 +11,6 @@ import { useSwapActions } from '../internal/useSwapActions'
 import { useSDStoreContext } from '../providers/SecretDerivationProvider'
 import { TrainError, TrainErrorCode } from '../types'
 import type { StartSwapParams } from '../types'
-import type { CreatedSwapConfig } from '../internal/store'
 import { caip2Id, parseCaip2Id } from '../internal/branded'
 
 export interface UseCreateSwapResult {
@@ -62,7 +61,6 @@ export function useCreateSwap(): UseCreateSwapResult {
 
 
             const sourceNetwork = caip2Id(params.sourceNetwork)
-            const destinationNetwork = caip2Id(params.destinationNetwork)
             const { reference: sourceChainRef } = parseCaip2Id(sourceNetwork)
 
             // Create write client via wallet adapter — pass source address so the
@@ -93,7 +91,7 @@ export function useCreateSwap(): UseCreateSwapResult {
                 solverData: params.quote.signature,
             })
 
-            // Persist to swap history
+            // Persist swap data (also initializes default flags)
             actions.addSwap(result.hashlock, {
                 requestedAmount: params.amount,
                 address: params.sourceAddress,
@@ -101,7 +99,6 @@ export function useCreateSwap(): UseCreateSwapResult {
                 destination: params.destinationNetwork,
                 source_asset: params.sourceAsset.symbol,
                 destination_asset: params.destinationAsset.symbol,
-                solver: params.solverId,
                 srcContract: params.srcContract,
                 destContract: params.destContract,
                 receiveAmount: formatUnits(BigInt(params.quote.receiveAmount), params.destinationAsset.decimals),
@@ -109,31 +106,9 @@ export function useCreateSwap(): UseCreateSwapResult {
                 txId: result.hash,
                 sourceAddress: params.sourceAddress,
                 destinationAddress: params.destinationAddress,
-                srcTokenContract: params.sourceAsset.contract,
-                destTokenContract: params.destinationAsset.contract,
                 sourceSolverAddress: params.quote.sourceSolverAddress,
                 destinationSolverAddress: params.quote.destinationSolverAddress,
             })
-
-            // Initialize swap config in-memory for monitoring
-            const swapConfig: CreatedSwapConfig = {
-                origin: 'created',
-                hashlock: result.hashlock,
-                solverId: params.solverId,
-                sourceNetwork,
-                destinationNetwork,
-                srcContract: params.srcContract,
-                destContract: params.destContract,
-                srcTokenContractAddress: params.sourceAsset.contract ?? null,
-                destTokenContractAddress: params.destinationAsset.contract ?? null,
-                sourceAddress: params.sourceAddress,
-                destinationAddress: params.destinationAddress,
-                chainId: parseCaip2Id(sourceNetwork).reference,
-                txId: result.hash,
-                quote: params.quote,
-                requestedAmount: params.amount,
-            }
-            actions.setSwapConfig(result.hashlock, swapConfig)
 
             return result.hashlock
         } catch (err) {

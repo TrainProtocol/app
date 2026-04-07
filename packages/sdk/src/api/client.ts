@@ -36,14 +36,16 @@ export class TrainApiClient {
         return data.data ?? {}
     }
 
-    async getOrder(solverId: string, hashlock: string): Promise<HTLCFromApiResponse> {
-        const data = await this.request<{ data: HTLCFromApiResponse }>('GET', `/orders/${encodeURIComponent(solverId)}/${encodeURIComponent(hashlock)}`)
+    async getOrder(hashlock: string, solverAddress?: string): Promise<HTLCFromApiResponse> {
+        const query = solverAddress ? `?solverAddress=${encodeURIComponent(solverAddress)}` : ''
+        const data = await this.request<{ data: HTLCFromApiResponse }>('GET', `/orders/${encodeURIComponent(hashlock)}${query}`)
         return data.data
     }
 
-    async revealSecret(solverId: string, hashlock: string, secret: string): Promise<void> {
+    async revealSecret(hashlock: string, secret: string, solverAddress?: string): Promise<void> {
+        const query = solverAddress ? `?solverAddress=${encodeURIComponent(solverAddress)}` : ''
         const params: RevealSecretParams = { secret }
-        await this.request<unknown>('POST', `/orders/${encodeURIComponent(solverId)}/${encodeURIComponent(hashlock)}/reveal-secret`, params)
+        await this.request<unknown>('POST', `/orders/${encodeURIComponent(hashlock)}/reveal-secret${query}`, params)
     }
 
     async getQuote(params: {

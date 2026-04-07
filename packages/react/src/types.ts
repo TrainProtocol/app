@@ -86,7 +86,6 @@ export interface SwapData {
     destination: string
     source_asset: string
     destination_asset: string
-    solver?: string
     srcContract?: string
     destContract?: string
     receiveAmount?: string
@@ -116,7 +115,6 @@ export interface StartSwapParams {
     destinationAsset: Token
     sourceAddress: string
     destinationAddress: string
-    solverId: string
     quote: QuoteDetails
     srcContract: string
     destContract: string
@@ -146,6 +144,6 @@ export interface SwapHistoryParams {
 
 /** Parameters for order lookup */
 export interface OrderParams {
-    solverId: string
     hashlock: string
+    solverAddress?: string
 }
