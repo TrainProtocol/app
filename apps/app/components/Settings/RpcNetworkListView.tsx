@@ -1,4 +1,5 @@
 import { FC, useState } from "react"
+import { Input } from "@/components/shadcn/input"
 import { Settings2, Search, Zap } from "lucide-react"
 import { useSettingsState } from "../../context/settings"
 import { Network } from "../../Models/Network"
@@ -40,12 +41,12 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
             {/* Search Input */}
             <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary-text" />
-                <input
+                <Input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search networks..."
-                    className="w-full pl-10 pr-4 py-2 bg-secondary-500 border border-secondary-500 rounded-lg text-primary-text placeholder-secondary-text focus:outline-none focus:ring-2 focus:ring-secondary-300 focus:border-transparent"
+                    className="pl-10 rounded-lg"
                 />
             </div>
 

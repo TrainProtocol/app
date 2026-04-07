@@ -1,4 +1,5 @@
 import useWindowDimensions from "@/hooks/useWindowDimensions";
+import { Input } from "@/components/shadcn/input";
 import { DetailedHTMLProps, InputHTMLAttributes, useEffect, useRef, useState } from "react";
 import FilledX from "@/components/Icons/FilledX";
 import SearchIcon from "@/components/Icons/SearchIcon";
@@ -47,7 +48,7 @@ export const SearchComponent = ({ searchQuery, setSearchQuery, isOpen, container
             </div>
         }
         <div className="relative w-full">
-            <input
+            <Input
                 {...props}
                 ref={inputRef}
                 value={searchQuery}
@@ -55,7 +56,7 @@ export const SearchComponent = ({ searchQuery, setSearchQuery, isOpen, container
                 autoFocus={isDesktop}
                 placeholder={showAnimatedPlaceholder ? "" : (props.placeholder ?? "Search")}
                 autoComplete="off"
-                className={clsx("placeholder:text-primary-text-tertiary border-0 border-b-0 border-primary-text bg-secondary-400 focus:bg-secondary-500 focus:border-primary-text appearance-none block py-2 px-0 w-full text-base outline-none focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50",
+                className={clsx("placeholder:text-primary-text-tertiary border-0 bg-secondary-400 focus:bg-secondary-500 appearance-none block py-2 px-0 focus-visible:ring-0 focus-visible:border-0 rounded-none",
                     props.className
                 )}
             />

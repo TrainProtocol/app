@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Input } from '@/components/shadcn/input'
 import { Network } from '@/Models/Network'
 import { useSettingsState } from '@/context/settings'
 import { useRecoverSwap } from '@train-protocol/react'
@@ -86,12 +87,12 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
 
             <div className="flex flex-col space-y-2">
                 <label className="text-sm text-secondary-text">Transaction hash</label>
-                <input
+                <Input
                     type="text"
                     value={txHash}
                     onChange={e => setTxHash(e.target.value.trim())}
                     placeholder="0x..."
-                    className="w-full bg-secondary-500 rounded-lg px-3 py-2.5 text-primary-text placeholder:text-secondary-text border-0 focus:ring-secondary-300 focus:outline-none"
+                    className="rounded-lg py-2.5"
                 />
             </div>
 

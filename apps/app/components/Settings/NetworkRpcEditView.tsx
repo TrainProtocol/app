@@ -1,4 +1,5 @@
 import { FC, useState, useEffect } from "react"
+import { Input } from "@/components/shadcn/input"
 import { CheckCircle, AlertCircle, Save, RotateCcw, Loader, Plus, Trash2, Zap } from "lucide-react"
 import { ExtendedNetwork } from "../../Models/Network"
 import { useRpcConfigStore } from "../../stores/rpcConfigStore"
@@ -211,16 +212,16 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                                 {index + 1}
                             </div>
                             <div className="flex-1 relative">
-                                <input
+                                <Input
                                     type="text"
                                     value={url}
                                     onChange={(e) => handleUrlChange(index, e.target.value)}
                                     placeholder="https://your-rpc-endpoint.com"
-                                    className={`w-full px-3 py-2 pr-10 bg-secondary-700 border rounded-lg text-primary-text placeholder-secondary-text focus:outline-none focus:ring-2 ${validationErrors[index]
-                                        ? "border-red-500 focus:ring-red-500"
+                                    className={`pr-10 py-2 rounded-lg ${validationErrors[index]
+                                        ? "border-red-500 focus-visible:ring-red-500/30 focus-visible:border-red-500"
                                         : validatedUrls[index]
-                                            ? "border-green-500 focus:ring-green-500"
-                                            : "border-secondary-600 focus:ring-secondary-300"
+                                            ? "border-green-500 focus-visible:ring-green-500/30 focus-visible:border-green-500"
+                                            : ""
                                         }`}
                                 />
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-10">

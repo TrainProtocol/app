@@ -3,6 +3,7 @@ import { WalletModalConnector } from ".";
 import { InternalConnector } from "../../Models/WalletProvider";
 import { Loader } from "lucide-react";
 import { resolveWalletConnectorIcon } from "@/lib/wallets/utils/resolveWalletIcon";
+import { Badge } from "@/components/shadcn/badge";
 
 type Connector = DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> & {
     connector: InternalConnector,
@@ -37,11 +38,11 @@ const Connector: FC<Connector> = ({ connector, connectingConnector, onClick, isR
                         <p className='text-base text-left truncate w-full'>{connectorName}</p>
                         {
                             connector.type === 'injected' && !isRecent &&
-                            <p className='text-xs text-secondary-text font-medium'>Installed</p>
+                            <Badge variant="outline" className='text-secondary-text font-medium border-none'>Installed</Badge>
                         }
                         {
                             isRecent &&
-                            <p className='text-xs text-secondary-text font-semibold bg-secondary-100 px-1 py-0.5 rounded-md'>Recent</p>
+                            <Badge variant="secondary" className='text-secondary-text font-semibold bg-secondary-100 px-1 py-0.5'>Recent</Badge>
                         }
                     </div>
                     {

@@ -1,16 +1,18 @@
 import { create } from 'zustand'
-import { AddressItem } from '../components/Input/Address/AddressPicker';
+import { AddressGroup, AddressItem } from '../components/Input/Address/AddressPicker';
 
 interface AddressesState {
     addresses: AddressItem[];
-    setAddresses: (addresses: AddressItem[]) => void;
+    addAddress: (address: string) => void;
 }
 
-export const useAddressesStore = create<AddressesState>()((set) => ({
+export const useAddressesStore = create<AddressesState>()((set, get) => ({
     addresses: [],
-    setAddresses: (addresses) => set(() => {
-        return ({
-            addresses: addresses
-        })
-    }),
+    addAddress: (address: string) => {
+        const existing = get().addresses.find(a => a.address.toLowerCase() === address.toLowerCase());
+        if (existing) return;
+        set((state) => ({
+            addresses: [...state.addresses, { address, group: AddressGroup.ManualAdded }]
+        }));
+    },
 }))
