@@ -2,8 +2,8 @@ import { useState, useCallback, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
-import { useStoreContext } from '../providers/TrainProvider'
 import { useNetworksContext } from '../providers/NetworksProvider'
+import { useSwapActions } from '../internal/useSwapActions'
 import { parseCaip2Id } from '../internal/branded'
 import { resolveSwapTokens } from '../internal/resolveSwapTokens'
 import { trainQueryKeys } from '../internal/queryKeys'
@@ -38,7 +38,7 @@ export interface UseManualClaimResult {
 export function useManualClaim(): UseManualClaimResult {
     const { config } = useTrainContext()
     const walletCtx = useWalletContext()
-    const store = useStoreContext()
+    const actions = useSwapActions()
     const { networkMap } = useNetworksContext()
     const queryClient = useQueryClient()
     const [isClaiming, setIsClaiming] = useState(false)
@@ -52,7 +52,7 @@ export function useManualClaim(): UseManualClaimResult {
         setError(null)
 
         const { hashlock, secret, address } = params
-        const swapConfig = store?.getState().swapConfigs[hashlock]
+        const swapConfig = actions.getSwapConfig(hashlock)
 
         // Manual claim requires destContract — only available for created/hydrated swaps
         const destContract = swapConfig?.origin !== 'recovered'
@@ -76,7 +76,7 @@ export function useManualClaim(): UseManualClaimResult {
             throw err
         }
 
-        const swapData = store?.getState().swaps[hashlock]
+        const swapData = actions.getSwap(hashlock)
         const { sourceAsset, destinationAsset } = resolveSwapTokens(swapData ?? undefined, networkMap)
         if (!sourceAsset || !destinationAsset) {
             const err = new TrainError('Cannot claim: unable to resolve assets', TrainErrorCode.ClaimFailed)
@@ -100,9 +100,7 @@ export function useManualClaim(): UseManualClaimResult {
                 index: solverLockDetails.index,
             })
 
-            if (store) {
-                store.getState().updateSwap(hashlock, { destTxId: txHash })
-            }
+            actions.updateSwap(hashlock, { destTxId: txHash })
 
             return txHash
         } catch (err) {
@@ -110,14 +108,14 @@ export function useManualClaim(): UseManualClaimResult {
                 ? err
                 : new TrainError(err instanceof Error ? err.message : String(err), TrainErrorCode.ClaimFailed, err)
             setError(trainError)
-            if (store) store.getState().setActiveSwapError(hashlock, trainError)
+            actions.updateSwapFlags(hashlock, { error: trainError })
             config.onError?.(trainError)
             throw trainError
         } finally {
             inFlight.current = false
             setIsClaiming(false)
         }
-    }, [walletCtx, store, config, networkMap, queryClient])
+    }, [walletCtx, actions, config, networkMap, queryClient])
 
     return { claim, isClaiming, error }
 }

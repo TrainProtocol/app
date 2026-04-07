@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useCallback, useRef, useSyncExternalStore } from 'react'
-import { HTLCStatus, TERMINAL_STATUSES } from '@train-protocol/sdk'
+import { HTLCStatus, LockParams, TERMINAL_STATUSES } from '@train-protocol/sdk'
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
 import { useStoreContext } from '../providers/TrainProvider'
+import { useSwapActions } from '../internal/useSwapActions'
 import { useUserLockPolling } from '../internal/useUserLockPolling'
 import { useSolverLockPolling } from '../internal/useSolverLockPolling'
 import { useOrderStream } from '../internal/useOrderStream'
 import { useDerivedSwapState, type DerivedSwapState } from '../internal/useDerivedSwapState'
 import { parseCaip2Id } from '../internal/branded'
 import { TrainError, TrainErrorCode } from '../types'
+import { useNetworksContext } from '../providers/NetworksProvider'
 
 /**
  * Main hook for monitoring an active swap lifecycle.
@@ -31,10 +33,12 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
     const { config } = useTrainContext()
     const walletCtx = useWalletContext()
     const store = useStoreContext()
+    const actions = useSwapActions()
+    const { networks } = useNetworksContext()
 
     // Read swap config for this hashlock
     const swapConfig = useSyncExternalStore(
-        (cb) => store ? store.subscribe(cb) : () => {},
+        (cb) => store ? store.subscribe(cb) : () => { },
         () => (store && hl) ? store.getState().swapConfigs[hl] ?? null : null,
         () => null,
     )
@@ -42,48 +46,56 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
     // Subscribe on mount, unsubscribe on unmount.
     // First subscriber hydrates config from persisted data; last unsubscribe cleans up ephemeral state.
     useEffect(() => {
-        if (!hl || !store) return
-        store.getState().subscribe(hl)
-        return () => store.getState().unsubscribe(hl)
-    }, [hl, store])
+        if (!hl) return
+        actions.subscribe(hl)
+        return () => { actions.unsubscribe(hl) }
+    }, [hl, actions])
 
     // Derived state (status, secretRevealed, manualClaimRequired, etc.)
     const derived = useDerivedSwapState(store, hl)
 
     // Whether polling should be active
-    const isActive = !!swapConfig?.hashlock && !TERMINAL_STATUSES.has(derived.status)
+    const isActive = useMemo(() => !!swapConfig?.hashlock && !TERMINAL_STATUSES.has(derived.status), [swapConfig?.hashlock, derived.status])
 
     // Source chain polling params — derive chainId from CAIP-2 ID
-    const userLockParams = useMemo(() => {
+    const userLockParams: LockParams | null = useMemo(() => {
         if (!swapConfig?.hashlock || !swapConfig?.srcContract) return null
+        const sourceTokenDecimals = networks.find(n => n.caip2Id == swapConfig.sourceNetwork)?.tokens.find(t => t.contract == swapConfig.srcTokenContractAddress)?.decimals
+        if (!sourceTokenDecimals) return null
         const chainId = swapConfig.origin === 'created'
             ? swapConfig.chainId
             : parseCaip2Id(swapConfig.sourceNetwork).reference
-        return {
+
+        const params: LockParams = {
             id: swapConfig.hashlock,
             chainId,
+            decimals: sourceTokenDecimals,
             contractAddress: swapConfig.srcContract,
             txId: swapConfig.txId ?? undefined,
         }
-    }, [swapConfig?.hashlock, swapConfig?.srcContract, swapConfig?.origin, swapConfig?.sourceNetwork, swapConfig?.txId])
+
+        return params
+    }, [swapConfig?.hashlock, swapConfig?.srcContract, swapConfig?.origin, swapConfig?.sourceNetwork, swapConfig?.txId, networks])
 
     // Destination chain polling params — only available for created/hydrated swaps with destContract
-    const solverLockParams = useMemo(() => {
+    const solverLockParams: LockParams | null = useMemo(() => {
         if (!swapConfig?.hashlock) return null
         const destContract = swapConfig.origin !== 'recovered'
             ? swapConfig.destContract
             : undefined  // recovered: no destContract
         if (!destContract) return null
-
+        const destTokenDecimals = networks.find(n => n.caip2Id == swapConfig.destinationNetwork)?.tokens.find(t => t.contract == swapConfig.destTokenContractAddress)?.decimals
+        if (!destTokenDecimals) return null
         const destChainId = parseCaip2Id(swapConfig.destinationNetwork).reference
         const quote = swapConfig.origin === 'created' ? swapConfig.quote : null
         return {
             id: swapConfig.hashlock,
             chainId: destChainId,
+            decimals: destTokenDecimals,
             contractAddress: destContract,
             solverAddress: quote?.destinationSolverAddress,
         }
-    }, [swapConfig?.hashlock, swapConfig?.origin, swapConfig?.destinationNetwork, derived.destinationToken])
+    }, [swapConfig?.hashlock, swapConfig?.origin, swapConfig?.destinationNetwork, swapConfig?.destContract, swapConfig?.destTokenContractAddress, networks])
 
     // Resolve destination chain node URLs for solver lock verification
     const destNodeUrls = useMemo(() => {
@@ -107,23 +119,23 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
     }, [swapConfig?.destinationNetwork, walletCtx])
 
     const onConsensusFailed = useCallback((error: Error) => {
-        if (!hl || !store) return
+        if (!hl) return
         const trainError = error instanceof TrainError
             ? error
             : new TrainError(error.message, TrainErrorCode.VerificationFailed, error)
-        store.getState().setActiveSwapError(hl, trainError)
+        actions.updateSwapFlags(hl, { error: trainError })
         config.onError?.(trainError)
-    }, [hl, store, config])
+    }, [hl, actions, config])
 
     const onUserLockTxFailed = useCallback((tx: import('@train-protocol/sdk').TransactionInfo) => {
-        if (!hl || !store) return
+        if (!hl) return
         const error = new TrainError(
             `User lock transaction ${tx.hash} failed on-chain`,
             TrainErrorCode.UserLockTransactionFailed,
         )
-        store.getState().setActiveSwapError(hl, error)
+        actions.updateSwapFlags(hl, { error })
         config.onError?.(error)
-    }, [hl, store, config])
+    }, [hl, actions, config])
 
     // Activate polling hooks — data returned directly, not via store
     const sourceDetails = useUserLockPolling({
@@ -133,7 +145,7 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         onTransactionFailed: onUserLockTxFailed,
     })
 
-    const { solverLockDetails, consensusPhase } = useSolverLockPolling({
+    const { consensusPhase } = useSolverLockPolling({
         client: destReadClient,
         params: solverLockParams,
         hashlock: hl,
@@ -144,10 +156,10 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
 
     // Sync consensus phase to store flags (one-way, for useDerivedSwapState in other components)
     useEffect(() => {
-        if (store && hl && consensusPhase !== 'none') {
-            store.getState().setConsensusPhase(hl, consensusPhase)
+        if (hl && consensusPhase !== 'none') {
+            actions.updateSwapFlags(hl, { consensusPhase })
         }
-    }, [store, hl, consensusPhase])
+    }, [hl, actions, consensusPhase])
 
     // Order streaming — only for swaps with a solverId
     const destRedeemTx = derived.htlcFromApi?.transactions?.find(
@@ -163,9 +175,9 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
     const onOrderFailed = useCallback((reason: string) => {
         if (!hl) return
         const error = new TrainError(reason, TrainErrorCode.OrderFailed)
-        store?.getState().setActiveSwapError(hl, error)
+        actions.updateSwapFlags(hl, { error })
         config.onError?.(error)
-    }, [store, hl, config])
+    }, [actions, hl, config])
 
     useOrderStream({
         baseUrl: config.baseUrl,
@@ -181,7 +193,7 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         status: null, destTxId: null, createdAt: null, timelock: null,
     })
     useEffect(() => {
-        if (!store || !hl || !swapConfig?.hashlock) return
+        if (!hl || !swapConfig?.hashlock) return
         const prev = prevRef.current
         const updates: Record<string, any> = {}
         if (derived.status !== prev.status) {
@@ -204,9 +216,9 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         if (swapConfig.sourceAddress && !prev.status) updates.sourceAddress = swapConfig.sourceAddress
         if (swapConfig.destinationAddress && !prev.status) updates.destinationAddress = swapConfig.destinationAddress
         if (Object.keys(updates).length > 0) {
-            store.getState().updateSwap(hl, updates)
+            actions.updateSwap(hl, updates)
         }
-    }, [store, hl, swapConfig?.hashlock, derived.status, derived.destRedeemTxId, sourceDetails?.blockTimestamp, sourceDetails?.timelock])
+    }, [hl, actions, swapConfig?.hashlock, derived.status, derived.destRedeemTxId, sourceDetails?.blockTimestamp, sourceDetails?.timelock])
 
     return derived
 }

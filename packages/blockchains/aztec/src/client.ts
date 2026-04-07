@@ -53,7 +53,7 @@ export class AztecHTLCClient extends HTLCClient {
             const senderAddress = accounts[0].item
 
             const trainAddress = AztecAddress.fromString(params.atomicContract)
-            const tokenAddress = AztecAddress.fromString(params.tokenContractAddress!)
+            const tokenAddress = AztecAddress.fromString(params.sourceAsset.contract!)
 
             const node = this.getNode()
 
@@ -101,7 +101,7 @@ export class AztecHTLCClient extends HTLCClient {
                 params.rewardTimelockDelta ?? 0,
                 params.quoteExpiry,
                 senderAddress,
-                AztecAddress.fromString(params.srcLpAddress),
+                AztecAddress.fromString(params.srcSolverAddress),
                 tokenAddress,
                 this.strToBytes(params.rewardToken || '', 90), // [u8;90] in user_lock
                 this.strToBytes(params.rewardRecipient || '', 90), // [u8;90] in user_lock
@@ -109,7 +109,7 @@ export class AztecHTLCClient extends HTLCClient {
                 this.strToBytes(params.destinationChain, 30),
                 this.strToBytes(params.destinationAddress, 90),
                 BigInt(params.destinationAmount),
-                this.strToBytes(params.destinationAsset, 90),
+                this.strToBytes(params.destinationAsset.contract, 90),
                 this.strToBytes(params.nonce.toString() ?? '', 256),
                 this.strToBytes(params.solverData ?? '', 256),
             )

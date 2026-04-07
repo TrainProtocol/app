@@ -6,12 +6,13 @@ import {
 import type { UserLockDetails } from '@train-protocol/sdk'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTrainContext } from '../providers/TrainContext'
-import { useStoreContext } from '../providers/TrainProvider'
+import { useSwapActions } from '../internal/useSwapActions'
 import { useSDStoreContext } from '../providers/SecretDerivationProvider'
 import { useWalletContext } from '../wallet/WalletContext'
 import { trainQueryKeys } from '../internal/queryKeys'
 import { parseCaip2Id } from '../internal/branded'
 import { TrainError, TrainErrorCode } from '../types'
+import { useNetworksContext } from '../providers/NetworksProvider'
 
 export interface UseRevealSecretResult {
     /** Reveal the swap secret to the solver API. */
@@ -33,10 +34,11 @@ export interface UseRevealSecretResult {
  */
 export function useRevealSecret(): UseRevealSecretResult {
     const { apiClient, config } = useTrainContext()
-    const store = useStoreContext()
+    const actions = useSwapActions()
     const sdStore = useSDStoreContext()
     const walletCtx = useWalletContext()
     const queryClient = useQueryClient()
+    const { networks } = useNetworksContext()
     const [isRevealing, setIsRevealing] = useState(false)
     const [error, setError] = useState<Error | null>(null)
     const inFlight = useRef(false)
@@ -47,7 +49,7 @@ export function useRevealSecret(): UseRevealSecretResult {
         setIsRevealing(true)
         setError(null)
 
-        const swapConfig = store?.getState().swapConfigs[hashlock]
+        const swapConfig = actions.getSwapConfig(hashlock)
 
         // Recovered swaps don't have a solverId — cannot reveal secret
         if (swapConfig?.origin === 'recovered') {
@@ -98,6 +100,8 @@ export function useRevealSecret(): UseRevealSecretResult {
         // Tier 2: on-chain RPC fallback (cache was GC'd or not yet populated)
         if (!nonce && swapConfig) {
             try {
+                const sourceTokenDecimals = networks.find(n => n.caip2Id == swapConfig.sourceNetwork)?.tokens.find(t => t.contract == swapConfig.srcTokenContractAddress)?.decimals
+                if (!sourceTokenDecimals) return
                 const client = walletCtx.createClient(swapConfig.sourceNetwork)
                 const chainId = swapConfig.origin === 'created'
                     ? swapConfig.chainId
@@ -105,6 +109,7 @@ export function useRevealSecret(): UseRevealSecretResult {
                 const details = await client.getUserLockDetails({
                     id: swapConfig.hashlock,
                     chainId,
+                    decimals: sourceTokenDecimals,
                     contractAddress: swapConfig.srcContract,
                     txId: swapConfig.txId ?? undefined,
                 })
@@ -130,10 +135,8 @@ export function useRevealSecret(): UseRevealSecretResult {
             const secret = bytesToHex(Array.from(secretBytes))
 
             await apiClient.revealSecret(solverId, swapConfig.hashlock, secret)
-            if (store) {
-                store.getState().setSecretRevealedToApi(hashlock)
-                store.getState().updateSwap(hashlock, { secretRevealed: true })
-            }
+            actions.updateSwapFlags(hashlock, { secretRevealedToApi: true })
+            actions.updateSwap(hashlock, { secretRevealed: true })
         } catch (err) {
             const trainError = new TrainError(
                 err instanceof Error ? err.message : String(err),
@@ -141,14 +144,14 @@ export function useRevealSecret(): UseRevealSecretResult {
                 err,
             )
             setError(trainError)
-            if (store) store.getState().setActiveSwapError(hashlock, trainError)
+            actions.updateSwapFlags(hashlock, { error: trainError })
             config.onError?.(trainError)
             throw trainError
         } finally {
             inFlight.current = false
             setIsRevealing(false)
         }
-    }, [apiClient, store, sdStore, config, queryClient, walletCtx])
+    }, [apiClient, actions, sdStore, config, queryClient, walletCtx])
 
     return { reveal, isRevealing, error }
 }

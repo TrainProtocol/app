@@ -47,7 +47,8 @@ export class TrainApiClient {
     }
 
     async getQuote(params: {
-        amount: string
+        amount?: string
+        receiveAmount?: string
         sourceNetwork: string
         sourceTokenContract?: string
         destinationNetwork: string

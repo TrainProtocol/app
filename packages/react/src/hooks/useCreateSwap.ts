@@ -7,7 +7,7 @@ import {
 } from '@train-protocol/sdk'
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
-import { useStoreContext } from '../providers/TrainProvider'
+import { useSwapActions } from '../internal/useSwapActions'
 import { useSDStoreContext } from '../providers/SecretDerivationProvider'
 import { TrainError, TrainErrorCode } from '../types'
 import type { StartSwapParams } from '../types'
@@ -37,7 +37,7 @@ export interface UseCreateSwapResult {
 export function useCreateSwap(): UseCreateSwapResult {
     const { config } = useTrainContext()
     const walletCtx = useWalletContext()
-    const store = useStoreContext()
+    const actions = useSwapActions()
     const sdStore = useSDStoreContext()
     const [isCreating, setIsCreating] = useState(false)
     const [error, setError] = useState<Error | null>(null)
@@ -74,15 +74,13 @@ export function useCreateSwap(): UseCreateSwapResult {
                 destinationChain: params.destinationNetwork,
                 amount: params.amount,
                 destinationAmount: params.quote.receiveAmount,
-                decimals: params.sourceAsset.decimals,
-                destinationAsset: params.destinationAsset.contract,
                 sourceAsset: params.sourceAsset,
-                destLpAddress: params.quote.destinationSolverAddress,
-                srcLpAddress: params.quote.sourceSolverAddress,
+                destinationAsset: params.destinationAsset,
+                destSolverAddress: params.quote.destinationSolverAddress,
+                srcSolverAddress: params.quote.sourceSolverAddress,
                 atomicContract: params.srcContract,
                 sourceAddress: params.sourceAddress,
                 destinationAddress: params.destinationAddress,
-                tokenContractAddress: params.tokenContractAddress,
                 chainId: params.chainId ?? sourceChainRef,
                 quoteExpiry: params.quote.quoteExpirationTimestampInSeconds,
                 rewardToken: params.quote.reward?.rewardToken,
@@ -95,46 +93,47 @@ export function useCreateSwap(): UseCreateSwapResult {
                 solverData: params.quote.signature,
             })
 
-            if (store) {
-                // Persist to swap history
-                store.getState().addSwap(result.hashlock, {
-                    requestedAmount: params.amount,
-                    address: params.sourceAddress,
-                    source: params.sourceNetwork,
-                    destination: params.destinationNetwork,
-                    source_asset: params.sourceAsset.symbol,
-                    destination_asset: params.destinationAsset.symbol,
-                    solver: params.solverId,
-                    srcContract: params.srcContract,
-                    destContract: params.destContract,
-                    receiveAmount: formatUnits(BigInt(params.quote.receiveAmount), params.destinationAsset.decimals),
-                    hashlock: result.hashlock,
-                    txId: result.hash,
-                    sourceAddress: params.sourceAddress,
-                    destinationAddress: params.destinationAddress,
-                    sourceSolverAddress: params.quote.sourceSolverAddress,
-                    destinationSolverAddress: params.quote.destinationSolverAddress,
-                })
+            // Persist to swap history
+            actions.addSwap(result.hashlock, {
+                requestedAmount: params.amount,
+                address: params.sourceAddress,
+                source: params.sourceNetwork,
+                destination: params.destinationNetwork,
+                source_asset: params.sourceAsset.symbol,
+                destination_asset: params.destinationAsset.symbol,
+                solver: params.solverId,
+                srcContract: params.srcContract,
+                destContract: params.destContract,
+                receiveAmount: formatUnits(BigInt(params.quote.receiveAmount), params.destinationAsset.decimals),
+                hashlock: result.hashlock,
+                txId: result.hash,
+                sourceAddress: params.sourceAddress,
+                destinationAddress: params.destinationAddress,
+                srcTokenContract: params.sourceAsset.contract,
+                destTokenContract: params.destinationAsset.contract,
+                sourceSolverAddress: params.quote.sourceSolverAddress,
+                destinationSolverAddress: params.quote.destinationSolverAddress,
+            })
 
-                // Initialize swap config in-memory for monitoring
-                const swapConfig: CreatedSwapConfig = {
-                    origin: 'created',
-                    hashlock: result.hashlock,
-                    solverId: params.solverId,
-                    sourceNetwork,
-                    destinationNetwork,
-                    srcContract: params.srcContract,
-                    destContract: params.destContract,
-                    tokenContractAddress: params.tokenContractAddress ?? null,
-                    sourceAddress: params.sourceAddress,
-                    destinationAddress: params.destinationAddress,
-                    chainId: parseCaip2Id(sourceNetwork).reference,
-                    txId: result.hash,
-                    quote: params.quote,
-                    requestedAmount: params.amount,
-                }
-                store.getState().setSwapConfig(result.hashlock, swapConfig)
+            // Initialize swap config in-memory for monitoring
+            const swapConfig: CreatedSwapConfig = {
+                origin: 'created',
+                hashlock: result.hashlock,
+                solverId: params.solverId,
+                sourceNetwork,
+                destinationNetwork,
+                srcContract: params.srcContract,
+                destContract: params.destContract,
+                srcTokenContractAddress: params.sourceAsset.contract ?? null,
+                destTokenContractAddress: params.destinationAsset.contract ?? null,
+                sourceAddress: params.sourceAddress,
+                destinationAddress: params.destinationAddress,
+                chainId: parseCaip2Id(sourceNetwork).reference,
+                txId: result.hash,
+                quote: params.quote,
+                requestedAmount: params.amount,
             }
+            actions.setSwapConfig(result.hashlock, swapConfig)
 
             return result.hashlock
         } catch (err) {
@@ -152,7 +151,7 @@ export function useCreateSwap(): UseCreateSwapResult {
             inFlight.current = false
             setIsCreating(false)
         }
-    }, [walletCtx, store, sdStore, config])
+    }, [walletCtx, actions, sdStore, config])
 
     return { createSwap, isCreating, error }
 }

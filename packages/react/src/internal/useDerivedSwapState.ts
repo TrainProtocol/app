@@ -29,11 +29,12 @@ const EMPTY_STORE = createStore<SwapStoreState>()(() => ({
     subscribe: () => {},
     unsubscribe: () => {},
     setSwapConfig: () => {},
-    setSecretRevealedToApi: () => {},
-    setConsensusPhase: () => {},
-    setActiveSwapError: () => {},
-    setManualClaimStartedAt: () => {},
+    updateSwapFlags: () => {},
     setOrderData: () => {},
+    getSwap: () => undefined,
+    getSwapConfig: () => undefined,
+    getSwapFlags: () => undefined,
+    getOrderData: () => undefined,
 } as SwapStoreState))
 
 export interface DerivedSwapState {
@@ -170,18 +171,18 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
             const resolved = resolveSwapTokens(swapData ?? undefined, networkMap)
             return { sourceToken: resolved.sourceAsset, destinationToken: resolved.destinationAsset }
         },
-        [swapData, networkMap],
+        [swapData, networks],
     )
 
     // O(1) network lookups via map (fixes issue #11)
     const sourceNetwork = useMemo(
-        () => swapData?.source ? (networkMap.get(swapData.source.toUpperCase()) ?? null) : null,
-        [swapData?.source, networkMap],
+        () => swapData?.source ? (networkMap.get(swapData.source) ?? null) : null,
+        [swapData?.source, networks],
     )
 
     const destinationNetwork = useMemo(
-        () => swapData?.destination ? (networkMap.get(swapData.destination.toUpperCase()) ?? null) : null,
-        [swapData?.destination, networkMap],
+        () => swapData?.destination ? (networkMap.get(swapData.destination) ?? null) : null,
+        [swapData?.destination, networks],
     )
 
     const isTimelockExpired = useTimelockExpiry(sourceDetails?.timelock)
@@ -209,7 +210,6 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
     // Track manual claim start: when source is redeemed but solver is not
     useEffect(() => {
         if (
-            store &&
             hashlock &&
             flags &&
             sourceDetails?.status === LockStatus.Redeemed &&
@@ -217,7 +217,7 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
             solverLockDetails.status !== LockStatus.Redeemed &&
             !flags.manualClaimStartedAt
         ) {
-            store.getState().setManualClaimStartedAt(hashlock, Date.now())
+            store?.getState().updateSwapFlags(hashlock, { manualClaimStartedAt: Date.now() })
         }
     }, [store, hashlock, sourceDetails?.status, solverLockDetails?.status, flags?.manualClaimStartedAt])
 
@@ -228,11 +228,6 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
             return { ...EMPTY_STATE, isLoading: true, hashlock }
         }
         if (!config || !flags) return EMPTY_STATE
-
-        // Hydrated swap waiting for first poll — show loading, not a stale status
-        if (config.origin === 'hydrated' && !sourceDetails) {
-            return { ...EMPTY_STATE, isLoading: true, hashlock }
-        }
 
         const secretRevealed = flags.secretRevealedToApi || !!sourceDetails?.secret
         const destRedeemTxId = deriveDestRedeemTxId(htlcFromApi, config.destinationNetwork)
@@ -245,7 +240,6 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
             manualClaimRequired,
             destRedeemTxId: destRedeemTxId ?? undefined,
         })
-
         return {
             isLoading: false,
             status,

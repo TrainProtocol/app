@@ -1,28 +1,26 @@
 import { Token } from './network'
 
 export type UserLockParams = {
-    destinationChain: string,
-    sourceChain: string,
-    amount: string,
-    decimals: number,
-    destinationAmount: string,
-    destinationAsset: string,
-    sourceAsset: Token;
-    destLpAddress: string;
-    srcLpAddress: string;
-    atomicContract: string;
-    sourceAddress: string;
-    destinationAddress: string;
-    tokenContractAddress?: string | undefined | null;
-    chainId?: string | null;
-    solverData?: string;
-    quoteExpiry: number;
-    rewardToken?: string;
-    rewardRecipient?: string;
-    rewardAmount?: string;
-    rewardTimelockDelta?: number;
-    timelockDelta: number;
-    hashlock: string;
+    sourceChain: string
+    destinationChain: string
+    amount: string
+    destinationAmount: string
+    sourceAsset: Token
+    destinationAsset: Token
+    srcSolverAddress: string
+    destSolverAddress: string
+    atomicContract: string
+    sourceAddress: string
+    destinationAddress: string
+    chainId?: string | null
+    solverData?: string
+    quoteExpiry: number
+    rewardToken?: string
+    rewardRecipient?: string
+    rewardAmount?: string
+    rewardTimelockDelta?: number
+    timelockDelta: number
+    hashlock: string
     nonce: number
 }
 
@@ -32,7 +30,7 @@ export type LockParams = {
     contractAddress: string,
     index?: number,
     txId?: string,
-    decimals?: number,
+    decimals: number,
     solverAddress?: string,
 }
 
@@ -55,4 +53,3 @@ export type RedeemSolverParams = {
     destinationAsset: Token,
     index?: number,
 }
-

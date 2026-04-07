@@ -102,6 +102,8 @@ export interface SwapData {
     destinationSolverAddress?: string
     sourceAddress?: string
     destinationAddress?: string
+    srcTokenContract?: string
+    destTokenContract?: string
     loginIdentity?: LoginIdentity
 }
 
@@ -118,7 +120,6 @@ export interface StartSwapParams {
     quote: QuoteDetails
     srcContract: string
     destContract: string
-    tokenContractAddress?: string
     chainId?: string
 }
 

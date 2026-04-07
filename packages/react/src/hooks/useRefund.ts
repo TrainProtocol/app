@@ -2,8 +2,8 @@ import { useState, useCallback, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
-import { useStoreContext } from '../providers/TrainProvider'
 import { useNetworksContext } from '../providers/NetworksProvider'
+import { useSwapActions } from '../internal/useSwapActions'
 import { parseCaip2Id } from '../internal/branded'
 import { resolveSwapTokens } from '../internal/resolveSwapTokens'
 import { trainQueryKeys } from '../internal/queryKeys'
@@ -37,7 +37,7 @@ export interface UseRefundResult {
 export function useRefund(): UseRefundResult {
     const { config } = useTrainContext()
     const walletCtx = useWalletContext()
-    const store = useStoreContext()
+    const actions = useSwapActions()
     const { networkMap } = useNetworksContext()
     const queryClient = useQueryClient()
     const [isRefunding, setIsRefunding] = useState(false)
@@ -51,7 +51,7 @@ export function useRefund(): UseRefundResult {
         setError(null)
 
         const { hashlock, address } = params
-        const swapConfig = store?.getState().swapConfigs[hashlock]
+        const swapConfig = actions.getSwapConfig(hashlock)
         if (!swapConfig?.hashlock || !swapConfig?.srcContract) {
             const err = new TrainError('Cannot refund: missing required params', TrainErrorCode.RefundFailed)
             setError(err)
@@ -60,7 +60,7 @@ export function useRefund(): UseRefundResult {
             throw err
         }
 
-        const swapData = store?.getState().swaps[hashlock]
+        const swapData = actions.getSwap(hashlock)
         const { sourceAsset } = resolveSwapTokens(swapData ?? undefined, networkMap)
         if (!sourceAsset) {
             const err = new TrainError('Cannot refund: unable to resolve source asset', TrainErrorCode.RefundFailed)
@@ -82,9 +82,7 @@ export function useRefund(): UseRefundResult {
                 sourceAsset,
             })
 
-            if (store) {
-                store.getState().updateSwap(hashlock, { refundTxId: txHash })
-            }
+            actions.updateSwap(hashlock, { refundTxId: txHash })
 
             return txHash
         } catch (err) {
@@ -92,14 +90,14 @@ export function useRefund(): UseRefundResult {
                 ? err
                 : new TrainError(err instanceof Error ? err.message : String(err), TrainErrorCode.RefundFailed, err)
             setError(trainError)
-            if (store) store.getState().setActiveSwapError(hashlock, trainError)
+            actions.updateSwapFlags(hashlock, { error: trainError })
             config.onError?.(trainError)
             throw trainError
         } finally {
             inFlight.current = false
             setIsRefunding(false)
         }
-    }, [walletCtx, store, config, networkMap, queryClient])
+    }, [walletCtx, actions, config, networkMap, queryClient])
 
     return { refund: doRefund, isRefunding, error }
 }
