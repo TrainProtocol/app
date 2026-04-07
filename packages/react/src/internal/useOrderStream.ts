@@ -5,7 +5,7 @@ import { useEventSource } from './useEventSource'
 
 export interface UseOrderStreamOptions {
     baseUrl: string
-    solverId: string | undefined
+    solverAddress: string | undefined
     hashlock: string | undefined
     enabled: boolean
     store: SwapStore | null
@@ -17,7 +17,7 @@ export interface UseOrderStreamOptions {
  * Writes to store.orderData. Accumulates transactions from order_event messages.
  */
 export function useOrderStream(options: UseOrderStreamOptions) {
-    const { baseUrl, solverId, hashlock, enabled, store, onFailed } = options
+    const { baseUrl, solverAddress, hashlock, enabled, store, onFailed } = options
     const onFailedRef = useRef(onFailed)
     onFailedRef.current = onFailed
     const accumulatedTxsRef = useRef<HTLCFromApi['transactions']>([])
@@ -25,10 +25,10 @@ export function useOrderStream(options: UseOrderStreamOptions) {
     // Reset accumulated state when stream params change (new swap)
     useEffect(() => {
         accumulatedTxsRef.current = []
-    }, [solverId, hashlock])
+    }, [solverAddress, hashlock])
 
-    const url = solverId && hashlock
-        ? `${baseUrl}/api/v1/orders/${encodeURIComponent(solverId)}/${encodeURIComponent(hashlock)}/stream`
+    const url = hashlock
+        ? `${baseUrl}/api/v1/orders/${encodeURIComponent(hashlock)}/stream${solverAddress ? `?solverAddress=${encodeURIComponent(solverAddress)}` : ''}`
         : null
 
     const eventHandlers = useMemo(() => ({

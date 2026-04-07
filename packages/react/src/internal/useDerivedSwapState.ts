@@ -58,7 +58,6 @@ export interface DerivedSwapState {
     destinationAddress: string | null
     requestedAmount: string | null
     receiveAmount: string | null
-    solver: string | null
     txId: string | null
     refundTxId: string | null
     srcContract: string | null
@@ -93,7 +92,6 @@ const EMPTY_STATE: DerivedSwapState = {
     destinationAddress: null,
     requestedAmount: null,
     receiveAmount: null,
-    solver: null,
     txId: null,
     refundTxId: null,
     srcContract: null,
@@ -255,7 +253,6 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
             destinationAddress: swapData?.destinationAddress ?? swapData?.address ?? null,
             requestedAmount: swapData?.requestedAmount ?? null,
             receiveAmount: swapData?.receiveAmount ?? null,
-            solver: swapData?.solver ?? null,
             txId: swapData?.txId ?? null,
             refundTxId: swapData?.refundTxId ?? null,
             srcContract: swapData?.srcContract ?? null,

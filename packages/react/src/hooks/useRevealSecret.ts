@@ -45,18 +45,7 @@ export function useRevealSecret(): UseRevealSecretResult {
 
         const swap = actions.getSwap(hashlock)
 
-        if (!swap?.solver) {
-            const err = new TrainError(
-                'Cannot reveal: missing solverId',
-                TrainErrorCode.RevealFailed,
-            )
-            setError(err)
-            inFlight.current = false
-            setIsRevealing(false)
-            throw err
-        }
-
-        if (!swap.hashlock) {
+        if (!swap?.hashlock) {
             const err = new TrainError('Cannot reveal: missing hashlock', TrainErrorCode.RevealFailed)
             setError(err)
             inFlight.current = false
@@ -120,7 +109,7 @@ export function useRevealSecret(): UseRevealSecretResult {
             const secretBytes = deriveSecretFromTimelock(derivedKey, nonce)
             const secret = bytesToHex(Array.from(secretBytes))
 
-            await apiClient.revealSecret(swap.solver, swap.hashlock, secret)
+            await apiClient.revealSecret(swap.hashlock, secret, swap.destinationSolverAddress)
             actions.updateSwapFlags(hashlock, { secretRevealedToApi: true })
             actions.updateSwap(hashlock, { secretRevealed: true })
         } catch (err) {

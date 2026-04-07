@@ -143,7 +143,7 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         }
     }, [hl, actions, consensusPhase])
 
-    // Order streaming — only for swaps with a solverId
+    // Order streaming
     const destRedeemTx = derived.htlcFromApi?.transactions?.find(
         (t: any) => t.type === 'HTLCRedeem' && t.network === swap?.destination
     )
@@ -157,7 +157,7 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
 
     useOrderStream({
         baseUrl: config.baseUrl,
-        solverId: swap?.solver ?? undefined,
+        solverAddress: swap?.destinationSolverAddress ?? undefined,
         hashlock: hl ?? undefined,
         enabled: !!swap?.hashlock && !destRedeemTx,
         store,

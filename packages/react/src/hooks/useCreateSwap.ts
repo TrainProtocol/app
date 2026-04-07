@@ -99,7 +99,6 @@ export function useCreateSwap(): UseCreateSwapResult {
                 destination: params.destinationNetwork,
                 source_asset: params.sourceAsset.symbol,
                 destination_asset: params.destinationAsset.symbol,
-                solver: params.solverId,
                 srcContract: params.srcContract,
                 destContract: params.destContract,
                 receiveAmount: formatUnits(BigInt(params.quote.receiveAmount), params.destinationAsset.decimals),
