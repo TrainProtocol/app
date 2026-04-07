@@ -19,6 +19,6 @@ export function registerTronSdk(sdk?: TrainSDK, auth?: TrainAuth): void {
 }
 
 export { TronHTLCClient } from './client.js'
-export type { TronHTLCClientConfig, TronSigner, TronWalletSignConfig } from './types.js'
+export type { TronHTLCClientConfig, TronSigner, TronUnsignedTransaction, TronWalletSignConfig } from './types.js'
 export { deriveKeyFromTronWallet } from './login/index.js'
 export type { TronWalletLike } from './login/index.js'
