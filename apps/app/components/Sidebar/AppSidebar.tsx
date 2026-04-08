@@ -46,7 +46,6 @@ const AppSidebar: FC = () => {
                     />
                 </SidebarHeader>
             )}
-
             {(view === "loginStatus" || loginActive) && (
                 <div className="flex items-center gap-2 h-10 my-4 px-4 shrink-0">
                     <button
