@@ -5,7 +5,6 @@ import { type SwapData, HTLCStatus, isTerminalStatus } from '@train-protocol/rea
 import { Network } from '@/Models/Network'
 import { getExplorerUrl } from '@/lib/address'
 import shortenString from '@/components/utils/ShortenString'
-import NetworkSettings from '@/lib/NetworkSettings'
 import CopyButton from '@/components/buttons/copyButton'
 import StatusIcons from './StatusIcons'
 import { useRouter } from 'next/router'
@@ -23,13 +22,8 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
 
-    const srcExplorerTemplate = sourceNetwork
-        ? NetworkSettings.KnownSettings[sourceNetwork.caip2Id]?.TransactionExplorerTemplate
-        : undefined
-
-    const destExplorerTemplate = destNetwork
-        ? NetworkSettings.KnownSettings[destNetwork.caip2Id]?.TransactionExplorerTemplate
-        : undefined
+    const srcExplorerTemplate = sourceNetwork?.explorerUrlTemplate?.transaction
+    const destExplorerTemplate = destNetwork?.explorerUrlTemplate?.transaction
 
     const isRefunded = swap.status === HTLCStatus.Refunded
     const isCompleted = swap.status === HTLCStatus.RedeemCompleted

@@ -2,7 +2,7 @@ import { Network } from "@/Models/Network";
 import { Address } from "@ton/core";
 import { formatStarknetAddress } from "@train-protocol/starknet";
 
-type AddressFormatProps = {
+export type AddressFormatProps = {
     address: string;
     network?: Network | null;
     providerName?: string
@@ -17,7 +17,12 @@ export function addressFormat(props: AddressFormatProps): string {
         || providerName?.toLowerCase() == 'paradex'
         || providerName?.toLowerCase() == 'starknet'
     ) {
-        return formatStarknetAddress(address);
+        try {
+            return formatStarknetAddress(address);
+        }
+        catch {
+            return address
+        }
     }
     else if (
         network?.caip2Id.toLowerCase().startsWith("ton")

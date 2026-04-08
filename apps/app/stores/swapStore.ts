@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { createWithEqualityFn as create } from 'zustand/traditional'
 
 interface SwapStoreState {
     /** The hashlock of the swap currently being viewed/monitored */

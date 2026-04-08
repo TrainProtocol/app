@@ -4,11 +4,6 @@ export interface AtomicResult {
     nonce?: number
 }
 
-export interface LockResult {
-    hash: string
-    result: any
-}
-
 export interface RecoveredSwapData {
     hashlock: string
     sender: string

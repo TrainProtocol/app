@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { createWithEqualityFn as create } from 'zustand/traditional'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { NetworkBalance } from '../Models/Balance'
 import { ExtendedNetwork } from '../Models/Network'

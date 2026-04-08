@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { createWithEqualityFn as create } from 'zustand/traditional'
 import type { WalletProvider as AztecSDKWalletProvider } from '@aztec/wallet-sdk/manager'
 import { Wallet } from '@aztec/aztec.js/wallet'
 

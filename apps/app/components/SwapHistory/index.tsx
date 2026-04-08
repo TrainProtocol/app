@@ -97,8 +97,8 @@ const SwapHistory: FC = () => {
 
     useEffect(() => {
         entries.forEach(([hashlock, swap]) => {
-            if (swap.status !== HTLCStatus.RedeemCompleted || swap.destTxId || !swap.solver) return
-            apiClient.getOrder(swap.solver, hashlock).then(res => {
+            if (swap.status !== HTLCStatus.RedeemCompleted || swap.destTxId) return
+            apiClient.getOrder(hashlock, swap.destinationSolverAddress).then(res => {
                 const redeemTx = res?.order?.transactions?.find(t => t.type === HTLCTransaction.HTLCRedeem)?.hash
                 if (redeemTx) updateSwap(hashlock, { destTxId: redeemTx })
             }).catch((err) => {

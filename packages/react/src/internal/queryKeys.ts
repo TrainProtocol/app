@@ -14,8 +14,8 @@ export const trainQueryKeys = {
     swapHistory: (addresses: string[], page: number) =>
         ['train', 'swapHistory', { addresses, page }] as const,
 
-    order: (solverId: string, hashlock: string) =>
-        ['train', 'order', { solverId, hashlock }] as const,
+    order: (hashlock: string, solverAddress?: string) =>
+        ['train', 'order', { hashlock, solverAddress }] as const,
 
     userLock: (hashlock: string) =>
         ['train', 'userLock', hashlock] as const,

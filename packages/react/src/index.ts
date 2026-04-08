@@ -42,8 +42,8 @@ export type { TrainSigner, TrainWalletAdapter } from './wallet/types'
 export type { Caip2Id, ChainNamespace, ChainReference } from './internal/branded'
 export { caip2Id, chainNamespace, chainReference, parseCaip2Id } from './internal/branded'
 
-// --- Swap Config Types ---
-export type { SwapConfig, CreatedSwapConfig, RecoveredSwapConfig, HydratedSwapConfig } from './internal/store'
+// --- Swap Store Types ---
+export type { SwapFlags, ConsensusPhase } from './internal/store'
 
 // --- Query Keys (for advanced consumers: prefetch/invalidate) ---
 export { trainQueryKeys } from './internal/queryKeys'

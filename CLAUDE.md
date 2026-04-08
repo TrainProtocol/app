@@ -34,8 +34,8 @@ No test runner is configured. Node.js >=20.9.0 required. Package manager: pnpm 1
 ### API Layer — Station API
 `apps/app/lib/trainApiClient.ts` is a thin wrapper delegating to `@train-protocol/sdk`'s `TrainApiClient`. Uses SSE for streaming:
 - `GET /api/v1/quote/stream` — quote streaming (events: `quote`, `done`)
-- `GET /api/v1/orders/{solverId}/{hashlock}/stream` — order status streaming
-- `POST /api/v1/orders/{solverId}/{hashlock}/reveal-secret` — reveal secret to solver
+- `GET /api/v1/orders/{hashlock}/stream?solverAddress=0x...` — order status streaming
+- `POST /api/v1/orders/{hashlock}/reveal-secret?solverAddress=0x...` — reveal secret to solver
 - `GET /api/v1/networks` — network/token metadata
 - `sourceNetwork` param must be a CAIP-2 ID (e.g. `"eip155:11155111"`)
 

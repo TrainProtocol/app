@@ -3,17 +3,17 @@ import {
     useRegisterWallet,
     chainNamespace,
     type TrainWalletAdapter,
-    type Caip2Id,
 } from '@train-protocol/react'
 import type { TrainSDK } from '@train-protocol/sdk'
-import { useAccount } from '@starknet-react/core'
 import { useSettingsState } from '@/context/settings'
 import { useRpcConfigStore } from '@/stores/rpcConfigStore'
+import useWallet from '@/hooks/useWallet'
 
 export function StarknetWalletBridge() {
-    const { account, address } = useAccount()
     const { networks } = useSettingsState()
     const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
+    const { providers } = useWallet()
+    const starknetWalletProvider = providers.find(p => p.id == 'starknet')
 
     const adapter = useMemo<TrainWalletAdapter>(() => {
         function getRpcUrl(): string {
@@ -24,28 +24,32 @@ export function StarknetWalletBridge() {
         return {
             chainNamespace: chainNamespace('starknet'),
 
-            createClient(sdk: TrainSDK, networkId: Caip2Id) {
+            createClient(sdk: TrainSDK) {
                 return sdk.createHTLCClient('starknet', { rpcUrl: getRpcUrl() })
             },
 
-            createWriteClient(sdk: TrainSDK, networkId: Caip2Id, _address?: string) {
+            createWriteClient(sdk: TrainSDK, _address?: string) {
+                const starknetAccount = starknetWalletProvider?.activeWallet?.metadata?.starknetAccount
+
                 return sdk.createHTLCClient('starknet', {
                     rpcUrl: getRpcUrl(),
-                    signer: address && account ? { address, account } : undefined,
+                    signer: starknetAccount ? { address: starknetAccount.address, account: starknetAccount } : undefined,
                 })
             },
 
             getLoginConfig: (_address?: string) => {
-                if (!account || !address) return null
+                const starknetAccount = starknetWalletProvider?.activeWallet?.metadata?.starknetAccount
+
+                if (!starknetAccount) return null
                 const isSandbox = process.env.NEXT_PUBLIC_API_VERSION === 'sandbox'
                 return {
-                    provider: account,
-                    address,
+                    provider: starknetAccount,
+                    address: starknetAccount.address,
                     options: { chainId: isSandbox ? 'SN_SEPOLIA' : 'SN_MAIN' },
                 }
             },
         }
-    }, [account, address, networks, getEffectiveRpcUrls])
+    }, [starknetWalletProvider, networks, getEffectiveRpcUrls])
 
     useRegisterWallet(adapter)
     return null

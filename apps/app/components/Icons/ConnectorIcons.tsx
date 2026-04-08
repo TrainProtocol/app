@@ -16,8 +16,8 @@ import OpenMask from "./Wallets/OpenMask";
 import TON from "./Wallets/TON";
 import MyTonWallet from "./Wallets/MyTonWallet";
 import GlowIcon from "./Wallets/Glow";
-import LogoPlaceholder from "./LogoPlaceholder";
 import Azguard from "./Wallets/Azguard";
+import { cn } from "@/lib/utils";
 
 
 export const ResolveConnectorIcon = ({
@@ -77,11 +77,8 @@ export const ResolveConnectorIcon = ({
             );
         case KnownConnectors.Aztec:
             return (
-                <IconsWrapper className={className}>
-                    <Azguard className={iconClassName} />
-                    <LogoPlaceholder className={iconClassName} />
-                    <LogoPlaceholder className={iconClassName} />
-                    <LogoPlaceholder className={iconClassName} />
+                <IconsWrapper className={className} single>
+                    <Azguard className={cn(iconClassName, "size-[5.25rem]")} />
                 </IconsWrapper>
             );
         default:
@@ -96,7 +93,10 @@ export const ResolveConnectorIcon = ({
     }
 };
 
-const IconsWrapper = ({ children, className }: { children: React.ReactNode, className?: string }) => {
+const IconsWrapper = ({ children, className, single }: { children: React.ReactNode, className?: string, single?: boolean }) => {
+    if (single) {
+        return <div className="min-w-fit">{children}</div>;
+    }
     return <div className={className ?? "-space-x-2 flex"}>{children}</div>;
 }
 

@@ -40,7 +40,7 @@ TrainProvider (API client, Zustand store, wallet registry, networks/prices)
 | `usePrices()` | Fetch token prices — `{ prices, isLoading, refetch }` |
 | `useQuote(params)` | Stream quotes from solvers (debounced, auto-refresh) — `{ quotes, bestQuote, bestSolver, isLoading }` |
 | `useSwapHistory(params)` | Fetch historical swaps by addresses |
-| `useOrder(params)` | Fetch single order by solverId + hashlock |
+| `useOrder(params)` | Fetch single order by hashlock (optional solverAddress) |
 
 ### Swap Data Hooks (require TrainProvider)
 

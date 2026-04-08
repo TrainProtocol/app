@@ -42,4 +42,9 @@ export const NON_EVM_NODES: Record<string, NetworkNode[]> = {
     'ton:testnet': [
         { url: 'https://testnet.toncenter.com/api/v2/jsonRPC', providerName: 'toncenter-testnet' },
     ],
+
+    // -- Tron --
+    'tron:3448148188': [
+        { url: 'https://nile.trongrid.io', providerName: 'tron-grid' },
+    ],
 }

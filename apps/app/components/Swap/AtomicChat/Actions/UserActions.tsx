@@ -58,7 +58,6 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, typ
                 destinationAsset: destination_asset,
                 sourceAddress: sourceWallet.address,
                 destinationAddress: address,
-                solverId: solverId ?? '',
                 srcContract: atomicContract,
                 destContract: destContract,
                 chainId: source_network.chainId,

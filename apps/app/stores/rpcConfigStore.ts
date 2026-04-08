@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { createWithEqualityFn as create } from 'zustand/traditional'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { ExtendedNetwork } from '../Models/Network'
 

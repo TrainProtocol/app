@@ -32,13 +32,10 @@ const OptionSelect = ({ onPasskeyLogin }: {
     // }
 
     const passkeyDisabled = prfSupportDetails && !prfSupportDetails.supported;
-    const windowsHint = prfSupportDetails?.platformHint === 'windows_hello_no_prf';
 
     const passkeyDescription = passkeyDisabled
         ? (prfSupportDetails?.reason || "Not supported on this device")
-        : windowsHint
-            ? "Requires a security key on Windows"
-            : "Face ID, Touch ID, or security key";
+        : "Face ID, Touch ID, or security key";
 
     // const walletDescription = passkeyDisabled
     //     ? "Recommended for this device"

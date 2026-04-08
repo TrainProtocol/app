@@ -1,56 +1,8 @@
 import { createStore as createZustandStore } from 'zustand/vanilla'
 import { persist, type PersistStorage } from 'zustand/middleware'
 import type { SwapData, SwapStorage, TrainError } from '../types'
-import type { HTLCFromApi, QuoteDetails } from '@train-protocol/sdk'
-import type { Caip2Id, ChainReference } from './branded'
-import { caip2Id, parseCaip2Id } from './branded'
+import type { HTLCFromApi } from '@train-protocol/sdk'
 
-// --- Swap config (in-memory, set once at creation/activation) ---
-
-/** Fields common to all swap origins */
-interface SwapConfigBase {
-    hashlock: string
-    sourceNetwork: Caip2Id
-    destinationNetwork: Caip2Id
-    srcContract: string
-    sourceAddress: string
-    destinationAddress: string
-    txId: string
-    srcTokenContractAddress: string | null
-    destTokenContractAddress: string | null
-}
-
-/** Config for a swap created through the normal quote flow */
-export interface CreatedSwapConfig extends SwapConfigBase {
-    origin: 'created'
-    solverId: string
-    destContract: string
-    chainId: ChainReference
-    quote: QuoteDetails
-    requestedAmount: string
-}
-
-/** Config for a swap recovered from an on-chain transaction */
-export interface RecoveredSwapConfig extends SwapConfigBase {
-    origin: 'recovered'
-    solverId?: undefined
-    destContract?: undefined
-    chainId?: undefined
-    quote?: undefined
-    requestedAmount: string
-}
-
-/** Config hydrated from persisted swap data (page reload) */
-export interface HydratedSwapConfig extends SwapConfigBase {
-    origin: 'hydrated'
-    solverId: string | null
-    destContract: string | null
-    chainId: ChainReference | null
-    quote: null
-    requestedAmount: string | null
-}
-
-export type SwapConfig = CreatedSwapConfig | RecoveredSwapConfig | HydratedSwapConfig
 
 // --- Swap flags (in-memory, mutated during lifecycle) ---
 
@@ -77,7 +29,6 @@ export interface SwapStoreState {
     swaps: Record<string, SwapData>
 
     // Ephemeral — keyed by hashlock
-    swapConfigs: Record<string, SwapConfig>
     swapFlags: Record<string, SwapFlags>
     orderData: Record<string, HTLCFromApi>
     /** Subscriber count per hashlock — tracks how many useSwapProgress instances are watching */
@@ -89,14 +40,10 @@ export interface SwapStoreState {
     clearSwap: (hashlock: string) => void
 
     // Subscriber actions
-    /** Increment subscriber count. On first subscriber, hydrates config from persisted data if not already present. */
+    /** Increment subscriber count. On first subscriber, initializes flags from persisted data if not already present. */
     subscribe: (hashlock: string) => void
-    /** Decrement subscriber count. On last unsubscribe, removes all ephemeral state (config + flags + orderData). */
+    /** Decrement subscriber count. On last unsubscribe, removes all ephemeral state (flags + orderData). */
     unsubscribe: (hashlock: string) => void
-
-    // Config actions
-    /** Set config directly — used by useCreateSwap/useRecoverSwap where extra data (quote, assets) is available. Also initializes default flags. */
-    setSwapConfig: (hashlock: string, config: SwapConfig) => void
 
     // Flag actions
     /** Update one or more flags for a swap. `manualClaimStartedAt` is write-once (ignored if already set). */
@@ -107,7 +54,6 @@ export interface SwapStoreState {
 
     // Convenience accessors (point-in-time reads without selector boilerplate)
     getSwap: (hashlock: string) => SwapData | undefined
-    getSwapConfig: (hashlock: string) => SwapConfig | undefined
     getSwapFlags: (hashlock: string) => SwapFlags | undefined
     getOrderData: (hashlock: string) => HTLCFromApi | undefined
 }
@@ -116,7 +62,6 @@ const STORAGE_KEY = 'train:swaps'
 
 const initialState = {
     swaps: {} as Record<string, SwapData>,
-    swapConfigs: {} as Record<string, SwapConfig>,
     swapFlags: {} as Record<string, SwapFlags>,
     orderData: {} as Record<string, HTLCFromApi>,
     swapSubscribers: {} as Record<string, number>,
@@ -142,6 +87,7 @@ function createActions(set: SetFn, get: GetFn) {
         addSwap: (hashlock: string, data: SwapData) =>
             set((state) => ({
                 swaps: { ...state.swaps, [hashlock]: { ...data, hashlock, createdAt: Date.now() } },
+                swapFlags: { ...state.swapFlags, [hashlock]: state.swapFlags[hashlock] ?? { ...DEFAULT_FLAGS } },
             })),
 
         updateSwap: (hashlock: string, updates: Partial<SwapData>) =>
@@ -166,32 +112,9 @@ function createActions(set: SetFn, get: GetFn) {
                     swapSubscribers: { ...state.swapSubscribers, [hashlock]: count },
                 }
 
-                // First subscriber — hydrate config from persisted data if not already present
-                if (count === 1 && !state.swapConfigs[hashlock] && state.swaps[hashlock]) {
+                // First subscriber — initialize flags from persisted data if not already present
+                if (count === 1 && !state.swapFlags[hashlock] && state.swaps[hashlock]) {
                     const swap = state.swaps[hashlock]
-                    const sourceNet = swap.source ? caip2Id(swap.source) : caip2Id('eip155:0')
-                    const destNet = swap.destination ? caip2Id(swap.destination) : caip2Id('eip155:0')
-                    const hydrated: HydratedSwapConfig = {
-                        origin: 'hydrated',
-                        hashlock,
-                        solverId: swap.solver ?? null,
-                        sourceNetwork: sourceNet,
-                        destinationNetwork: destNet,
-                        srcContract: swap.srcContract ?? '',
-                        destContract: swap.destContract ?? null,
-                        srcTokenContractAddress: swap.srcTokenContract ?? null,
-                        destTokenContractAddress: swap.destTokenContract ?? null,
-                        sourceAddress: swap.sourceAddress ?? swap.address ?? '',
-                        destinationAddress: swap.destinationAddress ?? '',
-                        chainId: swap.source ? parseCaip2Id(sourceNet).reference : null,
-                        txId: swap.txId ?? '',
-                        quote: null,
-                        requestedAmount: swap.requestedAmount ?? null,
-                    }
-                    updates.swapConfigs = {
-                        ...state.swapConfigs,
-                        [hashlock]: hydrated,
-                    }
                     updates.swapFlags = {
                         ...state.swapFlags,
                         [hashlock]: {
@@ -213,29 +136,14 @@ function createActions(set: SetFn, get: GetFn) {
 
                 // Last subscriber — clean up all ephemeral state
                 const { [hashlock]: _s, ...restSubs } = state.swapSubscribers
-                const { [hashlock]: _c, ...restConfigs } = state.swapConfigs
                 const { [hashlock]: _f, ...restFlags } = state.swapFlags
                 const { [hashlock]: _o, ...restOrders } = state.orderData
                 return {
                     swapSubscribers: restSubs,
-                    swapConfigs: restConfigs,
                     swapFlags: restFlags,
                     orderData: restOrders,
                 }
             }),
-
-        // --- Config actions ---
-        setSwapConfig: (hashlock: string, config: SwapConfig) =>
-            set((state) => ({
-                swapConfigs: {
-                    ...state.swapConfigs,
-                    [hashlock]: config,
-                },
-                swapFlags: {
-                    ...state.swapFlags,
-                    [hashlock]: state.swapFlags[hashlock] ?? { ...DEFAULT_FLAGS },
-                },
-            })),
 
         // --- Flag actions ---
         updateSwapFlags: (hashlock: string, updates: Partial<SwapFlags>) =>
@@ -256,7 +164,6 @@ function createActions(set: SetFn, get: GetFn) {
 
         // --- Convenience accessors ---
         getSwap: (hashlock: string) => get().swaps[hashlock],
-        getSwapConfig: (hashlock: string) => get().swapConfigs[hashlock],
         getSwapFlags: (hashlock: string) => get().swapFlags[hashlock],
         getOrderData: (hashlock: string) => get().orderData[hashlock],
     }
