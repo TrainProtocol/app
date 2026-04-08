@@ -1,5 +1,5 @@
 {
-  "count": 636,
+  "count": 637,
   "listings": {
     "00e39f835988d1bb783b2a0748e18bc6278dec03492d00b0e102a466cd8b3d77": {
       "app": {
@@ -4710,6 +4710,78 @@
       ],
       "slug": "coinomi",
       "updatedAt": "2023-06-05T13:38:35.617168+00:00",
+      "versions": [
+        "1",
+        "2"
+      ]
+    },
+    "16181134503608bc683a3f071b99ebc2581f134dafb350756b86fc984726dd94": {
+      "app": {
+        "android": "",
+        "browser": "https://hexsafe.hextrust.com/",
+        "chrome": "",
+        "edge": "",
+        "firefox": "",
+        "ios": "https://apps.apple.com/hk/app/hex-safe-mobile-app/id6450197657?l=en-GB",
+        "linux": "",
+        "mac": "",
+        "opera": "",
+        "safari": "",
+        "windows": ""
+      },
+      "app_type": "wallet",
+      "category": "Web App Wallets",
+      "chains": [
+        "eip155:1",
+        "eip155:1116",
+        "eip155:137",
+        "eip155:14",
+        "eip155:143",
+        "eip155:19",
+        "eip155:2372",
+        "eip155:42161",
+        "eip155:42793",
+        "eip155:43114",
+        "eip155:56",
+        "eip155:59144",
+        "eip155:8217",
+        "eip155:8453",
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+        "xrpl:0"
+      ],
+      "description": "Established in 2018, Hex Trust offers regulated institutional digital asset custody, staking and markets services to builders, investors and service providers. Get access to our comprehensive, secure and regulated suite of services built on our proprietary and fully integrated infrastructure.",
+      "desktop": {
+        "native": "",
+        "universal": "https://hexsafe.hextrust.com/"
+      },
+      "homepage": "https://www.hextrust.com",
+      "id": "16181134503608bc683a3f071b99ebc2581f134dafb350756b86fc984726dd94",
+      "image_id": "105854d1-9a80-4902-0673-511e5c3d1700",
+      "image_url": {
+        "lg": "https://explorer-api.walletconnect.com/v3/logo/md/105854d1-9a80-4902-0673-511e5c3d1700?projectId=34357d3c125c2bcf2ce2bc3309d98715",
+        "md": "https://explorer-api.walletconnect.com/v3/logo/md/105854d1-9a80-4902-0673-511e5c3d1700?projectId=34357d3c125c2bcf2ce2bc3309d98715",
+        "sm": "https://explorer-api.walletconnect.com/v3/logo/sm/105854d1-9a80-4902-0673-511e5c3d1700?projectId=34357d3c125c2bcf2ce2bc3309d98715"
+      },
+      "injected": null,
+      "metadata": {
+        "colors": {
+          "primary": null,
+          "secondary": null
+        },
+        "shortName": "Hex Safe v2"
+      },
+      "mobile": {
+        "native": "",
+        "universal": ""
+      },
+      "name": "Hex Trust",
+      "rdns": "",
+      "sdks": [
+        "sign_v1",
+        "sign_v2"
+      ],
+      "slug": "hex-trust",
+      "updatedAt": "2026-04-08T09:08:03.869937+00:00",
       "versions": [
         "1",
         "2"
@@ -37294,7 +37366,7 @@
         "chrome": "",
         "edge": "",
         "firefox": "",
-        "ios": "",
+        "ios": "https://apps.apple.com/us/app/grrnpay/id6754450838",
         "linux": "",
         "mac": "",
         "opera": "",
@@ -52429,5 +52501,5 @@
       ]
     }
   },
-  "total": 636
+  "total": 637
 }
