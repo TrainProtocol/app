@@ -3,7 +3,6 @@ import TonConnectProvider from "./TonConnectProvider"
 import SolanaProvider from "./SolanaProvider"
 import Wagmi from "./Wagmi";
 import StarknetProvider from "./StarknetProvider";
-import { ImtblPassportProvider } from "./ImtblPassportProvider";
 import { WalletModalProvider } from "../WalletModal";
 import { WalletProvidersProvider } from "../../context/walletHookProviders";
 import { AztecWalletProvider } from "./AztecWalletProvider";
@@ -23,12 +22,10 @@ const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], basePath: st
                                 <WalletModalProvider>
                                     <FuelProviderWrapper>
                                         <AztecWalletProvider>
-                                            <ImtblPassportProvider>
-                                                <WalletProvidersProvider>
-                                                    <WalletBridges />
-                                                    {children}
-                                                </WalletProvidersProvider>
-                                            </ImtblPassportProvider>
+                                            <WalletProvidersProvider>
+                                                <WalletBridges />
+                                                {children}
+                                            </WalletProvidersProvider>
                                         </AztecWalletProvider>
                                     </FuelProviderWrapper>
                                 </WalletModalProvider>
