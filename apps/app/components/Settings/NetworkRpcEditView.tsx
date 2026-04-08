@@ -194,7 +194,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                     </label>
                     <button
                         onClick={handleAddUrl}
-                        className="flex items-center gap-1 px-2 py-1 text-xs text-primary-text hover:bg-secondary-500 rounded-xl transition-colors"
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-primary-text hover:bg-secondary-500 rounded-md transition-colors"
                     >
                         <Plus className="w-3 h-3" />
                         Add URL

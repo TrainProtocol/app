@@ -45,12 +45,12 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
                         setSelectedNetwork(network)
                     }}
                 >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full rounded-xl">
                         <SelectValue placeholder="Select network" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className='rounded-xl'>
                         {networks.map(network => (
-                            <SelectItem key={network.caip2Id} value={network.caip2Id}>
+                            <SelectItem key={network.caip2Id} value={network.caip2Id} className='rounded-xl'>
                                 {network.logoUrl && (
                                     <Image
                                         src={network.logoUrl}
