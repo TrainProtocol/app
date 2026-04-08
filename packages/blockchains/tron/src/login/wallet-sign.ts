@@ -16,7 +16,7 @@ export interface TronWalletLike {
  */
 export const deriveKeyFromTronWallet = async (
     wallet: TronWalletLike,
-): Promise<Uint8Array> => {
+): Promise<CryptoKey> => {
     if (!wallet) {
         throw new Error('Tron wallet not connected')
     }
