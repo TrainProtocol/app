@@ -7,13 +7,11 @@ import ConnectorsList from "../components/WalletModal/ConnectorsList";
 import { useConnectModal } from "../components/WalletModal";
 import useEVM from "../lib/wallets/evm/useEVM";
 import useStarknet from "../lib/wallets/starknet/useStarknet";
-import useTON from "../lib/wallets/ton/useTON";
 import useSVM from "../lib/wallets/solana/useSVM";
 import VaulDrawer from "../components/Modal/vaulModal";
 import useAztec from "../lib/wallets/aztec/useAztec";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { isMobile } from "@/lib/wallets/utils/isMobile";
-import useFuel from "@/lib/wallets/fuel/useFuel";
 import useTron from "@/lib/wallets/tron/useTron";
 
 const WalletProvidersContext = createContext<WalletProvider[]>([]);
@@ -27,14 +25,12 @@ export const WalletProvidersProvider: React.FC<React.PropsWithChildren> = ({ chi
     const evm = useEVM();
     const starknet = useStarknet();
     const svm = useSVM();
-    const ton = useTON();
     const aztec = useAztec()
-    const fuel = useFuel();
     const tron = useTron()
 
     const providers = useMemo(() => {
         const allProviders: WalletProvider[] = [
-            evm, starknet, svm, ton, aztec, fuel, tron
+            evm, starknet, svm, aztec, tron
         ];
         const filteredProviders = allProviders.filter(provider => isMobilePlatform ? !provider.unsupportedPlatforms?.includes('mobile') : !provider.unsupportedPlatforms?.includes('desktop'));
 
@@ -46,7 +42,7 @@ export const WalletProvidersProvider: React.FC<React.PropsWithChildren> = ({ chi
                     provider.asSourceSupportedNetworks?.includes(net.caip2Id)
                 )
             );
-    }, [networks, evm, starknet, svm, ton, aztec, fuel, tron, isMobilePlatform]);
+    }, [networks, evm, starknet, svm, aztec, tron, isMobilePlatform]);
 
     return (
         <WalletProvidersContext.Provider value={providers}>

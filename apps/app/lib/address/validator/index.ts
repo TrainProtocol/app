@@ -2,7 +2,7 @@ import { keccak256 } from "js-sha3";
 import KnownInternalNames from "../../knownIds";
 import { validateAndParseAddress } from "./starkNetAddressValidator";
 import { PublicKey } from '@solana/web3.js'
-import { Address } from "@ton/core";
+// import { Address } from "@ton/core";
 
 function getNetworkId(network: { displayName?: string} | null | undefined): string | undefined {
     return network ? (network.displayName) : undefined;
@@ -22,13 +22,13 @@ export function isValidAddress(address?: string, network?: { displayName?: strin
     else if (id.toLowerCase().startsWith("starknet") || id.toLowerCase().startsWith("paradex")) {
         return validateAndParseAddress(address);
     }
-    else if (id.toLowerCase().startsWith("ton")) {
-        try {
-            return !!Address.parse(address).toString({ bounceable: false, testOnly: false, urlSafe: true })
-        } catch (error) {
-            return false
-        }
-    }
+    // else if (id.toLowerCase().startsWith("ton")) {
+    //     try {
+    //         return !!Address.parse(address).toString({ bounceable: false, testOnly: false, urlSafe: true })
+    //     } catch (error) {
+    //         return false
+    //     }
+    // }
     else if (id === KnownInternalNames.Networks.OsmosisMainnet) {
         if (/^(osmo1)?[a-z0-9]{38}$/.test(address)) {
             return true
