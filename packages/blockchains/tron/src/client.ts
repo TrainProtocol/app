@@ -172,7 +172,7 @@ export class TronHTLCClient extends HTLCClient {
     // ── Read Operations ────────────────────────────────────────────────
 
     async getUserLockDetails(params: LockParams): Promise<UserLockDetails | null> {
-        const { id, contractAddress, txId } = params
+        const { id, contractAddress, txId, decimals } = params
 
         const contractHex = toTronHex(contractAddress)
         // Use a dummy owner for read calls
@@ -182,6 +182,8 @@ export class TronHTLCClient extends HTLCClient {
         const parameter = encodeParams(calldata)
         const raw = await this.rpc.triggerConstantContract(contractHex, FUNCTION_SIGNATURES.getUserLock, parameter, dummyOwner)
         const result = AbiFunction.decodeResult(htlcFunctions.getUserLock, hex('0x' + raw)) as any
+
+        if (!result.timelock) return null
 
         const lockExists = result.sender !== ZERO_ADDRESS
         if (!lockExists) return null

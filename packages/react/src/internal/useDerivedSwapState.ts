@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useQuery, skipToken } from '@tanstack/react-query'
-import { useStore } from 'zustand'
+import { useStoreWithEqualityFn as useStore } from 'zustand/traditional'
 import { shallow } from 'zustand/shallow'
 import { createStore } from 'zustand/vanilla'
 import { resolveHTLCStatus, HTLCStatus, LockStatus } from '@train-protocol/sdk'

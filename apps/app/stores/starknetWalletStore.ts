@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { createWithEqualityFn as create } from 'zustand/traditional'
 import { Wallet } from '../Models/WalletProvider'
 import { createJSONStorage, persist } from 'zustand/middleware'
 

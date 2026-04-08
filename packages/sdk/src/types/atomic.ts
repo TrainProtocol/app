@@ -3,10 +3,3 @@ export interface AtomicResult {
     hashlock: string
     nonce?: number
 }
-
-export interface LockResult {
-    hash: string
-    result: any
-}
-
-
