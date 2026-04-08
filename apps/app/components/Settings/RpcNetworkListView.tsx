@@ -103,7 +103,7 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     {isCustom && (
-                                        <span className="px-2 py-1 text-xs font-medium bg-green-900/20 text-green-400 rounded">
+                                        <span className="px-2 py-1 text-xs font-medium bg-success-background text-success-foreground rounded">
                                             Custom
                                         </span>
                                     )}

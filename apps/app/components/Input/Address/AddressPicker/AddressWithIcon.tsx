@@ -190,7 +190,7 @@ export const ExtendedAddress: FC<ExtendedAddressProps> = ({ address, network, pr
             ...(onDisconnect ? [{
                 title: 'Disconnect',
                 Icon: Unplug,
-                iconClassNames: 'text-red-400',
+                iconClassNames: 'text-error-foreground',
                 onClick: (e: React.MouseEvent<HTMLDivElement>) => { e.stopPropagation(); setPopoverOpen(false); onDisconnect(); }
             }] : [])
         ];

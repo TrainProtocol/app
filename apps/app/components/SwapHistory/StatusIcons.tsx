@@ -32,13 +32,13 @@ export default function StatusIcons({ status }: { status: HTLCStatus | undefined
             )
         case HTLCStatus.ManualClaimRequired:
             return (
-                <Badge className="bg-yellow-500/15 text-yellow-400">
+                <Badge className="bg-warning-foreground/15 text-warning-foreground">
                     Action Required
                 </Badge>
             )
         case HTLCStatus.TimelockExpired:
             return (
-                <Badge className="bg-yellow-500/15 text-yellow-400">
+                <Badge className="bg-warning-foreground/15 text-warning-foreground">
                     Expired
                 </Badge>
             )
