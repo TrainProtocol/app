@@ -58,7 +58,11 @@ export class Address {
     this._raw = address || '';
     this._network = network;
 
-    this._normalized = addressFormat({ address: this._raw, network, providerName });
+    try {
+      this._normalized = addressFormat({ address: this._raw, network, providerName });
+    } catch {
+      this._normalized = this._raw;
+    }
   }
 
   /**

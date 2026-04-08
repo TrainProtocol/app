@@ -68,7 +68,6 @@ export type {
 export type {
     Network,
     Token,
-    LockDetails,
     UserLockDetails,
     SolverLockDetails,
     IHTLCReadClient,
@@ -80,7 +79,6 @@ export type {
     QuoteDetails,
     AggregatedQuoteResponse,
     SwapQuote,
-    RecoveredSwapData,
     VerificationResult,
 } from '@train-protocol/sdk'
 

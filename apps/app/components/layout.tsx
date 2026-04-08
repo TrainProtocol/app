@@ -130,7 +130,7 @@ function TrainProviderWithRpc({ networks, children }: { networks: import("@/Mode
   }, [networks, getEffectiveRpcUrls])
 
   return (
-    <TrainProvider baseUrl={AppSettings.TrainApiUri ?? ''} resolveNodeUrls={resolveNodeUrls} secretDerivation={{ persist: true }}>
+    <TrainProvider baseUrl={AppSettings.TrainApiUri ?? ''} resolveNodeUrls={resolveNodeUrls} initialNetworks={networks} secretDerivation={{ persist: true }}>
       {children}
     </TrainProvider>
   )

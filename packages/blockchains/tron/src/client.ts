@@ -6,7 +6,7 @@ import {
     RedeemSolverParams,
     LockStatus,
     AtomicResult,
-    RecoveredSwapData,
+    Network,
     TransactionInfo,
     TransactionStatus,
     HTLCClient,
@@ -16,36 +16,14 @@ import {
     SignerRequiredError,
     InvalidTxHashError,
 } from '@train-protocol/sdk'
-import type { UserLockDetails, SolverLockDetails } from '@train-protocol/sdk'
-import { htlcFunctions, htlcEvents, trc20Functions, htlcErrorsBySelector } from './abi.js'
-import { TronRpcClient, TronRpcError } from './rpc.js'
+import type { UserLockDetails, SolverLockDetails, BaseLockDetails, EventDerivedData } from '@train-protocol/sdk'
+import { pickEventDerivedData } from './helpers.js'
+import { htlcFunctions, htlcEvents, trc20Functions } from './abi.js'
+import { TronRpcClient } from './rpc.js'
 import type { TronHTLCClientConfig, TronSigner, TronEventLog } from './types.js'
-import { ZERO_ADDRESS, DEFAULT_FEE_LIMIT } from './constants.js'
-import { toEvmHex, toTronHex, evmHexToBase58, isBase58Address } from './address.js'
-
-type Hex = `0x${string}`
-const hex = (v: string): Hex => v as Hex
-
-/**
- * TronGrid function signatures — the API requires human-readable selector strings,
- * NOT hex-encoded 4-byte selectors. TronGrid hashes these strings internally.
- */
-const FUNCTION_SIGNATURES = {
-    getUserLock: 'getUserLock(bytes32)',
-    getSolverLock: 'getSolverLock(bytes32,uint256)',
-    getSolverLockCount: 'getSolverLockCount(bytes32)',
-    userLock: 'userLock((bytes32,uint256,uint256,uint48,uint48,uint48,address,address,address,string,string,string),(string,string,uint256,string),bytes,bytes)',
-    refundUser: 'refundUser(bytes32)',
-    redeemSolver: 'redeemSolver(bytes32,uint256,uint256)',
-    allowance: 'allowance(address,address)',
-    approve: 'approve(address,uint256)',
-} as const
-
-/** Strip the 4-byte selector from ABI-encoded calldata, returning only the parameters hex (no 0x prefix) */
-function encodeParams(calldata: string): string {
-    const clean = calldata.startsWith('0x') ? calldata.slice(2) : calldata
-    return clean.slice(8)
-}
+import { ZERO_ADDRESS, DEFAULT_FEE_LIMIT, FUNCTION_SIGNATURES } from './constants.js'
+import { toEvmHex, toTronHex } from './address.js'
+import { decodeContractError, encodeParams, Hex, hex, normalizeAddress, normalizeAddresses, normalizeResultAddress } from './utils.js'
 
 export class TronHTLCClient extends HTLCClient {
     private rpc: TronRpcClient
@@ -208,20 +186,28 @@ export class TronHTLCClient extends HTLCClient {
         if (!result.timelock) return null
 
         const lockExists = result.sender !== ZERO_ADDRESS
-        let userData: string | undefined
-        let blockTimestamp: number | undefined
-        let dstAmount: string | undefined
+        if (!lockExists) return null
 
-        if (lockExists && txId) {
+        const parsedResult: BaseLockDetails = {
+            ...normalizeAddresses(result),
+            hashlock: id,
+            token: normalizeAddress(result.token),
+            amount: Number(formatUnits(BigInt(result.amount), params.decimals)),
+            secret: BigInt(result.secret),
+            timelock: Number(result.timelock),
+            status: Number(result.status) as LockStatus,
+        }
+
+        let blockTimestamp: number | undefined
+        let eventDerivedData = {} as Partial<EventDerivedData>
+
+        if (txId) {
             try {
                 const txInfo = await this.rpc.getTransactionInfoById(txId)
                 if (txInfo?.log) {
                     const lockEvent = this.findUserLockedEvent(txInfo.log, id)
-                    if (lockEvent?.userData && lockEvent.userData !== '0x') {
-                        userData = BigInt(lockEvent.userData as string).toString()
-                    }
-                    if (lockEvent?.dstAmount != null) {
-                        dstAmount = BigInt(lockEvent.dstAmount as string | bigint).toString()
+                    if (lockEvent) {
+                        eventDerivedData = pickEventDerivedData(lockEvent)
                     }
 
                     if (txInfo.blockTimeStamp) {
@@ -233,20 +219,7 @@ export class TronHTLCClient extends HTLCClient {
             }
         }
 
-
-        return {
-            hashlock: lockExists ? id : undefined,
-            amount: Number(formatUnits(BigInt(result.amount), decimals)),
-            secret: result.secret !== 0n ? BigInt(result.secret) : undefined,
-            sender: lockExists ? normalizeResultAddress(result.sender) : undefined,
-            recipient: result.recipient !== ZERO_ADDRESS ? normalizeResultAddress(result.recipient) : undefined,
-            token: result.token !== ZERO_ADDRESS ? normalizeResultAddress(result.token) : undefined,
-            timelock: Number(result.timelock),
-            status: lockExists ? Number(result.status) as LockStatus : undefined,
-            userData,
-            blockTimestamp,
-            dstAmount,
-        }
+        return { ...eventDerivedData, ...parsedResult, blockTimestamp }
     }
 
     async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> {
@@ -273,39 +246,36 @@ export class TronHTLCClient extends HTLCClient {
         return null
     }
 
-    async recoverSwap(txHash: string): Promise<RecoveredSwapData> {
+    async recoverSwap(txHash: string, network: Network): Promise<UserLockDetails> {
         // Tron txIDs are 64-char hex without 0x prefix
         if (!/^[a-fA-F0-9]{64}$/.test(txHash))
             throw new InvalidTxHashError()
 
-        const [txInfo, tx] = await Promise.all([
-            this.rpc.getTransactionInfoById(txHash),
-            this.rpc.getTransactionById(txHash),
-        ])
-
-        if (!txInfo || !tx) throw new Error('Transaction not found')
-
+        const txInfo = await this.rpc.getTransactionInfoById(txHash)
+        if (!txInfo) throw new Error('Transaction not found')
         if (!txInfo.log) throw new Error('This transaction does not contain a swap lock')
 
         const lockEvent = this.findUserLockedEvent(txInfo.log)
         if (!lockEvent) throw new Error('This transaction does not contain a swap lock')
 
-        const contractAddress = tx.raw_data?.contract?.[0]?.parameter?.value?.contract_address
-        const srcContract = contractAddress ? normalizeResultAddress(contractAddress) : ''
+        const eventHashlock = lockEvent.hashlock as string
+        const eventToken = normalizeResultAddress(lockEvent.token as string)
 
-        return {
-            hashlock: lockEvent.hashlock as string,
-            sender: normalizeResultAddress(lockEvent.sender as string),
-            recipient: normalizeResultAddress(lockEvent.recipient as string),
-            srcChain: lockEvent.srcChain as string,
-            dstChain: lockEvent.dstChain as string,
-            token: normalizeResultAddress(lockEvent.token as string),
-            amount: lockEvent.amount as bigint,
-            dstAddress: lockEvent.dstAddress as string,
-            dstAmount: lockEvent.dstAmount as bigint,
-            dstToken: lockEvent.dstToken as string,
-            srcContract,
-        }
+        const token = network.tokens.find(t => normalizeResultAddress(t.contract)?.toLowerCase() === (eventToken).toLowerCase())
+        if (!token) throw new Error("Token not found")
+        const decimals = token?.decimals
+
+        const result = await this.getUserLockDetails({
+            id: eventHashlock,
+            contractAddress: network.trainContract,
+            decimals,
+            txId: txHash,
+            chainId: network.chainId,
+        })
+
+        if (!result) throw new Error('Lock not found for recovered hashlock')
+
+        return result
     }
 
     // ── Public Helpers ─────────────────────────────────────────────────
@@ -360,17 +330,11 @@ export class TronHTLCClient extends HTLCClient {
         if (result.sender === ZERO_ADDRESS) return null
 
         return {
+            ...normalizeAddresses(result),
             hashlock: id,
-            amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
-            secret: result.secret !== 0n ? BigInt(result.secret) : undefined,
-            sender: normalizeResultAddress(result.sender),
-            recipient: result.recipient !== ZERO_ADDRESS ? normalizeResultAddress(result.recipient) : undefined,
-            token: result.token !== ZERO_ADDRESS ? normalizeResultAddress(result.token) : undefined,
+            amount: Number(formatUnits(BigInt(result.amount), params.decimals)),
+            secret: BigInt(result.secret),
             timelock: Number(result.timelock),
-            reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? 18)),
-            rewardTimelock: Number(result.rewardTimelock),
-            rewardRecipient: result.rewardRecipient !== ZERO_ADDRESS ? normalizeResultAddress(result.rewardRecipient) : undefined,
-            rewardToken: result.rewardToken !== ZERO_ADDRESS ? normalizeResultAddress(result.rewardToken) : undefined,
             status: Number(result.status) as LockStatus,
             index,
         }
@@ -447,28 +411,4 @@ export class TronHTLCClient extends HTLCClient {
         }
         return null
     }
-}
-
-function decodeContractError(error: unknown): string | null {
-    if (error instanceof TronRpcError && typeof error.data === 'object' && error.data) {
-        const result = error.data as { constant_result?: string[] }
-        if (result.constant_result?.[0]) {
-            const selector = '0x' + result.constant_result[0].slice(0, 8)
-            return htlcErrorsBySelector[selector] ?? null
-        }
-    }
-    return null
-}
-
-/** Convert an EVM hex address from contract results to Base58Check Tron address */
-function normalizeResultAddress(address: string): string {
-    if (!address) return address
-    return evmHexToBase58(address)
-}
-
-/** Normalize address for comparison — convert Base58 to EVM hex if needed */
-function normalizeAddress(address: string): string {
-    if (isBase58Address(address)) return toEvmHex(address)
-    if (!address.startsWith('0x')) return '0x' + address
-    return address
 }

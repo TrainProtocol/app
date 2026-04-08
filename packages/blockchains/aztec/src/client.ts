@@ -13,11 +13,13 @@ import {
     type LockParams,
     type RefundParams,
     type RedeemSolverParams,
+    type AtomicResult,
     type UserLockDetails,
     type SolverLockDetails,
-    type AtomicResult,
-    type RecoveredSwapData,
+    type BaseLockDetails,
     type LockStatus,
+    type EventDerivedData,
+    type Network,
     type TransactionInfo,
     TransactionStatus,
     HTLCClient,
@@ -27,13 +29,12 @@ import { TrainContract } from './artifacts/Train'
 import type { AztecHTLCClientConfig, AztecSigner } from './types'
 import { bytesToHex, hexToBytes, parseUnits, formatUnits } from '@train-protocol/sdk'
 
-const TX_TIMEOUT = 120000
-
 export class AztecHTLCClient extends HTLCClient {
     private readonly rpcUrl: string
     private readonly signer?: AztecSigner
     private _node?: AztecNode
     private _sponsoredFPCInstance?: Awaited<ReturnType<typeof getContractInstanceFromInstantiationParams>>
+    TX_TIMEOUT = 120000
 
     constructor(config: AztecHTLCClientConfig) {
         super()
@@ -120,7 +121,7 @@ export class AztecHTLCClient extends HTLCClient {
             const tx = await batch.send({
                 from: senderAddress,
                 fee: feeOptions,
-                wait: { timeout: TX_TIMEOUT, dontThrowOnRevert: true },
+                wait: { timeout: this.TX_TIMEOUT, dontThrowOnRevert: true },
             })
 
             if (tx.receipt.hasExecutionReverted()) {
@@ -156,7 +157,7 @@ export class AztecHTLCClient extends HTLCClient {
                 .send({
                     from: senderAddress,
                     fee: feeOptions,
-                    wait: { timeout: TX_TIMEOUT, dontThrowOnRevert: true },
+                    wait: { timeout: this.TX_TIMEOUT, dontThrowOnRevert: true },
                 })
 
             if (tx.receipt.hasExecutionReverted()) {
@@ -206,7 +207,7 @@ export class AztecHTLCClient extends HTLCClient {
                 .send({
                     from: senderAddress,
                     fee: feeOptions,
-                    wait: { timeout: TX_TIMEOUT, dontThrowOnRevert: true },
+                    wait: { timeout: this.TX_TIMEOUT, dontThrowOnRevert: true },
                 })
 
             if (tx.receipt.hasExecutionReverted()) {
@@ -233,22 +234,23 @@ export class AztecHTLCClient extends HTLCClient {
         const status = Number(result.status) as LockStatus
         if (status === 0) return null
 
-        let userData: string | undefined
-        if (txId) {
-            userData = await this.findUserDataFromLogs(txId, id)
+        const parsedResult: BaseLockDetails = {
+            hashlock: id,
+            amount: Number(formatUnits(BigInt(result.amount), params.decimals)),
+            secret: this.parseSecret(result.secret),
+            timelock: Number(result.timelock),
+            status,
+            sender: result.sender?.toString() ?? '',
+            recipient: result.recipient?.toString() ?? '',
+            token: result.token?.toString() ?? '',
         }
 
-        return {
-            hashlock: id,
-            amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
-            sender: result.sender?.toString(),
-            recipient: result.recipient?.toString(),
-            token: result.token?.toString(),
-            timelock: Number(result.timelock),
-            secret: this.parseSecret(result.secret),
-            status,
-            userData,
+        let eventDerivedData = {} as Partial<EventDerivedData>
+        if (txId) {
+            eventDerivedData = await this.findEventDataFromLogs(txId, id)
         }
+
+        return { ...parsedResult, ...eventDerivedData }
     }
 
     async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> {
@@ -289,22 +291,22 @@ export class AztecHTLCClient extends HTLCClient {
 
         return {
             hashlock: id,
-            amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
-            sender: result.sender?.toString(),
-            recipient: result.recipient?.toString(),
-            token: result.token?.toString(),
-            timelock: Number(result.timelock),
-            reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? 18)),
-            rewardTimelock: Number(result.reward_timelock),
-            rewardRecipient: result.reward_recipient?.toString(),
-            rewardToken: result.reward_token?.toString(),
-            status,
+            amount: Number(formatUnits(BigInt(result.amount), params.decimals)),
             secret: this.parseSecret(result.secret),
+            timelock: Number(result.timelock),
+            status,
+            sender: result.sender?.toString() ?? '',
+            recipient: result.recipient?.toString() ?? '',
+            token: result.token?.toString() ?? '',
+            reward: Number(formatUnits(BigInt(result.reward), params.decimals)),
+            rewardTimelock: Number(result.reward_timelock),
+            rewardRecipient: result.reward_recipient?.toString() ?? '',
+            rewardToken: result.reward_token?.toString() ?? '',
             index,
         }
     }
 
-    async recoverSwap(txHash: string): Promise<RecoveredSwapData> {
+    async recoverSwap(txHash: string, network: Network): Promise<UserLockDetails> {
         if (!/^0x[a-fA-F0-9]{1,64}$/.test(txHash))
             throw new Error('Invalid transaction hash format')
 
@@ -330,22 +332,23 @@ export class AztecHTLCClient extends HTLCClient {
                 log.log.fields,
             ) as Record<string, any>
 
-            const bytesToString = (bytes: (bigint | number)[]) =>
-                new TextDecoder().decode(new Uint8Array(bytes.map(Number))).replace(/\0/g, '').trim()
+            const eventHashlock = bytesToHex(Array.from(decoded.hashlock).map(Number))
+            const eventToken = decoded.token.toString()
 
-            return {
-                hashlock: bytesToHex(Array.from(decoded.hashlock).map(Number)),
-                sender: decoded.sender.toString(),
-                recipient: decoded.recipient.toString(),
-                srcChain: bytesToString(decoded.src_chain),
-                dstChain: bytesToString(decoded.dst_chain),
-                token: decoded.token.toString(),
-                amount: BigInt(decoded.amount),
-                dstAddress: bytesToString(decoded.dst_address),
-                dstAmount: BigInt(decoded.dst_amount),
-                dstToken: bytesToString(decoded.dst_token),
-                srcContract: log.log.contractAddress.toString(),
-            }
+            const token = network.tokens.find(t => t.contract?.toLowerCase() === eventToken.toLowerCase())
+            const decimals = token?.decimals ?? 18
+
+            const result = await this.getUserLockDetails({
+                id: eventHashlock,
+                contractAddress: network.trainContract,
+                decimals,
+                txId: txHash,
+                chainId: network.chainId,
+            })
+
+            if (!result) throw new Error('Lock not found for recovered hashlock')
+
+            return result
         }
 
         throw new Error('This transaction does not contain a swap lock')
@@ -383,11 +386,10 @@ export class AztecHTLCClient extends HTLCClient {
 
     // ── Private Helpers ────────────────────────────────────────────────
 
-    private parseSecret(rawSecret: unknown): bigint | undefined {
+    private parseSecret(rawSecret: unknown): bigint {
         const secretBytes: number[] = Array.from((rawSecret as number[]) || [])
         const secretHex = secretBytes.length > 0 ? bytesToHex(secretBytes) : '0x0'
-        const secretBigInt = BigInt(secretHex)
-        return secretBigInt !== 0n ? secretBigInt : undefined
+        return BigInt(secretHex)
     }
 
     private requireSigner(): AztecSigner {
@@ -438,7 +440,7 @@ export class AztecHTLCClient extends HTLCClient {
         await wallet.registerContract(fpcInstance, SponsoredFPCContract.artifact)
     }
 
-    private async findUserDataFromLogs(txHash: string, hashlock: string): Promise<string | undefined> {
+    private async findEventDataFromLogs(txHash: string, hashlock: string): Promise<Partial<EventDerivedData>> {
         try {
             const node = this.getNode()
             const { logs } = await node.getPublicLogs({
@@ -446,6 +448,9 @@ export class AztecHTLCClient extends HTLCClient {
             })
 
             const eventDef = TrainContract.events.UserLocked
+
+            const aztecBytesToString = (bytes: (bigint | number)[]) =>
+                new TextDecoder().decode(new Uint8Array(bytes.map(Number))).replace(/\0/g, '').trim()
 
             for (const log of logs) {
                 const emittedFields = log.log.getEmittedFields()
@@ -463,17 +468,25 @@ export class AztecHTLCClient extends HTLCClient {
                 const decodedHashlock = bytesToHex(Array.from(decoded.hashlock).map(Number))
                 if (decodedHashlock.toLowerCase() !== hashlock.toLowerCase()) continue
 
-                const userDataBytes: bigint[] = decoded.userData
-                if (!userDataBytes) return undefined
+                const data: Partial<EventDerivedData> = {}
 
-                return new TextDecoder().decode(new Uint8Array(userDataBytes.map(Number)))
-                    .replace(/\0/g, '')
-                    .trim() || undefined
+                if (decoded.dst_chain) data.dstChain = aztecBytesToString(decoded.dst_chain)
+                if (decoded.dst_address) data.dstAddress = aztecBytesToString(decoded.dst_address)
+                if (decoded.dst_amount != null) data.dstAmount = BigInt(decoded.dst_amount)
+                if (decoded.dst_token) data.dstToken = aztecBytesToString(decoded.dst_token)
+                if (decoded.userData) {
+                    data.userData = aztecBytesToString(decoded.userData) || undefined
+                }
+                if (decoded.solverData) {
+                    data.solverData = aztecBytesToString(decoded.solverData) || undefined
+                }
+
+                return data
             }
         } catch (e) {
-            console.error('Error fetching userData from Aztec logs:', e)
+            console.error('Error fetching event data from Aztec logs:', e)
         }
-        return undefined
+        return {}
     }
 
     private strToBytes(str: string, length: number): number[] {
