@@ -229,7 +229,7 @@ export const ExtendedAddress: FC<ExtendedAddressProps> = ({ address, network, pr
                     </div>
                 </PopoverTrigger>
                 <PopoverContent
-                    className="w-auto p-3 min-w-72 max-w-72 flex flex-col gap-3 items-stretch rounded-2xl! bg-secondary-500!"
+                    className="p-3 flex flex-col gap-3 items-stretch rounded-2xl! bg-secondary-500!"
                     side="top"
                     avoidCollisions={true}
                     collisionPadding={8}

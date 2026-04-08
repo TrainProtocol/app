@@ -54,15 +54,15 @@ const RouteSortingMenu: FC = () => {
                     <ArrowUpDown className="w-4 h-4 text-primary-text-tertiary hover:text-primary-text transition-colors" />
                 </button>
             </PopoverTrigger>
-            <PopoverContent className="min-w-[170px] p-1 bg-secondary-500! rounded-xl" align="start" sideOffset={8}>
-                <div className="flex flex-col gap-1">
+            <PopoverContent className="min-w-[170px] max-w-64 p-1.5 bg-secondary-500! rounded-2xl" align="start" sideOffset={8}>
+                <div className="flex flex-col">
                     {sortingOptions.map((option) => (
                         <button
                             key={option.value}
                             type="button"
                             onClick={() => handleSelect(option.value)}
                             className={clsx(
-                                "w-full px-1.5 py-0.5 text-sm text-left flex items-center justify-between hover:bg-secondary-400 transition-colors rounded-lg",
+                                "w-full py-2 pl-3 pr-3 text-sm font-medium text-left flex items-center justify-between hover:bg-secondary-400 transition-colors rounded-xl",
                                 {
                                     "bg-secondary-400": sortingOption === option.value
                                 }
