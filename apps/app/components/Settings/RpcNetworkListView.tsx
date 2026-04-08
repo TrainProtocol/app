@@ -46,7 +46,7 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search networks..."
-                    className="pl-10 rounded-lg"
+                    className="pl-10 rounded-xl"
                 />
             </div>
 

@@ -194,7 +194,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                     </label>
                     <button
                         onClick={handleAddUrl}
-                        className="flex items-center gap-1 px-2 py-1 text-xs text-primary-text hover:bg-secondary-500 rounded transition-colors"
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-primary-text hover:bg-secondary-500 rounded-xl transition-colors"
                     >
                         <Plus className="w-3 h-3" />
                         Add URL
@@ -217,7 +217,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                                     value={url}
                                     onChange={(e) => handleUrlChange(index, e.target.value)}
                                     placeholder="https://your-rpc-endpoint.com"
-                                    className={`pr-10 py-2 rounded-lg ${validationErrors[index]
+                                    className={`pr-10 py-2 rounded-xl ${validationErrors[index]
                                         ? "border-red-500 focus-visible:ring-red-500/30 focus-visible:border-red-500"
                                         : validatedUrls[index]
                                             ? "border-green-500 focus-visible:ring-green-500/30 focus-visible:border-green-500"

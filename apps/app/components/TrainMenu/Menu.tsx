@@ -207,7 +207,7 @@ const SelectorItem = ({ label, icon, value, onValueChange, options }: SelectorIt
                             {current.label}
                         </SelectValue>
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-2xl">
                         {options.map(({ value: val, icon: Icon, label: optLabel }) => (
                             <SelectItem key={val} value={val}>
                                 {Icon && <Icon className="h-4 w-4" />}

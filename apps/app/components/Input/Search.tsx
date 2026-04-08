@@ -56,7 +56,7 @@ export const SearchComponent = ({ searchQuery, setSearchQuery, isOpen, container
                 autoFocus={isDesktop}
                 placeholder={showAnimatedPlaceholder ? "" : (props.placeholder ?? "Search")}
                 autoComplete="off"
-                className={clsx("placeholder:text-primary-text-tertiary border-0 bg-secondary-400 focus:bg-secondary-500 appearance-none block py-2 px-0 focus-visible:ring-0 focus-visible:border-0 rounded-none",
+                className={clsx("placeholder:text-primary-text-tertiary border-0 bg-transparent appearance-none block py-2 px-0 focus-visible:ring-0 focus-visible:border-0 rounded-none",
                     props.className
                 )}
             />

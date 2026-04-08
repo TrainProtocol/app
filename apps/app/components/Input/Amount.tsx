@@ -115,7 +115,7 @@ const AmountField = forwardRef(function AmountField({ actionValue, actionValueUs
                         value={previewUsd ?? usdAmount}
                         onChange={handleUsdInputChange}
                         className={clsx(
-                            "text-[28px] leading-[34px] rounded-xl focus-visible:ring-0 focus-visible:border-transparent font-normal px-0 truncate bg-secondary-500 border-0",
+                            "text-[28px] leading-[34px] focus-visible:ring-0 focus-visible:border-transparent font-normal px-0 truncate bg-secondary-500 border-0",
                             previewUsd ? "text-secondary-text/45" : "text-primary-text",
                             "placeholder:text-secondary-text"
                         )}

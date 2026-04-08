@@ -38,11 +38,11 @@ const Connector: FC<Connector> = ({ connector, connectingConnector, onClick, isR
                         <p className='text-base text-left truncate w-full'>{connectorName}</p>
                         {
                             connector.type === 'injected' && !isRecent &&
-                            <Badge variant="outline" className='text-secondary-text font-medium border-none'>Installed</Badge>
+                            <Badge variant="ghost" className="text-secondary-text hover:bg-transparent">Installed</Badge>
                         }
                         {
                             isRecent &&
-                            <Badge variant="secondary" className='text-secondary-text font-semibold bg-secondary-100 px-1 py-0.5'>Recent</Badge>
+                            <Badge variant="secondary" className="text-secondary-text bg-secondary-100">Recent</Badge>
                         }
                     </div>
                     {
