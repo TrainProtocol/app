@@ -65,7 +65,6 @@
     "@train-protocol/auth": "workspace:^",
     "@train-protocol/aztec": "workspace:^",
     "@train-protocol/evm": "workspace:^",
-    "@train-protocol/fuel": "workspace:^",
     "@train-protocol/react": "workspace:^",
     "@train-protocol/sdk": "workspace:^",
     "@train-protocol/solana": "workspace:^",

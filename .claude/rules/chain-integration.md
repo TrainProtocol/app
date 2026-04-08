@@ -156,7 +156,7 @@ export class {Chain}HTLCClient extends HTLCClient {
 
     async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> { ... }
     async getUserLockDetails(params: LockParams): Promise<LockDetails | null> { ... }
-    async recoverSwap(txHash: string): Promise<RecoveredSwapData> { ... }
+    async recoverSwap(txHash: string, network: Network): Promise<UserLockDetails> { ... }
 
     // ── Public Helpers ─────────────────────────────────────────────────
 
@@ -301,7 +301,7 @@ Key points:
 - Starknet / Aztec: `/^0x[a-fA-F0-9]{1,64}$/`
 - Solana: `/^[1-9A-HJ-NP-Za-km-z]{43,88}$/`
 
-Then fetch transaction + receipt, parse the `UserLocked` event from logs, return `RecoveredSwapData`. If the event is not found, throw.
+Then fetch transaction + receipt, parse the `UserLocked` event from logs to extract the hashlock and token address. Use the `Network` parameter to look up token decimals, then delegate to `this.getUserLockDetails()` with `txId: txHash`. Return `UserLockDetails`. If the event is not found or `getUserLockDetails` returns null, throw.
 
 ### getTransaction
 
@@ -434,7 +434,7 @@ import {
     LockDetails,
     LockStatus,
     AtomicResult,
-    RecoveredSwapData,
+    Network,
     TransactionInfo,
     TransactionStatus,
     BaseHTLCClientConfig,

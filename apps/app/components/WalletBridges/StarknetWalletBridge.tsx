@@ -3,6 +3,7 @@ import {
     useRegisterWallet,
     chainNamespace,
     type TrainWalletAdapter,
+    type Caip2Id,
 } from '@train-protocol/react'
 import type { TrainSDK } from '@train-protocol/sdk'
 import { useSettingsState } from '@/context/settings'
@@ -16,23 +17,28 @@ export function StarknetWalletBridge() {
     const starknetWalletProvider = providers.find(p => p.id == 'starknet')
 
     const adapter = useMemo<TrainWalletAdapter>(() => {
-        function getRpcUrl(): string {
-            const starknetNetwork = networks.find(n => n.caip2Id.startsWith('starknet:'))
-            return (starknetNetwork ? getEffectiveRpcUrls(starknetNetwork)[0] ?? starknetNetwork.nodes?.[0]?.url : '') ?? ''
+        function getRpcUrl(caip2Id?: Caip2Id): string {
+            const network = networks.find(n =>
+                caip2Id
+                    ? n.caip2Id === (caip2Id as string)
+                    : n.caip2Id.startsWith('starknet:')
+            )
+            if (!network) return ''
+            return getEffectiveRpcUrls(network)[0] ?? network.nodes?.[0]?.url ?? ''
         }
 
         return {
             chainNamespace: chainNamespace('starknet'),
 
-            createClient(sdk: TrainSDK) {
-                return sdk.createHTLCClient('starknet', { rpcUrl: getRpcUrl() })
+            createClient(sdk: TrainSDK, networkId: Caip2Id) {
+                return sdk.createHTLCClient('starknet', { rpcUrl: getRpcUrl(networkId) })
             },
 
-            createWriteClient(sdk: TrainSDK, _address?: string) {
+            createWriteClient(sdk: TrainSDK, networkId: Caip2Id, _address?: string) {
                 const starknetAccount = starknetWalletProvider?.activeWallet?.metadata?.starknetAccount
 
                 return sdk.createHTLCClient('starknet', {
-                    rpcUrl: getRpcUrl(),
+                    rpcUrl: getRpcUrl(networkId),
                     signer: starknetAccount ? { address: starknetAccount.address, account: starknetAccount } : undefined,
                 })
             },

@@ -13,6 +13,7 @@ import { Widget } from "../../Widget/Index";
 import { generateSwapInitialValues } from "@/lib/generateSwapInitialValues";
 import { useSettingsState } from "@/context/settings";
 import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
+import { buildSwapQuery } from "@/helpers/swapUrl";
 import { useSwapStore } from "@/stores/swapStore";
 import { useActiveSwap } from "@/hooks/useActiveSwap";
 
@@ -148,7 +149,7 @@ const setSwapInUrl = (router: NextRouter, sourceNetwork: string, txHash: string)
     const basePath = router?.basePath || ""
     let url = window.location.protocol + "//" + window.location.host + `${basePath}/swap`
     const params = resolvePersistantQueryParams(router.query)
-    const atomicParams = new URLSearchParams({ sourceNetwork, txHash })
+    const atomicParams = new URLSearchParams(buildSwapQuery(sourceNetwork, txHash))
     url += `?${atomicParams}`
     if (params && Object.keys(params).length) {
         const search = new URLSearchParams(params as any);

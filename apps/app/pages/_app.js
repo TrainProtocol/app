@@ -18,7 +18,6 @@ if (typeof window !== 'undefined') {
   import('@train-protocol/aztec').then(m => m.registerAztecSdk());
   import('@train-protocol/solana').then(m => m.registerSolanaSdk());
   import('@train-protocol/starknet').then(m => m.registerStarknetSdk());
-  import('@train-protocol/fuel').then(m => m.registerFuelSdk());
   import('@train-protocol/tron').then(m => m.registerTronSdk());
 }
 
