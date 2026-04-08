@@ -7,7 +7,7 @@ import AuthBlock from "@/components/AuthBlock"
 import { UserStatusContent } from "@/components/SecretDerivation/UserStatus"
 import { LoginSteps } from "@/components/SecretDerivation/LoginSteps"
 import { usePasskeyLoginFlow } from "@/hooks/usePasskeyLoginFlow"
-import { useSecretDerivationStore } from "@/stores/secretDerivationStore"
+import { useSharedSecretDerivation } from "@train-protocol/react"
 import { useLoginModalStore } from "@/stores/loginModalStore"
 import { ChevronLeft } from "lucide-react"
 import { useRouter } from "next/router"
@@ -17,7 +17,7 @@ type SidebarView = "tabs" | "loginStatus"
 const AppSidebar: FC = () => {
     const [view, setView] = useState<SidebarView>("tabs")
     const router = useRouter()
-    const { method, loginWallet } = useSecretDerivationStore()
+    const { method, loginWallet, logout } = useSharedSecretDerivation()
     const loginActive = useLoginModalStore((s) => s.isOpen && s.target === 'sidebar')
     const { open: openLogin, close: closeLogin } = useLoginModalStore()
 
@@ -84,7 +84,7 @@ const AppSidebar: FC = () => {
                     <UserStatusContent
                         method={method}
                         loginWallet={loginWallet}
-                        logout={() => useSecretDerivationStore.getState().logout()}
+                        logout={logout}
                         onClose={() => setView("tabs")}
                     />
                 )}

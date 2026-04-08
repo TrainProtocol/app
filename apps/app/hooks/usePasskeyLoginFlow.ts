@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useSecretDerivation } from '@/context/secretDerivationContext'
-import { usePasskeyCredentialIds } from '@/stores/secretDerivationStore'
+import { useSharedSecretDerivation } from '@train-protocol/react'
 import { useSteps } from '@/hooks/useSteps'
-import { mapPasskeyError } from '@/lib/htlc/secretDerivation/passkeyService'
+import { mapPasskeyError } from '@train-protocol/auth'
 
 export type LoginStep = 'unsupported' | 'passkey_recovery' | 'signing'
 
@@ -13,9 +12,8 @@ interface UsePasskeyLoginFlowOptions {
 }
 
 export function usePasskeyLoginFlow({ isActive, onSuccess, onDismiss }: UsePasskeyLoginFlowOptions) {
-  const { loginWithPasskey, derivationMessage, prfSupportDetails, isReady } = useSecretDerivation()
-  const storedPasskeyIds = usePasskeyCredentialIds()
-  const hasStoredPasskeys = storedPasskeyIds.length > 0
+  const { loginWithPasskey, derivationMessage, prfSupportDetails, isReady, passkeyCredentials } = useSharedSecretDerivation()
+  const hasStoredPasskeys = passkeyCredentials.length > 0
   const { currentStep, goToStep, canGoBack, reset } = useSteps<LoginStep>({ initial: 'signing' })
   const [passkeyError, setPasskeyError] = useState<string | null>(null)
   const [signingError, setSigningError] = useState<string | null>(null)

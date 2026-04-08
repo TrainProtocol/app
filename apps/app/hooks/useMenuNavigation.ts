@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react"
 import { useFormWizardaUpdate } from "@/context/formWizardProvider"
 import { MenuStep } from "@/Models/Wizard"
-import { Network } from "@/Models/Network"
+import { ExtendedNetwork } from "@/Models/Network"
 import { useRouter } from "next/router"
 import { useSwapStore } from "@/stores/swapStore"
 
@@ -11,7 +11,7 @@ export function useMenuNavigation() {
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
 
-    const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null)
+    const [selectedNetwork, setSelectedNetwork] = useState<ExtendedNetwork | null>(null)
 
     const goBackToMenuStep = useCallback(() => {
         goToStep(MenuStep.Menu, "back")
@@ -25,7 +25,7 @@ export function useMenuNavigation() {
         goToStep(step)
     }, [goToStep])
 
-    const handleNetworkSelect = useCallback((network: Network) => {
+    const handleNetworkSelect = useCallback((network: ExtendedNetwork) => {
         setSelectedNetwork(network)
         goToStep(MenuStep.NetworkRPCEdit)
     }, [goToStep])

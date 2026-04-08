@@ -5,7 +5,7 @@ import { MenuIcon } from "lucide-react"
 
 export default function NavbarActions() {
     const sidebar = useSidebarSafe()
-    const hasActiveSwap = useSwapStore(s => !!s.activeHashlock && !!s.swaps[s.activeHashlock!])
+    const hasActiveSwap = useSwapStore(s => !!s.activeHashlock)
 
     if (!sidebar) return null
     if (sidebar.open) return null

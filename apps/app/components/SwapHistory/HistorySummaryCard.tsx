@@ -1,9 +1,8 @@
 import { ChevronRight } from 'lucide-react'
 import { FC } from 'react'
 import { ImageWithFallback } from '@/components/Common/ImageWithFallback'
-import { type SwapData } from '@train-protocol/react'
+import { type SwapData, isTerminalStatus } from '@train-protocol/react'
 import { Network } from '@/Models/Network'
-import { isTerminalStatus } from '@/Models/HTLCStatus'
 import StatusIcons from './StatusIcons'
 
 type Props = {
