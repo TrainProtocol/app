@@ -50,7 +50,7 @@ export function isValidAddress(address?: string, network?: { displayName?: strin
         }
         return false
     }
-    else if (id === KnownInternalNames.Networks.TronMainnet || id === KnownInternalNames.Networks.TronTestnet) {
+    else if (id.toLowerCase().startsWith("tron")) {
         const decodedAddress = decodeBase58(address).toUpperCase();
         return decodedAddress.startsWith('41') && decodedAddress.length == 42
     }
@@ -134,7 +134,10 @@ function decodeBase58(base58Str) {
     if (hex.length % 2 !== 0) {
         hex = '0' + hex; // Ensure even length for proper byte representation
     }
-    let bytes = Array.from(Buffer.from(hex, 'hex'));
+    let bytes: number[] = [];
+    for (let i = 0; i < hex.length; i += 2) {
+        bytes.push(parseInt(hex.substring(i, i + 2), 16));
+    }
 
     // Add leading zero bytes for each '1' in the original Base58 string
     let leadingZeroes = 0;

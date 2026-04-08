@@ -1,15 +1,17 @@
-import { FC, useEffect } from "react";
-import { useAtomicState } from "@/context/atomicContext";
+import { FC } from "react";
+import { useActiveSwap } from "@/hooks/useActiveSwap";
 import Summary from "./Summary";
-
-import { SwapQuote } from "@/lib/trainApiClient";
+import type { SwapQuote } from "@train-protocol/react";
 import SwapQuoteComp from "@/components/FeeDetails/SwapQuote";
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import { Gauge } from "./Gauge";
 import Timeline from "./Timeline";
 import { useSwapProgress } from "./useSwapProgress";
 import { CircleCheck, SearchX, Undo2, X } from "lucide-react";
-import { HTLCStatus } from "@/Models/HTLCStatus";
+import { HTLCStatus } from "@train-protocol/react";
+import { Loader2 } from "lucide-react";
+import { useFormikContext } from "formik";
+import { useSettingsState } from "@/context/settings";
 
 type AtomicContentProps = {
     quote?: SwapQuote
@@ -17,15 +19,22 @@ type AtomicContentProps = {
 }
 
 const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }) => {
-    const {
-        htlcStatus: commitStatus, destination_network, source_network,
-        source_asset, destination_asset, amount,
-        hashlock,
-    } = useAtomicState()
+    const swap = useActiveSwap()
+    const { values } = useFormikContext<SwapFormValues>()
+    const { networks } = useSettingsState()
 
+    // Post-lock: use derived state. Pre-lock: use Formik values.
+    const source_network = swap.sourceNetwork ? networks.find(n => n.caip2Id == swap.sourceNetwork?.caip2Id) : values?.from
+    const destination_network = swap.destinationNetwork ? networks.find(n => n.caip2Id == swap.destinationNetwork?.caip2Id) : values?.to
+    const source_asset = swap.sourceToken ? source_network?.tokens.find(t => t.contract == swap.sourceToken?.contract) : values?.fromCurrency
+    const destination_asset = swap.destinationToken ? destination_network?.tokens.find(t => t.contract == swap.destinationToken?.contract) : values?.toCurrency
+    const amount = swap.requestedAmount ? Number(swap.requestedAmount) : (values?.amount ? Number(values.amount) : undefined)
+    const hashlock = swap.hashlock
+
+    const { status: commitStatus } = swap
     const isInitial = commitStatus === HTLCStatus.Initial
 
-    const values: SwapFormValues = {
+    const formValues: SwapFormValues = {
         amount: amount?.toString(),
         from: source_network,
         to: destination_network,
@@ -33,14 +42,24 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
         toCurrency: destination_asset,
     }
 
-    if(!source_network || !destination_network || !source_asset || !destination_asset) return <SwapNotFound />;
-    
+    if (swap.isLoading) return <SwapLoading />;
+    if (!source_network || !destination_network || !source_asset || !destination_asset) return <SwapNotFound />;
+
     return (
         <>
-            <Summary quote={quote} isQuoteLoading={isQuoteLoading} />
+            <Summary
+                sourceNetwork={source_network}
+                destinationNetwork={destination_network}
+                sourceToken={source_asset}
+                destinationToken={destination_asset}
+                requestedAmount={amount}
+                receiveAmount={swap.receiveAmount}
+                htlcFromApi={swap.htlcFromApi}
+                quote={quote}
+            />
 
             {isInitial && !hashlock && (
-                <SwapQuoteComp values={values} quote={quote} isQuoteLoading={isQuoteLoading} />
+                <SwapQuoteComp values={formValues} quote={quote} isQuoteLoading={isQuoteLoading} />
             )}
 
             {(!isInitial || hashlock) && <SwapProgressPanel />}
@@ -91,6 +110,13 @@ const SwapProgressPanel: FC = () => {
         </div>
     );
 };
+
+const SwapLoading: FC = () => (
+    <div className="flex flex-col items-center justify-center gap-2 w-full min-h-[450px]">
+        <Loader2 className="h-10 w-10 text-primary animate-spin" />
+        <span className="text-sm text-secondary-text">Loading swap data...</span>
+    </div>
+);
 
 const SwapNotFound: FC = () => (
     <div className="flex flex-col items-center justify-center gap-2 w-full min-h-[450px]">

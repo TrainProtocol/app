@@ -9,7 +9,7 @@ import { FC } from "react";
 import { useFormikContext } from "formik";
 import useWallet from "../../hooks/useWallet";
 import { useConnectModal } from "../WalletModal";
-import { useSecretDerivation } from "../../context/secretDerivationContext";
+import { useSharedSecretDerivation } from "@train-protocol/react";
 import { useLoginModalStore } from "@/stores/loginModalStore";
 import SubmitButton from "../buttons/submitButton";
 
@@ -29,7 +29,7 @@ const FormButton = ({
     actionDisplayName,
     shouldConnectDestinationWallet
 }) => {
-    const { isLoggedIn } = useSecretDerivation();
+    const { isLoggedIn } = useSharedSecretDerivation();
     const { open: openLogin } = useLoginModalStore();
 
     // Check derivation method first (before any other checks)

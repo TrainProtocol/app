@@ -62,10 +62,12 @@ Additional utility files (`rpc.ts`, `utils.ts`) are allowed when the chain needs
     // chain-specific libraries only
   },
   "peerDependencies": {
-    "@train-protocol/sdk": "workspace:^"
+    "@train-protocol/sdk": "workspace:^",
+    "@train-protocol/auth": "workspace:^"
   },
   "devDependencies": {
     "@train-protocol/sdk": "workspace:^",
+    "@train-protocol/auth": "workspace:^",
     "@types/node": "^20",
     "rimraf": "^6.0.1",
     "typescript": "catalog:",
@@ -75,7 +77,7 @@ Additional utility files (`rpc.ts`, `utils.ts`) are allowed when the chain needs
 }
 ```
 
-Chain-specific libraries go in `dependencies`. The base SDK is always a `peerDependency`.
+Chain-specific libraries go in `dependencies`. The base SDK and auth package are always `peerDependencies`.
 
 ---
 
@@ -93,6 +95,10 @@ declare module '@train-protocol/sdk' {
     interface HTLCClientConfigMap {
         {namespace}: {Chain}HTLCClientConfig
     }
+}
+
+// Augment the auth registry for wallet sign configs.
+declare module '@train-protocol/auth' {
     interface WalletSignConfigMap {
         {namespace}: {Chain}WalletSignConfig
     }
@@ -339,7 +345,8 @@ Rules:
 Because `types.ts` augments `HTLCClientConfigMap` and `WalletSignConfigMap`, the factory callbacks receive fully-typed configs — no `as` casts needed.
 
 ```ts
-import { registerHTLCClient, registerWalletSign } from '@train-protocol/sdk'
+import { registerHTLCClient } from '@train-protocol/sdk'
+import { registerWalletSign } from '@train-protocol/auth'
 import { {Chain}HTLCClient } from './client.js'
 import { deriveKeyFrom{Chain}Wallet } from './login/index.js'
 

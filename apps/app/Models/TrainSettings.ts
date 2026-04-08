@@ -1,5 +1,5 @@
-import { Network } from "./Network";
+import { ExtendedNetwork } from "./Network";
 
 export class TrainSettings {
-    networks: Network[];
+    networks: ExtendedNetwork[];
 };

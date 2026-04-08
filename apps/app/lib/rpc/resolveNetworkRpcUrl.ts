@@ -1,12 +1,12 @@
 import { useRpcConfigStore } from '@/stores/rpcConfigStore'
-import { Network } from '@/Models/Network'
+import { ExtendedNetwork } from '@/Models/Network'
 import { http, fallback, type Transport } from 'viem'
 
 /**
  * Get the effective RPC URLs for a network, respecting user overrides.
  * Works outside React (balance providers, gas providers) via Zustand getState().
  */
-export function getNetworkRpcUrls(network: Network): string[] {
+export function getNetworkRpcUrls(network: ExtendedNetwork): string[] {
     const store = useRpcConfigStore.getState()
     return store.getEffectiveRpcUrls(network)
 }
@@ -14,7 +14,7 @@ export function getNetworkRpcUrls(network: Network): string[] {
 /**
  * Get the primary effective RPC URL (first in priority order).
  */
-export function getNetworkRpcUrl(network: Network): string {
+export function getNetworkRpcUrl(network: ExtendedNetwork): string {
     return getNetworkRpcUrls(network)[0] ?? ''
 }
 
@@ -23,7 +23,7 @@ export function getNetworkRpcUrl(network: Network): string {
  * Throws if no RPC URLs are available for the network.
  */
 export function buildNetworkTransport(
-    network: Network,
+    network: ExtendedNetwork,
     options?: { timeout?: number; retryCount?: number },
 ): Transport {
     const urls = getNetworkRpcUrls(network)

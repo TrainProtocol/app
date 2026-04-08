@@ -1,11 +1,13 @@
 import type { Transaction, VersionedTransaction } from '@solana/web3.js'
-import type { BaseHTLCClientConfig } from '@train-protocol/sdk'
 import type { SolanaWalletLike } from './login/index.js'
 
 declare module '@train-protocol/sdk' {
     interface HTLCClientConfigMap {
         solana: SolanaHTLCClientConfig
     }
+}
+
+declare module '@train-protocol/auth' {
     interface WalletSignConfigMap {
         solana: SolanaWalletSignConfig
     }
@@ -25,7 +27,7 @@ export interface SolanaSigner {
     sendTransaction(tx: Transaction | VersionedTransaction): Promise<string>
 }
 
-export type SolanaHTLCClientConfig = BaseHTLCClientConfig & {
+export type SolanaHTLCClientConfig = {
     rpcUrl: string
     signer?: SolanaSigner
 }

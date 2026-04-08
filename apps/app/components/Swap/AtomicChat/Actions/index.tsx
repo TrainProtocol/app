@@ -1,38 +1,34 @@
-import { FC, useEffect, useMemo, useRef, useState } from "react";
-import { useAtomicState } from "@/context/atomicContext";
+import { FC, useEffect, useRef, useState } from "react";
+import { useActiveSwap } from "@/hooks/useActiveSwap";
 import { RevealSecretAction } from "./RevealSecret";
-import { ManualClaimAction } from "./ManualClaim";
+import { ManualRedeemAction } from "./ManualClaim";
 import { UserRefundAction, UserLockAction } from "./UserActions";
 import TransactionMessages from "@/components/Swap/messages/TransactionMessages";
 import WalletMessage from "@/components/Swap/messages/Message";
 import DestinationWalletWrapper from "./DestinationWalletWrapper";
-import { SwapQuote } from "@/lib/trainApiClient";
+import { SwapQuote, TrainErrorCode } from "@train-protocol/react";
 import SubmitButton from "@/components/buttons/submitButton";
 import { ExternalLink, Home } from "lucide-react";
 import { useGoHome } from "@/hooks/useGoHome";
 import { getExplorerUrl } from "@/lib/address";
-import NetworkSettings from "@/lib/NetworkSettings";
 import { Widget } from "@/components/Widget/Index";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
-import { Drawer } from "@/components/Modal/vaul";
-import { HTLCStatus } from "@/Models/HTLCStatus";
-import { useLoginIdentityMismatch, type IdentityWarning } from "@/hooks/useLoginIdentityMismatch";
-import { useSecretDerivationStore, LoginIdentity } from "@/stores/secretDerivationStore";
-import { deriveSecretFromTimelock, secretToHashlock } from "@train-protocol/sdk";
+import { useLoginIdentityMismatch, HTLCStatus } from "@train-protocol/react";
 import { useSwapStore } from "@/stores/swapStore";
-import { useShallow } from "zustand/react/shallow";
+import { Drawer } from "@/components/Modal/vaul";
 
 export type SwapViewType = "widget" | "contained"
 
 type ActionsProps = {
     quote?: SwapQuote
+    solverId?: string
     type: SwapViewType
 }
 
-export const Actions: FC<ActionsProps> = ({ quote, type }) => {
-    const { htlcStatus: commitStatus, error } = useAtomicState()
+export const Actions: FC<ActionsProps> = ({ quote, solverId, type }) => {
+    const { status: commitStatus, error } = useActiveSwap()
 
     return (
         <>
@@ -43,6 +39,7 @@ export const Actions: FC<ActionsProps> = ({ quote, type }) => {
                     error={error?.message}
                     errorCode={error?.code}
                     quote={quote}
+                    solverId={solverId}
                     type={type}
                 />
             </DestinationWalletWrapper>
@@ -53,27 +50,21 @@ export const Actions: FC<ActionsProps> = ({ quote, type }) => {
 type ResolveActionProps = {
     commitStatus: HTLCStatus
     error: string | undefined
-    errorCode?: string
+    errorCode?: TrainErrorCode
     quote?: SwapQuote
+    solverId?: string
     type: SwapViewType
 }
 
-const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode, quote, type }) => {
-    const { setError, hashlock } = useAtomicState()
-    const removeSwap = useSwapStore(s => s.removeSwap)
+const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode, quote, solverId, type }) => {
+    const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
     const goHome = useGoHome()
 
-    if (error) {
-        const isTxFailed = errorCode === 'TX_FAILED'
-
+    if (error && errorCode === TrainErrorCode.UserLockTransactionFailed) {
         const handleRetry = () => {
-            setError(undefined)
-            if (isTxFailed && hashlock) {
-                removeSwap(hashlock)
-                if (type === 'widget') {
-                    goHome()
-                }
-                return
+            setActiveHashlock(null)
+            if (type === 'widget') {
+                goHome()
             }
         }
 
@@ -92,7 +83,7 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode,
         case HTLCStatus.TimelockExpired:
             return <UserRefundAction type={type} />
         case HTLCStatus.ManualClaimRequired:
-            return <ManualClaimAction type={type} />
+            return <ManualRedeemAction type={type} />
         case HTLCStatus.SecretRevealed:
             return <></>
         case HTLCStatus.SolverLockDetected:
@@ -100,7 +91,7 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode,
         case HTLCStatus.UserLocked:
             return <></>
         default:
-            return <UserLockAction quote={quote} type={type} />
+            return <UserLockAction quote={quote} solverId={solverId} type={type} />
     }
 }
 
@@ -110,18 +101,12 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const [autoRevealFailed, setAutoRevealFailed] = useState(false)
     const attemptedRef = useRef(false)
     const { verified, skipped, mismatches } = useSolverLockVerification()
-    const { lightClientPending, hashlock, sourceDetails } = useAtomicState()
-    const swap = useSwapStore(useShallow(s => hashlock ? s.swaps[hashlock] : undefined))
-    const { warning: metadataWarning } = useLoginIdentityMismatch(swap?.loginIdentity)
-    const storedDerivedKey = useSecretDerivationStore(s => s.storedDerivedKey)
-    const isLoggedIn = useSecretDerivationStore(s => s.isLoggedIn)
-    const recoveryWarning = useMemo(
-        () => checkRecoveryIdentity(swap?.loginIdentity, hashlock, sourceDetails?.userData, storedDerivedKey ?? undefined, isLoggedIn),
-        [swap?.loginIdentity, hashlock, sourceDetails?.userData, storedDerivedKey, isLoggedIn]
-    )
-    const warning = metadataWarning || recoveryWarning
+    const { consensusVerified, consensusVerifying, loginIdentity } = useActiveSwap()
+    const { warning } = useLoginIdentityMismatch(loginIdentity ?? undefined)
 
-    const shouldAutoReveal = autoRevealSecret && hasSeenAutoRevealPrompt && !autoRevealFailed && verified && !lightClientPending && !warning
+    // Wait for both quote verification AND multi-RPC consensus before revealing
+    const consensusReady = consensusVerified || skipped
+    const shouldAutoReveal = autoRevealSecret && hasSeenAutoRevealPrompt && !autoRevealFailed && verified && consensusReady && !warning
 
     useEffect(() => {
         if (shouldAutoReveal && !attemptedRef.current) {
@@ -135,9 +120,8 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     if (warning) {
         return <WalletMessage status="warning" header={warning.header} details={warning.details} />
     }
-
-    // Wait for light client verification before allowing secret reveal
-    if (lightClientPending) return <></>
+    // Wait for consensus verification before allowing secret reveal
+    if (consensusVerifying) return <></>
 
     if (shouldAutoReveal) return <></>
 
@@ -157,15 +141,15 @@ export const ActionWrapper: FC<{ children: React.ReactNode, type: SwapViewType }
 }
 
 const TerminalActions: FC<{ variant: 'success' | 'refund'; type: SwapViewType }> = ({ variant, type }) => {
-    const { destRedeemTx, destination_network, refundTxId, source_network } = useAtomicState()
+    const { destinationNetwork, sourceNetwork, refundTxId, destRedeemTxId } = useActiveSwap()
     const goHome = useGoHome()
 
     const isSuccess = variant === 'success'
     const isModal = type === 'contained'
-    const networkSlug = isSuccess ? destination_network?.caip2Id : source_network?.caip2Id
-    const txHash = isSuccess ? destRedeemTx : refundTxId
-    const txLink = networkSlug && txHash
-        ? getExplorerUrl(NetworkSettings.KnownSettings[networkSlug]?.TransactionExplorerTemplate, txHash)
+    const network = isSuccess ? destinationNetwork : sourceNetwork
+    const txHash = isSuccess ? destRedeemTxId : refundTxId
+    const txLink = network && txHash
+        ? getExplorerUrl(network.explorerUrlTemplate?.transaction, txHash)
         : undefined
 
     const swapMoreButton = (
@@ -207,64 +191,25 @@ const TerminalActions: FC<{ variant: 'success' | 'refund'; type: SwapViewType }>
     )
 }
 
-const TransactionMessage: FC<{ error: string | undefined, errorCode?: string }> = ({ error, errorCode }) => {
+const TransactionMessage: FC<{ error: string | undefined, errorCode?: TrainErrorCode }> = ({ error, errorCode }) => {
     if (error === "An error occurred (USER_REFUSED_OP)" || error === "Execute failed" || error?.toLowerCase()?.includes('denied') || error?.toLowerCase()?.includes('user rejected')) {
         return <TransactionMessages.TransactionRejectedMessage />
     }
     if (error?.includes('insufficient funds')) {
         return <TransactionMessages.InsufficientFundsMessage />
     }
-    if (error === "Timelock expired") {
-        return (
-            <WalletMessage
-                status="error"
-                header="Timelock expired"
-                details="Unfortunately the time lock was expired, continuing the transaction is not recommended, cancel & refund to receive your assets back."
-            />
-        )
+    if (error?.includes('verification failed') || error?.includes('VERIFICATION_FAILED') || errorCode === TrainErrorCode.VerificationFailed) {
+        return <WalletMessage status="error" header="Verification failed" details={error || "Verification of the solver lock transaction has failed. Please do not reveal you seceret untill you have verified the transaction."} />
     }
-    if (errorCode === 'TX_FAILED') {
+    if (error?.includes('Cannot reveal') || error?.includes('REVEAL_FAILED') || errorCode === TrainErrorCode.RevealFailed) {
+        return <WalletMessage status="error" header="Reveal failed" details={error || "Secret reveal failed"} />
+    }
+
+    if (errorCode === TrainErrorCode.UserLockTransactionFailed) {
         return <></>
     }
     if (error) {
         return <TransactionMessages.UexpectedErrorMessage message={error} />
     }
     return <></>
-}
-
-function checkRecoveryIdentity(
-    loginIdentity: LoginIdentity | undefined,
-    hashlock: string | undefined,
-    userData: string | undefined,
-    storedDerivedKey: Buffer | undefined,
-    isLoggedIn: boolean,
-): IdentityWarning {
-    if (loginIdentity) return null
-
-    if (!isLoggedIn || !storedDerivedKey) {
-        if (!hashlock) return null
-        return {
-            header: 'Login required',
-            details: 'Please log in to continue this swap.',
-        }
-    }
-
-    if (!hashlock || !userData) return null
-
-    const nonce = Number(userData)
-    if (isNaN(nonce)) return null
-
-    try {
-        const derivedSecret = deriveSecretFromTimelock(storedDerivedKey, nonce)
-        const testHashlock = secretToHashlock('0x' + derivedSecret.toString('hex'))
-
-        if (testHashlock.toLowerCase() === hashlock.toLowerCase()) return null
-
-        return {
-            header: 'Identity mismatch',
-            details: 'The current login does not match the identity that created this swap. Please log in with the correct passkey or wallet to continue.',
-        }
-    } catch {
-        return null
-    }
 }

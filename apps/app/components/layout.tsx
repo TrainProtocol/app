@@ -15,8 +15,10 @@ import { TooltipProvider } from "./shadcn/tooltip";
 import { IsExtensionError } from "@/helpers/errorHelper";
 import { AsyncModalProvider } from "@/context/asyncModal";
 import WalletsProviders from "./WalletProviders";
-import { AtomicProvider } from "@/context/atomicContext";
 import { SwapAccountsProvider } from "@/context/swapAccounts";
+import AppSettings from "@/lib/AppSettings";
+import { TrainProvider } from "@train-protocol/react";
+import { useRpcConfigStore } from "@/stores/rpcConfigStore";
 import { LoginModal } from "./SecretDerivation";
 import { useLoginModalStore } from "@/stores/loginModalStore";
 
@@ -29,8 +31,6 @@ type Props = {
 
 export default function Layout({ children, settings }: Props) {
   const router = useRouter();
-  const loginOpen = useLoginModalStore((s) => s.isOpen && s.target === 'modal');
-  const closeLogin = useLoginModalStore((s) => s.close);
   if (!settings)
     return <ThemeWrapper>
       <MaintananceContent />
@@ -70,7 +70,6 @@ export default function Layout({ children, settings }: Props) {
   const description = "The trustless and permissionless way of cross-chain asset bridging & swapping. Move assets across blockchains without third parties, secured by a battle-tested system."
 
   return (<>
-
     <Head>
       <title>{title}</title>
       <link rel="icon" type="image/png" href="favicon/favicon-96x96.png" sizes="96x96" />
@@ -103,26 +102,53 @@ export default function Layout({ children, settings }: Props) {
       <SettingsProvider data={appSettings}>
         <TooltipProvider delayDuration={500}>
           <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
-              <WalletsProviders basePath={basePath} appName={router.query.appName?.toString()}>
-                <ThemeWrapper>
+            <TrainProviderWithRpc networks={appSettings.networks}>
+              <ThemeWrapper>
+                <WalletsProviders basePath={basePath} appName={router.query.appName?.toString()}>
                   <SwapAccountsProvider>
-                    <AtomicProvider>
-                      <AsyncModalProvider>
-                        <LoginModal
-                          isOpen={loginOpen}
-                          onClose={closeLogin}
-                        />
-                        {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
-                          <MaintananceContent />
-                          : children}
-                      </AsyncModalProvider>
-                    </AtomicProvider>
+                    <AppContent>
+                      {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
+                        <MaintananceContent />
+                        : children}
+                    </AppContent>
                   </SwapAccountsProvider>
-                </ThemeWrapper>
-              </WalletsProviders>
-          </ErrorBoundary>
-        </TooltipProvider>
+                </WalletsProviders>
+              </ThemeWrapper>
+            </TrainProviderWithRpc>
+          </ErrorBoundary >
+        </TooltipProvider >
       </SettingsProvider >
     </QueryProvider >
   </>)
+}
+
+function TrainProviderWithRpc({ networks, children }: { networks: import("@/Models/Network").ExtendedNetwork[]; children: React.ReactNode }) {
+  const { getEffectiveRpcUrls } = useRpcConfigStore()
+
+  const resolveNodeUrls = React.useCallback((networkId: string) => {
+    const network = networks.find(n => n.caip2Id === networkId)
+    if (!network) return []
+    return getEffectiveRpcUrls(network)
+  }, [networks, getEffectiveRpcUrls])
+
+  return (
+    <TrainProvider baseUrl={AppSettings.TrainApiUri ?? ''} resolveNodeUrls={resolveNodeUrls} secretDerivation={{ persist: true }}>
+      {children}
+    </TrainProvider>
+  )
+}
+
+function AppContent({ children }: { children: React.ReactNode }) {
+  const loginOpen = useLoginModalStore((s) => s.isOpen && s.target === 'modal');
+  const closeLogin = useLoginModalStore((s) => s.close);
+
+  return (
+    <AsyncModalProvider>
+      <LoginModal
+        isOpen={loginOpen}
+        onClose={closeLogin}
+      />
+      {children}
+    </AsyncModalProvider>
+  )
 }

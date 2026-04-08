@@ -1,13 +1,13 @@
-import { Network, Token } from "../../Models/Network";
+import { ExtendedNetwork, ExtendedToken } from "../../Models/Network";
 
 export type SwapFormValues = {
   amount?: string;
   destination_address?: string;
-  fromCurrency?: Token;
-  toCurrency?: Token;
+  fromCurrency?: ExtendedToken;
+  toCurrency?: ExtendedToken;
   refuel?: boolean;
-  from?: Network;
-  to?: Network;
+  from?: ExtendedNetwork;
+  to?: ExtendedNetwork;
 }
 
 

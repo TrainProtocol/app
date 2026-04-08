@@ -4,7 +4,6 @@ import {
     LockParams,
     RefundParams,
     RedeemSolverParams,
-    LockDetails,
     LockStatus,
     AtomicResult,
     RecoveredSwapData,
@@ -13,10 +12,13 @@ import {
     HTLCClient,
     parseUnits,
     formatUnits,
-    toHex32
+    toHex32,
+    SignerRequiredError,
+    InvalidTxHashError,
 } from '@train-protocol/sdk'
-import { htlcFunctions, htlcEvents, erc20Functions } from './abi.js'
-import { JsonRpcClient } from './rpc.js'
+import type { UserLockDetails, SolverLockDetails } from '@train-protocol/sdk'
+import { htlcFunctions, htlcEvents, erc20Functions, htlcErrorsBySelector } from './abi.js'
+import { JsonRpcClient, JsonRpcError } from './rpc.js'
 import type { EvmHTLCClientConfig, EvmSigner, RpcLog, RpcTransactionReceipt } from './types.js'
 import { ZERO_ADDRESS } from './constants.js'
 
@@ -25,7 +27,7 @@ export class EvmHTLCClient extends HTLCClient {
     private signer: EvmSigner | undefined
 
     constructor(config: EvmHTLCClientConfig) {
-        super(config.apiClient)
+        super()
         this.rpc = new JsonRpcClient(config.rpcUrl)
         this.signer = config.signer
     }
@@ -34,18 +36,15 @@ export class EvmHTLCClient extends HTLCClient {
 
     async userLock(params: UserLockParams): Promise<AtomicResult> {
         const signer = this.requireSigner()
-        const {
-            sourceAsset,
-            sourceAddress
-        } = params
+        const { sourceAsset, sourceAddress } = params
 
-        const parsedAmount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
-        const tokenAddress = sourceAsset.contractAddress || ZERO_ADDRESS
-        const isNativeToken = !sourceAsset.contractAddress || sourceAsset.contractAddress === ZERO_ADDRESS
+        const parsedAmount = parseUnits(params.amount.toString(), sourceAsset.decimals)
+        const tokenAddress = sourceAsset.contract || ZERO_ADDRESS
+        const isNativeToken = !sourceAsset.contract || sourceAsset.contract === ZERO_ADDRESS
 
         if (!isNativeToken) {
             await this.ensureERC20Allowance(
-                sourceAsset.contractAddress!,
+                sourceAsset.contract!,
                 sourceAddress,
                 params.atomicContract,
                 parsedAmount,
@@ -63,7 +62,7 @@ export class EvmHTLCClient extends HTLCClient {
                 rewardTimelockDelta: params.rewardTimelockDelta ?? 0,
                 quoteExpiry: params.quoteExpiry,
                 sender: hex(params.sourceAddress),
-                recipient: hex(params.srcLpAddress),
+                recipient: hex(params.srcSolverAddress),
                 token: hex(tokenAddress),
                 rewardToken: params.rewardToken ?? '',
                 rewardRecipient: params.rewardRecipient ?? '',
@@ -73,7 +72,7 @@ export class EvmHTLCClient extends HTLCClient {
                 dstChain: params.destinationChain,
                 dstAddress: params.destinationAddress,
                 dstAmount: params.destinationAmount,
-                dstToken: params.destinationAsset,
+                dstToken: params.destinationAsset.contract,
             },
             hex(userData),
             hex(params.solverData || '0x'),
@@ -95,6 +94,8 @@ export class EvmHTLCClient extends HTLCClient {
 
             return { hash, hashlock: params.hashlock, nonce: params.nonce };
         } catch (error) {
+            const errorName = decodeContractError(error)
+            if (errorName) throw new Error(`Contract error: ${errorName}`)
             console.error('Error in userLock:', error);
             throw error;
         }
@@ -111,6 +112,8 @@ export class EvmHTLCClient extends HTLCClient {
 
             return signer.sendTransaction({ to: contractAddress, data: calldata })
         } catch (error) {
+            const errorName = decodeContractError(error)
+            if (errorName) throw new Error(`Contract error: ${errorName}`)
             console.error('Error in refund:', error);
             throw error;
         }
@@ -132,6 +135,8 @@ export class EvmHTLCClient extends HTLCClient {
 
             return signer.sendTransaction({ to: contractAddress, data: calldata })
         } catch (error) {
+            const errorName = decodeContractError(error)
+            if (errorName) throw new Error(`Contract error: ${errorName}`)
             console.error('Error in claim:', error);
             throw error;
         }
@@ -139,7 +144,7 @@ export class EvmHTLCClient extends HTLCClient {
 
     // ── Read Operations ────────────────────────────────────────────────
 
-    async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
+    async getUserLockDetails(params: LockParams): Promise<UserLockDetails | null> {
         const { id, contractAddress, txId } = params
 
         const calldata = AbiFunction.encodeData(htlcFunctions.getUserLock, [hex(id)])
@@ -149,6 +154,7 @@ export class EvmHTLCClient extends HTLCClient {
         const lockExists = result.sender !== ZERO_ADDRESS
         let userData: string | undefined
         let blockTimestamp: number | undefined
+        let dstAmount: string | undefined
 
         if (lockExists && txId) {
             try {
@@ -157,6 +163,9 @@ export class EvmHTLCClient extends HTLCClient {
                     const lockEvent = this.findUserLockedEvent(receipt.logs, id)
                     if (lockEvent?.userData && lockEvent.userData !== '0x') {
                         userData = BigInt(lockEvent.userData as string).toString()
+                    }
+                    if (lockEvent?.dstAmount != null) {
+                        dstAmount = BigInt(lockEvent.dstAmount as string | bigint).toString()
                     }
 
                     const block = await this.rpc.getBlockByNumber(receipt.blockNumber)
@@ -180,10 +189,11 @@ export class EvmHTLCClient extends HTLCClient {
             status: lockExists ? Number(result.status) as LockStatus : undefined,
             userData,
             blockTimestamp,
+            dstAmount,
         }
     }
 
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> {
         const { id, contractAddress } = params
         const rpc = new JsonRpcClient(nodeUrl)
 
@@ -194,37 +204,45 @@ export class EvmHTLCClient extends HTLCClient {
         if (count === 0) return null
 
         for (let i = 1; i <= count; i++) {
-            const lockData = AbiFunction.encodeData(htlcFunctions.getSolverLock, [hex(id), BigInt(i)])
-            const lockRaw = await rpc.ethCall(contractAddress, lockData)
-            const result = AbiFunction.decodeResult(htlcFunctions.getSolverLock, hex(lockRaw)) as any
-
-            if (result.sender === ZERO_ADDRESS) continue
-
-            if (params.solverAddress && result.sender.toLowerCase() !== params.solverAddress.toLowerCase()) continue
-
-            const solverLock = {
-                hashlock: id,
-                amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
-                secret: result.secret !== 0n ? BigInt(result.secret) : undefined,
-                sender: result.sender,
-                recipient: result.recipient !== ZERO_ADDRESS ? result.recipient : undefined,
-                token: result.token !== ZERO_ADDRESS ? result.token : undefined,
-                timelock: Number(result.timelock),
-                reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? 18)),
-                rewardTimelock: Number(result.rewardTimelock),
-                rewardRecipient: result.rewardRecipient !== ZERO_ADDRESS ? result.rewardRecipient : undefined,
-                rewardToken: result.rewardToken !== ZERO_ADDRESS ? result.rewardToken : undefined,
-                status: Number(result.status) as LockStatus,
-            }
-            return solverLock
+            const result = await this.getSolverLockByIndex(params, i, nodeUrl)
+            if (!result) continue
+            if (params.solverAddress && result.sender?.toLowerCase() !== params.solverAddress.toLowerCase()) continue
+            return result
         }
 
         return null
     }
 
+    async getSolverLockByIndex(params: LockParams, index: number, nodeUrl: string): Promise<SolverLockDetails | null> {
+        const { id, contractAddress } = params
+        const rpc = new JsonRpcClient(nodeUrl)
+
+        const lockData = AbiFunction.encodeData(htlcFunctions.getSolverLock, [hex(id), BigInt(index)])
+        const lockRaw = await rpc.ethCall(contractAddress, lockData)
+        const result = AbiFunction.decodeResult(htlcFunctions.getSolverLock, hex(lockRaw)) as any
+
+        if (result.sender === ZERO_ADDRESS) return null
+
+        return {
+            hashlock: id,
+            amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
+            secret: result.secret !== 0n ? BigInt(result.secret) : undefined,
+            sender: result.sender,
+            recipient: result.recipient !== ZERO_ADDRESS ? result.recipient : undefined,
+            token: result.token !== ZERO_ADDRESS ? result.token : undefined,
+            timelock: Number(result.timelock),
+            reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? 18)),
+            rewardTimelock: Number(result.rewardTimelock),
+            rewardRecipient: result.rewardRecipient !== ZERO_ADDRESS ? result.rewardRecipient : undefined,
+            rewardToken: result.rewardToken !== ZERO_ADDRESS ? result.rewardToken : undefined,
+            status: Number(result.status) as LockStatus,
+            index,
+        }
+    }
+
     async recoverSwap(txHash: string): Promise<RecoveredSwapData> {
         if (!/^0x[a-fA-F0-9]{64}$/.test(txHash))
-            throw new Error('Invalid transaction hash format')
+            throw new InvalidTxHashError()
 
         const [receipt, tx] = await Promise.all([
             this.rpc.getTransactionReceipt(txHash),
@@ -280,7 +298,7 @@ export class EvmHTLCClient extends HTLCClient {
     // ── Private Helpers ────────────────────────────────────────────────
 
     private requireSigner(): EvmSigner {
-        if (!this.signer) throw new Error('Signer required')
+        if (!this.signer) throw new SignerRequiredError()
         return this.signer
     }
 
@@ -341,6 +359,14 @@ export class EvmHTLCClient extends HTLCClient {
         }
         return null
     }
+}
+
+function decodeContractError(error: unknown): string | null {
+    if (error instanceof JsonRpcError && typeof error.data === 'string' && error.data.startsWith('0x')) {
+        const selector = error.data.slice(0, 10)
+        return htlcErrorsBySelector[selector] ?? null
+    }
+    return null
 }
 
 type Hex = `0x${string}`

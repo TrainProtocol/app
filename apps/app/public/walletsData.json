@@ -1,5 +1,5 @@
 {
-  "count": 637,
+  "count": 636,
   "listings": {
     "00e39f835988d1bb783b2a0748e18bc6278dec03492d00b0e102a466cd8b3d77": {
       "app": {
@@ -3338,11 +3338,13 @@
         "eip155:56",
         "eip155:59144",
         "eip155:8453",
+        "hedera:mainnet",
         "polkadot:91b171bb158e2d3848fa23a9f1c25182",
         "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
         "stellar:pubnet",
         "sui:mainnet",
         "ton:-239",
+        "tron:0x2b6653dc",
         "vechain:b1ac3413d346d43539627e6be7ec1b4a",
         "xrpl:0"
       ],
@@ -32633,7 +32635,7 @@
         "shortName": null
       },
       "mobile": {
-        "native": "domawallet://",
+        "native": "goldwallet://",
         "universal": ""
       },
       "name": "DomaWallet",
@@ -35806,68 +35808,6 @@
       ],
       "slug": "m-wallet",
       "updatedAt": "2026-01-08T06:06:30.286311+00:00",
-      "versions": [
-        "1",
-        "2"
-      ]
-    },
-    "b2ce31fb31735fa886270806340de999f72342a7c29484badd8d4d013d77c8b8": {
-      "app": {
-        "android": "https://play.google.com/store/apps/details?id=com.wirex.wallet",
-        "browser": "https://wirexapp.com/wirex-wallet",
-        "chrome": null,
-        "edge": null,
-        "firefox": null,
-        "ios": "https://apps.apple.com/app/id1594165139",
-        "linux": null,
-        "mac": null,
-        "opera": null,
-        "safari": null,
-        "windows": null
-      },
-      "app_type": "wallet",
-      "category": "Mobile Wallets",
-      "chains": [
-        "eip155:1",
-        "eip155:137",
-        "eip155:250",
-        "eip155:42161",
-        "eip155:43114",
-        "eip155:56"
-      ],
-      "description": "Dive into a realm of unparalleled security devoid of private key vulnerabilities, all while retaining absolute control over your funds.",
-      "desktop": {
-        "native": "",
-        "universal": "https://wirexapp.com/wirex-wallet"
-      },
-      "homepage": "https://www.coca.xyz/",
-      "id": "b2ce31fb31735fa886270806340de999f72342a7c29484badd8d4d013d77c8b8",
-      "image_id": "34c9a3a1-a331-4c30-f7bc-182861ccca00",
-      "image_url": {
-        "lg": "https://explorer-api.walletconnect.com/v3/logo/md/34c9a3a1-a331-4c30-f7bc-182861ccca00?projectId=34357d3c125c2bcf2ce2bc3309d98715",
-        "md": "https://explorer-api.walletconnect.com/v3/logo/md/34c9a3a1-a331-4c30-f7bc-182861ccca00?projectId=34357d3c125c2bcf2ce2bc3309d98715",
-        "sm": "https://explorer-api.walletconnect.com/v3/logo/sm/34c9a3a1-a331-4c30-f7bc-182861ccca00?projectId=34357d3c125c2bcf2ce2bc3309d98715"
-      },
-      "injected": null,
-      "metadata": {
-        "colors": {
-          "primary": "#4578ff",
-          "secondary": "#0F110F"
-        },
-        "shortName": "COCA Wallet"
-      },
-      "mobile": {
-        "native": "wirexwallet://",
-        "universal": "https://wwallet.app.link/wc?uri=wc:00e46b69-d0cc-4b3e-b6a2-cee442f97188@1?bridge=https%3A%2F%2Fbridge.walletconnect.org&key=91303dedf64285cbbaf9120f6e9d160a5c8aa3deb67017a3874cd272323f48ae"
-      },
-      "name": "COCA Wallet",
-      "rdns": null,
-      "sdks": [
-        "sign_v1",
-        "sign_v2"
-      ],
-      "slug": "wirex-wallet",
-      "updatedAt": "2022-11-14T20:32:09.180875+00:00",
       "versions": [
         "1",
         "2"
@@ -52489,5 +52429,5 @@
       ]
     }
   },
-  "total": 637
+  "total": 636
 }

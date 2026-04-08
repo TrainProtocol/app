@@ -1,7 +1,7 @@
 import { useSettingsState } from "../context/settings"
 import { selectResolvedSortingBalances, useBalanceStore } from "@/stores/balanceStore"
 import { useEffect, useMemo, useRef } from "react"
-import { Network } from "@/Models/Network"
+import { ExtendedNetwork } from "@/Models/Network"
 import { NetworkBalance } from "@/Models/Balance"
 import { useSwapAccounts } from "@/context/swapAccounts"
 
@@ -20,7 +20,7 @@ export default function useAllWithdrawalBalances() {
                     network,
                 }
             })
-        }).flat().filter(item => item !== null) as Array<{ address: string, network: Network }>
+        }).flat().filter(item => item !== null) as Array<{ address: string, network: ExtendedNetwork }>
     }, [swapAccounts, networks])
 
     const walletNetworksString = useMemo(() => {

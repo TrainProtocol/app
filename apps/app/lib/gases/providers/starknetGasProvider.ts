@@ -5,7 +5,7 @@ import { getNetworkRpcUrl } from "../../rpc/resolveNetworkRpcUrl"
 
 export class StarknetGasProvider implements GasProvider {
     supportsNetwork(network: Network): boolean {
-        return network.type?.name === 'starknet'
+        return network.networkType === 'starknet'
     }
 
     getGas = async ({ network, token, wallet }: GasProps) => {
@@ -19,7 +19,7 @@ export class StarknetGasProvider implements GasProvider {
 
         if (!rpcUrl || !contractAddress || !nativeToken) return
 
-        const tokenAddress = token?.contractAddress ?? nativeToken.contractAddress
+        const tokenAddress = token?.contract ?? nativeToken.contract
         if (!tokenAddress) return
 
         try {

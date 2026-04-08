@@ -2152,7 +2152,7 @@ export const TrainHtlc = (address: string): Idl => ({
         },
         {
           "name": "dst_amount",
-          "type": "u64"
+          "type": "u128"
         },
         {
           "name": "dst_token",
@@ -2351,7 +2351,7 @@ export const TrainHtlc = (address: string): Idl => ({
         },
         {
           "name": "dst_amount",
-          "type": "u64"
+          "type": "u128"
         },
         {
           "name": "dst_token",
@@ -2597,7 +2597,7 @@ export const TrainHtlc = (address: string): Idl => ({
         },
         {
           "name": "dst_amount",
-          "type": "u64"
+          "type": "u128"
         },
         {
           "name": "dst_token",
@@ -2702,7 +2702,7 @@ export const TrainHtlc = (address: string): Idl => ({
         },
         {
           "name": "dst_amount",
-          "type": "u64"
+          "type": "u128"
         },
         {
           "name": "dst_token",
@@ -2710,7 +2710,7 @@ export const TrainHtlc = (address: string): Idl => ({
         },
         {
           "name": "reward_amount",
-          "type": "u64"
+          "type": "u128"
         },
         {
           "name": "reward_token",
@@ -2868,7 +2868,7 @@ export const TrainHtlc = (address: string): Idl => ({
         },
         {
           "name": "dst_amount",
-          "type": "u64"
+          "type": "u128"
         },
         {
           "name": "dst_token",
@@ -2876,7 +2876,7 @@ export const TrainHtlc = (address: string): Idl => ({
         },
         {
           "name": "reward_amount",
-          "type": "u64"
+          "type": "u128"
         },
         {
           "name": "reward_token",
@@ -3284,7 +3284,7 @@ export const TrainHtlc = (address: string): Idl => ({
           },
           {
             "name": "dst_amount",
-            "type": "u64"
+            "type": "u128"
           },
           {
             "name": "dst_token",
@@ -3482,7 +3482,7 @@ export const TrainHtlc = (address: string): Idl => ({
           },
           {
             "name": "dst_amount",
-            "type": "u64"
+            "type": "u128"
           },
           {
             "name": "dst_token",
@@ -3490,7 +3490,7 @@ export const TrainHtlc = (address: string): Idl => ({
           },
           {
             "name": "reward_amount",
-            "type": "u64"
+            "type": "u128"
           },
           {
             "name": "reward_token",

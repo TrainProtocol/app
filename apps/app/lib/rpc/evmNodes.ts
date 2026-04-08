@@ -1,4 +1,4 @@
-import { NetworkNode } from '@train-protocol/sdk'
+import { NetworkNode } from '@/Models/Network';
 import chainlistRpcs from './data/chainlistRpcs.json'
 
 type ChainlistEntry = { chainId: number; rpc: { url: string; tracking: string | null }[] }

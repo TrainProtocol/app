@@ -1,20 +1,19 @@
-import { registerHTLCClient, registerWalletSign } from '@train-protocol/sdk'
+import { type TrainSDK, defaultTrainSDK } from '@train-protocol/sdk'
+import { type TrainAuth, defaultTrainAuth } from '@train-protocol/auth'
 import { TonHTLCClient } from './client.js'
 import { deriveKeyFromTonWallet } from './login/index.js'
 
-let registered = false
-
 /**
  * Explicitly register the TON HTLC client and wallet-sign factories.
- * Call once at app startup. Safe to call multiple times (idempotent).
+ * Call once at app startup. Accepts optional SDK/Auth instances for testing isolation.
  */
-export function registerTonSdk(): void {
-    if (registered) return
-    registered = true
+export function registerTonSdk(sdk?: TrainSDK, auth?: TrainAuth): void {
+    const s = sdk ?? defaultTrainSDK
+    const a = auth ?? defaultTrainAuth
 
-    registerHTLCClient('ton', (config) => new TonHTLCClient(config))
+    s.registerHTLCClient('ton', (config) => new TonHTLCClient(config))
 
-    registerWalletSign('ton', async (config) => {
+    a.registerWalletSign('ton', async (config) => {
         return deriveKeyFromTonWallet(config.wallet)
     })
 }

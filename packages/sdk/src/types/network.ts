@@ -1,22 +1,3 @@
-export type NetworkTypeInfo = {
-    name: string;
-}
-
-export type NetworkNode = {
-    providerName: string;
-    url: string;
-}
-
-export type NetworkContract = {
-    type: NetworkContractType;
-    address: string;
-}
-
-export enum NetworkContractType {
-    Train = "Train",
-    Multicall = "Multicall",
-}
-
 export type ExplorerUrlTemplate = {
     transaction?: string;
     address?: string;
@@ -27,22 +8,19 @@ export class Network {
     displayName: string;
     chainId: string;
     nativeTokenAddress: string;
-    type: NetworkTypeInfo;
+    networkType: string;
     tokens: Token[];
-    nodes: NetworkNode[];
-    contracts: NetworkContract[];
-    metadata: any[];
+    trainContract: string;
     explorerUrlTemplate?: ExplorerUrlTemplate;
     logoUrl?: string;
 }
 
 export const getNativeToken = (network: Network | undefined | null): Token | undefined =>
-    !network ? undefined : network.tokens?.find(t => t.contractAddress === network.nativeTokenAddress);
+    !network ? undefined : network.tokens?.find(t => t.contract === network.nativeTokenAddress);
 
 export class Token {
     symbol: string;
-    contractAddress: string;
+    contract: string;
     decimals: number;
-    priceInUsd?: number;
     logo?: string;
 }

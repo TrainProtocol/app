@@ -1,10 +1,11 @@
-import { cairo, Contract, hash, num, addAddressPadding, ProviderOrAccount, RpcProvider, type Call } from 'starknet'
+import { cairo, CallData, Contract, hash, num, addAddressPadding, ProviderOrAccount, RpcProvider, type Call, byteArray } from 'starknet'
 import {
     UserLockParams,
     LockParams,
     RefundParams,
     RedeemSolverParams,
-    LockDetails,
+    UserLockDetails,
+    SolverLockDetails,
     LockStatus,
     AtomicResult,
     RecoveredSwapData,
@@ -25,7 +26,7 @@ export class StarknetHTLCClient extends HTLCClient {
     private signer: StarknetSigner | undefined
 
     constructor(config: StarknetHTLCClientConfig) {
-        super(config.apiClient)
+        super()
         this.provider = new RpcProvider({ nodeUrl: config.rpcUrl })
         this.signer = config.signer
         this.consensusOptions = { minQuorum: 1, batchSize: 1 }
@@ -37,38 +38,41 @@ export class StarknetHTLCClient extends HTLCClient {
         const signer = this.requireSigner()
 
         const parsedAmount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
-        const tokenAddress = params.tokenContractAddress || params.sourceAsset.contractAddress || ZERO_ADDRESS
+        const tokenAddress = params.sourceAsset.contract || ZERO_ADDRESS
 
         // ERC20 approval
         const erc20 = new Contract({ abi: ERC20_ABI, address: tokenAddress, providerOrAccount: signer.account })
         const approveCall: Call = erc20.populate("approve", [params.atomicContract, cairo.uint256(parsedAmount)])
 
         // Build user_lock call
-        const htlcContract = this.createContract(params.atomicContract, signer.account)
-        const userLockCall: Call = htlcContract.populate('user_lock', [
-            {
-                hashlock: cairo.uint256(BigInt(params.hashlock)),
-                amount: cairo.uint256(parsedAmount),
-                reward_amount: cairo.uint256(params.rewardAmount ? BigInt(params.rewardAmount) : 0n),
-                timelock_delta: params.timelockDelta ?? 150,
-                reward_timelock_delta: params.rewardTimelockDelta ?? 0,
-                quote_expiry: params.quoteExpiry,
-                sender: params.sourceAddress,
-                recipient: params.srcLpAddress,
-                token: tokenAddress,
-                reward_token: params.rewardToken ?? '',
-                reward_recipient: params.rewardRecipient ?? '',
-                src_chain: params.sourceChain || '',
-            },
-            {
-                dst_chain: params.destinationChain,
-                dst_address: params.destinationAddress,
-                dst_amount: cairo.uint256(BigInt(params.destinationAmount)),
-                dst_token: params.destinationAsset,
-            },
-            String(params.nonce),  // userData — nonce timestamp for recovery
-            params.solverData || '',
-        ])
+        const userLockCall: Call = {
+            contractAddress: params.atomicContract,
+            entrypoint: 'user_lock',
+            calldata: CallData.compile([
+                {
+                    hashlock: cairo.uint256(BigInt(params.hashlock)),
+                    amount: cairo.uint256(parsedAmount),
+                    reward_amount: cairo.uint256(params.rewardAmount ? BigInt(params.rewardAmount) : 0n),
+                    timelock_delta: params.timelockDelta,
+                    reward_timelock_delta: params.rewardTimelockDelta,
+                    quote_expiry: params.quoteExpiry,
+                    sender: params.sourceAddress,
+                    recipient: params.srcSolverAddress,
+                    token: tokenAddress,
+                    reward_token: byteArray.byteArrayFromString(params.rewardToken ?? ''),
+                    reward_recipient: byteArray.byteArrayFromString(params.rewardRecipient ?? ''),
+                    src_chain: byteArray.byteArrayFromString(params.sourceChain || ''),
+                },
+                {
+                    dst_chain: byteArray.byteArrayFromString(params.destinationChain),
+                    dst_address: byteArray.byteArrayFromString(params.destinationAddress),
+                    dst_amount: cairo.uint256(BigInt(params.destinationAmount)),
+                    dst_token: byteArray.byteArrayFromString(params.destinationAsset.contract),
+                },
+                byteArray.byteArrayFromString(String(params.nonce)),  // userData — nonce timestamp for recovery
+                byteArray.byteArrayFromString(params.solverData || ''),
+            ]),
+        }
 
         try {
             const { transaction_hash } = await signer.account.execute([approveCall, userLockCall])
@@ -119,7 +123,7 @@ export class StarknetHTLCClient extends HTLCClient {
 
     // ── Read Operations ────────────────────────────────────────────────
 
-    async getUserLockDetails(params: LockParams): Promise<LockDetails | null> {
+    async getUserLockDetails(params: LockParams): Promise<UserLockDetails | null> {
         const { id, contractAddress } = params
         const contract = this.createContract(contractAddress, this.provider)
 
@@ -148,7 +152,7 @@ export class StarknetHTLCClient extends HTLCClient {
         }
     }
 
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> {
         const { id, contractAddress } = params
         const provider = new RpcProvider({ nodeUrl })
         const contract = this.createContract(contractAddress, provider)
@@ -182,6 +186,33 @@ export class StarknetHTLCClient extends HTLCClient {
         }
 
         return null
+    }
+
+    async getSolverLockByIndex(params: LockParams, index: number, nodeUrl: string): Promise<SolverLockDetails | null> {
+        const { id, contractAddress } = params
+        const provider = new RpcProvider({ nodeUrl })
+        const contract = this.createContract(contractAddress, provider)
+
+        const result = await contract.get_solver_lock(cairo.uint256(BigInt(id)), cairo.uint256(BigInt(index)))
+
+        const sender = '0x' + BigInt(result.sender).toString(16)
+        if (BigInt(result.sender) === 0n) return null
+
+        return {
+            hashlock: id,
+            amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
+            secret: BigInt(result.secret) !== 0n ? BigInt(result.secret) : undefined,
+            sender,
+            recipient: BigInt(result.recipient) !== 0n ? '0x' + BigInt(result.recipient).toString(16) : undefined,
+            token: BigInt(result.token) !== 0n ? '0x' + BigInt(result.token).toString(16) : undefined,
+            timelock: Number(result.timelock),
+            reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? 18)),
+            rewardTimelock: Number(result.reward_timelock),
+            rewardRecipient: BigInt(result.reward_recipient) !== 0n ? '0x' + BigInt(result.reward_recipient).toString(16) : undefined,
+            rewardToken: BigInt(result.reward_token) !== 0n ? '0x' + BigInt(result.reward_token).toString(16) : undefined,
+            status: this.mapLockStatus(result.status),
+            index,
+        }
     }
 
     async recoverSwap(txHash: string): Promise<RecoveredSwapData> {

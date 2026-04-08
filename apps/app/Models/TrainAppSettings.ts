@@ -1,4 +1,4 @@
-import { Network } from "./Network";
+import { ExtendedNetwork } from "./Network";
 import { TrainSettings } from "./TrainSettings";
 
 export class TrainAppSettings {
@@ -6,5 +6,5 @@ export class TrainAppSettings {
         this.networks = settings.networks;
     }
 
-    networks: Network[]
+    networks: ExtendedNetwork[]
 }

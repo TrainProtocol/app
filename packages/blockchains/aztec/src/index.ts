@@ -1,4 +1,5 @@
-import { registerHTLCClient, registerWalletSign } from '@train-protocol/sdk'
+import { type TrainSDK, defaultTrainSDK } from '@train-protocol/sdk'
+import { type TrainAuth, defaultTrainAuth } from '@train-protocol/auth'
 import { AztecHTLCClient } from './client'
 import { deriveKeyFromAztecWallet } from './login/index'
 
@@ -7,15 +8,13 @@ export type { AztecHTLCClientConfig, AztecSigner } from './types'
 export { deriveKeyFromAztecWallet } from './login/index'
 export type { AztecWalletLike } from './login/index'
 
-let registered = false
+export function registerAztecSdk(sdk?: TrainSDK, auth?: TrainAuth): void {
+    const s = sdk ?? defaultTrainSDK
+    const a = auth ?? defaultTrainAuth
 
-export function registerAztecSdk(): void {
-    if (registered) return
-    registered = true
+    s.registerHTLCClient('aztec', (config) => new AztecHTLCClient(config))
 
-    registerHTLCClient('aztec', (config) => new AztecHTLCClient(config))
-
-    registerWalletSign('aztec', async (config) => {
+    a.registerWalletSign('aztec', async (config) => {
         return deriveKeyFromAztecWallet(config.wallet, config.address)
     })
 }

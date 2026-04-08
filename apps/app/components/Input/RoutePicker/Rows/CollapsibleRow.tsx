@@ -2,7 +2,7 @@ import { useMemo, memo, useRef, useState } from "react";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/shadcn/accordion";
 import { NetworkElement, GroupedTokenElement } from "@/Models/Route";
 import { SwapDirection } from "@/components/DTOs/SwapFormValues";
-import { Network, Token } from "@/Models/Network";
+import { ExtendedNetwork, ExtendedToken } from "@/Models/Network";
 import { CollapsableHeader } from "./CollapsableHeader";
 import { CurrencySelectItemDisplay } from "../Routes";
 import clsx from "clsx";
@@ -12,7 +12,7 @@ import { StickyHeader } from "./StickyHeader";
 type GenericAccordionRowProps = {
   item: NetworkElement | GroupedTokenElement;
   direction: SwapDirection;
-  onSelect: (network: Network, token: Token) => void;
+  onSelect: (network: ExtendedNetwork, token: ExtendedToken) => void;
   selectedNetwork: string | undefined;
   selectedToken: string | undefined;
   toggleContent: (itemName: string) => void;
@@ -21,8 +21,8 @@ type GenericAccordionRowProps = {
 };
 
 type ChildWrapper = {
-  token: Token;
-  network: Network;
+  token: ExtendedToken;
+  network: ExtendedNetwork;
 };
 
 export const CollapsibleRow = ({
@@ -128,8 +128,8 @@ export const CollapsibleRow = ({
 
 // Memoized child item to prevent re-renders
 const TokenItem = memo<{
-  token: Token;
-  network: Network;
+  token: ExtendedToken;
+  network: ExtendedNetwork;
   isSelected: boolean;
   direction: SwapDirection;
 }>(({ token, network, isSelected, direction }) => {

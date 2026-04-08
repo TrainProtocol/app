@@ -1,13 +1,10 @@
 import React, { FC, useMemo } from "react";
-import { useAtomicState } from "@/context/atomicContext";
+import { useActiveSwap } from "@/hooks/useActiveSwap";
 import { StepStatus, TimelineStep } from "./progressTypes";
-import { LockStatus } from "@/Models/phtlc/PHTLC";
+import { LockStatus, HTLCTransaction, HTLCStatus, TrainErrorCode } from "@train-protocol/react";
 import { getExplorerUrl } from "@/lib/address";
-import NetworkSettings from "@/lib/NetworkSettings";
-import { HTLCTransaction } from "@/lib/trainApiClient";
-import LockIcon from "@/components/Icons/LockIcon";
-import { HTLCStatus } from "@/Models/HTLCStatus";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
+import LockIcon from "@/components/Icons/LockIcon";
 
 // --- Types ---
 
@@ -54,9 +51,9 @@ const REFUND_STEPS: StepTemplate[] = [
 
 // --- Helpers ---
 
-function buildExplorerLink(networkSlug?: string, txHash?: string | null): string | undefined {
-    if (!networkSlug || !txHash) return undefined;
-    return getExplorerUrl(NetworkSettings.KnownSettings[networkSlug]?.TransactionExplorerTemplate, txHash);
+function buildExplorerLink(network?: { explorerUrlTemplate?: { transaction?: string } } | null, txHash?: string | null): string | undefined {
+    if (!network || !txHash) return undefined;
+    return getExplorerUrl(network.explorerUrlTemplate?.transaction, txHash);
 }
 
 function buildSteps(
@@ -99,34 +96,10 @@ function buildSteps(
     });
 }
 
-// --- Verification Status (extracted component, reads from context directly) ---
+// --- Verification Status ---
 
 const VerificationStatus: FC = () => {
-    const { solverLockDetails, destinationDetailsByLightClient, verifyingByLightClient, consensusVerifying, consensusVerified } = useAtomicState();
-
-    const lcHashlock = destinationDetailsByLightClient?.data?.hashlock;
-    const solverHashlock = solverLockDetails?.hashlock;
-
-    if (verifyingByLightClient && !lcHashlock && solverHashlock) {
-        return (
-            <div className="flex items-center gap-1 text-sm">
-                <span>Verifying by Light Client</span>
-                <LockIcon className="h-4 w-4 text-primary animate-pulse" />
-            </div>
-        );
-    }
-
-    if (lcHashlock && solverHashlock && lcHashlock === solverHashlock) {
-        return (
-            <div className="flex items-center gap-1 text-sm">
-                <span>Verified by</span>
-                <span className="font-medium text-primary flex items-center gap-1">
-                    Light Client
-                    <LockIcon className="h-4 w-4 text-primary" />
-                </span>
-            </div>
-        );
-    }
+    const { consensusVerifying, consensusVerified } = useActiveSwap();
 
     if (consensusVerifying) {
         return (
@@ -149,37 +122,37 @@ const VerificationStatus: FC = () => {
         );
     }
 
-    return <span className="text-sm">Verified by RPCs. Reveal your secret to complete the swap.</span>;
+    return <span className="text-sm">Verified by RPCs</span>;
 };
 
 // --- Main Hook ---
 
 export function useSwapProgress(): SwapProgress {
     const {
-        htlcStatus,
-        lockTxId,
-        sourceDetails,
-        destRedeemTx,
+        txId: lockTxId,
         refundTxId,
-        source_network,
-        destination_network,
+        sourceNetwork,
+        destinationNetwork,
+        status: htlcStatus,
+        sourceDetails,
+        destRedeemTxId: destRedeemTx,
         htlcFromApi,
         consensusVerifying,
         error
-    } = useAtomicState();
+    } = useActiveSwap();
 
     const { verified, skipped, mismatches } = useSolverLockVerification();
 
     return useMemo(() => {
-        const sourceTxLink = buildExplorerLink(source_network?.caip2Id, lockTxId);
+        const sourceTxLink = buildExplorerLink(sourceNetwork, lockTxId);
         const solverLockTx = htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCLock as string);
-        const destTxLink = buildExplorerLink(destination_network?.caip2Id, solverLockTx?.hash);
-        const redeemTxLink = buildExplorerLink(destination_network?.caip2Id, destRedeemTx);
-        const refundTxLink = buildExplorerLink(source_network?.caip2Id, refundTxId);
+        const destTxLink = buildExplorerLink(destinationNetwork, solverLockTx?.hash);
+        const redeemTxLink = buildExplorerLink(destinationNetwork, destRedeemTx);
+        const refundTxLink = buildExplorerLink(sourceNetwork, refundTxId);
 
         const isRefunded = sourceDetails?.status === LockStatus.Refunded;
 
-        const isUserLockFailed = error?.code === 'TX_FAILED'
+        const isUserLockFailed = error?.code === TrainErrorCode.UserLockTransactionFailed
 
         // Timelock expired — awaiting refund action
         if (htlcStatus === HTLCStatus.TimelockExpired && !isRefunded && !refundTxId) {
@@ -217,12 +190,12 @@ export function useSwapProgress(): SwapProgress {
         }
 
         // API error — overlay on current progress
-        if (htlcFromApi?.error?.message) {
+        if (htlcFromApi?.failureReason) {
             const currentIndex = solverLockTx ? 2 : 1
             return {
                 gaugeValue: 50, gaugeIcon: "x" as GaugeIcon,
                 title: "Something went wrong",
-                subtitle: htlcFromApi.error.message,
+                subtitle: htlcFromApi.failureReason,
                 steps: buildSteps(HAPPY_STEPS, currentIndex, { source: sourceTxLink, dest: destTxLink }, {
                     0: { timelock: sourceDetails?.timelock },
                     1: { description: solverLockTx ? <VerificationStatus /> : null, status: solverLockTx ? StepStatus.Complete : StepStatus.Failed },
@@ -276,22 +249,22 @@ export function useSwapProgress(): SwapProgress {
 
         // Solver lock detected — user can reveal secret after verification
         if (htlcStatus === HTLCStatus.SolverLockDetected) {
+            // During consensus, step 1 (Assets reserved) is current; after consensus, step 2 (Reveal secret) is current
+            const currentStep = consensusVerifying ? 1 : 2;
+            const solverLockOverrides: Record<number, StepOverride> = {
+                0: { timelock: sourceDetails?.timelock },
+                1: { description: <VerificationStatus /> },
+            };
+            if (!consensusVerifying) {
+                solverLockOverrides[2] = { description: "Verify solver lock and reveal secret" };
+            }
             return {
                 gaugeValue: 50, gaugeIcon: null,
                 title: "Transfer in progress",
                 subtitle: consensusVerifying
                     ? "Verifying solver lock with multiple nodes..."
                     : "Verify solver lock and reveal your secret.",
-                steps: buildSteps(HAPPY_STEPS, 2, { source: sourceTxLink, dest: destTxLink }, {
-                    0: { timelock: sourceDetails?.timelock },
-                    1: { description: <VerificationStatus /> },
-                    2: {
-                        status: StepStatus.Upcoming,
-                        description: consensusVerifying
-                            ? "Waiting for verification to complete"
-                            : "Verify solver lock and reveal secret",
-                    },
-                }),
+                steps: buildSteps(HAPPY_STEPS, currentStep, { source: sourceTxLink, dest: destTxLink }, solverLockOverrides),
             };
         }
 
@@ -341,8 +314,8 @@ export function useSwapProgress(): SwapProgress {
         sourceDetails,
         destRedeemTx,
         refundTxId,
-        source_network,
-        destination_network,
+        sourceNetwork,
+        destinationNetwork,
         htlcFromApi,
         verified,
         skipped,

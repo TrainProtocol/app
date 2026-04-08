@@ -19,5 +19,5 @@ export function getExplorerUrl(template: string | undefined | null, address: str
   const encodedAddress = encodeURIComponent(address);
 
   // Replace the {0} placeholder with the encoded address
-  return template.replace('{0}', encodedAddress);
+  return template.replace('{hash}', encodedAddress);
 }

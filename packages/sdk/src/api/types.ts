@@ -9,58 +9,36 @@ export type HTLCFromApiResponse = {
 
 export type HTLCFromApi = {
     hashlock: string,
-    sourceAmount: number,
-    sourceAmountInUsd: number,
-    sourceAddress: string,
-    destinationAmount: number,
-    destinationAmountInUsd: number,
-    destinationAddress: string,
-    feeAmount: number,
-    sourceContractAddress: string,
-    destinationContractAddress: string,
-    sourceWallet: {
-        address: string,
-        name: string,
-        networkType: string,
-    }
-    destinationWallet: {
-        address: string,
-        name: string,
-        networkType: string,
-    }
-    destination: {
-        network: {
-            chainId: string,
-            displayName: string,
-            feePercentageIncrease: number,
-            feeType: string,
-            htlcNativeContractAddress: string,
-            htlcTokenContractAddress: string,
-            name: string,
-            type: string,
-            nativeToken: {
-                contract: string,
-                decimals: number,
-                symbol: string
-            }
-        },
-        token: {
-            symbol: string,
-            contract: string,
-            decimals: number
-        },
+    timestamp: string,
+    source: {
+        network: string,
+        tokenSymbol: string,
+        tokenContract: string,
+        tokenDecimals: number,
     },
+    sourceAmount: string,
+    sourceAddress: string,
+    destination: {
+        network: string,
+        tokenSymbol: string,
+        tokenContract: string,
+        tokenDecimals: number,
+    },
+    destinationAmount: string,
+    destinationAddress: string,
+    feeAmount: string,
+    status: string,
+    completedDate: string | null,
+    failureReason: string | null,
     transactions: {
-        type: HTLCTransaction,
+        type: HTLCTransaction | string,
         hash: string,
         network: string
-    }[],
-    error?: {
-        message: string;
-    }
+    }[]
 }
 
 export enum HTLCTransaction {
+    UserHTLCLock = 'UserHTLCLock',
     HTLCLock = 'HTLCLock',
     HTLCRedeem = 'HTLCRedeem',
 }

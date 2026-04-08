@@ -1,4 +1,4 @@
-import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/sdk'
+import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/auth'
 
 /**
  * Minimal interface for a TON wallet needed by the login flow.
@@ -16,7 +16,7 @@ export interface TonWalletLike {
  */
 export const deriveKeyFromTonWallet = async (
     wallet: TonWalletLike,
-): Promise<Buffer> => {
+): Promise<Uint8Array> => {
     if (!wallet) {
         throw new Error('TON wallet not connected')
     }
@@ -24,8 +24,11 @@ export const deriveKeyFromTonWallet = async (
     const signature = await wallet.signMessage('I am using TRAIN')
 
     const sigHex = signature.startsWith('0x') ? signature.slice(2) : signature
-    const inputMaterial = Buffer.from(sigHex, 'hex')
-    const identitySalt = Buffer.from(IDENTITY_SALT, 'utf8')
+    const inputMaterial = new Uint8Array(sigHex.length / 2)
+    for (let i = 0; i < sigHex.length; i += 2) {
+        inputMaterial[i / 2] = parseInt(sigHex.substring(i, i + 2), 16)
+    }
+    const identitySalt = new TextEncoder().encode(IDENTITY_SALT)
 
-    return Buffer.from(deriveKeyMaterial(inputMaterial, identitySalt))
+    return new Uint8Array(deriveKeyMaterial(inputMaterial, identitySalt))
 }

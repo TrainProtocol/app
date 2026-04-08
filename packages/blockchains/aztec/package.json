@@ -30,10 +30,12 @@
     "@defi-wonderland/aztec-standards": "4.0.0-devnet.2-patch.1"
   },
   "peerDependencies": {
-    "@train-protocol/sdk": "workspace:^"
+    "@train-protocol/sdk": "workspace:^",
+    "@train-protocol/auth": "workspace:^"
   },
   "devDependencies": {
     "@train-protocol/sdk": "workspace:^",
+    "@train-protocol/auth": "workspace:^",
     "@types/node": "^20",
     "rimraf": "catalog:",
     "typescript": "catalog:",

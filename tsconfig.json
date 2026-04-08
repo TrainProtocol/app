@@ -1,0 +1,52 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "declaration": true,
+    "declarationMap": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@train-protocol/sdk": ["./packages/sdk/src/index.ts"],
+      "@train-protocol/sdk/*": ["./packages/sdk/src/*"],
+      "@train-protocol/auth": ["./packages/auth/src/index.ts"],
+      "@train-protocol/auth/*": ["./packages/auth/src/*"],
+      "@train-protocol/react": ["./packages/react/src/index.ts"],
+      "@train-protocol/react/*": ["./packages/react/src/*"],
+      "@train-protocol/evm": ["./packages/blockchains/evm/src/index.ts"],
+      "@train-protocol/evm/*": ["./packages/blockchains/evm/src/*"],
+      "@train-protocol/solana": ["./packages/blockchains/solana/src/index.ts"],
+      "@train-protocol/solana/*": ["./packages/blockchains/solana/src/*"],
+      "@train-protocol/starknet": ["./packages/blockchains/starknet/src/index.ts"],
+      "@train-protocol/starknet/*": ["./packages/blockchains/starknet/src/*"],
+      "@train-protocol/aztec": ["./packages/blockchains/aztec/src/index.ts"],
+      "@train-protocol/aztec/*": ["./packages/blockchains/aztec/src/*"],
+      "@train-protocol/ton": ["./packages/blockchains/ton/src/index.ts"],
+      "@train-protocol/ton/*": ["./packages/blockchains/ton/src/*"],
+      "@train-protocol/fuel": ["./packages/blockchains/fuel/src/index.ts"],
+      "@train-protocol/fuel/*": ["./packages/blockchains/fuel/src/*"],
+      "@train-protocol/tron": ["./packages/blockchains/tron/src/index.ts"],
+      "@train-protocol/tron/*": ["./packages/blockchains/tron/src/*"]
+    }
+  },
+  "include": [
+    "packages/sdk/src",
+    "packages/auth/src",
+    "packages/react/src",
+    "packages/blockchains/evm/src",
+    "packages/blockchains/solana/src",
+    "packages/blockchains/starknet/src",
+    "packages/blockchains/aztec/src",
+    "packages/blockchains/ton/src",
+    "packages/blockchains/fuel/src",
+    "packages/blockchains/tron/src",
+    "apps/app"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/dist",
+    "**/build",
+    "**/.next"
+  ]
+}

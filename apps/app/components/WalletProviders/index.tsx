@@ -8,35 +8,34 @@ import { WalletModalProvider } from "../WalletModal";
 import { WalletProvidersProvider } from "../../context/walletHookProviders";
 import { AztecWalletProvider } from "./AztecWalletProvider";
 import { EvmConnectorsProvider } from "@/context/evmConnectorsContext";
-import { SecretDerivationProvider } from "@/context/secretDerivationContext";
-import { WalletLoginProvider } from "@/context/walletLoginContext";
+import { WalletBridges } from "../WalletBridges";
 import FuelProviderWrapper from "./FuelProvider";
+import TronProvider from "./TronProvider";
 
 const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], basePath: string, appName: string | undefined }> = ({ children, basePath, appName }) => {
     return (
         <TonConnectProvider basePath={basePath} appName={appName}>
             <SolanaProvider>
-                <StarknetProvider>
-                    <EvmConnectorsProvider>
-                        <Wagmi>
-                            <WalletModalProvider>
-                                <FuelProviderWrapper>
-                                    <AztecWalletProvider>
-                                        <ImtblPassportProvider>
-                                            <WalletProvidersProvider>
-                                                <WalletLoginProvider>
-                                                    <SecretDerivationProvider>
-                                                        {children}
-                                                    </SecretDerivationProvider>
-                                                </WalletLoginProvider>
-                                            </WalletProvidersProvider>
-                                        </ImtblPassportProvider>
-                                    </AztecWalletProvider>
-                                </FuelProviderWrapper>
-                            </WalletModalProvider>
-                        </Wagmi>
-                    </EvmConnectorsProvider>
-                </StarknetProvider>
+                <TronProvider>
+                    <StarknetProvider>
+                        <EvmConnectorsProvider>
+                            <Wagmi>
+                                <WalletModalProvider>
+                                    <FuelProviderWrapper>
+                                        <AztecWalletProvider>
+                                            <ImtblPassportProvider>
+                                                <WalletProvidersProvider>
+                                                    <WalletBridges />
+                                                    {children}
+                                                </WalletProvidersProvider>
+                                            </ImtblPassportProvider>
+                                        </AztecWalletProvider>
+                                    </FuelProviderWrapper>
+                                </WalletModalProvider>
+                            </Wagmi>
+                        </EvmConnectorsProvider>
+                    </StarknetProvider>
+                </TronProvider>
             </SolanaProvider>
         </TonConnectProvider>
     )

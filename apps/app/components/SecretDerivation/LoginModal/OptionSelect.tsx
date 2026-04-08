@@ -1,10 +1,7 @@
 import { Fingerprint } from 'lucide-react';
-// import { Wallet as WalletIcon } from 'lucide-react';
-import { useSecretDerivation } from '@/context/secretDerivationContext';
-// import { useConnectModal } from '@/components/WalletModal';
-// import useWallet from '@/hooks/useWallet';
-// import { Wallet } from '@/Models/WalletProvider';
-// import { getRegisteredWalletSignProviders } from '@train-protocol/sdk';
+import { useSharedSecretDerivation } from '@train-protocol/react';
+
+
 
 const OptionSelect = ({ onPasskeyLogin }: {
     onPasskeyLogin: () => void;
@@ -13,7 +10,7 @@ const OptionSelect = ({ onPasskeyLogin }: {
 }) => {
     // const { connect } = useConnectModal();
     // const { providers } = useWallet();
-    const { prfSupportDetails } = useSecretDerivation();
+    const { prfSupportDetails } = useSharedSecretDerivation();
 
     // Wallet login temporarily disabled — passkey is the default
     // const connectedWallets = useMemo(() => {
@@ -35,13 +32,10 @@ const OptionSelect = ({ onPasskeyLogin }: {
     // }
 
     const passkeyDisabled = prfSupportDetails && !prfSupportDetails.supported;
-    const windowsHint = prfSupportDetails?.platformHint === 'windows_hello_no_prf';
 
     const passkeyDescription = passkeyDisabled
         ? (prfSupportDetails?.reason || "Not supported on this device")
-        : windowsHint
-            ? "Requires a security key on Windows"
-            : "Face ID, Touch ID, or security key";
+        : "Face ID, Touch ID, or security key";
 
     // const walletDescription = passkeyDisabled
     //     ? "Recommended for this device"

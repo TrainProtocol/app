@@ -4,14 +4,8 @@ import {
     createHTLCClient,
 } from '@train-protocol/sdk'
 import { registerAztecSdk } from '../index.js'
-import { TrainApiClient } from '@train-protocol/sdk'
-const mockApiClient = {} as TrainApiClient
 
 describe('registerAztecSdk', () => {
-    // Note: because the registry is a global singleton and registerAztecSdk is
-    // idempotent (guarded by a module-level flag), these tests run in sequence
-    // and the first call registers while subsequent calls are no-ops.
-
     beforeEach(() => {
         registerAztecSdk()
     })
@@ -21,7 +15,7 @@ describe('registerAztecSdk', () => {
     })
 
     it('createHTLCClient works for aztec after registration', () => {
-        const client = createHTLCClient('aztec', { rpcUrl: 'https://example.com', apiClient: mockApiClient })
+        const client = createHTLCClient('aztec', { rpcUrl: 'https://example.com' })
         expect(client).toBeDefined()
         expect(typeof client.getUserLockDetails).toBe('function')
         expect(typeof client.getSolverLockDetails).toBe('function')

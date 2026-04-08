@@ -2,12 +2,11 @@ import { FC, ReactNode, SVGProps } from "react";
 import Link from "next/link";
 import shortenString from "@/components/utils/ShortenString";
 import { getExplorerUrl } from "@/lib/address";
-import { useAtomicState } from "@/context/atomicContext";
+import { useActiveSwap } from "@/hooks/useActiveSwap";
 import WalletIcon from "@/components/Icons/WalletIcon";
 import LockIcon from "@/components/Icons/LockIcon";
 import SignatureIcon from "@/components/Icons/SignatureIcon";
-import { HTLCTransaction } from "@/lib/trainApiClient";
-import NetworkSettings from "@/lib/NetworkSettings";
+import { HTLCTransaction } from "@train-protocol/react";
 
 const Details: FC = () => {
     return (
@@ -19,8 +18,8 @@ const Details: FC = () => {
 }
 
 const Confirmed: FC = () => {
-    const { lockTxId, source_network } = useAtomicState()
-    const description = (lockTxId && source_network) && <p><span>Transaction ID:</span> <Link target="_blank" className="underline hover:no-underline" href={getExplorerUrl(NetworkSettings.KnownSettings[source_network.caip2Id]?.TransactionExplorerTemplate, lockTxId)}>{shortenString(lockTxId)}</Link></p>
+    const { txId: lockTxId, sourceNetwork } = useActiveSwap()
+    const description = (lockTxId && sourceNetwork) && <p><span>Transaction ID:</span> <Link target="_blank" className="underline hover:no-underline" href={getExplorerUrl(sourceNetwork.explorerUrlTemplate?.transaction, lockTxId)}>{shortenString(lockTxId)}</Link></p>
 
     return (
         <Item
@@ -32,24 +31,16 @@ const Confirmed: FC = () => {
 }
 
 const AssetsReady: FC = () => {
-    const { destination_network, htlcFromApi: htlcFromApi, destinationDetailsByLightClient } = useAtomicState()
+    const { destinationNetwork, htlcFromApi } = useActiveSwap()
 
     const lpLockTx = htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCLock)
-    const description = (lpLockTx && destination_network) ? <p><span>Transaction ID:</span> <Link className="underline hover:no-underline" target="_blank" href={getExplorerUrl(NetworkSettings.KnownSettings[destination_network.caip2Id]?.TransactionExplorerTemplate, lpLockTx?.hash)}>{shortenString(lpLockTx.hash)}</Link></p> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />
+    const description = (lpLockTx && destinationNetwork) ? <p><span>Transaction ID:</span> <Link className="underline hover:no-underline" target="_blank" href={getExplorerUrl(destinationNetwork.explorerUrlTemplate?.transaction, lpLockTx?.hash)}>{shortenString(lpLockTx.hash)}</Link></p> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />
 
     return (
         <Item
             icon={LockIcon}
             title="Assets Ready"
             description={description}
-            titleDetails={
-                destinationDetailsByLightClient?.data
-                    ? <div className="text-primary flex items-center gap-1">
-                        <p>Light Client</p>
-                        <LockIcon className="h-4 w-4 text-primary" />
-                    </div>
-                    : null
-            }
         />
     )
 }

@@ -1,5 +1,5 @@
 import SubmitButton from '../../buttons/submitButton';
-import { usePasskeyCredentialIds } from '@/stores/secretDerivationStore';
+import { useSharedSecretDerivation } from '@train-protocol/react';
 import { AlertTriangle, Fingerprint, Wallet as WalletIcon } from 'lucide-react';
 
 interface PasskeyChoiceProps {
@@ -10,8 +10,8 @@ interface PasskeyChoiceProps {
 }
 
 export function PasskeyChoice({ error, onTryAgain, onCreateNew, onCrossDeviceLogin }: PasskeyChoiceProps) {
-  const storedIds = usePasskeyCredentialIds();
-  const hasStoredPasskeys = storedIds.length > 0;
+  const { passkeyCredentials } = useSharedSecretDerivation();
+  const hasStoredPasskeys = passkeyCredentials.length > 0;
 
   return (
     <div className="flex flex-col gap-5">
