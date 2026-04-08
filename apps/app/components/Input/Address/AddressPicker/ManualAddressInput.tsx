@@ -13,7 +13,7 @@ import { FormikHelpers } from "formik";
 type AddressInput = {
     manualAddress: string,
     setManualAddress: (address: string) => void,
-    setNewAddress: (value: { address: string, networkType: Network['type']['name'] | string } | undefined) => void,
+    setNewAddress: (value: { address: string, networkType: string | string } | undefined) => void,
     values: SwapFormValues,
     partner?: Partner,
     name: string,
@@ -39,7 +39,7 @@ const ManualAddressInput: FC<AddressInput> = ({ manualAddress, setManualAddress,
     const handleSaveNewAddress = () => {
         if (Address.isValid(manualAddress, destination) && destination) {
             if (destination) {
-                setNewAddress({ address: manualAddress, networkType: destination.type.name })
+                setNewAddress({ address: manualAddress, networkType: destination.networkType })
             }
             setManualAddress("")
         }

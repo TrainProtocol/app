@@ -22,7 +22,7 @@ export default function useTON(): WalletProvider {
     const [tonConnectUI] = useTonConnectUI();
 
     const tonNetwork = networks?.find(n =>
-        n.type?.name === "ton" &&
+        n.networkType === "ton" &&
         commonSupportedNetworks.some(name => name === n.caip2Id)
     );
     const tonApiUrl = tonNetwork ? getEffectiveRpcUrl(tonNetwork) : 'https://testnet.toncenter.com';

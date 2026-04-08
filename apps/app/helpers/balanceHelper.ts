@@ -1,7 +1,7 @@
 import { NetworkBalance } from "@/Models/Balance";
-import { Network } from "@/Models/Network";
+import { ExtendedNetwork } from "@/Models/Network";
 
-export function getTotalBalanceInUSD(networkBalance: NetworkBalance, network: Network): number | null {
+export function getTotalBalanceInUSD(networkBalance: NetworkBalance, network: ExtendedNetwork): number | null {
     if (!networkBalance.balances?.length) return null;
     return networkBalance.balances.reduce((total, tokenBalance) => {
         const token = network.tokens?.find(t => t.symbol === tokenBalance.token);

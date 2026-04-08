@@ -1,9 +1,8 @@
 import { useFormikContext } from "formik";
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import useSWRGas from "@/lib/gases/useSWRGas";
-import { Token } from "@/Models/Network";
-import { Network } from "@/Models/Network";
-import React, { FC, useMemo } from "react";
+import { ExtendedNetwork, ExtendedToken } from "@/Models/Network";
+import React, { useMemo } from "react";
 import { resolveMaxAllowedAmount } from "./helpers";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip";
 import { useSelectedAccount } from "@/context/swapAccounts";
@@ -13,8 +12,8 @@ import { useUsdModeStore } from "@/stores/usdModeStore";
 import { skipNextUsdSync } from "@/hooks/useUsdTokenSync";
 
 type MinMaxProps = {
-    fromCurrency: Token,
-    from: Network,
+    fromCurrency: ExtendedToken,
+    from: ExtendedNetwork,
     limitsMaxAmount: number | undefined,
     limitsMinAmount: number | undefined,
     onActionHover: (value: number | undefined, usdValue?: string) => void,
@@ -87,7 +86,7 @@ const MinMax = (props: MinMaxProps) => {
         handleSetValue(maxAllowedAmount.toString(), computeUsdValue(maxAllowedAmount))
     }
 
-    const showMaxTooltip = !!(walletBalance?.amount && shouldPayGasWithTheToken && (!limitsMaxAmount || walletBalance.amount < limitsMaxAmount))
+    const showMaxTooltip = !!(walletBalance?.amount && shouldPayGasWithTheToken)
 
     if (!from || !fromCurrency || !balances?.length)
         return null;
@@ -109,7 +108,7 @@ const MinMax = (props: MinMaxProps) => {
                         onClick={handleSetMaxAmount}
                     />
                 </TooltipTrigger>
-                {showMaxTooltip ? <TooltipContent className="pointer-events-none w-80 grow p-2 border-none! bg-secondary-300! text-xs rounded-xl!" side="top" align="start" alignOffset={-10}>
+                {showMaxTooltip ? <TooltipContent className="pointer-events-none w-80" side="top" align="start" alignOffset={-10}>
                     <p>Max is calculated based on your balance minus gas fee for the transaction</p>
                 </TooltipContent> : null}
             </Tooltip>
@@ -119,25 +118,25 @@ const MinMax = (props: MinMaxProps) => {
 
 export default MinMax
 
-type ActionButtonProps = React.DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> & {
+type ActionButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
     label: string;
     onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
     onMouseEnter: () => void;
     disabled?: boolean;
 }
 
-const ActionButton: FC<ActionButtonProps> = ({ label, onClick, onMouseEnter, disabled, ...rest }) => {
+const ActionButton = React.forwardRef<HTMLButtonElement, ActionButtonProps>(({ label, onClick, onMouseEnter, disabled, ...rest }, ref) => {
     return (
         <button
             {...rest}
+            ref={ref}
             onMouseEnter={onMouseEnter}
             onClick={onClick}
-            typeof="button"
             type="button"
             disabled={disabled}
-            className="px-1.5 py-0.5 rounded-md duration-200 break-keep transition bg-secondary-400 hover:brightness-90 text-secondary-text hover:text-primary-text cursor-pointer enabled:active:animate-press-down"
+            className="px-1.5 py-0.5 rounded-md duration-200 break-keep transition bg-secondary-300 hover:brightness-90 text-secondary-text hover:text-primary-text cursor-pointer enabled:active:animate-press-down"
         >
             {label}
         </button>
     );
-}
+})

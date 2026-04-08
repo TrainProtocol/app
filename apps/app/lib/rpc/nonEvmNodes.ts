@@ -1,4 +1,4 @@
-import { NetworkNode } from '@train-protocol/sdk'
+import { NetworkNode } from "@/Models/Network";
 
 /**
  * Curated public RPC endpoints for non-EVM chains.
@@ -21,13 +21,11 @@ export const NON_EVM_NODES: Record<string, NetworkNode[]> = {
     // ── Starknet ──
     'starknet:SN_MAIN': [
         { url: 'https://starknet-mainnet-rpc.publicnode.com', providerName: 'publicnode' },
-        { url: 'https://free-rpc.nethermind.io/mainnet-juno/', providerName: 'nethermind' },
         { url: 'https://rpc.starknet.lava.build', providerName: 'lava' },
     ],
     'starknet:SN_SEPOLIA': [
         { url: 'https://starknet-sepolia.drpc.org', providerName: 'drpc' },
         { url: 'https://starknet-sepolia-rpc.publicnode.com', providerName: 'publicnode' },
-        { url: 'https://free-rpc.nethermind.io/sepolia-juno/', providerName: 'nethermind' },
     ],
 
     // ── Aztec ──
@@ -41,5 +39,10 @@ export const NON_EVM_NODES: Record<string, NetworkNode[]> = {
     ],
     'ton:testnet': [
         { url: 'https://testnet.toncenter.com/api/v2/jsonRPC', providerName: 'toncenter-testnet' },
+    ],
+
+    // -- Tron --
+    'tron:3448148188': [
+        { url: 'https://nile.trongrid.io', providerName: 'tron-grid' },
     ],
 }

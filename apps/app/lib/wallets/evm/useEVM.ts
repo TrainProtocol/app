@@ -27,7 +27,7 @@ export default function useEVM(): WalletProvider {
     const isMobilePlatform = useMemo(() => isMobile(), []);
 
     const asSourceSupportedNetworks = useMemo(() => [
-        ...networks.filter(network => network.type?.name === NetworkTypes.EVM).map(l => l.caip2Id)
+        ...networks.filter(network => network.networkType === NetworkTypes.EVM).map(l => l.caip2Id)
     ], [networks])
 
     const withdrawalSupportedNetworks = useMemo(() => [

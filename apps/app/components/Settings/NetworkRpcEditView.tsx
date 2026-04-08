@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from "react"
 import { CheckCircle, AlertCircle, Save, RotateCcw, Loader, Plus, Trash2, Zap } from "lucide-react"
-import { Network } from "../../Models/Network"
+import { ExtendedNetwork } from "../../Models/Network"
 import { useRpcConfigStore } from "../../stores/rpcConfigStore"
 import { validateRpcUrl } from "../../lib/validators/rpcValidator"
 import SecondaryButton from "../buttons/secondaryButton"
@@ -10,7 +10,7 @@ import { supportsLightClient } from "../../lib/lightClient/supportsNetwork"
 import Image from 'next/image'
 
 interface NetworkRpcEditViewProps {
-    network: Network
+    network: ExtendedNetwork
     onSave: () => void
 }
 

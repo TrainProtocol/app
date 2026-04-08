@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { useActiveSwap } from "@/hooks/useActiveSwap";
 import Summary from "./Summary";
 import type { SwapQuote } from "@train-protocol/react";
@@ -11,6 +11,7 @@ import { CircleCheck, SearchX, Undo2, X } from "lucide-react";
 import { HTLCStatus } from "@train-protocol/react";
 import { Loader2 } from "lucide-react";
 import { useFormikContext } from "formik";
+import { useSettingsState } from "@/context/settings";
 
 type AtomicContentProps = {
     quote?: SwapQuote
@@ -20,12 +21,13 @@ type AtomicContentProps = {
 const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }) => {
     const swap = useActiveSwap()
     const { values } = useFormikContext<SwapFormValues>()
+    const { networks } = useSettingsState()
 
     // Post-lock: use derived state. Pre-lock: use Formik values.
-    const source_network = swap.sourceNetwork ?? values?.from
-    const destination_network = swap.destinationNetwork ?? values?.to
-    const source_asset = swap.sourceToken ?? values?.fromCurrency
-    const destination_asset = swap.destinationToken ?? values?.toCurrency
+    const source_network = swap.sourceNetwork ? networks.find(n => n.caip2Id == swap.sourceNetwork?.caip2Id) : values?.from
+    const destination_network = swap.destinationNetwork ? networks.find(n => n.caip2Id == swap.destinationNetwork?.caip2Id) : values?.to
+    const source_asset = swap.sourceToken ? source_network?.tokens.find(t => t.contract == swap.sourceToken?.contract) : values?.fromCurrency
+    const destination_asset = swap.destinationToken ? destination_network?.tokens.find(t => t.contract == swap.destinationToken?.contract) : values?.toCurrency
     const amount = swap.requestedAmount ? Number(swap.requestedAmount) : (values?.amount ? Number(values.amount) : undefined)
     const hashlock = swap.hashlock
 
@@ -91,10 +93,10 @@ const SwapProgressPanel: FC = () => {
                             <Gauge value={gaugeValue} size="small" showCheckmark={gaugeIcon === "check"} />
                         )}
                     </div>
-                    <div className="flex-col text-center">
+                    <div className="flex-col text-center max-w-[370px]">
                         <span className="font-medium text-primary-text">{title}</span>
                         {subtitle && (
-                            <span className="text-sm block text-secondary-text">{subtitle}</span>
+                            <CollapsibleSubtitle text={subtitle} />
                         )}
                     </div>
                 </div>
@@ -109,15 +111,52 @@ const SwapProgressPanel: FC = () => {
     );
 };
 
-const SwapLoading: FC = () => (
-    <div className="flex flex-col items-center justify-center gap-2 w-full min-h-[450px]">
+const COLLAPSE_THRESHOLD = 100;
+
+const CollapsibleSubtitle: FC<{ text: string }> = ({ text }) => {
+    const [expanded, setExpanded] = useState(false);
+    const isLong = text.length > COLLAPSE_THRESHOLD;
+
+    return (
+        <div className="text-sm text-secondary-text -mx-3">
+            {isLong && !expanded ? (
+                <>
+                    <span className="block truncate">{text.slice(0, COLLAPSE_THRESHOLD)}...</span>
+                    <button
+                        type="button"
+                        onClick={() => setExpanded(true)}
+                        className="text-primary text-xs mt-1 hover:underline"
+                    >
+                        Show full message
+                    </button>
+                </>
+            ) : (
+                <>
+                    <span className="block break-words whitespace-pre-wrap">{text}</span>
+                    {isLong && (
+                        <button
+                            type="button"
+                            onClick={() => setExpanded(false)}
+                            className="text-primary text-xs mt-1 hover:underline"
+                        >
+                            Hide
+                        </button>
+                    )}
+                </>
+            )}
+        </div>
+    );
+};
+
+export const SwapLoading: FC<{ message?: string }> = ({ message = "Loading swap data..." }) => (
+    <div className="flex flex-col items-center justify-center gap-2 w-full min-h-[374px]">
         <Loader2 className="h-10 w-10 text-primary animate-spin" />
-        <span className="text-sm text-secondary-text">Loading swap data...</span>
+        <span className="text-sm text-secondary-text">{message}</span>
     </div>
 );
 
 const SwapNotFound: FC = () => (
-    <div className="flex flex-col items-center justify-center gap-2 w-full min-h-[450px]">
+    <div className="flex flex-col items-center justify-center gap-2 w-full min-h-[374px]">
         <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/20">
             <SearchX className="h-10 w-10 text-primary" aria-hidden="true" />
         </span>

@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { truncateDecimals } from "@/components/utils/RoundDecimals";
-import { Network, Token } from "@/Models/Network";
+import { ExtendedNetwork, ExtendedToken } from "@/Models/Network";
 import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
 import { ArrowDown } from "lucide-react";
 import NumberFlow from "@number-flow/react";
@@ -8,10 +8,10 @@ import { resolveTokenLogoUrl } from "@/components/utils/resolveTokenLogoUrl";
 
 
 type AtomicSummaryProps = {
-    sourceCurrency: Token,
-    destinationCurrency: Token,
-    source: Network,
-    destination: Network;
+    sourceCurrency: ExtendedToken,
+    destinationCurrency: ExtendedToken,
+    source: ExtendedNetwork,
+    destination: ExtendedNetwork;
     requestedAmount: number | undefined;
     receiveAmount: string | undefined;
 }
@@ -67,8 +67,8 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, 
 }
 
 type RouteTokenPairProps = {
-    route: Network,
-    token: Token,
+    route: ExtendedNetwork,
+    token: ExtendedToken,
 }
 
 const RouteTokenPair: FC<RouteTokenPairProps> = ({ route, token }) => {
@@ -77,7 +77,7 @@ const RouteTokenPair: FC<RouteTokenPairProps> = ({ route, token }) => {
         <div className="flex grow gap-4 text-left items-center md:text-base relative col-span-6 align-center">
             <div className="inline-flex items-center relative shrink-0 h-8 w-8">
                 <ImageWithFallback
-                    src={resolveTokenLogoUrl(token.symbol)}
+                    src={token.logo || resolveTokenLogoUrl(token.symbol)}
                     alt="Token Logo"
                     height="28"
                     width="28"

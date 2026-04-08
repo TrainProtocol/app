@@ -58,7 +58,7 @@ export class FuelBalanceProvider extends BalanceProvider {
 
             for (let i = 0; i < network.tokens.length; i++) {
                 const token = network.tokens[i]
-                const balance = json.data.balances.nodes.find(b => b?.assetId === token.contractAddress) || null
+                const balance = json.data.balances.nodes.find(b => b?.assetId === token.contract) || null
 
                 const balanceObj: TokenBalance = {
                     network: network.caip2Id,

@@ -90,8 +90,12 @@ const ConnectorsList: FC<{ onFinish: (result: Wallet | undefined) => void }> = (
             setSelectedConnector(undefined)
         } catch (e) {
             console.log(e)
+            if (e?.extensionNotFound) {
+                setSelectedConnector(connector ? { ...connector, extensionNotFound: true } : undefined)
+                return
+            }
             const message = (e?.message || e?.details || '').toLowerCase()
-            if (e?.name === 'WalletWindowClosedError' || message.includes('rejected') || message.includes('denied')) {
+            if (e?.name === 'WalletWindowClosedError' || message.includes('rejected') || message.includes('denied') || message.includes('declined')) {
                 setConnectionError("You've declined the wallet connection request")
             } else {
                 setConnectionError(e.message || e.details || 'Something went wrong')

@@ -217,7 +217,7 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
                             />
                         }
 
-                        {
+                        {/* {
                             addressBookAddresses && addressBookAddresses?.length > 0 && !manualAddress && destination &&
                             <AddressBook
                                 addressBook={addressBookAddresses}
@@ -226,7 +226,7 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
                                 destination_address={destination_address}
                                 partner={partner}
                             />
-                        }
+                        } */}
                     </div>
                 </div>
             </Modal>

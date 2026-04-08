@@ -25,3 +25,5 @@ catalog:
   fuels: ^0.101.3
 
 minimumReleaseAge: 4320
+minimumReleaseAgeExclude:
+  - shadcn

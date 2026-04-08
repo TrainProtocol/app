@@ -15,12 +15,12 @@ export interface UseOrderResult {
 
 export function useOrder(params: OrderParams): UseOrderResult {
     const { apiClient } = useTrainContext()
-    const { solverId, hashlock } = params
+    const { hashlock, solverAddress } = params
 
     const query = useQuery({
-        queryKey: trainQueryKeys.order(solverId, hashlock),
-        queryFn: () => apiClient.getOrder(solverId, hashlock),
-        enabled: !!solverId && !!hashlock,
+        queryKey: trainQueryKeys.order(hashlock, solverAddress),
+        queryFn: () => apiClient.getOrder(hashlock, solverAddress),
+        enabled: !!hashlock,
     })
 
     const refetch = useCallback(async () => {

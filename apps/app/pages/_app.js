@@ -18,7 +18,7 @@ if (typeof window !== 'undefined') {
   import('@train-protocol/aztec').then(m => m.registerAztecSdk());
   import('@train-protocol/solana').then(m => m.registerSolanaSdk());
   import('@train-protocol/starknet').then(m => m.registerStarknetSdk());
-  import('@train-protocol/fuel').then(m => m.registerFuelSdk());
+  import('@train-protocol/tron').then(m => m.registerTronSdk());
 }
 
 const progress = new ProgressBar({
@@ -71,11 +71,12 @@ function App({ Component, pageProps }) {
       >
         <ThemeProvider
           attribute="data-theme"
-          defaultTheme="default"
+          defaultTheme="system"
           themes={["default", "light"]}
           storageKey="theme"
           disableTransitionOnChange
-          enableSystem={false}
+          enableSystem={true}
+          value={{ light: "light", dark: "default" }}
         >
           <IntercomProvider appId={INTERCOM_APP_ID} initializeDelay={2500}>
             <Component key={router.asPath} {...pageProps} />

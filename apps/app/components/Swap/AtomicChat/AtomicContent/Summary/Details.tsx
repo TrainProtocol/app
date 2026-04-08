@@ -7,7 +7,6 @@ import WalletIcon from "@/components/Icons/WalletIcon";
 import LockIcon from "@/components/Icons/LockIcon";
 import SignatureIcon from "@/components/Icons/SignatureIcon";
 import { HTLCTransaction } from "@train-protocol/react";
-import NetworkSettings from "@/lib/NetworkSettings";
 
 const Details: FC = () => {
     return (
@@ -20,7 +19,7 @@ const Details: FC = () => {
 
 const Confirmed: FC = () => {
     const { txId: lockTxId, sourceNetwork } = useActiveSwap()
-    const description = (lockTxId && sourceNetwork) && <p><span>Transaction ID:</span> <Link target="_blank" className="underline hover:no-underline" href={getExplorerUrl(NetworkSettings.KnownSettings[sourceNetwork.caip2Id]?.TransactionExplorerTemplate, lockTxId)}>{shortenString(lockTxId)}</Link></p>
+    const description = (lockTxId && sourceNetwork) && <p><span>Transaction ID:</span> <Link target="_blank" className="underline hover:no-underline" href={getExplorerUrl(sourceNetwork.explorerUrlTemplate?.transaction, lockTxId)}>{shortenString(lockTxId)}</Link></p>
 
     return (
         <Item
@@ -35,7 +34,7 @@ const AssetsReady: FC = () => {
     const { destinationNetwork, htlcFromApi } = useActiveSwap()
 
     const lpLockTx = htlcFromApi?.transactions?.find(t => t.type === HTLCTransaction.HTLCLock)
-    const description = (lpLockTx && destinationNetwork) ? <p><span>Transaction ID:</span> <Link className="underline hover:no-underline" target="_blank" href={getExplorerUrl(NetworkSettings.KnownSettings[destinationNetwork.caip2Id]?.TransactionExplorerTemplate, lpLockTx?.hash)}>{shortenString(lpLockTx.hash)}</Link></p> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />
+    const description = (lpLockTx && destinationNetwork) ? <p><span>Transaction ID:</span> <Link className="underline hover:no-underline" target="_blank" href={getExplorerUrl(destinationNetwork.explorerUrlTemplate?.transaction, lpLockTx?.hash)}>{shortenString(lpLockTx.hash)}</Link></p> : <div className="h-3 w-10 bg-gray-400 animate-pulse rounded" />
 
     return (
         <Item

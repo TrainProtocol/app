@@ -120,7 +120,7 @@ export default function Layout({ children, settings }: Props) {
   </>)
 }
 
-function TrainProviderWithRpc({ networks, children }: { networks: import("@/Models/Network").Network[]; children: React.ReactNode }) {
+function TrainProviderWithRpc({ networks, children }: { networks: import("@/Models/Network").ExtendedNetwork[]; children: React.ReactNode }) {
   const { getEffectiveRpcUrls } = useRpcConfigStore()
 
   const resolveNodeUrls = React.useCallback((networkId: string) => {
@@ -130,7 +130,7 @@ function TrainProviderWithRpc({ networks, children }: { networks: import("@/Mode
   }, [networks, getEffectiveRpcUrls])
 
   return (
-    <TrainProvider baseUrl={AppSettings.TrainApiUri ?? ''} resolveNodeUrls={resolveNodeUrls} secretDerivation={{ persist: true }}>
+    <TrainProvider baseUrl={AppSettings.TrainApiUri ?? ''} resolveNodeUrls={resolveNodeUrls} initialNetworks={networks} secretDerivation={{ persist: true }}>
       {children}
     </TrainProvider>
   )

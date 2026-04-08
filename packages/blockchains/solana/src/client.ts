@@ -6,72 +6,20 @@ import {
     LockParams,
     RefundParams,
     RedeemSolverParams,
-    UserLockDetails,
-    SolverLockDetails,
     LockStatus,
     AtomicResult,
-    RecoveredSwapData,
+    Network,
     TransactionInfo,
     TransactionStatus,
     formatUnits,
     bytesToHex,
 } from '@train-protocol/sdk'
+import type { UserLockDetails, SolverLockDetails, BaseLockDetails, EventDerivedData } from '@train-protocol/sdk'
 import { NATIVE_SOL_ADDRESS } from './constants.js'
-import type { SolanaHTLCClientConfig, SolanaSigner } from './types.js'
+import type { SolanaHTLCClientConfig, SolanaSigner, TypedProgramAccounts } from './types.js'
 import { TrainHtlc } from './idl/trainHtlc.js'
 import { userLockTransactionBuilder, refundTransactionBuilder, redeemSolverTransactionBuilder } from './transactionBuilder.js'
-
-const encoder = new TextEncoder()
-const decoder = new TextDecoder()
-
-function hexToUint8Array(hex: string): Uint8Array {
-    const clean = hex.replace('0x', '')
-    const bytes = new Uint8Array(clean.length / 2)
-    for (let i = 0; i < clean.length; i += 2) {
-        bytes[i / 2] = parseInt(clean.substring(i, i + 2), 16)
-    }
-    return bytes
-}
-
-function uint8ArrayToHex(bytes: Uint8Array | number[]): string {
-    return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('')
-}
-
-function writeBigUInt64LE(value: bigint): Uint8Array {
-    const buf = new Uint8Array(8)
-    const view = new DataView(buf.buffer)
-    view.setBigUint64(0, value, true)
-    return buf
-}
-
-interface UserLockData {
-    amount: BN
-    timelock: BN
-    sender: PublicKey
-    recipient: PublicKey
-    secret: number[]
-    tokenMint: PublicKey
-    status: number
-}
-
-interface SolverLockData {
-    amount: BN
-    reward: BN
-    timelock: BN
-    rewardTimelock: BN
-    sender: PublicKey
-    recipient: PublicKey
-    rewardRecipient: PublicKey
-    secret: number[]
-    tokenMint: PublicKey
-    rewardTokenMint: PublicKey
-    status: number
-}
-
-type TypedProgramAccounts = {
-    userLock: { fetch(pda: PublicKey): Promise<UserLockData> }
-    solverLock: { fetch(pda: PublicKey): Promise<SolverLockData> }
-}
+import { decoder, encoder, hexToUint8Array, uint8ArrayToHex, writeBigUInt64LE } from './utils.js'
 
 export class SolanaHTLCClient extends HTLCClient {
     private connection: Connection
@@ -87,7 +35,6 @@ export class SolanaHTLCClient extends HTLCClient {
 
     async userLock(params: UserLockParams): Promise<AtomicResult> {
         const signer = this.requireSigner()
-
         if (!params.atomicContract) throw new Error('No contract address')
 
         const walletPublicKey = new PublicKey(signer.publicKey)
@@ -203,45 +150,29 @@ export class SolanaHTLCClient extends HTLCClient {
 
         const accountInfo = await this.connection.getAccountInfo(userLockPda)
         if (!accountInfo) {
-            const sigs = await this.connection.getSignaturesForAddress(userLockPda, { limit: 1 }).catch(() => [])
-            if (!sigs.length) return null
-            const closedTx = await this.connection.getTransaction(sigs[0].signature, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 })
-            for (const event of this.parseLogEvents(closedTx?.meta?.logMessages ?? [], program)) {
-                const name = event.name.toLowerCase()
-                if (name === 'userrefunded' || name === 'userredeemed') {
-                    return {
-                        hashlock: `0x${id.replace('0x', '')}`,
-                        amount: 0, timelock: 0, secret: undefined,
-                        status: name === 'userrefunded' ? LockStatus.Refunded : LockStatus.Redeemed,
-                        blockTimestamp: closedTx?.blockTime ? closedTx.blockTime * 1000 : undefined,
-                    }
-                }
-            }
-            return null
+            return this.recoverClosedUserLock(id, userLockPda, program)
         }
-
         try {
             const result = await (program.account as TypedProgramAccounts).userLock.fetch(userLockPda)
 
             if (!result) return null
 
-            const { userData, blockTimestamp } = params.txId ? await this.findUserDataFromLogs(params.txId, id, program) : {}
-
-            const details: UserLockDetails = {
+            const parsedResult: BaseLockDetails = {
                 hashlock: `0x${id.replace('0x', '')}`,
-                amount: Number(formatUnits(BigInt(result.amount.toString()), params.decimals ?? 6)),
+                amount: Number(formatUnits(BigInt(result.amount.toString()), params.decimals)),
+                secret: this.parseSecret(result.secret),
                 timelock: Number(result.timelock),
+                status: Number(result.status) as LockStatus,
                 sender: new PublicKey(result.sender).toString(),
                 recipient: new PublicKey(result.recipient).toString(),
-                secret: this.parseSecret(result.secret),
-                token: result.tokenMint && result.tokenMint.toString() !== NATIVE_SOL_ADDRESS
-                    ? result.tokenMint.toString()
-                    : undefined,
-                status: Number(result.status) as LockStatus,
-                userData,
-                blockTimestamp,
+                token: result.tokenMint ? result.tokenMint.toString() : '',
             }
-            return details
+
+            const { eventData, blockTimestamp } = params.txId
+                ? await this.findUserDataFromLogs(params.txId, id, program)
+                : { eventData: {}, blockTimestamp: undefined }
+
+            return { ...parsedResult, ...eventData, blockTimestamp } as UserLockDetails
         } catch (e) {
             console.error('[SolanaHTLC][getUserLockDetails] fetch failed', e)
             return null
@@ -257,14 +188,20 @@ export class SolanaHTLCClient extends HTLCClient {
         const hashlockBytes = hexToUint8Array(id.replace('0x', ''))
         const program = this.buildProgram(contractAddress, undefined, connection)
 
-        const hashlockArray = Array.from(hashlockBytes)
-        const count = Number(await program.methods.getSolverLockCount(hashlockArray).view())
+        const [counterPda] = PublicKey.findProgramAddressSync(
+            [encoder.encode("solver_count"), hashlockBytes],
+            program.programId
+        )
+        const counterAccount = await connection.getAccountInfo(counterPda)
+        if (!counterAccount) return null
+        const count = Number((await (program.account as TypedProgramAccounts).solverLockCounter.fetch(counterPda)).count)
         if (count === 0) return null
 
         for (let i = 1; i <= count; i++) {
             const result = await this.getSolverLockByIndex(params, i, nodeUrl)
             if (!result) continue
             if (params.solverAddress && result.sender?.toLowerCase() !== params.solverAddress.toLowerCase()) continue
+          
             return result
         }
 
@@ -298,21 +235,17 @@ export class SolanaHTLCClient extends HTLCClient {
 
             return {
                 hashlock: `0x${id.replace('0x', '')}`,
-                amount: Number(formatUnits(BigInt(result.amount.toString()), params.decimals ?? 6)),
-                reward: Number(formatUnits(BigInt(result.reward.toString()), params.decimals ?? 6)),
+                amount: Number(formatUnits(BigInt(result.amount.toString()), params.decimals)),
+                secret: this.parseSecret(result.secret),
                 timelock: Number(result.timelock),
-                rewardTimelock: Number(result.rewardTimelock),
+                status: Number(result.status) as LockStatus,
                 sender,
                 recipient: new PublicKey(result.recipient).toString(),
+                token: result.tokenMint ? result.tokenMint.toString() : '',
+                reward: Number(formatUnits(BigInt(result.reward.toString()), params.decimals)),
+                rewardTimelock: Number(result.rewardTimelock),
                 rewardRecipient: new PublicKey(result.rewardRecipient).toString(),
-                secret: this.parseSecret(result.secret),
-                token: result.tokenMint && result.tokenMint.toString() !== NATIVE_SOL_ADDRESS
-                    ? result.tokenMint.toString()
-                    : undefined,
-                rewardToken: result.rewardTokenMint && result.rewardTokenMint.toString() !== NATIVE_SOL_ADDRESS
-                    ? result.rewardTokenMint.toString()
-                    : undefined,
-                status: Number(result.status) as LockStatus,
+                rewardToken: result.rewardTokenMint ? result.rewardTokenMint.toString() : '',
                 index,
             }
         } catch (e) {
@@ -321,7 +254,7 @@ export class SolanaHTLCClient extends HTLCClient {
         }
     }
 
-    async recoverSwap(txHash: string): Promise<RecoveredSwapData> {
+    async recoverSwap(txHash: string, network: Network): Promise<UserLockDetails> {
         if (!/^[1-9A-HJ-NP-Za-km-z]{43,88}$/.test(txHash))
             throw new Error('Invalid transaction hash format')
 
@@ -344,16 +277,14 @@ export class SolanaHTLCClient extends HTLCClient {
             logs.map(l => l.match(invokeRegex)?.[1]).filter((id): id is string => !!id)
         )]
 
-        let userLocked: { name: string; data: Record<string, unknown> } | undefined
-        let srcContract: string | undefined
+        let userLocked: Record<string, any> | undefined
 
         for (const pid of programIds) {
             try {
                 const parser = new EventParser(new PublicKey(pid), new BorshCoder(TrainHtlc(pid)))
                 for (const event of parser.parseLogs(logs)) {
                     if (event.name.toLowerCase() === 'userlocked') {
-                        userLocked = { name: event.name, data: event.data as Record<string, unknown> }
-                        srcContract = pid
+                        userLocked = event.data as Record<string, any>
                         break
                     }
                 }
@@ -363,26 +294,27 @@ export class SolanaHTLCClient extends HTLCClient {
             }
         }
 
-        if (!userLocked || !srcContract) {
+        if (!userLocked) {
             throw new Error('This transaction does not contain a swap lock')
         }
 
-        const data = userLocked.data as Record<string, any>
-        const hashlock = '0x' + uint8ArrayToHex(new Uint8Array(data.hashlock as number[]))
+        const hashlock = '0x' + uint8ArrayToHex(new Uint8Array(userLocked.hashlock as number[]))
+        const eventToken = (userLocked.token_mint as PublicKey).toBase58()
 
-        return {
-            hashlock,
-            sender: (data.sender as PublicKey).toBase58(),
-            recipient: (data.recipient as PublicKey).toBase58(),
-            srcChain: data.src_chain as string,
-            dstChain: data.dst_chain as string,
-            token: (data.token_mint as PublicKey).toBase58(),
-            amount: BigInt((data.amount as BN).toString()),
-            dstAddress: data.dst_address as string,
-            dstAmount: BigInt((data.dst_amount as BN).toString()),
-            dstToken: data.dst_token as string,
-            srcContract,
-        }
+        const token = network.tokens.find(t => t.contract?.toLowerCase() === eventToken.toLowerCase())
+        const decimals = token?.decimals ?? 9
+
+        const result = await this.getUserLockDetails({
+            id: hashlock,
+            contractAddress: network.trainContract,
+            decimals,
+            txId: txHash,
+            chainId: network.chainId,
+        })
+
+        if (!result) throw new Error('Lock not found for recovered hashlock')
+
+        return result
     }
 
     // ── Public Helpers ─────────────────────────────────────────────────
@@ -430,8 +362,8 @@ export class SolanaHTLCClient extends HTLCClient {
         return this.signer
     }
 
-    private parseSecret(secretBytes: Uint8Array | number[]): bigint | undefined {
-        return Array.from(secretBytes).some(b => b !== 0) ? BigInt(bytesToHex(Array.from(secretBytes))) : undefined
+    private parseSecret(secretBytes: Uint8Array | number[]): bigint {
+        return BigInt(bytesToHex(Array.from(secretBytes)))
     }
 
     private buildReadOnlyProvider(publicKey: PublicKey, connection?: Connection): AnchorProvider {
@@ -447,6 +379,25 @@ export class SolanaHTLCClient extends HTLCClient {
         const pk = readerKey ?? (this.signer ? new PublicKey(this.signer.publicKey) : new PublicKey(NATIVE_SOL_ADDRESS))
         const provider = this.buildReadOnlyProvider(pk, connection)
         return new Program(TrainHtlc(contractAddress), provider)
+    }
+
+    private async recoverClosedUserLock(id: string, pda: PublicKey, program: Program): Promise<UserLockDetails | null> {
+        const sigs = await this.connection.getSignaturesForAddress(pda, { limit: 1 }).catch(() => [])
+        if (!sigs.length) return null
+        const closedTx = await this.connection.getTransaction(sigs[0].signature, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 })
+        for (const event of this.parseLogEvents(closedTx?.meta?.logMessages ?? [], program)) {
+            const name = event.name.toLowerCase()
+            if (name === 'userrefunded' || name === 'userredeemed') {
+                return {
+                    hashlock: `0x${id.replace('0x', '')}`,
+                    amount: 0, timelock: 0, secret: 0n,
+                    sender: '', recipient: '', token: '',
+                    status: name === 'userrefunded' ? LockStatus.Refunded : LockStatus.Redeemed,
+                    blockTimestamp: closedTx?.blockTime ? closedTx.blockTime * 1000 : undefined,
+                } as UserLockDetails
+            }
+        }
+        return null
     }
 
     private parseLogEvents(logs: string[], program: Program): Array<{ name: string; data: Record<string, unknown> }> {
@@ -466,7 +417,8 @@ export class SolanaHTLCClient extends HTLCClient {
         txId: string,
         id: string,
         program: Program
-    ): Promise<{ userData?: string; blockTimestamp?: number }> {
+    ): Promise<{ eventData: Partial<EventDerivedData>; blockTimestamp?: number }> {
+        const eventData: Partial<EventDerivedData> = {}
         try {
             let tx = await this.connection.getTransaction(txId, {
                 commitment: 'confirmed',
@@ -479,30 +431,49 @@ export class SolanaHTLCClient extends HTLCClient {
                     maxSupportedTransactionVersion: 0,
                 })
             }
-            if (!tx) return {}
+            if (!tx) return { eventData }
 
             const blockTimestamp = tx.blockTime ? tx.blockTime * 1000 : undefined
             const logs = tx.meta?.logMessages ?? []
 
-            for (const event of this.parseLogEvents(logs, program)) {
+            const parser = new EventParser(program.programId, new BorshCoder(TrainHtlc(program.programId.toBase58())))
+            for (const event of parser.parseLogs(logs)) {
                 if (event.name.toLowerCase() !== 'userlocked') continue
 
-                const hashlockBytes: number[] = Array.from(event.data.hashlock as number[])
+                const data = event.data as Record<string, any>
+                const hashlockBytes: number[] = Array.from(data.hashlock as number[])
                 const eventHashlock = '0x' + uint8ArrayToHex(new Uint8Array(hashlockBytes))
                 if (eventHashlock.toLowerCase() !== `0x${id.replace('0x', '')}`.toLowerCase()) continue
 
-                const userDataBytes: number[] = Array.from((event.data as Record<string, unknown>).user_data as Uint8Array ?? [])
-                const userData = userDataBytes.length > 0
-                    ? decoder.decode(new Uint8Array(userDataBytes)).replace(/\0/g, '').trim() || undefined
-                    : undefined
+                const decodeBytes = (raw: unknown): string | undefined => {
+                    const bytes: number[] = Array.from((raw as number[]) ?? [])
+                    return bytes.length > 0
+                        ? decoder.decode(new Uint8Array(bytes)).replace(/\0/g, '').trim() || undefined
+                        : undefined
+                }
 
-                return { userData, blockTimestamp }
+                eventData.userData = decodeBytes(data.userData ?? data.user_data)
+                eventData.solverData = decodeBytes(data.solverData ?? data.solver_data)
+
+                const dstChain = data.dst_chain ?? data.dstChain
+                if (dstChain != null) eventData.dstChain = typeof dstChain === 'string' ? dstChain : decodeBytes(dstChain)
+
+                const dstAddress = data.dst_address ?? data.dstAddress
+                if (dstAddress != null) eventData.dstAddress = typeof dstAddress === 'string' ? dstAddress : decodeBytes(dstAddress)
+
+                const dstToken = data.dst_token ?? data.dstToken
+                if (dstToken != null) eventData.dstToken = typeof dstToken === 'string' ? dstToken : decodeBytes(dstToken)
+
+                const dstAmountRaw = data.dstAmount ?? data.dst_amount
+                if (dstAmountRaw != null) eventData.dstAmount = BigInt(dstAmountRaw.toString())
+
+                return { eventData, blockTimestamp }
             }
 
-            return { blockTimestamp }
+            return { eventData, blockTimestamp }
         } catch (e) {
-            console.error('Error fetching userData from Solana logs:', e)
-            return {}
+            console.error('Error fetching event data from Solana logs:', e)
+            return { eventData }
         }
     }
 

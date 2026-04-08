@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useCallback, useMemo, useRef, type ReactNode } from 'react'
-import { useStore } from 'zustand'
+import { useStoreWithEqualityFn as useStore } from 'zustand/traditional'
 import { createStore } from 'zustand/vanilla'
 import { useTrainContext } from './TrainContext'
 import { useSecretDerivation as useSecretDerivationHook } from '../hooks/useSecretDerivation'

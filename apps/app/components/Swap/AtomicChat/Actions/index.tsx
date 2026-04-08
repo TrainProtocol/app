@@ -1,7 +1,7 @@
 import { FC, useEffect, useRef, useState } from "react";
 import { useActiveSwap } from "@/hooks/useActiveSwap";
 import { RevealSecretAction } from "./RevealSecret";
-import { ManualClaimAction } from "./ManualClaim";
+import { ManualRedeemAction } from "./ManualClaim";
 import { UserRefundAction, UserLockAction } from "./UserActions";
 import TransactionMessages from "@/components/Swap/messages/TransactionMessages";
 import WalletMessage from "@/components/Swap/messages/Message";
@@ -11,7 +11,6 @@ import SubmitButton from "@/components/buttons/submitButton";
 import { ExternalLink, Home } from "lucide-react";
 import { useGoHome } from "@/hooks/useGoHome";
 import { getExplorerUrl } from "@/lib/address";
-import NetworkSettings from "@/lib/NetworkSettings";
 import { Widget } from "@/components/Widget/Index";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
@@ -84,7 +83,7 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode,
         case HTLCStatus.TimelockExpired:
             return <UserRefundAction type={type} />
         case HTLCStatus.ManualClaimRequired:
-            return <ManualClaimAction type={type} />
+            return <ManualRedeemAction type={type} />
         case HTLCStatus.SecretRevealed:
             return <></>
         case HTLCStatus.SolverLockDetected:
@@ -147,10 +146,10 @@ const TerminalActions: FC<{ variant: 'success' | 'refund'; type: SwapViewType }>
 
     const isSuccess = variant === 'success'
     const isModal = type === 'contained'
-    const networkSlug = isSuccess ? destinationNetwork?.caip2Id : sourceNetwork?.caip2Id
+    const network = isSuccess ? destinationNetwork : sourceNetwork
     const txHash = isSuccess ? destRedeemTxId : refundTxId
-    const txLink = networkSlug && txHash
-        ? getExplorerUrl(NetworkSettings.KnownSettings[networkSlug]?.TransactionExplorerTemplate, txHash)
+    const txLink = network && txHash
+        ? getExplorerUrl(network.explorerUrlTemplate?.transaction, txHash)
         : undefined
 
     const swapMoreButton = (

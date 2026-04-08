@@ -1,44 +1,48 @@
 import { useState, useCallback, useRef } from 'react'
-import { HTLCStatus } from '@train-protocol/sdk'
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
-import { useStoreContext } from '../providers/TrainProvider'
-import { useDerivedSwapState } from '../internal/useDerivedSwapState'
-import { parseCaip2Id } from '../internal/branded'
+import { useNetworksContext } from '../providers/NetworksProvider'
+import { useSwapActions } from '../internal/useSwapActions'
+import { caip2Id, parseCaip2Id } from '../internal/branded'
+import { resolveSwapTokens } from '../internal/resolveSwapTokens'
 import { TrainError, TrainErrorCode } from '../types'
 
+export interface RefundParams {
+    hashlock: string
+    /** Optional signer address. Refund is permissionless — any account can
+     *  execute it. When provided, the bridge resolves the matching connector.
+     *  When omitted, falls back to the framework's active account. */
+    address?: string
+}
+
 export interface UseRefundResult {
-    refund: () => Promise<string>
+    /** Refund locked funds. Params are passed at call time for freshness. */
+    refund: (params: RefundParams) => Promise<string>
     isRefunding: boolean
-    canRefund: boolean
     error: Error | null
 }
 
 /**
  * Action hook to refund locked funds after timelock expiry.
- *
- * @param hashlock - The hashlock of the swap to refund
  */
-export function useRefund(hashlock: string | null | undefined): UseRefundResult {
-    const hl = hashlock ?? null
+export function useRefund(): UseRefundResult {
     const { config } = useTrainContext()
     const walletCtx = useWalletContext()
-    const store = useStoreContext()
-    const derived = useDerivedSwapState(store, hl)
+    const actions = useSwapActions()
+    const { networkMap } = useNetworksContext()
     const [isRefunding, setIsRefunding] = useState(false)
     const [error, setError] = useState<Error | null>(null)
     const inFlight = useRef(false)
 
-    const canRefund = derived.isTimelockExpired && derived.status === HTLCStatus.TimelockExpired
-
-    const doRefund = useCallback(async (): Promise<string> => {
+    const doRefund = useCallback(async (params: RefundParams): Promise<string> => {
         if (inFlight.current) throw new TrainError('Refund already in progress', TrainErrorCode.RefundFailed)
         inFlight.current = true
         setIsRefunding(true)
         setError(null)
 
-        const swapConfig = hl ? store?.getState().swapConfigs[hl] : null
-        if (!swapConfig?.hashlock || !swapConfig?.srcContract) {
+        const { hashlock, address } = params
+        const swap = actions.getSwap(hashlock)
+        if (!swap?.hashlock || !swap?.srcContract || !swap?.source) {
             const err = new TrainError('Cannot refund: missing required params', TrainErrorCode.RefundFailed)
             setError(err)
             inFlight.current = false
@@ -46,7 +50,7 @@ export function useRefund(hashlock: string | null | undefined): UseRefundResult 
             throw err
         }
 
-        const sourceAsset = derived.sourceToken
+        const { sourceAsset } = resolveSwapTokens(swap, networkMap)
         if (!sourceAsset) {
             const err = new TrainError('Cannot refund: unable to resolve source asset', TrainErrorCode.RefundFailed)
             setError(err)
@@ -56,21 +60,17 @@ export function useRefund(hashlock: string | null | undefined): UseRefundResult 
         }
 
         try {
-            // Create write client via wallet adapter (fully typed, no cast)
-            const client = walletCtx.createWriteClient(swapConfig.sourceNetwork)
-            const chainId = swapConfig.origin === 'created'
-                ? swapConfig.chainId
-                : parseCaip2Id(swapConfig.sourceNetwork).reference
+            const sourceNetwork = caip2Id(swap.source)
+            const client = walletCtx.createWriteClient(sourceNetwork, address)
+            const chainId = parseCaip2Id(sourceNetwork).reference
             const txHash = await client.refund({
                 chainId,
-                contractAddress: swapConfig.srcContract,
-                id: swapConfig.hashlock,
+                contractAddress: swap.srcContract,
+                id: swap.hashlock,
                 sourceAsset,
             })
 
-            if (store && hl) {
-                store.getState().updateSwap(hl, { refundTxId: txHash })
-            }
+            actions.updateSwap(hashlock, { refundTxId: txHash })
 
             return txHash
         } catch (err) {
@@ -78,14 +78,14 @@ export function useRefund(hashlock: string | null | undefined): UseRefundResult 
                 ? err
                 : new TrainError(err instanceof Error ? err.message : String(err), TrainErrorCode.RefundFailed, err)
             setError(trainError)
-            if (store && hl) store.getState().setActiveSwapError(hl, trainError)
+            actions.updateSwapFlags(hashlock, { error: trainError })
             config.onError?.(trainError)
             throw trainError
         } finally {
             inFlight.current = false
             setIsRefunding(false)
         }
-    }, [hl, walletCtx, store, config, derived.sourceToken])
+    }, [walletCtx, actions, config, networkMap])
 
-    return { refund: doRefund, isRefunding, canRefund, error }
+    return { refund: doRefund, isRefunding, error }
 }

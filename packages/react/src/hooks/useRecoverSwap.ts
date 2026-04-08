@@ -1,11 +1,11 @@
 import { useState, useCallback } from 'react'
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
+import { useSwapActions } from '../internal/useSwapActions'
 import { useStoreContext } from '../providers/TrainProvider'
 import { useNetworksContext } from '../providers/NetworksProvider'
 import { TrainError, TrainErrorCode } from '../types'
 import type { SwapData } from '../types'
-import type { RecoveredSwapConfig } from '../internal/store'
 import { caip2Id } from '../internal/branded'
 
 export interface UseRecoverSwapResult {
@@ -18,6 +18,10 @@ export interface UseRecoverSwapResult {
 /**
  * Action hook to recover a lost swap from a transaction hash.
  *
+ * First checks the local persisted store for a swap matching the given
+ * sourceNetwork + txHash. If found, returns the hashlock immediately without
+ * making any network calls. Otherwise, goes to chain to recover the swap data.
+ *
  * Returns the recovered hashlock on success. Pass it to `useSwapProgress`
  * to start monitoring.
  *
@@ -27,7 +31,8 @@ export function useRecoverSwap(): UseRecoverSwapResult {
     const { config } = useTrainContext()
     const walletCtx = useWalletContext()
     const store = useStoreContext()
-    const { networks } = useNetworksContext()
+    const actions = useSwapActions()
+    const { networkMap } = useNetworksContext()
     const [isRecovering, setIsRecovering] = useState(false)
     const [error, setError] = useState<Error | null>(null)
 
@@ -39,46 +44,46 @@ export function useRecoverSwap(): UseRecoverSwapResult {
             // Validate and brand the network ID — throws if it looks like a namespace
             const sourceNetwork = caip2Id(networkId)
 
-            // Create read-only client via wallet adapter (no signer needed for recovery)
-            const client = walletCtx.createClient(sourceNetwork)
-            const recovered = await client.recoverSwap(txHash)
-
+            // Check local store first — avoid network call if swap already persisted
             if (store) {
-                // Resolve contract addresses from on-chain data to token symbols
-                const srcNetwork = networks.find(n => n.caip2Id.toUpperCase() === recovered.srcChain.toUpperCase())
-                const dstNetwork = networks.find(n => n.caip2Id.toUpperCase() === recovered.dstChain.toUpperCase())
-                const srcToken = srcNetwork?.tokens.find(t => t.contractAddress?.toLowerCase() === recovered.token.toLowerCase())
-                const dstToken = dstNetwork?.tokens.find(t => t.contractAddress?.toLowerCase() === recovered.dstToken.toLowerCase())
-
-                const swapData: SwapData = {
-                    requestedAmount: recovered.amount.toString(),
-                    address: recovered.sender,
-                    source: recovered.srcChain,
-                    destination: recovered.dstChain,
-                    source_asset: srcToken?.symbol ?? recovered.token,
-                    destination_asset: dstToken?.symbol ?? recovered.dstToken,
-                    srcContract: recovered.srcContract,
-                    hashlock: recovered.hashlock,
-                    txId: txHash,
+                const found = store.getState().findSwapByTx(networkId, txHash)
+                if (found) {
+                    return found[0]
                 }
-                store.getState().addSwap(recovered.hashlock, swapData)
-
-                // Initialize swap config — recovered swaps have limited data
-                const swapConfig: RecoveredSwapConfig = {
-                    origin: 'recovered',
-                    hashlock: recovered.hashlock,
-                    sourceNetwork,
-                    destinationNetwork: caip2Id(recovered.dstChain),
-                    srcContract: recovered.srcContract,
-                    sourceAddress: recovered.sender,
-                    destinationAddress: recovered.dstAddress,
-                    txId: txHash,
-                    requestedAmount: recovered.amount.toString(),
-                }
-                store.getState().setSwapConfig(recovered.hashlock, swapConfig)
             }
 
-            return recovered.hashlock
+            // Not found locally — recover from chain
+            const srcNetwork = networkMap.get(sourceNetwork)
+            if (!srcNetwork) throw new Error(`Network not found: ${networkId}`)
+
+            const client = walletCtx.createClient(sourceNetwork)
+            const details = await client.recoverSwap(txHash, srcNetwork)
+
+            if (!details.dstChain) throw new Error('Destination network not found')
+
+            // Resolve contract addresses from on-chain data to token symbols
+            const dstNetwork = networkMap.get(details.dstChain)
+            const srcToken = srcNetwork.tokens.find(t => t.contract?.toLowerCase() === details.token.toLowerCase())
+            const dstToken = dstNetwork?.tokens.find(t => t.contract?.toLowerCase() === details.dstToken?.toLowerCase())
+
+            const swapData: SwapData = {
+                requestedAmount: details.amount.toString(),
+                address: details.sender,
+                source: networkId,
+                destination: details.dstChain ?? '',
+                source_asset: srcToken?.symbol ?? details.token,
+                destination_asset: dstToken?.symbol ?? details.dstToken ?? '',
+                srcContract: srcNetwork.trainContract,
+                srcTokenContract: details.token,
+                destTokenContract: details.dstToken ?? '',
+                hashlock: details.hashlock,
+                txId: txHash,
+                sourceAddress: details.sender,
+                destinationAddress: details.dstAddress ?? '',
+            }
+            actions.addSwap(details.hashlock, swapData)
+
+            return details.hashlock
         } catch (err) {
             const trainError = new TrainError(
                 err instanceof Error ? err.message : String(err),
@@ -91,7 +96,7 @@ export function useRecoverSwap(): UseRecoverSwapResult {
         } finally {
             setIsRecovering(false)
         }
-    }, [walletCtx, store, config, networks])
+    }, [store, walletCtx, actions, config, networkMap])
 
     return { recover, isRecovering, error }
 }

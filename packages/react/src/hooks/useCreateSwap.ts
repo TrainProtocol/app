@@ -7,11 +7,10 @@ import {
 } from '@train-protocol/sdk'
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
-import { useStoreContext } from '../providers/TrainProvider'
+import { useSwapActions } from '../internal/useSwapActions'
 import { useSDStoreContext } from '../providers/SecretDerivationProvider'
 import { TrainError, TrainErrorCode } from '../types'
 import type { StartSwapParams } from '../types'
-import type { CreatedSwapConfig } from '../internal/store'
 import { caip2Id, parseCaip2Id } from '../internal/branded'
 
 export interface UseCreateSwapResult {
@@ -37,7 +36,7 @@ export interface UseCreateSwapResult {
 export function useCreateSwap(): UseCreateSwapResult {
     const { config } = useTrainContext()
     const walletCtx = useWalletContext()
-    const store = useStoreContext()
+    const actions = useSwapActions()
     const sdStore = useSDStoreContext()
     const [isCreating, setIsCreating] = useState(false)
     const [error, setError] = useState<Error | null>(null)
@@ -60,79 +59,56 @@ export function useCreateSwap(): UseCreateSwapResult {
             const secret = bytesToHex(Array.from(secretBytes))
             const hashlock = secretToHashlock(secret)
 
+
             const sourceNetwork = caip2Id(params.sourceNetwork)
-            const destinationNetwork = caip2Id(params.destinationNetwork)
             const { reference: sourceChainRef } = parseCaip2Id(sourceNetwork)
 
-            // Create write client via wallet adapter (fully typed, no cast)
-            const client = walletCtx.createWriteClient(sourceNetwork)
+            // Create write client via wallet adapter — pass source address so the
+            // bridge resolves the correct connector / signer for this account.
+            const client = walletCtx.createWriteClient(sourceNetwork, params.sourceAddress)
 
             const result = await client.userLock({
                 sourceChain: params.sourceNetwork,
                 destinationChain: params.destinationNetwork,
                 amount: params.amount,
                 destinationAmount: params.quote.receiveAmount,
-                decimals: params.sourceAsset.decimals,
-                destinationAsset: params.destinationAsset.contractAddress,
                 sourceAsset: params.sourceAsset,
-                destLpAddress: params.quote.destinationSolverAddress,
-                srcLpAddress: params.quote.sourceSolverAddress,
+                destinationAsset: params.destinationAsset,
+                destSolverAddress: params.quote.destinationSolverAddress,
+                srcSolverAddress: params.quote.sourceSolverAddress,
                 atomicContract: params.srcContract,
                 sourceAddress: params.sourceAddress,
                 destinationAddress: params.destinationAddress,
-                tokenContractAddress: params.tokenContractAddress,
                 chainId: params.chainId ?? sourceChainRef,
                 quoteExpiry: params.quote.quoteExpirationTimestampInSeconds,
                 rewardToken: params.quote.reward?.rewardToken,
                 rewardRecipient: params.quote.reward?.rewardRecipientAddress,
                 rewardAmount: params.quote.reward?.amount,
                 rewardTimelockDelta: params.quote.reward?.rewardTimelockTimeSpanInSeconds,
-                timelockDelta: params.quote.timelock?.timelockTimeSpanInSeconds,
+                timelockDelta: params.quote.timelockTimeSpanInSeconds,
                 hashlock,
                 nonce,
                 solverData: params.quote.signature,
             })
 
-            if (store) {
-                // Persist to swap history
-                store.getState().addSwap(result.hashlock, {
-                    requestedAmount: params.amount,
-                    address: params.sourceAddress,
-                    source: params.sourceNetwork,
-                    destination: params.destinationNetwork,
-                    source_asset: params.sourceAsset.symbol,
-                    destination_asset: params.destinationAsset.symbol,
-                    solver: params.solverId,
-                    srcContract: params.srcContract,
-                    destContract: params.destContract,
-                    receiveAmount: formatUnits(BigInt(params.quote.receiveAmount), params.destinationAsset.decimals),
-                    hashlock: result.hashlock,
-                    txId: result.hash,
-                    sourceAddress: params.sourceAddress,
-                    destinationAddress: params.destinationAddress,
-                    sourceSolverAddress: params.quote.sourceSolverAddress,
-                    destinationSolverAddress: params.quote.destinationSolverAddress,
-                })
-
-                // Initialize swap config in-memory for monitoring
-                const swapConfig: CreatedSwapConfig = {
-                    origin: 'created',
-                    hashlock: result.hashlock,
-                    solverId: params.solverId,
-                    sourceNetwork,
-                    destinationNetwork,
-                    srcContract: params.srcContract,
-                    destContract: params.destContract,
-                    tokenContractAddress: params.tokenContractAddress ?? null,
-                    sourceAddress: params.sourceAddress,
-                    destinationAddress: params.destinationAddress,
-                    chainId: parseCaip2Id(sourceNetwork).reference,
-                    txId: result.hash,
-                    quote: params.quote,
-                    requestedAmount: params.amount,
-                }
-                store.getState().setSwapConfig(result.hashlock, swapConfig)
-            }
+            // Persist swap data (also initializes default flags)
+            actions.addSwap(result.hashlock, {
+                requestedAmount: params.amount,
+                address: params.sourceAddress,
+                source: params.sourceNetwork,
+                destination: params.destinationNetwork,
+                source_asset: params.sourceAsset.symbol,
+                destination_asset: params.destinationAsset.symbol,
+                srcContract: params.srcContract,
+                destContract: params.destContract,
+                receiveAmount: formatUnits(BigInt(params.quote.receiveAmount), params.destinationAsset.decimals),
+                hashlock: result.hashlock,
+                txId: result.hash,
+                sourceAddress: params.sourceAddress,
+                destinationAddress: params.destinationAddress,
+                sourceSolverAddress: params.quote.sourceSolverAddress,
+                destinationSolverAddress: params.quote.destinationSolverAddress,
+            })
 
             return result.hashlock
         } catch (err) {
@@ -150,7 +126,7 @@ export function useCreateSwap(): UseCreateSwapResult {
             inFlight.current = false
             setIsCreating(false)
         }
-    }, [walletCtx, store, sdStore, config])
+    }, [walletCtx, actions, sdStore, config])
 
     return { createSwap, isCreating, error }
 }

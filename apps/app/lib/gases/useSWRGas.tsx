@@ -1,9 +1,9 @@
 import useSWR from "swr"
-import { Network, Token } from "../../Models/Network"
+import { ExtendedNetwork, ExtendedToken } from "../../Models/Network"
 import { GasResolver } from "./gasResolver"
 import { GasWithToken } from "./providers/types"
 
-const useSWRGas = (address: string | undefined | null, network: Network | undefined | null, token?: Token | null): { gasData: GasWithToken | undefined, isGasLoading: boolean, gasError: any } => {
+const useSWRGas = (address: string | undefined | null, network: ExtendedNetwork | undefined | null, token?: ExtendedToken | null): { gasData: GasWithToken | undefined, isGasLoading: boolean, gasError: any } => {
 
     const { data: gasData, error: gasError, isLoading } = useSWR((network && address) ? `/gases/${address}/${network.caip2Id}/${token?.symbol}` : null, () => {
         if (!network || !token || !address) return

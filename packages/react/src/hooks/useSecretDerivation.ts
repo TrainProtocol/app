@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import { useStore } from 'zustand'
+import { useStoreWithEqualityFn as useStore } from 'zustand/traditional'
 import { shallow } from 'zustand/shallow'
 import {
     deriveSecretFromCryptoKey,

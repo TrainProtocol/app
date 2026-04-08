@@ -1,6 +1,6 @@
 {
   "name": "@train-protocol/auth",
-  "version": "0.1.0",
+  "version": "0.1.0-dev.1",
   "description": "Train Protocol Auth — passkey WebAuthn and wallet-sign registry",
   "type": "module",
   "main": "dist/esm/index.js",

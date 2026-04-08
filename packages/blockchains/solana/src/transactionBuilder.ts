@@ -52,21 +52,21 @@ export const userLockTransactionBuilder = async (params: UserLockParams): Promis
     const { connection, program, walletPublicKey } = params
 
     if (!walletPublicKey) throw new Error("Wallet not connected")
-    if (!params.srcLpAddress) throw new Error("No LP address")
+    if (!params.srcSolverAddress) throw new Error("No LP address")
     if (!params.nonce) throw new Error("No nonce")
     if (!params.solverData) throw new Error("No solver data")
 
     const hashlock = hexToUint8Array(params.hashlock.replace('0x', ''))
-    const bnAmount = toBaseUnits(params.amount, params.decimals)
-    const bnDstAmount = toBaseUnits(params.destinationAmount, params.decimals)
-    const bnRewardAmount = toBaseUnits(params.rewardAmount || '0', params.decimals)
+    const bnAmount = toBaseUnits(params.amount, params.sourceAsset.decimals)
+    const bnDstAmount = new BN(params.destinationAmount)
+    const bnRewardAmount = new BN(params.rewardAmount || '0')
     const bnTimelockDelta = new BN(params.timelockDelta || 0)
     const bnRewardTimelockDelta = new BN(params.rewardTimelockDelta || 0)
     const bnQuoteExpiry = new BN(params.quoteExpiry)
-    const lpPublicKey = new PublicKey(params.srcLpAddress)
+    const lpPublicKey = new PublicKey(params.srcSolverAddress)
     const hashlockArray = Array.from(hashlock)
-    const userData = encoder.encode(params.nonce.toString())
-    const solverDataBytes = encoder.encode(params.solverData)
+    const userData = Buffer.from(params.nonce.toString())
+    const solverDataBytes = Buffer.from(params.solverData ?? '')
 
     const [userLockPda] = PublicKey.findProgramAddressSync(
         [encoder.encode("user_lock"), hashlock],
@@ -75,9 +75,9 @@ export const userLockTransactionBuilder = async (params: UserLockParams): Promis
 
     const tx = new Transaction()
 
-    if (params.sourceAsset.contractAddress && params.sourceAsset.contractAddress !== NATIVE_SOL_ADDRESS) {
+    if (params.sourceAsset.contract && params.sourceAsset.contract !== NATIVE_SOL_ADDRESS) {
         const { getAssociatedTokenAddress, TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
-        const tokenMint = new PublicKey(params.sourceAsset.contractAddress)
+        const tokenMint = new PublicKey(params.sourceAsset.contract)
         const senderTokenAccount = await getAssociatedTokenAddress(tokenMint, walletPublicKey)
         const [vault] = PublicKey.findProgramAddressSync(
             [encoder.encode("user_vault"), hashlock],
@@ -90,7 +90,7 @@ export const userLockTransactionBuilder = async (params: UserLockParams): Promis
                 bnAmount, bnTimelockDelta, bnQuoteExpiry,
                 walletPublicKey, lpPublicKey,
                 params.sourceChain, params.destinationChain, params.destinationAddress,
-                bnDstAmount, params.destinationAsset,
+                bnDstAmount, params.destinationAsset.contract,
                 bnRewardAmount, params.rewardToken ?? '', params.rewardRecipient ?? '', bnRewardTimelockDelta,
                 userData, solverDataBytes
             )
@@ -112,7 +112,7 @@ export const userLockTransactionBuilder = async (params: UserLockParams): Promis
                 bnAmount, bnTimelockDelta, bnQuoteExpiry,
                 walletPublicKey, lpPublicKey,
                 params.sourceChain, params.destinationChain, params.destinationAddress,
-                bnDstAmount, params.destinationAsset,
+                bnDstAmount, params.destinationAsset.contract,
                 bnRewardAmount, params.rewardToken ?? '', params.rewardRecipient ?? '', bnRewardTimelockDelta,
                 userData, solverDataBytes
             )
@@ -144,9 +144,9 @@ export const refundTransactionBuilder = async (params: RefundTxParams): Promise<
     )
 
     let refundIx: TransactionInstruction
-    if (params.sourceAsset.contractAddress && params.sourceAsset.contractAddress !== NATIVE_SOL_ADDRESS) {
+    if (params.sourceAsset.contract && params.sourceAsset.contract !== NATIVE_SOL_ADDRESS) {
         const { getAssociatedTokenAddress, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
-        const tokenMint = new PublicKey(params.sourceAsset.contractAddress)
+        const tokenMint = new PublicKey(params.sourceAsset.contract)
         const senderTokenAccount = await getAssociatedTokenAddress(tokenMint, walletPublicKey)
         const [vault] = PublicKey.findProgramAddressSync(
             [encoder.encode("user_vault"), hashlockBytes],
@@ -208,9 +208,11 @@ export const redeemSolverTransactionBuilder = async (params: RedeemSolverTxParam
     const recipient = params.destinationAddress ? new PublicKey(params.destinationAddress) : walletPublicKey
 
     let tx: Transaction
-    if (params.sourceAsset.contractAddress && params.sourceAsset.contractAddress !== NATIVE_SOL_ADDRESS) {
+
+    const asset = params.destinationAsset
+    if (asset.contract && asset.contract !== NATIVE_SOL_ADDRESS) {
         const { getAssociatedTokenAddress, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
-        const tokenMint = new PublicKey(params.sourceAsset.contractAddress)
+        const tokenMint = new PublicKey(asset.contract)
         const [vault] = PublicKey.findProgramAddressSync(
             [encoder.encode("solver_vault"), hashlockBytes, indexBytes],
             program.programId

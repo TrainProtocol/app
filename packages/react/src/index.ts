@@ -7,7 +7,6 @@ export { useNetwork } from './hooks/useNetwork'
 export { useTokens } from './hooks/useTokens'
 export { usePrices } from './hooks/usePrices'
 export { useQuote } from './hooks/useQuote'
-export { useSwapHistory } from './hooks/useSwapHistory'
 export { useOrder } from './hooks/useOrder'
 
 // --- Swap Hooks (require TrainProvider) ---
@@ -43,8 +42,8 @@ export type { TrainSigner, TrainWalletAdapter } from './wallet/types'
 export type { Caip2Id, ChainNamespace, ChainReference } from './internal/branded'
 export { caip2Id, chainNamespace, chainReference, parseCaip2Id } from './internal/branded'
 
-// --- Swap Config Types ---
-export type { SwapConfig, CreatedSwapConfig, RecoveredSwapConfig, HydratedSwapConfig } from './internal/store'
+// --- Swap Store Types ---
+export type { SwapFlags, ConsensusPhase } from './internal/store'
 
 // --- Query Keys (for advanced consumers: prefetch/invalidate) ---
 export { trainQueryKeys } from './internal/queryKeys'
@@ -69,7 +68,6 @@ export type {
 export type {
     Network,
     Token,
-    LockDetails,
     UserLockDetails,
     SolverLockDetails,
     IHTLCReadClient,
@@ -81,7 +79,6 @@ export type {
     QuoteDetails,
     AggregatedQuoteResponse,
     SwapQuote,
-    RecoveredSwapData,
     VerificationResult,
 } from '@train-protocol/sdk'
 
@@ -115,13 +112,12 @@ export type { DerivedSwapState } from './internal/useDerivedSwapState'
 export type { UseQuoteResult } from './hooks/useQuote'
 export type { UseCreateSwapResult } from './hooks/useCreateSwap'
 export type { UseRevealSecretResult } from './hooks/useRevealSecret'
-export type { UseRefundResult } from './hooks/useRefund'
-export type { UseManualClaimResult } from './hooks/useManualClaim'
+export type { UseRefundResult, RefundParams } from './hooks/useRefund'
+export type { UseManualClaimResult, ManualClaimParams } from './hooks/useManualClaim'
 export type { UseSolverLockVerificationResult } from './hooks/useSolverLockVerification'
 export type { UseRecoverSwapResult } from './hooks/useRecoverSwap'
 export type { UseSecretDerivationResult, PasskeyLoginOptions } from './hooks/useSecretDerivation'
 export type { UsePasskeyLoginResult } from './hooks/usePasskeyLogin'
 export type { UseWalletLoginResult } from './hooks/useWalletLogin'
 export type { LoginIdentity, IdentityWarning, IdentityMismatchResult, LoginIdentityState } from './hooks/useLoginIdentityMismatch'
-export type { UseSwapHistoryResult } from './hooks/useSwapHistory'
 export type { UseOrderResult } from './hooks/useOrder'

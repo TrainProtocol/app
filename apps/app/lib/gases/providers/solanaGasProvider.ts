@@ -23,7 +23,7 @@ export class SolanaGasProvider {
                 contractAddress: atomicContract,
                 address,
                 tokenSymbol: token.symbol,
-                tokenContractAddress: token.contractAddress,
+                tokenContractAddress: token.contract,
                 decimals: token.decimals ?? 6,
             })
 

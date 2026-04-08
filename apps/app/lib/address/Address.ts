@@ -58,7 +58,11 @@ export class Address {
     this._raw = address || '';
     this._network = network;
 
-    this._normalized = addressFormat({ address: this._raw, network, providerName });
+    try {
+      this._normalized = addressFormat({ address: this._raw, network, providerName });
+    } catch {
+      this._normalized = this._raw;
+    }
   }
 
   /**
@@ -94,7 +98,12 @@ export class Address {
    * Check if this address is valid for its network
    */
   static isValid(address: string, network: Network | null = null): boolean {
-    return isValidAddress(address, network);
+    try {
+      return isValidAddress(address, network);
+    }
+    catch {
+      return false
+    }
   }
 
   /**
@@ -184,9 +193,13 @@ export class Address {
   ): boolean {
     if (!addr1 || !addr2) return false;
 
-    const norm1 = addressFormat({ address: addr1, network, providerName });
-    const norm2 = addressFormat({ address: addr2, network, providerName });
-    return norm1 === norm2;
+    try {
+      const norm1 = addressFormat({ address: addr1, network, providerName });
+      const norm2 = addressFormat({ address: addr2, network, providerName });
+      return norm1 === norm2;
+    } catch {
+      return addr1 === addr2;
+    }
   }
 
 }

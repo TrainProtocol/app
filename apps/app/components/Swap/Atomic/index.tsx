@@ -13,7 +13,9 @@ import { Widget } from "../../Widget/Index";
 import { generateSwapInitialValues } from "@/lib/generateSwapInitialValues";
 import { useSettingsState } from "@/context/settings";
 import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
+import { buildSwapQuery } from "@/helpers/swapUrl";
 import { useSwapStore } from "@/stores/swapStore";
+import { useActiveSwap } from "@/hooks/useActiveSwap";
 
 import AtomicPage from "../AtomicChat";
 import { useRecentNetworksStore } from "@/stores/recentRoutesStore";
@@ -33,30 +35,22 @@ export default function Form() {
     const swapModalOpen = useSwapStore(s => s.swapModalOpen)
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
     const updateRecentNetworks = useRecentNetworksStore(s => s.updateRecentNetworks);
+    const swap = useActiveSwap()
 
     // Monitor the active swap lifecycle
     const { status: htlcStatus } = useSwapProgress(activeHashlock)
 
-    // Restore hashlock from URL on mount
-    useEffect(() => {
-        const hashlockFromUrl = router.query.hashlock as string | undefined
-        if (hashlockFromUrl && !activeHashlock) {
-            setActiveHashlock(hashlockFromUrl)
-            setSwapModalOpen(true)
-        }
-    }, [router.query.hashlock])
-
     useEffect(() => {
         if (swapModalOpen) {
             setPolling(false);
-            if (activeHashlock) {
-                setHashlockInUrl(router, activeHashlock);
+            if (swap.source && swap.txId) {
+                setSwapInUrl(router, swap.source, swap.txId);
             }
         } else {
             setPolling(true);
             removeSwapPath(router);
         }
-    }, [swapModalOpen, activeHashlock, router]);
+    }, [swapModalOpen, swap.source, swap.txId, router]);
 
     const handleShowSwapModal = useCallback((value: boolean) => {
         setSwapModalOpen(value);
@@ -151,11 +145,11 @@ const removeSwapPath = (router: NextRouter) => {
     window.history.replaceState({ ...window.history.state, as: router.asPath, url: homeURL }, '', homeURL);
 }
 
-const setHashlockInUrl = (router: NextRouter, hashlock: string) => {
+const setSwapInUrl = (router: NextRouter, sourceNetwork: string, txHash: string) => {
     const basePath = router?.basePath || ""
     let url = window.location.protocol + "//" + window.location.host + `${basePath}/swap`
     const params = resolvePersistantQueryParams(router.query)
-    const atomicParams = new URLSearchParams({ hashlock })
+    const atomicParams = new URLSearchParams(buildSwapQuery(sourceNetwork, txHash))
     url += `?${atomicParams}`
     if (params && Object.keys(params).length) {
         const search = new URLSearchParams(params as any);

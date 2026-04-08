@@ -40,7 +40,7 @@ TrainProvider (API client, Zustand store, wallet registry, networks/prices)
 | `usePrices()` | Fetch token prices — `{ prices, isLoading, refetch }` |
 | `useQuote(params)` | Stream quotes from solvers (debounced, auto-refresh) — `{ quotes, bestQuote, bestSolver, isLoading }` |
 | `useSwapHistory(params)` | Fetch historical swaps by addresses |
-| `useOrder(params)` | Fetch single order by solverId + hashlock |
+| `useOrder(params)` | Fetch single order by hashlock (optional solverAddress) |
 
 ### Swap Data Hooks (require TrainProvider)
 
@@ -56,9 +56,9 @@ TrainProvider (API client, Zustand store, wallet registry, networks/prices)
 | `useSwap()` | Full swap context — status + all action methods (`startSwap`, `resumeSwap`, `revealSecret`, `refund`, `manualClaim`, `recoverSwap`) |
 | `useSwapState()` | Read-only swap state — `{ status, hashlock, sourceDetails, solverLockDetails, secretRevealed, isTimelockExpired }` |
 | `useUserLock()` | Initiate user lock — `{ lock, isLocking, error }` |
-| `useRevealSecret()` | Reveal secret to solver — `{ reveal, isRevealing, error }` |
-| `useRefund()` | Refund on source after timelock — `{ refund, isRefunding, canRefund, error }` |
-| `useManualClaim()` | Emergency claim on destination — `{ claim, isClaiming, canClaim, error }` |
+| `useRevealSecret()` | Reveal secret to solver — `{ reveal(hashlock), isRevealing, error }` |
+| `useRefund()` | Refund on source after timelock — `{ refund({ hashlock, address? }), isRefunding, error }` |
+| `useManualClaim()` | Emergency claim on destination — `{ claim({ hashlock, secret, address? }), isClaiming, error }` |
 | `useRecoverSwap()` | Recover swap from transaction hash — `{ recover, isRecovering, error }` |
 
 ### Secret & Authentication Hooks

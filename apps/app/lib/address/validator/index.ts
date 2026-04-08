@@ -50,7 +50,7 @@ export function isValidAddress(address?: string, network?: { displayName?: strin
         }
         return false
     }
-    else if (id === KnownInternalNames.Networks.TronMainnet || id === KnownInternalNames.Networks.TronTestnet) {
+    else if (id.toLowerCase().startsWith("tron")) {
         const decodedAddress = decodeBase58(address).toUpperCase();
         return decodedAddress.startsWith('41') && decodedAddress.length == 42
     }

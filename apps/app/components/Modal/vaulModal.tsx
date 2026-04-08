@@ -183,12 +183,13 @@ const Comp: FC<VaulDrawerProps> = ({ children, show, setShow, header, descriptio
                                 </div>
                             </Drawer.Close>
                         </div>
-                        {
-                            description &&
+                        {description ? (
                             <Drawer.Description className="text-sm mt-2 text-secondary-text px-4">
                                 {description}
                             </Drawer.Description>
-                        }
+                        ) : (
+                            <Drawer.Description className="sr-only" />
+                        )}
                     </div>
                     <div
                         ref={isFitHeightMode ? drawerContentRef : undefined}

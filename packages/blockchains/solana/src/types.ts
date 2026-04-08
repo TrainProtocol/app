@@ -1,5 +1,6 @@
-import type { Transaction, VersionedTransaction } from '@solana/web3.js'
+import type { PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js'
 import type { SolanaWalletLike } from './login/index.js'
+import { BN } from '@coral-xyz/anchor'
 
 declare module '@train-protocol/sdk' {
     interface HTLCClientConfigMap {
@@ -30,4 +31,36 @@ export interface SolanaSigner {
 export type SolanaHTLCClientConfig = {
     rpcUrl: string
     signer?: SolanaSigner
+}
+
+
+// --- Internal Types ---
+export interface UserLockData {
+    amount: BN
+    timelock: BN
+    sender: PublicKey
+    recipient: PublicKey    
+    secret: number[]
+    tokenMint: PublicKey
+    status: number
+}
+
+export interface SolverLockData {
+    amount: BN
+    reward: BN
+    timelock: BN
+    rewardTimelock: BN
+    sender: PublicKey
+    recipient: PublicKey
+    rewardRecipient: PublicKey
+    secret: number[]
+    tokenMint: PublicKey
+    rewardTokenMint: PublicKey
+    status: number
+}
+
+export type TypedProgramAccounts = {
+    userLock: { fetch(pda: PublicKey): Promise<UserLockData> }
+    solverLock: { fetch(pda: PublicKey): Promise<SolverLockData> }
+    solverLockCounter: { fetch(pda: PublicKey): Promise<{ count: BN }> }
 }

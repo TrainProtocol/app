@@ -1,11 +1,11 @@
 import { TokenBalance } from "./Balance";
-import { Network, Token } from "./Network";
+import { ExtendedNetwork, Network, Token } from "./Network";
 import { extractErrorDetails } from "@/lib/balances/errorUtils";
 import { classifyNodeError } from "@/lib/balances/nodeErrorClassifier";
 
 export abstract class BalanceProvider {
     abstract supportsNetwork: (network: Network) => boolean
-    abstract fetchBalance: (address: string, network: Network, options?: { timeoutMs?: number, retryCount?: number }) => Promise<TokenBalance[] | null | undefined>
+    abstract fetchBalance: (address: string, network: ExtendedNetwork, options?: { timeoutMs?: number, retryCount?: number }) => Promise<TokenBalance[] | null | undefined>
     protected resolveTokenBalanceFetchError = (err: Error, token: Token, network: Network, isNativeCurrency?: boolean) => {
         console.error("balance_fetch_error", network.caip2Id, err)
         
@@ -18,7 +18,7 @@ export abstract class BalanceProvider {
             amount: undefined,
             request_time: new Date().toJSON(),
             decimals: Number(token?.decimals),
-            isNativeCurrency: isNativeCurrency ?? !token.contractAddress,
+            isNativeCurrency: isNativeCurrency ?? !token.contract,
             error: {
                 message: errorDetails.message,
                 name: errorDetails.name,

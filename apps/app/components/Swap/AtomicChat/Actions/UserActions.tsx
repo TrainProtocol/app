@@ -37,8 +37,8 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, typ
     const sourceWallet = (sourceAccount?.address && source_network) ? provider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, source_network)) : undefined
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
 
-    const atomicContract = source_network?.contracts?.find(c => c.type === NetworkContractType.Train)?.address
-    const destContract = destination_network?.contracts?.find(c => c.type === NetworkContractType.Train)?.address
+    const atomicContract = source_network?.trainContract
+    const destContract = destination_network?.trainContract
     const destLpAddress = quote?.destinationSolverAddress
     const srcLpAddress = quote?.sourceSolverAddress
 
@@ -58,22 +58,10 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, typ
                 destinationAsset: destination_asset,
                 sourceAddress: sourceWallet.address,
                 destinationAddress: address,
-                solverId: solverId ?? '',
-                quote: {
-                    signature: quote.signature,
-                    receiveAmount: quote.receiveAmount,
-                    sourceSolverAddress: srcLpAddress,
-                    destinationSolverAddress: destLpAddress,
-                    quoteExpirationTimestampInSeconds: quote.quoteExpirationTimestampInSeconds,
-                    timelock: quote.timelock,
-                    reward: quote.reward,
-                    totalFee: quote.totalFee,
-                    route: quote.route,
-                },
                 srcContract: atomicContract,
                 destContract: destContract,
-                tokenContractAddress: source_asset.contractAddress,
                 chainId: source_network.chainId,
+                quote
             }
 
             const hl = await createSwap(params)
@@ -113,9 +101,9 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, typ
 }
 
 export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
-    const { sourceNetwork, hashlock, sourceToken, refundTxId, srcContract, sourceDetails } = useActiveSwap()
+    const { sourceNetwork, sourceToken, refundTxId, srcContract, sourceDetails } = useActiveSwap()
     const activeHashlock = useSwapStore(s => s.activeHashlock)
-    const { refund: doRefund } = useRefund(activeHashlock)
+    const { refund: doRefund } = useRefund()
     const { provider: source_provider } = useWallet(sourceNetwork, 'withdrawal')
     const sourceAccount = useSelectedAccount('from', sourceNetwork?.caip2Id)
     const sourceWallet = (sourceAccount?.address && sourceNetwork) ? source_provider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, sourceNetwork)) : undefined
@@ -127,7 +115,7 @@ export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const handleRefundAssets = async () => {
         try {
             if (!sourceNetwork) throw new Error("No source network")
-            if (!hashlock) throw new Error("No commitment details")
+            if (!activeHashlock) throw new Error("No commitment details")
             if (!sourceDetails) throw new Error("No commitment")
             if (!sourceToken) throw new Error("No source asset")
             if (!srcContract) throw new Error("No atomic contract")
@@ -136,7 +124,7 @@ export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
             if (source_provider?.activeWallet && (source_provider.activeWallet.chainId != sourceNetwork.chainId) && source_provider.switchChain)
                 await source_provider.switchChain(source_provider.activeWallet, sourceNetwork.chainId)
 
-            const res = await doRefund()
+            const res = await doRefund({ hashlock: activeHashlock, address: sourceAccount?.address })
 
             posthog.capture("Refund", {
                 userLock: sourceDetails,

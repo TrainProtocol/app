@@ -1,4 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query'
+import { PasskeyCredentialStorage, TrainAuth } from '@train-protocol/auth'
+import { HTLCStatus, Network, QuoteDetails, Token, TrainSDK } from '@train-protocol/sdk'
+import { LoginIdentity } from './hooks/useLoginIdentityMismatch'
 
 export type DerivationMethod = 'passkey' | 'wallet_sign'
 
@@ -13,15 +16,15 @@ export interface TrainConfig {
     /** Global error callback */
     onError?: (error: TrainError) => void
     /** Optional TrainSDK instance (for testing/multi-instance). Falls back to default. */
-    sdk?: import('@train-protocol/sdk').TrainSDK
+    sdk?: TrainSDK
     /** Optional TrainAuth instance (for testing/multi-instance). Falls back to default. */
-    auth?: import('@train-protocol/auth').TrainAuth
+    auth?: TrainAuth
     /** Resolve RPC node URLs for a CAIP-2 network ID (used for solver lock verification) */
     resolveNodeUrls?: (networkId: string) => string[]
     /** Optional TanStack Query client (for sharing with app-level QueryClientProvider) */
     queryClient?: QueryClient
     /** Pre-fetched networks (e.g. from SSR) to seed the cache and avoid a duplicate client-side fetch */
-    initialNetworks?: import('@train-protocol/sdk').Network[]
+    initialNetworks?: Network[]
     /** Pre-fetched prices to seed the cache */
     initialPrices?: Record<string, number>
     /** Secret derivation options */
@@ -33,7 +36,7 @@ export interface TrainConfig {
          */
         persist?: boolean
         /** Passkey credential storage */
-        passkeyStorage?: import('@train-protocol/auth').PasskeyCredentialStorage
+        passkeyStorage?: PasskeyCredentialStorage
         /** Auto-check passkey support on mount (default: true) */
         autoCheckPasskeySupport?: boolean
     }
@@ -83,7 +86,6 @@ export interface SwapData {
     destination: string
     source_asset: string
     destination_asset: string
-    solver?: string
     srcContract?: string
     destContract?: string
     receiveAmount?: string
@@ -92,14 +94,16 @@ export interface SwapData {
     refundTxId?: string
     destTxId?: string
     secretRevealed?: boolean
-    status?: import('@train-protocol/sdk').HTLCStatus
+    status?: HTLCStatus
     createdAt?: number
     timelock?: number
     sourceSolverAddress?: string
     destinationSolverAddress?: string
     sourceAddress?: string
     destinationAddress?: string
-    loginIdentity?: import('./hooks/useLoginIdentityMismatch').LoginIdentity
+    srcTokenContract?: string
+    destTokenContract?: string
+    loginIdentity?: LoginIdentity
 }
 
 /** Parameters to start a swap */
@@ -107,15 +111,13 @@ export interface StartSwapParams {
     amount: string
     sourceNetwork: string
     destinationNetwork: string
-    sourceAsset: import('@train-protocol/sdk').Token
-    destinationAsset: import('@train-protocol/sdk').Token
+    sourceAsset: Token
+    destinationAsset: Token
     sourceAddress: string
     destinationAddress: string
-    solverId: string
-    quote: import('@train-protocol/sdk').QuoteDetails
+    quote: QuoteDetails
     srcContract: string
     destContract: string
-    tokenContractAddress?: string
     chainId?: string
 }
 
@@ -142,6 +144,6 @@ export interface SwapHistoryParams {
 
 /** Parameters for order lookup */
 export interface OrderParams {
-    solverId: string
     hashlock: string
+    solverAddress?: string
 }

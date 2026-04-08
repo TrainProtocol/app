@@ -6,12 +6,12 @@ function resolveToken(
     networkCaip2: string,
     assetRef: string,
 ): Token | null {
-    const network = networkMap.get(networkCaip2.toUpperCase())
+    const network = networkMap.get(networkCaip2)
     if (!network) return null
 
     // Match by symbol (primary), fall back to contract address (legacy recovered swaps)
     return network.tokens.find(t => t.symbol === assetRef)
-        ?? network.tokens.find(t => t.contractAddress?.toLowerCase() === assetRef.toLowerCase())
+        ?? network.tokens.find(t => t.contract?.toLowerCase() === assetRef.toLowerCase())
         ?? null
 }
 
@@ -26,7 +26,6 @@ export function resolveSwapTokens(
     networkMap: Map<string, Network>,
 ): { sourceAsset: Token | null; destinationAsset: Token | null } {
     if (!swapData) return { sourceAsset: null, destinationAsset: null }
-
     const sourceAsset = (swapData.source && swapData.source_asset)
         ? resolveToken(networkMap, swapData.source, swapData.source_asset)
         : null
@@ -34,6 +33,5 @@ export function resolveSwapTokens(
     const destinationAsset = (swapData.destination && swapData.destination_asset)
         ? resolveToken(networkMap, swapData.destination, swapData.destination_asset)
         : null
-
     return { sourceAsset, destinationAsset }
 }

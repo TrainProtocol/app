@@ -46,7 +46,7 @@ export function useSolverLockVerification(hashlock: string | null | undefined): 
             solverLockDetails,
             expectedReceiveAmount: formattedExpected,
             expectedRecipient: destinationAddress ?? '',
-            expectedToken: destinationToken?.contractAddress ?? null,
+            expectedToken: destinationToken?.contract ?? null,
         })
     }, [derived.solverLockDetails, derived.sourceDetails, derived.destinationAddress, derived.destinationToken])
 }

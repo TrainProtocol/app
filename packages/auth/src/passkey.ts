@@ -13,8 +13,7 @@ export interface PrfSupportResult {
     reason?: string;
     platformAuthenticatorAvailable: boolean;
     prfCapabilityReported: boolean | null;
-    platformHint?: 'windows_hello_no_prf' | 'unsupported_browser';
-    requiresSecurityKey: boolean;
+    platformHint?: 'unsupported_browser';
 }
 
 export const checkPrfSupport = async (): Promise<PrfSupportResult> => {
@@ -22,7 +21,6 @@ export const checkPrfSupport = async (): Promise<PrfSupportResult> => {
         supported: false,
         platformAuthenticatorAvailable: false,
         prfCapabilityReported: null,
-        requiresSecurityKey: false,
     };
 
     if (typeof window === 'undefined' || !window.isSecureContext || !window.PublicKeyCredential) {
@@ -39,19 +37,11 @@ export const checkPrfSupport = async (): Promise<PrfSupportResult> => {
         const capabilities = await (PublicKeyCredential as any).getClientCapabilities?.();
         if (capabilities && 'prf' in capabilities) {
             result.prfCapabilityReported = capabilities.prf === true;
-            if (capabilities.prf === true) {
-                result.supported = true;
-                return result;
-            }
         }
     } catch { /* API not available */ }
 
-    const isWindows = /windows/i.test(navigator.userAgent);
-    if (isWindows && result.platformAuthenticatorAvailable && result.prfCapabilityReported !== true) {
-        result.reason = 'Windows Hello does not support PRF. Use a security key instead.';
-        result.platformHint = 'windows_hello_no_prf';
-        result.supported = false;
-        result.requiresSecurityKey = true;
+    if (result.prfCapabilityReported === true) {
+        result.supported = true;
         return result;
     }
 
@@ -64,6 +54,8 @@ export const checkPrfSupport = async (): Promise<PrfSupportResult> => {
     if (!result.platformAuthenticatorAvailable) {
         result.reason = 'No platform authenticator available';
         result.platformHint = 'unsupported_browser';
+    } else {
+        result.reason = 'PRF not supported by this browser';
     }
 
     return result;

@@ -6,7 +6,7 @@ import {
     RedeemSolverParams,
     LockStatus,
     AtomicResult,
-    RecoveredSwapData,
+    Network,
     TransactionInfo,
     TransactionStatus,
     HTLCClient,
@@ -16,11 +16,13 @@ import {
     SignerRequiredError,
     InvalidTxHashError,
 } from '@train-protocol/sdk'
-import type { UserLockDetails, SolverLockDetails } from '@train-protocol/sdk'
+import type { UserLockDetails, SolverLockDetails, BaseLockDetails, EventDerivedData } from '@train-protocol/sdk'
 import { htlcFunctions, htlcEvents, erc20Functions } from './abi.js'
 import { JsonRpcClient } from './rpc.js'
 import type { EvmHTLCClientConfig, EvmSigner, RpcLog, RpcTransactionReceipt } from './types.js'
 import { ZERO_ADDRESS } from './constants.js'
+import { pickEventDerivedData } from './helpers.js'
+import { decodeContractError, Hex, hex } from './utils.js'
 
 export class EvmHTLCClient extends HTLCClient {
     private rpc: JsonRpcClient
@@ -36,18 +38,15 @@ export class EvmHTLCClient extends HTLCClient {
 
     async userLock(params: UserLockParams): Promise<AtomicResult> {
         const signer = this.requireSigner()
-        const {
-            sourceAsset,
-            sourceAddress
-        } = params
+        const { sourceAsset, sourceAddress } = params
 
-        const parsedAmount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
-        const tokenAddress = sourceAsset.contractAddress || ZERO_ADDRESS
-        const isNativeToken = !sourceAsset.contractAddress || sourceAsset.contractAddress === ZERO_ADDRESS
+        const parsedAmount = parseUnits(params.amount.toString(), sourceAsset.decimals)
+        const tokenAddress = sourceAsset.contract || ZERO_ADDRESS
+        const isNativeToken = !sourceAsset.contract || sourceAsset.contract === ZERO_ADDRESS
 
         if (!isNativeToken) {
             await this.ensureERC20Allowance(
-                sourceAsset.contractAddress!,
+                sourceAsset.contract!,
                 sourceAddress,
                 params.atomicContract,
                 parsedAmount,
@@ -65,7 +64,7 @@ export class EvmHTLCClient extends HTLCClient {
                 rewardTimelockDelta: params.rewardTimelockDelta ?? 0,
                 quoteExpiry: params.quoteExpiry,
                 sender: hex(params.sourceAddress),
-                recipient: hex(params.srcLpAddress),
+                recipient: hex(params.srcSolverAddress),
                 token: hex(tokenAddress),
                 rewardToken: params.rewardToken ?? '',
                 rewardRecipient: params.rewardRecipient ?? '',
@@ -75,7 +74,7 @@ export class EvmHTLCClient extends HTLCClient {
                 dstChain: params.destinationChain,
                 dstAddress: params.destinationAddress,
                 dstAmount: params.destinationAmount,
-                dstToken: params.destinationAsset,
+                dstToken: params.destinationAsset.contract,
             },
             hex(userData),
             hex(params.solverData || '0x'),
@@ -97,6 +96,8 @@ export class EvmHTLCClient extends HTLCClient {
 
             return { hash, hashlock: params.hashlock, nonce: params.nonce };
         } catch (error) {
+            const errorName = decodeContractError(error)
+            if (errorName) throw new Error(`Contract error: ${errorName}`)
             console.error('Error in userLock:', error);
             throw error;
         }
@@ -113,6 +114,8 @@ export class EvmHTLCClient extends HTLCClient {
 
             return signer.sendTransaction({ to: contractAddress, data: calldata })
         } catch (error) {
+            const errorName = decodeContractError(error)
+            if (errorName) throw new Error(`Contract error: ${errorName}`)
             console.error('Error in refund:', error);
             throw error;
         }
@@ -134,6 +137,8 @@ export class EvmHTLCClient extends HTLCClient {
 
             return signer.sendTransaction({ to: contractAddress, data: calldata })
         } catch (error) {
+            const errorName = decodeContractError(error)
+            if (errorName) throw new Error(`Contract error: ${errorName}`)
             console.error('Error in claim:', error);
             throw error;
         }
@@ -149,20 +154,27 @@ export class EvmHTLCClient extends HTLCClient {
         const result = AbiFunction.decodeResult(htlcFunctions.getUserLock, hex(raw)) as any
 
         const lockExists = result.sender !== ZERO_ADDRESS
-        let userData: string | undefined
+        if (!lockExists) return null
+
+        const parsedResult: BaseLockDetails = {
+            ...result,
+            hashlock: id,
+            amount: Number(formatUnits(BigInt(result.amount), params.decimals)),
+            secret: BigInt(result.secret),
+            timelock: Number(result.timelock),
+            status: Number(result.status) as LockStatus,
+        }
+
         let blockTimestamp: number | undefined
-        let dstAmount: string | undefined
+        let eventDerivedData = {} as Partial<EventDerivedData>
 
         if (lockExists && txId) {
             try {
                 const receipt = await this.rpc.getTransactionReceipt(txId)
                 if (receipt) {
                     const lockEvent = this.findUserLockedEvent(receipt.logs, id)
-                    if (lockEvent?.userData && lockEvent.userData !== '0x') {
-                        userData = BigInt(lockEvent.userData as string).toString()
-                    }
-                    if (lockEvent?.dstAmount != null) {
-                        dstAmount = BigInt(lockEvent.dstAmount as string | bigint).toString()
+                    if (lockEvent) {
+                        eventDerivedData = pickEventDerivedData(lockEvent)
                     }
 
                     const block = await this.rpc.getBlockByNumber(receipt.blockNumber)
@@ -175,19 +187,7 @@ export class EvmHTLCClient extends HTLCClient {
             }
         }
 
-        return {
-            hashlock: lockExists ? id : undefined,
-            amount: Number(formatUnits(BigInt(result.amount), 18)),
-            secret: result.secret !== 0n ? BigInt(result.secret) : undefined,
-            sender: lockExists ? result.sender : undefined,
-            recipient: result.recipient !== ZERO_ADDRESS ? result.recipient : undefined,
-            token: result.token !== ZERO_ADDRESS ? result.token : undefined,
-            timelock: Number(result.timelock),
-            status: lockExists ? Number(result.status) as LockStatus : undefined,
-            userData,
-            blockTimestamp,
-            dstAmount,
-        }
+        return { ...parsedResult, ...eventDerivedData, blockTimestamp }
     }
 
     async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> {
@@ -221,49 +221,40 @@ export class EvmHTLCClient extends HTLCClient {
         if (result.sender === ZERO_ADDRESS) return null
 
         return {
+            ...result,
             hashlock: id,
-            amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
-            secret: result.secret !== 0n ? BigInt(result.secret) : undefined,
-            sender: result.sender,
-            recipient: result.recipient !== ZERO_ADDRESS ? result.recipient : undefined,
-            token: result.token !== ZERO_ADDRESS ? result.token : undefined,
+            amount: Number(formatUnits(BigInt(result.amount), params.decimals)),
+            secret: BigInt(result.secret),
             timelock: Number(result.timelock),
-            reward: Number(formatUnits(BigInt(result.reward), params.decimals ?? 18)),
-            rewardTimelock: Number(result.rewardTimelock),
-            rewardRecipient: result.rewardRecipient !== ZERO_ADDRESS ? result.rewardRecipient : undefined,
-            rewardToken: result.rewardToken !== ZERO_ADDRESS ? result.rewardToken : undefined,
             status: Number(result.status) as LockStatus,
-            index,
+            index
         }
     }
 
-    async recoverSwap(txHash: string): Promise<RecoveredSwapData> {
+    async recoverSwap(txHash: string, network: Network): Promise<UserLockDetails> {
         if (!/^0x[a-fA-F0-9]{64}$/.test(txHash))
             throw new InvalidTxHashError()
 
-        const [receipt, tx] = await Promise.all([
-            this.rpc.getTransactionReceipt(txHash),
-            this.rpc.getTransaction(txHash),
-        ])
-
-        if (!receipt || !tx) throw new Error('Transaction not found')
+        const receipt = await this.rpc.getTransactionReceipt(txHash)
+        if (!receipt) throw new Error('Transaction not found')
 
         const lockEvent = this.findUserLockedEvent(receipt.logs)
         if (!lockEvent) throw new Error('This transaction does not contain a swap lock')
 
-        return {
-            hashlock: lockEvent.hashlock as string,
-            sender: lockEvent.sender as string,
-            recipient: lockEvent.recipient as string,
-            srcChain: lockEvent.srcChain as string,
-            dstChain: lockEvent.dstChain as string,
-            token: lockEvent.token as string,
-            amount: lockEvent.amount as bigint,
-            dstAddress: lockEvent.dstAddress as string,
-            dstAmount: lockEvent.dstAmount as bigint,
-            dstToken: lockEvent.dstToken as string,
-            srcContract: tx.to as string,
-        }
+        const token = network.tokens.find(t => t.contract?.toLowerCase() === (lockEvent.token as string).toLowerCase())
+        if (!token)throw new Error('Token not found')
+
+        const result = await this.getUserLockDetails({
+            id: lockEvent.hashlock as string,
+            contractAddress: network.trainContract,
+            decimals: token?.decimals,
+            txId: txHash,
+            chainId: network.chainId,
+        })
+
+        if (!result) throw new Error('Lock not found for recovered hashlock')
+
+        return result
     }
 
     // ── Public Helpers ─────────────────────────────────────────────────
@@ -325,7 +316,7 @@ export class EvmHTLCClient extends HTLCClient {
         const timeout = options?.timeout ?? 120_000
         const interval = options?.interval ?? 2_000
         const start = Date.now()
-    
+
         while (Date.now() - start < timeout) {
             const receipt = await rpc.getTransactionReceipt(txHash)
             if (receipt) {
@@ -357,6 +348,3 @@ export class EvmHTLCClient extends HTLCClient {
         return null
     }
 }
-
-type Hex = `0x${string}`
-const hex = (v: string): Hex => v as Hex

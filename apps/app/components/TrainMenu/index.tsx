@@ -8,10 +8,11 @@ import Wizard from "@/components/Wizard/Wizard";
 import WizardItem from "../Wizard/WizardItem";
 import { NextRouter, useRouter } from "next/router";
 import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
+import { buildSwapQuery } from "@/helpers/swapUrl";
 import { Modal, ModalContent } from "@/components/Modal/modalWithoutAnimation";
 import RpcNetworkListView from "@/components/Settings/RpcNetworkListView";
 import NetworkRpcEditView from "@/components/Settings/NetworkRpcEditView";
-import { Network } from "@/Models/Network";
+import { ExtendedNetwork } from "@/Models/Network";
 import RecoverSwap from "@/components/Swap/Atomic/RecoverSwap";
 import SwapHistory from "@/components/SwapHistory";
 
@@ -22,14 +23,14 @@ const Comp = () => {
     const { goBack, currentStepName } = useFormWizardState()
     const { goToStep } = useFormWizardaUpdate()
 
-    const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
+    const [selectedNetwork, setSelectedNetwork] = useState<ExtendedNetwork | null>(null);
 
     const goBackToMenuStep = () => { goToStep(MenuStep.Menu, "back"); clearMenuPath(router) }
     const goBackToRpcConfiguration = () => { goToStep(MenuStep.RPCConfiguration, "back") }
 
-    const handleRecoverSwap = (hashlock: string) => {
+    const handleRecoverSwap = (sourceNetwork: string, txHash: string) => {
         setIsOpen(false)
-        router.push({ pathname: '/swap', query: { hashlock } })
+        router.push({ pathname: '/swap', query: buildSwapQuery(sourceNetwork, txHash) })
     }
 
     const handleGoToStep = (step: MenuStep, path?: string) => {
@@ -39,7 +40,7 @@ const Comp = () => {
         }
     }
 
-    const handleNetworkSelect = (network: Network) => {
+    const handleNetworkSelect = (network: ExtendedNetwork) => {
         setSelectedNetwork(network)
         goToStep(MenuStep.NetworkRPCEdit)
     }
