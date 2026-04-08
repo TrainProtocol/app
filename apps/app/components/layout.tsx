@@ -103,8 +103,8 @@ export default function Layout({ children, settings }: Props) {
         <TooltipProvider delayDuration={500}>
           <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
             <TrainProviderWithRpc networks={appSettings.networks}>
-              <ThemeWrapper>
-                <WalletsProviders basePath={basePath} appName={router.query.appName?.toString()}>
+              <WalletsProviders basePath={basePath} appName={router.query.appName?.toString()}>
+                <ThemeWrapper>
                   <SwapAccountsProvider>
                     <AppContent>
                       {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true' ?
@@ -112,8 +112,8 @@ export default function Layout({ children, settings }: Props) {
                         : children}
                     </AppContent>
                   </SwapAccountsProvider>
-                </WalletsProviders>
-              </ThemeWrapper>
+                </ThemeWrapper>
+              </WalletsProviders>
             </TrainProviderWithRpc>
           </ErrorBoundary >
         </TooltipProvider >

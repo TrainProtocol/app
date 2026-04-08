@@ -117,7 +117,7 @@ const SwapHistory: FC = () => {
             collapsible
             value={expanded}
             onValueChange={(v: string | undefined) => setExpanded(v)}
-            className="w-full flex flex-col gap-3"
+            className="w-full"
         >
             {visibleOngoing.map(([hashlock, swap], idx) => {
                 const sourceNetwork = networkByCaip2Id.get(swap.source ?? '')
@@ -125,7 +125,7 @@ const SwapHistory: FC = () => {
                 const isLastVisible = idx === visibleOngoing.length - 1
                 const shouldShowToggle = hiddenOngoingCount > 0 && isLastVisible
                 return (
-                    <div key={hashlock} className="flex flex-col gap-3">
+                    <div key={hashlock} className="mb-3 last:mb-0">
                         <SwapAccordionItem
                             hashlock={hashlock}
                             swap={swap}
@@ -154,7 +154,7 @@ const SwapHistory: FC = () => {
             })}
 
             {dateGroups.map(({ dateKey, label, items }) => (
-                <div key={dateKey} className="flex flex-col gap-3">
+                <div key={dateKey} className="flex flex-col">
                     <p className="text-sm text-secondary-text font-normal pl-2 mt-3 first:mt-0">
                         {label}
                     </p>
@@ -193,12 +193,14 @@ const SwapAccordionItem: FC<SwapAccordionItemProps> = ({ hashlock, swap, sourceN
         value={hashlock}
         className="border-none bg-secondary-500 rounded-3xl"
     >
-        <AccordionTrigger className={`rounded-3xl w-full transition-shadow ${expanded === hashlock ? 'shadow-accordion-open' : ''}`}>
-            <HistorySummaryCard
-                swap={swap}
-                sourceNetwork={sourceNetwork}
-                destNetwork={destNetwork}
-            />
+        <AccordionTrigger className={`mb-3 last:mb-0 rounded-3xl w-full transition-shadow ${expanded === hashlock ? 'shadow-accordion-open' : ''}`}>
+            <div className="cursor-pointer">
+                <HistorySummaryCard
+                    swap={swap}
+                    sourceNetwork={sourceNetwork}
+                    destNetwork={destNetwork}
+                />
+            </div>
         </AccordionTrigger>
         <AccordionContent className="-mt-3">
             <div className="flex items-center justify-center px-4 pt-3 pb-2">

@@ -1,7 +1,7 @@
 import { ChevronRight } from 'lucide-react'
 import { FC } from 'react'
 import { ImageWithFallback } from '@/components/Common/ImageWithFallback'
-import { type SwapData, isTerminalStatus } from '@train-protocol/react'
+import { type SwapData, isTerminalStatus, HTLCStatus } from '@train-protocol/react'
 import { Network } from '@/Models/Network'
 import StatusIcons from './StatusIcons'
 
@@ -103,9 +103,13 @@ const HistorySummaryCard: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => 
                     </div>
                 </div>
             </div>
-            {swap.status && !isTerminalStatus(swap.status) && (
+            {swap.status && !isTerminalStatus(swap.status) && swap.status !== HTLCStatus.Initial && (
                 <div className="-mt-2 z-0 relative">
-                    <div className="pt-3.5 pb-1.5 w-full flex justify-center rounded-b-2xl bg-warning-background">
+                    <div className={`pt-3.5 pb-1.5 w-full flex justify-center rounded-b-2xl ${
+                        swap.status === HTLCStatus.UserLocked || swap.status === HTLCStatus.SolverLockDetected || swap.status === HTLCStatus.SecretRevealed
+                            ? 'bg-primary-900'
+                            : 'bg-warning-background'
+                    }`}>
                         <StatusIcons status={swap.status} />
                     </div>
                 </div>
