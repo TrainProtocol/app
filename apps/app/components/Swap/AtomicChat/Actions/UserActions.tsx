@@ -7,7 +7,6 @@ import posthog from "posthog-js";
 import { SwapViewType } from ".";
 import { useSelectedAccount } from "@/context/swapAccounts";
 import { Address } from "@/lib/address";
-import { NetworkContractType } from "@/Models/Network";
 import { useSwapStore } from "@/stores/swapStore";
 import { useFormikContext } from "formik";
 import type { SwapFormValues } from "@/components/DTOs/SwapFormValues";
@@ -16,9 +15,10 @@ type UserCommitActionProps = {
     quote?: SwapQuote
     solverId?: string
     type: SwapViewType
+    setError: (error: Error | undefined) => void
 }
 
-export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, type }) => {
+export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, type, setError }) => {
     // Before lock: read from Formik (form values have Network/Token objects)
     const { values } = useFormikContext<SwapFormValues>()
     const { hashlock } = useActiveSwap()
@@ -78,6 +78,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, typ
         }
         catch (e) {
             console.error('[UserLock] failed', e?.message ?? String(e), ...(e?.logs ? [e.logs] : []))
+            setError(e instanceof Error ? e : new Error(String(e)))
         }
     }
 
