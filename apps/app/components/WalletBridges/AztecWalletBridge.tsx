@@ -35,13 +35,17 @@ export function AztecWalletBridge() {
             chainNamespace: chainNamespace('aztec'),
 
             createClient(sdk: TrainSDK, networkId: Caip2Id) {
-                return sdk.createHTLCClient('aztec', { rpcUrl: getRpcUrl(networkId) })
+                return sdk.createHTLCPublicClient('aztec', {
+                    rpcUrl: getRpcUrl(networkId),
+                    signer: wallet && address ? { wallet, address } : undefined,
+                })
             },
 
             createWriteClient(sdk: TrainSDK, networkId: Caip2Id, _address?: string) {
-                return sdk.createHTLCClient('aztec', {
+                if (!wallet || !address) throw new Error('No Aztec signer available')
+                return sdk.createHTLCWalletClient('aztec', {
                     rpcUrl: getRpcUrl(networkId),
-                    signer: wallet && address ? { wallet, address } : undefined,
+                    signer: { wallet, address },
                 })
             },
 

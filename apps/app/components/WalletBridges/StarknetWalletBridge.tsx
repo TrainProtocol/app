@@ -31,15 +31,16 @@ export function StarknetWalletBridge() {
             chainNamespace: chainNamespace('starknet'),
 
             createClient(sdk: TrainSDK, networkId: Caip2Id) {
-                return sdk.createHTLCClient('starknet', { rpcUrl: getRpcUrl(networkId) })
+                return sdk.createHTLCPublicClient('starknet', { rpcUrl: getRpcUrl(networkId) })
             },
 
             createWriteClient(sdk: TrainSDK, networkId: Caip2Id, _address?: string) {
                 const starknetAccount = starknetWalletProvider?.activeWallet?.metadata?.starknetAccount
+                if (!starknetAccount) throw new Error('No Starknet signer available')
 
-                return sdk.createHTLCClient('starknet', {
+                return sdk.createHTLCWalletClient('starknet', {
                     rpcUrl: getRpcUrl(networkId),
-                    signer: starknetAccount ? { address: starknetAccount.address, account: starknetAccount } : undefined,
+                    signer: { address: starknetAccount.address, account: starknetAccount },
                 })
             },
 

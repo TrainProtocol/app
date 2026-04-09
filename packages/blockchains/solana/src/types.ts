@@ -3,8 +3,11 @@ import type { SolanaWalletLike } from './login/index.js'
 import { BN } from '@coral-xyz/anchor'
 
 declare module '@train-protocol/sdk' {
-    interface HTLCClientConfigMap {
-        solana: SolanaHTLCClientConfig
+    interface HTLCPublicClientConfigMap {
+        solana: SolanaHTLCPublicClientConfig
+    }
+    interface HTLCWalletClientConfigMap {
+        solana: SolanaHTLCWalletClientConfig
     }
 }
 
@@ -28,9 +31,12 @@ export interface SolanaSigner {
     sendTransaction(tx: Transaction | VersionedTransaction): Promise<string>
 }
 
-export type SolanaHTLCClientConfig = {
+export type SolanaHTLCPublicClientConfig = {
     rpcUrl: string
-    signer?: SolanaSigner
+}
+
+export type SolanaHTLCWalletClientConfig = SolanaHTLCPublicClientConfig & {
+    signer: SolanaSigner
 }
 
 
@@ -39,7 +45,7 @@ export interface UserLockData {
     amount: BN
     timelock: BN
     sender: PublicKey
-    recipient: PublicKey    
+    recipient: PublicKey
     secret: number[]
     tokenMint: PublicKey
     status: number

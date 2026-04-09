@@ -61,13 +61,14 @@ export function TronWalletBridge() {
 
             createClient(sdk: TrainSDK, networkId: Caip2Id) {
                 const rpcUrl = getRpcUrl(networkId)
-                return sdk.createHTLCClient('tron', { rpcUrl })
+                return sdk.createHTLCPublicClient('tron', { rpcUrl })
             },
 
             createWriteClient(sdk: TrainSDK, networkId: Caip2Id) {
                 const rpcUrl = getRpcUrl(networkId)
-                const signer = getSignerForNetwork(rpcUrl) ?? undefined
-                return sdk.createHTLCClient('tron', { rpcUrl, signer })
+                const signer = getSignerForNetwork(rpcUrl)
+                if (!signer) throw new Error('No Tron signer available')
+                return sdk.createHTLCWalletClient('tron', { rpcUrl, signer })
             },
 
             getLoginConfig: async () => {

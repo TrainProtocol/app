@@ -87,16 +87,18 @@ Chain-specific libraries go in `dependencies`. The base SDK and auth package are
 
 ## 3. types.ts — Signer, Config & Registry Augmentation
 
-Every SDK defines a **Signer** interface, a **Config** type, a **WalletSignConfig** type, and augments the SDK registry maps via declaration merging:
+Every SDK defines a **Signer** interface, two **Config** types (public + wallet), a **WalletSignConfig** type, and augments the SDK registry maps via declaration merging:
 
 ```ts
 import type { {Chain}WalletLike } from './login/index.js'
 
-// Augment the SDK registry so the factory callbacks are fully typed.
-// This eliminates all `as` casts in index.ts.
+// Augment the SDK registries so the factory callbacks are fully typed.
 declare module '@train-protocol/sdk' {
-    interface HTLCClientConfigMap {
-        {namespace}: {Chain}HTLCClientConfig
+    interface HTLCPublicClientConfigMap {
+        {namespace}: {Chain}HTLCPublicClientConfig
+    }
+    interface HTLCWalletClientConfigMap {
+        {namespace}: {Chain}HTLCWalletClientConfig
     }
 }
 
@@ -120,11 +122,14 @@ export interface {Chain}Signer {
     // Chain-specific signing method(s)
 }
 
-// Config is a standalone type — no base class to extend.
-// Always includes rpcUrl and optional signer.
-export type {Chain}HTLCClientConfig = {
+// Public client config — read-only operations, no signer.
+export type {Chain}HTLCPublicClientConfig = {
     rpcUrl: string
-    signer?: {Chain}Signer
+}
+
+// Wallet client config — extends public config with REQUIRED signer.
+export type {Chain}HTLCWalletClientConfig = {Chain}HTLCPublicClientConfig & {
+    signer: {Chain}Signer
 }
 ```
 
@@ -132,43 +137,45 @@ export type {Chain}HTLCClientConfig = {
 
 ## 4. client.ts — Class Structure & Function Ordering
 
-### Class skeleton
+### Two-class pattern
+
+Each chain implements two classes: a **public client** (read-only) and a **wallet client** (write, extends public). The wallet client inherits all read methods — no code duplication.
 
 ```ts
-import { HTLCClient } from '@train-protocol/sdk'
+import { HTLCPublicClient } from '@train-protocol/sdk'
+import type { IHTLCWalletClient } from '@train-protocol/sdk'
 
-export class {Chain}HTLCClient extends HTLCClient {
-    private rpc: ...             // RPC/node client for read operations
-    private signer?: {Chain}Signer
+// Public client — read-only operations, no signer required
+export class {Chain}HTLCPublicClient extends HTLCPublicClient {
+    protected rpc: ...
 
-    constructor(config: {Chain}HTLCClientConfig) {
-        super()  // No arguments — base class has no constructor params
+    constructor(config: {Chain}HTLCPublicClientConfig) {
+        super()
         this.rpc = ...
-        this.signer = config.signer
-        // Override default consensus options if needed (e.g., Aztec: minQuorum 1)
-        // this.consensusOptions = { minQuorum: 1 }
+        // Override consensus options if needed: this.consensusOptions = { minQuorum: 1 }
     }
 
-    // ── Write Operations ───────────────────────────────────────────────
-
-    async userLock(params: UserLockParams): Promise<AtomicResult> { ... }
-    async refund(params: RefundParams): Promise<string> { ... }
-    async redeemSolver(params: RedeemSolverParams): Promise<string> { ... }
-
     // ── Read Operations ────────────────────────────────────────────────
-
     async getUserLockDetails(params: LockParams): Promise<UserLockDetails | null> { ... }
     async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> { ... }
     async recoverSwap(txHash: string, network: Network): Promise<UserLockDetails> { ... }
-
-    // ── Public Helpers ─────────────────────────────────────────────────
-
     async getTransaction(txHash: string): Promise<TransactionInfo | null> { ... }
+}
 
-    // ── Private Helpers ────────────────────────────────────────────────
+// Wallet client — write operations, signer REQUIRED at construction
+export class {Chain}HTLCWalletClient extends {Chain}HTLCPublicClient implements IHTLCWalletClient {
+    private signer: {Chain}Signer
 
-    private requireSigner(): {Chain}Signer { ... }
-    // ... chain-specific helpers
+    constructor(config: {Chain}HTLCWalletClientConfig) {
+        super(config)
+        this.signer = config.signer  // guaranteed present — no runtime check needed
+    }
+
+    // ── Write Operations ───────────────────────────────────────────────
+    async userLock(params: UserLockParams): Promise<AtomicResult> { ... }
+    async refund(params: RefundParams): Promise<string> { ... }
+    async redeemSolver(params: RedeemSolverParams): Promise<string> { ... }
+    // ... chain-specific write helpers
 }
 ```
 
@@ -182,7 +189,7 @@ export class {Chain}HTLCClient extends HTLCClient {
 
 ### Base class methods (do NOT override)
 
-The base `HTLCClient` class provides this method — subclasses should **not** override it:
+The base `HTLCPublicClient` class provides this method — subclasses should **not** override it:
 
 - `getSolverLockDetailsWithConsensus(params, nodeUrls, options?)` — queries multiple nodes via `getSolverLockDetails`, validates results match across nodes (see below)
 
@@ -191,7 +198,7 @@ The base `HTLCClient` class provides this method — subclasses should **not** o
 The base class provides `getSolverLockDetailsWithConsensus()` which fans out `getSolverLockDetails()` to multiple RPC nodes and validates that all successful responses agree on critical fields (`amount`, `sender`, `recipient`, `token`, `timelock`).
 
 **Consensus options:**
-- The base class sets `protected consensusOptions: Required<ConsensusOptions> = { minQuorum: 2, batchSize: 3 }` by default
+- The `HTLCPublicClient` base class sets `protected consensusOptions: Required<ConsensusOptions> = { minQuorum: 2, batchSize: 3 }` by default
 - Subclasses can override this in their constructor (e.g., Aztec sets `minQuorum: 1` since it typically has fewer public nodes)
 - Per-call `options` passed to `getSolverLockDetailsWithConsensus()` take priority over the instance default
 
@@ -362,12 +369,12 @@ Rules:
 
 ## 7. index.ts — Registration & Exports
 
-Because `types.ts` augments `HTLCClientConfigMap` and `WalletSignConfigMap`, the factory callbacks receive fully-typed configs — no `as` casts needed.
+Because `types.ts` augments `HTLCPublicClientConfigMap`, `HTLCWalletClientConfigMap`, and `WalletSignConfigMap`, the factory callbacks receive fully-typed configs — no `as` casts needed.
 
 ```ts
-import { registerHTLCClient } from '@train-protocol/sdk'
+import { registerHTLCPublicClient, registerHTLCWalletClient } from '@train-protocol/sdk'
 import { registerWalletSign } from '@train-protocol/auth'
-import { {Chain}HTLCClient } from './client.js'
+import { {Chain}HTLCPublicClient, {Chain}HTLCWalletClient } from './client.js'
 import { deriveKeyFrom{Chain}Wallet } from './login/index.js'
 
 let registered = false
@@ -376,18 +383,17 @@ export function register{Chain}Sdk(): void {
     if (registered) return   // Idempotent guard
     registered = true
 
-    // config is typed as {Chain}HTLCClientConfig — no casts required
-    registerHTLCClient('{namespace}', (config) => new {Chain}HTLCClient(config))
+    registerHTLCPublicClient('{namespace}', (config) => new {Chain}HTLCPublicClient(config))
+    registerHTLCWalletClient('{namespace}', (config) => new {Chain}HTLCWalletClient(config))
 
-    // config is typed as {Chain}WalletSignConfig — no casts required
     registerWalletSign('{namespace}', async (config) => {
         return deriveKeyFrom{Chain}Wallet(config.wallet)
     })
 }
 
 // Public exports
-export { {Chain}HTLCClient } from './client.js'
-export type { {Chain}HTLCClientConfig, {Chain}Signer, {Chain}WalletSignConfig } from './types.js'
+export { {Chain}HTLCPublicClient, {Chain}HTLCWalletClient } from './client.js'
+export type { {Chain}HTLCPublicClientConfig, {Chain}HTLCWalletClientConfig, {Chain}Signer, {Chain}WalletSignConfig } from './types.js'
 export { deriveKeyFrom{Chain}Wallet } from './login/index.js'
 export type { {Chain}WalletLike } from './login/index.js'
 ```
@@ -397,8 +403,10 @@ The `{namespace}` is the chain identifier used in the registry (e.g., `'eip155'`
 ### What to export
 
 - `register{Chain}Sdk` — registration function
-- `{Chain}HTLCClient` — class (for direct instantiation if needed)
-- `{Chain}HTLCClientConfig` — config type
+- `{Chain}HTLCPublicClient` — public (read-only) client class
+- `{Chain}HTLCWalletClient` — wallet (write) client class
+- `{Chain}HTLCPublicClientConfig` — public client config type
+- `{Chain}HTLCWalletClientConfig` — wallet client config type
 - `{Chain}Signer` — signer type
 - `deriveKeyFrom{Chain}...` — key derivation function
 - Any chain-specific wallet interface types needed by consumers
@@ -444,9 +452,9 @@ import { parseUnits, formatUnits } from '@train-protocol/sdk'
 // Byte/hex conversion
 import { hexToBytes, bytesToHex, toHex32 } from '@train-protocol/sdk'
 
-// Base class & types
+// Base classes & types
 import {
-    HTLCClient,
+    HTLCPublicClient,
     UserLockParams,
     LockParams,
     RefundParams,
@@ -489,7 +497,7 @@ Minimal test in `__tests__/register{Chain}Sdk.test.ts`:
 
 ```ts
 import { describe, it, expect, beforeEach } from 'vitest'
-import { getRegisteredNamespaces, createHTLCClient } from '@train-protocol/sdk'
+import { getRegisteredNamespaces, createHTLCPublicClient } from '@train-protocol/sdk'
 import { register{Chain}Sdk } from '../index'
 
 describe('register{Chain}Sdk', () => {
@@ -499,16 +507,13 @@ describe('register{Chain}Sdk', () => {
         expect(getRegisteredNamespaces()).toContain('{namespace}')
     })
 
-    it('creates a client with required methods', () => {
-        const client = createHTLCClient('{namespace}', {
+    it('creates a public client with required methods', () => {
+        const client = createHTLCPublicClient('{namespace}', {
             rpcUrl: 'https://...',
         })
         expect(typeof client.getUserLockDetails).toBe('function')
         expect(typeof client.getSolverLockDetails).toBe('function')
         expect(typeof client.getSolverLockDetailsWithConsensus).toBe('function')
-        expect(typeof client.userLock).toBe('function')
-        expect(typeof client.refund).toBe('function')
-        expect(typeof client.redeemSolver).toBe('function')
     })
 })
 ```
@@ -530,19 +535,21 @@ export const ZERO_ADDRESS = '0x000...'     // Chain's empty/zero address represe
 
 - [ ] Create `packages/{chain}/` with the directory structure above
 - [ ] In `types.ts`:
-  - [ ] Define `{Chain}Signer` interface and `{Chain}HTLCClientConfig` type (standalone, no base class)
+  - [ ] Define `{Chain}Signer` interface
+  - [ ] Define `{Chain}HTLCPublicClientConfig` (rpcUrl only) and `{Chain}HTLCWalletClientConfig` (extends public + required signer)
   - [ ] Define `{Chain}WalletSignConfig` type
-  - [ ] Add `declare module '@train-protocol/sdk'` augmentation for `HTLCClientConfigMap` and `WalletSignConfigMap`
-- [ ] Implement `{Chain}HTLCClient extends HTLCClient` in `client.ts`
-- [ ] Follow function ordering: writes → reads → public helpers → private helpers
+  - [ ] Add `declare module '@train-protocol/sdk'` augmentation for both `HTLCPublicClientConfigMap` and `HTLCWalletClientConfigMap`
+- [ ] Implement `{Chain}HTLCPublicClient extends HTLCPublicClient` in `client.ts` (read operations)
+- [ ] Implement `{Chain}HTLCWalletClient extends {Chain}HTLCPublicClient implements IHTLCWalletClient` (write operations)
+- [ ] Public client: read methods + helpers. Wallet client: write methods only (inherits reads)
 - [ ] Implement count-then-loop pattern in `getSolverLockDetails` (1-indexed, single-node version)
 - [ ] Implement `getTransaction(txHash)` — non-blocking, try/catch returning `null`, all three statuses (`Pending`/`Confirmed`/`Failed`)
 - [ ] Set `this.consensusOptions` in constructor if chain needs non-default quorum (default: `minQuorum: 2`)
 - [ ] Validate `txHash` format at the top of `recoverSwap` before any RPC calls
 - [ ] Define `{Chain}WalletLike` minimal interface in `login/wallet-sign.ts`
 - [ ] Implement key derivation in `login/wallet-sign.ts` using `deriveKeyMaterial` + `IDENTITY_SALT`
-- [ ] Create idempotent `register{Chain}Sdk()` in `index.ts` — pass config directly (no `as` casts)
-- [ ] Export: registration fn, client class, config type, signer type, wallet sign config type, key derivation fn, wallet-like type
+- [ ] Create idempotent `register{Chain}Sdk()` in `index.ts` — register both public and wallet client factories
+- [ ] Export: registration fn, both client classes, both config types, signer type, wallet sign config type, key derivation fn, wallet-like type
 - [ ] Use shared SDK utils (`parseUnits`, `formatUnits`, `hexToBytes`, etc.)
 - [ ] Add registration test in `__tests__/`
 - [ ] Add contract ABI/artifacts in `abis/` or `artifacts/`

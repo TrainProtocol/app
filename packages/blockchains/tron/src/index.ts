@@ -1,6 +1,6 @@
 import { type TrainSDK, defaultTrainSDK } from '@train-protocol/sdk'
 import { type TrainAuth, defaultTrainAuth } from '@train-protocol/auth'
-import { TronHTLCClient } from './client.js'
+import { TronHTLCPublicClient, TronHTLCWalletClient } from './client/index.js'
 import { deriveKeyFromTronWallet } from './login/index.js'
 
 /**
@@ -11,14 +11,15 @@ export function registerTronSdk(sdk?: TrainSDK, auth?: TrainAuth): void {
     const s = sdk ?? defaultTrainSDK
     const a = auth ?? defaultTrainAuth
 
-    s.registerHTLCClient('tron', (config) => new TronHTLCClient(config))
+    s.registerHTLCPublicClient('tron', (config) => new TronHTLCPublicClient(config))
+    s.registerHTLCWalletClient('tron', (config) => new TronHTLCWalletClient(config))
 
     a.registerWalletSign('tron', async (config) => {
         return deriveKeyFromTronWallet(config.wallet)
     })
 }
 
-export { TronHTLCClient } from './client.js'
-export type { TronHTLCClientConfig, TronSigner, TronUnsignedTransaction, TronWalletSignConfig } from './types.js'
+export { TronHTLCPublicClient, TronHTLCWalletClient } from './client/index.js'
+export type { TronHTLCPublicClientConfig, TronHTLCWalletClientConfig, TronSigner, TronUnsignedTransaction, TronWalletSignConfig } from './types.js'
 export { deriveKeyFromTronWallet } from './login/index.js'
 export type { TronWalletLike } from './login/index.js'
