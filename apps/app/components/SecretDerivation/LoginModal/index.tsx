@@ -9,7 +9,6 @@ import { useSteps } from '@/hooks/useSteps';
 import { Steps, Step } from '@/components/Step';
 // import OptionSelect from './OptionSelect';
 import IconButton from '@/components/buttons/iconButton';
-import { toChainNamespace } from '@/lib/chainNamespace';
 
 //type LoginStep = 'pick' | 'passkey_recovery' | 'wallet_select' | 'signing';
 type LoginStep = 'unsupported' | 'passkey_recovery' | 'signing';

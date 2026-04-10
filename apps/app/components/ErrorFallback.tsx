@@ -47,13 +47,11 @@ export default function ErrorFallback({ error, resetErrorBoundary }) {
                             <MessageComponent.Buttons>
                                 <div className="flex flex-row text-primary-text text-xs sm:text-base space-x-2">
                                     <div className='basis-1/3'>
-                                        {
-                                            <GoHomeButton>
-                                                <SubmitButton text_align="left" buttonStyle="outline" isDisabled={false} isSubmitting={false} icon={<Home className="h-5 w-5" aria-hidden="true" />}>
-                                                    Go home
-                                                </SubmitButton>
-                                            </GoHomeButton>
-                                        }
+                                        <GoHomeButton onClick={resetErrorBoundary}>
+                                            <SubmitButton text_align="left" buttonStyle="outline" isDisabled={false} isSubmitting={false} icon={<Home className="h-5 w-5" aria-hidden="true" />}>
+                                                Go home
+                                            </SubmitButton>
+                                        </GoHomeButton>
                                     </div>
                                     <div className='basis-2/3'>
                                         <SubmitButton button_align="right" text_align="left" isDisabled={false} isSubmitting={false}

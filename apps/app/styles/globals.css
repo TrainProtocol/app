@@ -41,7 +41,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-secondary-700 md:bg-background text-foreground;
   }
 }
 

@@ -4,6 +4,7 @@ import { ReactNode } from "react"
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/shadcn/select"
+import { Switch } from "@/components/shadcn/switch"
 
 const Menu = ({ children }: { children: ReactNode }) => {
     return <div className="flex flex-col gap-3">
@@ -160,23 +161,19 @@ type ToggleItemProps = {
 
 const ToggleItem = ({ children, icon, checked, onChange }: ToggleItemProps) => {
     return (
-        <button
-            type="button"
-            onClick={() => onChange(!checked)}
+        <div
             className="gap-4 flex relative cursor-pointer hover:bg-secondary-400 select-none items-center px-4 py-3 outline-none w-full text-primary-text"
         >
             <div>
                 {icon}
             </div>
             <p className="text-primary-text">{children}</p>
-            <div
-                className={`absolute right-4 w-10 h-6 rounded-full transition-colors duration-200 ${checked ? 'bg-primary-500' : 'bg-secondary-400'}`}
-            >
-                <div
-                    className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform duration-200 ${checked ? 'translate-x-5' : 'translate-x-1'}`}
-                />
-            </div>
-        </button>
+            <Switch
+                checked={checked}
+                onCheckedChange={onChange}
+                className="absolute right-4"
+            />
+        </div>
     )
 }
 
@@ -210,7 +207,7 @@ const SelectorItem = ({ label, icon, value, onValueChange, options }: SelectorIt
                             {current.label}
                         </SelectValue>
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-2xl">
                         {options.map(({ value: val, icon: Icon, label: optLabel }) => (
                             <SelectItem key={val} value={val}>
                                 {Icon && <Icon className="h-4 w-4" />}

@@ -14,6 +14,7 @@ import SendFeedback from "@/components/sendFeedback";
 import Menu from "./Menu";
 import dynamic from "next/dynamic";
 import { MenuStep } from "@/Models/Wizard";
+import { Separator } from "@/components/shadcn/separator";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { UserStatusMenu } from "../SecretDerivation";
 
@@ -144,7 +145,7 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
             </VaulDrawer>
 
             <div className="space-y-3 w-full">
-                <hr className="border-secondary-500" />
+                <Separator className="bg-secondary-500" />
                 <p className="text-primary-text-tertiary flex justify-center my-3">Media links & suggestions:</p>
             </div>
 

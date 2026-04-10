@@ -1,4 +1,5 @@
 import { ChangeEvent, FC, useCallback, useState } from "react";
+import { Input } from "@/components/shadcn/input";
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import { Pencil } from "lucide-react";
 import { Partner } from "@/Models/Partner";
@@ -59,8 +60,8 @@ const ManualAddressInput: FC<AddressInput> = ({ manualAddress, setManualAddress,
     return (
         <div className="text-left">
             <div className="flex flex-wrap flex-col md:flex-row items-center">
-                <div className="relative flex grow rounded-lg shadow-xs focus-within:ring-0 focus-within:ring-secondary-300 focus-within:border-secondary-300 w-full lg:w-fit">
-                    <input
+                <div className="relative flex grow rounded-lg shadow-xs w-full lg:w-fit">
+                    <Input
                         onChange={handleInputChange}
                         value={manualAddress}
                         placeholder={placeholder}
@@ -77,7 +78,7 @@ const ManualAddressInput: FC<AddressInput> = ({ manualAddress, setManualAddress,
                                 handleSaveNewAddress()
                             }
                         }}
-                        className='pr-12 disabled:cursor-not-allowed grow h-12 border border-secondary-800 focus:border-secondary-300 leading-4 placeholder:text-primary-text-tertiary/80 focus:placeholder:text-left placeholder:font-normal focus:placeholder:pl-0 placeholder:pl-8 block font-semibold w-full !bg-secondary-500 rounded-lg truncate hover:overflow-x-scroll focus:ring-0 focus:outline-hidden'
+                        className='pr-12 h-12 rounded-lg font-semibold truncate hover:overflow-x-scroll placeholder:text-primary-text-tertiary/80 placeholder:font-normal placeholder:pl-8 focus:placeholder:pl-0 focus:placeholder:text-left'
                     />
                     {
                         !isFocused && !manualAddress &&

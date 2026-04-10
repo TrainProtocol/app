@@ -14,6 +14,7 @@ import ConnectedWallets from "./ConnectedWallets";
 import { Wallet } from "@/Models/WalletProvider";
 import { useSelectedAccount, useSelectSwapAccount } from "@/context/swapAccounts";
 import ConnectWalletButton from "./ConnectedWallets/ConnectWalletButton";
+import { useAddressesStore } from "@/stores/addressesStore";
 
 export enum AddressGroup {
     ConnectedWallet = "Connected wallet",
@@ -59,6 +60,8 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
     const { destination_address, to: destination } = values
     const selectDestinationAccount = useSelectSwapAccount("to");
 
+    const storedAddresses = useAddressesStore(s => s.addresses)
+    const addAddress = useAddressesStore(s => s.addAddress)
     const { provider, unAvailableWallets } = useWallet(destination, 'autofill')
     const connectedWallets = provider?.connectedWallets?.filter(w => !w.isNotAvailable) || []
     const defaultAccount = useSelectedAccount("to", values.to?.caip2Id);
@@ -84,8 +87,9 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
             manualAddressFromContext,
             addressFromQuery: query.destAddress,
             destination_address,
+            storedAddresses,
         })
-    }, [destination, connectedWallets, manualAddressFromContext, query.destAddress, connectedWalletskey, destination_address])
+    }, [destination, connectedWallets, manualAddressFromContext, query.destAddress, connectedWalletskey, destination_address, storedAddresses])
 
     const destinationAddressItem = destination && destination_address ?
         groupedAddresses?.find(a => a.address.toLowerCase() === destination_address.toLowerCase())
@@ -147,14 +151,16 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
                     id: wallet.id,
                     providerName: wallet.providerName
                 });
-            else
+            else {
                 selectDestinationAccount({
                     address: address || "",
                     id: 'manually_added',
                     providerName: provider.name,
                 });
+                addAddress(address);
+            }
         }
-    }, [destination, connectedWallets, provider, selectDestinationAccount]);
+    }, [destination, connectedWallets, provider, selectDestinationAccount, addAddress]);
 
     useEffect(() => {
         if (canFocus) {
@@ -217,7 +223,7 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
                             />
                         }
 
-                        {/* {
+                        {
                             addressBookAddresses && addressBookAddresses?.length > 0 && !manualAddress && destination &&
                             <AddressBook
                                 addressBook={addressBookAddresses}
@@ -226,7 +232,7 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
                                 destination_address={destination_address}
                                 partner={partner}
                             />
-                        } */}
+                        }
                     </div>
                 </div>
             </Modal>
@@ -239,12 +245,14 @@ const resolveAddressGroups = ({
     wallets,
     manualAddressFromContext,
     addressFromQuery,
+    storedAddresses,
 }: {
     destination: Network | undefined,
     wallets: Wallet[] | undefined,
     manualAddressFromContext: string | undefined,
     addressFromQuery: string | undefined,
     destination_address: string | undefined,
+    storedAddresses: AddressItem[],
 }) => {
 
     if (!destination) return
@@ -263,6 +271,13 @@ const resolveAddressGroups = ({
     if (manualAddressFromContext && AddressClass.isValid(manualAddressFromContext, destination)) {
         addresses.push({ address: manualAddressFromContext, group: AddressGroup.ManualAdded })
     }
+
+    // Include all previously used manual addresses from store
+    storedAddresses.forEach(item => {
+        if (AddressClass.isValid(item.address, destination)) {
+            addresses.push(item)
+        }
+    })
 
     const uniqueAddresses = getUniqueAddresses(addresses, destination)
 
