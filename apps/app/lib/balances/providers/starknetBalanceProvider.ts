@@ -16,7 +16,6 @@ export class StarknetBalanceProvider extends BalanceProvider {
             RpcProvider,
             uint256,
         } = await import("starknet");
-        const { BigNumber } = await import("ethers");
 
         let balances: TokenBalance[] = []
 
@@ -32,12 +31,11 @@ export class StarknetBalanceProvider extends BalanceProvider {
 
                 const erc20 = new Contract({ abi: Erc20Abi, address: token.contract, providerOrAccount: provider });
                 const balanceResult = await erc20.balanceOf(address);
-                const balanceInWei = BigNumber.from(uint256.uint256ToBN(balanceResult.balance).toString()).toString();
 
                 const balance = {
                     network: network.caip2Id,
                     token: token.symbol,
-                    amount: Number(formatUnits(BigInt(balanceInWei), token.decimals)),
+                    amount: Number(formatUnits(BigInt(balanceResult), token.decimals)),
                     request_time: new Date().toJSON(),
                     decimals: token.decimals,
                     isNativeCurrency: false,

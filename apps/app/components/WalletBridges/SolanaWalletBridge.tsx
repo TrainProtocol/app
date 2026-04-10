@@ -32,7 +32,7 @@ export function SolanaWalletBridge() {
             chainNamespace: chainNamespace('solana'),
 
             createClient(sdk: TrainSDK, networkId: Caip2Id) {
-                return sdk.createHTLCClient('solana', { rpcUrl: getRpcUrl(networkId) })
+                return sdk.createHTLCPublicClient('solana', { rpcUrl: getRpcUrl(networkId) })
             },
 
             createWriteClient(sdk: TrainSDK, networkId: Caip2Id, address?: string) {
@@ -47,14 +47,16 @@ export function SolanaWalletBridge() {
 
                 const publicKey = connectedWallet?.adapter.publicKey
 
-                const signer = (connectedWallet && publicKey) ? {
+                if (!connectedWallet || !publicKey) throw new Error('No Solana signer available')
+
+                const signer = {
                     publicKey: publicKey.toBase58(),
                     sendTransaction: async (tx: any) => {
                         return connectedWallet.adapter.sendTransaction(tx, connection)
                     },
-                } : undefined
+                }
 
-                return sdk.createHTLCClient('solana', { rpcUrl, signer })
+                return sdk.createHTLCWalletClient('solana', { rpcUrl, signer })
             },
 
             getLoginConfig: (address?: string) => {

@@ -1,6 +1,6 @@
 import { type TrainSDK, defaultTrainSDK } from '@train-protocol/sdk'
 import { type TrainAuth, defaultTrainAuth } from '@train-protocol/auth'
-import { EvmHTLCClient } from './client.js'
+import { EvmHTLCPublicClient, EvmHTLCWalletClient } from './client/index.js'
 import { deriveKeyFromEvmSignature } from './login/index.js'
 
 /**
@@ -11,14 +11,15 @@ export function registerEvmSdk(sdk?: TrainSDK, auth?: TrainAuth): void {
     const s = sdk ?? defaultTrainSDK
     const a = auth ?? defaultTrainAuth
 
-    s.registerHTLCClient('eip155', (config) => new EvmHTLCClient(config))
+    s.registerHTLCPublicClient('eip155', (config) => new EvmHTLCPublicClient(config))
+    s.registerHTLCWalletClient('eip155', (config) => new EvmHTLCWalletClient(config))
 
     a.registerWalletSign('eip155', async (config) => {
         return deriveKeyFromEvmSignature(config.provider, config.address, config.options)
     })
 }
 
-export { EvmHTLCClient } from './client.js'
-export type { EvmHTLCClientConfig, EvmSigner } from './types.js'
+export { EvmHTLCPublicClient, EvmHTLCWalletClient } from './client/index.js'
+export type { EvmHTLCPublicClientConfig, EvmHTLCWalletClientConfig, EvmSigner } from './types.js'
 export { deriveKeyFromEvmSignature, getEvmTypedData } from './login/index.js'
 export type { Eip1193Provider } from './login/index.js'

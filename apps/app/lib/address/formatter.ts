@@ -1,5 +1,5 @@
 import { Network } from "@/Models/Network";
-import { Address } from "@ton/core";
+// import { Address } from "@ton/core";
 import { formatStarknetAddress } from "@train-protocol/starknet";
 
 export type AddressFormatProps = {
@@ -24,16 +24,16 @@ export function addressFormat(props: AddressFormatProps): string {
             return address
         }
     }
-    else if (
-        network?.caip2Id.toLowerCase().startsWith("ton")
-        || providerName?.toLowerCase() == 'ton'
-    ) {
-        try {
-            return Address.parse(address).toString({ bounceable: false, testOnly: false, urlSafe: true })
-        } catch (error) {
-            return address
-        }
-    }
+    // else if (
+    //     network?.caip2Id.toLowerCase().startsWith("ton")
+    //     || providerName?.toLowerCase() == 'ton'
+    // ) {
+    //     try {
+    //         return Address.parse(address).toString({ bounceable: false, testOnly: false, urlSafe: true })
+    //     } catch (error) {
+    //         return address
+    //     }
+    // }
     else if (
         network?.caip2Id.toLowerCase().startsWith("solana")
         || network?.caip2Id.toLowerCase().startsWith("eclipse")

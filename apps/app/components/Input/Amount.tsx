@@ -1,4 +1,5 @@
 import { useFormikContext } from "formik";
+import { Input } from "@/components/shadcn/input";
 import { forwardRef, useEffect, useMemo, useRef } from "react";
 import { SwapFormValues } from "../DTOs/SwapFormValues";
 import NumericInput from "./NumericInput";
@@ -105,7 +106,7 @@ const AmountField = forwardRef(function AmountField({ actionValue, actionValueUs
             <div className={clsx("flex flex-col bg-secondary-500 space-y-0.5 relative w-full", className)}>
                 <div className="flex items-center h-12">
                     <span className="text-[28px] leading-[34px] text-primary-text font-normal mr-1 select-none">$</span>
-                    <input
+                    <Input
                         type="text"
                         inputMode="decimal"
                         autoComplete="off"
@@ -114,7 +115,7 @@ const AmountField = forwardRef(function AmountField({ actionValue, actionValueUs
                         value={previewUsd ?? usdAmount}
                         onChange={handleUsdInputChange}
                         className={clsx(
-                            "w-full text-[28px] leading-[34px] rounded-xl focus:outline-none focus:border-none focus:ring-0 font-normal px-0 truncate bg-secondary-500 border-0",
+                            "text-[28px] leading-[34px] focus-visible:ring-0 focus-visible:border-transparent font-normal px-0 truncate bg-secondary-500 border-0",
                             previewUsd ? "text-secondary-text/45" : "text-primary-text",
                             "placeholder:text-secondary-text"
                         )}
@@ -146,7 +147,7 @@ const AmountField = forwardRef(function AmountField({ actionValue, actionValueUs
                 ref={amountRef}
                 precision={fromCurrency?.decimals}
                 tempValue={actionValue}
-                className="w-full text-[28px] leading-[34px] rounded-xl text-primary-text focus:outline-none focus:border-none focus:ring-0 bg-secondary-500! font-normal! px-0 truncate"
+                className="text-[28px] leading-[34px] rounded-xl text-primary-text focus-visible:ring-0 focus-visible:border-transparent bg-secondary-500! font-normal! px-0 truncate"
                 onChange={e => {
                     /^[0-9]*[.,]?[0-9]*$/.test(e.target.value) && handleChange(e);
                 }}

@@ -29,15 +29,21 @@ type ActionsProps = {
 
 export const Actions: FC<ActionsProps> = ({ quote, solverId, type }) => {
     const { status: commitStatus, error } = useActiveSwap()
+    const [actionError, setActionError] = useState<Error | undefined>(undefined)
+
+    const displayError = error?.message ?? actionError?.message
+    const displayErrorCode = error?.code
 
     return (
         <>
-            {error && <TransactionMessage error={error.message} errorCode={error.code} />}
+            {displayError && <TransactionMessage error={displayError} errorCode={displayErrorCode} />}
             <DestinationWalletWrapper>
                 <ResolveAction
                     commitStatus={commitStatus}
                     error={error?.message}
                     errorCode={error?.code}
+                    actionError={actionError}
+                    setActionError={setActionError}
                     quote={quote}
                     solverId={solverId}
                     type={type}
@@ -51,20 +57,25 @@ type ResolveActionProps = {
     commitStatus: HTLCStatus
     error: string | undefined
     errorCode?: TrainErrorCode
+    actionError?: Error
+    setActionError: (error: Error | undefined) => void
     quote?: SwapQuote
     solverId?: string
     type: SwapViewType
 }
 
-const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode, quote, solverId, type }) => {
+const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode, actionError, setActionError, quote, solverId, type }) => {
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
     const goHome = useGoHome()
 
-    if (error && errorCode === TrainErrorCode.UserLockTransactionFailed) {
+    if ((error && errorCode === TrainErrorCode.UserLockTransactionFailed) || actionError) {
         const handleRetry = () => {
-            setActiveHashlock(null)
-            if (type === 'widget') {
-                goHome()
+            setActionError(undefined)
+            if (error) {
+                setActiveHashlock(null)
+                if (type === 'widget') {
+                    goHome()
+                }
             }
         }
 
@@ -91,7 +102,7 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode,
         case HTLCStatus.UserLocked:
             return <></>
         default:
-            return <UserLockAction quote={quote} solverId={solverId} type={type} />
+            return <UserLockAction quote={quote} solverId={solverId} type={type} setError={setActionError} />
     }
 }
 

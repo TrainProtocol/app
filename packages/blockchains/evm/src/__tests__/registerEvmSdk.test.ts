@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
     getRegisteredNamespaces,
-    createHTLCClient,
+    createHTLCPublicClient,
+    createHTLCWalletClient,
 } from '@train-protocol/sdk'
 import {
     getRegisteredWalletSignProviders,
@@ -27,11 +28,18 @@ describe('registerEvmSdk', () => {
         expect(getRegisteredWalletSignProviders()).toContain('eip155')
     })
 
-    it('createHTLCClient works for evm after registration', () => {
-        const client = createHTLCClient('eip155', { rpcUrl: 'https://example.com' })
+    it('createHTLCPublicClient works for evm after registration', () => {
+        const client = createHTLCPublicClient('eip155', { rpcUrl: 'https://example.com' })
         expect(client).toBeDefined()
         expect(typeof client.getUserLockDetails).toBe('function')
         expect(typeof client.getSolverLockDetails).toBe('function')
+    })
+
+    it('createHTLCWalletClient works for evm after registration', () => {
+        const signer = { address: '0x0', sendTransaction: async () => '0x0' }
+        const client = createHTLCWalletClient('eip155', { rpcUrl: 'https://example.com', signer })
+        expect(client).toBeDefined()
+        expect(typeof client.getUserLockDetails).toBe('function')
         expect(typeof client.userLock).toBe('function')
         expect(typeof client.refund).toBe('function')
         expect(typeof client.redeemSolver).toBe('function')

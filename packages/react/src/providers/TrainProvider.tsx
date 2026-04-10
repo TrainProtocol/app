@@ -1,6 +1,6 @@
 import { useMemo, useCallback, useRef, useState, createContext, useContext, type ReactNode } from 'react'
 import { TrainApiClient, defaultTrainSDK } from '@train-protocol/sdk'
-import type { IHTLCReadClient, IHTLCClient } from '@train-protocol/sdk'
+import type { IHTLCPublicClient, IHTLCWalletClient } from '@train-protocol/sdk'
 import { defaultTrainAuth } from '@train-protocol/auth'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { TrainContext } from './TrainContext'
@@ -84,11 +84,11 @@ export function TrainProvider({
 
     // adapterVersion in deps ensures these callbacks get new references when adapters register,
     // which propagates through walletValue → walletCtx → consumer useMemos.
-    const createClient = useCallback((networkId: Caip2Id): IHTLCReadClient => {
+    const createClient = useCallback((networkId: Caip2Id): IHTLCPublicClient => {
         return findAdapter(networkId).createClient(sdk, networkId)
     }, [findAdapter, sdk, adapterVersion])
 
-    const createWriteClient = useCallback((networkId: Caip2Id, address?: string): IHTLCClient => {
+    const createWriteClient = useCallback((networkId: Caip2Id, address?: string): IHTLCWalletClient => {
         return findAdapter(networkId).createWriteClient(sdk, networkId, address)
     }, [findAdapter, sdk, adapterVersion])
 

@@ -26,8 +26,8 @@ export const ProviderPicker: FC<{ providers: WalletProvider[], selectedProviderN
     return (
         <Popover open={open} onOpenChange={() => setOpen(!open)}>
             <PopoverTrigger
-                className={clsx('p-2 border border-secondary-500 rounded-lg bg-secondary-400 hover:brightness-125  relative overflow-visible z-50', {
-                    'bg-secondary-400! brightness-125': selectedProviderNames.length > 0,
+                className={clsx('p-2 border border-secondary-500 rounded-lg bg-secondary-400 hover:bg-secondary-300  relative overflow-visible z-50', {
+                    'bg-secondary-300!': selectedProviderNames.length > 0,
                 })}
             >
                 <MenuIcon className="h-6 w-6 text-secondary-text" />

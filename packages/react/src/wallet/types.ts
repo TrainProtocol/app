@@ -1,4 +1,4 @@
-import type { IHTLCReadClient, IHTLCClient, TrainSDK } from '@train-protocol/sdk'
+import type { IHTLCPublicClient, IHTLCWalletClient, TrainSDK } from '@train-protocol/sdk'
 import type { Caip2Id, ChainNamespace } from '../internal/branded'
 
 /** Minimal signer abstraction for chain-agnostic transaction sending */
@@ -18,14 +18,14 @@ export interface TrainSigner {
 export interface TrainWalletAdapter {
     chainNamespace: ChainNamespace
 
-    /** Create a read-only HTLC client for monitoring/polling (no signer) */
-    createClient(sdk: TrainSDK, networkId: Caip2Id): IHTLCReadClient
+    /** Create a public HTLC client for monitoring/polling (no signer) */
+    createClient(sdk: TrainSDK, networkId: Caip2Id): IHTLCPublicClient
 
-    /** Create a write HTLC client with signer for transactions.
+    /** Create a wallet HTLC client with signer for transactions.
      *  @param address - When provided, use this specific account as signer
      *  (e.g. the user-selected account). When omitted, fall back to the
      *  framework's active/default account. */
-    createWriteClient(sdk: TrainSDK, networkId: Caip2Id, address?: string): IHTLCClient
+    createWriteClient(sdk: TrainSDK, networkId: Caip2Id, address?: string): IHTLCWalletClient
 
     /** Return config for wallet-based secret derivation. Null = wallet not ready.
      *  @param address - When provided, resolve config for this specific account. */

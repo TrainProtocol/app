@@ -24,7 +24,7 @@ export function useEventSource(
     url: string | null,
     options: UseEventSourceOptions,
 ): void {
-    const { enabled, onEvent, onError, maxRetries = 5, EventSourceClass = EventSource } = options
+    const { enabled, onEvent, onError, maxRetries = 5, EventSourceClass } = options
     const onEventRef = useRef(onEvent)
     const onErrorRef = useRef(onError)
 
@@ -39,10 +39,12 @@ export function useEventSource(
         let retryTimer: ReturnType<typeof setTimeout> | null = null
         let closed = false
 
+        const Ctor = EventSourceClass ?? EventSource
+
         function connect() {
             if (closed || !url) return
 
-            es = new EventSourceClass(url)
+            es = new Ctor(url)
 
             for (const eventType of Object.keys(onEventRef.current)) {
                 es.addEventListener(eventType, (event: MessageEvent) => {

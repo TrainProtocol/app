@@ -1,8 +1,11 @@
 import type { TronWalletLike } from './login/index.js'
 
 declare module '@train-protocol/sdk' {
-    interface HTLCClientConfigMap {
-        tron: TronHTLCClientConfig
+    interface HTLCPublicClientConfigMap {
+        tron: TronHTLCPublicClientConfig
+    }
+    interface HTLCWalletClientConfigMap {
+        tron: TronHTLCWalletClientConfig
     }
 }
 
@@ -40,13 +43,16 @@ export interface TronUnsignedTransaction {
     visible?: boolean
 }
 
-export type TronHTLCClientConfig = {
+export type TronHTLCPublicClientConfig = {
     /** TronGrid API URL (e.g. https://api.trongrid.io or https://nile.trongrid.io) */
     rpcUrl: string
     /** Optional API key for TronGrid rate limits */
     apiKey?: string
-    /** Optional signer for write operations */
-    signer?: TronSigner
+}
+
+export type TronHTLCWalletClientConfig = TronHTLCPublicClientConfig & {
+    /** Signer for write operations */
+    signer: TronSigner
 }
 
 /** TronGrid transaction info response */

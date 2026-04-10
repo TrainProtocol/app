@@ -88,13 +88,14 @@ export function EvmWalletBridge() {
 
             createClient(sdk: TrainSDK, networkId: Caip2Id) {
                 const rpcUrl = getRpcUrl(networkId)
-                return sdk.createHTLCClient('eip155', { rpcUrl })
+                return sdk.createHTLCPublicClient('eip155', { rpcUrl })
             },
 
             createWriteClient(sdk: TrainSDK, networkId: Caip2Id, address?: string) {
                 const rpcUrl = getRpcUrl(networkId)
-                const signer = getSignerForNetwork(networkId, address) ?? undefined
-                return sdk.createHTLCClient('eip155', { rpcUrl, signer })
+                const signer = getSignerForNetwork(networkId, address)
+                if (!signer) throw new Error('No EVM signer available')
+                return sdk.createHTLCWalletClient('eip155', { rpcUrl, signer })
             },
 
             getLoginConfig: async (address?: string) => {

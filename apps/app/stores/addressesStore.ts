@@ -1,9 +1,10 @@
 import { createWithEqualityFn as create } from 'zustand/traditional'
-import { AddressItem } from '../components/Input/Address/AddressPicker';
+import { AddressGroup, AddressItem } from '../components/Input/Address/AddressPicker';
 
 interface AddressesState {
     addresses: AddressItem[];
     setAddresses: (addresses: AddressItem[]) => void;
+    addAddress: (address: string) => void;
 }
 
 export const useAddressesStore = create<AddressesState>()((set) => ({
@@ -13,4 +14,7 @@ export const useAddressesStore = create<AddressesState>()((set) => ({
             addresses: addresses
         })
     }),
+    addAddress: (address) => set((state) => ({
+        addresses: [...state.addresses, { address, group: AddressGroup.ManualAdded, date: new Date().toISOString() }]
+    })),
 }))
