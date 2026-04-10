@@ -36,18 +36,22 @@ export async function getSolverLockByIndex(
 
     const result = await contract.get_solver_lock(cairo.uint256(BigInt(id)), cairo.uint256(BigInt(index)))
 
+    return resolveSolverLock(result, id, params.decimals, index)
+}
+
+export function resolveSolverLock(result: any, id: string, decimals: number, index: number): SolverLockDetails | null {
     if (BigInt(result.sender) === 0n) return null
 
     return {
         hashlock: id,
-        amount: Number(formatUnits(BigInt(result.amount), params.decimals)),
+        amount: Number(formatUnits(BigInt(result.amount), decimals)),
         secret: BigInt(result.secret),
-        timelock: Number(result.timelock),
-        status: mapLockStatus(result.status),
         sender: formatStarknetAddress(result.sender).toString(),
         recipient: formatStarknetAddress(result.recipient).toString(),
         token: formatStarknetAddress(result.token).toString(),
-        reward: Number(formatUnits(BigInt(result.reward), params.decimals)),
+        timelock: Number(result.timelock),
+        status: mapLockStatus(result.status),
+        reward: Number(formatUnits(BigInt(result.reward), decimals)),
         rewardTimelock: Number(result.reward_timelock),
         rewardRecipient: formatStarknetAddress(result.reward_recipient).toString(),
         rewardToken: formatStarknetAddress(result.reward_token).toString(),

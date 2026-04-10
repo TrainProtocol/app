@@ -1,28 +1,16 @@
 # @train-protocol/aztec
 
-Aztec HTLC client for Train Protocol. Enables privacy-preserving atomic swaps on the Aztec network using Noir smart contracts.
+Aztec HTLC client for Train Protocol. Registers under the `aztec` namespace.
 
-## What's Inside
-
-- **`AztecHTLCClient`** — HTLC client implementation for Aztec
-- **`registerAztecSdk()`** — registers the client under the `aztec` namespace
-- **`deriveKeyFromAztecWallet()`** — derives key material from an Aztec wallet
-
-## Installation
-
-```bash
-pnpm add @train-protocol/aztec
-```
-
-Peer dependency: `@train-protocol/sdk`
-
-## Usage
+## Setup
 
 ```ts
-import { registerAztecSdk } from "@train-protocol/aztec";
+import { registerAztecSdk } from '@train-protocol/aztec'
+registerAztecSdk()
+```
 
-registerAztecSdk();
+## Testing
 
-import { createHTLCClient } from "@train-protocol/sdk";
-const client = createHTLCClient("aztec", { wallet, pxe });
+```bash
+pnpm test
 ```

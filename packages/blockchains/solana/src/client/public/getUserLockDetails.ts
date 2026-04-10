@@ -1,8 +1,9 @@
 import { BorshCoder, EventParser, Program } from '@coral-xyz/anchor'
 import { Connection, PublicKey } from '@solana/web3.js'
 import { LockStatus, formatUnits } from '@train-protocol/sdk'
-import type { LockParams, UserLockDetails, BaseLockDetails, EventDerivedData } from '@train-protocol/sdk'
+import type { LockParams, UserLockDetails, EventDerivedData, BaseLockDetails } from '@train-protocol/sdk'
 import type { TypedProgramAccounts } from '../../types.js'
+import { NATIVE_SOL_ADDRESS } from '../../constants.js'
 import { TrainHtlc } from '../../idl/trainHtlc.js'
 import { encoder, hexToUint8Array, uint8ArrayToHex, decoder } from '../../utils.js'
 import { parseSecret } from '../helpers.js'
@@ -39,16 +40,8 @@ export async function getUserLockDetails(
 
         if (!result) return null
 
-        const parsedResult: BaseLockDetails = {
-            hashlock: `0x${id.replace('0x', '')}`,
-            amount: Number(formatUnits(BigInt(result.amount.toString()), params.decimals)),
-            secret: parseSecret(result.secret),
-            timelock: Number(result.timelock),
-            status: Number(result.status) as LockStatus,
-            sender: new PublicKey(result.sender).toString(),
-            recipient: new PublicKey(result.recipient).toString(),
-            token: result.tokenMint ? result.tokenMint.toString() : '',
-        }
+        const parsedResult = resolveUserLock(result, id, params.decimals)
+        if (!parsedResult) return null
 
         const { eventData, blockTimestamp } = params.txId
             ? await findUserDataFromLogs(connection, params.txId, id, program)
@@ -157,5 +150,21 @@ async function findUserDataFromLogs(
     } catch (e) {
         console.error('Error fetching event data from Solana logs:', e)
         return { eventData }
+    }
+}
+
+export function resolveUserLock(result: any, id: string, decimals: number): BaseLockDetails | null {
+    const sender = new PublicKey(result.sender).toString()
+    if (sender === NATIVE_SOL_ADDRESS) return null
+
+    return {
+        hashlock: `0x${id.replace('0x', '')}`,
+        amount: Number(formatUnits(BigInt(result.amount.toString()), decimals)),
+        secret: parseSecret(result.secret),
+        timelock: Number(result.timelock),
+        status: Number(result.status) as LockStatus,
+        sender,
+        recipient: new PublicKey(result.recipient).toString(),
+        token: result.tokenMint ? result.tokenMint.toString() : '',
     }
 }

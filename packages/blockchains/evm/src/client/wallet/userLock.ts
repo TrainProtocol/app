@@ -3,10 +3,9 @@ import { parseUnits, toHex32 } from '@train-protocol/sdk'
 import type { UserLockParams, AtomicResult } from '@train-protocol/sdk'
 import { htlcFunctions, erc20Functions } from '../../abi.js'
 import type { JsonRpcClient } from '../../rpc.js'
-import type { EvmSigner } from '../../types.js'
+import type { EvmSigner, RpcTransactionReceipt } from '../../types.js'
 import { ZERO_ADDRESS } from '../../constants.js'
 import { decodeContractError, hex } from '../../utils.js'
-import { waitForReceipt } from '../helpers.js'
 
 export async function userLock(
     rpc: JsonRpcClient,
@@ -96,4 +95,26 @@ async function ensureERC20Allowance(
     const approveData = AbiFunction.encodeData(erc20Functions.approve, [hex(spender), requiredAmount])
     const approveHash = await signer.sendTransaction({ to: tokenAddress, data: approveData })
     await waitForReceipt(rpc, approveHash)
+}
+
+export async function waitForReceipt(
+    rpc: JsonRpcClient,
+    txHash: string,
+    options?: { timeout?: number; interval?: number }
+): Promise<RpcTransactionReceipt> {
+    const timeout = options?.timeout ?? 120_000
+    const interval = options?.interval ?? 2_000
+    const start = Date.now()
+
+    while (Date.now() - start < timeout) {
+        const receipt = await rpc.getTransactionReceipt(txHash)
+        if (receipt) {
+            if (receipt.status === '0x0') {
+                throw new Error(`Transaction reverted: ${txHash}`)
+            }
+            return receipt
+        }
+        await new Promise(r => setTimeout(r, interval))
+    }
+    throw new Error(`Transaction receipt timeout after ${timeout}ms: ${txHash}`)
 }

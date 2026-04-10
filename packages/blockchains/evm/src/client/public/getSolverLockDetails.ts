@@ -1,10 +1,10 @@
 import { AbiFunction } from 'ox'
-import { LockStatus, formatUnits } from '@train-protocol/sdk'
 import type { LockParams, SolverLockDetails } from '@train-protocol/sdk'
 import { htlcFunctions } from '../../abi.js'
 import { JsonRpcClient } from '../../rpc.js'
-import { ZERO_ADDRESS } from '../../constants.js'
 import { hex } from '../../utils.js'
+import { LockStatus, formatUnits } from '@train-protocol/sdk'
+import { ZERO_ADDRESS } from '../../constants.js'
 
 export async function getSolverLockDetails(
     params: LockParams,
@@ -41,15 +41,25 @@ export async function getSolverLockByIndex(
     const lockRaw = await rpc.ethCall(contractAddress, lockData)
     const result = AbiFunction.decodeResult(htlcFunctions.getSolverLock, hex(lockRaw)) as any
 
+    return resolveSolverLock(result, id, params.decimals, index)
+}
+
+export function resolveSolverLock(result: any, id: string, decimals: number, index: number): SolverLockDetails | null {
     if (result.sender === ZERO_ADDRESS) return null
 
     return {
-        ...result,
         hashlock: id,
-        amount: Number(formatUnits(BigInt(result.amount), params.decimals)),
+        amount: Number(formatUnits(BigInt(result.amount), decimals)),
         secret: BigInt(result.secret),
+        sender: result.sender,
+        recipient: result.recipient,
+        token: result.token,
         timelock: Number(result.timelock),
         status: Number(result.status) as LockStatus,
-        index
+        reward: Number(result.reward),
+        rewardTimelock: Number(result.rewardTimelock),
+        rewardRecipient: result.rewardRecipient,
+        rewardToken: result.rewardToken,
+        index,
     }
 }

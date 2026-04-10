@@ -66,27 +66,30 @@ export async function getSolverLockByIndex(
 
         if (!result) return null
 
-        // Skip empty slots
-        const sender = new PublicKey(result.sender).toString()
-        if (sender === NATIVE_SOL_ADDRESS) return null
-
-        return {
-            hashlock: `0x${id.replace('0x', '')}`,
-            amount: Number(formatUnits(BigInt(result.amount.toString()), params.decimals)),
-            secret: parseSecret(result.secret),
-            timelock: Number(result.timelock),
-            status: Number(result.status) as LockStatus,
-            sender,
-            recipient: new PublicKey(result.recipient).toString(),
-            token: result.tokenMint ? result.tokenMint.toString() : '',
-            reward: Number(formatUnits(BigInt(result.reward.toString()), params.decimals)),
-            rewardTimelock: Number(result.rewardTimelock),
-            rewardRecipient: new PublicKey(result.rewardRecipient).toString(),
-            rewardToken: result.rewardTokenMint ? result.rewardTokenMint.toString() : '',
-            index,
-        }
+        return resolveSolverLock(result, id, params.decimals, index)
     } catch (e) {
         console.error('Error fetching Solana solver lock details:', e)
         return null
+    }
+}
+
+export function resolveSolverLock(result: any, id: string, decimals: number, index: number): SolverLockDetails | null {
+    const sender = new PublicKey(result.sender).toString()
+    if (sender === NATIVE_SOL_ADDRESS) return null
+
+    return {
+        hashlock: `0x${id.replace('0x', '')}`,
+        amount: Number(formatUnits(BigInt(result.amount.toString()), decimals)),
+        secret: parseSecret(result.secret),
+        timelock: Number(result.timelock),
+        status: Number(result.status) as LockStatus,
+        sender,
+        recipient: new PublicKey(result.recipient).toString(),
+        token: result.tokenMint ? result.tokenMint.toString() : '',
+        reward: Number(formatUnits(BigInt(result.reward.toString()), decimals)),
+        rewardTimelock: Number(result.rewardTimelock),
+        rewardRecipient: new PublicKey(result.rewardRecipient).toString(),
+        rewardToken: result.rewardTokenMint ? result.rewardTokenMint.toString() : '',
+        index,
     }
 }

@@ -1,29 +1,16 @@
 # @train-protocol/evm
 
-EVM (eip155) HTLC client and wallet-sign provider for the Train Protocol SDK.
+EVM HTLC client for Train Protocol. Registers under the `eip155` namespace.
 
 ## Setup
 
-Call `registerEvmSdk()` once at app startup **before** using any EVM HTLC or wallet-sign features:
-
 ```ts
 import { registerEvmSdk } from '@train-protocol/evm'
-
-registerEvmSdk() // idempotent — safe to call more than once
+registerEvmSdk()
 ```
 
-This registers:
+## Testing
 
-- **HTLC client factory** for the `eip155` chain namespace (`createHTLCClient('eip155', ...)`)
-- **Wallet-sign factory** for EVM wallets (`deriveKeyFromWallet('eip155', ...)`)
-
-## Exports
-
-| Export                      | Description                                    |
-| --------------------------- | ---------------------------------------------- |
-| `registerEvmSdk()`         | Register EVM providers (call once at startup)  |
-| `EvmHTLCClient`            | EVM HTLC client class                          |
-| `deriveKeyFromEvmSignature` | Derive key from EVM wallet signature           |
-| `getEvmTypedData`          | Get EIP-712 typed data for signing             |
-| `EvmSigner` (type)         | Signer interface for write operations          |
-| `Eip1193Provider` (type)   | EIP-1193 provider interface                    |
+```bash
+pnpm test
+```

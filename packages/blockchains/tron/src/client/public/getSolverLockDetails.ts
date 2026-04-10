@@ -5,7 +5,7 @@ import { htlcFunctions } from '../../abi.js'
 import { TronRpcClient } from '../../rpc.js'
 import { ZERO_ADDRESS, FUNCTION_SIGNATURES } from '../../constants.js'
 import { toTronHex } from '../../address.js'
-import { encodeParams, hex, normalizeAddresses, normalizeAddress } from '../../utils.js'
+import { encodeParams, hex, normalizeAddress } from '../../utils.js'
 
 export async function getSolverLockDetails(
     params: LockParams,
@@ -49,15 +49,25 @@ async function getSolverLockByIndex(
     const raw = await rpc.triggerConstantContract(contractHex, FUNCTION_SIGNATURES.getSolverLock, parameter, dummyOwner)
     const result = AbiFunction.decodeResult(htlcFunctions.getSolverLock, hex('0x' + raw)) as any
 
+    return resolveSolverLock(result, id, params.decimals, index)
+}
+
+export function resolveSolverLock(result: any, id: string, decimals: number, index: number): SolverLockDetails | null {
     if (result.sender === ZERO_ADDRESS) return null
 
     return {
-        ...normalizeAddresses(result),
         hashlock: id,
-        amount: Number(formatUnits(BigInt(result.amount), params.decimals)),
+        amount: Number(formatUnits(BigInt(result.amount), decimals)),
         secret: BigInt(result.secret),
+        sender: normalizeAddress(result.sender),
+        recipient: normalizeAddress(result.recipient),
+        token: normalizeAddress(result.token),
         timelock: Number(result.timelock),
         status: Number(result.status) as LockStatus,
+        reward: Number(result.reward),
+        rewardTimelock: Number(result.rewardTimelock),
+        rewardRecipient: normalizeAddress(result.rewardRecipient),
+        rewardToken: normalizeAddress(result.rewardToken),
         index,
     }
 }

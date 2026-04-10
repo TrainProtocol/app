@@ -16,14 +16,14 @@ pnpm --filter @train-protocol/sdk dev    # Watch mode for SDK
 pnpm --filter @train-protocol/sdk check:types  # Type-check SDK
 ```
 
-No test runner is configured. Node.js >=20.9.0 required. Package manager: pnpm 10.20.0.
+Tests use **vitest** (`pnpm test` in each package). Node.js >=20.9.0 required. Package manager: pnpm 10.20.0.
 
 ## Architecture
 
 **Monorepo** (pnpm workspaces):
 - `apps/app` — Next.js 15 frontend (Pages Router, not App Router)
 - `packages/sdk` — `@train-protocol/sdk`: core HTLC protocol logic, API client, lock verification
-- `packages/blockchains/` — chain-specific HTLC client implementations (`evm`, `solana`, `starknet`, `aztec`)
+- `packages/blockchains/` — chain-specific HTLC client implementations (`evm`, `solana`, `starknet`, `tron`, `aztec`)
 
 **What the app does**: Cross-chain atomic swaps using HTLC (Hash Time-Locked Contracts). Users lock funds on a source chain, a solver locks on the destination chain, then secrets are revealed to complete the swap. EVM is the primary chain; Solana, Starknet, TON, Aztec support is in progress.
 
@@ -48,7 +48,7 @@ No test runner is configured. Node.js >=20.9.0 required. Package manager: pnpm 1
 Key files:
 - `apps/app/lib/abis/atomic/EVM_HTLC.json` — unified EVM ABI
 - `apps/app/lib/htlc/` — HTLC client creation
-- `packages/blockchains/{evm,solana,starknet,aztec}/src/client.ts` — chain-specific HTLC implementations
+- `packages/blockchains/{evm,solana,starknet,tron,aztec}/src/client/` — chain-specific HTLC implementations (PublicClient + WalletClient)
 - `apps/app/lib/wallets/utils/atomicTypes.ts` — chain-specific wallet/atomic interfaces
 
 ### RPC Node Resolution & Consensus

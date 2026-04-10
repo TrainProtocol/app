@@ -5,7 +5,7 @@ paths:
 
 # Chain SDK Integration Rules
 
-Rules and patterns for adding new blockchain HTLC client SDKs. Derived from `evm`, `starknet`, `solana`, and `aztec` implementations.
+Rules and patterns for adding new blockchain HTLC client SDKs. Derived from `evm`, `starknet`, `solana`, `tron`, and `aztec` implementations.
 
 ---
 
@@ -14,25 +14,44 @@ Rules and patterns for adding new blockchain HTLC client SDKs. Derived from `evm
 ```
 packages/blockchains/{chain}/
 ├── src/
-│   ├── client.ts           # Main HTLC client class
+│   ├── client/
+│   │   ├── index.ts             # Re-exports PublicClient + WalletClient
+│   │   ├── PublicClient.ts      # Read-only client class (delegates to public/*.ts)
+│   │   ├── WalletClient.ts      # Write client class (delegates to wallet/*.ts)
+│   │   ├── helpers.ts           # Event parsing helpers (chain-specific)
+│   │   ├── public/
+│   │   │   ├── getUserLockDetails.ts   # Includes resolveUserLock + pickEventDerivedData
+│   │   │   ├── getSolverLockDetails.ts # Includes resolveSolverLock
+│   │   │   ├── getTransaction.ts
+│   │   │   └── recoverSwap.ts
+│   │   └── wallet/
+│   │       ├── userLock.ts      # Full transaction building + sending (no separate builder file)
+│   │       ├── refund.ts
+│   │       └── redeemSolver.ts
 │   ├── index.ts            # Registration + public exports
-│   ├── types.ts            # Signer interface + client config type
+│   ├── types.ts            # Signer interface + client config types
+│   ├── constants.ts        # Chain-specific constants (zero addresses, fee limits, etc.)
+│   ├── utils.ts            # Chain-specific utilities (hex helpers, address normalization)
+│   ├── rpc.ts              # Custom RPC client (if needed)
 │   ├── login/
-│   │   ├── index.ts        # Re-exports from wallet-sign.ts
-│   │   └── wallet-sign.ts  # Key derivation for this chain's wallet
-│   ├── abis/ or artifacts/ # Contract ABI/artifacts (chain-specific format)
+│   │   ├── index.ts
+│   │   └── wallet-sign.ts
+│   ├── abis/ or artifacts/
 │   └── __tests__/
+│       ├── resolveLock.test.ts  # Tests for resolveUserLock + resolveSolverLock
+│       ├── helpers.test.ts      # Tests for helper pure functions
 │       └── register{Chain}Sdk.test.ts
 ├── package.json
 ├── tsconfig.json
 └── vitest.config.ts
 ```
 
-Additional utility files are common:
-- `helpers.ts` — event data extraction (e.g., `pickEventDerivedData`)
-- `utils.ts` — chain-specific utilities (e.g., `decodeContractError`, hex helpers)
-- `rpc.ts` — custom RPC client if the chain needs one
-- `constants.ts` — chain-specific constants (zero addresses, fee limits, function signatures)
+**Key structural rules:**
+- Each read/write method lives in its own file under `client/public/` or `client/wallet/`
+- `resolveUserLock()` is co-located in `getUserLockDetails.ts`, `resolveSolverLock()` in `getSolverLockDetails.ts` — exported for testing
+- `pickEventDerivedData()` is co-located in `getUserLockDetails.ts` (EVM/Tron) or `client/helpers.ts` (Starknet)
+- Transaction building logic lives directly in the wallet method files — no separate `transactionBuilder.ts`
+- Shared utilities (`hexToUint8Array`, `encoder`, etc.) go in `src/utils.ts`
 
 ---
 
@@ -217,14 +236,16 @@ Chain implementations only need to implement the single-node abstract method `ge
 
 ## 5. Write Operation Patterns
 
-### userLock
+Each write method lives in its own file under `client/wallet/`. Transaction building and sending are in the **same file** — no separate `transactionBuilder.ts`.
 
-1. Call `this.requireSigner()`
-2. Destructure params
-3. Parse amount with `parseUnits(amount.toString(), decimals)`
-4. Handle token approval/authorization if needed (ERC20 allowance, authwit, etc.)
-5. Encode `userData` — store nonce/timestamp for recovery
-6. Build and send the `userLock` / `user_lock` transaction
+### userLock (`client/wallet/userLock.ts`)
+
+1. Validate required params (contract, signer, nonce, solverData)
+2. Parse amount with `parseUnits(amount.toString(), decimals)`
+3. Handle token approval/authorization if needed (ERC20 allowance, authwit, etc.)
+4. Handle native vs token branching (e.g., Solana `userLockSol` vs `userLockToken`)
+5. Build transaction, set blockhash/fee payer
+6. Send via signer, confirm
 7. Return `{ hash, hashlock, nonce: timestamp }`
 
 ### refund
@@ -257,11 +278,28 @@ try {
 
 ### getUserLockDetails
 
+Each chain's `getUserLockDetails.ts` file contains both the async function and an exported `resolveUserLock()` pure function for lock field mapping:
+
 1. Query contract for user lock by hashlock
-2. Check existence (sender ≠ zero address, or status ≠ 0) — return `null` early if not found
-3. Build a `BaseLockDetails` object with all required fields (hashlock, amount, secret, sender, timelock, status, recipient, token)
-4. If `txId` is provided, fetch transaction logs and extract `EventDerivedData` (destination info, userData, solverData, reward fields) using a helper like `pickEventDerivedData(event)`
+2. Call `resolveUserLock(result, id, params.decimals)` — returns `BaseLockDetails | null`
+3. If null, return null early
+4. If `txId` is provided, extract `EventDerivedData` via `pickEventDerivedData(event)` (also co-located in same file for EVM/Tron, or in `client/helpers.ts` for Starknet)
 5. Return `{ ...parsedResult, ...eventDerivedData, blockTimestamp }` as `UserLockDetails`
+
+**`resolveUserLock` must be an exported pure function** in the same file — this enables direct unit testing:
+```ts
+export function resolveUserLock(result: any, id: string, decimals: number): BaseLockDetails | null {
+    if (/* sender is zero/empty */) return null
+    return {
+        hashlock: id,
+        amount: Number(formatUnits(BigInt(result.amount), decimals)),
+        secret: BigInt(result.secret),
+        sender: ..., recipient: ..., token: ...,
+        timelock: Number(result.timelock),
+        status: Number(result.status) as LockStatus,
+    }
+}
+```
 
 **Key rules for field mapping:**
 - All `BaseLockDetails` fields are **required** — always populate `sender`, `recipient`, `token` (use empty string `''` if absent, never `undefined`)
@@ -270,54 +308,50 @@ try {
 
 ### getSolverLockDetails — Count-Then-Loop Pattern
 
-**This is a critical shared pattern.** The base class calls `getSolverLockDetails` for each node URL and verifies results match via `getSolverLockDetailsWithConsensus()`. Your subclass implements the single-node version. The contract stores multiple solver locks per hashlock. Always:
+Each chain's `getSolverLockDetails.ts` file contains the async function, a `getSolverLockByIndex` helper, and an exported `resolveSolverLock()` pure function:
 
 ```ts
-async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> {
-    // 1. Get the count of solver locks for this hashlock
-    const count = /* call getSolverLockCount(hashlock) */
+// getSolverLockDetails delegates to getSolverLockByIndex in a loop
+async function getSolverLockDetails(params, nodeUrl) { /* count-then-loop */ }
 
-    if (count === 0) return null
+// getSolverLockByIndex fetches one lock and calls resolveSolverLock
+async function getSolverLockByIndex(params, index, nodeUrl) { /* RPC + resolve */ }
 
-    // 2. Loop from 1 to count (1-indexed, NOT 0-indexed)
-    for (let i = 1; i <= count; i++) {
-        const result = /* call getSolverLock(hashlock, i) */
+// Pure function — exported for unit testing
+export function resolveSolverLock(result, id, decimals, index): SolverLockDetails | null { /* field mapping */ }
+```
 
-        // 3. Skip empty/invalid slots
-        if (/* status === 0 or sender is empty */) continue
+The count-then-loop pattern:
+1. Get the count of solver locks for this hashlock
+2. Loop from 1 to count (**1-indexed, NOT 0-indexed**)
+3. Call `getSolverLockByIndex` which calls `resolveSolverLock` internally
+4. Skip nulls (empty/invalid slots handled by `resolveSolverLock`)
+5. Filter by solver address (case-insensitive) if provided
+6. Return first match
 
-        // 4. Optional: filter by solver address (case-insensitive)
-        if (params.solverAddress && sender.toLowerCase() !== params.solverAddress.toLowerCase()) continue
-
-        // 5. Return first matching lock with all BaseLockDetails + Reward fields
-        return {
-            hashlock: id,
-            amount: Number(formatUnits(BigInt(result.amount), params.decimals)),
-            secret: BigInt(result.secret),
-            timelock: Number(result.timelock),
-            status: Number(result.status) as LockStatus,
-            sender,
-            recipient: result.recipient,
-            token: result.token,
-            reward: Number(formatUnits(BigInt(result.reward), params.decimals)),
-            rewardTimelock: Number(result.rewardTimelock),
-            rewardRecipient: result.rewardRecipient,
-            rewardToken: result.rewardToken,
-            index: i,
-        }
+**`resolveSolverLock` must be an exported pure function** — enables direct unit testing:
+```ts
+export function resolveSolverLock(result: any, id: string, decimals: number, index: number): SolverLockDetails | null {
+    if (/* sender is zero/empty */) return null
+    return {
+        hashlock: id,
+        amount: Number(formatUnits(BigInt(result.amount), decimals)),
+        secret: BigInt(result.secret),
+        sender: ..., recipient: ..., token: ...,
+        timelock: Number(result.timelock),
+        status: Number(result.status) as LockStatus,
+        reward: Number(result.reward),
+        rewardTimelock: Number(result.rewardTimelock),
+        rewardRecipient: ..., rewardToken: ...,
+        index,
     }
-
-    return null
 }
 ```
 
 Key points:
 - **1-indexed** — contract indices start at 1
-- **Skip empty slots** — check status or sender
-- **Case-insensitive solver address comparison**
-- **Return first match** with early return
+- **All `BaseLockDetails` + `Reward` fields are required** — `secret` is always `bigint`, strings never `undefined`
 - **Include `index`** in the returned `SolverLockDetails`
-- **All `BaseLockDetails` fields are required** — `secret` is always `bigint`, `sender`/`recipient`/`token` are always strings
 - **Use `params.decimals` directly** — no `?? 18` fallback
 
 ### recoverSwap
@@ -493,30 +527,40 @@ import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/sdk'
 
 ## 11. Testing
 
-Minimal test in `__tests__/register{Chain}Sdk.test.ts`:
+Each blockchain package must alias `@train-protocol/sdk` to source in `vitest.config.ts`:
+```ts
+resolve: { alias: { '@train-protocol/sdk': path.resolve(__dirname, '../../sdk/src/index.ts') } }
+```
+
+### resolveLock.test.ts — lock resolution tests (most critical)
+
+Tests `resolveUserLock` and `resolveSolverLock` directly — imported from `../client/public/getUserLockDetails` and `../client/public/getSolverLockDetails`:
 
 ```ts
-import { describe, it, expect, beforeEach } from 'vitest'
-import { getRegisteredNamespaces, createHTLCPublicClient } from '@train-protocol/sdk'
-import { register{Chain}Sdk } from '../index'
+import { resolveUserLock } from '../client/public/getUserLockDetails'
+import { resolveSolverLock } from '../client/public/getSolverLockDetails'
 
-describe('register{Chain}Sdk', () => {
-    beforeEach(() => { register{Chain}Sdk() })
+describe('{Chain} resolveUserLock', () => {
+    // 1. resolves a basic user lock — check all BaseLockDetails fields
+    // 2. returns null for empty/zero sender (or status=0 for Aztec)
+    // 3. formats amount with correct decimals
+    // 4. maps status values correctly
+})
 
-    it('registers the {namespace} namespace', () => {
-        expect(getRegisteredNamespaces()).toContain('{namespace}')
-    })
-
-    it('creates a public client with required methods', () => {
-        const client = createHTLCPublicClient('{namespace}', {
-            rpcUrl: 'https://...',
-        })
-        expect(typeof client.getUserLockDetails).toBe('function')
-        expect(typeof client.getSolverLockDetails).toBe('function')
-        expect(typeof client.getSolverLockDetailsWithConsensus).toBe('function')
-    })
+describe('{Chain} resolveSolverLock', () => {
+    // 1. resolves solver lock with reward fields and index
+    // 2. returns null for empty/zero sender
+    // 3. includes correct index in result
 })
 ```
+
+### helpers.test.ts — pure helper functions
+
+Test chain-specific helpers: `pickEventDerivedData`, `mapLockStatus` (Starknet), `parseSecret` (Solana/Aztec), `pickStarknetEventData`, etc.
+
+### register{Chain}Sdk.test.ts — registration smoke test
+
+Verify `register{Chain}Sdk()` registers the namespace and creates clients with expected methods.
 
 ---
 
@@ -533,23 +577,34 @@ export const ZERO_ADDRESS = '0x000...'     // Chain's empty/zero address represe
 
 ## Summary Checklist for New Chain SDK
 
-- [ ] Create `packages/{chain}/` with the directory structure above
+- [ ] Create `packages/{chain}/` with the modular directory structure above
 - [ ] In `types.ts`:
   - [ ] Define `{Chain}Signer` interface
   - [ ] Define `{Chain}HTLCPublicClientConfig` (rpcUrl only) and `{Chain}HTLCWalletClientConfig` (extends public + required signer)
   - [ ] Define `{Chain}WalletSignConfig` type
-  - [ ] Add `declare module '@train-protocol/sdk'` augmentation for both `HTLCPublicClientConfigMap` and `HTLCWalletClientConfigMap`
-- [ ] Implement `{Chain}HTLCPublicClient extends HTLCPublicClient` in `client.ts` (read operations)
-- [ ] Implement `{Chain}HTLCWalletClient extends {Chain}HTLCPublicClient implements IHTLCWalletClient` (write operations)
-- [ ] Public client: read methods + helpers. Wallet client: write methods only (inherits reads)
-- [ ] Implement count-then-loop pattern in `getSolverLockDetails` (1-indexed, single-node version)
-- [ ] Implement `getTransaction(txHash)` — non-blocking, try/catch returning `null`, all three statuses (`Pending`/`Confirmed`/`Failed`)
-- [ ] Set `this.consensusOptions` in constructor if chain needs non-default quorum (default: `minQuorum: 2`)
+  - [ ] Add `declare module` augmentations for SDK and auth registries
+- [ ] Implement `client/PublicClient.ts` — delegates to `client/public/*.ts` files
+- [ ] Implement `client/WalletClient.ts` — delegates to `client/wallet/*.ts` files
+- [ ] Each read method in its own file under `client/public/`:
+  - [ ] `getUserLockDetails.ts` — includes exported `resolveUserLock()` + `pickEventDerivedData()`
+  - [ ] `getSolverLockDetails.ts` — includes exported `resolveSolverLock()`
+  - [ ] `getTransaction.ts`
+  - [ ] `recoverSwap.ts`
+- [ ] Each write method in its own file under `client/wallet/`:
+  - [ ] `userLock.ts` — full transaction building + sending (no separate builder file)
+  - [ ] `refund.ts`
+  - [ ] `redeemSolver.ts`
+- [ ] Count-then-loop pattern in `getSolverLockDetails` (1-indexed)
+- [ ] `getTransaction(txHash)` — non-blocking, try/catch returning `null`, all three statuses
+- [ ] Set `this.consensusOptions` in constructor if chain needs non-default quorum
 - [ ] Validate `txHash` format at the top of `recoverSwap` before any RPC calls
-- [ ] Define `{Chain}WalletLike` minimal interface in `login/wallet-sign.ts`
-- [ ] Implement key derivation in `login/wallet-sign.ts` using `deriveKeyMaterial` + `IDENTITY_SALT`
-- [ ] Create idempotent `register{Chain}Sdk()` in `index.ts` — register both public and wallet client factories
-- [ ] Export: registration fn, both client classes, both config types, signer type, wallet sign config type, key derivation fn, wallet-like type
-- [ ] Use shared SDK utils (`parseUnits`, `formatUnits`, `hexToBytes`, etc.)
-- [ ] Add registration test in `__tests__/`
+- [ ] Shared utilities in `src/utils.ts`, constants in `src/constants.ts`
+- [ ] Login: `login/wallet-sign.ts` using `deriveKeyMaterial` + `IDENTITY_SALT`
+- [ ] Registration: idempotent `register{Chain}Sdk()` in `index.ts`
+- [ ] Exports: registration fn, both client classes, both config types, signer type, key derivation fn
+- [ ] Tests:
+  - [ ] `resolveLock.test.ts` — test `resolveUserLock` + `resolveSolverLock` (imported from public files)
+  - [ ] `helpers.test.ts` — test chain-specific pure helpers
+  - [ ] `register{Chain}Sdk.test.ts` — registration smoke test
+  - [ ] `vitest.config.ts` with SDK source alias
 - [ ] Add contract ABI/artifacts in `abis/` or `artifacts/`

@@ -22,18 +22,6 @@ export function normalizeResultAddress(address: string): string {
     return evmHexToBase58(address)
 }
 
-/** Normalize all address fields in a contract result to Base58Check */
-export function normalizeAddresses(result: any): any {
-    const addressFields = ['sender', 'recipient', 'token', 'rewardRecipient', 'rewardToken']
-    const normalized = { ...result }
-    for (const field of addressFields) {
-        if (typeof normalized[field] === 'string' && normalized[field]) {
-            normalized[field] = normalizeResultAddress(normalized[field])
-        }
-    }
-    return normalized
-}
-
 /** Normalize address for comparison — convert Base58 to EVM hex if needed */
 export function normalizeAddress(address: string): string {
     if (isBase58Address(address)) return toEvmHex(address)
