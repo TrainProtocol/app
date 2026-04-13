@@ -67,9 +67,9 @@ const AppSidebar: FC = () => {
             <SidebarContent className="px-4 pb-4">
                 {!loginActive && view === "tabs" && (
                     <Tabs defaultValue="transactions">
-                        <TabsList variant="underline">
-                            <TabsTrigger variant="underline" value="transactions">Transactions</TabsTrigger>
-                            <TabsTrigger variant="underline" value="recover">Recover Swap</TabsTrigger>
+                        <TabsList>
+                            <TabsTrigger value="transactions">Transactions</TabsTrigger>
+                            <TabsTrigger value="recover">Recover Swap</TabsTrigger>
                         </TabsList>
                         <TabsContent value="transactions" className="mt-3">
                             <SwapHistory />
