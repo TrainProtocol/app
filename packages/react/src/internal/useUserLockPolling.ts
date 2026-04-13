@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { LockStatus, TransactionStatus } from '@train-protocol/sdk'
-import type { IHTLCReadClient, LockParams, TransactionInfo, UserLockDetails } from '@train-protocol/sdk'
+import type { IHTLCPublicClient, LockParams, TransactionInfo, UserLockDetails } from '@train-protocol/sdk'
 import { trainQueryKeys } from './queryKeys'
 
 export interface UseUserLockPollingOptions {
-    client: IHTLCReadClient | null
+    client: IHTLCPublicClient | null
     params: LockParams | null
     enabled: boolean
     onTransactionFailed?: (tx: TransactionInfo) => void

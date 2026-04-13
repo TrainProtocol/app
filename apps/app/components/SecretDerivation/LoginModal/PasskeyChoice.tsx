@@ -1,6 +1,6 @@
 import SubmitButton from '../../buttons/submitButton';
 import { useSharedSecretDerivation } from '@train-protocol/react';
-import { AlertTriangle, Fingerprint, Wallet as WalletIcon } from 'lucide-react';
+import { AlertTriangle, Fingerprint } from 'lucide-react';
 
 interface PasskeyChoiceProps {
   error: string;
@@ -32,7 +32,7 @@ export function PasskeyChoice({ error, onTryAgain, onCreateNew, onCrossDeviceLog
 
       <div className="flex flex-col gap-3">
         {error && (
-          <div className="flex items-center gap-2 rounded-xl bg-error-background border border-error-foreground/20 px-3 py-2.5">
+          <div className="flex items-center gap-2 rounded-xl bg-error-background border border-error-foreground/30 px-3 py-2.5">
             <AlertTriangle className="w-5 h-5 text-error-foreground shrink-0 mt-0.5" strokeWidth={2} />
             <p className="text-error-foreground text-sm leading-snug">
               {error}

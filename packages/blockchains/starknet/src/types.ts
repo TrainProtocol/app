@@ -2,8 +2,11 @@ import type { AccountInterface } from 'starknet'
 import type { StarknetAccountLike } from './login/wallet-sign.js'
 
 declare module '@train-protocol/sdk' {
-    interface HTLCClientConfigMap {
-        starknet: StarknetHTLCClientConfig
+    interface HTLCPublicClientConfigMap {
+        starknet: StarknetHTLCPublicClientConfig
+    }
+    interface HTLCWalletClientConfigMap {
+        starknet: StarknetHTLCWalletClientConfig
     }
 }
 
@@ -34,9 +37,12 @@ export interface StarknetSigner {
     account: AccountInterface
 }
 
-export type StarknetHTLCClientConfig = {
+export type StarknetHTLCPublicClientConfig = {
     /** RPC URL for read operations */
     rpcUrl: string
-    /** Optional signer for write operations */
-    signer?: StarknetSigner
+}
+
+export type StarknetHTLCWalletClientConfig = StarknetHTLCPublicClientConfig & {
+    /** Signer for write operations */
+    signer: StarknetSigner
 }

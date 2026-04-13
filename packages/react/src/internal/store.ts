@@ -38,6 +38,8 @@ export interface SwapStoreState {
     addSwap: (hashlock: string, data: SwapData) => void
     updateSwap: (hashlock: string, updates: Partial<SwapData>) => void
     clearSwap: (hashlock: string) => void
+    /** Find an existing swap by source network + txHash (case-insensitive). Returns [hashlock, SwapData] or null. */
+    findSwapByTx: (sourceNetwork: string, txHash: string) => [string, SwapData] | null
 
     // Subscriber actions
     /** Increment subscriber count. On first subscriber, initializes flags from persisted data if not already present. */
@@ -103,6 +105,17 @@ function createActions(set: SetFn, get: GetFn) {
                 const { [hashlock]: _, ...rest } = state.swaps
                 return { swaps: rest }
             }),
+
+        findSwapByTx: (sourceNetwork: string, txHash: string): [string, SwapData] | null => {
+            const { swaps } = get()
+            const upperNetwork = sourceNetwork.toUpperCase()
+            const upperTxHash = txHash.toUpperCase()
+            const entry = Object.entries(swaps).find(([, swap]) =>
+                swap.source?.toUpperCase() === upperNetwork &&
+                swap.txId?.toUpperCase() === upperTxHash
+            )
+            return entry ? [entry[0], entry[1]] as [string, SwapData] : null
+        },
 
         // --- Subscriber actions ---
         subscribe: (hashlock: string) =>

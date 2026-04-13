@@ -1,4 +1,5 @@
 import { useField, useFormikContext } from "formik";
+import { Input } from "@/components/shadcn/input";
 import { ChangeEvent, FC, forwardRef } from "react";
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import { classNames } from '@/components/utils/classNames'
@@ -34,7 +35,7 @@ const NumericInput: FC<Input> = forwardRef<HTMLInputElement, Input>(
                 : '')
             : tempValue?.toString()
             : '';
-            
+
         return <div>
             {label &&
                 <label htmlFor={name} className="block font-semibold text-secondary-text text-sm mb-1.5 w-full">
@@ -55,7 +56,7 @@ const NumericInput: FC<Input> = forwardRef<HTMLInputElement, Input>(
                 }
                 {
                     isNaN(Number(tempValue)) &&
-                    <input
+                    <Input
                         {...field}
                         inputMode="decimal"
                         autoComplete="off"
@@ -73,7 +74,7 @@ const NumericInput: FC<Input> = forwardRef<HTMLInputElement, Input>(
                         id={name}
                         ref={ref}
                         className={classNames(
-                            'disabled:cursor-not-allowed h-12 leading-4 border-secondary-500 placeholder:text-secondary-text bg-secondary-500 focus:ring-secondary-300 focus:border-secondary-300 block min-w-0 rounded-lg font-semibold border-0',
+                            'h-12 leading-4 placeholder:text-secondary-text bg-secondary-500 focus-visible:ring-0 focus-visible:border-transparent blockfont-semibold border-0 px-0',
                             className
                         )}
                         onChange={onChange ? onChange : e => {

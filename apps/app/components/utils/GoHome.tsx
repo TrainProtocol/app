@@ -5,12 +5,14 @@ import { useGoHome } from "../../hooks/useGoHome";
 interface Props {
     className?: string;
     children?: JSX.Element | JSX.Element[] | string;
+    onClick?: () => void;
 }
 
-const GoHomeButton: FC<Props> = (({ className, children }) => {
+const GoHomeButton: FC<Props> = (({ className, children, onClick: onClickProp }) => {
     const goHome = useGoHome()
 
     const onClick = async () => {
+        onClickProp?.()
         await goHome()
     }
 

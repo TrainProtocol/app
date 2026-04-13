@@ -22,10 +22,6 @@
       "@train-protocol/starknet/*": ["./packages/blockchains/starknet/src/*"],
       "@train-protocol/aztec": ["./packages/blockchains/aztec/src/index.ts"],
       "@train-protocol/aztec/*": ["./packages/blockchains/aztec/src/*"],
-      "@train-protocol/ton": ["./packages/blockchains/ton/src/index.ts"],
-      "@train-protocol/ton/*": ["./packages/blockchains/ton/src/*"],
-      "@train-protocol/fuel": ["./packages/blockchains/fuel/src/index.ts"],
-      "@train-protocol/fuel/*": ["./packages/blockchains/fuel/src/*"],
       "@train-protocol/tron": ["./packages/blockchains/tron/src/index.ts"],
       "@train-protocol/tron/*": ["./packages/blockchains/tron/src/*"]
     }
@@ -38,8 +34,6 @@
     "packages/blockchains/solana/src",
     "packages/blockchains/starknet/src",
     "packages/blockchains/aztec/src",
-    "packages/blockchains/ton/src",
-    "packages/blockchains/fuel/src",
     "packages/blockchains/tron/src",
     "apps/app"
   ],

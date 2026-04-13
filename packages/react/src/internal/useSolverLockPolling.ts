@@ -1,11 +1,11 @@
 import { useRef, useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import type { IHTLCReadClient, SolverLockDetails, LockParams } from '@train-protocol/sdk'
+import type { IHTLCPublicClient, SolverLockDetails, LockParams } from '@train-protocol/sdk'
 import type { ConsensusPhase } from './store'
 import { trainQueryKeys } from './queryKeys'
 
 export interface UseSolverLockPollingOptions {
-    client: IHTLCReadClient | null
+    client: IHTLCPublicClient | null
     params: LockParams | null
     hashlock: string | null
     nodeUrls: string[]

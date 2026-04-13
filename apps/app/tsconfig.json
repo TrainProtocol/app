@@ -35,8 +35,6 @@
     { "path": "../../packages/blockchains/solana" },
     { "path": "../../packages/blockchains/starknet" },
     { "path": "../../packages/blockchains/aztec" },
-    { "path": "../../packages/blockchains/ton" },
-    { "path": "../../packages/blockchains/fuel" },
     { "path": "../../packages/blockchains/tron" }
   ]
 }

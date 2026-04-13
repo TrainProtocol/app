@@ -1,15 +1,15 @@
 import { createContext, useContext } from 'react'
-import type { IHTLCReadClient, IHTLCClient, TrainSDK } from '@train-protocol/sdk'
+import type { IHTLCPublicClient, IHTLCWalletClient, TrainSDK } from '@train-protocol/sdk'
 import type { TrainWalletAdapter } from './types'
 import type { Caip2Id, ChainNamespace } from '../internal/branded'
 
 export interface WalletContextValue {
     registerAdapter: (adapter: TrainWalletAdapter) => () => void
-    /** Create a read-only HTLC client for the given network (delegates to adapter) */
-    createClient: (networkId: Caip2Id) => IHTLCReadClient
-    /** Create a write HTLC client with signer for the given network (delegates to adapter).
+    /** Create a public HTLC client for the given network (delegates to adapter) */
+    createClient: (networkId: Caip2Id) => IHTLCPublicClient
+    /** Create a wallet HTLC client with signer for the given network (delegates to adapter).
      *  @param address - When provided, use this specific account as signer. */
-    createWriteClient: (networkId: Caip2Id, address?: string) => IHTLCClient
+    createWriteClient: (networkId: Caip2Id, address?: string) => IHTLCWalletClient
     /** Get login config for wallet-based secret derivation.
      *  @param address - When provided, resolve config for this specific account. */
     getLoginConfig: (chainNamespace: ChainNamespace, address?: string) => Record<string, unknown> | null | Promise<Record<string, unknown> | null>

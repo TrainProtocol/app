@@ -1,4 +1,5 @@
 import { FC, useState, useEffect } from "react"
+import { Input } from "@/components/shadcn/input"
 import { CheckCircle, AlertCircle, Save, RotateCcw, Loader, Plus, Trash2, Zap } from "lucide-react"
 import { ExtendedNetwork } from "../../Models/Network"
 import { useRpcConfigStore } from "../../stores/rpcConfigStore"
@@ -168,7 +169,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                         <div className="flex items-center gap-2">
                             <div className="font-semibold text-primary-text">{network.displayName}</div>
                             {hasLightClient && (
-                                <span className="flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-blue-900/20 text-blue-400 rounded">
+                                <span className="flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-warning-background text-warning-foreground rounded">
                                     <Zap className="w-3 h-3" />
                                     Light Client
                                 </span>
@@ -193,7 +194,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                     </label>
                     <button
                         onClick={handleAddUrl}
-                        className="flex items-center gap-1 px-2 py-1 text-xs text-primary-text hover:bg-secondary-500 rounded transition-colors"
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-primary-text hover:bg-secondary-500 rounded-md transition-colors"
                     >
                         <Plus className="w-3 h-3" />
                         Add URL
@@ -211,45 +212,45 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                                 {index + 1}
                             </div>
                             <div className="flex-1 relative">
-                                <input
+                                <Input
                                     type="text"
                                     value={url}
                                     onChange={(e) => handleUrlChange(index, e.target.value)}
                                     placeholder="https://your-rpc-endpoint.com"
-                                    className={`w-full px-3 py-2 pr-10 bg-secondary-700 border rounded-lg text-primary-text placeholder-secondary-text focus:outline-none focus:ring-2 ${validationErrors[index]
-                                        ? "border-red-500 focus:ring-red-500"
+                                    className={`pr-10 py-2 rounded-xl ${validationErrors[index]
+                                        ? "border-error-foreground focus-visible:ring-error-foreground/30 focus-visible:border-error-foreground"
                                         : validatedUrls[index]
-                                            ? "border-green-500 focus:ring-green-500"
-                                            : "border-secondary-600 focus:ring-secondary-300"
+                                            ? "border-success-foreground focus-visible:ring-success-foreground/30 focus-visible:border-success-foreground"
+                                            : ""
                                         }`}
                                 />
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-10">
                                     {validatingIndex === index ? (
                                         <Loader className="w-4 h-4 text-secondary-text animate-spin" />
                                     ) : validatedUrls[index] ? (
-                                        <CheckCircle className="w-4 h-4 text-green-500" />
+                                        <CheckCircle className="w-4 h-4 text-success-foreground" />
                                     ) : validationErrors[index] ? (
-                                        <AlertCircle className="w-4 h-4 text-red-500" />
+                                        <AlertCircle className="w-4 h-4 text-error-foreground" />
                                     ) : null}
                                 </div>
                             </div>
                             {customUrls.length > 1 && (
                                 <button
                                     onClick={() => handleRemoveUrl(index)}
-                                    className="flex items-center justify-center w-10 h-10 text-red-500 hover:bg-secondary-500 rounded transition-colors"
+                                    className="flex items-center justify-center w-10 h-10 text-error-foreground hover:bg-secondary-500 rounded transition-colors"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>
                             )}
                         </div>
                         {validationErrors[index] && (
-                            <p className="text-xs text-red-500 flex items-center gap-1 ml-8">
+                            <p className="text-xs text-error-foreground flex items-center gap-1 ml-8">
                                 <AlertCircle className="w-3 h-3" />
                                 {validationErrors[index]}
                             </p>
                         )}
                         {validatedUrls[index] && url && (
-                            <p className="text-xs text-green-500 flex items-center gap-1 ml-8">
+                            <p className="text-xs text-success-foreground flex items-center gap-1 ml-8">
                                 <CheckCircle className="w-3 h-3" />
                                 Valid RPC URL
                             </p>

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { getRegisteredNamespaces, createHTLCClient } from '@train-protocol/sdk'
+import { getRegisteredNamespaces, createHTLCPublicClient } from '@train-protocol/sdk'
 import { registerStarknetSdk } from '../index'
 
 describe('registerStarknetSdk', () => {
@@ -9,14 +9,11 @@ describe('registerStarknetSdk', () => {
         expect(getRegisteredNamespaces()).toContain('starknet')
     })
 
-    it('creates a client with required methods', () => {
-        const client = createHTLCClient('starknet', {
+    it('creates a public client with required methods', () => {
+        const client = createHTLCPublicClient('starknet', {
             rpcUrl: 'https://starknet-sepolia.example.com',
         })
         expect(typeof client.getUserLockDetails).toBe('function')
         expect(typeof client.getSolverLockDetails).toBe('function')
-        expect(typeof client.userLock).toBe('function')
-        expect(typeof client.refund).toBe('function')
-        expect(typeof client.redeemSolver).toBe('function')
     })
 })

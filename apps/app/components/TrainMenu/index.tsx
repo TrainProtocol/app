@@ -11,7 +11,6 @@ import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
 import { Modal, ModalContent } from "@/components/Modal/modalWithoutAnimation";
 import RpcNetworkListView from "@/components/Settings/RpcNetworkListView";
 import NetworkRpcEditView from "@/components/Settings/NetworkRpcEditView";
-import { ExtendedNetwork } from "@/Models/Network";
 import RecoverSwap from "@/components/Swap/Atomic/RecoverSwap";
 import SwapHistory from "@/components/SwapHistory";
 import { useMenuNavigation } from "@/hooks/useMenuNavigation";
@@ -31,13 +30,8 @@ const Comp = () => {
         handleNetworkSelect,
         handleNetworkSave,
         handleRecoverSwap,
+        goBackToMenuStep
     } = useMenuNavigation()
-
-    // Wrap to add URL history cleanup
-    const goBackToMenuStep = () => {
-        goToStep(MenuStep.Menu, "back")
-        clearMenuPath(router)
-    }
 
     // Wrap to add URL history push
     const handleGoToStep = (step: MenuStep, path?: string) => {

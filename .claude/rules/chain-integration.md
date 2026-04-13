@@ -5,7 +5,7 @@ paths:
 
 # Chain SDK Integration Rules
 
-Rules and patterns for adding new blockchain HTLC client SDKs. Derived from `evm`, `starknet`, `solana`, and `aztec` implementations.
+Rules and patterns for adding new blockchain HTLC client SDKs. Derived from `evm`, `starknet`, `solana`, `tron`, and `aztec` implementations.
 
 ---
 
@@ -14,21 +14,44 @@ Rules and patterns for adding new blockchain HTLC client SDKs. Derived from `evm
 ```
 packages/blockchains/{chain}/
 ├── src/
-│   ├── client.ts           # Main HTLC client class
+│   ├── client/
+│   │   ├── index.ts             # Re-exports PublicClient + WalletClient
+│   │   ├── PublicClient.ts      # Read-only client class (delegates to public/*.ts)
+│   │   ├── WalletClient.ts      # Write client class (delegates to wallet/*.ts)
+│   │   ├── helpers.ts           # Event parsing helpers (chain-specific)
+│   │   ├── public/
+│   │   │   ├── getUserLockDetails.ts   # Includes resolveUserLock + pickEventDerivedData
+│   │   │   ├── getSolverLockDetails.ts # Includes resolveSolverLock
+│   │   │   ├── getTransaction.ts
+│   │   │   └── recoverSwap.ts
+│   │   └── wallet/
+│   │       ├── userLock.ts      # Full transaction building + sending (no separate builder file)
+│   │       ├── refund.ts
+│   │       └── redeemSolver.ts
 │   ├── index.ts            # Registration + public exports
-│   ├── types.ts            # Signer interface + client config type
+│   ├── types.ts            # Signer interface + client config types
+│   ├── constants.ts        # Chain-specific constants (zero addresses, fee limits, etc.)
+│   ├── utils.ts            # Chain-specific utilities (hex helpers, address normalization)
+│   ├── rpc.ts              # Custom RPC client (if needed)
 │   ├── login/
-│   │   ├── index.ts        # Re-exports from wallet-sign.ts
-│   │   └── wallet-sign.ts  # Key derivation for this chain's wallet
-│   ├── abis/ or artifacts/ # Contract ABI/artifacts (chain-specific format)
+│   │   ├── index.ts
+│   │   └── wallet-sign.ts
+│   ├── abis/ or artifacts/
 │   └── __tests__/
+│       ├── resolveLock.test.ts  # Tests for resolveUserLock + resolveSolverLock
+│       ├── helpers.test.ts      # Tests for helper pure functions
 │       └── register{Chain}Sdk.test.ts
 ├── package.json
 ├── tsconfig.json
 └── vitest.config.ts
 ```
 
-Additional utility files (`rpc.ts`, `utils.ts`) are allowed when the chain needs custom RPC or helper logic.
+**Key structural rules:**
+- Each read/write method lives in its own file under `client/public/` or `client/wallet/`
+- `resolveUserLock()` is co-located in `getUserLockDetails.ts`, `resolveSolverLock()` in `getSolverLockDetails.ts` — exported for testing
+- `pickEventDerivedData()` is co-located in `getUserLockDetails.ts` (EVM/Tron) or `client/helpers.ts` (Starknet)
+- Transaction building logic lives directly in the wallet method files — no separate `transactionBuilder.ts`
+- Shared utilities (`hexToUint8Array`, `encoder`, etc.) go in `src/utils.ts`
 
 ---
 
@@ -83,17 +106,18 @@ Chain-specific libraries go in `dependencies`. The base SDK and auth package are
 
 ## 3. types.ts — Signer, Config & Registry Augmentation
 
-Every SDK defines a **Signer** interface, a **Config** type, a **WalletSignConfig** type, and augments the SDK registry maps via declaration merging:
+Every SDK defines a **Signer** interface, two **Config** types (public + wallet), a **WalletSignConfig** type, and augments the SDK registry maps via declaration merging:
 
 ```ts
-import type { BaseHTLCClientConfig } from '@train-protocol/sdk'
 import type { {Chain}WalletLike } from './login/index.js'
 
-// Augment the SDK registry so the factory callbacks are fully typed.
-// This eliminates all `as` casts in index.ts.
+// Augment the SDK registries so the factory callbacks are fully typed.
 declare module '@train-protocol/sdk' {
-    interface HTLCClientConfigMap {
-        {namespace}: {Chain}HTLCClientConfig
+    interface HTLCPublicClientConfigMap {
+        {namespace}: {Chain}HTLCPublicClientConfig
+    }
+    interface HTLCWalletClientConfigMap {
+        {namespace}: {Chain}HTLCWalletClientConfig
     }
 }
 
@@ -117,11 +141,14 @@ export interface {Chain}Signer {
     // Chain-specific signing method(s)
 }
 
-// Config extends BaseHTLCClientConfig (which provides apiClient).
-// Always includes rpcUrl and optional signer.
-export type {Chain}HTLCClientConfig = BaseHTLCClientConfig & {
+// Public client config — read-only operations, no signer.
+export type {Chain}HTLCPublicClientConfig = {
     rpcUrl: string
-    signer?: {Chain}Signer
+}
+
+// Wallet client config — extends public config with REQUIRED signer.
+export type {Chain}HTLCWalletClientConfig = {Chain}HTLCPublicClientConfig & {
+    signer: {Chain}Signer
 }
 ```
 
@@ -129,43 +156,45 @@ export type {Chain}HTLCClientConfig = BaseHTLCClientConfig & {
 
 ## 4. client.ts — Class Structure & Function Ordering
 
-### Class skeleton
+### Two-class pattern
+
+Each chain implements two classes: a **public client** (read-only) and a **wallet client** (write, extends public). The wallet client inherits all read methods — no code duplication.
 
 ```ts
-import { HTLCClient } from '@train-protocol/sdk'
+import { HTLCPublicClient } from '@train-protocol/sdk'
+import type { IHTLCWalletClient } from '@train-protocol/sdk'
 
-export class {Chain}HTLCClient extends HTLCClient {
-    private rpc: ...             // RPC/node client for read operations
-    private signer?: {Chain}Signer
+// Public client — read-only operations, no signer required
+export class {Chain}HTLCPublicClient extends HTLCPublicClient {
+    protected rpc: ...
 
-    constructor(config: {Chain}HTLCClientConfig) {
-        super(config.apiClient)  // Always pass apiClient to base
+    constructor(config: {Chain}HTLCPublicClientConfig) {
+        super()
         this.rpc = ...
-        this.signer = config.signer
-        // Override default consensus options if needed (e.g., Aztec: minQuorum 1)
-        // this.consensusOptions = { minQuorum: 1 }
+        // Override consensus options if needed: this.consensusOptions = { minQuorum: 1 }
+    }
+
+    // ── Read Operations ────────────────────────────────────────────────
+    async getUserLockDetails(params: LockParams): Promise<UserLockDetails | null> { ... }
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> { ... }
+    async recoverSwap(txHash: string, network: Network): Promise<UserLockDetails> { ... }
+    async getTransaction(txHash: string): Promise<TransactionInfo | null> { ... }
+}
+
+// Wallet client — write operations, signer REQUIRED at construction
+export class {Chain}HTLCWalletClient extends {Chain}HTLCPublicClient implements IHTLCWalletClient {
+    private signer: {Chain}Signer
+
+    constructor(config: {Chain}HTLCWalletClientConfig) {
+        super(config)
+        this.signer = config.signer  // guaranteed present — no runtime check needed
     }
 
     // ── Write Operations ───────────────────────────────────────────────
-
     async userLock(params: UserLockParams): Promise<AtomicResult> { ... }
     async refund(params: RefundParams): Promise<string> { ... }
     async redeemSolver(params: RedeemSolverParams): Promise<string> { ... }
-
-    // ── Read Operations ────────────────────────────────────────────────
-
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> { ... }
-    async getUserLockDetails(params: LockParams): Promise<LockDetails | null> { ... }
-    async recoverSwap(txHash: string): Promise<RecoveredSwapData> { ... }
-
-    // ── Public Helpers ─────────────────────────────────────────────────
-
-    async getTransaction(txHash: string): Promise<TransactionInfo | null> { ... }
-
-    // ── Private Helpers ────────────────────────────────────────────────
-
-    private requireSigner(): {Chain}Signer { ... }
-    // ... chain-specific helpers
+    // ... chain-specific write helpers
 }
 ```
 
@@ -179,9 +208,8 @@ export class {Chain}HTLCClient extends HTLCClient {
 
 ### Base class methods (do NOT override)
 
-The base `HTLCClient` class provides these methods — subclasses should **not** override them:
+The base `HTLCPublicClient` class provides this method — subclasses should **not** override it:
 
-- `revealSecret(solverId, hashlock, secret)` — delegates to `apiClient.revealSecret()`
 - `getSolverLockDetailsWithConsensus(params, nodeUrls, options?)` — queries multiple nodes via `getSolverLockDetails`, validates results match across nodes (see below)
 
 ### Cross-node consensus
@@ -189,16 +217,18 @@ The base `HTLCClient` class provides these methods — subclasses should **not**
 The base class provides `getSolverLockDetailsWithConsensus()` which fans out `getSolverLockDetails()` to multiple RPC nodes and validates that all successful responses agree on critical fields (`amount`, `sender`, `recipient`, `token`, `timelock`).
 
 **Consensus options:**
-- The base class sets `protected consensusOptions: ConsensusOptions = { minQuorum: 2 }` by default
+- The `HTLCPublicClient` base class sets `protected consensusOptions: Required<ConsensusOptions> = { minQuorum: 2, batchSize: 3 }` by default
 - Subclasses can override this in their constructor (e.g., Aztec sets `minQuorum: 1` since it typically has fewer public nodes)
 - Per-call `options` passed to `getSolverLockDetailsWithConsensus()` take priority over the instance default
 
 **How it works:**
-1. Queries all `nodeUrls` in parallel via `Promise.allSettled`
-2. Filters for non-null results
-3. Requires at least `minQuorum` agreeing results (capped to `nodeUrls.length`)
-4. Compares critical fields across all valid results — throws if they disagree
-5. Returns the first valid result if consensus passes
+1. Partitions `nodeUrls` into batches of `batchSize`
+2. Queries each batch in parallel via `Promise.allSettled`
+3. Filters for non-null results
+4. Requires at least `minQuorum` agreeing results (capped to `nodeUrls.length`)
+5. Compares critical fields (`amount`, `sender`, `recipient`, `token`, `timelock`, `status`) across all valid results — throws if they disagree
+6. Returns the first valid result if consensus passes
+7. Supports `prefetchedResult` option to skip re-querying the first node
 
 Chain implementations only need to implement the single-node abstract method `getSolverLockDetails(params, nodeUrl)`.
 
@@ -206,14 +236,16 @@ Chain implementations only need to implement the single-node abstract method `ge
 
 ## 5. Write Operation Patterns
 
-### userLock
+Each write method lives in its own file under `client/wallet/`. Transaction building and sending are in the **same file** — no separate `transactionBuilder.ts`.
 
-1. Call `this.requireSigner()`
-2. Destructure params
-3. Parse amount with `parseUnits(amount.toString(), decimals)`
-4. Handle token approval/authorization if needed (ERC20 allowance, authwit, etc.)
-5. Encode `userData` — store nonce/timestamp for recovery
-6. Build and send the `userLock` / `user_lock` transaction
+### userLock (`client/wallet/userLock.ts`)
+
+1. Validate required params (contract, signer, nonce, solverData)
+2. Parse amount with `parseUnits(amount.toString(), decimals)`
+3. Handle token approval/authorization if needed (ERC20 allowance, authwit, etc.)
+4. Handle native vs token branching (e.g., Solana `userLockSol` vs `userLockToken`)
+5. Build transaction, set blockhash/fee payer
+6. Send via signer, confirm
 7. Return `{ hash, hashlock, nonce: timestamp }`
 
 ### refund
@@ -246,52 +278,81 @@ try {
 
 ### getUserLockDetails
 
+Each chain's `getUserLockDetails.ts` file contains both the async function and an exported `resolveUserLock()` pure function for lock field mapping:
+
 1. Query contract for user lock by hashlock
-2. Check existence (sender ≠ zero address, or status ≠ 0) — return `null` if not found
-3. If `txId` is provided, fetch transaction logs to extract `userData` (nonce)
-4. Return `LockDetails` object with all fields mapped
+2. Call `resolveUserLock(result, id, params.decimals)` — returns `BaseLockDetails | null`
+3. If null, return null early
+4. If `txId` is provided, extract `EventDerivedData` via `pickEventDerivedData(event)` (also co-located in same file for EVM/Tron, or in `client/helpers.ts` for Starknet)
+5. Return `{ ...parsedResult, ...eventDerivedData, blockTimestamp }` as `UserLockDetails`
+
+**`resolveUserLock` must be an exported pure function** in the same file — this enables direct unit testing:
+```ts
+export function resolveUserLock(result: any, id: string, decimals: number): BaseLockDetails | null {
+    if (/* sender is zero/empty */) return null
+    return {
+        hashlock: id,
+        amount: Number(formatUnits(BigInt(result.amount), decimals)),
+        secret: BigInt(result.secret),
+        sender: ..., recipient: ..., token: ...,
+        timelock: Number(result.timelock),
+        status: Number(result.status) as LockStatus,
+    }
+}
+```
+
+**Key rules for field mapping:**
+- All `BaseLockDetails` fields are **required** — always populate `sender`, `recipient`, `token` (use empty string `''` if absent, never `undefined`)
+- `secret` is always `bigint` — use `BigInt(result.secret)`, no conditional check for zero
+- `amount` uses `params.decimals` directly — no fallback like `?? 18`
 
 ### getSolverLockDetails — Count-Then-Loop Pattern
 
-**This is a critical shared pattern.** The base class calls `getSolverLockDetails` for each node URL and verifies results match via `getSolverLockDetailsWithConsensus()`. Your subclass implements the single-node version. The contract stores multiple solver locks per hashlock. Always:
+Each chain's `getSolverLockDetails.ts` file contains the async function, a `getSolverLockByIndex` helper, and an exported `resolveSolverLock()` pure function:
 
 ```ts
-async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<LockDetails | null> {
-    // 1. Get the count of solver locks for this hashlock
-    const count = /* call getSolverLockCount(hashlock) */
+// getSolverLockDetails delegates to getSolverLockByIndex in a loop
+async function getSolverLockDetails(params, nodeUrl) { /* count-then-loop */ }
 
-    if (count === 0) return null
+// getSolverLockByIndex fetches one lock and calls resolveSolverLock
+async function getSolverLockByIndex(params, index, nodeUrl) { /* RPC + resolve */ }
 
-    // 2. Loop from 1 to count (1-indexed, NOT 0-indexed)
-    for (let i = 1; i <= count; i++) {
-        const result = /* call getSolverLock(hashlock, i) */
+// Pure function — exported for unit testing
+export function resolveSolverLock(result, id, decimals, index): SolverLockDetails | null { /* field mapping */ }
+```
 
-        // 3. Skip empty/invalid slots
-        if (/* status === 0 or sender is empty */) continue
+The count-then-loop pattern:
+1. Get the count of solver locks for this hashlock
+2. Loop from 1 to count (**1-indexed, NOT 0-indexed**)
+3. Call `getSolverLockByIndex` which calls `resolveSolverLock` internally
+4. Skip nulls (empty/invalid slots handled by `resolveSolverLock`)
+5. Filter by solver address (case-insensitive) if provided
+6. Return first match
 
-        // 4. Optional: filter by solver address (case-insensitive)
-        if (params.solverAddress && sender.toLowerCase() !== params.solverAddress.toLowerCase()) continue
-
-        // 5. Return first matching lock (include index in result)
-        return {
-            hashlock: id,
-            amount: Number(formatUnits(BigInt(result.amount), params.decimals ?? 18)),
-            // ... all other fields
-            status: Number(result.status) as LockStatus,
-            index: i,  // Include the index
-        }
+**`resolveSolverLock` must be an exported pure function** — enables direct unit testing:
+```ts
+export function resolveSolverLock(result: any, id: string, decimals: number, index: number): SolverLockDetails | null {
+    if (/* sender is zero/empty */) return null
+    return {
+        hashlock: id,
+        amount: Number(formatUnits(BigInt(result.amount), decimals)),
+        secret: BigInt(result.secret),
+        sender: ..., recipient: ..., token: ...,
+        timelock: Number(result.timelock),
+        status: Number(result.status) as LockStatus,
+        reward: Number(result.reward),
+        rewardTimelock: Number(result.rewardTimelock),
+        rewardRecipient: ..., rewardToken: ...,
+        index,
     }
-
-    return null
 }
 ```
 
 Key points:
 - **1-indexed** — contract indices start at 1
-- **Skip empty slots** — check status or sender
-- **Case-insensitive solver address comparison**
-- **Return first match** with early return
-- **Include `index`** in the returned `LockDetails`
+- **All `BaseLockDetails` + `Reward` fields are required** — `secret` is always `bigint`, strings never `undefined`
+- **Include `index`** in the returned `SolverLockDetails`
+- **Use `params.decimals` directly** — no `?? 18` fallback
 
 ### recoverSwap
 
@@ -301,7 +362,7 @@ Key points:
 - Starknet / Aztec: `/^0x[a-fA-F0-9]{1,64}$/`
 - Solana: `/^[1-9A-HJ-NP-Za-km-z]{43,88}$/`
 
-Then fetch transaction + receipt, parse the `UserLocked` event from logs, return `RecoveredSwapData`. If the event is not found, throw.
+Then fetch transaction + receipt, parse the `UserLocked` event from logs to extract the hashlock and token address. Use the `Network` parameter to look up token decimals, then delegate to `this.getUserLockDetails()` with `txId: txHash`. Return `UserLockDetails`. If the event is not found or `getUserLockDetails` returns null, throw.
 
 ### getTransaction
 
@@ -342,12 +403,12 @@ Rules:
 
 ## 7. index.ts — Registration & Exports
 
-Because `types.ts` augments `HTLCClientConfigMap` and `WalletSignConfigMap`, the factory callbacks receive fully-typed configs — no `as` casts needed.
+Because `types.ts` augments `HTLCPublicClientConfigMap`, `HTLCWalletClientConfigMap`, and `WalletSignConfigMap`, the factory callbacks receive fully-typed configs — no `as` casts needed.
 
 ```ts
-import { registerHTLCClient } from '@train-protocol/sdk'
+import { registerHTLCPublicClient, registerHTLCWalletClient } from '@train-protocol/sdk'
 import { registerWalletSign } from '@train-protocol/auth'
-import { {Chain}HTLCClient } from './client.js'
+import { {Chain}HTLCPublicClient, {Chain}HTLCWalletClient } from './client.js'
 import { deriveKeyFrom{Chain}Wallet } from './login/index.js'
 
 let registered = false
@@ -356,18 +417,17 @@ export function register{Chain}Sdk(): void {
     if (registered) return   // Idempotent guard
     registered = true
 
-    // config is typed as {Chain}HTLCClientConfig — no casts required
-    registerHTLCClient('{namespace}', (config) => new {Chain}HTLCClient(config))
+    registerHTLCPublicClient('{namespace}', (config) => new {Chain}HTLCPublicClient(config))
+    registerHTLCWalletClient('{namespace}', (config) => new {Chain}HTLCWalletClient(config))
 
-    // config is typed as {Chain}WalletSignConfig — no casts required
     registerWalletSign('{namespace}', async (config) => {
         return deriveKeyFrom{Chain}Wallet(config.wallet)
     })
 }
 
 // Public exports
-export { {Chain}HTLCClient } from './client.js'
-export type { {Chain}HTLCClientConfig, {Chain}Signer, {Chain}WalletSignConfig } from './types.js'
+export { {Chain}HTLCPublicClient, {Chain}HTLCWalletClient } from './client.js'
+export type { {Chain}HTLCPublicClientConfig, {Chain}HTLCWalletClientConfig, {Chain}Signer, {Chain}WalletSignConfig } from './types.js'
 export { deriveKeyFrom{Chain}Wallet } from './login/index.js'
 export type { {Chain}WalletLike } from './login/index.js'
 ```
@@ -377,8 +437,10 @@ The `{namespace}` is the chain identifier used in the registry (e.g., `'eip155'`
 ### What to export
 
 - `register{Chain}Sdk` — registration function
-- `{Chain}HTLCClient` — class (for direct instantiation if needed)
-- `{Chain}HTLCClientConfig` — config type
+- `{Chain}HTLCPublicClient` — public (read-only) client class
+- `{Chain}HTLCWalletClient` — wallet (write) client class
+- `{Chain}HTLCPublicClientConfig` — public client config type
+- `{Chain}HTLCWalletClientConfig` — wallet client config type
 - `{Chain}Signer` — signer type
 - `deriveKeyFrom{Chain}...` — key derivation function
 - Any chain-specific wallet interface types needed by consumers
@@ -424,21 +486,25 @@ import { parseUnits, formatUnits } from '@train-protocol/sdk'
 // Byte/hex conversion
 import { hexToBytes, bytesToHex, toHex32 } from '@train-protocol/sdk'
 
-// Base class & types
+// Base classes & types
 import {
-    HTLCClient,
+    HTLCPublicClient,
     UserLockParams,
     LockParams,
     RefundParams,
     RedeemSolverParams,
-    LockDetails,
     LockStatus,
     AtomicResult,
-    RecoveredSwapData,
+    Network,
     TransactionInfo,
     TransactionStatus,
-    BaseHTLCClientConfig,
     ConsensusOptions,
+} from '@train-protocol/sdk'
+import type {
+    UserLockDetails,
+    SolverLockDetails,
+    BaseLockDetails,
+    EventDerivedData,
 } from '@train-protocol/sdk'
 
 // Key derivation
@@ -461,65 +527,84 @@ import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/sdk'
 
 ## 11. Testing
 
-Minimal test in `__tests__/register{Chain}Sdk.test.ts`:
+Each blockchain package must alias `@train-protocol/sdk` to source in `vitest.config.ts`:
+```ts
+resolve: { alias: { '@train-protocol/sdk': path.resolve(__dirname, '../../sdk/src/index.ts') } }
+```
+
+### resolveLock.test.ts — lock resolution tests (most critical)
+
+Tests `resolveUserLock` and `resolveSolverLock` directly — imported from `../client/public/getUserLockDetails` and `../client/public/getSolverLockDetails`:
 
 ```ts
-import { describe, it, expect, beforeEach } from 'vitest'
-import { getRegisteredNamespaces, createHTLCClient } from '@train-protocol/sdk'
-import { register{Chain}Sdk } from '../index'
+import { resolveUserLock } from '../client/public/getUserLockDetails'
+import { resolveSolverLock } from '../client/public/getSolverLockDetails'
 
-describe('register{Chain}Sdk', () => {
-    beforeEach(() => { register{Chain}Sdk() })
+describe('{Chain} resolveUserLock', () => {
+    // 1. resolves a basic user lock — check all BaseLockDetails fields
+    // 2. returns null for empty/zero sender (or status=0 for Aztec)
+    // 3. formats amount with correct decimals
+    // 4. maps status values correctly
+})
 
-    it('registers the {namespace} namespace', () => {
-        expect(getRegisteredNamespaces()).toContain('{namespace}')
-    })
-
-    it('creates a client with required methods', () => {
-        const client = createHTLCClient('{namespace}', {
-            rpcUrl: 'https://...',
-            apiClient: { /* mock */ } as any,
-        })
-        expect(typeof client.getUserLockDetails).toBe('function')
-        expect(typeof client.getSolverLockDetails).toBe('function')
-        expect(typeof client.getSolverLockDetailsWithConsensus).toBe('function')
-        expect(typeof client.userLock).toBe('function')
-        expect(typeof client.refund).toBe('function')
-        expect(typeof client.redeemSolver).toBe('function')
-    })
+describe('{Chain} resolveSolverLock', () => {
+    // 1. resolves solver lock with reward fields and index
+    // 2. returns null for empty/zero sender
+    // 3. includes correct index in result
 })
 ```
+
+### helpers.test.ts — pure helper functions
+
+Test chain-specific helpers: `pickEventDerivedData`, `mapLockStatus` (Starknet), `parseSecret` (Solana/Aztec), `pickStarknetEventData`, etc.
+
+### register{Chain}Sdk.test.ts — registration smoke test
+
+Verify `register{Chain}Sdk()` registers the namespace and creates clients with expected methods.
 
 ---
 
 ## 12. Constants
 
-Define chain-specific constants at the top of `client.ts`, after imports:
+Define chain-specific constants in `constants.ts` (preferred) or at the top of `client.ts`:
 
 ```ts
-const TX_TIMEOUT = 120000           // Transaction confirmation timeout (ms)
-const ZERO_ADDRESS = '0x000...'     // Chain's empty/zero address representation
+export const TX_TIMEOUT = 120000           // Transaction confirmation timeout (ms)
+export const ZERO_ADDRESS = '0x000...'     // Chain's empty/zero address representation
 ```
 
 ---
 
 ## Summary Checklist for New Chain SDK
 
-- [ ] Create `packages/{chain}/` with the directory structure above
+- [ ] Create `packages/{chain}/` with the modular directory structure above
 - [ ] In `types.ts`:
-  - [ ] Define `{Chain}Signer` interface and `{Chain}HTLCClientConfig` type
+  - [ ] Define `{Chain}Signer` interface
+  - [ ] Define `{Chain}HTLCPublicClientConfig` (rpcUrl only) and `{Chain}HTLCWalletClientConfig` (extends public + required signer)
   - [ ] Define `{Chain}WalletSignConfig` type
-  - [ ] Add `declare module '@train-protocol/sdk'` augmentation for `HTLCClientConfigMap` and `WalletSignConfigMap`
-- [ ] Implement `{Chain}HTLCClient extends HTLCClient` in `client.ts`
-- [ ] Follow function ordering: writes → reads → public helpers → private helpers
-- [ ] Implement count-then-loop pattern in `getSolverLockDetails` (1-indexed, single-node version)
-- [ ] Implement `getTransaction(txHash)` — non-blocking, try/catch returning `null`, all three statuses (`Pending`/`Confirmed`/`Failed`)
-- [ ] Set `this.consensusOptions` in constructor if chain needs non-default quorum (default: `minQuorum: 2`)
+  - [ ] Add `declare module` augmentations for SDK and auth registries
+- [ ] Implement `client/PublicClient.ts` — delegates to `client/public/*.ts` files
+- [ ] Implement `client/WalletClient.ts` — delegates to `client/wallet/*.ts` files
+- [ ] Each read method in its own file under `client/public/`:
+  - [ ] `getUserLockDetails.ts` — includes exported `resolveUserLock()` + `pickEventDerivedData()`
+  - [ ] `getSolverLockDetails.ts` — includes exported `resolveSolverLock()`
+  - [ ] `getTransaction.ts`
+  - [ ] `recoverSwap.ts`
+- [ ] Each write method in its own file under `client/wallet/`:
+  - [ ] `userLock.ts` — full transaction building + sending (no separate builder file)
+  - [ ] `refund.ts`
+  - [ ] `redeemSolver.ts`
+- [ ] Count-then-loop pattern in `getSolverLockDetails` (1-indexed)
+- [ ] `getTransaction(txHash)` — non-blocking, try/catch returning `null`, all three statuses
+- [ ] Set `this.consensusOptions` in constructor if chain needs non-default quorum
 - [ ] Validate `txHash` format at the top of `recoverSwap` before any RPC calls
-- [ ] Define `{Chain}WalletLike` minimal interface in `login/wallet-sign.ts`
-- [ ] Implement key derivation in `login/wallet-sign.ts` using `deriveKeyMaterial` + `IDENTITY_SALT`
-- [ ] Create idempotent `register{Chain}Sdk()` in `index.ts` — pass config directly (no `as` casts)
-- [ ] Export: registration fn, client class, config type, signer type, wallet sign config type, key derivation fn, wallet-like type
-- [ ] Use shared SDK utils (`parseUnits`, `formatUnits`, `hexToBytes`, etc.)
-- [ ] Add registration test in `__tests__/`
+- [ ] Shared utilities in `src/utils.ts`, constants in `src/constants.ts`
+- [ ] Login: `login/wallet-sign.ts` using `deriveKeyMaterial` + `IDENTITY_SALT`
+- [ ] Registration: idempotent `register{Chain}Sdk()` in `index.ts`
+- [ ] Exports: registration fn, both client classes, both config types, signer type, key derivation fn
+- [ ] Tests:
+  - [ ] `resolveLock.test.ts` — test `resolveUserLock` + `resolveSolverLock` (imported from public files)
+  - [ ] `helpers.test.ts` — test chain-specific pure helpers
+  - [ ] `register{Chain}Sdk.test.ts` — registration smoke test
+  - [ ] `vitest.config.ts` with SDK source alias
 - [ ] Add contract ABI/artifacts in `abis/` or `artifacts/`

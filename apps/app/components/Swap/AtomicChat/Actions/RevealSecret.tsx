@@ -22,7 +22,7 @@ export const RevealSecretAction: FC<{ showCheckbox?: boolean, type: SwapViewType
 
     return <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
         {verificationSkipped && (
-            <div className="text-sm text-yellow-500 bg-yellow-500/10 rounded-lg p-3">
+            <div className="text-sm text-warning-foreground bg-warning-background rounded-lg p-3">
                 Could not verify solver lock against original quote. Proceed with caution.
             </div>
         )}

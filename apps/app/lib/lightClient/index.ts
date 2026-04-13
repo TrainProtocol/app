@@ -1,35 +1,35 @@
-import { Network, Token } from "../../Models/Network"
-import EVMLightClient from "./providers/evm"
+// import { Network, Token } from "../../Models/Network"
+// import EVMLightClient from "./providers/evm"
 
-export default class LightClient {
-    private providers = [
-        new EVMLightClient(),
-        // new StarknetLightClient()
-    ]
+// export default class LightClient {
+//     private providers = [
+//         new EVMLightClient(),
+//         // new StarknetLightClient()
+//     ]
 
-    supportsNetwork = (network: Network) => {
-        return this.providers.some(p => p.supportsNetwork(network));
-    }
+//     supportsNetwork = (network: Network) => {
+//         return this.providers.some(p => p.supportsNetwork(network));
+//     }
 
-    initProvider = async ({ network }: { network: Network }) => {
-        const provider = this.providers.find(p => p.supportsNetwork(network));
+//     initProvider = async ({ network }: { network: Network }) => {
+//         const provider = this.providers.find(p => p.supportsNetwork(network));
 
-        if (!provider) throw new Error(`No light client provider found for network ${network.caip2Id}`);
+//         if (!provider) throw new Error(`No light client provider found for network ${network.caip2Id}`);
 
-        return provider.init({ network })
-    }
+//         return provider.init({ network })
+//     }
 
-    getDetails = async ({ network, token,  hashlock, atomicContract }: { network: Network, token: Token, hashlock: string, atomicContract: string }) => {
-        const provider = this.providers.find(p => p.supportsNetwork(network));
+//     getDetails = async ({ network, token,  hashlock, atomicContract }: { network: Network, token: Token, hashlock: string, atomicContract: string }) => {
+//         const provider = this.providers.find(p => p.supportsNetwork(network));
 
-        if (!provider) throw new Error(`No light client provider found for network ${network.caip2Id}`);
+//         if (!provider) throw new Error(`No light client provider found for network ${network.caip2Id}`);
 
-        return provider.getDetails({
-            network,
-            token,
-            hashlock: hashlock,
-            atomicContract
-        })
-    }
+//         return provider.getDetails({
+//             network,
+//             token,
+//             hashlock: hashlock,
+//             atomicContract
+//         })
+//     }
 
-}
+// }

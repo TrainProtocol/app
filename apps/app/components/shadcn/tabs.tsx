@@ -1,4 +1,7 @@
+"use client"
+
 import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 import { Tabs as TabsPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
@@ -13,8 +16,7 @@ function Tabs({
       data-slot="tabs"
       data-orientation={orientation}
       className={cn(
-        "group/tabs flex gap-2",
-        orientation === "horizontal" && "flex-col",
+        "group/tabs flex gap-2 data-horizontal:flex-col",
         className
       )}
       {...props}
@@ -22,22 +24,32 @@ function Tabs({
   )
 }
 
+const tabsListVariants = cva(
+  "group/tabs-list inline-flex w-fit items-center justify-center rounded-xl p-1 text-muted-foreground group-data-horizontal/tabs:h-9 group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col group-data-vertical/tabs:rounded-xl data-[variant=line]:rounded-none",
+  {
+    variants: {
+      variant: {
+        default: "bg-muted",
+        line: "gap-1 bg-transparent",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
+
 function TabsList({
   className,
   variant = "default",
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.List> & { variant?: "default" | "line" | "underline" }) {
+}: React.ComponentProps<typeof TabsPrimitive.List> &
+  VariantProps<typeof tabsListVariants>) {
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
       data-variant={variant}
-      className={cn(
-        "group/tabs-list inline-flex w-full items-center justify-center text-muted-foreground",
-        variant === "default" && "h-10 p-[3px] bg-muted rounded-lg",
-        variant === "line" && "h-10 p-[3px] gap-1 bg-transparent rounded-none",
-        variant === "underline" && "bg-transparent rounded-none border-b border-border p-0 h-auto gap-4 justify-start",
-        className
-      )}
+      className={cn(tabsListVariants({ variant }), className)}
       {...props}
     />
   )
@@ -45,15 +57,16 @@ function TabsList({
 
 function TabsTrigger({
   className,
-  variant = "default",
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.Trigger> & { variant?: "default" | "underline" }) {
+}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
   return (
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        variant === "default" && "inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium whitespace-nowrap text-muted-foreground transition-all hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        variant === "underline" && "inline-flex items-center justify-center px-0 py-2 text-base whitespace-nowrap transition-all border-b-2 text-muted-foreground font-medium border-transparent hover:text-foreground disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-foreground data-[state=active]:font-bold data-[state=active]:border-primary",
+        "relative inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-2 rounded-lg border border-transparent! px-3 py-1 text-sm font-medium whitespace-nowrap text-foreground/60 transition-all group-data-vertical/tabs:w-full group-data-vertical/tabs:justify-start group-data-vertical/tabs:rounded-lg group-data-vertical/tabs:px-3 group-data-vertical/tabs:py-1.5 hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 dark:text-muted-foreground dark:hover:text-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "group-data-[variant=line]/tabs-list:bg-transparent group-data-[variant=line]/tabs-list:data-active:bg-transparent dark:group-data-[variant=line]/tabs-list:data-active:border-transparent dark:group-data-[variant=line]/tabs-list:data-active:bg-transparent",
+        "data-active:bg-card data-active:text-foreground data-active:shadow-sm dark:data-active:shadow-none dark:data-active:border-input dark:data-active:bg-input/30 dark:data-active:text-foreground",
+        "after:absolute after:bg-foreground after:opacity-0 after:transition-opacity group-data-horizontal/tabs:after:inset-x-0 group-data-horizontal/tabs:after:bottom-[-5px] group-data-horizontal/tabs:after:h-0.5 group-data-vertical/tabs:after:inset-y-0 group-data-vertical/tabs:after:-right-1 group-data-vertical/tabs:after:w-0.5 group-data-[variant=line]/tabs-list:data-active:after:opacity-100",
         className
       )}
       {...props}
@@ -74,4 +87,4 @@ function TabsContent({
   )
 }
 
-export { Tabs, TabsList, TabsTrigger, TabsContent }
+export { Tabs, TabsList, TabsTrigger, TabsContent, tabsListVariants }

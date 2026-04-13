@@ -68,11 +68,10 @@ export type {
 export type {
     Network,
     Token,
-    LockDetails,
     UserLockDetails,
     SolverLockDetails,
-    IHTLCReadClient,
-    IHTLCClient,
+    IHTLCPublicClient,
+    IHTLCWalletClient,
     HTLCFromApi,
     HTLCFromApiResponse,
     SolverQuote,
@@ -80,7 +79,6 @@ export type {
     QuoteDetails,
     AggregatedQuoteResponse,
     SwapQuote,
-    RecoveredSwapData,
     VerificationResult,
 } from '@train-protocol/sdk'
 

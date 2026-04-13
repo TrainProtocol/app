@@ -6,7 +6,6 @@ import CoinbaseIcon from "../../../components/Icons/Wallets/Coinbase"
 import Phantom from "../../../components/Icons/Wallets/Phantom"
 import { Connector } from "wagmi"
 import Argent from "../../../components/Icons/Wallets/Argent"
-import ImtblPassportIcon from "../../../components/Icons/Wallets/ImtblPassport"
 import BitGetIcon from "../../../components/Icons/Wallets/Bitget"
 import BrowserWallet from "../../../components/Icons/Wallets/BrowserWallet"
 
@@ -60,9 +59,6 @@ const KnownEVMConnectors = [
         icon: Argent
     },
     {
-        id: 'com.immutable.passport',
-        icon: ImtblPassportIcon
-    }, {
         id: 'injected',
         icon: BrowserWallet
     }

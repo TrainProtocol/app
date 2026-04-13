@@ -21,22 +21,31 @@ export function AztecWalletBridge() {
     const address = aztecWallet?.address ?? null
 
     const adapter = useMemo<TrainWalletAdapter>(() => {
-        function getRpcUrl(): string {
-            const aztecNetwork = networks.find(n => n.caip2Id.startsWith('aztec:'))
-            return (aztecNetwork ? getEffectiveRpcUrls(aztecNetwork)[0] ?? aztecNetwork.nodes?.[0]?.url : '') ?? ''
+        function getRpcUrl(caip2Id?: Caip2Id): string {
+            const network = networks.find(n =>
+                caip2Id
+                    ? n.caip2Id === (caip2Id as string)
+                    : n.caip2Id.startsWith('aztec:')
+            )
+            if (!network) return ''
+            return getEffectiveRpcUrls(network)[0] ?? network.nodes?.[0]?.url ?? ''
         }
 
         return {
             chainNamespace: chainNamespace('aztec'),
 
             createClient(sdk: TrainSDK, networkId: Caip2Id) {
-                return sdk.createHTLCClient('aztec', { rpcUrl: getRpcUrl() })
+                return sdk.createHTLCPublicClient('aztec', {
+                    rpcUrl: getRpcUrl(networkId),
+                    signer: wallet && address ? { wallet, address } : undefined,
+                })
             },
 
             createWriteClient(sdk: TrainSDK, networkId: Caip2Id, _address?: string) {
-                return sdk.createHTLCClient('aztec', {
-                    rpcUrl: getRpcUrl(),
-                    signer: wallet && address ? { wallet, address } : undefined,
+                if (!wallet || !address) throw new Error('No Aztec signer available')
+                return sdk.createHTLCWalletClient('aztec', {
+                    rpcUrl: getRpcUrl(networkId),
+                    signer: { wallet, address },
                 })
             },
 
