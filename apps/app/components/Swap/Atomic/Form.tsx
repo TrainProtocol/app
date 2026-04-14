@@ -13,6 +13,8 @@ import { hasRequiredDestinationWallet } from "@/lib/wallets/utils/destinationWal
 import type { SwapQuote } from "@train-protocol/react";
 import QuoteDetails from "@/components/FeeDetails";
 import ReverseRouteButton from "./ReverseRouteButton";
+import { FocusFieldProvider } from "@/context/focusFieldContext";
+import formatAmount from "@/lib/formatAmount";
 
 type SwapFormProps = {
     polling?: boolean
@@ -22,7 +24,8 @@ type SwapFormProps = {
 const SwapForm: FC<SwapFormProps> = ({ polling = true, onQuoteChange }) => {
     const {
         values,
-        errors, isValid, isSubmitting
+        errors, isValid, isSubmitting,
+        setFieldValue,
     } = useFormikContext<SwapFormValues>();
     const {
         to: destination,
@@ -37,20 +40,36 @@ const SwapForm: FC<SwapFormProps> = ({ polling = true, onQuoteChange }) => {
         onQuoteChange?.(quote, solverId)
     }, [quote, solverId, onQuoteChange])
 
+    const fromDecimals = values.fromCurrency?.decimals
+    const toDecimals = values.toCurrency?.decimals
+    useEffect(() => {
+        const direction = values.quoteDirection ?? 'source'
+        if (!quote || fromDecimals == null || toDecimals == null) {
+            if (direction === 'source') setFieldValue('receiveAmount', '', false)
+            else setFieldValue('amount', '', false)
+            return
+        }
+        if (direction === 'destination' && quote.amount) {
+            setFieldValue('amount', formatAmount(BigInt(quote.amount), fromDecimals), false)
+        } else if (direction === 'source' && quote.receiveAmount) {
+            setFieldValue('receiveAmount', formatAmount(BigInt(quote.receiveAmount), toDecimals), false)
+        }
+    }, [quote, values.quoteDirection, fromDecimals, toDecimals, setFieldValue])
+
     const actionDisplayName = query?.buttonTextColor || "Swap now"
     const shouldConnectWallet = values.from && !wallets.length;
     const shouldConnectDestinationWallet = values.to && !hasRequiredDestinationWallet(destination, providers);
 
-    return <>
+    return <FocusFieldProvider>
         <Form className={`h-full space-y-2 ${(isSubmitting) ? 'pointer-events-none' : 'pointer-events-auto'}`} >
             <Widget.Content>
                 <div className='flex-col relative flex justify-between gap-1.5 w-full leading-4'>
                     {!(query?.hideFrom && values?.from) && <div className="flex flex-col w-full">
-                        <SourcePicker quote={quote} isQuoteLoading={isQuoteLoading} />
+                        <SourcePicker isQuoteLoading={isQuoteLoading} />
                     </div>}
                     {!(query?.hideFrom && values?.from) && !(query?.hideTo && values?.to) && <ReverseRouteButton />}
                     {!(query?.hideTo && values?.to) && <div className="flex flex-col w-full">
-                        <DestinationPicker quote={quote} isQuoteLoading={isQuoteLoading} />
+                        <DestinationPicker isQuoteLoading={isQuoteLoading} />
                     </div>}
                 </div>
                 <QuoteDetails values={values} quote={quote} isQuoteLoading={isQuoteLoading} />
@@ -69,7 +88,7 @@ const SwapForm: FC<SwapFormProps> = ({ polling = true, onQuoteChange }) => {
                 />
             </Widget.Footer>
         </Form>
-    </>
+    </FocusFieldProvider>
 }
 
 export default SwapForm

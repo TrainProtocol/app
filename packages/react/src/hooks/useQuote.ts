@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import type { SolverQuote, QuoteDetails } from '@train-protocol/sdk'
 import { useTrainContext } from '../providers/TrainContext'
 import { trainQueryKeys } from '../internal/queryKeys'
@@ -19,21 +19,19 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
     const [debounced, setDebounced] = useState(value)
 
     useEffect(() => {
-        if (delayMs <= 0) {
-            setDebounced(value)
-            return
-        }
+        if (delayMs <= 0) return
         const timer = setTimeout(() => setDebounced(value), delayMs)
         return () => clearTimeout(timer)
     }, [value, delayMs])
 
-    return debounced
+    return delayMs <= 0 ? value : debounced
 }
 
 export function useQuote(params: QuoteParams): UseQuoteResult {
     const { apiClient } = useTrainContext()
     const {
         amount,
+        receiveAmount,
         sourceNetwork,
         destinationNetwork,
         sourceTokenContract,
@@ -43,13 +41,15 @@ export function useQuote(params: QuoteParams): UseQuoteResult {
         debounceMs = 300,
     } = params
 
-    const debouncedAmount = useDebouncedValue(amount, debounceMs)
-    const isDebouncing = debounceMs > 0 && debouncedAmount !== amount
+    const activeAmount = amount ?? receiveAmount
+    const debouncedAmount = useDebouncedValue(activeAmount, debounceMs)
+    const isDebouncing = debounceMs > 0 && debouncedAmount !== activeAmount
 
     const canFetch = enabled && !!debouncedAmount && !!sourceNetwork && !!destinationNetwork && Number(debouncedAmount) > 0
 
     const queryKeyParams = {
-        amount: debouncedAmount,
+        amount: amount != null ? debouncedAmount : undefined,
+        receiveAmount: receiveAmount != null ? debouncedAmount : undefined,
         sourceNetwork,
         destinationNetwork,
         sourceTokenContract,
@@ -60,7 +60,8 @@ export function useQuote(params: QuoteParams): UseQuoteResult {
         queryKey: trainQueryKeys.quote(queryKeyParams),
         queryFn: async () => {
             const result = await apiClient.getQuote({
-                amount: debouncedAmount,
+                amount: amount != null ? debouncedAmount : undefined,
+                receiveAmount: receiveAmount != null ? debouncedAmount : undefined,
                 sourceNetwork,
                 destinationNetwork,
                 sourceTokenContract,
@@ -72,9 +73,10 @@ export function useQuote(params: QuoteParams): UseQuoteResult {
         enabled: canFetch,
         refetchInterval: refreshInterval || false,
         staleTime: 10_000,
+        placeholderData: keepPreviousData,
     })
 
-    const quotes = canFetch ? (query.data ?? []) : []
+    const quotes = query.data ?? []
     const bestSolver = quotes.find(q => q.isBest)
     const bestQuote = bestSolver?.quote
 
@@ -86,7 +88,7 @@ export function useQuote(params: QuoteParams): UseQuoteResult {
         quotes,
         bestQuote,
         bestSolver,
-        isLoading: isDebouncing || (canFetch && query.isLoading),
+        isLoading: isDebouncing || (canFetch && (query.isLoading || query.isPlaceholderData)),
         error: normalizeQueryError(query.error),
         refetch,
     }

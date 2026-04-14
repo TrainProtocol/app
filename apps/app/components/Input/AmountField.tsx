@@ -1,0 +1,232 @@
+import { useFormikContext } from "formik";
+import { useCallback, useEffect, useRef, useState } from "react";
+import clsx from "clsx";
+import NumberFlow from "@number-flow/react";
+import { ArrowUpDown } from "lucide-react";
+import { Input } from "@/components/shadcn/input";
+import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
+import { useFocusField } from "@/context/focusFieldContext";
+import { useUsdTokenSync } from "@/hooks/useUsdTokenSync";
+import { isScientific } from "@/components/utils/RoundDecimals";
+import type { QuoteDirection } from "@train-protocol/react";
+
+interface AmountFieldProps {
+    side: QuoteDirection;
+    actionValue?: number;
+    actionValueUsd?: string;
+    className?: string;
+    showToggle?: boolean;
+    isQuoteLoading?: boolean;
+}
+
+const AmountField = ({ side, actionValue, actionValueUsd, className, showToggle, isQuoteLoading }: AmountFieldProps) => {
+    const { values, setFieldValue } = useFormikContext<SwapFormValues>();
+    const { focusField, setFocusField } = useFocusField();
+
+    const fieldName: 'amount' | 'receiveAmount' = side === 'source' ? 'amount' : 'receiveAmount';
+    const token = side === 'source' ? values?.fromCurrency : values?.toCurrency;
+    const currentAmount = (side === 'source' ? values?.amount : values?.receiveAmount) ?? '';
+    const quoteDirection = values?.quoteDirection ?? 'source';
+
+    const amountRef = useRef<HTMLInputElement>(null);
+    const suffixRef = useRef<HTMLDivElement>(null);
+
+    const { tokenPriceInUsd, isUsdMode, usdAmount, handleToggle, handleUsdInputChange, } = useUsdTokenSync({ side, token, amount: currentAmount, quoteDirection, setFieldValue });
+
+    const [inputFocused, setInputFocused] = useState(false);
+    const isActive = focusField === side && inputFocused;
+    const handleTokenChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const v = sanitizeDecimalInput(e.target.value, token?.decimals);
+        if (v === null) return;
+        setFieldValue('quoteDirection', side, false);
+        setFieldValue(fieldName, v, true);
+    }, [setFieldValue, token?.decimals, side, fieldName]);
+
+    const handleFocus = useCallback(() => {
+        setFocusField(side);
+        setInputFocused(true);
+    }, [setFocusField, side]);
+
+
+    const tokenNum = (() => { const n = Number(currentAmount); return isNaN(n) ? 0 : n; })();
+    const usdValue = tokenPriceInUsd && tokenNum > 0 ? tokenNum * tokenPriceInUsd : 0;
+    const precision = token?.decimals || 6;
+    const formattedTokenAmount = tokenNum > 0 ? formatTokenAmount(tokenNum, precision) : '0';
+    const actionValueAsUsd = actionValue !== undefined && actionValue > 0
+        ? (actionValueUsd ?? (tokenPriceInUsd ? (actionValue * tokenPriceInUsd).toFixed(2).replace(/\.?0+$/, '') : undefined))
+        : undefined;
+
+    const actionValueAsToken = actionValue !== undefined && actionValue > 0 ? formatTokenAmount(actionValue, precision) : undefined;
+
+    const formattedActionTokenValue = actionValue === undefined || actionValue < 0 ? ''
+        : isScientific(actionValue) ? actionValue.toFixed(token?.decimals ?? 0).replace(/\.?0+$/, '')
+            : actionValue.toString();
+
+    const showActionPreview = actionValue !== undefined && !isNaN(Number(actionValue));
+
+    useEffect(() => {
+        if (isUsdMode) return;
+        const input = amountRef.current;
+        const suffix = suffixRef.current;
+        if (!input || !suffix) return;
+        const font = getFontFromElement(input);
+        const width = getTextWidth(actionValue?.toString() || currentAmount || '0', font);
+        suffix.style.left = `${width + 16}px`;
+    }, [currentAmount, actionValue, isUsdMode, amountRef]);
+
+    const step = 1 / Math.pow(10, token?.decimals || 1);
+
+    const onTogglePress = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        amountRef.current?.blur();
+        handleToggle();
+    }, [amountRef, handleToggle]);
+
+    const toggleButton = side === 'source' && tokenPriceInUsd ? (
+        <button
+            type="button"
+            onClick={onTogglePress}
+            className={clsx(
+                "inline-flex items-center p-0.5 rounded-md bg-secondary-400 hover:brightness-90 text-secondary-text hover:text-primary-text transition cursor-pointer pointer-events-auto",
+                !showToggle && "hidden group-hover/source:inline-flex",
+            )}
+        >
+            <ArrowUpDown className="w-3.5 h-3.5" />
+        </button>
+    ) : null;
+
+    const handleWrapperClick = useCallback(() => {
+        setFocusField(side);
+        amountRef.current?.focus();
+    }, [setFocusField, side, amountRef]);
+
+
+    const localUsdString = tokenPriceInUsd && tokenNum > 0 ? (tokenNum * tokenPriceInUsd).toFixed(2).replace(/\.?0+$/, '') : '';
+
+    const inputValue = isUsdMode
+        ? (actionValueAsUsd ?? (quoteDirection === side ? usdAmount : localUsdString))
+        : (currentAmount ?? '');
+    const inputOnChange = isUsdMode ? handleUsdInputChange : handleTokenChange;
+
+    const showOverlay = isUsdMode ? !isActive && !actionValueAsUsd : !isActive && !showActionPreview;
+
+    const inputTextClass = (() => {
+        if (showOverlay || showActionPreview) return "text-transparent placeholder:text-transparent";
+        if (isUsdMode && actionValueAsUsd) return "text-secondary-text/45";
+        if (tokenNum === 0 && !isUsdMode) return "text-secondary-text";
+        return "text-primary-text";
+    })();
+
+    const overlayValue = isUsdMode ? usdValue : tokenNum;
+    const overlayFormat = isUsdMode ? { minimumFractionDigits: 0, maximumFractionDigits: 2 } : { maximumFractionDigits: token?.decimals || 2 };
+    const overlayEmpty = isUsdMode ? usdValue <= 0 : tokenNum === 0;
+
+    return (
+        <div
+            className={clsx("flex flex-col space-y-0.5 relative w-full cursor-text", side === 'source' && 'group/source', className)}
+            onClick={handleWrapperClick}
+        >
+            <div className="relative flex items-center h-12">
+                {isUsdMode && (
+                    <span className="text-[28px] leading-[34px] text-primary-text font-normal mr-1 select-none">$</span>
+                )}
+                <div className="w-full flex items-center py-[3px] relative">
+                    <Input
+                        ref={amountRef}
+                        type="text"
+                        inputMode="decimal"
+                        autoComplete="off"
+                        autoCorrect="off"
+                        placeholder="0"
+                        step={!isUsdMode ? (isNaN(step) ? 0.01 : step) : undefined}
+                        value={inputValue}
+                        onChange={inputOnChange}
+                        onFocus={handleFocus}
+                        onBlur={() => setInputFocused(false)}
+                        className={clsx(
+                            "text-[28px] leading-[34px] focus-visible:ring-0 focus-visible:border-transparent font-normal px-0 truncate bg-secondary-500 border-0 placeholder:text-secondary-text transition-none [font-kerning:none] [font-variant-ligatures:none]",
+                            inputTextClass,
+                            !isActive && isQuoteLoading && "animate-pulse-stronger",
+                        )}
+                    />
+                    {!isUsdMode && showActionPreview && (
+                        <span className="absolute inset-0 flex items-center py-[3px] pr-3 text-[28px] leading-[34px] font-normal text-secondary-text/45 pointer-events-none truncate [font-kerning:none] [font-variant-ligatures:none]">
+                            {formattedActionTokenValue}
+                        </span>
+                    )}
+                    <span className={clsx(
+                        "absolute inset-0 flex items-center py-[3px] pr-3 text-[28px] leading-[34px] font-normal pointer-events-none [font-kerning:none] [font-variant-ligatures:none]",
+                        showOverlay
+                            ? (overlayEmpty ? "text-secondary-text" : "text-primary-text")
+                            : "invisible",
+                        showOverlay && isQuoteLoading && "animate-pulse-stronger",
+                    )}>
+                        {overlayEmpty
+                            ? '0'
+                            : <NumberFlow value={overlayValue} format={overlayFormat} trend={0} />
+                        }
+                    </span>
+                </div>
+            </div>
+
+            <div
+                ref={!isUsdMode ? suffixRef : undefined}
+                className={clsx(
+                    "text-base leading-5 font-medium text-secondary-text h-5 flex items-center gap-1 [font-kerning:none] [font-variant-ligatures:none]",
+                    !isUsdMode && "usd-suffix",
+                    !isUsdMode && { "text-secondary-text/45": !!actionValueAsUsd },
+                )}
+            >
+                {toggleButton}
+                {isUsdMode ? (
+                    tokenNum > 0
+                        ? <NumberFlow className="p-0" value={tokenNum} suffix={` ${token?.symbol || ''}`} format={{ maximumFractionDigits: precision }} trend={0} />
+                        : <span className={clsx("flex items-center min-w-0 space-x-1", { "text-secondary-text/45": !!actionValueAsToken })}>
+                            <span className="truncate min-w-0">{actionValueAsToken ?? formattedTokenAmount}</span>
+                            <span className="shrink-0">{` ${token?.symbol || ''}`}</span>
+                        </span>
+                ) : (
+                    usdValue > 0
+                        ? <NumberFlow className="p-0" value={usdValue} prefix="$" format={{ minimumFractionDigits: 2, maximumFractionDigits: 2 }} trend={0} />
+                        : <span>{actionValueAsUsd ? `$${actionValueAsUsd}` : '$0'}</span>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default AmountField;
+
+function getTextWidth(text: string = '', font: string): number {
+    if (typeof document === "undefined") return 0;
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    if (!context) return 0;
+    context.font = font;
+    return context.measureText(text).width;
+}
+
+function getFontFromElement(el: HTMLElement | null): string {
+    if (!el) return '28px sans-serif';
+    const style = window.getComputedStyle(el);
+    return `${style.fontSize} ${style.fontFamily}`;
+}
+
+function formatTokenAmount(value: number, precision: number): string {
+    const fixed = value.toFixed(precision).replace(/\.?0+$/, '');
+    const [intPart, decPart] = fixed.split('.');
+    const formattedInt = Number(intPart).toLocaleString('en-US');
+    return decPart ? `${formattedInt}.${decPart}` : formattedInt;
+}
+
+function sanitizeDecimalInput(raw: string, maxDecimals?: number): string | null {
+    const v = raw.replace(',', '.');
+    if (v !== '' && !/^[0-9]*[.,]?[0-9]*$/.test(v)) return null;
+    if (maxDecimals != null && v.includes('.')) {
+        const [whole, decs = ''] = v.split('.');
+        if (decs.length > maxDecimals) {
+            return maxDecimals === 0 ? whole : `${whole}.${decs.slice(0, maxDecimals)}`;
+        }
+    }
+    return v;
+}

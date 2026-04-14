@@ -5,7 +5,11 @@ import { Address } from "./address";
 export default function MainStepValidation(): ((values: SwapFormValues) => FormikErrors<SwapFormValues>) {
     return (values: SwapFormValues) => {
         let errors: FormikErrors<SwapFormValues> = {};
-        let amount = values.amount ? Number(values.amount) : undefined;
+        const direction = values.quoteDirection ?? 'source';
+        const activeAmount = direction === 'destination'
+            ? (values.receiveAmount ? Number(values.receiveAmount) : undefined)
+            : (values.amount ? Number(values.amount) : undefined);
+        const amountField: keyof SwapFormValues = direction === 'destination' ? 'receiveAmount' : 'amount';
 
         if (!values.fromCurrency) {
             errors.fromCurrency = 'Select source asset';
@@ -19,14 +23,14 @@ export default function MainStepValidation(): ((values: SwapFormValues) => Formi
         if (!values.to) {
             errors.to = 'Select destination';
         }
-        if (!amount) {
-            errors.amount = 'Enter an amount';
+        if (!activeAmount) {
+            errors[amountField] = 'Enter an amount';
         }
-        if (amount && !/^[0-9]*[.,]?[0-9]*$/i.test(amount.toString())) {
-            errors.amount = 'Invalid amount';
+        if (activeAmount && !/^[0-9]*[.,]?[0-9]*$/i.test(activeAmount.toString())) {
+            errors[amountField] = 'Invalid amount';
         }
-        if (amount && amount < 0) {
-            errors.amount = "Can't be negative";
+        if (activeAmount && activeAmount < 0) {
+            errors[amountField] = "Can't be negative";
         }
         // if (maxAllowedAmount != undefined && (amount && amount > maxAllowedAmount)) {
         //     errors.amount = `Max amount is ${maxAllowedAmount}`;

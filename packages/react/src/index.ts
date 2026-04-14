@@ -60,6 +60,7 @@ export type {
     SwapData,
     StartSwapParams,
     QuoteParams,
+    QuoteDirection,
     SwapHistoryParams,
     OrderParams,
 } from './types'

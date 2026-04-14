@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { useUsdModeStore } from "@/stores/usdModeStore";
 import { resolveTokenUsdPrice } from "@/helpers/tokenHelper";
 import { Token } from "@/Models/Network";
+import type { QuoteDirection } from "@train-protocol/react";
 
 let _skipNextSync = false;
 
@@ -10,13 +11,15 @@ export function skipNextUsdSync() {
 }
 
 interface UseUsdTokenSyncArgs {
-    fromCurrency: Token | undefined;
+    side: QuoteDirection;
+    token: Token | undefined;
     amount: string | undefined;
+    quoteDirection: QuoteDirection;
     setFieldValue: (field: string, value: any, shouldValidate?: boolean) => void;
 }
 
 interface UseUsdTokenSyncReturn {
-    sourceCurrencyPriceInUsd: number | undefined;
+    tokenPriceInUsd: number | undefined;
     isUsdMode: boolean;
     usdAmount: string;
     handleToggle: () => void;
@@ -24,8 +27,10 @@ interface UseUsdTokenSyncReturn {
 }
 
 export function useUsdTokenSync({
-    fromCurrency,
+    side,
+    token,
     amount,
+    quoteDirection,
     setFieldValue,
 }: UseUsdTokenSyncArgs): UseUsdTokenSyncReturn {
     const isUsdMode = useUsdModeStore(s => s.isUsdMode);
@@ -33,10 +38,13 @@ export function useUsdTokenSync({
     const setUsdAmount = useUsdModeStore(s => s.setUsdAmount);
     const toggleMode = useUsdModeStore(s => s.toggleMode);
 
-    const sourceCurrencyPriceInUsd = resolveTokenUsdPrice(fromCurrency);
+    const tokenPriceInUsd = resolveTokenUsdPrice(token);
 
-    const prevPriceRef = useRef(sourceCurrencyPriceInUsd);
-    const prevTokenSymbolRef = useRef(fromCurrency?.symbol);
+    const fieldName = side === 'source' ? 'amount' : 'receiveAmount';
+    const isActiveSide = quoteDirection === side;
+
+    const prevPriceRef = useRef(tokenPriceInUsd);
+    const prevTokenSymbolRef = useRef(token?.symbol);
     const internalAmountChangeRef = useRef(false);
     const currentAmountRef = useRef(amount);
     currentAmountRef.current = amount;
@@ -44,15 +52,15 @@ export function useUsdTokenSync({
 
     const computeAndSetTokenAmount = useCallback((usdValue: string) => {
         let newAmount: string;
-        if (!sourceCurrencyPriceInUsd || sourceCurrencyPriceInUsd === 0 || !usdValue) {
+        if (!tokenPriceInUsd || tokenPriceInUsd === 0 || !usdValue) {
             newAmount = '';
         } else {
             const usdNum = Number(usdValue);
             if (isNaN(usdNum) || usdNum <= 0) {
                 newAmount = '';
             } else {
-                const precision = fromCurrency?.decimals || 6;
-                const tokenAmount = usdNum / sourceCurrencyPriceInUsd;
+                const precision = token?.decimals || 6;
+                const tokenAmount = usdNum / tokenPriceInUsd;
                 const truncated = Math.trunc(tokenAmount * Math.pow(10, precision)) / Math.pow(10, precision);
                 newAmount = truncated.toString();
             }
@@ -60,36 +68,38 @@ export function useUsdTokenSync({
         if (newAmount !== (currentAmountRef.current || '')) {
             internalAmountChangeRef.current = true;
         }
-        setFieldValue('amount', newAmount, true);
-    }, [sourceCurrencyPriceInUsd, fromCurrency?.decimals, setFieldValue]);
+        setFieldValue('quoteDirection', side, false);
+        setFieldValue(fieldName, newAmount, true);
+    }, [tokenPriceInUsd, token?.decimals, setFieldValue, fieldName, side]);
 
-    // Recompute token amount when price changes in USD mode
+    // Recompute token amount when price changes in USD mode (active side only)
     useEffect(() => {
-        if (!isUsdMode || !sourceCurrencyPriceInUsd || !usdAmount) {
-            prevPriceRef.current = sourceCurrencyPriceInUsd;
+        if (!isActiveSide || !isUsdMode || !tokenPriceInUsd || !usdAmount) {
+            prevPriceRef.current = tokenPriceInUsd;
             return;
         }
-        if (prevPriceRef.current === sourceCurrencyPriceInUsd) return;
-        prevPriceRef.current = sourceCurrencyPriceInUsd;
+        if (prevPriceRef.current === tokenPriceInUsd) return;
+        prevPriceRef.current = tokenPriceInUsd;
         computeAndSetTokenAmount(usdAmount);
-    }, [sourceCurrencyPriceInUsd, isUsdMode, usdAmount, computeAndSetTokenAmount]);
+    }, [tokenPriceInUsd, isUsdMode, usdAmount, computeAndSetTokenAmount, isActiveSide]);
 
-    // Recompute token amount when source token changes in USD mode
+    // Recompute token amount when token changes in USD mode (active side only)
     useEffect(() => {
-        if (!isUsdMode || !sourceCurrencyPriceInUsd || !usdAmount) return;
-        if (prevTokenSymbolRef.current === fromCurrency?.symbol) return;
-        prevTokenSymbolRef.current = fromCurrency?.symbol;
-        prevPriceRef.current = sourceCurrencyPriceInUsd;
+        if (!isActiveSide || !isUsdMode || !tokenPriceInUsd || !usdAmount) return;
+        if (prevTokenSymbolRef.current === token?.symbol) return;
+        prevTokenSymbolRef.current = token?.symbol;
+        prevPriceRef.current = tokenPriceInUsd;
         computeAndSetTokenAmount(usdAmount);
-    }, [fromCurrency?.symbol, isUsdMode, sourceCurrencyPriceInUsd, usdAmount, computeAndSetTokenAmount]);
+    }, [token?.symbol, isUsdMode, tokenPriceInUsd, usdAmount, computeAndSetTokenAmount, isActiveSide]);
 
-    // Sync usdAmount when formik amount changes externally (e.g. quick action buttons)
+    // Sync usdAmount when formik amount changes externally (active side only)
     useEffect(() => {
         const amountChanged = prevAmountRef.current !== amount;
         prevAmountRef.current = amount;
 
-        const skipSync = _skipNextSync;
-        if (skipSync) _skipNextSync = false;
+        // Only the source side consumes the skip flag (set by source MinMax)
+        const skipSync = side === 'source' && _skipNextSync;
+        if (side === 'source' && _skipNextSync) _skipNextSync = false;
 
         if (internalAmountChangeRef.current) {
             if (amountChanged) {
@@ -99,27 +109,27 @@ export function useUsdTokenSync({
         }
         if (!amountChanged) return;
         if (skipSync) return;
-        if (!isUsdMode || !sourceCurrencyPriceInUsd) return;
+        if (!isActiveSide || !isUsdMode || !tokenPriceInUsd) return;
 
         const amountNum = Number(amount);
         if (isNaN(amountNum) || amountNum <= 0) {
             setUsdAmount('');
             return;
         }
-        setUsdAmount((amountNum * sourceCurrencyPriceInUsd).toFixed(2).replace(/\.?0+$/, ''));
-    }, [amount, isUsdMode, sourceCurrencyPriceInUsd, setUsdAmount]);
+        setUsdAmount((amountNum * tokenPriceInUsd).toFixed(2).replace(/\.?0+$/, ''));
+    }, [amount, isUsdMode, tokenPriceInUsd, setUsdAmount, isActiveSide, side]);
 
     const handleToggle = useCallback(() => {
-        if (!isUsdMode && sourceCurrencyPriceInUsd) {
+        if (!isUsdMode && tokenPriceInUsd) {
             const amountNum = Number(amount);
             if (!isNaN(amountNum) && amountNum > 0) {
-                setUsdAmount((amountNum * sourceCurrencyPriceInUsd).toFixed(2).replace(/\.?0+$/, ''));
+                setUsdAmount((amountNum * tokenPriceInUsd).toFixed(2).replace(/\.?0+$/, ''));
             } else {
                 setUsdAmount('');
             }
         }
         toggleMode();
-    }, [isUsdMode, amount, sourceCurrencyPriceInUsd, setUsdAmount, toggleMode]);
+    }, [isUsdMode, amount, tokenPriceInUsd, setUsdAmount, toggleMode]);
 
     const handleUsdInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value.replace(',', '.');
@@ -129,7 +139,7 @@ export function useUsdTokenSync({
     }, [setUsdAmount, computeAndSetTokenAmount]);
 
     return {
-        sourceCurrencyPriceInUsd,
+        tokenPriceInUsd,
         isUsdMode,
         usdAmount,
         handleToggle,

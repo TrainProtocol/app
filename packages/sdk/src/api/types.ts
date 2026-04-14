@@ -74,6 +74,7 @@ type QuoteRoute = {
 export type QuoteDetails = {
     signature: string;
     totalFee: string;
+    amount?: string;
     receiveAmount: string;
     sourceSolverAddress: string;
     destinationSolverAddress: string;

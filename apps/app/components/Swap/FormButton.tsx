@@ -46,7 +46,8 @@ const FormButton = ({
         );
     }
 
-    if (values.from && values.to && values.fromCurrency && values.toCurrency && values.amount && !quote && !isQuoteLoading) {
+    const hasUserAmount = values.amount || values.receiveAmount;
+    if (values.from && values.to && values.fromCurrency && values.toCurrency && hasUserAmount && !quote && !isQuoteLoading) {
         return <SwapButton
             className="plausible-event-name=Swap+initiated"
             type="submit"
@@ -97,6 +98,7 @@ function ActionText(errors: FormikErrors<SwapFormValues>, actionDisplayName: str
         || errors.fromCurrency as string
         || errors.toCurrency as string
         || errors.amount as string
+        || errors.receiveAmount as string
         || (actionDisplayName)
 }
 

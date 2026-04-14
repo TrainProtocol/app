@@ -39,6 +39,8 @@ export function generateSwapInitialValues(settings: TrainAppSettings, queryParam
         from: initialSource,
         to: initialDestination,
         amount: initialAmount,
+        receiveAmount: '',
+        quoteDirection: 'source',
         fromCurrency: initialSourceCurrency,
         toCurrency: initialDestinationCurrency,
         destination_address: initialAddress,

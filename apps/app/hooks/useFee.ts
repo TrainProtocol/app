@@ -39,26 +39,33 @@ type Props = {
     to: string | undefined
     fromCurrency: Token | undefined
     toCurrency: Token | undefined
-    amount: string | number | undefined
+    amount?: string | number
+    receiveAmount?: string | number
 }
 
 export function useQuoteData(formValues: Props | undefined, refreshInterval?: number): UseQuoteData {
-    const { fromCurrency, toCurrency, from, to, amount } = formValues || {}
+    const { fromCurrency, toCurrency, from, to, amount, receiveAmount } = formValues || {}
 
+    const isReverse = receiveAmount != null && receiveAmount !== ''
+    const decimals = isReverse ? toCurrency?.decimals : fromCurrency?.decimals
+    const rawAmount = isReverse ? receiveAmount : amount
     const convertedAmount = useMemo(() => {
-        if (amount == null || amount === '' || !fromCurrency?.decimals) return undefined
+        if (rawAmount == null || rawAmount === '' || !decimals) return undefined
         try {
-            return parseUnits(String(amount), fromCurrency.decimals).toString()
+            return parseUnits(String(rawAmount), decimals).toString()
         } catch {
             return undefined
         }
-    }, [amount, fromCurrency?.decimals])
+    }, [rawAmount, decimals])
 
     const [debouncedAmount, setDebouncedAmount] = useState(convertedAmount)
     const [isDebouncing, setIsDebouncing] = useState(false)
 
     useEffect(() => {
-        if (convertedAmount === debouncedAmount) return
+        if (convertedAmount === debouncedAmount) {
+            setIsDebouncing(false)
+            return
+        }
 
         setIsDebouncing(true)
         const handler = setTimeout(() => {
@@ -71,11 +78,13 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
         }
     }, [convertedAmount, debouncedAmount])
 
-    const canGetQuote = !!(from && to && fromCurrency && toCurrency && debouncedAmount && !isDebouncing)
+    const hasQuoteParams = !!(from && to && fromCurrency && toCurrency)
+    const hasValidAmount = !!debouncedAmount && Number(debouncedAmount) > 0
+    const canGetQuote = !!(hasQuoteParams && hasValidAmount && !isDebouncing)
 
-    // Use React package's useQuote hook
     const { bestQuote, bestSolver, isLoading, error, refetch } = useQuote({
-        amount: debouncedAmount ?? '',
+        amount: !isReverse ? (debouncedAmount ?? '') : undefined,
+        receiveAmount: isReverse ? (debouncedAmount ?? '') : undefined,
         sourceNetwork: from ?? '',
         destinationNetwork: to ?? '',
         sourceTokenContract: fromCurrency?.contract || undefined,
@@ -86,9 +95,9 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
     })
 
     return {
-        quote: (error || !canGetQuote) ? undefined : bestQuote as SwapQuote | undefined,
-        solverId: (error || !canGetQuote) ? undefined : bestSolver?.solver?.id,
-        isQuoteLoading: isLoading,
+        quote: (error || !hasQuoteParams || !hasValidAmount) ? undefined : bestQuote as SwapQuote | undefined,
+        solverId: (error || !hasQuoteParams || !hasValidAmount) ? undefined : bestSolver?.solver?.id,
+        isQuoteLoading: isLoading || isDebouncing,
         isDebouncing,
         quoteError: error as unknown as QuoteError | undefined,
         mutateFee: refetch,
@@ -96,8 +105,10 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
 }
 
 export function transformFormValuesToQuoteArgs(values: SwapFormValues): Props | undefined {
+    const direction = values.quoteDirection ?? 'source'
     return {
-        amount: values.amount,
+        amount: direction === 'source' ? values.amount : undefined,
+        receiveAmount: direction === 'destination' ? values.receiveAmount : undefined,
         from: values.from?.caip2Id,
         to: values.to?.caip2Id,
         fromCurrency: values.fromCurrency,
