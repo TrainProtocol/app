@@ -1,11 +1,11 @@
 import { FormikErrors } from "formik";
 import { SwapFormValues } from "../components/DTOs/SwapFormValues";
 import { Address } from "./address";
+import type { QuoteDirection } from "@train-protocol/react";
 
-export default function MainStepValidation(): ((values: SwapFormValues) => FormikErrors<SwapFormValues>) {
+export default function MainStepValidation(direction: QuoteDirection): ((values: SwapFormValues) => FormikErrors<SwapFormValues>) {
     return (values: SwapFormValues) => {
         let errors: FormikErrors<SwapFormValues> = {};
-        const direction = values.quoteDirection ?? 'source';
         const activeAmount = direction === 'destination'
             ? (values.receiveAmount ? Number(values.receiveAmount) : undefined)
             : (values.amount ? Number(values.amount) : undefined);

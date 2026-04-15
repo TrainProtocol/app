@@ -2,12 +2,14 @@ import RoutePicker from "./RoutePicker";
 import Address from "./Address";
 import DestinationWalletPicker from "./DestinationWalletPicker";
 import AmountField from "./AmountField";
+import type { SwapQuote } from "@train-protocol/react";
 
 type Props = {
     isQuoteLoading?: boolean;
+    quote?: SwapQuote;
 }
 
-const DestinationPicker = ({ isQuoteLoading }: Props) => {
+const DestinationPicker = ({ isQuoteLoading, quote }: Props) => {
     return (
         <div className="flex flex-col w-full bg-secondary-500 rounded-2xl p-4 pb-[15px] space-y-[27px]">
             <div className="grid grid-cols-9 gap-2 items-center h-7">
@@ -24,7 +26,7 @@ const DestinationPicker = ({ isQuoteLoading }: Props) => {
             <div className="items-center space-y-2">
                 <div className="grid grid-cols-[1fr_auto] gap-1 w-full max-w-full">
                     <div className="min-w-0 overflow-hidden">
-                        <AmountField side="destination" isQuoteLoading={isQuoteLoading} />
+                        <AmountField side="destination" isQuoteLoading={isQuoteLoading} quote={quote} />
                     </div>
                     <div className="justify-self-end self-start">
                         <RoutePicker direction="to" />

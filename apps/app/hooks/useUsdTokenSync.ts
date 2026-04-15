@@ -3,6 +3,7 @@ import { useUsdModeStore } from "@/stores/usdModeStore";
 import { resolveTokenUsdPrice } from "@/helpers/tokenHelper";
 import { Token } from "@/Models/Network";
 import type { QuoteDirection } from "@train-protocol/react";
+import { useQuoteDirection } from "@/context/quoteDirectionContext";
 
 let _skipNextSync = false;
 
@@ -14,7 +15,6 @@ interface UseUsdTokenSyncArgs {
     side: QuoteDirection;
     token: Token | undefined;
     amount: string | undefined;
-    quoteDirection: QuoteDirection;
     setFieldValue: (field: string, value: any, shouldValidate?: boolean) => void;
 }
 
@@ -30,13 +30,13 @@ export function useUsdTokenSync({
     side,
     token,
     amount,
-    quoteDirection,
     setFieldValue,
 }: UseUsdTokenSyncArgs): UseUsdTokenSyncReturn {
     const isUsdMode = useUsdModeStore(s => s.isUsdMode);
     const usdAmount = useUsdModeStore(s => s.usdAmount);
     const setUsdAmount = useUsdModeStore(s => s.setUsdAmount);
     const toggleMode = useUsdModeStore(s => s.toggleMode);
+    const { quoteDirection, setQuoteDirection } = useQuoteDirection();
 
     const tokenPriceInUsd = resolveTokenUsdPrice(token);
 
@@ -68,9 +68,9 @@ export function useUsdTokenSync({
         if (newAmount !== (currentAmountRef.current || '')) {
             internalAmountChangeRef.current = true;
         }
-        setFieldValue('quoteDirection', side, false);
+        setQuoteDirection(side);
         setFieldValue(fieldName, newAmount, true);
-    }, [tokenPriceInUsd, token?.decimals, setFieldValue, fieldName, side]);
+    }, [tokenPriceInUsd, token?.decimals, setFieldValue, fieldName, side, setQuoteDirection]);
 
     // Recompute token amount when price changes in USD mode (active side only)
     useEffect(() => {

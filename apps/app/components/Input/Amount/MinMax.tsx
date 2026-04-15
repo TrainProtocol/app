@@ -10,7 +10,7 @@ import { useBalance } from "@/lib/balances/useBalance";
 import { getNativeToken } from "@/Models/Network";
 import { useUsdModeStore } from "@/stores/usdModeStore";
 import { skipNextUsdSync } from "@/hooks/useUsdTokenSync";
-import { useFocusField } from "@/context/focusFieldContext";
+import { useQuoteDirection } from "@/context/quoteDirectionContext";
 
 type MinMaxProps = {
     fromCurrency: ExtendedToken,
@@ -26,7 +26,7 @@ const MinMax = (props: MinMaxProps) => {
     const { fromCurrency, from, limitsMinAmount, limitsMaxAmount, onActionHover } = props;
     const isUsdMode = useUsdModeStore(s => s.isUsdMode);
     const setUsdAmount = useUsdModeStore(s => s.setUsdAmount);
-    const { setFocusField } = useFocusField();
+    const { setQuoteDirection } = useQuoteDirection();
 
     const selectedSourceAccount = useSelectedAccount("from", from?.caip2Id);
     const { gasData } = useSWRGas(selectedSourceAccount?.address, from, fromCurrency)
@@ -72,8 +72,7 @@ const MinMax = (props: MinMaxProps) => {
             }
             setUsdAmount(usdValue);
         }
-        setFieldValue('quoteDirection', 'source', false)
-        setFocusField('source')
+        setQuoteDirection('source')
         setFieldValue('amount', value, true)
         onActionHover(undefined)
     }

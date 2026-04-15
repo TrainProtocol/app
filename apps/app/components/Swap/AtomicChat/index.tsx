@@ -20,7 +20,6 @@ const Swap: FC<ContainerProps> = ({ type }) => {
     const destinationNetwork = swap.destinationNetwork ?? values?.to
     const sourceAsset = swap.sourceToken ?? values?.fromCurrency
     const destinationAsset = swap.destinationToken ?? values?.toCurrency
-    const amount = swap.requestedAmount ?? values?.amount
     const hashlock = swap.hashlock
 
     const quoteParams = useMemo(() => {
@@ -30,9 +29,10 @@ const Swap: FC<ContainerProps> = ({ type }) => {
             to: destinationNetwork?.caip2Id,
             fromCurrency: sourceAsset,
             toCurrency: destinationAsset,
-            amount: amount != null ? String(amount) : undefined,
+            amount: values?.amount,
+            receiveAmount: values?.receiveAmount,
         });
-    }, [hashlock, sourceNetwork?.caip2Id, destinationNetwork?.caip2Id, sourceAsset, destinationAsset, amount]);
+    }, [hashlock, sourceNetwork?.caip2Id, destinationNetwork?.caip2Id, sourceAsset, destinationAsset, values?.amount, values?.receiveAmount]);
 
     const { quote, solverId, isQuoteLoading } = useQuoteData(quoteParams, 42000);
 

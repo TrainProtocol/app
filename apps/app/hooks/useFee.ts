@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import { parseUnits } from 'viem'
 import { SwapFormValues } from '../components/DTOs/SwapFormValues'
-import type { SwapQuote } from '@train-protocol/react'
+import type { QuoteDirection, SwapQuote } from '@train-protocol/react'
 import { Token } from '../Models/Network'
 import { useQuote } from '@train-protocol/react'
 
@@ -104,11 +104,10 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
     }
 }
 
-export function transformFormValuesToQuoteArgs(values: SwapFormValues): Props | undefined {
-    const direction = values.quoteDirection ?? 'source'
+export function transformFormValuesToQuoteArgs(values: SwapFormValues, quoteDirection: QuoteDirection): Props | undefined {
     return {
-        amount: direction === 'source' ? values.amount : undefined,
-        receiveAmount: direction === 'destination' ? values.receiveAmount : undefined,
+        amount: quoteDirection === 'source' ? values.amount : undefined,
+        receiveAmount: quoteDirection === 'destination' ? values.receiveAmount : undefined,
         from: values.from?.caip2Id,
         to: values.to?.caip2Id,
         fromCurrency: values.fromCurrency,
@@ -123,13 +122,15 @@ export function buildQuoteParamsFromAtomic(params: {
     fromCurrency?: Token
     toCurrency?: Token
     amount?: string | number
+    receiveAmount?: string | number
 }): Props | undefined {
-    if (!params.from || !params.to || !params.fromCurrency || !params.toCurrency || params.amount == null || params.amount === '') return undefined
+    if (!params.from || !params.to || !params.fromCurrency || !params.toCurrency || (!params.amount && !params.receiveAmount)) return undefined
     return {
         from: params.from,
         to: params.to,
         fromCurrency: params.fromCurrency,
         toCurrency: params.toCurrency,
-        amount: String(params.amount),
+        amount: params.amount ? String(params.amount) : undefined,
+        receiveAmount: params.receiveAmount ? String(params.receiveAmount) : undefined,
     }
 }

@@ -7,12 +7,14 @@ import MinMax from "./Amount/MinMax";
 import clsx from "clsx";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { useState } from "react";
+import type { SwapQuote } from "@train-protocol/react";
 
 type Props = {
     isQuoteLoading?: boolean;
+    quote?: SwapQuote;
 }
 
-const SourcePicker = ({ isQuoteLoading }: Props) => {
+const SourcePicker = ({ isQuoteLoading, quote }: Props) => {
     const { values } = useFormikContext<SwapFormValues>()
 
     const { fromCurrency, from } = values || {}
@@ -61,6 +63,7 @@ const SourcePicker = ({ isQuoteLoading }: Props) => {
                         actionValue={actionTempValue}
                         actionValueUsd={actionTempValueUsd}
                         isQuoteLoading={isQuoteLoading}
+                        quote={quote}
                     />
                 </div>
 
