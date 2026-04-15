@@ -18,12 +18,12 @@ import { useSwapStore } from "@/stores/swapStore";
 import { useActiveSwap } from "@/hooks/useActiveSwap";
 import AtomicPage from "../AtomicChat";
 import { useRecentNetworksStore } from "@/stores/recentRoutesStore";
-import { useQuoteDirection } from "@/context/quoteDirectionContext";
+import { useQuoteDirectionStore } from "@/stores/quoteDirectionStore";
 
 export default function Form() {
     const formikRef = useRef<FormikProps<SwapFormValues>>(null);
     const router = useRouter();
-    const { quoteDirection } = useQuoteDirection()
+    const quoteDirection = useQuoteDirectionStore(s => s.quoteDirection)
     const query = useQueryState()
     const { isLoggedIn } = useSharedSecretDerivation()
     const [quote, setQuote] = useState<SwapQuote | undefined>()

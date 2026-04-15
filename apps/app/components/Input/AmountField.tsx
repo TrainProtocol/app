@@ -5,7 +5,7 @@ import NumberFlow from "@number-flow/react";
 import { ArrowUpDown } from "lucide-react";
 import { Input } from "@/components/shadcn/input";
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
-import { useQuoteDirection } from "@/context/quoteDirectionContext";
+import { useQuoteDirectionStore } from "@/stores/quoteDirectionStore";
 import { useUsdTokenSync } from "@/hooks/useUsdTokenSync";
 import { isScientific } from "@/components/utils/RoundDecimals";
 import type { QuoteDirection, SwapQuote } from "@train-protocol/react";
@@ -23,7 +23,8 @@ interface AmountFieldProps {
 
 const AmountField = ({ side, actionValue, actionValueUsd, className, showToggle, isQuoteLoading, quote }: AmountFieldProps) => {
     const { values, setFieldValue } = useFormikContext<SwapFormValues>();
-    const { quoteDirection, setQuoteDirection } = useQuoteDirection();
+    const quoteDirection = useQuoteDirectionStore(s => s.quoteDirection);
+    const setQuoteDirection = useQuoteDirectionStore(s => s.setQuoteDirection);
 
     const fieldName: 'amount' | 'receiveAmount' = side === 'source' ? 'amount' : 'receiveAmount';
     const token = side === 'source' ? values?.fromCurrency : values?.toCurrency;

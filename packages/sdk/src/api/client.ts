@@ -57,14 +57,11 @@ export class TrainApiClient {
         destinationTokenContract?: string
         includeReward?: boolean
     }): Promise<AggregatedQuoteResponse> {
-        const { amount, receiveAmount, sourceNetwork, destinationNetwork, includeReward = true, sourceTokenContract, destinationTokenContract } = params
+        const { includeReward = true, sourceTokenContract, destinationTokenContract, ...rest } = params
         const urlParams = new URLSearchParams({
-            sourceNetwork,
-            destinationNetwork,
+            ...rest,
             includeReward: String(includeReward),
         })
-        if (amount) urlParams.set('amount', amount)
-        if (receiveAmount) urlParams.set('receiveAmount', receiveAmount)
         if (sourceTokenContract) urlParams.set('sourceTokenContract', sourceTokenContract)
         if (destinationTokenContract) urlParams.set('destinationTokenContract', destinationTokenContract)
         const query = urlParams.toString()

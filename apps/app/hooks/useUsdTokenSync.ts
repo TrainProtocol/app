@@ -3,7 +3,7 @@ import { useUsdModeStore } from "@/stores/usdModeStore";
 import { resolveTokenUsdPrice } from "@/helpers/tokenHelper";
 import { Token } from "@/Models/Network";
 import type { QuoteDirection } from "@train-protocol/react";
-import { useQuoteDirection } from "@/context/quoteDirectionContext";
+import { useQuoteDirectionStore } from "@/stores/quoteDirectionStore";
 
 let _skipNextSync = false;
 
@@ -36,7 +36,8 @@ export function useUsdTokenSync({
     const usdAmount = useUsdModeStore(s => s.usdAmount);
     const setUsdAmount = useUsdModeStore(s => s.setUsdAmount);
     const toggleMode = useUsdModeStore(s => s.toggleMode);
-    const { quoteDirection, setQuoteDirection } = useQuoteDirection();
+    const quoteDirection = useQuoteDirectionStore(s => s.quoteDirection);
+    const setQuoteDirection = useQuoteDirectionStore(s => s.setQuoteDirection);
 
     const tokenPriceInUsd = resolveTokenUsdPrice(token);
 

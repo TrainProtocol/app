@@ -47,9 +47,14 @@ export function useQuote(params: QuoteParams): UseQuoteResult {
 
     const canFetch = enabled && !!debouncedAmount && !!sourceNetwork && !!destinationNetwork && Number(debouncedAmount) > 0
 
+    const amountParams = amount != null
+        ? { amount: debouncedAmount }
+        : receiveAmount != null
+            ? { receiveAmount: debouncedAmount }
+            : {}
+
     const queryKeyParams = {
-        amount: amount != null ? debouncedAmount : undefined,
-        receiveAmount: receiveAmount != null ? debouncedAmount : undefined,
+        ...amountParams,
         sourceNetwork,
         destinationNetwork,
         sourceTokenContract,
@@ -60,8 +65,7 @@ export function useQuote(params: QuoteParams): UseQuoteResult {
         queryKey: trainQueryKeys.quote(queryKeyParams),
         queryFn: async () => {
             const result = await apiClient.getQuote({
-                amount: amount != null ? debouncedAmount : undefined,
-                receiveAmount: receiveAmount != null ? debouncedAmount : undefined,
+                ...amountParams,
                 sourceNetwork,
                 destinationNetwork,
                 sourceTokenContract,
