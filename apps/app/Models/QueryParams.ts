@@ -15,6 +15,7 @@ export class QueryParams {
     hideFrom?: boolean = false;
     hideTo?: boolean = false;
     transferAmount?: string = "";
+    receiveAmount?: string = "";
     balances?: string = "";
     account?: string = "";
     buttonTextColor?: string = "";
