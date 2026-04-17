@@ -32,10 +32,10 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
     let amount: number | undefined
     if (swap.requestedAmount != null) {
         amount = Number(swap.requestedAmount)
-    } else if (values?.amount != null) {
-        amount = Number(values.amount)
     } else if (quote?.amount && source_asset?.decimals != null) {
         amount = Number(formatAmount(BigInt(quote.amount), source_asset.decimals))
+    } else if (values?.amount != null) {
+        amount = Number(values.amount)
     }
     const hashlock = swap.hashlock
 

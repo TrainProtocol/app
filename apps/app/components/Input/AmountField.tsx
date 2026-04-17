@@ -29,14 +29,20 @@ const AmountField = ({ side, actionValue, actionValueUsd, className, showToggle,
     const fieldName: 'amount' | 'receiveAmount' = side === 'source' ? 'amount' : 'receiveAmount';
     const token = side === 'source' ? values?.fromCurrency : values?.toCurrency;
     const quoteAmount = side === 'source' ? quote?.amount : quote?.receiveAmount;
+    const quoteDerivedAmount = quoteAmount && token?.decimals != null ? formatAmount(BigInt(quoteAmount), token.decimals) : '';
+
+
+    const stableDerivedAmountRef = useRef(quoteDerivedAmount);
+    if (!isQuoteLoading) stableDerivedAmountRef.current = quoteDerivedAmount;
+
     const currentAmount = quoteDirection === side
         ? (values?.[fieldName] ?? '')
-        : (quoteAmount && token?.decimals != null ? formatAmount(BigInt(quoteAmount), token.decimals) : '');
+        : (isQuoteLoading ? stableDerivedAmountRef.current : quoteDerivedAmount);
 
     const amountRef = useRef<HTMLInputElement>(null);
     const suffixRef = useRef<HTMLDivElement>(null);
 
-    const { tokenPriceInUsd, isUsdMode, usdAmount, handleToggle, handleUsdInputChange, } = useUsdTokenSync({ side, token, amount: currentAmount, setFieldValue });
+    const { tokenPriceInUsd, isUsdMode, usdAmount, toggleMode, handleUsdInputChange, } = useUsdTokenSync({ side, token, setFieldValue });
 
     const [inputFocused, setInputFocused] = useState(false);
     const handleTokenChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,8 +87,8 @@ const AmountField = ({ side, actionValue, actionValueUsd, className, showToggle,
     const onTogglePress = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         amountRef.current?.blur();
-        handleToggle();
-    }, [handleToggle]);
+        toggleMode();
+    }, [toggleMode]);
 
     const toggleButton = side === 'source' && tokenPriceInUsd ? (
         <button
@@ -105,14 +111,14 @@ const AmountField = ({ side, actionValue, actionValueUsd, className, showToggle,
     const localUsdString = tokenPriceInUsd && tokenNum > 0 ? (tokenNum * tokenPriceInUsd).toFixed(2).replace(/\.?0+$/, '') : '';
 
     const inputValue = isUsdMode
-        ? (actionValueAsUsd ?? (quoteDirection === side ? usdAmount : localUsdString))
+        ? (actionValueAsUsd ?? (quoteDirection === side && usdAmount ? usdAmount : localUsdString))
         : (currentAmount ?? '');
     const inputOnChange = isUsdMode ? handleUsdInputChange : handleTokenChange;
 
     const showOverlay = isUsdMode ? !inputFocused && !actionValueAsUsd : !inputFocused && !showActionPreview;
 
     const inputTextClass = (() => {
-        if (showOverlay || showActionPreview) return "text-transparent placeholder:text-transparent";
+        if (showOverlay || (showActionPreview && !isUsdMode)) return "text-transparent placeholder:text-transparent";
         if (isUsdMode && actionValueAsUsd) return "text-secondary-text/45";
         return "text-primary-text";
     })();
