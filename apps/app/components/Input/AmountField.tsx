@@ -116,16 +116,11 @@ const AmountField = ({ side, actionValue, actionValueUsd, className, showToggle,
     const inputOnChange = isUsdMode ? handleUsdInputChange : handleTokenChange;
 
     const showOverlay = isUsdMode ? !inputFocused && !actionValueAsUsd : !inputFocused && !showActionPreview;
-
-    const inputTextClass = (() => {
-        if (showOverlay || (showActionPreview && !isUsdMode)) return "text-transparent placeholder:text-transparent";
-        if (isUsdMode && actionValueAsUsd) return "text-secondary-text/45";
-        return "text-primary-text";
-    })();
-
+    const hideInput = showOverlay || (showActionPreview && !isUsdMode);
     const overlayValue = isUsdMode ? usdValue : tokenNum;
     const overlayFormat = isUsdMode ? { minimumFractionDigits: 0, maximumFractionDigits: 2 } : { maximumFractionDigits: token?.decimals || 2 };
-    const overlayIsPlaceholder = quoteDirection === side && currentAmount === '';
+    const hasValue = hideInput ? overlayValue > 0 : !!inputValue;
+    const textColor = hasValue ? "text-primary-text" : "text-secondary-text";
 
     return (
         <div
@@ -134,7 +129,7 @@ const AmountField = ({ side, actionValue, actionValueUsd, className, showToggle,
         >
             <div className="relative flex items-center h-12">
                 {isUsdMode && (
-                    <span className="text-[28px] leading-[34px] text-primary-text font-normal mr-1 select-none">$</span>
+                    <span className={clsx("text-[28px] leading-[34px] font-normal mr-1 select-none", textColor, !inputFocused && isQuoteLoading && "animate-pulse-stronger",)}>$</span>
                 )}
                 <div className="w-full flex items-center py-[3px] relative">
                     <Input
@@ -150,8 +145,8 @@ const AmountField = ({ side, actionValue, actionValueUsd, className, showToggle,
                         onFocus={handleFocus}
                         onBlur={() => setInputFocused(false)}
                         className={clsx(
-                            "text-[28px] leading-[34px] focus-visible:ring-0 focus-visible:border-transparent font-normal px-0 truncate bg-secondary-500 border-0 placeholder:text-secondary-text transition-none [font-kerning:none] [font-variant-ligatures:none]",
-                            inputTextClass,
+                            "text-[28px] leading-[34px] focus-visible:ring-0 focus-visible:border-transparent font-normal px-0 truncate bg-secondary-500 border-0 placeholder:text-secondary-text text-primary-text transition-none [font-kerning:none] [font-variant-ligatures:none]",
+                            hideInput && "text-transparent placeholder:text-transparent",
                             !inputFocused && isQuoteLoading && "animate-pulse-stronger",
                         )}
                     />
@@ -162,9 +157,7 @@ const AmountField = ({ side, actionValue, actionValueUsd, className, showToggle,
                     )}
                     <span className={clsx(
                         "absolute inset-0 flex items-center py-[3px] pr-3 text-[28px] leading-[34px] font-normal pointer-events-none [font-kerning:none] [font-variant-ligatures:none]",
-                        showOverlay
-                            ? (overlayIsPlaceholder ? "text-secondary-text" : "text-primary-text")
-                            : "invisible",
+                        showOverlay ? textColor : "invisible",
                         showOverlay && isQuoteLoading && "animate-pulse-stronger",
                     )}>
                         <NumberFlow value={overlayValue} format={overlayFormat} trend={0} />
