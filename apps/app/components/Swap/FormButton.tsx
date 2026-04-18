@@ -32,7 +32,17 @@ const FormButton = ({
     const { isLoggedIn } = useSharedSecretDerivation();
     const { open: openLogin } = useLoginModalStore();
 
-    // Check derivation method first (before any other checks)
+    if (values.from && values.to && values.fromCurrency && values.toCurrency && values.amount && !quote && !isQuoteLoading) {
+        return <SwapButton
+            className="plausible-event-name=Swap+initiated"
+            type="submit"
+            isDisabled={true}
+            isSubmitting={isSubmitting}
+        >
+            Can't get quote
+        </SwapButton>
+    }
+
     if (!isLoggedIn) {
         return (
             <>
@@ -44,17 +54,6 @@ const FormButton = ({
                 </SubmitButton>
             </>
         );
-    }
-
-    if (values.from && values.to && values.fromCurrency && values.toCurrency && values.amount && !quote && !isQuoteLoading) {
-        return <SwapButton
-            className="plausible-event-name=Swap+initiated"
-            type="submit"
-            isDisabled={true}
-            isSubmitting={isSubmitting}
-        >
-            Can't get quote
-        </SwapButton>
     }
 
     if (shouldConnectDestinationWallet) {
