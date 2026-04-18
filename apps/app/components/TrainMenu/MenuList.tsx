@@ -9,13 +9,16 @@ import inIframe from "@/components/utils/inIframe";
 import GitHubLogo from "@/components/Icons/GitHubLogo";
 import TwitterLogo from "@/components/Icons/TwitterLogo";
 import Link from "next/link";
+import VaulDrawer from "@/components/Modal/vaulModal";
+import SendFeedback from "@/components/sendFeedback";
 import Menu from "./Menu";
 import dynamic from "next/dynamic";
 import { MenuStep } from "@/Models/Wizard";
 import { Separator } from "@/components/shadcn/separator";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
+import { UserStatusMenu } from "../SecretDerivation";
 
-const AuthBlock = dynamic(() => import("@/components/AuthBlock"), {
+const WalletsMenu = dynamic(() => import("../Wallet/ConnectedWallets").then((comp) => comp.WalletsMenu), {
     loading: () => <></>
 })
 
@@ -23,6 +26,7 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
     const router = useRouter();
     const { boot, show, update } = useIntercom()
     const [embedded, setEmbedded] = useState<boolean>()
+    const [openFeedbackModal, setOpenFeedbackModal] = useState(false);
     const { isMobile } = useWindowDimensions()
     const { autoRevealSecret, setAutoRevealSecret } = useSwapPreferencesStore()
     const { theme, setTheme } = useTheme()
@@ -34,7 +38,8 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
     return <div className="text-sm font-medium focus:outline-none h-full">
         <Menu>
 
-            <AuthBlock />
+            <UserStatusMenu />
+            <WalletsMenu />
 
 
             <Menu.Group>
@@ -118,10 +123,23 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
 
 
             <Menu.Group>
-                <Menu.Item onClick={() => goToStep(MenuStep.SuggestFeature)} icon={<MessageSquarePlus className="h-5 w-5" />}>
+                <Menu.Item onClick={() => setOpenFeedbackModal(true)} target="_blank" icon={<MessageSquarePlus className="h-5 w-5" />}>
                     Suggest a Feature
                 </Menu.Item>
             </Menu.Group>
+            <VaulDrawer
+                show={openFeedbackModal}
+                header="Suggest a Feature"
+                setShow={setOpenFeedbackModal}
+                modalId="suggestFeature"
+                mode="fitHeight"
+            >
+                <VaulDrawer.Snap id="item-1">
+                    <div className="p-0 md:max-w-md">
+                        <SendFeedback onSend={() => setOpenFeedbackModal(false)} />
+                    </div>
+                </VaulDrawer.Snap>
+            </VaulDrawer>
 
             <div className="space-y-3 w-full">
                 <Separator className="bg-secondary-500" />

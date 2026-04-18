@@ -1,8 +1,23 @@
+import { useEffect, useRef, useState } from 'react';
 import { Loader2, ChevronLeft, CircleX, AlertTriangle } from 'lucide-react';
 import VaulModal from '@/components/Modal/vaulModal';
+import { useSharedSecretDerivation } from '@train-protocol/react';
+import { mapPasskeyError } from '@train-protocol/auth';
+import { PasskeyChoice } from './PasskeyChoice';
+// import { Wallet } from '@/Models/WalletProvider';
+import { useSteps } from '@/hooks/useSteps';
+import { Steps, Step } from '@/components/Step';
+// import OptionSelect from './OptionSelect';
 import IconButton from '@/components/buttons/iconButton';
-import { LoginSteps } from '../LoginSteps';
-import { usePasskeyLoginFlow } from '@/hooks/usePasskeyLoginFlow';
+
+//type LoginStep = 'pick' | 'passkey_recovery' | 'wallet_select' | 'signing';
+type LoginStep = 'unsupported' | 'passkey_recovery' | 'signing';
+
+// const getErrorMessage = (error: unknown, fallback: string): string => {
+//   if (error instanceof Error) return error.message;
+//   if (typeof error === 'string') return error;
+//   return fallback;
+// };
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -10,43 +25,135 @@ interface LoginModalProps {
 }
 
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
-  const loginFlow = usePasskeyLoginFlow({
-    isActive: isOpen,
-    onSuccess: onClose,
-    onDismiss: onClose,
-  });
+  const { loginWithPasskey, loginWithWallet, derivationMessage, passkeyCredentials, isReady, prfSupportDetails } = useSharedSecretDerivation();
+  const hasStoredPasskeys = passkeyCredentials.length > 0;
+  const { currentStep, goToStep, goBack, canGoBack, reset, isStep } = useSteps<LoginStep>({ initial: 'signing' });
+  const [passkeyError, setPasskeyError] = useState<string | null>(null);
+  const [signingError, setSigningError] = useState<string | null>(null);
+  const loginTriggered = useRef(false);
+
+  const passkeyUnsupported = isReady && prfSupportDetails && !prfSupportDetails.supported;
+
+  useEffect(() => {
+    if (isOpen) {
+      reset();
+      setPasskeyError(null);
+      setSigningError(null);
+      loginTriggered.current = false;
+    }
+  }, [isOpen, reset]);
+
+  const closeAndReset = () => {
+    onClose();
+  };
+
+  const startPasskeyLogin = async (options?: { forceCreate?: boolean; crossDevice?: boolean }) => {
+    goToStep('signing');
+    setPasskeyError(null);
+    try {
+      if (options?.forceCreate) {
+        await loginWithPasskey({ forceCreate: true, label: 'Train' });
+      } else if (options?.crossDevice) {
+        await loginWithPasskey({ crossDevice: true });
+      } else {
+        await loginWithPasskey();
+      }
+      closeAndReset();
+    } catch (e) {
+      const message = mapPasskeyError(e);
+      setPasskeyError(message);
+      goToStep('passkey_recovery', 'back');
+    }
+  };
+
+  // Auto-trigger passkey login when modal opens, or show unsupported screen
+  // Delay so the modal can render and measure snap points before the browser passkey prompt blocks the UI
+  useEffect(() => {
+    if (isOpen && isReady && !loginTriggered.current) {
+      loginTriggered.current = true;
+      if (passkeyUnsupported) {
+        goToStep('unsupported');
+        return;
+      }
+      const timer = setTimeout(() => {
+        startPasskeyLogin(hasStoredPasskeys ? {} : { forceCreate: true });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, isReady]);
+
+  const handleBack = () => {
+    if (isStep('passkey_recovery')) {
+      closeAndReset();
+      return;
+    }
+    goBack();
+  };
 
   return (
     <VaulModal
       show={isOpen}
       setShow={(show) => {
-        if (!show) onClose();
+        if (!show) closeAndReset();
       }}
       header={
         <div className="inline-flex items-center gap-1">
           {
-            loginFlow.canGoBack &&
+            canGoBack &&
             <div className="-ml-2">
-              <IconButton onClick={loginFlow.handleBack} icon={
+              <IconButton onClick={handleBack} icon={
                 <ChevronLeft strokeWidth="2" />
               }>
               </IconButton>
             </div>
           }
-          <h2>{loginFlow.currentStep === 'signing' ? 'Signing' : loginFlow.currentStep === 'unsupported' ? 'Browser not supported' : 'Login to continue'}</h2>
+          <h2>{currentStep === 'signing' ? 'Signing' : currentStep === 'unsupported' ? 'Browser not supported' : 'Login to continue'}</h2>
         </div>
       }
       modalId="secret-derivation-login-modal"
     >
       <VaulModal.Snap id="item-1">
-        <LoginSteps {...loginFlow} onDismiss={onClose} />
+        <Steps currentStep={currentStep}>
+
+          {/* Wallet login temporarily disabled — passkey is the default */}
+          {/* <Step name="pick">
+            <OptionSelect onPasskeyLogin={() => startPasskeyLogin(hasStoredPasskeys ? {} : { forceCreate: true })} goToStep={goToStep} onConnectFinish={onConnectFinish} />
+          </Step> */}
+
+          <Step name="unsupported">
+            <UnsupportedBrowser onClose={closeAndReset} />
+          </Step>
+
+          <Step name="passkey_recovery">
+            <PasskeyChoice
+              error={passkeyError || ''}
+              onTryAgain={() => startPasskeyLogin(hasStoredPasskeys ? {} : { forceCreate: true })}
+              onCreateNew={() => startPasskeyLogin({ forceCreate: true })}
+              onCrossDeviceLogin={() => startPasskeyLogin({ crossDevice: true })}
+            />
+          </Step>
+
+          {/* <Step name="wallet_select">
+            <WalletSelect startWalletLogin={startWalletLogin} />
+          </Step> */}
+
+          <Step name="signing">
+            <Signing
+              derivationMessage={derivationMessage}
+              onCancel={closeAndReset}
+              error={signingError}
+              isPasskey
+            />
+          </Step>
+
+        </Steps>
       </VaulModal.Snap>
     </VaulModal>
   );
 }
 
 
-export const UnsupportedBrowser = ({ onClose }: { onClose: () => void }) => {
+const UnsupportedBrowser = ({ onClose }: { onClose: () => void }) => {
   return (
     <div className="flex flex-col items-center justify-center gap-5 pt-10">
       <div className="w-14 h-14 rounded-2xl bg-secondary-500 flex items-center justify-center">
@@ -72,7 +179,7 @@ export const UnsupportedBrowser = ({ onClose }: { onClose: () => void }) => {
   );
 };
 
-export const Signing = ({
+const Signing = ({
   derivationMessage,
   onRetry,
   onCancel,

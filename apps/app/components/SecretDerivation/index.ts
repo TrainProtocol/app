@@ -1,6 +1,5 @@
 // components/SecretDerivation/index.ts
 
-export { LoginModal, Signing, UnsupportedBrowser } from './LoginModal';
-export { LoginSteps } from './LoginSteps';
+export { LoginModal } from './LoginModal';
 export { SignFlowModal } from './SignFlowModal';
-export { UserStatusHeader, UserStatusMenu, UserStatusContent, LoginDataCard } from './UserStatus';
+export { UserStatusHeader, UserStatusMenu } from './UserStatus';

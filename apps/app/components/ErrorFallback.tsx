@@ -3,7 +3,6 @@ import React from "react";
 import SubmitButton from "./buttons/submitButton"
 import ContactSupport from "./ContactSupport"
 import MessageComponent from "./MessageComponent"
-import Navbar from "./navbar"
 import GoHomeButton from "./utils/GoHome"
 import { IsExtensionError } from "../helpers/errorHelper";
 
@@ -15,7 +14,6 @@ export default function ErrorFallback({ error, resetErrorBoundary }) {
         <div className="styled-scroll">
             <main className="styled-scroll">
                 <div className="min-h-screen overflow-hidden relative font-robo">
-                    <Navbar />
                     <div className="mx-auto max-w-xl bg-secondary-700 shadow-card rounded-lg w-full overflow-hidden relative px-0 md:px-8 py-6 h-[500px] min-h-[550px]">
                         <MessageComponent>
                             <MessageComponent.Content icon="red">

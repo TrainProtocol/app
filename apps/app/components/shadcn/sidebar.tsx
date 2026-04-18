@@ -24,7 +24,7 @@ import {
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
-const SIDEBAR_WIDTH = "400px"
+const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
@@ -94,22 +94,6 @@ function SidebarProvider({
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open)
   }, [isMobile, setOpen, setOpenMobile])
 
-  // Adds a keyboard shortcut to toggle the sidebar.
-  React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-        (event.metaKey || event.ctrlKey)
-      ) {
-        event.preventDefault()
-        toggleSidebar()
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [toggleSidebar])
-
   // We add a state so that we can do data-state="expanded" or "collapsed".
   // This makes it easier to style the sidebar with Tailwind classes.
   const state = open ? "expanded" : "collapsed"
@@ -170,7 +154,7 @@ function Sidebar({
       <div
         data-slot="sidebar"
         className={cn(
-          "flex h-full w-[var(--sidebar-width)] flex-col bg-sidebar text-sidebar-foreground",
+          "flex h-screen w-[var(--sidebar-width)] shrink-0 flex-col bg-sidebar text-sidebar-foreground sticky top-0",
           className
         )}
         {...props}
@@ -230,7 +214,7 @@ function Sidebar({
           type="button"
           onClick={toggleSidebar}
           aria-label="Close sidebar"
-          className="absolute inset-y-0 -left-8 -z-10 flex items-start justify-center w-14 pr-6 pt-6 rounded-l-3xl hover:bg-secondary-300 text-muted-foreground hover:text-sidebar-accent-foreground transition-colors cursor-pointer"
+          className="absolute inset-y-0 -left-8 -z-10 flex items-start justify-center w-14 pr-6 pt-6 rounded-l-3xl hover:bg-sidebar-hover text-muted-foreground hover:text-sidebar-accent-foreground transition-colors cursor-pointer"
         >
           <ChevronsRight className="h-6 w-6" strokeWidth={2} />
         </button>
@@ -442,7 +426,7 @@ function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
     <ul
       data-slot="sidebar-menu"
       data-sidebar="menu"
-      className={cn("flex w-full min-w-0 flex-col gap-0", className)}
+      className={cn("flex w-full min-w-0 flex-col gap-1", className)}
       {...props}
     />
   )
@@ -459,15 +443,15 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
   )
 }
 
-const SIDEBAR_MENU_BUTTON_BASE = "peer/menu-button group/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate"
+const SIDEBAR_MENU_BUTTON_BASE = "peer/menu-button group/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! hover:bg-sidebar-hover hover:text-sidebar-accent-foreground focus-visible:ring-2 active:animate-press-down active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-hover data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate"
 
 const SIDEBAR_MENU_BUTTON_VARIANTS: Record<string, string> = {
-  default: "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-  outline: "bg-sidebar ring-1 ring-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:ring-1 hover:ring-sidebar-border",
+  default: "hover:bg-sidebar-hover hover:text-sidebar-accent-foreground",
+  outline: "bg-sidebar ring-1 ring-sidebar-border hover:bg-sidebar-hover hover:text-sidebar-accent-foreground hover:ring-1 hover:ring-sidebar-border",
 }
 
 const SIDEBAR_MENU_BUTTON_SIZES: Record<string, string> = {
-  default: "h-8 text-sm",
+  default: "h-11 text-sm",
   sm: "h-7 text-xs",
   lg: "h-12 text-sm group-data-[collapsible=icon]:p-0!",
 }

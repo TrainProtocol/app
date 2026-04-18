@@ -14,7 +14,6 @@ import NetworkRpcEditView from "@/components/Settings/NetworkRpcEditView";
 import RecoverSwap from "@/components/Swap/Atomic/RecoverSwap";
 import SwapHistory from "@/components/SwapHistory";
 import { useMenuNavigation } from "@/hooks/useMenuNavigation";
-import SendFeedback from "@/components/sendFeedback";
 
 const Comp = () => {
     const router = useRouter();
@@ -95,9 +94,6 @@ const Comp = () => {
                                 </WizardItem>
                                 <WizardItem StepName={MenuStep.Transactions} GoBack={goBackToMenuStep} inModal>
                                     <SwapHistory />
-                                </WizardItem>
-                                <WizardItem StepName={MenuStep.SuggestFeature} GoBack={goBackToMenuStep} inModal>
-                                    <SendFeedback onSend={goBackToMenuStep} />
                                 </WizardItem>
                             </Wizard>
                         </div>

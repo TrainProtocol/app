@@ -88,7 +88,7 @@ export const WalletsMenu = () => {
 
     return (
         <ConnectButton>
-            <div className="active:animate-press-down items-center space-x-1 disabled:cursor-not-allowed relative w-full flex justify-center font-semibold rounded-xl transform hover:brightness-125 transition duration-200 ease-in-out py-3 md:px-3 bg-actionButtonColor border-none text-primary-buttonTextColor px-4!" >
+            <div className="active:animate-press-down items-center space-x-1 disabled:cursor-not-allowed relative w-full flex justify-center font-semibold rounded-xl transform hover:brightness-125 transition duration-200 ease-in-out py-3 md:px-3 bg-secondary-400 border-none text-primary-text! px-4!" >
                 <span className="order-first absolute left-0 inset-y-0 flex items-center pl-3">
                     <WalletIcon className="h-6 w-6" strokeWidth="2" />
                 </span>
@@ -106,18 +106,18 @@ const WalletsMenuWalletsList = ({ wallets }: { wallets: Wallet[] }) => {
         <button onClick={() => setOpenModal(true)} type="button" className="py-3 px-4 text-primary-text bg-secondary-400 flex items-center w-full rounded-xl space-x-1 disabled:text-secondary-text/40 disabled:bg-secondary-600 disabled:cursor-not-allowed relative font-semibold transform border border-secondary-400 hover:bg-secondary-300 transition duration-200 ease-in-out outline-hidden">
             {
                 wallets.length === 1 ?
-                    <>
-                        <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                            <wallet.icon className='h-5 w-5' />
-                        </span>
-                        {!wallet.isLoading && wallet.address && <span className="grow text-center text-primary-text">{new Address(wallet.address, null, wallet.providerName).toShortString()}</span>}
-                    </>
+                    <div className="flex gap-4 items-star">
+                        <wallet.icon className='h-5 w-5' />
+                        {!wallet.isLoading && wallet.address && <p>{new Address(wallet.address, null, wallet.providerName).toShortString()}</p>}
+                    </div>
                     :
                     <>
-                        <span className="absolute left-0 inset-y-0 flex items-center pl-2.5">
+                        <div className="flex justify-center w-full">
+                            Connected wallets
+                        </div>
+                        <div className="place-items-end absolute left-2.5">
                             <WalletsIcons wallets={wallets} />
-                        </span>
-                        <span className="grow text-center">Connected wallets</span>
+                        </div>
                     </>
             }
         </button>

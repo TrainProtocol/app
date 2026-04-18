@@ -32,7 +32,7 @@ const GLobalFooter = () => {
     }
 
     return (
-        <footer className="hidden md:flex py-4 justify-between items-center w-full pl-4 pr-5 lg:pl-8 lg:pr-9 mt-auto">
+        <footer className="z-30 hidden md:flex fixed bottom-0 left-[var(--sidebar-width)] py-4 justify-between items-center w-[calc(100%-var(--sidebar-width))] px-4 lg:px-8 mt-auto">
             <div>
                 <div className="flex gap-6">
                     <Link target="_blank" href="https://docs.layerswap.io/user-docs/information/privacy-policy/" className="text-xs leading-6 text-primary-text-tertiary underline hover:no-underline hover:text-primary-text-tertiary/70 duration-200 transition-all">
