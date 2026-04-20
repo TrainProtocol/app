@@ -32,7 +32,18 @@ const FormButton = ({
     const { isLoggedIn } = useSharedSecretDerivation();
     const { open: openLogin } = useLoginModalStore();
 
-    // Check derivation method first (before any other checks)
+    const hasUserAmount = values.amount || values.receiveAmount;
+    if (values.from && values.to && values.fromCurrency && values.toCurrency && hasUserAmount && !quote && !isQuoteLoading) {
+        return <SwapButton
+            className="plausible-event-name=Swap+initiated"
+            type="submit"
+            isDisabled={true}
+            isSubmitting={isSubmitting}
+        >
+            Can't get quote
+        </SwapButton>
+    }
+
     if (!isLoggedIn) {
         return (
             <>
@@ -46,18 +57,6 @@ const FormButton = ({
         );
     }
 
-    const hasUserAmount = values.amount || values.receiveAmount;
-    if (values.from && values.to && values.fromCurrency && values.toCurrency && hasUserAmount && !quote && !isQuoteLoading) {
-        return <SwapButton
-            className="plausible-event-name=Swap+initiated"
-            type="submit"
-            isDisabled={true}
-            isSubmitting={isSubmitting}
-        >
-            Can't get quote
-        </SwapButton>
-    }
-
     if (shouldConnectDestinationWallet) {
         return <FormDestinationWalletButton />;
     }
@@ -66,9 +65,7 @@ const FormButton = ({
         return <FormSourceWalletButton />;
     }
 
-    const isAztecDestination = values?.to?.caip2Id === KnownInternalNames.Networks.AztecDevnet;
-
-    if (values?.to && !values?.destination_address && !isAztecDestination) {
+    if (values?.to && !values?.destination_address) {
         return (
             <Address>
                 {() => (
