@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import { parseUnits } from 'viem'
 import { SwapFormValues } from '../components/DTOs/SwapFormValues'
-import type { QuoteDirection, SwapQuote } from '@train-protocol/react'
+import type { SwapQuote } from '@train-protocol/react'
 import { Token } from '../Models/Network'
 import { useQuote } from '@train-protocol/react'
 
@@ -104,10 +104,10 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
     }
 }
 
-export function transformFormValuesToQuoteArgs(values: SwapFormValues, quoteDirection: QuoteDirection): Props | undefined {
+export function transformFormValuesToQuoteArgs(values: SwapFormValues): Props | undefined {
     return {
-        amount: quoteDirection === 'source' ? values.amount : undefined,
-        receiveAmount: quoteDirection === 'destination' ? values.receiveAmount : undefined,
+        amount: values.amount,
+        receiveAmount: values.receiveAmount,
         from: values.from?.caip2Id,
         to: values.to?.caip2Id,
         fromCurrency: values.fromCurrency,

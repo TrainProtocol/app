@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useRef } from "react";
+import { useFormikContext } from "formik";
 import { useUsdModeStore } from "@/stores/usdModeStore";
 import { resolveTokenUsdPrice } from "@/helpers/tokenHelper";
 import { Token } from "@/Models/Network";
-import type { QuoteDirection } from "@train-protocol/react";
-import { useQuoteDirectionStore } from "@/stores/quoteDirectionStore";
+import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 
 interface UseUsdTokenSyncArgs {
-    side: QuoteDirection;
+    side: 'source' | 'destination';
     token: Token | undefined;
-    setFieldValue: (field: string, value: any, shouldValidate?: boolean) => void;
 }
 
 interface UseUsdTokenSyncReturn {
@@ -22,31 +21,32 @@ interface UseUsdTokenSyncReturn {
 export function useUsdTokenSync({
     side,
     token,
-    setFieldValue,
 }: UseUsdTokenSyncArgs): UseUsdTokenSyncReturn {
     const isUsdMode = useUsdModeStore(s => s.isUsdMode);
     const usdAmount = useUsdModeStore(s => s.usdAmount);
     const setUsdAmount = useUsdModeStore(s => s.setUsdAmount);
     const toggleMode = useUsdModeStore(s => s.toggleMode);
-    const quoteDirection = useQuoteDirectionStore(s => s.quoteDirection);
-    const setQuoteDirection = useQuoteDirectionStore(s => s.setQuoteDirection);
+    const { values, setValues } = useFormikContext<SwapFormValues>();
 
     const tokenPriceInUsd = resolveTokenUsdPrice(token);
 
     const fieldName = side === 'source' ? 'amount' : 'receiveAmount';
-    const isActiveSide = quoteDirection === side;
+    const oppositeField = side === 'source' ? 'receiveAmount' : 'amount';
+    const isActiveSide = side === 'destination' ? !!values?.receiveAmount : !values?.receiveAmount;
 
     const prevPriceRef = useRef(tokenPriceInUsd);
     const prevTokenSymbolRef = useRef(token?.symbol);
 
     const computeAndSetTokenAmount = useCallback((usdValue: string) => {
         let newAmount: string;
-        if (!tokenPriceInUsd || tokenPriceInUsd === 0 || !usdValue) {
+        if (!usdValue) {
             newAmount = '';
+        } else if (!tokenPriceInUsd || tokenPriceInUsd === 0) {
+            newAmount = '0';
         } else {
             const usdNum = Number(usdValue);
             if (isNaN(usdNum) || usdNum <= 0) {
-                newAmount = '';
+                newAmount = '0';
             } else {
                 const precision = token?.decimals || 6;
                 const tokenAmount = usdNum / tokenPriceInUsd;
@@ -54,9 +54,8 @@ export function useUsdTokenSync({
                 newAmount = truncated.toString();
             }
         }
-        setQuoteDirection(side);
-        setFieldValue(fieldName, newAmount, true);
-    }, [tokenPriceInUsd, token?.decimals, setFieldValue, fieldName, side, setQuoteDirection]);
+        setValues(prev => ({ ...prev, [fieldName]: newAmount, [oppositeField]: '' }), true);
+    }, [tokenPriceInUsd, token?.decimals, setValues, fieldName, oppositeField]);
 
     // Recompute token amount when price changes in USD mode (active side only)
     useEffect(() => {

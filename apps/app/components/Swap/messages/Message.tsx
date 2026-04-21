@@ -32,7 +32,7 @@ const WalletMessage: FC<WalletMessageProps> = ({ header, details, status }) => {
                     <StatusIcon status={status} />
                 </span>
                 <div className="flex flex-col gap-1">
-                    <p className={`font-medium leading-4 text-base mt-0.5 ${isWarning ? 'text-warning-foreground' : 'text-white'}`}>{header}</p>
+                    <p className={`font-medium leading-4 text-base mt-0.5 ${isWarning ? 'text-warning-foreground' : 'text-primary-text'}`}>{header}</p>
                     {details ? <p className="text-secondary-text text-sm leading-[18px]">{details}</p> : null}
                 </div>
             </div>
@@ -49,7 +49,7 @@ export const WalletUnknownError: FC = () => {
                         <FailIcon className="h-5 w-5" />
                     </div>
                     <div className="flex flex-col gap-1 items-start">
-                        <p className="text-white font-medium leading-4 text-base">Wallet error</p>
+                        <p className="text-primary-text font-medium leading-4 text-base">Wallet error</p>
                         <p className="text-sm text-secondary-text text-left wrap-anywhere whitespace-pre-wrap">An error occurred, the swap wasn't initiated your assets were not moved.</p>
                     </div>
                     <ChevronDown className="h-4 w-4 self-start shrink-0 text-primary-text transition-transform duration-200 group-aria-expanded:rotate-180" />

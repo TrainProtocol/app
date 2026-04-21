@@ -8,7 +8,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/too
 import { useSelectedAccount } from "@/context/swapAccounts";
 import { useBalance } from "@/lib/balances/useBalance";
 import { getNativeToken } from "@/Models/Network";
-import { useQuoteDirectionStore } from "@/stores/quoteDirectionStore";
 
 type MinMaxProps = {
     fromCurrency: ExtendedToken,
@@ -20,9 +19,8 @@ type MinMaxProps = {
 
 const MinMax = (props: MinMaxProps) => {
 
-    const { setFieldValue } = useFormikContext<SwapFormValues>();
+    const { setValues } = useFormikContext<SwapFormValues>();
     const { fromCurrency, from, limitsMinAmount, limitsMaxAmount, onActionHover } = props;
-    const setQuoteDirection = useQuoteDirectionStore(s => s.setQuoteDirection);
 
     const selectedSourceAccount = useSelectedAccount("from", from?.caip2Id);
     const { gasData } = useSWRGas(selectedSourceAccount?.address, from, fromCurrency)
@@ -62,8 +60,7 @@ const MinMax = (props: MinMaxProps) => {
 
     const handleSetValue = (value: string) => {
         mutateBalances()
-        setQuoteDirection('source')
-        setFieldValue('amount', value, true)
+        setValues(prev => ({ ...prev, amount: value, receiveAmount: '' }), true)
         onActionHover(undefined)
     }
 

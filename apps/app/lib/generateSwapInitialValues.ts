@@ -34,12 +34,13 @@ export function generateSwapInitialValues(settings: TrainAppSettings, queryParam
     }
 
     let initialAmount = transferAmount || ''
+    let initialReceiveAmount = initialAmount ? '' : (receiveAmount || '')
 
     const result: SwapFormValues = {
         from: initialSource,
         to: initialDestination,
         amount: initialAmount,
-        receiveAmount: receiveAmount || '',
+        receiveAmount: initialReceiveAmount,
         fromCurrency: initialSourceCurrency,
         toCurrency: initialDestinationCurrency,
         destination_address: initialAddress,

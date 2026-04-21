@@ -121,9 +121,6 @@ export interface StartSwapParams {
     chainId?: string
 }
 
-/** Quote direction: 'source' means user specified send amount, 'destination' means user specified receive amount */
-export type QuoteDirection = 'source' | 'destination'
-
 /** Parameters for quote fetching */
 export interface QuoteParams {
     /** Amount to send on source chain (base units). Provide this OR receiveAmount, not both. */

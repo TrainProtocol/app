@@ -13,7 +13,6 @@ import { hasRequiredDestinationWallet } from "@/lib/wallets/utils/destinationWal
 import type { SwapQuote } from "@train-protocol/react";
 import QuoteDetails from "@/components/FeeDetails";
 import ReverseRouteButton from "./ReverseRouteButton";
-import { useQuoteDirectionStore } from "@/stores/quoteDirectionStore";
 
 type SwapFormProps = {
     polling?: boolean
@@ -30,9 +29,8 @@ const SwapForm: FC<SwapFormProps> = ({ polling = true, onQuoteChange }) => {
     } = values
     const { providers, wallets } = useWallet(values.from, 'withdrawal')
     const query = useQueryState()
-    const quoteDirection = useQuoteDirectionStore(s => s.quoteDirection)
 
-    const params = useMemo(() => transformFormValuesToQuoteArgs(values, quoteDirection), [values, quoteDirection])
+    const params = useMemo(() => transformFormValuesToQuoteArgs(values), [values])
     const { quote, solverId, isQuoteLoading } = useQuoteData(params, polling ? 42000 : 0)
 
     useEffect(() => {

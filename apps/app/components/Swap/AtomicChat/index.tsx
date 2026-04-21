@@ -6,7 +6,6 @@ import { useActiveSwap } from "@/hooks/useActiveSwap";
 import { useFormikContext } from "formik";
 import type { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import { buildQuoteParamsFromAtomic, useQuoteData } from "../../../hooks/useFee";
-import { useQuoteDirectionStore } from "@/stores/quoteDirectionStore";
 
 type ContainerProps = {
     type: SwapViewType,
@@ -15,7 +14,6 @@ type ContainerProps = {
 const Swap: FC<ContainerProps> = ({ type }) => {
     const swap = useActiveSwap()
     const { values } = useFormikContext<SwapFormValues>()
-    const quoteDirection = useQuoteDirectionStore(s => s.quoteDirection)
 
     // Post-lock: use derived state. Pre-lock: use Formik values.
     const sourceNetwork = swap.sourceNetwork ?? values?.from
@@ -31,10 +29,10 @@ const Swap: FC<ContainerProps> = ({ type }) => {
             to: destinationNetwork?.caip2Id,
             fromCurrency: sourceAsset,
             toCurrency: destinationAsset,
-            amount: quoteDirection === 'source' ? values?.amount : undefined,
-            receiveAmount: quoteDirection === 'destination' ? values?.receiveAmount : undefined,
+            amount: values?.amount,
+            receiveAmount: values?.receiveAmount,
         });
-    }, [hashlock, sourceNetwork?.caip2Id, destinationNetwork?.caip2Id, sourceAsset, destinationAsset, values?.amount, values?.receiveAmount, quoteDirection]);
+    }, [hashlock, sourceNetwork?.caip2Id, destinationNetwork?.caip2Id, sourceAsset, destinationAsset, values?.amount, values?.receiveAmount]);
 
     const { quote, solverId, isQuoteLoading } = useQuoteData(quoteParams, 42000);
 

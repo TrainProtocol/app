@@ -5,14 +5,17 @@ import NumberFlow from "@number-flow/react";
 import { ArrowUpDown } from "lucide-react";
 import { Input } from "@/components/shadcn/input";
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
-import { useQuoteDirectionStore } from "@/stores/quoteDirectionStore";
 import { useUsdTokenSync } from "@/hooks/useUsdTokenSync";
 import { isScientific } from "@/components/utils/RoundDecimals";
-import type { QuoteDirection, SwapQuote } from "@train-protocol/react";
+import type { SwapQuote } from "@train-protocol/react";
 import formatAmount from "@/lib/formatAmount";
 
+// Caps on significant digits shown in NumberFlow. Above the cap, render `...` to indicate truncation.
+const PRIMARY_MAX_SIG_DIGITS = 10;
+const SECONDARY_MAX_SIG_DIGITS = 12;
+
 interface AmountFieldProps {
-    side: QuoteDirection;
+    side: 'source' | 'destination';
     actionValue?: number;
     actionValueUsd?: string;
     className?: string;
@@ -22,11 +25,11 @@ interface AmountFieldProps {
 }
 
 const AmountField = ({ side, actionValue, actionValueUsd, className, showToggle, isQuoteLoading, quote }: AmountFieldProps) => {
-    const { values, setFieldValue } = useFormikContext<SwapFormValues>();
-    const quoteDirection = useQuoteDirectionStore(s => s.quoteDirection);
-    const setQuoteDirection = useQuoteDirectionStore(s => s.setQuoteDirection);
+    const { values, setValues } = useFormikContext<SwapFormValues>();
 
     const fieldName: 'amount' | 'receiveAmount' = side === 'source' ? 'amount' : 'receiveAmount';
+    const oppositeField: 'amount' | 'receiveAmount' = side === 'source' ? 'receiveAmount' : 'amount';
+    const quoteDirection: 'source' | 'destination' = values?.receiveAmount ? 'destination' : 'source';
     const token = side === 'source' ? values?.fromCurrency : values?.toCurrency;
     const quoteAmount = side === 'source' ? quote?.amount : quote?.receiveAmount;
     const quoteDerivedAmount = quoteAmount && token?.decimals != null ? formatAmount(BigInt(quoteAmount), token.decimals) : '';
@@ -42,15 +45,14 @@ const AmountField = ({ side, actionValue, actionValueUsd, className, showToggle,
     const amountRef = useRef<HTMLInputElement>(null);
     const suffixRef = useRef<HTMLDivElement>(null);
 
-    const { tokenPriceInUsd, isUsdMode, usdAmount, toggleMode, handleUsdInputChange, } = useUsdTokenSync({ side, token, setFieldValue });
+    const { tokenPriceInUsd, isUsdMode, usdAmount, toggleMode, handleUsdInputChange, } = useUsdTokenSync({ side, token });
 
     const [inputFocused, setInputFocused] = useState(false);
     const handleTokenChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const v = sanitizeDecimalInput(e.target.value, token?.decimals);
         if (v === null) return;
-        setQuoteDirection(side);
-        setFieldValue(fieldName, v, true);
-    }, [setFieldValue, token?.decimals, side, fieldName, setQuoteDirection]);
+        setValues(prev => ({ ...prev, [fieldName]: v, [oppositeField]: '' }), true);
+    }, [setValues, token?.decimals, fieldName, oppositeField]);
 
     const handleFocus = useCallback(() => {
         setInputFocused(true);
@@ -115,10 +117,13 @@ const AmountField = ({ side, actionValue, actionValueUsd, className, showToggle,
         : (currentAmount ?? '');
     const inputOnChange = isUsdMode ? handleUsdInputChange : handleTokenChange;
 
+    const isPrimaryTruncated = tokenNum > 0 && isFinite(tokenNum) && Number(tokenNum.toPrecision(PRIMARY_MAX_SIG_DIGITS)) !== tokenNum;
+    const isSecondaryTruncated = tokenNum > 0 && isFinite(tokenNum) && Number(tokenNum.toPrecision(SECONDARY_MAX_SIG_DIGITS)) !== tokenNum;
+
     const showOverlay = isUsdMode ? !inputFocused && !actionValueAsUsd : !inputFocused && !showActionPreview;
     const hideInput = showOverlay || (showActionPreview && !isUsdMode);
     const overlayValue = isUsdMode ? usdValue : tokenNum;
-    const overlayFormat = isUsdMode ? { minimumFractionDigits: 0, maximumFractionDigits: 2 } : { maximumFractionDigits: token?.decimals || 2 };
+    const overlayFormat = isUsdMode ? { minimumFractionDigits: 0, maximumFractionDigits: 2 } : { maximumSignificantDigits: PRIMARY_MAX_SIG_DIGITS };
     const hasValue = hideInput ? overlayValue > 0 : !!inputValue;
     const textColor = hasValue ? "text-primary-text" : "text-secondary-text";
 
@@ -160,7 +165,7 @@ const AmountField = ({ side, actionValue, actionValueUsd, className, showToggle,
                         showOverlay ? textColor : "invisible",
                         showOverlay && isQuoteLoading && "animate-pulse-stronger",
                     )}>
-                        <NumberFlow value={overlayValue} format={overlayFormat} trend={0} />
+                        <NumberFlow value={overlayValue} format={overlayFormat} suffix={!isUsdMode && isPrimaryTruncated ? '...' : ''} trend={0} />
                     </span>
                 </div>
             </div>
@@ -168,21 +173,27 @@ const AmountField = ({ side, actionValue, actionValueUsd, className, showToggle,
             <div
                 ref={!isUsdMode ? suffixRef : undefined}
                 className={clsx(
-                    "text-base leading-5 font-medium text-secondary-text h-5 flex items-center gap-1 [font-kerning:none] [font-variant-ligatures:none]",
+                    "text-base leading-5 font-medium text-secondary-text h-5 flex items-center gap-1 min-w-0 [font-kerning:none] [font-variant-ligatures:none]",
                     !isUsdMode && "usd-suffix",
                     !isUsdMode && { "text-secondary-text/45": !!actionValueAsUsd },
                 )}
             >
                 {toggleButton}
                 {isUsdMode ? (
-                    actionValueAsToken ? (
-                        <span className={clsx("flex items-center min-w-0 space-x-1 text-secondary-text/45")}>
+                    <span className={clsx("flex items-center min-w-0 space-x-1", actionValueAsToken && "text-secondary-text/45")}>
+                        {actionValueAsToken ? (
                             <span className="truncate min-w-0">{actionValueAsToken}</span>
-                            <span className="shrink-0">{` ${token?.symbol || ''}`}</span>
-                        </span>
-                    ) : (
-                        <NumberFlow className="p-0" value={tokenNum} suffix={` ${token?.symbol || ''}`} format={{ maximumFractionDigits: precision }} trend={0} />
-                    )
+                        ) : (
+                            <NumberFlow
+                                className="p-0"
+                                value={tokenNum}
+                                format={{ maximumSignificantDigits: SECONDARY_MAX_SIG_DIGITS }}
+                                suffix={isSecondaryTruncated ? '...' : ''}
+                                trend={0}
+                            />
+                        )}
+                        <span className="shrink-0">{` ${token?.symbol || ''}`}</span>
+                    </span>
                 ) : (
                     actionValueAsUsd ? (
                         <span>{`$${actionValueAsUsd}`}</span>
