@@ -12,7 +12,7 @@ import formatAmount from "@/lib/formatAmount";
 
 // Caps on significant digits shown in NumberFlow. Above the cap, render `...` to indicate truncation.
 const PRIMARY_MAX_SIG_DIGITS = 10;
-const SECONDARY_MAX_SIG_DIGITS = 12;
+const SECONDARY_MAX_SIG_DIGITS = 11;
 
 interface AmountFieldProps {
     side: 'source' | 'destination';
@@ -165,7 +165,8 @@ const AmountField = ({ side, actionValue, actionValueUsd, className, showToggle,
                         showOverlay ? textColor : "invisible",
                         showOverlay && isQuoteLoading && "animate-pulse-stronger",
                     )}>
-                        <NumberFlow value={overlayValue} format={overlayFormat} suffix={!isUsdMode && isPrimaryTruncated ? '...' : ''} trend={0} />
+                        <NumberFlow value={overlayValue} format={overlayFormat} trend={0} />
+                        {!isUsdMode && isPrimaryTruncated && <span className="shrink-0">...</span>}
                     </span>
                 </div>
             </div>
@@ -184,13 +185,15 @@ const AmountField = ({ side, actionValue, actionValueUsd, className, showToggle,
                         {actionValueAsToken ? (
                             <span className="truncate min-w-0">{actionValueAsToken}</span>
                         ) : (
-                            <NumberFlow
-                                className="p-0"
-                                value={tokenNum}
-                                format={{ maximumSignificantDigits: SECONDARY_MAX_SIG_DIGITS }}
-                                suffix={isSecondaryTruncated ? '...' : ''}
-                                trend={0}
-                            />
+                            <span className="flex items-center">
+                                <NumberFlow
+                                    className="p-0"
+                                    value={tokenNum}
+                                    format={{ maximumSignificantDigits: SECONDARY_MAX_SIG_DIGITS }}
+                                    trend={0}
+                                />
+                                {isSecondaryTruncated && <span className="shrink-0">...</span>}
+                            </span>
                         )}
                         <span className="shrink-0">{` ${token?.symbol || ''}`}</span>
                     </span>
