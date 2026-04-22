@@ -126,16 +126,9 @@ const Rate = ({ quote, values }: { quote: SwapQuote | undefined, values: SwapFor
     const fromAsset = values.fromCurrency
     const toAsset = values.toCurrency
 
-    const rate = useMemo(() => {
-        if (!quote?.receiveAmount || !values.amount || !fromAsset || !toAsset) return null
-        const sendAmount = parseFloat(values.amount)
-        if (!sendAmount || sendAmount === 0) return null
-        const receiveAmount = toAsset ? formatAmount(BigInt(quote.receiveAmount), toAsset.decimals) : null
-        if (!receiveAmount || Number(receiveAmount) === 0) return null
-        return Number(receiveAmount) / sendAmount
-    }, [quote?.receiveAmount, values.amount, fromAsset, toAsset])
-
-    if (!fromAsset || !toAsset || !rate) return null
+    if (!fromAsset || !toAsset || !quote?.rate) return null
+    const rate = Number(quote.rate)
+    if (!rate) return null
 
     return <RowWrapper title="Rate">
         <RateElement fromAsset={fromAsset} toAsset={toAsset} rate={rate} />
