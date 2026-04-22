@@ -28,7 +28,6 @@
     "@eth-optimism/contracts-ts": "^0.17.2",
     "@hugeicons/core-free-icons": "^4.0.0",
     "@hugeicons/react": "^1.1.6",
-    "@metamask/jazzicon": "^2.0.0",
     "@noble/hashes": "^2.0.1",
     "@number-flow/react": "^0.5.11",
     "@radix-ui/react-accordion": "^1.1.2",
