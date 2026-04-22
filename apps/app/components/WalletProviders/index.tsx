@@ -9,7 +9,7 @@ import { EvmConnectorsProvider } from "@/context/evmConnectorsContext";
 import { WalletBridges } from "../WalletBridges";
 import TronProvider from "./TronProvider";
 
-const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], basePath: string, appName: string | undefined }> = ({ children, basePath, appName }) => {
+const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], appName: string | undefined }> = ({ children, appName }) => {
     return (
         <SolanaProvider>
             <TronProvider>

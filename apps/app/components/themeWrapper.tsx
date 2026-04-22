@@ -1,10 +1,11 @@
+"use client";
+
 import { X } from "lucide-react";
 import toast, { ToastBar, Toaster } from "react-hot-toast"
 import GlobalFooter from "./globalFooter";
-import dynamic from "next/dynamic";
 import { SidebarProvider } from "./shadcn/sidebar";
-
-const AppSidebar = dynamic(() => import("./Sidebar/AppSidebar"), { ssr: false })
+import AppSidebar from "./Sidebar/AppSidebar";
+import PendingSwap from "./Swap/PendingSwap";
 
 type Props = {
     children: JSX.Element | JSX.Element[]
@@ -15,6 +16,9 @@ export default function ThemeWrapper({ children }: Props) {
         <SidebarProvider className="styled-scroll flex min-h-screen w-full overflow-x-hidden">
                 <AppSidebar />
                 <div className={`flex-1 flex flex-col items-center min-h-screen overflow-hidden relative font-robo md:pt-[97.6px]`}>
+                    <div className="hidden md:flex absolute top-0 right-0 w-full items-center justify-end gap-x-2 px-8 py-5 z-30">
+                        <PendingSwap />
+                    </div>
                     <Toaster position="top-center" toastOptions={{
                         duration: 5000,
                         style: {

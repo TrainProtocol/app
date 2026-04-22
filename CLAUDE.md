@@ -21,7 +21,7 @@ Tests use **vitest** (`pnpm test` in each package). Node.js >=20.9.0 required. P
 ## Architecture
 
 **Monorepo** (pnpm workspaces):
-- `apps/app` — Next.js 15 frontend (Pages Router, not App Router)
+- `apps/app` — Next.js 15 frontend (App Router). Entry: `app/layout.tsx` (server, `export const dynamic = "force-dynamic"`) → `app/providers.tsx` (single consolidated client providers function). Route segments: `app/{page,swap,settings,transactions,nocookies}/page.tsx`. Root `error.tsx` + `not-found.tsx`. `middleware.ts` sets `Cache-Control: public, s-maxage=60, stale-while-revalidate`. Every page renders per request on the server (direct analog of Pages Router `getServerSideProps`); CDN caches responses by full URL via the middleware header.
 - `packages/sdk` — `@train-protocol/sdk`: core HTLC protocol logic, API client, lock verification
 - `packages/blockchains/` — chain-specific HTLC client implementations (`evm`, `solana`, `starknet`, `tron`, `aztec`)
 
@@ -30,6 +30,12 @@ Tests use **vitest** (`pnpm test` in each package). Node.js >=20.9.0 required. P
 ### State Management
 - **Zustand stores** (`apps/app/stores/`): `swapStore` (main swap state), `secretDerivationStore`, `balanceStore`, `walletStore`, `rpcConfigStore`, etc.
 - **React Context** (`apps/app/context/`): `atomicContext` (HTLC contract interactions), `secretDerivationContext`, `swapAccounts` (wallet/account handling), `formWizardProvider` (multi-step forms), `evmConnectorsContext`
+
+### Layout & navigation
+- `ThemeWrapper` (inside providers) renders the persistent shell: left-side `AppSidebar` + top app-header strip (desktop) that holds `<PendingSwap />` + content area + `GlobalFooter`.
+- `HeaderWithMenu` lives inside `Widget` (not the app shell) and contains back button, mobile-only wallet/menu cluster. On mobile `PendingSwap` also appears here (no top app-header on mobile).
+- **Progress bar**: `progress` (`@badrap/bar-of-progress`) lives at module scope in `providers.tsx`. A single `useEffect` monkey-patches `history.pushState` + listens to `popstate` to `progress.start()` on navigation; the `pathname`-dep effect calls `progress.finish()` on settle. `history.replaceState` is intentionally NOT patched — internal URL-sync calls (e.g. `Swap/Atomic/index.tsx` syncing `/` ↔ `/swap` via `replaceState`) would otherwise start a bar that never finishes.
+- **Maintenance fallback**: when `getSettings()` returns `null`, `app/providers.tsx` renders `<MaintananceContent />` in place of the full provider tree (inside `IntercomProvider` so `useIntercom` works). Root layout does NOT call `notFound()`.
 
 ### API Layer — Station API
 `apps/app/lib/trainApiClient.ts` is a thin wrapper delegating to `@train-protocol/sdk`'s `TrainApiClient`. Uses SSE for streaming:
@@ -77,6 +83,9 @@ Key files:
 - `solver` in swapStore is a solverId string (e.g. `"plorex"`), not a wallet address
 - For destination chain polling, use `getSolverLock` (not `getUserLock`)
 - Contract functions: `userLock`/`redeemUser`/`refundUser`/`getUserLock` + `solverLock`/`redeemSolver`/`getSolverLock`
+- **Active swap modal**: the `VaulDrawer` that reads `useSwapStore.swapModalOpen` is mounted only inside `Swap/Atomic/index.tsx`, which renders on `/` only. Setting `swapModalOpen=true` from `/transactions` / `/settings` flips the flag but nothing opens. To open the active swap from any path, navigate to `/swap?sourceNetwork=X&txHash=Y` (see `handleViewSwap` in `SwapDetailsPanel` and `handleClick` in `PendingSwap`); `/swap` routes through `useRecoverSwap` to rehydrate the active hashlock.
+- **`useSearchParams` placement**: callback-only reads (e.g. `useGoHome`, `useMenuNavigation.handleRecoverSwap`, `Widget.goBack` via `window.location.search`) are fine under `force-dynamic`. Render-time reads in providers / pages / form components also work because `force-dynamic` grants SSR access to the URL — no Suspense boundaries needed.
+- **Persistent query params**: `buildHrefWithPersistantParams(pathname, searchParams, extraParams?)` (in `helpers/querryHelper.ts`) preserves keys defined in `Models/QueryParams` (widget embed params like `appName`, `hideLogo`, `lockNetwork`, etc.) across navigations. Use it for any programmatic `router.push` that should keep the embed state intact.
 
 ## Environment Variables
 

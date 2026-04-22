@@ -1,3 +1,5 @@
+"use client"
+
 import { Widget } from "@/components/Widget/Index"
 import SwapHistory from "./index"
 

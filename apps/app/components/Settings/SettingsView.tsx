@@ -1,3 +1,5 @@
+"use client"
+
 import { FC, ReactNode, useEffect, useRef } from "react"
 import { useTheme } from "next-themes"
 import { motion, LayoutGroup } from "framer-motion"

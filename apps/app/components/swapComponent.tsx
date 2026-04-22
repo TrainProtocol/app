@@ -1,3 +1,5 @@
+"use client";
+
 import { FC } from 'react';
 import { TimerProvider } from '../context/timerContext';
 import Atomic from "./Swap/Atomic"

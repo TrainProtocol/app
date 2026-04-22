@@ -44,6 +44,7 @@ export default {
         gauge_fill: "gauge_fill 1s ease forwards",
 
         'press-down': 'press-down 150ms ease-in-out',
+        'press-down-weak': 'press-down-weak 150ms ease-in-out',
         'shake': 'shake 0.82s cubic-bezier(.36,.07,.19,.97) both',
         shine: 'shine 2s linear infinite',
 
@@ -76,6 +77,11 @@ export default {
         'press-down': {
           '0%': { transform: 'scale(1)' },
           '50%': { transform: 'scale(0.97)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        'press-down-weak': {
+          '0%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(0.99)' },
           '100%': { transform: 'scale(1)' },
         },
         scaleLoop: {

@@ -1,9 +1,11 @@
+"use client"
+
 import HeaderWithMenu from "../HeaderWithMenu"
-import { useRouter } from "next/router"
+import { usePathname, useRouter } from "next/navigation"
 import { default as Content } from './Content';
 import { default as Footer } from './Footer';
 import { useCallback, useRef } from "react";
-import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
+import { buildHrefWithPersistantParams } from "@/helpers/querryHelper";
 import AppSettings from "@/lib/AppSettings";
 
 type Props = {
@@ -14,19 +16,20 @@ type Props = {
 
 const Widget = ({ children, className, hideMenu }: Props) => {
    const router = useRouter()
+   const pathname = usePathname()
    const wrapper = useRef(null);
 
    const goBack = useCallback(() => {
-      window?.['navigation']?.['canGoBack'] ?
+      if (window?.['navigation']?.['canGoBack']) {
          router.back()
-         : router.push({
-            pathname: "/",
-            query: resolvePersistantQueryParams(router.query)
-         })
-   }, [])
+         return
+      }
+      const sp = new URLSearchParams(window.location.search)
+      router.push(buildHrefWithPersistantParams("/", sp))
+   }, [router])
 
 
-   const handleBack = router.pathname === "/" ? null : goBack
+   const handleBack = pathname === "/" ? null : goBack
 
    return <>
       <div id='widget' className={`bg-secondary-700 md:shadow-md border border-border rounded-3xl w-full sm:overflow-hidden has-expandContainerHeight:min-h-[675px] max-sm:has-openpicker:min-h-svh max-sm:min-h-[99.8svh] sm:has-openpicker:min-h-[79svh]! relative`}>

@@ -1,4 +1,6 @@
-import { FC, useEffect, useState } from "react"
+"use client"
+
+import { FC, useState } from "react"
 import {
     Sidebar,
     SidebarContent,
@@ -12,7 +14,7 @@ import {
     SidebarSeparator,
 } from "@/components/shadcn/sidebar"
 import { Home, ArrowLeftRight, History, Settings, BookOpen, ArrowUpRight } from "lucide-react"
-import { useRouter } from "next/router"
+import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import TrainLogo from "@/components/Icons/TrainLogo"
 import { useGoHome } from "@/hooks/useGoHome"
@@ -32,38 +34,10 @@ import { formatPasskeyIdForDisplay } from "@train-protocol/auth"
 const AppSidebar: FC = () => {
     const isTestnet = process.env.NEXT_PUBLIC_API_VERSION == 'sandbox'
     const router = useRouter()
+    const currentPath = usePathname() ?? '/'
     const goHome = useGoHome()
     const { wallets } = useWallet()
     const [walletsDrawerOpen, setWalletsDrawerOpen] = useState(false)
-    const [currentPath, setCurrentPath] = useState<string>('/')
-
-    useEffect(() => {
-        const sync = () => setCurrentPath(window.location.pathname)
-        sync()
-        window.addEventListener('popstate', sync)
-        return () => window.removeEventListener('popstate', sync)
-    }, [])
-
-    const handleTransactions = () => {
-        const basePath = router.basePath || ""
-        const url = window.location.protocol + "//" + window.location.host + basePath + "/transactions"
-        window.history.pushState({ ...window.history.state, as: router.asPath, url }, '', url)
-        window.dispatchEvent(new Event('popstate'))
-    }
-
-    const handleApp = () => {
-        const basePath = router.basePath || ""
-        const url = window.location.protocol + "//" + window.location.host + basePath + "/"
-        window.history.replaceState({ ...window.history.state, as: '/', url }, '', url)
-        window.dispatchEvent(new Event('popstate'))
-    }
-
-    const handleSettings = () => {
-        const basePath = router.basePath || ""
-        const url = window.location.protocol + "//" + window.location.host + basePath + "/settings"
-        window.history.pushState({ ...window.history.state, as: router.asPath, url }, '', url)
-        window.dispatchEvent(new Event('popstate'))
-    }
 
     return (
         <Sidebar side="left" collapsible="none">
@@ -78,21 +52,21 @@ const AppSidebar: FC = () => {
                     <SidebarGroupContent>
                         <SidebarMenu>
                             <SidebarMenuItem>
-                                <SidebarMenuButton isActive={currentPath === "/" || currentPath === "/swap"} onClick={handleApp}>
+                                <SidebarMenuButton isActive={currentPath === "/" || currentPath === "/swap"} onClick={() => router.push("/")}>
                                     <ArrowLeftRight />
                                     <span>App</span>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
 
                             <SidebarMenuItem>
-                                <SidebarMenuButton isActive={currentPath === "/transactions"} onClick={handleTransactions}>
+                                <SidebarMenuButton isActive={currentPath === "/transactions"} onClick={() => router.push("/transactions")}>
                                     <History />
                                     <span>Transactions</span>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
 
                             <SidebarMenuItem>
-                                <SidebarMenuButton isActive={currentPath === "/settings"} onClick={handleSettings}>
+                                <SidebarMenuButton isActive={currentPath === "/settings"} onClick={() => router.push("/settings")}>
                                     <Settings />
                                     <span>Settings</span>
                                 </SidebarMenuButton>
@@ -172,12 +146,12 @@ const WalletsSidebarButton: FC<{
 }> = ({ wallets, onOpenDrawer }) => {
     if (wallets.length === 0) {
         return (
-            <ConnectButton className="w-full">
-                <SidebarMenuButton>
+            <SidebarMenuButton asChild>
+                <ConnectButton className="w-full">
                     <WalletIcon className="h-4 w-4" strokeWidth={2} />
                     <span>Connect a wallet</span>
-                </SidebarMenuButton>
-            </ConnectButton>
+                </ConnectButton>
+            </SidebarMenuButton>
         )
     }
 

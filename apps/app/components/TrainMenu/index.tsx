@@ -1,3 +1,5 @@
+"use client"
+
 import { MenuIcon, ChevronLeft } from "lucide-react";
 import { FC, useEffect, useState } from "react";
 import IconButton from "@/components/buttons/iconButton";
@@ -6,8 +8,8 @@ import { MenuStep } from "@/Models/Wizard";
 import MenuList from "./MenuList";
 import Wizard from "@/components/Wizard/Wizard";
 import WizardItem from "../Wizard/WizardItem";
-import { NextRouter, useRouter } from "next/router";
-import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
+import { usePathname, useSearchParams, type ReadonlyURLSearchParams } from "next/navigation";
+import { buildHrefWithPersistantParams } from "@/helpers/querryHelper";
 import { Modal, ModalContent } from "@/components/Modal/modalWithoutAnimation";
 import RpcNetworkListView from "@/components/Settings/RpcNetworkListView";
 import NetworkRpcEditView from "@/components/Settings/NetworkRpcEditView";
@@ -15,8 +17,18 @@ import RecoverSwap from "@/components/Swap/Atomic/RecoverSwap";
 import SwapHistory from "@/components/SwapHistory";
 import { useMenuNavigation } from "@/hooks/useMenuNavigation";
 
+//TODO: move URI handling to wizard provider
+export const setMenuPath = (path: string, searchParams: ReadonlyURLSearchParams | null) => {
+    window.history.pushState(null, "", buildHrefWithPersistantParams(path, searchParams))
+}
+
+export const clearMenuPath = (pathname: string | null, searchParams: ReadonlyURLSearchParams | null) => {
+    window.history.replaceState(null, "", buildHrefWithPersistantParams(pathname ?? "/", searchParams))
+}
+
 const Comp = () => {
-    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const [isOpen, setIsOpen] = useState(false);
 
     const { goBack, currentStepName } = useFormWizardState()
@@ -36,7 +48,7 @@ const Comp = () => {
     const handleGoToStep = (step: MenuStep, path?: string) => {
         goToStep(step)
         if (path) {
-            setMenuPath(path, router)
+            setMenuPath(path, searchParams)
         }
     }
 
@@ -44,7 +56,7 @@ const Comp = () => {
         if (!isOpen) {
             goToStep(MenuStep.Menu)
             setSelectedNetwork(null)
-            clearMenuPath(router)
+            clearMenuPath(pathname, searchParams)
         }
     }, [isOpen])
 
@@ -110,28 +122,6 @@ const TrainMenu: FC = () => {
             <Comp />
         </FormWizardProvider>
     )
-}
-
-//TODO: move URI handling to wizard provider
-export const setMenuPath = (path: string, router: NextRouter) => {
-    const basePath = router?.basePath || ""
-    var finalURI = window.location.protocol + "//"
-        + window.location.host + `${basePath}${path}`;
-    const params = resolvePersistantQueryParams(router.query)
-    if (params && Object.keys(params).length) {
-        const search = new URLSearchParams(params as any);
-        if (search)
-            finalURI += `?${search}`
-    }
-    window.history.pushState({ ...window.history.state, as: router.asPath, url: finalURI }, '', finalURI);
-}
-
-export const clearMenuPath = (router: NextRouter) => {
-    const basePath = router?.basePath || ""
-    let finalURI = window.location.protocol + "//"
-        + window.location.host + basePath + router.asPath;
-
-    window.history.replaceState({ ...window.history.state, as: router.asPath, url: finalURI }, '', finalURI);
 }
 
 export default TrainMenu

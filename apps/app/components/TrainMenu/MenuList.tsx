@@ -1,7 +1,7 @@
 import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info, Settings2, Zap, RotateCcw, ScrollText, Sun, Moon, Monitor } from "lucide-react";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useTheme } from "next-themes";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 import { FC, useEffect, useState } from "react";
 import { useIntercom } from "react-use-intercom";
 import ChatIcon from "@/components/Icons/ChatIcon";
@@ -23,7 +23,7 @@ const WalletsMenu = dynamic(() => import("../Wallet/ConnectedWallets").then((com
 })
 
 const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ goToStep }) => {
-    const router = useRouter();
+    const pathname = usePathname();
     const { boot, show, update } = useIntercom()
     const [embedded, setEmbedded] = useState<boolean>()
     const [openFeedbackModal, setOpenFeedbackModal] = useState(false);
@@ -45,7 +45,7 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
             <Menu.Group>
                 <>
                     {
-                        router.pathname != '/' &&
+                        pathname != '/' &&
                         <Menu.Item pathname='/' icon={<Home className="h-5 w-5" />} >
                             Home
                         </Menu.Item>
