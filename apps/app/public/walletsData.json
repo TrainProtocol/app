@@ -5353,7 +5353,7 @@
         "native": "ledgerlive://",
         "universal": ""
       },
-      "homepage": "https://www.ledger.com/ledger-live",
+      "homepage": "https://www.ledger.com/ledger-wallet",
       "id": "19177a98252e07ddfc9af2083ba8e07ef627cb6103467ffebb3f8f4205fd7927",
       "image_id": "a7f416de-aa03-4c5e-3280-ab49269aef00",
       "image_url": {
@@ -5373,7 +5373,7 @@
         "native": "ledgerlive://",
         "universal": ""
       },
-      "name": "Ledger Live",
+      "name": "Ledger Wallet",
       "rdns": "",
       "sdks": [
         "sign_v1",
