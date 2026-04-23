@@ -225,7 +225,7 @@ const SwapAccordionItem: FC<SwapAccordionItemProps> = ({ hashlock, swap, sourceN
 )
 
 const EmptyState = () => (
-    <div className="w-full flex flex-col justify-center items-center py-10 gap-6">
+    <div className="w-full min-h-[70svh] flex flex-col justify-center items-center py-10 gap-6">
         <div className="relative">
             <SkeletonCard className="scale-[.78] w-72 shadow-xl mr-7" />
             <SkeletonCard className="scale-[.78] -mt-8 shadow-xl ml-7 w-72" />

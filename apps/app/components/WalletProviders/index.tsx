@@ -8,6 +8,7 @@ import { AztecWalletProvider } from "./AztecWalletProvider";
 import { EvmConnectorsProvider } from "@/context/evmConnectorsContext";
 import { WalletBridges } from "../WalletBridges";
 import TronProvider from "./TronProvider";
+import ConnectWalletDrawer from "../WalletModal/ConnectWalletDrawer";
 
 const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], appName: string | undefined }> = ({ children, appName }) => {
     return (
@@ -21,6 +22,7 @@ const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], appName: str
                                     <WalletProvidersProvider>
                                         <WalletBridges />
                                         {children}
+                                        <ConnectWalletDrawer />
                                     </WalletProvidersProvider>
                                 </AztecWalletProvider>
                             </WalletModalProvider>

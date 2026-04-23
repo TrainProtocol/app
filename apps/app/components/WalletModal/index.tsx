@@ -20,6 +20,8 @@ export type ModalWalletProvider = WalletProvider & {
 
 type SharedType = { provider?: WalletProvider, connectCallback: (value: Wallet | undefined) => void }
 
+export type ConnectModalRenderMode = 'drawer' | 'dialog';
+
 type ConnectModalContextType = {
     connect: ({ provider, connectCallback }: SharedType) => void;
     cancel: () => void;
@@ -34,6 +36,8 @@ type ConnectModalContextType = {
     onFinish: (connectedWallet?: Wallet | undefined) => void;
     setOpen: (value: boolean) => void;
     open: boolean;
+    renderMode: ConnectModalRenderMode;
+    setRenderMode: (mode: ConnectModalRenderMode) => void;
 };
 
 const ConnectModalContext = createContext<ConnectModalContextType | null>(null);
@@ -46,6 +50,7 @@ export function WalletModalProvider({ children }) {
     const [selectedMultiChainConnector, setSelectedMultiChainConnector] = useState<InternalConnector | undefined>(undefined)
     const [open, setOpen] = useState(false);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+    const [renderMode, setRenderMode] = useState<ConnectModalRenderMode>('drawer');
 
     const connect = async ({ provider, connectCallback }: SharedType) => {
         if (!provider?.availableWalletsForConnect) {
@@ -94,7 +99,7 @@ export function WalletModalProvider({ children }) {
     }, [open])
 
     return (
-        <ConnectModalContext.Provider value={{ connect, cancel, selectedProvider, setSelectedProvider, selectedConnector, setSelectedConnector, selectedMultiChainConnector, setSelectedMultiChainConnector, isWalletModalOpen, goBack, onFinish, setOpen, open }}>
+        <ConnectModalContext.Provider value={{ connect, cancel, selectedProvider, setSelectedProvider, selectedConnector, setSelectedConnector, selectedMultiChainConnector, setSelectedMultiChainConnector, isWalletModalOpen, goBack, onFinish, setOpen, open, renderMode, setRenderMode }}>
             {children}
         </ConnectModalContext.Provider>
     )

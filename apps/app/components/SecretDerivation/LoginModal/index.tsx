@@ -1,31 +1,22 @@
-import { useEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Loader2, ChevronLeft, CircleX, AlertTriangle } from 'lucide-react';
 import VaulModal from '@/components/Modal/vaulModal';
 import { useSharedSecretDerivation } from '@train-protocol/react';
 import { mapPasskeyError } from '@train-protocol/auth';
 import { PasskeyChoice } from './PasskeyChoice';
-// import { Wallet } from '@/Models/WalletProvider';
 import { useSteps } from '@/hooks/useSteps';
 import { Steps, Step } from '@/components/Step';
-// import OptionSelect from './OptionSelect';
 import IconButton from '@/components/buttons/iconButton';
+import { useSettingsOverlayStore } from '@/stores/settingsOverlayStore';
+import { StepBody } from '@/components/Settings/SettingsOverlay';
 
-//type LoginStep = 'pick' | 'passkey_recovery' | 'wallet_select' | 'signing';
 type LoginStep = 'unsupported' | 'passkey_recovery' | 'signing';
 
-// const getErrorMessage = (error: unknown, fallback: string): string => {
-//   if (error instanceof Error) return error.message;
-//   if (typeof error === 'string') return error;
-//   return fallback;
-// };
-
-interface LoginModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export function LoginModal({ isOpen, onClose }: LoginModalProps) {
-  const { loginWithPasskey, loginWithWallet, derivationMessage, passkeyCredentials, isReady, prfSupportDetails } = useSharedSecretDerivation();
+function useLoginFlow({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }): {
+  header: ReactNode;
+  content: ReactNode;
+} {
+  const { loginWithPasskey, derivationMessage, passkeyCredentials, isReady, prfSupportDetails } = useSharedSecretDerivation();
   const hasStoredPasskeys = passkeyCredentials.length > 0;
   const { currentStep, goToStep, goBack, canGoBack, reset, isStep } = useSteps<LoginStep>({ initial: 'signing' });
   const [passkeyError, setPasskeyError] = useState<string | null>(null);
@@ -66,8 +57,6 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     }
   };
 
-  // Auto-trigger passkey login when modal opens, or show unsupported screen
-  // Delay so the modal can render and measure snap points before the browser passkey prompt blocks the UI
   useEffect(() => {
     if (isOpen && isReady && !loginTriggered.current) {
       loginTriggered.current = true;
@@ -90,72 +79,96 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     goBack();
   };
 
+  const header = (
+    <div className="inline-flex items-center gap-1">
+      {canGoBack && (
+        <div className="-ml-2">
+          <IconButton onClick={handleBack} icon={<ChevronLeft strokeWidth="2" />} />
+        </div>
+      )}
+      <h2>
+        {currentStep === 'signing'
+          ? 'Signing'
+          : currentStep === 'unsupported'
+            ? 'Browser not supported'
+            : 'Login to continue'}
+      </h2>
+    </div>
+  );
+
+  const content = (
+    <Steps currentStep={currentStep}>
+      <Step name="unsupported">
+        <UnsupportedBrowser onClose={closeAndReset} />
+      </Step>
+
+      <Step name="passkey_recovery">
+        <PasskeyChoice
+          error={passkeyError || ''}
+          onTryAgain={() => startPasskeyLogin(hasStoredPasskeys ? {} : { forceCreate: true })}
+          onCreateNew={() => startPasskeyLogin({ forceCreate: true })}
+          onCrossDeviceLogin={() => startPasskeyLogin({ crossDevice: true })}
+        />
+      </Step>
+
+      <Step name="signing">
+        <Signing
+          derivationMessage={derivationMessage}
+          onCancel={closeAndReset}
+          error={signingError}
+          isPasskey
+        />
+      </Step>
+    </Steps>
+  );
+
+  return { header, content };
+}
+
+interface LoginModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function LoginModal({ isOpen, onClose }: LoginModalProps) {
+  const { header, content } = useLoginFlow({ isOpen, onClose });
+
   return (
     <VaulModal
       show={isOpen}
       setShow={(show) => {
-        if (!show) closeAndReset();
+        if (!show) onClose();
       }}
-      header={
-        <div className="inline-flex items-center gap-1">
-          {
-            canGoBack &&
-            <div className="-ml-2">
-              <IconButton onClick={handleBack} icon={
-                <ChevronLeft strokeWidth="2" />
-              }>
-              </IconButton>
-            </div>
-          }
-          <h2>{currentStep === 'signing' ? 'Signing' : currentStep === 'unsupported' ? 'Browser not supported' : 'Login to continue'}</h2>
-        </div>
-      }
+      header={header}
       modalId="secret-derivation-login-modal"
     >
-      <VaulModal.Snap id="item-1">
-        <Steps currentStep={currentStep}>
-
-          {/* Wallet login temporarily disabled — passkey is the default */}
-          {/* <Step name="pick">
-            <OptionSelect onPasskeyLogin={() => startPasskeyLogin(hasStoredPasskeys ? {} : { forceCreate: true })} goToStep={goToStep} onConnectFinish={onConnectFinish} />
-          </Step> */}
-
-          <Step name="unsupported">
-            <UnsupportedBrowser onClose={closeAndReset} />
-          </Step>
-
-          <Step name="passkey_recovery">
-            <PasskeyChoice
-              error={passkeyError || ''}
-              onTryAgain={() => startPasskeyLogin(hasStoredPasskeys ? {} : { forceCreate: true })}
-              onCreateNew={() => startPasskeyLogin({ forceCreate: true })}
-              onCrossDeviceLogin={() => startPasskeyLogin({ crossDevice: true })}
-            />
-          </Step>
-
-          {/* <Step name="wallet_select">
-            <WalletSelect startWalletLogin={startWalletLogin} />
-          </Step> */}
-
-          <Step name="signing">
-            <Signing
-              derivationMessage={derivationMessage}
-              onCancel={closeAndReset}
-              error={signingError}
-              isPasskey
-            />
-          </Step>
-
-        </Steps>
-      </VaulModal.Snap>
+      <VaulModal.Snap id="item-1">{content}</VaulModal.Snap>
     </VaulModal>
+  );
+}
+
+interface LoginFlowProps {
+  isOpen: boolean;
+  onClose: () => void;
+  hideHeader?: boolean;
+}
+
+export function LoginFlow({ isOpen, onClose, hideHeader }: LoginFlowProps) {
+  const { header, content } = useLoginFlow({ isOpen, onClose });
+  const inOverlay = useSettingsOverlayStore((s) => s.view !== null);
+
+  return (
+    <div className={`flex flex-col${inOverlay ? ' flex-1' : ''}`}>
+      {!hideHeader && <div className="px-4 pt-3 pb-2 text-secondary-text">{header}</div>}
+      <div className={`px-4 pb-4${inOverlay ? ' flex-1 flex flex-col' : ''}`}>{content}</div>
+    </div>
   );
 }
 
 
 const UnsupportedBrowser = ({ onClose }: { onClose: () => void }) => {
-  return (
-    <div className="flex flex-col items-center justify-center gap-5 pt-10">
+  const info = (
+    <>
       <div className="w-14 h-14 rounded-2xl bg-secondary-500 flex items-center justify-center">
         <AlertTriangle className="w-8 h-8 text-secondary-text" />
       </div>
@@ -168,15 +181,20 @@ const UnsupportedBrowser = ({ onClose }: { onClose: () => void }) => {
           Please try opening this site in a supported browser such as <span className="text-primary-text font-medium">Google Chrome</span>, <span className="text-primary-text font-medium">Microsoft Edge</span>, or <span className="text-primary-text font-medium">Brave</span>.
         </p>
       </div>
-      <button
-        type="button"
-        onClick={onClose}
-        className="w-full py-3 px-4 rounded-xl font-semibold border-2 border-secondary-400 bg-secondary-500 text-primary-text hover:bg-secondary-400 transition-colors text-sm"
-      >
-        Close
-      </button>
-    </div>
+    </>
   );
+
+  const action = (
+    <button
+      type="button"
+      onClick={onClose}
+      className="w-full py-3 px-4 rounded-xl font-semibold border-2 border-secondary-400 bg-secondary-500 text-primary-text hover:bg-secondary-400 transition-colors text-sm"
+    >
+      Close
+    </button>
+  );
+
+  return <StepBody info={info} actions={action} />;
 };
 
 const Signing = ({
@@ -192,7 +210,6 @@ const Signing = ({
   error?: string | null;
   isPasskey?: boolean;
 }) => {
-  // Platform-specific hint text
   const getPlatformHint = () => {
     if (!isPasskey) return null;
     const ua = navigator.userAgent.toLowerCase();
@@ -211,14 +228,14 @@ const Signing = ({
 
   const title = error
     ? 'Failed'
-    : (derivationMessage || 'Please sign\u2026');
+    : (derivationMessage || 'Please sign…');
 
   const subtitle = error
     ? error
     : (platformHint || 'Complete the action in your passkey or wallet.');
 
-  return (
-    <div className="flex flex-col items-center justify-center gap-5 pt-10">
+  const info = (
+    <>
       <div className="w-14 h-14 rounded-2xl bg-secondary-500 flex items-center justify-center">
         {icon}
       </div>
@@ -226,24 +243,29 @@ const Signing = ({
         <p className="text-primary-text font-semibold">{title}</p>
         <p className="text-sm text-secondary-text max-w-[280px]">{subtitle}</p>
       </div>
-      <div className="flex flex-col gap-2 w-full">
-        {error && onRetry && (
-          <button
-            type="button"
-            onClick={onRetry}
-            className="w-full py-3 px-4 rounded-xl font-semibold border-2 border-secondary-400 bg-secondary-500 text-primary-text hover:bg-secondary-400 transition-colors text-sm"
-          >
-            Try again
-          </button>
-        )}
+    </>
+  );
+
+  const actions = (
+    <div className="flex flex-col gap-2 w-full">
+      {error && onRetry && (
         <button
           type="button"
-          onClick={onCancel}
+          onClick={onRetry}
           className="w-full py-3 px-4 rounded-xl font-semibold border-2 border-secondary-400 bg-secondary-500 text-primary-text hover:bg-secondary-400 transition-colors text-sm"
         >
-          {error ? 'Back' : 'Cancel'}
+          Try again
         </button>
-      </div>
+      )}
+      <button
+        type="button"
+        onClick={onCancel}
+        className="w-full py-3 px-4 rounded-xl font-semibold border-2 border-secondary-400 bg-secondary-500 text-primary-text hover:bg-secondary-400 transition-colors text-sm"
+      >
+        {error ? 'Back' : 'Cancel'}
+      </button>
     </div>
   );
+
+  return <StepBody info={info} actions={actions} />;
 };

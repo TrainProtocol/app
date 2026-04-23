@@ -14,6 +14,7 @@ import NetworkRpcEditView from "@/components/Settings/NetworkRpcEditView"
 import { useMenuNavigation } from "@/hooks/useMenuNavigation"
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore"
 import SettingsCard from "./SettingsCard"
+import SettingsOverlay from "./SettingsOverlay"
 
 const SettingsView: FC = () => {
     return (
@@ -21,6 +22,7 @@ const SettingsView: FC = () => {
             <FormWizardProvider noToolBar hideMenu initialStep={MenuStep.Menu}>
                 <SettingsWizard />
             </FormWizardProvider>
+            <SettingsOverlay />
         </div>
     )
 }
@@ -159,15 +161,6 @@ const MenuStepContent: FC<{ onOpenRpc: () => void }> = ({ onOpenRpc }) => {
             />
 
             <SettingsCard
-                icon={<IconChip icon={Sun} />}
-                iconAlign="center"
-                title="Theme"
-                description="Choose how the app looks. Select a theme or follow your system settings."
-            >
-                <ThemeSegmentedPicker value={theme ?? "light"} onChange={setTheme} />
-            </SettingsCard>
-
-            <SettingsCard
                 icon={<IconChip icon={Globe} />}
                 iconAlign="center"
                 title="RPC Configuration"
@@ -175,6 +168,15 @@ const MenuStepContent: FC<{ onOpenRpc: () => void }> = ({ onOpenRpc }) => {
                 action={<ChevronRight className="w-5 h-5 text-secondary-text" />}
                 onClick={onOpenRpc}
             />
+
+            <SettingsCard
+                icon={<IconChip icon={Sun} />}
+                iconAlign="center"
+                title="Theme"
+                description="Choose how the app looks. Select a theme or follow your system settings."
+            >
+                <ThemeSegmentedPicker value={theme ?? "light"} onChange={setTheme} />
+            </SettingsCard>
         </div>
     )
 }

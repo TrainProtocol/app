@@ -1,4 +1,4 @@
-import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info, Settings2, Zap, RotateCcw, ScrollText, Sun, Moon, Monitor } from "lucide-react";
+import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, Settings2, Zap, RotateCcw, ScrollText, Sun, Moon, Monitor } from "lucide-react";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
@@ -15,7 +15,6 @@ import Menu from "./Menu";
 import dynamic from "next/dynamic";
 import { MenuStep } from "@/Models/Wizard";
 import { Separator } from "@/components/shadcn/separator";
-import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { UserStatusMenu } from "../SecretDerivation";
 
 const WalletsMenu = dynamic(() => import("../Wallet/ConnectedWallets").then((comp) => comp.WalletsMenu), {
@@ -27,7 +26,6 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
     const { boot, show, update } = useIntercom()
     const [embedded, setEmbedded] = useState<boolean>()
     const [openFeedbackModal, setOpenFeedbackModal] = useState(false);
-    const { isMobile } = useWindowDimensions()
     const { autoRevealSecret, setAutoRevealSecret } = useSwapPreferencesStore()
     const { theme, setTheme } = useTheme()
 
@@ -93,19 +91,6 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
                 }} target="_blank" icon={<ChatIcon strokeWidth={2} className="h-5 w-5" />} >
                     Help
                 </Menu.Item>
-
-                {
-                    isMobile
-                        ? <>
-                            <Menu.Item pathname='https://v8-docs.layerswap.io/protocol/introduction' target="_blank" icon={<CircleHelp className="h-5 w-5" />} >
-                                How
-                            </Menu.Item>
-                            <Menu.Item pathname='https://v8-docs.layerswap.io/protocol/introduction' target="_blank" icon={<Info className="h-5 w-5" />} >
-                                About
-                            </Menu.Item>
-                        </>
-                        : <></>
-                }
 
                 <Menu.Item pathname='https://v8-docs.layerswap.io/protocol/introduction' target="_blank" icon={<BookOpen className="h-5 w-5" />} >
                     Protocol Docs

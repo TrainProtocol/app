@@ -9,6 +9,7 @@ import useWindowDimensions from "@/hooks/useWindowDimensions"
 import { formatPasskeyIdForDisplay } from "@train-protocol/auth"
 import WalletIcon from "../Icons/WalletIcon"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../shadcn/tooltip"
+import { StepBody } from "@/components/Settings/SettingsOverlay"
 
 interface LoginWallet {
     address: string
@@ -98,7 +99,6 @@ export const UserStatusContent = ({
 
     const { isMobile } = useWindowDimensions();
 
-
     const handleLogout = () => {
         logout()
         onClose?.()
@@ -114,8 +114,8 @@ export const UserStatusContent = ({
         removePasskeyCredential(credId);
     };
 
-    return (
-        <div className={`flex flex-col ${showHeader ? 'gap-3' : 'gap-2'}`}>
+    const info = (
+        <>
             {showHeader && (
                 <p className="text-secondary-text text-sm font-medium">Connected with</p>
             )}
@@ -179,16 +179,29 @@ export const UserStatusContent = ({
                     </p>
                 </div>
             )}
+        </>
+    )
 
-            <button
-                type="button"
-                onClick={handleLogout}
-                className="flex items-center justify-center gap-2 py-3 px-4 bg-error-background hover:bg-error-background/80 text-error-foreground rounded-xl font-semibold transition-colors"
-            >
-                <LogOut className="h-5 w-5" strokeWidth={2} />
-                <span>Log out</span>
-            </button>
-        </div>
+    const logoutButton = (
+        <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-error-background hover:bg-error-background/80 text-error-foreground rounded-xl font-semibold transition-colors"
+        >
+            <LogOut className="h-5 w-5" strokeWidth={2} />
+            <span>Log out</span>
+        </button>
+    )
+
+    return (
+        <StepBody
+            info={info}
+            actions={logoutButton}
+            gap={showHeader ? 'gap-3' : 'gap-2'}
+            centerOverlay={false}
+            centerNonOverlay={false}
+            overlayActionMt="mt-4"
+        />
     )
 }
 
