@@ -15,10 +15,15 @@ const HistorySummaryCard: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => 
     const sourceToken = sourceNetwork?.tokens.find(t => t.symbol === swap.source_asset)
     const destToken = destNetwork?.tokens.find(t => t.symbol === swap.destination_asset)
 
+    const showStrip = !!swap.status && !isTerminalStatus(swap.status) && swap.status !== HTLCStatus.Initial
+    const stripBg = swap.status === HTLCStatus.UserLocked || swap.status === HTLCStatus.SolverLockDetected || swap.status === HTLCStatus.SecretRevealed
+        ? 'bg-primary-900'
+        : 'bg-warning-background'
+
     return (
-        <>
-            <div className="bg-secondary-500 relative z-10 w-full rounded-xl overflow-hidden hover:bg-secondary-400 transition-colors">
-                <div className="grid grid-cols-12 items-center gap-2 relative z-50">
+        <div className="w-full rounded-xl overflow-hidden">
+            <div className="bg-secondary-500 relative hover:bg-secondary-400 transition-colors">
+                <div className="grid grid-cols-12 items-center gap-2 relative">
                     {/* Source */}
                     <div className="col-span-6 flex items-center gap-2 p-3">
                         <div className="w-8 h-8 relative shrink-0">
@@ -58,7 +63,7 @@ const HistorySummaryCard: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => 
                     </div>
 
                     {/* Center arrow */}
-                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none -z-10">
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
                         <div className="h-7 w-6 rounded-md bg-secondary-400 flex items-center justify-center">
                             <ChevronRight className="h-5 w-5 text-primary-text" />
                         </div>
@@ -103,18 +108,12 @@ const HistorySummaryCard: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => 
                     </div>
                 </div>
             </div>
-            {swap.status && !isTerminalStatus(swap.status) && swap.status !== HTLCStatus.Initial && (
-                <div className="-mt-2 z-0 relative">
-                    <div className={`pt-3.5 pb-1.5 w-full flex justify-center rounded-b-2xl ${
-                        swap.status === HTLCStatus.UserLocked || swap.status === HTLCStatus.SolverLockDetected || swap.status === HTLCStatus.SecretRevealed
-                            ? 'bg-primary-900'
-                            : 'bg-warning-background'
-                    }`}>
-                        <StatusIcons status={swap.status} />
-                    </div>
+            {showStrip && (
+                <div className={`pt-2 pb-1.5 w-full flex justify-center ${stripBg}`}>
+                    <StatusIcons status={swap.status} />
                 </div>
             )}
-        </>
+        </div>
     )
 }
 

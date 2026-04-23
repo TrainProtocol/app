@@ -1,17 +1,17 @@
 import { createWithEqualityFn as create } from 'zustand/traditional'
 
-export type SettingsOverlayView = 'wallets' | 'login' | 'userStatus' | 'connectWallet'
+export type AppDialogueView = 'wallets' | 'login' | 'userStatus' | 'connectWallet'
 
-interface SettingsOverlayState {
-    view: SettingsOverlayView | null
-    stack: SettingsOverlayView[]
-    open: (view: SettingsOverlayView) => void
-    push: (view: SettingsOverlayView) => void
+interface AppDialogueState {
+    view: AppDialogueView | null
+    stack: AppDialogueView[]
+    open: (view: AppDialogueView) => void
+    push: (view: AppDialogueView) => void
     back: () => void
     close: () => void
 }
 
-export const useSettingsOverlayStore = create<SettingsOverlayState>()((set) => ({
+export const useAppDialogueStore = create<AppDialogueState>()((set) => ({
     view: null,
     stack: [],
     open: (view) => set({ view, stack: [view] }),

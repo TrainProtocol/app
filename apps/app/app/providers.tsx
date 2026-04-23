@@ -18,6 +18,7 @@ import MaintananceContent from "@/components/Maintanance"
 import ErrorFallback from "@/components/ErrorFallback"
 import WalletsProviders from "@/components/WalletProviders"
 import { LoginModal } from "@/components/SecretDerivation"
+import AppDialogue from "@/components/AppDialogue/AppDialogue"
 import { TooltipProvider } from "@/components/shadcn/tooltip"
 import { SettingsProvider } from "@/context/settings"
 import { AsyncModalProvider } from "@/context/asyncModal"
@@ -148,6 +149,7 @@ export function Providers({ children, settings }: Props) {
                                                         <SwapAccountsProvider>
                                                             <AsyncModalProvider>
                                                                 <LoginModal isOpen={loginOpen} onClose={closeLogin} />
+                                                                <AppDialogue />
                                                                 {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true'
                                                                     ? <MaintananceContent />
                                                                     : children}

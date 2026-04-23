@@ -13,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../shadcn/tooltip";
 import { ImageWithFallback } from "../Common/ImageWithFallback";
 import { AccountIdentity, useSelectedAccount } from "@/context/swapAccounts";
 import { useBalance } from "@/lib/balances/useBalance";
-import { useSettingsOverlayStore } from "@/stores/settingsOverlayStore";
+import { useAppDialogueStore } from "@/stores/appDialogueStore";
 
 type Props = {
     selectable?: boolean;
@@ -30,8 +30,8 @@ const WalletsList: FC<Props> = (props) => {
     const { wallets, token, network, provider, selectable, onSelect, selectedDepositMethod } = props
 
     const { connect } = useConnectModal()
-    const inOverlay = useSettingsOverlayStore((s) => s.view !== null)
-    const pushOverlayView = useSettingsOverlayStore((s) => s.push)
+    const inOverlay = useAppDialogueStore((s) => s.view !== null)
+    const pushOverlayView = useAppDialogueStore((s) => s.push)
 
     const connectWallet = useCallback(async () => {
         if (inOverlay) pushOverlayView('connectWallet')

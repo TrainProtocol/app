@@ -10,7 +10,7 @@ import { useFormikContext } from "formik";
 import useWallet from "../../hooks/useWallet";
 import { useConnectModal } from "../WalletModal";
 import { useSharedSecretDerivation } from "@train-protocol/react";
-import { useLoginModalStore } from "@/stores/loginModalStore";
+import { useAuthDialog } from "@/hooks/useAuthDialog";
 import SubmitButton from "../buttons/submitButton";
 
 const Address = dynamic(
@@ -30,7 +30,7 @@ const FormButton = ({
     shouldConnectDestinationWallet
 }) => {
     const { isLoggedIn } = useSharedSecretDerivation();
-    const { open: openLogin } = useLoginModalStore();
+    const { openLogin } = useAuthDialog();
 
     if (values.from && values.to && values.fromCurrency && values.toCurrency && values.amount && !quote && !isQuoteLoading) {
         return <SwapButton

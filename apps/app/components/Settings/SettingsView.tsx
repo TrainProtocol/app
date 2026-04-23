@@ -14,7 +14,6 @@ import NetworkRpcEditView from "@/components/Settings/NetworkRpcEditView"
 import { useMenuNavigation } from "@/hooks/useMenuNavigation"
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore"
 import SettingsCard from "./SettingsCard"
-import SettingsOverlay from "./SettingsOverlay"
 
 const SettingsView: FC = () => {
     return (
@@ -22,7 +21,6 @@ const SettingsView: FC = () => {
             <FormWizardProvider noToolBar hideMenu initialStep={MenuStep.Menu}>
                 <SettingsWizard />
             </FormWizardProvider>
-            <SettingsOverlay />
         </div>
     )
 }

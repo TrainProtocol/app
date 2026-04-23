@@ -3,10 +3,10 @@
 import { FC, ReactNode, useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { ChevronLeft, X } from "lucide-react"
-import { useSettingsOverlayStore, type SettingsOverlayView } from "@/stores/settingsOverlayStore"
+import { useAppDialogueStore, type AppDialogueView } from "@/stores/appDialogueStore"
 import useWallet from "@/hooks/useWallet"
 import WalletsList from "@/components/Wallet/WalletsList"
-import { LoginFlow } from "@/components/SecretDerivation/LoginModal"
+import { LoginFlow, useLoginWizardState, loginStepTitle, wizardCanGoBack, type LoginWizard } from "@/components/SecretDerivation/LoginModal"
 import { UserStatusContent } from "@/components/SecretDerivation/UserStatus"
 import { useOptionalSecretDerivation } from "@train-protocol/react"
 import ConnectorsList from "@/components/WalletModal/ConnectorsList"
@@ -14,20 +14,24 @@ import { useConnectModal } from "@/components/WalletModal"
 import IconButton from "@/components/buttons/iconButton"
 import { Dialog, DialogContent, DialogTitle } from "@/components/shadcn/dialog"
 
-const TITLES: Record<SettingsOverlayView, string> = {
+const TITLES: Record<AppDialogueView, string> = {
     wallets: "Connected wallets",
     login: "Login to continue",
     userStatus: "Login status",
     connectWallet: "Connect wallet",
 }
 
-const SettingsOverlay: FC = () => {
-    const view = useSettingsOverlayStore((s) => s.view)
-    const stack = useSettingsOverlayStore((s) => s.stack)
-    const back = useSettingsOverlayStore((s) => s.back)
-    const closeStore = useSettingsOverlayStore((s) => s.close)
+const AppDialogue: FC = () => {
+    const view = useAppDialogueStore((s) => s.view)
+    const stack = useAppDialogueStore((s) => s.stack)
+    const back = useAppDialogueStore((s) => s.back)
+    const closeStore = useAppDialogueStore((s) => s.close)
 
     const { setRenderMode, selectedConnector, selectedMultiChainConnector, goBack: connectGoBack, cancel: cancelConnect, open: connectOpen } = useConnectModal()
+
+    const loginWizard = useLoginWizardState()
+    const loginStep = loginWizard.history[loginWizard.history.length - 1]
+    const loginCanGoBack = wizardCanGoBack(loginWizard.history)
 
     useEffect(() => {
         if (view === 'connectWallet') {
@@ -43,7 +47,11 @@ const SettingsOverlay: FC = () => {
         closeStore()
     }
 
-    const handleBack = (v: SettingsOverlayView) => {
+    const handleBack = (v: AppDialogueView) => {
+        if (v === 'login' && loginCanGoBack) {
+            loginWizard.pop()
+            return
+        }
         if (v === 'connectWallet' && (selectedConnector || selectedMultiChainConnector)) {
             connectGoBack()
             return
@@ -60,7 +68,7 @@ const SettingsOverlay: FC = () => {
                 showCloseButton={false}
                 className="p-0 gap-0 w-full sm:max-w-lg bg-secondary-700 border border-border rounded-3xl overflow-hidden flex flex-col has-expandContainerHeight:min-h-[675px] max-sm:has-openpicker:min-h-svh max-sm:min-h-[99.8svh] sm:has-openpicker:min-h-[79svh]! sm:min-h-[500px]"
             >
-                <DialogTitle className="sr-only">{view ? TITLES[view] : 'Settings'}</DialogTitle>
+                <DialogTitle className="sr-only">{view ? TITLES[view] : 'Dialogue'}</DialogTitle>
                 <div className="relative flex-1 flex flex-col">
                     <AnimatePresence>
                         {stack.map((v, i) => {
@@ -79,11 +87,16 @@ const SettingsOverlay: FC = () => {
                                     }}
                                 >
                                     <div className="relative h-full w-full bg-secondary-700 rounded-3xl flex flex-col overflow-hidden">
-                                        <OverlayHeader
+                                        <DialogueHeader
                                             view={v}
-                                            canGoBack={i > 0 || v === 'connectWallet'}
+                                            canGoBack={
+                                                i > 0
+                                                || (v === 'connectWallet' && isTop && !!(selectedConnector || selectedMultiChainConnector))
+                                                || (v === 'login' && isTop && loginCanGoBack)
+                                            }
                                             onBack={() => handleBack(v)}
                                             onClose={close}
+                                            titleOverride={v === 'login' && isTop ? loginStepTitle(loginStep) : undefined}
                                             connectSubtitle={
                                                 v === 'connectWallet' && selectedMultiChainConnector && !selectedConnector
                                                     ? 'Select ecosystem'
@@ -91,7 +104,10 @@ const SettingsOverlay: FC = () => {
                                             }
                                         />
                                         <div className={`flex-1 overflow-y-auto styled-scroll px-4 pb-4 flex flex-col${v === 'connectWallet' ? ' openpicker' : ''}`}>
-                                            <OverlayBody view={v} />
+                                            {v === 'wallets' && <WalletsBody />}
+                                            {v === 'login' && <LoginBody wizard={loginWizard} />}
+                                            {v === 'userStatus' && <UserStatusBody />}
+                                            {v === 'connectWallet' && <ConnectWalletBody />}
                                         </div>
                                     </div>
                                 </motion.div>
@@ -104,19 +120,20 @@ const SettingsOverlay: FC = () => {
     )
 }
 
-const OverlayHeader: FC<{
-    view: SettingsOverlayView
+const DialogueHeader: FC<{
+    view: AppDialogueView
     canGoBack: boolean
     onBack: () => void
     onClose: () => void
     connectSubtitle?: string
-}> = ({ view, canGoBack, onBack, onClose, connectSubtitle }) => {
-    const title = connectSubtitle ?? TITLES[view]
+    titleOverride?: string
+}> = ({ view, canGoBack, onBack, onClose, connectSubtitle, titleOverride }) => {
+    const title = connectSubtitle ?? titleOverride ?? TITLES[view]
     return (
         <div className="flex items-center gap-2 px-5 pt-4 pb-3">
             {canGoBack && (
                 <div className="-ml-2">
-                    <IconButton onClick={onBack} icon={<ChevronLeft strokeWidth={2} className="h-6 w-6" />} />
+                    <IconButton onClick={onBack} icon={<ChevronLeft strokeWidth={2} className="h-7 w-7" />} />
                 </div>
             )}
             <h2 className="text-primary-text text-base font-semibold flex-1 truncate">{title}</h2>
@@ -124,38 +141,30 @@ const OverlayHeader: FC<{
                 type="button"
                 onClick={onClose}
                 aria-label="Close"
-                className="inline-flex items-center justify-center w-9 h-9 shrink-0 text-secondary-text hover:bg-secondary-500 hover:text-primary-text rounded-lg transition-colors -mr-2"
+                className="inline-flex items-center justify-center w-10 h-10 shrink-0 text-secondary-text hover:bg-secondary-500 hover:text-primary-text rounded-lg transition-colors -mr-2"
             >
-                <X className="w-5 h-5" strokeWidth={2} />
+                <X className="w-7 h-7" strokeWidth={2} />
             </button>
         </div>
     )
 }
 
-const OverlayBody: FC<{ view: SettingsOverlayView }> = ({ view }) => {
-    if (view === 'wallets') return <WalletsOverlayBody />
-    if (view === 'login') return <LoginOverlayBody />
-    if (view === 'userStatus') return <UserStatusOverlayBody />
-    if (view === 'connectWallet') return <ConnectWalletOverlayBody />
-    return null
-}
-
-const WalletsOverlayBody: FC = () => {
+const WalletsBody: FC = () => {
     const { wallets } = useWallet()
     return <WalletsList wallets={wallets} />
 }
 
-const LoginOverlayBody: FC = () => {
-    const close = useSettingsOverlayStore((s) => s.close)
+const LoginBody: FC<{ wizard: LoginWizard }> = ({ wizard }) => {
+    const close = useAppDialogueStore((s) => s.close)
     return (
         <div className="-mx-4 flex-1 flex flex-col">
-            <LoginFlow isOpen onClose={close} hideHeader />
+            <LoginFlow isOpen onClose={close} hideHeader wizard={wizard} />
         </div>
     )
 }
 
-const UserStatusOverlayBody: FC = () => {
-    const close = useSettingsOverlayStore((s) => s.close)
+const UserStatusBody: FC = () => {
+    const close = useAppDialogueStore((s) => s.close)
     const secretDerivation = useOptionalSecretDerivation()
     if (!secretDerivation) return null
     const { method, loginWallet, logout } = secretDerivation
@@ -171,8 +180,8 @@ const UserStatusOverlayBody: FC = () => {
     )
 }
 
-const ConnectWalletOverlayBody: FC = () => {
-    const back = useSettingsOverlayStore((s) => s.back)
+const ConnectWalletBody: FC = () => {
+    const back = useAppDialogueStore((s) => s.back)
     const { onFinish } = useConnectModal()
     return (
         <ConnectorsList
@@ -203,9 +212,9 @@ export const StepBody: FC<StepBodyProps> = ({
     nonOverlayPt = "pt-10",
     overlayActionMt = "",
 }) => {
-    const inOverlay = useSettingsOverlayStore((s) => s.view !== null)
+    const inDialogue = useAppDialogueStore((s) => s.view !== null)
 
-    if (inOverlay) {
+    if (inDialogue) {
         const infoClasses = centerOverlay
             ? `flex-1 flex flex-col items-center justify-center ${gap} w-full`
             : `flex-1 flex flex-col ${gap}`
@@ -234,4 +243,4 @@ export const StepBody: FC<StepBodyProps> = ({
     )
 }
 
-export default SettingsOverlay
+export default AppDialogue

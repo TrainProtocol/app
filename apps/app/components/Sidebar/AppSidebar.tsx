@@ -1,6 +1,6 @@
 "use client"
 
-import { FC, useEffect, useState } from "react"
+import { FC } from "react"
 import {
     Sidebar,
     SidebarContent,
@@ -17,28 +17,20 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/pop
 import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, ChevronRight, FileText, ShieldCheck, Home } from "lucide-react"
 import TwitterLogo from "@/components/Icons/TwitterLogo"
 import GitHubLogo from "@/components/Icons/GitHubLogo"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import Link from "next/link"
 import TrainLogo from "@/components/Icons/TrainLogo"
 import { useGoHome } from "@/hooks/useGoHome"
 import useWallet from "@/hooks/useWallet"
 import WalletIcon from "@/components/Icons/WalletIcon"
-import ConnectButton from "@/components/buttons/connectButton"
 import { WalletsIcons } from "@/components/Wallet/ConnectedWallets"
 import { Address } from "@/lib/address"
-import VaulDrawer from "@/components/Modal/vaulModal"
-import WalletsList from "@/components/Wallet/WalletsList"
 import { useOptionalSecretDerivation } from "@train-protocol/react"
-import { UserStatusContent } from "@/components/SecretDerivation/UserStatus"
-import { useLoginModalStore } from "@/stores/loginModalStore"
-import { useSettingsOverlayStore } from "@/stores/settingsOverlayStore"
+import { useAppDialogueStore } from "@/stores/appDialogueStore"
 import { Fingerprint, Lock } from "lucide-react"
-import { formatPasskeyIdForDisplay } from "@train-protocol/auth"
 
 const AppSidebar: FC = () => {
-    const router = useRouter()
     const currentPath = usePathname() ?? '/'
-    const isSettings = currentPath === '/settings'
     const goHome = useGoHome()
     const { wallets } = useWallet()
 
@@ -55,28 +47,30 @@ const AppSidebar: FC = () => {
                     <SidebarGroupContent>
                         <SidebarMenu>
                             <SidebarMenuItem>
-                                <SidebarMenuButton isActive={currentPath === "/" || currentPath === "/swap"} onClick={() => router.push("/")}>
-                                    <Home />
-                                    <span>Home</span>
+                                <SidebarMenuButton asChild isActive={currentPath === "/" || currentPath === "/swap"}>
+                                    <Link href="/">
+                                        <Home />
+                                        <span>Home</span>
+                                    </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
 
                             <SidebarMenuItem>
-                                <SidebarMenuButton isActive={currentPath === "/transactions"} onClick={() => router.push("/transactions")}>
-                                    <History />
-                                    <span>History</span>
+                                <SidebarMenuButton asChild isActive={currentPath === "/transactions"}>
+                                    <Link href="/transactions">
+                                        <History />
+                                        <span>History</span>
+                                    </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
 
                             <SidebarMenuItem>
-                                <SidebarMenuButton isActive={currentPath === "/settings"} onClick={() => router.push("/settings")}>
-                                    <Settings />
-                                    <span>Settings</span>
+                                <SidebarMenuButton asChild isActive={currentPath === "/settings"}>
+                                    <Link href="/settings">
+                                        <Settings />
+                                        <span>Settings</span>
+                                    </Link>
                                 </SidebarMenuButton>
-                            </SidebarMenuItem>
-
-                            <SidebarMenuItem>
-                                <WalletsSidebarButton wallets={wallets} isSettings={isSettings} />
                             </SidebarMenuItem>
 
                             <SidebarMenuItem>
@@ -97,10 +91,16 @@ const AppSidebar: FC = () => {
                 </SidebarGroup>
             </SidebarContent>
 
-            <SidebarSeparator className="mx-0" />
-
-            <SidebarFooter>
-                <SidebarLoginStatus isSettings={isSettings} />
+            <SidebarFooter className="gap-0 p-0">
+                <SidebarMenu className="px-2 pb-2">
+                    <SidebarMenuItem>
+                        <WalletsSidebarButton wallets={wallets} />
+                    </SidebarMenuItem>
+                </SidebarMenu>
+                <SidebarSeparator className="mx-0" />
+                <div className="p-2">
+                    <SidebarLoginStatus />
+                </div>
             </SidebarFooter>
         </Sidebar>
     )
@@ -108,31 +108,30 @@ const AppSidebar: FC = () => {
 
 type WalletsSidebarButtonProps = {
     wallets: ReturnType<typeof useWallet>['wallets']
-    isSettings: boolean
 }
 
-const WalletsSidebarButton: FC<WalletsSidebarButtonProps> = ({ wallets, isSettings }) => {
-    const [drawerOpen, setDrawerOpen] = useState(false)
-    const openOverlay = useSettingsOverlayStore((s) => s.open)
-
-    useEffect(() => {
-        if (isSettings) setDrawerOpen(false)
-    }, [isSettings])
-
-    if (wallets.length === 0) {
-        return (
-            <SidebarMenuButton asChild>
-                <ConnectButton className="w-full">
-                    <WalletIcon className="h-4 w-4" strokeWidth={2} />
-                    <span>Connect a wallet</span>
-                </ConnectButton>
-            </SidebarMenuButton>
-        )
-    }
+const WalletsSidebarButton: FC<WalletsSidebarButtonProps> = ({ wallets }) => {
+    const openDialogue = useAppDialogueStore((s) => s.open)
 
     const wallet = wallets[0]
-    const buttonClassName = wallets.length === 1 ? undefined : "[&_svg]:size-5"
-    const buttonContent = wallets.length === 1 ? (
+    const hasWallets = wallets.length > 0
+    const isMulti = wallets.length > 1
+
+    const handleClick = () => {
+        openDialogue(hasWallets ? 'wallets' : 'connectWallet')
+    }
+
+    const content = !hasWallets ? (
+        <>
+            <WalletIcon className="h-4 w-4" strokeWidth={2} />
+            <span>Connect a wallet</span>
+        </>
+    ) : isMulti ? (
+        <>
+            <WalletsIcons wallets={wallets} />
+            <span>Connected wallets</span>
+        </>
+    ) : (
         <>
             <wallet.icon className="h-4 w-4" />
             <span>
@@ -141,112 +140,36 @@ const WalletsSidebarButton: FC<WalletsSidebarButtonProps> = ({ wallets, isSettin
                     : 'Wallet'}
             </span>
         </>
-    ) : (
-        <>
-            <WalletsIcons wallets={wallets} />
-            <span>Connected wallets</span>
-        </>
     )
 
-    if (isSettings) {
-        return (
-            <SidebarMenuButton className={buttonClassName} onClick={() => openOverlay('wallets')}>
-                {buttonContent}
-            </SidebarMenuButton>
-        )
-    }
-
     return (
-        <>
-            <SidebarMenuButton className={buttonClassName} onClick={() => setDrawerOpen(true)}>
-                {buttonContent}
-            </SidebarMenuButton>
-            <VaulDrawer
-                show={drawerOpen}
-                setShow={setDrawerOpen}
-                header="Connected wallets"
-                modalId="connectedWallets"
-            >
-                <VaulDrawer.Snap id="item-1">
-                    <WalletsList wallets={wallets} />
-                </VaulDrawer.Snap>
-            </VaulDrawer>
-        </>
+        <SidebarMenuButton className={isMulti ? "[&_svg]:size-5" : undefined} onClick={handleClick}>
+            {content}
+        </SidebarMenuButton>
     )
 }
 
-const SidebarLoginStatus: FC<{ isSettings: boolean }> = ({ isSettings }) => {
+const SidebarLoginStatus: FC = () => {
     const secretDerivation = useOptionalSecretDerivation()
-    const openLoginModal = useLoginModalStore((s) => s.open)
-    const closeLoginModal = useLoginModalStore((s) => s.close)
-    const openOverlay = useSettingsOverlayStore((s) => s.open)
-    const [statusOpen, setStatusOpen] = useState(false)
-
-    useEffect(() => {
-        if (isSettings) {
-            setStatusOpen(false)
-            closeLoginModal()
-        }
-    }, [isSettings, closeLoginModal])
+    const openDialogue = useAppDialogueStore((s) => s.open)
 
     if (!secretDerivation) return null
 
-    const { method, isLoggedIn, loginWallet, logout, activePasskeyCredentialId } = secretDerivation
+    const { method, isLoggedIn, loginWallet, activePasskeyCredentialId, passkeyCredentials } = secretDerivation
+    const activePasskeyLabel = passkeyCredentials.find(c => c.id === activePasskeyCredentialId)?.label ?? null
 
     if (!isLoggedIn) {
-        const loggedOutContent = (
-            <>
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-secondary-400 text-primary-text">
-                    <Lock className="size-4" strokeWidth={2} />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">Login</span>
-                    <span className="truncate text-xs text-secondary-text">Not signed in</span>
-                </div>
-            </>
-        )
-
         return (
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" onClick={isSettings ? () => openOverlay('login') : openLoginModal}>
-                        {loggedOutContent}
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            </SidebarMenu>
-        )
-    }
-
-    const loggedInContent = (
-        <>
-            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-secondary-400 text-primary-text">
-                {method === 'passkey' ? (
-                    <Fingerprint className="size-4" strokeWidth={2} />
-                ) : (
-                    <WalletIcon className="size-4" strokeWidth={2} />
-                )}
-            </div>
-            <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">
-                    {method === 'passkey' ? 'Passkey' : (loginWallet?.displayName || 'Wallet')}
-                </span>
-                <span className="truncate text-xs text-secondary-text">
-                    {method === 'passkey' && activePasskeyCredentialId
-                        ? formatPasskeyIdForDisplay(activePasskeyCredentialId)
-                        : loginWallet?.address
-                            ? new Address(loginWallet.address, null, loginWallet.providerName).toShortString()
-                            : ''}
-                </span>
-            </div>
-        </>
-    )
-
-    if (isSettings) {
-        return (
-            <SidebarMenu>
-                <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" onClick={() => openOverlay('userStatus')}>
-                        {loggedInContent}
+                    <SidebarMenuButton size="lg" onClick={() => openDialogue('login')}>
+                        <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-secondary-400 text-primary-text">
+                            <Lock className="size-4" strokeWidth={2} />
+                        </div>
+                        <div className="grid flex-1 text-left text-sm leading-tight">
+                            <span className="truncate font-semibold">Login</span>
+                            <span className="truncate text-xs text-secondary-text">Not signed in</span>
+                        </div>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
@@ -254,32 +177,32 @@ const SidebarLoginStatus: FC<{ isSettings: boolean }> = ({ isSettings }) => {
     }
 
     return (
-        <>
-            <SidebarMenu>
-                <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" onClick={() => setStatusOpen(true)}>
-                        {loggedInContent}
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            </SidebarMenu>
-            <VaulDrawer
-                show={statusOpen}
-                setShow={setStatusOpen}
-                header="Login Status"
-                modalId="sidebarUserStatus"
-            >
-                <VaulDrawer.Snap id="item-1">
-                    <UserStatusContent
-                        method={method}
-                        loginWallet={loginWallet}
-                        logout={logout}
-                        onClose={() => setStatusOpen(false)}
-                        showHeader={false}
-                        showPasskeyWarning={false}
-                    />
-                </VaulDrawer.Snap>
-            </VaulDrawer>
-        </>
+        <SidebarMenu>
+            <SidebarMenuItem>
+                <SidebarMenuButton size="lg" onClick={() => openDialogue('userStatus')}>
+                    <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-secondary-400 text-primary-text">
+                        {method === 'passkey' ? (
+                            <Fingerprint className="size-4" strokeWidth={2} />
+                        ) : (
+                            <WalletIcon className="size-4" strokeWidth={2} />
+                        )}
+                    </div>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                        <span className="truncate font-semibold">
+                            {method === 'passkey' ? 'Passkey' : (loginWallet?.displayName || 'Wallet')}
+                        </span>
+                        <span className="truncate text-xs text-secondary-text inline-flex items-center gap-1">
+                            {method === 'passkey' ? (
+                                <span className="truncate">{activePasskeyLabel ?? ''}</span>
+                            ) : (
+                                loginWallet?.address
+                                    ? new Address(loginWallet.address, null, loginWallet.providerName).toShortString()
+                                    : '')}
+                        </span>
+                    </div>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+        </SidebarMenu>
     )
 }
 
