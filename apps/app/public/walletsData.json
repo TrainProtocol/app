@@ -1,5 +1,5 @@
 {
-  "count": 638,
+  "count": 639,
   "listings": {
     "00e39f835988d1bb783b2a0748e18bc6278dec03492d00b0e102a466cd8b3d77": {
       "app": {
@@ -12319,24 +12319,23 @@
     },
     "353b9c57ec9fff4971243cde72a38ad4fbbc3565bdc95a54f6a38c43e5480d32": {
       "app": {
-        "android": null,
-        "browser": "https://console.utila.io/",
+        "android": "",
+        "browser": "https://utila.io/",
         "chrome": "https://chromewebstore.google.com/detail/utila/hcnimkhfanmcapamajjopeallkkidpic",
         "edge": null,
         "firefox": null,
-        "ios": null,
-        "linux": null,
-        "mac": null,
+        "ios": "",
+        "linux": "",
+        "mac": "",
         "opera": null,
         "safari": null,
-        "windows": null
+        "windows": ""
       },
       "app_type": "wallet",
       "category": null,
       "chains": [
         "bip122:000000000019d6689c085ae165831e93",
         "bip122:12a765e31ffd4059bada1e25190f6e98",
-        "cosmos:cosmoshub-4",
         "eip155:1",
         "eip155:10",
         "eip155:100",
@@ -12533,6 +12532,7 @@
         "eip155:211",
         "eip155:2195",
         "eip155:22",
+        "eip155:2201",
         "eip155:222",
         "eip155:23",
         "eip155:233",
@@ -12629,10 +12629,12 @@
         "eip155:421613",
         "eip155:4216137055",
         "eip155:421614",
+        "eip155:4217",
         "eip155:42170",
         "eip155:42220",
         "eip155:42420",
         "eip155:42421",
+        "eip155:42431",
         "eip155:42793",
         "eip155:43",
         "eip155:43110",
@@ -12646,6 +12648,7 @@
         "eip155:45510",
         "eip155:462",
         "eip155:463",
+        "eip155:46630",
         "eip155:4689",
         "eip155:4690",
         "eip155:47279324479",
@@ -12663,6 +12666,7 @@
         "eip155:5031",
         "eip155:50312",
         "eip155:503129905",
+        "eip155:5042002",
         "eip155:51",
         "eip155:5197",
         "eip155:52",
@@ -12675,6 +12679,7 @@
         "eip155:541764",
         "eip155:54211",
         "eip155:543210",
+        "eip155:545",
         "eip155:55",
         "eip155:5522",
         "eip155:558",
@@ -12815,20 +12820,23 @@
         "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
         "stellar:pubnet",
         "sui:mainnet",
+        "ton:-239",
+        "tron:0x2b6653dc",
+        "tron:0xcd8690dc",
         "xrpl:0"
       ],
       "description": "Utila is the digital asset infrastructure platform for fintechs and enterprises.\nThe most secure MPC wallet for institutions and DeFi teams.",
       "desktop": {
         "native": "",
-        "universal": "https://console.utila.io/"
+        "universal": "https://utila.io/"
       },
       "homepage": "https://utila.io/",
       "id": "353b9c57ec9fff4971243cde72a38ad4fbbc3565bdc95a54f6a38c43e5480d32",
-      "image_id": "d5ec0740-22ea-4f47-5ee9-6d9e61cabf00",
+      "image_id": "0838406b-941b-4bbc-1604-aa44d76df200",
       "image_url": {
-        "lg": "https://explorer-api.walletconnect.com/v3/logo/md/d5ec0740-22ea-4f47-5ee9-6d9e61cabf00?projectId=34357d3c125c2bcf2ce2bc3309d98715",
-        "md": "https://explorer-api.walletconnect.com/v3/logo/md/d5ec0740-22ea-4f47-5ee9-6d9e61cabf00?projectId=34357d3c125c2bcf2ce2bc3309d98715",
-        "sm": "https://explorer-api.walletconnect.com/v3/logo/sm/d5ec0740-22ea-4f47-5ee9-6d9e61cabf00?projectId=34357d3c125c2bcf2ce2bc3309d98715"
+        "lg": "https://explorer-api.walletconnect.com/v3/logo/md/0838406b-941b-4bbc-1604-aa44d76df200?projectId=34357d3c125c2bcf2ce2bc3309d98715",
+        "md": "https://explorer-api.walletconnect.com/v3/logo/md/0838406b-941b-4bbc-1604-aa44d76df200?projectId=34357d3c125c2bcf2ce2bc3309d98715",
+        "sm": "https://explorer-api.walletconnect.com/v3/logo/sm/0838406b-941b-4bbc-1604-aa44d76df200?projectId=34357d3c125c2bcf2ce2bc3309d98715"
       },
       "injected": null,
       "metadata": {
@@ -12843,7 +12851,7 @@
         "universal": ""
       },
       "name": "Utila",
-      "rdns": "console.utila.io",
+      "rdns": "utila.io",
       "sdks": [
         "sign_v1",
         "sign_v2"
@@ -16231,6 +16239,69 @@
       "updatedAt": "2025-02-19T09:28:20.398822+00:00",
       "versions": [
         "1"
+      ]
+    },
+    "488797489e6207d284a796381596453da60399d2d2ef8a88c6126ff4aaf9491c": {
+      "app": {
+        "android": "https://play.google.com/store/apps/details?id=com.kriptokasam.cryptowallet",
+        "browser": "",
+        "chrome": "",
+        "edge": "",
+        "firefox": "",
+        "ios": "https://apps.apple.com/tr/app/kriptok/id6752350022?l=tr",
+        "linux": "",
+        "mac": "",
+        "opera": "",
+        "safari": "",
+        "windows": ""
+      },
+      "app_type": "wallet",
+      "category": null,
+      "chains": [
+        "eip155:1",
+        "eip155:1101",
+        "eip155:42161",
+        "eip155:56288",
+        "eip155:8453",
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+        "sui:mainnet"
+      ],
+      "description": "KriptoK is a multichain, self-custody wallet built for everyday use - simple to navigate, serious about security, and designed so you stay in control. Move freely across Ethereum, Bitcoin, Solana, BNB Chain, Polygon, Arbitrum, Base, and Sui. ",
+      "desktop": {
+        "native": "",
+        "universal": ""
+      },
+      "homepage": "https://kriptok.io",
+      "id": "488797489e6207d284a796381596453da60399d2d2ef8a88c6126ff4aaf9491c",
+      "image_id": "fbb715e1-280c-49c0-d6a7-f328aad1a300",
+      "image_url": {
+        "lg": "https://explorer-api.walletconnect.com/v3/logo/md/fbb715e1-280c-49c0-d6a7-f328aad1a300?projectId=34357d3c125c2bcf2ce2bc3309d98715",
+        "md": "https://explorer-api.walletconnect.com/v3/logo/md/fbb715e1-280c-49c0-d6a7-f328aad1a300?projectId=34357d3c125c2bcf2ce2bc3309d98715",
+        "sm": "https://explorer-api.walletconnect.com/v3/logo/sm/fbb715e1-280c-49c0-d6a7-f328aad1a300?projectId=34357d3c125c2bcf2ce2bc3309d98715"
+      },
+      "injected": null,
+      "metadata": {
+        "colors": {
+          "primary": null,
+          "secondary": null
+        },
+        "shortName": null
+      },
+      "mobile": {
+        "native": "kriptok://wc",
+        "universal": "https://dev-api.kriptok.io/wc"
+      },
+      "name": "KriptoK",
+      "rdns": "",
+      "sdks": [
+        "sign_v1",
+        "sign_v2"
+      ],
+      "slug": "kriptok",
+      "updatedAt": "2026-04-15T07:11:34.136177+00:00",
+      "versions": [
+        "1",
+        "2"
       ]
     },
     "48e11e0de0448147be34e0cccdeb84e90e7355e7f01f6f2bc5a31ad73a184985": {
@@ -31299,6 +31370,64 @@
         "2"
       ]
     },
+    "997a355c8f682468706a76cff1b004a7115f505fb962dac54b6e9b442dd1c380": {
+      "app": {
+        "android": "https://play.google.com/store/apps/details?id=org.stellar.freighterwallet",
+        "browser": "",
+        "chrome": "",
+        "edge": "",
+        "firefox": "",
+        "ios": "https://apps.apple.com/us/app/freighter/id6743947720",
+        "linux": "",
+        "mac": "",
+        "opera": "",
+        "safari": "",
+        "windows": ""
+      },
+      "app_type": "wallet",
+      "category": null,
+      "chains": [
+        "stellar:pubnet",
+        "stellar:testnet"
+      ],
+      "description": "Freighter is a self-custody wallet for the Stellar network.\n\nWith Freighter, you can send tokens, receive tokens, and connect to your favorite Stellar applications, all through a sleek, easy-to-use app.\n\nExplore everything that the Stellar ecosystem has to offer, with Freighter.",
+      "desktop": {
+        "native": "",
+        "universal": ""
+      },
+      "homepage": "https://www.freighter.app/",
+      "id": "997a355c8f682468706a76cff1b004a7115f505fb962dac54b6e9b442dd1c380",
+      "image_id": "114aa875-487a-4d86-5c87-6f22f4559100",
+      "image_url": {
+        "lg": "https://explorer-api.walletconnect.com/v3/logo/md/114aa875-487a-4d86-5c87-6f22f4559100?projectId=34357d3c125c2bcf2ce2bc3309d98715",
+        "md": "https://explorer-api.walletconnect.com/v3/logo/md/114aa875-487a-4d86-5c87-6f22f4559100?projectId=34357d3c125c2bcf2ce2bc3309d98715",
+        "sm": "https://explorer-api.walletconnect.com/v3/logo/sm/114aa875-487a-4d86-5c87-6f22f4559100?projectId=34357d3c125c2bcf2ce2bc3309d98715"
+      },
+      "injected": null,
+      "metadata": {
+        "colors": {
+          "primary": null,
+          "secondary": null
+        },
+        "shortName": null
+      },
+      "mobile": {
+        "native": "freighterwallet://wc-redirect",
+        "universal": ""
+      },
+      "name": "Freighter",
+      "rdns": "",
+      "sdks": [
+        "sign_v1",
+        "sign_v2"
+      ],
+      "slug": "freighter-1",
+      "updatedAt": "2026-04-15T06:57:18.628916+00:00",
+      "versions": [
+        "1",
+        "2"
+      ]
+    },
     "9a4cddbdbc19005be790f37cc9176dd24eae51aa2a49fa3edeb3b6a8b089b7be": {
       "app": {
         "android": "https://play.google.com/store/apps/details?id=com.nightlymobile&pli=1",
@@ -34043,16 +34172,16 @@
     "a92d512c649e87a5acba5885ac03f62662cff1f647c20a63833eb45a71a6f877": {
       "app": {
         "android": "https://play.google.com/store/apps/details?id=com.humbl.wallet.app&hl=en_US&gl=US",
-        "browser": null,
-        "chrome": null,
-        "edge": null,
-        "firefox": null,
+        "browser": "",
+        "chrome": "",
+        "edge": "",
+        "firefox": "",
         "ios": "https://apps.apple.com/us/app/humbl-wallet/id1627171234",
-        "linux": null,
-        "mac": null,
-        "opera": null,
-        "safari": null,
-        "windows": null
+        "linux": "",
+        "mac": "",
+        "opera": "",
+        "safari": "",
+        "windows": ""
       },
       "app_type": "wallet",
       "category": "Mobile Wallets",
@@ -34065,7 +34194,7 @@
         "native": "",
         "universal": ""
       },
-      "homepage": "https://tapwallet.com",
+      "homepage": "https://tapinvest.com/#wallet",
       "id": "a92d512c649e87a5acba5885ac03f62662cff1f647c20a63833eb45a71a6f877",
       "image_id": "a1fe3361-d754-430e-f55e-72315af52700",
       "image_url": {
@@ -34086,7 +34215,7 @@
         "universal": "https://wallet.search3.com"
       },
       "name": "TAP WALLET",
-      "rdns": null,
+      "rdns": "",
       "sdks": [
         "sign_v1",
         "sign_v2",
@@ -35310,64 +35439,6 @@
       ],
       "slug": "hot-wallet",
       "updatedAt": "2025-05-02T13:24:51.103068+00:00",
-      "versions": [
-        "1",
-        "2"
-      ]
-    },
-    "aef3112adf415ec870529e96b4d7b434f13961a079d1ee42c9738217d8adeb91": {
-      "app": {
-        "android": "https://play.google.com/store/apps/details?id=org.stellar.freighterwallet",
-        "browser": null,
-        "chrome": null,
-        "edge": null,
-        "firefox": null,
-        "ios": null,
-        "linux": null,
-        "mac": null,
-        "opera": null,
-        "safari": null,
-        "windows": null
-      },
-      "app_type": "wallet",
-      "category": null,
-      "chains": [
-        "stellar:pubnet",
-        "stellar:testnet"
-      ],
-      "description": "Freighter is a self-custody wallet for the Stellar network.\n\nWith Freighter, you can send tokens, receive tokens, and connect to your favorite Stellar applications, all through a sleek, easy-to-use app.\n\nExplore everything that the Stellar ecosystem has to offer, with Freighter.",
-      "desktop": {
-        "native": "",
-        "universal": ""
-      },
-      "homepage": "https://www.freighter.app/",
-      "id": "aef3112adf415ec870529e96b4d7b434f13961a079d1ee42c9738217d8adeb91",
-      "image_id": "12c9b230-917a-42e9-08cc-879dfb5de900",
-      "image_url": {
-        "lg": "https://explorer-api.walletconnect.com/v3/logo/md/12c9b230-917a-42e9-08cc-879dfb5de900?projectId=34357d3c125c2bcf2ce2bc3309d98715",
-        "md": "https://explorer-api.walletconnect.com/v3/logo/md/12c9b230-917a-42e9-08cc-879dfb5de900?projectId=34357d3c125c2bcf2ce2bc3309d98715",
-        "sm": "https://explorer-api.walletconnect.com/v3/logo/sm/12c9b230-917a-42e9-08cc-879dfb5de900?projectId=34357d3c125c2bcf2ce2bc3309d98715"
-      },
-      "injected": null,
-      "metadata": {
-        "colors": {
-          "primary": null,
-          "secondary": null
-        },
-        "shortName": null
-      },
-      "mobile": {
-        "native": "freighterwallet://wc-redirect",
-        "universal": ""
-      },
-      "name": "Freighter",
-      "rdns": null,
-      "sdks": [
-        "sign_v1",
-        "sign_v2"
-      ],
-      "slug": "freighter",
-      "updatedAt": "2025-08-06T07:40:57.063229+00:00",
       "versions": [
         "1",
         "2"
@@ -43512,13 +43583,19 @@
         "eip155:420",
         "eip155:42793",
         "eip155:5",
+        "eip155:56",
         "eip155:6",
         "eip155:61",
         "eip155:62",
         "eip155:63",
         "eip155:69",
         "eip155:777",
-        "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z"
+        "eip155:8453",
+        "eip155:84531",
+        "eip155:97",
+        "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z",
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+        "tron:0x2b6653dc"
       ],
       "description": "TokenB is the simplest and most secure way to store, purchase, and exchange on the Algorand blockchain. It can discover and connect decentralized applications (DApps) on any device.",
       "desktop": {
@@ -52560,5 +52637,5 @@
       ]
     }
   },
-  "total": 638
+  "total": 639
 }

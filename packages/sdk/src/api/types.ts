@@ -75,6 +75,7 @@ export type QuoteDetails = {
     signature: string;
     totalFee: string;
     receiveAmount: string;
+    rate: string;
     sourceSolverAddress: string;
     destinationSolverAddress: string;
     quoteExpirationTimestampInSeconds: number;

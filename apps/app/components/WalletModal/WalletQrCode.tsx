@@ -7,7 +7,7 @@ import CopyButton from "../buttons/copyButton";
 export const WalletQrCode: FC<{ selectedConnector: WalletModalConnector }> = ({ selectedConnector }) => {
     const ConnectorIcon = resolveWalletConnectorIcon({ connector: selectedConnector?.name, iconUrl: selectedConnector.icon });
 
-    return <div className="flex flex-col items-center h-[60vh] sm:h-full justify-between">
+    return <div className="flex flex-col items-center h-full justify-between">
         <div className="flex flex-col items-center gap-3 grow justify-center">
             <div className="flex items-center gap-2">
                 <ConnectorIcon className="w-6 h-6" />
@@ -42,7 +42,7 @@ export const WalletQrCode: FC<{ selectedConnector: WalletModalConnector }> = ({ 
             </div>
             <p className="text-xs text-secondary-text">Scan with your phone to connect</p>
         </div>
-        <div className='bg-secondary-400 hover:bg-secondary-500 text-secondary-text w-full px-3 py-3 rounded-xl flex justify-center items-center text-sm font-medium transition duration-200 ease-in-out cursor-pointer'>
+        <div className='bg-secondary-300 hover:bg-secondary-400 text-secondary-text w-full px-3 py-3 rounded-xl flex justify-center items-center text-sm font-medium transition duration-200 ease-in-out cursor-pointer'>
             <CopyButton disabled={!selectedConnector?.qr?.value} toCopy={selectedConnector?.qr?.deepLink || selectedConnector?.qr?.value || ''}>Copy link</CopyButton>
         </div>
     </div>

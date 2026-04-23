@@ -110,7 +110,7 @@ export default function useAztec(): WalletProvider {
         }
     }
 
-    const availableWalletsForConnect: InternalConnector[] = useMemo(() => {
+    const availableConnectors: InternalConnector[] = useMemo(() => {
         const azguard = KnownAztecConnectors[0];
         return [{
             id: azguard.id,
@@ -126,11 +126,11 @@ export default function useAztec(): WalletProvider {
         setActiveAddress(address);
     }, [setActiveAddress]);
 
-    const provider = {
+    const provider: WalletProvider = {
         connectWallet,
         disconnectWallets,
         switchAccount,
-        availableWalletsForConnect,
+        availableConnectors,
         connectedWallets: aztecWallet ? [aztecWallet] : undefined,
         activeWallet: aztecWallet,
         withdrawalSupportedNetworks: commonSupportedNetworks,

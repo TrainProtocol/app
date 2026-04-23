@@ -83,7 +83,7 @@ export default function useTron(): WalletProvider {
         }
     }
 
-    const availableWalletsForConnect: InternalConnector[] = useMemo(() => wallets.map(wallet => {
+    const availableConnectors: InternalConnector[] = useMemo(() => wallets.map(wallet => {
         const isNotInstalled = wallet.state == 'NotFound'
         return {
             id: wallet.adapter.name,
@@ -99,7 +99,7 @@ export default function useTron(): WalletProvider {
     const provider: WalletProvider = {
         connectWallet,
         disconnectWallets: disconnectWallet,
-        availableWalletsForConnect,
+        availableConnectors,
         connectedWallets: getWallet(),
         activeWallet: wallet,
         autofillSupportedNetworks: commonSupportedNetworks,
