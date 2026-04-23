@@ -7,7 +7,6 @@ import { useConnectModal } from ".";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 
 const ConnectWalletDrawer: FC = () => {
-    const { isMobile: isMobileSize } = useWindowDimensions();
     const {
         goBack,
         onFinish,
@@ -36,7 +35,7 @@ const ConnectWalletDrawer: FC = () => {
                     <p>{(selectedMultiChainConnector && !selectedConnector) ? "Select ecosystem" : "Connect wallet"}</p>
                 </div>
             }>
-            <VaulDrawer.Snap openFullHeight={!isMobileSize} id='item-1' className="pb-4 sm:pb-0! sm:h-full">
+            <VaulDrawer.Snap openFullHeight id='item-1' className="h-full">
                 <ConnectorsList onFinish={onFinish} />
             </VaulDrawer.Snap>
         </VaulDrawer>

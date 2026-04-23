@@ -19,8 +19,8 @@ const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], appName: str
                             <AztecWalletProvider>
                                 <WalletProvidersProvider>
                                     <WalletBridges />
-                                    {children}
                                     <ConnectWalletDrawer />
+                                    {children}
                                 </WalletProvidersProvider>
                             </AztecWalletProvider>
                         </WalletModalProvider>

@@ -106,11 +106,9 @@ export function WalletModalProvider({ children }) {
         connect, cancel, selectedProvider, setSelectedProvider,
         selectedConnector, setSelectedConnector,
         selectedMultiChainConnector, setSelectedMultiChainConnector,
-        isWalletModalOpen, goBack, onFinish, setOpen, open,
-        renderMode, setRenderMode
+        isWalletModalOpen, goBack, onFinish, setOpen, open, renderMode, setRenderMode
     }), [connect, cancel, selectedProvider, selectedConnector,
-        selectedMultiChainConnector, isWalletModalOpen, goBack, onFinish, open,
-        renderMode])
+        selectedMultiChainConnector, isWalletModalOpen, goBack, onFinish, open])
 
     return (
         <ConnectModalContext.Provider value={contextValue}>
