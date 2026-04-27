@@ -35,15 +35,15 @@ const AppSidebar: FC = () => {
     const { wallets } = useWallet()
 
     return (
-        <Sidebar side="left" collapsible="none" className="hidden md:flex">
-            <SidebarHeader className="p-4">
+        <Sidebar side="left" collapsible="none" className="hidden md:flex px-4">
+            <SidebarHeader className="px-0 py-4">
                 <div onClick={goHome} className="cursor-pointer">
                     <TrainLogo className="h-auto w-36 text-primary-logoColor fill-primary-text" />
                 </div>
             </SidebarHeader>
 
             <SidebarContent>
-                <SidebarGroup>
+                <SidebarGroup className="px-0">
                     <SidebarGroupContent>
                         <SidebarMenu>
                             <SidebarMenuItem>
@@ -92,13 +92,13 @@ const AppSidebar: FC = () => {
             </SidebarContent>
 
             <SidebarFooter className="gap-0 p-0">
-                <SidebarMenu className="px-2 pb-2">
+                <SidebarMenu className="pb-2">
                     <SidebarMenuItem>
                         <WalletsSidebarButton wallets={wallets} />
                     </SidebarMenuItem>
                 </SidebarMenu>
-                <SidebarSeparator className="mx-0" />
-                <div className="p-2">
+                <SidebarSeparator className="-mx-4 data-horizontal:w-[calc(100%+2rem)]" />
+                <div className="py-2">
                     <SidebarLoginStatus />
                 </div>
             </SidebarFooter>

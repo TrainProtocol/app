@@ -1,6 +1,6 @@
 "use client"
 
-import { FC, ReactNode, useEffect } from "react"
+import { FC, ReactNode, useEffect, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { ChevronLeft, X } from "lucide-react"
 import { useAppDialogueStore, type AppDialogueView } from "@/stores/appDialogueStore"
@@ -13,12 +13,18 @@ import ConnectorsList from "@/components/WalletModal/ConnectorsList"
 import { useConnectModal } from "@/components/WalletModal"
 import IconButton from "@/components/buttons/iconButton"
 import { Dialog, DialogContent, DialogTitle } from "@/components/shadcn/dialog"
+import RecoverSwap from "@/components/Swap/Atomic/RecoverSwap"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { buildHrefWithPersistantParams } from "@/helpers/querryHelper"
+import { buildSwapQuery } from "@/helpers/swapUrl"
+import { useLoginModalStore } from "@/stores/loginModalStore"
 
 const TITLES: Record<AppDialogueView, string> = {
     wallets: "Connected wallets",
     login: "Login to continue",
     userStatus: "Login status",
     connectWallet: "Connect wallet",
+    recoverSwap: "Recover swap",
 }
 
 const AppDialogue: FC = () => {
@@ -40,11 +46,30 @@ const AppDialogue: FC = () => {
         }
     }, [view, setRenderMode])
 
+    const pathname = usePathname()
+    const closeLogin = useLoginModalStore((s) => s.close)
+    useEffect(() => {
+        setVisuallyOpen(false)
+        closeLogin()
+        if (connectOpen) cancelConnect()
+        // intentionally only react to pathname; the close handlers are stable
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pathname])
+
+    const [visuallyOpen, setVisuallyOpen] = useState(false)
+    useEffect(() => {
+        if (view !== null) setVisuallyOpen(true)
+    }, [view])
+
     const close = () => {
         if (stack.includes('connectWallet') && connectOpen) {
             cancelConnect()
         }
-        closeStore()
+        setVisuallyOpen(false)
+    }
+
+    const handleAnimationEnd = () => {
+        if (!visuallyOpen && view !== null) closeStore()
     }
 
     const handleBack = (v: AppDialogueView) => {
@@ -63,9 +88,10 @@ const AppDialogue: FC = () => {
     }
 
     return (
-        <Dialog open={view !== null} onOpenChange={(open) => { if (!open) close() }}>
+        <Dialog open={visuallyOpen} onOpenChange={(open) => { if (!open) close() }}>
             <DialogContent
                 showCloseButton={false}
+                onAnimationEnd={handleAnimationEnd}
                 className="p-0 gap-0 w-full sm:max-w-lg bg-secondary-700 border border-border rounded-3xl overflow-hidden flex flex-col has-expandContainerHeight:min-h-[675px] max-sm:has-openpicker:min-h-svh max-sm:min-h-[99.8svh] sm:has-openpicker:min-h-[79svh]! sm:min-h-[500px]"
             >
                 <DialogTitle className="sr-only">{view ? TITLES[view] : 'Dialogue'}</DialogTitle>
@@ -108,6 +134,7 @@ const AppDialogue: FC = () => {
                                             {v === 'login' && <LoginBody wizard={loginWizard} />}
                                             {v === 'userStatus' && <UserStatusBody />}
                                             {v === 'connectWallet' && <ConnectWalletBody />}
+                                            {v === 'recoverSwap' && <RecoverSwapBody />}
                                         </div>
                                     </div>
                                 </motion.div>
@@ -191,6 +218,17 @@ const ConnectWalletBody: FC = () => {
             }}
         />
     )
+}
+
+const RecoverSwapBody: FC = () => {
+    const router = useRouter()
+    const searchParams = useSearchParams()
+
+    const handleRecovered = (sourceNetwork: string, txHash: string) => {
+        router.push(buildHrefWithPersistantParams('/swap', searchParams, buildSwapQuery(sourceNetwork, txHash)))
+    }
+
+    return <RecoverSwap onRecovered={handleRecovered} />
 }
 
 type StepBodyProps = {

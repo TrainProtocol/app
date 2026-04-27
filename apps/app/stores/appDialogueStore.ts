@@ -1,6 +1,6 @@
 import { createWithEqualityFn as create } from 'zustand/traditional'
 
-export type AppDialogueView = 'wallets' | 'login' | 'userStatus' | 'connectWallet'
+export type AppDialogueView = 'wallets' | 'login' | 'userStatus' | 'connectWallet' | 'recoverSwap'
 
 interface AppDialogueState {
     view: AppDialogueView | null
