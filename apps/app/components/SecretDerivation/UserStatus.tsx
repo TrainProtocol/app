@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { FC, useState } from "react"
 import { Fingerprint, Lock, LogOut } from "lucide-react"
 import VaulDrawer from "../Modal/vaulModal"
 import { useSharedSecretDerivation, useOptionalSecretDerivation } from "@train-protocol/react"
@@ -11,63 +11,112 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../shadcn/tooltip"
 import { Popover, PopoverContent, PopoverTrigger } from "../shadcn/popover"
 import { StepBody } from "@/components/AppDialogue/AppDialogue"
 
-interface LoginWallet {
+export interface LoginWallet {
     address: string
     providerName: string
     displayName?: string
+}
+
+export type LoginIdentityIcon = FC<{ className?: string; strokeWidth?: string | number }>
+
+export const getLoginIdentity = (
+    method: 'passkey' | 'wallet_sign' | null,
+    loginWallet: LoginWallet | null,
+    passkeyLabel: string | null,
+) => {
+    const isPasskey = method === 'passkey'
+    const Icon: LoginIdentityIcon = isPasskey ? Fingerprint : WalletIcon
+    const title = isPasskey ? 'Passkey' : (loginWallet?.displayName || 'Wallet')
+    const label = isPasskey
+        ? (passkeyLabel ?? '')
+        : (loginWallet?.address ? new Address(loginWallet.address, null, loginWallet.providerName).toShortString() : '')
+    return { isPasskey, title, label, Icon }
+}
+
+export const copyWalletAddress = (loginWallet: LoginWallet | null) => {
+    if (loginWallet?.address) navigator.clipboard.writeText(loginWallet.address)
 }
 
 interface LoginDataCardProps {
     method: 'passkey' | 'wallet_sign' | null
     loginWallet: LoginWallet | null
     passkeyLabel: string | null
+    activePasskeyCredentialId: string | null
     onCopyAddress: () => void
     className?: string
 }
 
-const LoginDataCard = ({
+export const LoginDataCard = ({
     method,
     loginWallet,
     passkeyLabel,
+    activePasskeyCredentialId,
     onCopyAddress,
     className = "flex items-center gap-3 p-3 bg-secondary-500 rounded-xl",
-}: LoginDataCardProps) => (
-    <div className={className}>
-        {method === 'passkey' ? (
-            <>
-                <div className="p-2.5 bg-secondary-500 rounded-lg shrink-0">
-                    <Fingerprint className="h-5 w-5 text-primary-text" strokeWidth={2} />
-                </div>
-                <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-primary-text font-semibold">Passkey</span>
-                    {passkeyLabel && (
-                        <span className="text-secondary-text text-sm truncate w-fit">{passkeyLabel}</span>
-                    )}
-                </div>
-            </>
+}: LoginDataCardProps) => {
+    const { isMobile } = useWindowDimensions()
+    const idShort = activePasskeyCredentialId ? formatPasskeyIdForDisplay(activePasskeyCredentialId) : null
+    const idTriggerSpan = (
+        <span className="text-secondary-text/80 shrink-0 cursor-default">({idShort})</span>
+    )
+    const idReveal = idShort && activePasskeyCredentialId && (
+        isMobile ? (
+            <Popover>
+                <PopoverTrigger asChild>{idTriggerSpan}</PopoverTrigger>
+                <PopoverContent side="top" className="w-auto p-2 bg-secondary-500! rounded-lg!">
+                    <p className="font-mono break-all max-w-[280px] text-xs text-primary-text">{activePasskeyCredentialId}</p>
+                </PopoverContent>
+            </Popover>
         ) : (
-            <>
-                <div className="p-2.5 bg-secondary-500 rounded-lg shrink-0">
-                    <WalletIcon className="h-5 w-5 text-primary-text" strokeWidth={2} />
-                </div>
-                <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-primary-text font-semibold">
-                        {loginWallet?.displayName || 'EVM Wallet'}
-                    </span>
-                    {loginWallet?.address && (
-                        <button
-                            type="button"
-                            onClick={onCopyAddress}
-                            className="text-secondary-text text-sm text-left hover:text-primary-text truncate"
-                        >
-                            {new Address(loginWallet.address, null, loginWallet.providerName).toShortString()}
-                        </button>
-                    )}
-                </div>
-            </>
-        )}
-    </div>
-)
+            <Tooltip>
+                <TooltipTrigger asChild>{idTriggerSpan}</TooltipTrigger>
+                <TooltipContent>
+                    <p className="font-mono break-all max-w-[280px]">{activePasskeyCredentialId}</p>
+                </TooltipContent>
+            </Tooltip>
+        )
+    )
+    return (
+        <div className={className}>
+            {method === 'passkey' ? (
+                <>
+                    <div className="p-2.5 bg-secondary-500 rounded-lg shrink-0">
+                        <Fingerprint className="h-5 w-5 text-primary-text" strokeWidth={2} />
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-0">
+                        <span className="text-primary-text font-semibold">Passkey</span>
+                        {(passkeyLabel || idShort) && (
+                            <span className="text-secondary-text text-sm inline-flex items-center gap-1 min-w-0">
+                                {passkeyLabel && <span className="truncate">{passkeyLabel}</span>}
+                                {idReveal}
+                            </span>
+                        )}
+                    </div>
+                </>
+            ) : (
+                <>
+                    <div className="p-2.5 bg-secondary-500 rounded-lg shrink-0">
+                        <WalletIcon className="h-5 w-5 text-primary-text" strokeWidth={2} />
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-0">
+                        <span className="text-primary-text font-semibold">
+                            {loginWallet?.displayName || 'EVM Wallet'}
+                        </span>
+                        {loginWallet?.address && (
+                            <button
+                                type="button"
+                                onClick={onCopyAddress}
+                                className="text-secondary-text text-sm text-left hover:text-primary-text truncate"
+                            >
+                                {new Address(loginWallet.address, null, loginWallet.providerName).toShortString()}
+                            </button>
+                        )}
+                    </div>
+                </>
+            )}
+        </div>
+    )
+}
 
 interface UserStatusContentProps {
     method: 'passkey' | 'wallet_sign' | null
@@ -86,8 +135,7 @@ export const UserStatusContent = ({
     showHeader = true,
     showPasskeyWarning = true,
 }: UserStatusContentProps) => {
-    const { passkeyCredentials, removePasskeyCredential, activePasskeyCredentialId } = useSharedSecretDerivation();
-    const { isMobile } = useWindowDimensions();
+    const { passkeyCredentials, activePasskeyCredentialId } = useSharedSecretDerivation();
 
     const activePasskeyLabel = passkeyCredentials.find(c => c.id === activePasskeyCredentialId)?.label ?? null;
 
@@ -102,10 +150,6 @@ export const UserStatusContent = ({
         }
     }
 
-    const handleRemoveCredential = (credId: string) => {
-        removePasskeyCredential(credId);
-    };
-
     const info = (
         <>
             {showHeader && (
@@ -115,50 +159,9 @@ export const UserStatusContent = ({
                 method={method}
                 loginWallet={loginWallet}
                 passkeyLabel={activePasskeyLabel}
+                activePasskeyCredentialId={activePasskeyCredentialId}
                 onCopyAddress={handleCopyAddress}
             />
-
-            {method === 'passkey' && passkeyCredentials.length > 0 && (
-                <div className="flex flex-col gap-2">
-                    <p className="text-secondary-text text-xs font-medium uppercase">Registered passkeys</p>
-                    {passkeyCredentials.map(c => (
-                        <div key={c.id} className="flex items-center justify-between p-2 bg-secondary-700 rounded-lg">
-                            <span className="text-sm text-primary-text inline-flex items-center gap-1 min-w-0">
-                                <span className="truncate">{c.label}</span>
-                                {isMobile ? (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <span className="text-secondary-text/80 cursor-default">({formatPasskeyIdForDisplay(c.id)})</span>
-                                        </PopoverTrigger>
-                                        <PopoverContent side="top" className="w-auto p-2 bg-secondary-500! rounded-lg!">
-                                            <p className="font-mono break-all max-w-[280px] text-xs text-primary-text">{c.id}</p>
-                                        </PopoverContent>
-                                    </Popover>
-                                ) : (
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <span className="text-secondary-text/80 cursor-default">({formatPasskeyIdForDisplay(c.id)})</span>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p className="font-mono break-all max-w-[280px]">{c.id}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                )}
-                                {c.id === activePasskeyCredentialId && <span className="text-success-foreground ml-1">(active)</span>}
-                            </span>
-                            {passkeyCredentials.length > 1 && (
-                                <button
-                                    type="button"
-                                    onClick={() => handleRemoveCredential(c.id)}
-                                    className="text-xs text-error-foreground hover:text-error-foreground/80 shrink-0 ml-2"
-                                >
-                                    Remove
-                                </button>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            )}
 
             {showPasskeyWarning && method === 'passkey' && (
                 <div className="rounded-xl bg-warning-background border border-warning-foreground/30 px-3 py-2.5">

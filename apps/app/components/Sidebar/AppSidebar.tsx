@@ -14,20 +14,22 @@ import {
     SidebarSeparator,
 } from "@/components/shadcn/sidebar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover"
-import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, ChevronRight, FileText, ShieldCheck, Home } from "lucide-react"
-import TwitterLogo from "@/components/Icons/TwitterLogo"
-import GitHubLogo from "@/components/Icons/GitHubLogo"
+import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, FileText, ShieldCheck, Home, ChevronsUpDown, LogOut, Lock } from "lucide-react"
+import { useIntercom } from "react-use-intercom"
+import { useOptionalSecretDerivation } from "@train-protocol/react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
+import ChatIcon from "@/components/Icons/ChatIcon"
+import TwitterLogo from "@/components/Icons/TwitterLogo"
+import GitHubLogo from "@/components/Icons/GitHubLogo"
 import TrainLogo from "@/components/Icons/TrainLogo"
-import { useGoHome } from "@/hooks/useGoHome"
-import useWallet from "@/hooks/useWallet"
 import WalletIcon from "@/components/Icons/WalletIcon"
 import { WalletsIcons } from "@/components/Wallet/ConnectedWallets"
+import { useGoHome } from "@/hooks/useGoHome"
+import useWallet from "@/hooks/useWallet"
 import { Address } from "@/lib/address"
-import { useOptionalSecretDerivation } from "@train-protocol/react"
 import { useAppDialogueStore } from "@/stores/appDialogueStore"
-import { Fingerprint, Lock } from "lucide-react"
+import { LoginDataCard, getLoginIdentity, copyWalletAddress } from "@/components/SecretDerivation/UserStatus"
 
 const AppSidebar: FC = () => {
     const currentPath = usePathname() ?? '/'
@@ -69,16 +71,6 @@ const AppSidebar: FC = () => {
                                     <Link href="/settings">
                                         <Settings />
                                         <span>Settings</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-
-                            <SidebarMenuItem>
-                                <SidebarMenuButton asChild>
-                                    <Link href="https://v8-docs.layerswap.io/protocol/introduction" target="_blank">
-                                        <BookOpen />
-                                        <span>Docs</span>
-                                        <ArrowUpRight className="ml-auto h-4 w-4" />
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
@@ -152,11 +144,11 @@ const WalletsSidebarButton: FC<WalletsSidebarButtonProps> = ({ wallets }) => {
 const SidebarLoginStatus: FC = () => {
     const secretDerivation = useOptionalSecretDerivation()
     const openDialogue = useAppDialogueStore((s) => s.open)
+    const { boot, show, update } = useIntercom()
 
     if (!secretDerivation) return null
 
-    const { method, isLoggedIn, loginWallet, activePasskeyCredentialId, passkeyCredentials } = secretDerivation
-    const activePasskeyLabel = passkeyCredentials.find(c => c.id === activePasskeyCredentialId)?.label ?? null
+    const { method, isLoggedIn, loginWallet, activePasskeyCredentialId, passkeyCredentials, logout } = secretDerivation
 
     if (!isLoggedIn) {
         return (
@@ -176,37 +168,66 @@ const SidebarLoginStatus: FC = () => {
         )
     }
 
+    const activePasskeyLabel = passkeyCredentials.find(c => c.id === activePasskeyCredentialId)?.label ?? null
+    const { Icon, title: methodTitle, label: methodLabel } = getLoginIdentity(method, loginWallet, activePasskeyLabel)
+
     return (
         <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton size="lg" onClick={() => openDialogue('userStatus')}>
-                    <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-secondary-400 text-primary-text">
-                        {method === 'passkey' ? (
-                            <Fingerprint className="size-4" strokeWidth={2} />
-                        ) : (
-                            <WalletIcon className="size-4" strokeWidth={2} />
-                        )}
-                    </div>
-                    <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-semibold">
-                            {method === 'passkey' ? 'Passkey' : (loginWallet?.displayName || 'Wallet')}
-                        </span>
-                        <span className="truncate text-xs text-secondary-text inline-flex items-center gap-1">
-                            {method === 'passkey' ? (
-                                <span className="truncate">{activePasskeyLabel ?? ''}</span>
-                            ) : (
-                                loginWallet?.address
-                                    ? new Address(loginWallet.address, null, loginWallet.providerName).toShortString()
-                                    : '')}
-                        </span>
-                    </div>
-                </SidebarMenuButton>
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <SidebarMenuButton size="lg" className="data-[state=open]:bg-secondary-500">
+                            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-secondary-400 text-primary-text">
+                                <Icon className="size-4" strokeWidth={2} />
+                            </div>
+                            <div className="grid flex-1 text-left text-sm leading-tight">
+                                <span className="truncate font-semibold">{methodTitle}</span>
+                                <span className="truncate text-xs text-secondary-text">{methodLabel}</span>
+                            </div>
+                            <ChevronsUpDown className="ml-auto size-4 text-secondary-text" />
+                        </SidebarMenuButton>
+                    </PopoverTrigger>
+                    <PopoverContent
+                        side="top"
+                        align="start"
+                        sideOffset={8}
+                        className="p-1 bg-secondary-700 border border-border rounded-xl"
+                    >
+                        <div className="flex flex-col gap-0.5">
+                            <LoginDataCard
+                                method={method}
+                                loginWallet={loginWallet}
+                                passkeyLabel={activePasskeyLabel}
+                                activePasskeyCredentialId={activePasskeyCredentialId}
+                                onCopyAddress={() => copyWalletAddress(loginWallet)}
+                            />
+                            <div className="my-1 h-px bg-border" />
+                            <button
+                                type="button"
+                                onClick={() => { boot(); show(); update() }}
+                                className="flex h-9 w-full items-center gap-2 rounded-md p-2 text-sm text-primary-text hover:bg-secondary-500 transition-colors text-left [&_svg]:size-4"
+                            >
+                                <ChatIcon strokeWidth={2} />
+                                <span>Help</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => logout()}
+                                className="flex h-9 w-full items-center gap-2 rounded-md p-2 text-sm text-error-foreground hover:bg-error-background transition-colors text-left [&_svg]:size-4"
+                            >
+                                <LogOut />
+                                <span>Log out</span>
+                            </button>
+                        </div>
+                    </PopoverContent>
+                </Popover>
             </SidebarMenuItem>
         </SidebarMenu>
     )
 }
 
 const MORE_LINKS: { name: string; href: string; icon: FC<{ className?: string }> }[] = [
+    { name: 'Docs', href: 'https://v8-docs.layerswap.io/protocol/introduction', icon: ({ className }) => <BookOpen className={className} /> },
     { name: 'Twitter', href: 'https://x.com/trainprotocol', icon: ({ className }) => <TwitterLogo className={className} /> },
     { name: 'GitHub', href: 'https://github.com/TrainProtocol/app', icon: ({ className }) => <GitHubLogo className={className} /> },
     { name: 'Privacy Policy', href: 'https://docs.layerswap.io/user-docs/information/privacy-policy/', icon: ({ className }) => <ShieldCheck className={className} /> },
@@ -220,7 +241,6 @@ const MoreMenu: FC = () => {
                 <SidebarMenuButton>
                     <MoreHorizontal />
                     <span className="truncate">More</span>
-                    <ChevronRight className="ml-auto" />
                 </SidebarMenuButton>
             </PopoverTrigger>
             <PopoverContent

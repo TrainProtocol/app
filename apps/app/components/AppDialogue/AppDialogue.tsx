@@ -51,7 +51,7 @@ const AppDialogue: FC = () => {
 
     const [visuallyOpen, setVisuallyOpen] = useState(false)
     useEffect(() => {
-        if (view !== null) setVisuallyOpen(true)
+        setVisuallyOpen(view !== null)
     }, [view])
 
     const close = () => {
@@ -115,7 +115,11 @@ const AppDialogue: FC = () => {
                                             }
                                             onBack={() => handleBack(v)}
                                             onClose={close}
-                                            titleOverride={v === 'login' && isTop ? loginStepTitle(loginStep) : undefined}
+                                            titleOverride={
+                                                v === 'login' && isTop
+                                                    ? (loginStep === 'intro' ? '' : loginStepTitle(loginStep))
+                                                    : undefined
+                                            }
                                             connectSubtitle={
                                                 v === 'connectWallet' && selectedMultiChainConnector && !selectedConnector
                                                     ? 'Select ecosystem'
@@ -156,7 +160,11 @@ const DialogueHeader: FC<{
                     <IconButton onClick={onBack} icon={<ChevronLeft strokeWidth={2} className="h-7 w-7" />} />
                 </div>
             )}
-            <h2 className="text-primary-text text-base font-semibold flex-1 truncate">{title}</h2>
+            {title ? (
+                <h2 className="text-primary-text text-base font-semibold flex-1 truncate">{title}</h2>
+            ) : (
+                <div className="flex-1" />
+            )}
             <button
                 type="button"
                 onClick={onClose}
@@ -186,7 +194,7 @@ const LoginBody: FC<{ wizard: LoginWizard }> = ({ wizard }) => {
 const UserStatusBody: FC = () => {
     const close = useAppDialogueStore((s) => s.close)
     const secretDerivation = useOptionalSecretDerivation()
-    if (!secretDerivation) return null
+    if (!secretDerivation || !secretDerivation.isLoggedIn) return null
     const { method, loginWallet, logout } = secretDerivation
     return (
         <UserStatusContent

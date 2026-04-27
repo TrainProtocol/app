@@ -139,15 +139,15 @@ export function Providers({ children, settings }: Props) {
                             <QueryProvider query={query}>
                                 <SettingsProvider data={new TrainAppSettings(settings)}>
                                     <TooltipProvider delayDuration={500}>
-                                        <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
-                                            <TrainProvider
-                                                baseUrl={AppSettings.TrainApiUri ?? ''}
-                                                resolveNodeUrls={resolveNodeUrls}
-                                                initialNetworks={settings.networks}
-                                                secretDerivation={{ persist: true }}
-                                            >
-                                                <WalletsProviders appName={searchParams?.get('appName') ?? undefined}>
-                                                    <ThemeWrapper>
+                                        <TrainProvider
+                                            baseUrl={AppSettings.TrainApiUri ?? ''}
+                                            resolveNodeUrls={resolveNodeUrls}
+                                            initialNetworks={settings.networks}
+                                            secretDerivation={{ persist: true }}
+                                        >
+                                            <WalletsProviders appName={searchParams?.get('appName') ?? undefined}>
+                                                <ThemeWrapper>
+                                                    <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
                                                         <SwapAccountsProvider>
                                                             <AsyncModalProvider>
                                                                 {isMobile && <LoginModal isOpen={loginOpen} onClose={closeLogin} />}
@@ -157,10 +157,10 @@ export function Providers({ children, settings }: Props) {
                                                                     : children}
                                                             </AsyncModalProvider>
                                                         </SwapAccountsProvider>
-                                                    </ThemeWrapper>
-                                                </WalletsProviders>
-                                            </TrainProvider>
-                                        </ErrorBoundary>
+                                                    </ErrorBoundary>
+                                                </ThemeWrapper>
+                                            </WalletsProviders>
+                                        </TrainProvider>
                                     </TooltipProvider>
                                 </SettingsProvider>
                             </QueryProvider>

@@ -14,14 +14,16 @@ import NetworkRpcEditView from "@/components/Settings/NetworkRpcEditView"
 import { useMenuNavigation } from "@/hooks/useMenuNavigation"
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore"
 import SettingsCard from "./SettingsCard"
+import MobilePageHeader from "@/components/MobilePageHeader"
 
 const SettingsView: FC = () => {
     return (
-        <div className="w-full pb-4">
+        <>
+            <MobilePageHeader />
             <FormWizardProvider noToolBar hideMenu initialStep={MenuStep.Menu}>
                 <SettingsWizard />
             </FormWizardProvider>
-        </div>
+        </>
     )
 }
 
@@ -47,7 +49,7 @@ const SettingsWizard: FC = () => {
     }, [setWrapperWidth])
 
     return (
-        <div ref={wrapperRef}>
+        <div ref={wrapperRef} className="max-md:px-4">
             <WizardItem StepName={MenuStep.Menu} inModal disableAnimation>
                 <MenuStepContent onOpenRpc={() => goToStep(MenuStep.RPCConfiguration)} />
             </WizardItem>

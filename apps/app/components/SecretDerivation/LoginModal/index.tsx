@@ -68,6 +68,7 @@ function useLoginFlow({
   };
 
   const headerTitle = loginStepTitle(currentStep);
+  const showHeaderTitle = currentStep !== 'intro';
 
   const header = (
     <div className="inline-flex items-center gap-1">
@@ -76,7 +77,7 @@ function useLoginFlow({
           <IconButton onClick={pop} icon={<ChevronLeft strokeWidth="2" />} />
         </div>
       )}
-      <h2>{headerTitle}</h2>
+      {showHeaderTitle && <h2>{headerTitle}</h2>}
     </div>
   );
 
