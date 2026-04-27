@@ -7,8 +7,10 @@ import { FC } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip";
 import { useUsdModeStore } from "@/stores/usdModeStore";
 import { formatUsd } from "@/components/utils/formatUsdAmount";
+import type { SwapQuote } from "@train-protocol/react";
+import { formatUnits } from "viem";
 
-const Balance = ({ values, direction }: { values: SwapFormValues, direction: string }) => {
+const Balance = ({ values, direction, quote }: { values: SwapFormValues, direction: string, quote?: SwapQuote }) => {
     const { to, fromCurrency, toCurrency, from, destination_address } = values
     const selectedSourceAccount = useSelectedAccount("from", from?.caip2Id);
     const isUsdMode = useUsdModeStore(s => s.isUsdMode);
@@ -27,6 +29,19 @@ const Balance = ({ values, direction }: { values: SwapFormValues, direction: str
         : undefined
     const displayedBalance = balanceInUsd ?? truncatedBalance
 
+    const requiredSourceSpend = (() => {
+        if (direction !== 'from' || !fromCurrency) return 0
+        if (values.amount) return Number(values.amount)
+        if (quote?.amount) {
+            try {
+                return Number(formatUnits(BigInt(quote.amount), fromCurrency.decimals))
+            } catch {
+                return 0
+            }
+        }
+        return 0
+    })()
+
     if (!isLoading && !(network && token && tokenBalance))
         return null;
 
@@ -37,7 +52,7 @@ const Balance = ({ values, direction }: { values: SwapFormValues, direction: str
                 : !displayedBalance ?
                     <span>-</span>
                     : (network && token && displayedBalance) ?
-                        ((balanceAmount >= 0 && balanceAmount < Number(values.amount) && direction === 'from') ?
+                        ((balanceAmount >= 0 && requiredSourceSpend > 0 && balanceAmount < requiredSourceSpend && direction === 'from') ?
                             <InsufficientBalance balance={displayedBalance} />
                             :
                             <span>{displayedBalance}</span>

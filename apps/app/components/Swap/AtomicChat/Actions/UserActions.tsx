@@ -10,6 +10,7 @@ import { Address } from "@/lib/address";
 import { useSwapStore } from "@/stores/swapStore";
 import { useFormikContext } from "formik";
 import type { SwapFormValues } from "@/components/DTOs/SwapFormValues";
+import formatAmount from "@/lib/formatAmount";
 
 type UserCommitActionProps = {
     quote?: SwapQuote
@@ -27,7 +28,9 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, typ
     const destination_network = values.to
     const source_asset = values.fromCurrency
     const destination_asset = values.toCurrency
-    const amount = values.amount ? Number(values.amount) : undefined
+    const amount = (quote?.amount && source_asset?.decimals != null)
+        ? Number(formatAmount(BigInt(quote.amount), source_asset.decimals))
+        : (values.amount ? Number(values.amount) : undefined)
     const address = values.destination_address
 
     const { provider } = useWallet(source_network, 'withdrawal')

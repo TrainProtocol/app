@@ -18,7 +18,6 @@ import { getPersistantSearchParams } from "@/helpers/querryHelper";
 import { buildSwapQuery } from "@/helpers/swapUrl";
 import { useSwapStore } from "@/stores/swapStore";
 import { useActiveSwap } from "@/hooks/useActiveSwap";
-
 import AtomicPage from "../AtomicChat";
 import { useRecentNetworksStore } from "@/stores/recentRoutesStore";
 
@@ -73,7 +72,7 @@ export default function Form() {
                 throw new Error("Please login first")
             }
 
-            if (!values.amount) throw new Error("No amount specified")
+            if (!values.amount && !values.receiveAmount) throw new Error("No amount specified")
             if (!values.destination_address) throw new Error("Please enter a valid address")
             if (!values.fromCurrency) throw new Error("No source asset")
             if (!values.toCurrency) throw new Error("No destination asset")
@@ -109,7 +108,7 @@ export default function Form() {
             innerRef={formikRef}
             initialValues={initialValues}
             validateOnMount={true}
-            validate={MainStepValidation()}
+            validate={MainStepValidation}
             onSubmit={handleSubmit}
         >
             <>

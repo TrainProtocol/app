@@ -8,8 +8,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/too
 import { useSelectedAccount } from "@/context/swapAccounts";
 import { useBalance } from "@/lib/balances/useBalance";
 import { getNativeToken } from "@/Models/Network";
-import { useUsdModeStore } from "@/stores/usdModeStore";
-import { skipNextUsdSync } from "@/hooks/useUsdTokenSync";
 
 type MinMaxProps = {
     fromCurrency: ExtendedToken,
@@ -21,10 +19,8 @@ type MinMaxProps = {
 
 const MinMax = (props: MinMaxProps) => {
 
-    const { setFieldValue, values } = useFormikContext<SwapFormValues>();
+    const { setValues } = useFormikContext<SwapFormValues>();
     const { fromCurrency, from, limitsMinAmount, limitsMaxAmount, onActionHover } = props;
-    const isUsdMode = useUsdModeStore(s => s.isUsdMode);
-    const setUsdAmount = useUsdModeStore(s => s.setUsdAmount);
 
     const selectedSourceAccount = useSelectedAccount("from", from?.caip2Id);
     const { gasData } = useSWRGas(selectedSourceAccount?.address, from, fromCurrency)
@@ -62,28 +58,22 @@ const MinMax = (props: MinMaxProps) => {
         return (tokenAmount * fromCurrency.priceInUsd).toFixed(2).replace(/\.?0+$/, '');
     }
 
-    const handleSetValue = (value: string, usdValue?: string) => {
+    const handleSetValue = (value: string) => {
         mutateBalances()
-        if (isUsdMode && usdValue) {
-            if (values.amount !== value) {
-                skipNextUsdSync();
-            }
-            setUsdAmount(usdValue);
-        }
-        setFieldValue('amount', value, true)
+        setValues(prev => ({ ...prev, amount: value, receiveAmount: '' }), true)
         onActionHover(undefined)
     }
 
     const handleSetHalfAmount = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault()
         e.stopPropagation()
-        handleSetValue(halfOfBalance.toString(), computeUsdValue(halfOfBalance))
+        handleSetValue(halfOfBalance.toString())
     }
 
     const handleSetMaxAmount = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault()
         e.stopPropagation()
-        handleSetValue(maxAllowedAmount.toString(), computeUsdValue(maxAllowedAmount))
+        handleSetValue(maxAllowedAmount.toString())
     }
 
     const showMaxTooltip = !!(walletBalance?.amount && shouldPayGasWithTheToken)

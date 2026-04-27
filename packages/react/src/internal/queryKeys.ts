@@ -1,6 +1,7 @@
 export const trainQueryKeys = {
     quote: (params: {
-        amount: string
+        amount?: string
+        receiveAmount?: string
         sourceNetwork: string
         destinationNetwork: string
         sourceTokenContract?: string

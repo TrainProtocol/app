@@ -27,19 +27,21 @@ const FormButton = ({
     errors,
     isSubmitting,
     actionDisplayName,
-    shouldConnectDestinationWallet
+    shouldConnectDestinationWallet,
+    solverErrorMessage,
 }) => {
     const { isLoggedIn } = useSharedSecretDerivation();
     const { openLogin } = useAuthDialog();
 
-    if (values.from && values.to && values.fromCurrency && values.toCurrency && values.amount && !quote && !isQuoteLoading) {
+    const hasUserAmount = values.amount || values.receiveAmount;
+    if (values.from && values.to && values.fromCurrency && values.toCurrency && hasUserAmount && !quote && !isQuoteLoading) {
         return <SwapButton
             className="plausible-event-name=Swap+initiated"
             type="submit"
             isDisabled={true}
             isSubmitting={isSubmitting}
         >
-            Can't get quote
+            {solverErrorMessage || "Can't get quote"}
         </SwapButton>
     }
 
@@ -59,9 +61,7 @@ const FormButton = ({
         return <FormSourceWalletButton />;
     }
 
-    const isAztecDestination = values?.to?.caip2Id === KnownInternalNames.Networks.AztecDevnet;
-
-    if (values?.to && !values?.destination_address && !isAztecDestination) {
+    if (values?.to && !values?.destination_address) {
         return (
             <Address>
                 {() => (
@@ -91,6 +91,7 @@ function ActionText(errors: FormikErrors<SwapFormValues>, actionDisplayName: str
         || errors.fromCurrency as string
         || errors.toCurrency as string
         || errors.amount as string
+        || errors.receiveAmount as string
         || (actionDisplayName)
 }
 
