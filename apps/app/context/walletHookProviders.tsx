@@ -10,7 +10,6 @@ import useStarknet from "../lib/wallets/starknet/useStarknet";
 import useSVM from "../lib/wallets/solana/useSVM";
 import VaulDrawer from "../components/Modal/vaulModal";
 import useAztec from "../lib/wallets/aztec/useAztec";
-import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { isMobile } from "@/lib/wallets/utils/isMobile";
 import useTron from "@/lib/wallets/tron/useTron";
 
@@ -19,7 +18,6 @@ const WalletProvidersContext = createContext<WalletProvider[]>([]);
 export const WalletProvidersProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
     const { networks } = useSettingsState();
     const isMobilePlatform = isMobile();
-    const { isMobile: isMobileSize } = useWindowDimensions()
     const { goBack, onFinish, open, setOpen, selectedConnector, selectedMultiChainConnector } = useConnectModal()
 
     const evm = useEVM();
@@ -66,7 +64,7 @@ export const WalletProvidersProvider: React.FC<React.PropsWithChildren> = ({ chi
                         <p>{(selectedMultiChainConnector && !selectedConnector) ? "Select ecosystem" : "Connect wallet"}</p>
                     </div>
                 }>
-                <VaulDrawer.Snap openFullHeight={!isMobileSize} id='item-1' className="pb-4 sm:pb-0! sm:h-full">
+                 <VaulDrawer.Snap openFullHeight id='item-1' className="h-full">
                     <ConnectorsList onFinish={onFinish} />
                 </VaulDrawer.Snap>
             </VaulDrawer>

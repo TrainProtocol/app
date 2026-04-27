@@ -8,7 +8,6 @@ import { useSettingsState } from "../../context/settings";
 import { useRpcConfigStore } from "../../stores/rpcConfigStore";
 import {
     NightlyWalletAdapter,
-    WalletConnectWalletAdapter,
     PhantomWalletAdapter,
     SolflareWalletAdapter,
     BitgetWalletAdapter,
@@ -17,8 +16,8 @@ import {
 } from "@solana/wallet-adapter-wallets";
 import { ReactNode, useMemo } from "react";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
-
-const WALLETCONNECT_PROJECT_ID = AppSettings.WalletConnectProjectId;
+import { WALLETCONNECT_PROJECT_ID, WALLETCONNECT_METADATA } from "@/lib/walletConnect/config";
+import { SolanaWalletConnectAdapter } from "@/lib/wallets/solana/connectors/SolanaWalletConnectAdapter";
 
 function SolanaProvider({ children }: { children: ReactNode }) {
     const settings = useSettingsState();
@@ -37,7 +36,7 @@ function SolanaProvider({ children }: { children: ReactNode }) {
         }
         return clusterApiUrl(solNetwork);
     }, [solNetwork, solanaNetwork, getEffectiveRpcUrl]);
-    
+
     const adapters = [
         new PhantomWalletAdapter(),
         new NightlyWalletAdapter(),
@@ -45,20 +44,15 @@ function SolanaProvider({ children }: { children: ReactNode }) {
         new BitgetWalletAdapter(),
         new TrustWalletAdapter(),
         new LedgerWalletAdapter(),
-        new WalletConnectWalletAdapter({
+        new SolanaWalletConnectAdapter({
             network: solNetwork,
             options: {
                 projectId: WALLETCONNECT_PROJECT_ID,
-                metadata: {
-                    name: 'Train',
-                    description: 'Train App',
-                    url: 'https://app.train.tech/',
-                    icons: ['https://app.train.tech/symbol.png'],
-                },
+                metadata: WALLETCONNECT_METADATA,
             }
         })
     ]
-    
+
 
     return (
         <ConnectionProvider endpoint={endpoint}>

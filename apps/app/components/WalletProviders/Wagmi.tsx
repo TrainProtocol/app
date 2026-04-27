@@ -4,15 +4,51 @@ import React, { useMemo } from "react";
 import { WagmiProvider, createConfig, Config } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Chain, http, fallback, Transport } from 'viem';
-import { useEvmConnectors } from "../../context/evmConnectorsContext";
 import { ActiveEvmAccountProvider } from "./ActiveEvmAccount";
 import { useRpcConfigStore } from "@/stores/rpcConfigStore";
 import { getNativeToken, NetworkTypes } from "../../Models/Network";
+import { coinbaseWallet, metaMask, walletConnect } from "@wagmi/connectors";
+import { walletConnect as customWalletConnect } from "../../lib/wallets/evm/connectors/walletConnect";
+import { isMobile } from "../../lib/isMobile";
+import { WALLETCONNECT_PROJECT_ID } from "@/lib/walletConnect/config";
+import { HIDDEN_WALLETCONNECT_ID } from "@/lib/wallets/evm/constants";
+import { browserInjected } from "@/lib/wallets/evm/connectors/browserInjected";
+
 type Props = {
     children: JSX.Element | JSX.Element[]
 }
 
 const queryClient = new QueryClient()
+const walletConnectConnector = walletConnect({ projectId: WALLETCONNECT_PROJECT_ID, showQrModal: isMobile(), customStoragePrefix: 'walletConnect' })
+const hiddenWalletConnectConnector = customWalletConnect({
+    id: HIDDEN_WALLETCONNECT_ID,
+    name: 'Hidden WalletConnect',
+    rdns: '',
+    type: 'other',
+    mobile: { native: '', universal: '' },
+    icon: '',
+    projectId: WALLETCONNECT_PROJECT_ID,
+    showQrModal: false,
+})
+const metaMaskConnector = metaMask({
+    dappMetadata: {
+        name: 'Layerswap',
+        url: 'https://layerswap.io/app/',
+        iconUrl: 'https://layerswap.io/app/symbol.png'
+    }
+})
+const coinbaseWalletConnector = coinbaseWallet({
+    appName: 'Layerswap',
+    appLogoUrl: 'https://layerswap.io/app/symbol.png',
+})
+const browserInjectedConnector = browserInjected()
+const defaultConnectors = [
+    metaMaskConnector,
+    coinbaseWalletConnector,
+    walletConnectConnector,
+    browserInjectedConnector,
+    hiddenWalletConnectConnector,
+] as const
 
 let cachedConfig: Config | null = null
 
@@ -28,7 +64,6 @@ function buildTransport(chain: Chain, rpcUrls: string[]): Transport {
 
 function WagmiComponent({ children }: Props) {
     const settings = useSettingsState();
-    const { connectors } = useEvmConnectors()
     const { getEffectiveRpcUrl, getEffectiveRpcUrls } = useRpcConfigStore();
 
     const config = useMemo(() => {
@@ -52,7 +87,7 @@ function WagmiComponent({ children }: Props) {
         }
 
         cachedConfig = createConfig({
-            connectors,
+            connectors: [...defaultConnectors],
             chains: chains as [Chain, ...Chain[]],
             transports,
             ssr: true

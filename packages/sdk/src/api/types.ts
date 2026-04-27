@@ -76,6 +76,7 @@ export type QuoteDetails = {
     totalFee: string;
     amount?: string;
     receiveAmount: string;
+    rate: string;
     sourceSolverAddress: string;
     destinationSolverAddress: string;
     quoteExpirationTimestampInSeconds: number;
