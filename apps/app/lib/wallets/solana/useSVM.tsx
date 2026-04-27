@@ -14,7 +14,6 @@ import { useSettingsState } from "@/context/settings"
 import { useConnectModal, WalletModalConnector } from "@/components/WalletModal"
 import {
     getRegistryEntry,
-    type WalletConnectWalletBase,
 } from "@/lib/walletConnect/types"
 import { buildDeepLink } from "@/lib/walletConnect/buildDeepLink"
 import { subscribeDisplayUri } from "@/lib/walletConnect/subscribeDisplayUri"
@@ -31,9 +30,9 @@ import { useAdditionalConnectors } from "@/lib/walletConnect/useAdditionalConnec
 import { createRegistryConnector } from "@/lib/walletConnect/createRegistryConnector"
 import { isMobile } from "../utils/isMobile"
 
-const SOLANA_NS = 'solana'
 const SOLANA_WC_ADAPTER_NAME = 'WalletConnect'
-
+const name = 'Solana'
+const id = 'solana'
 const solanaNames = [KnownInternalNames.Networks.SolanaMainnet, KnownInternalNames.Networks.SolanaDevnet, KnownInternalNames.Networks.SolanaTestnet]
 
 export default function useSVM(): WalletProvider {
@@ -44,8 +43,6 @@ export default function useSVM(): WalletProvider {
         ...networks.filter(network => network.networkType === NetworkTypes.Solana).map(l => l.caip2Id)
     ], [networks])
 
-    const name = 'Solana'
-    const id = 'solana'
     const { disconnect, select, wallets, wallet: solanaWallet } = useWallet()
     const walletsRef = useRef(wallets)
     walletsRef.current = wallets
@@ -59,7 +56,7 @@ export default function useSVM(): WalletProvider {
         browseMetadata: walletConnectBrowseMetadata,
         requestAdditionalConnectors: requestRegistryConnectors,
         addRecentConnector: addWalletConnectWallet,
-    } = useAdditionalConnectors(SOLANA_NS)
+    } = useAdditionalConnectors(id)
 
     useEffect(() => {
         if (isWalletModalOpen && !walletConnectBrowseMetadata.loaded) {
@@ -80,7 +77,7 @@ export default function useSVM(): WalletProvider {
         if (solanaWallet?.adapter.connected === true) {
             const isWalletConnect = connectedAdapterName === SOLANA_WC_ADAPTER_NAME
             const dynamicMeta = (isWalletConnect && connectedAddress)
-                ? (getDynamicWcMetadata(SOLANA_NS, connectedAddress) || getPendingDynamicWcMetadata(SOLANA_NS))
+                ? (getDynamicWcMetadata(id, connectedAddress) || getPendingDynamicWcMetadata(id))
                 : null
 
             const displayName = dynamicMeta?.name || connectedAdapterName
@@ -141,7 +138,7 @@ export default function useSVM(): WalletProvider {
                 const wcAdapter = walletConnectAdapter.adapter as unknown as SolanaWalletConnectAdapter
 
                 // Track display metadata so connectedWallets can render the right name/icon after success
-                setPendingMetadataForRegistry(SOLANA_NS, registry)
+                setPendingMetadataForRegistry(id, registry)
 
                 // Only pre-render the QR screen when we actually want the user to see it:
                 // - Desktop → QR modal.
@@ -188,7 +185,7 @@ export default function useSVM(): WalletProvider {
 
             // Persist display metadata for reconnects after refresh
             if (newAddress && useWalletConnect && registry) {
-                setDynamicWcMetadata(SOLANA_NS, newAddress, {
+                setDynamicWcMetadata(id, newAddress, {
                     name: registry.name,
                     icon: registry.icon || '',
                     id: registry.id,
@@ -219,7 +216,7 @@ export default function useSVM(): WalletProvider {
             throw mapConnectError(e)
         } finally {
             unsubscribeDisplayUri?.()
-            if (registry) clearPendingDynamicWcMetadata(SOLANA_NS)
+            if (registry) clearPendingDynamicWcMetadata(id)
         }
     }, [connectedWallet, disconnect, select, isMobilePlatform, setSelectedConnector, addWalletConnectWallet, commonSupportedNetworks, networks, name])
 
@@ -324,7 +321,7 @@ function resolveSupportedNetworks(supportedNetworks: string[], connectorId: stri
     const supportedNetworksForWallet: string[] = [];
 
     supportedNetworks.forEach((network) => {
-        const lowerCaseName = network.split("_")[0].toLowerCase();
+        const lowerCaseName = network.split(/[_:]/)[0].toLowerCase();
         if (lowerCaseName === "solana") {
             supportedNetworksForWallet.push(network);
         } else if (networkSupport[lowerCaseName] && networkSupport[lowerCaseName].includes(connectorId?.toLowerCase())) {
