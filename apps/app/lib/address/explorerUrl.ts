@@ -18,6 +18,10 @@ export function getExplorerUrl(template: string | undefined | null, address: str
   // Encode the address to prevent URL injection
   const encodedAddress = encodeURIComponent(address);
 
-  // Replace the {0} placeholder with the encoded address
+  if (template.includes('{address}')) {
+    return template.replace('{address}', encodedAddress)
+  }
+
+  // Replace the {hash} placeholder with the encoded address
   return template.replace('{hash}', encodedAddress);
 }
