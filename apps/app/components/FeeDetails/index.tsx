@@ -105,7 +105,7 @@ export const DetailsButton: FC<QuoteComponentProps> = ({ quote, isQuoteLoading, 
                         { "animate-pulse-strong": isQuoteLoading }
                     )}>
                             <GasIcon className='h-4 w-4 text-secondary-text' />
-                        <NumberFlow className="text-primary-text text-sm leading-6" value={gasFeeInUsd < 0.01 ? 0.01 : gasFeeInUsd} prefix={gasFeeInUsd < 0.01 ? '<$' : '$'} />
+                        <NumberFlow className="text-primary-text text-sm leading-6" value={gasFeeInUsd < 0.01 ? 0.01 : gasFeeInUsd} prefix={gasFeeInUsd < 0.01 ? '<$' : '$'} format={{ minimumFractionDigits: 2, maximumFractionDigits: 2 }} />
                     </div>
                     <div className="w-px h-3 bg-primary-text-tertiary rounded-2xl" />
                 </>
