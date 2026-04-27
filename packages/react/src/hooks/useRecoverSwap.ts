@@ -74,6 +74,7 @@ export function useRecoverSwap(): UseRecoverSwapResult {
                 source_asset: srcToken?.symbol ?? details.token,
                 destination_asset: dstToken?.symbol ?? details.dstToken ?? '',
                 srcContract: srcNetwork.trainContract,
+                destContract: dstNetwork?.trainContract,
                 srcTokenContract: details.token,
                 destTokenContract: details.dstToken ?? '',
                 hashlock: details.hashlock,
