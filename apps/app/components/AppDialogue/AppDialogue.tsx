@@ -33,18 +33,11 @@ const AppDialogue: FC = () => {
     const back = useAppDialogueStore((s) => s.back)
     const closeStore = useAppDialogueStore((s) => s.close)
 
-    const { setRenderMode, selectedConnector, selectedMultiChainConnector, goBack: connectGoBack, cancel: cancelConnect, open: connectOpen } = useConnectModal()
+    const { selectedConnector, selectedMultiChainConnector, goBack: connectGoBack, cancel: cancelConnect, open: connectOpen } = useConnectModal()
 
     const loginWizard = useLoginWizardState()
     const loginStep = loginWizard.history[loginWizard.history.length - 1]
     const loginCanGoBack = wizardCanGoBack(loginWizard.history)
-
-    useEffect(() => {
-        if (view === 'connectWallet') {
-            setRenderMode('dialog')
-            return () => setRenderMode('drawer')
-        }
-    }, [view, setRenderMode])
 
     const pathname = usePathname()
     const closeLogin = useLoginModalStore((s) => s.close)

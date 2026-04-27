@@ -47,7 +47,7 @@ const AppSidebar: FC = () => {
                     <SidebarGroupContent>
                         <SidebarMenu>
                             <SidebarMenuItem>
-                                <SidebarMenuButton asChild isActive={currentPath === "/" || currentPath === "/swap"}>
+                                <SidebarMenuButton asChild isActive={currentPath === "/"}>
                                     <Link href="/">
                                         <Home />
                                         <span>Home</span>

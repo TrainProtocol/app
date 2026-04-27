@@ -58,7 +58,11 @@ function useLoginFlow({
       await loginWithPasskey(options);
       onClose();
     } catch (e) {
-      setErrorMessage(mapPasskeyError(e));
+      const missingPasskey = e instanceof Error && /no passkey found/i.test(e.message);
+      const message = options?.credentialId && missingPasskey
+        ? 'This saved login is no longer available on this device. Pick another or create a new passkey.'
+        : mapPasskeyError(e);
+      setErrorMessage(message);
       replaceTop('error');
     }
   };

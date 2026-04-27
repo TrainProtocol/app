@@ -32,6 +32,7 @@ import { IsExtensionError } from "@/helpers/errorHelper"
 import AppSettings from "@/lib/AppSettings"
 import { useRpcConfigStore } from "@/stores/rpcConfigStore"
 import { useLoginModalStore } from "@/stores/loginModalStore"
+import useWindowDimensions from "@/hooks/useWindowDimensions"
 
 if (typeof window !== "undefined") {
     registerEvmSdk()
@@ -77,6 +78,7 @@ export function Providers({ children, settings }: Props) {
     const { getEffectiveRpcUrls } = useRpcConfigStore()
     const loginOpen = useLoginModalStore(s => s.isOpen)
     const closeLogin = useLoginModalStore(s => s.close)
+    const { isMobile } = useWindowDimensions()
 
     useEffect(() => {
         progress?.finish()
@@ -148,7 +150,7 @@ export function Providers({ children, settings }: Props) {
                                                     <ThemeWrapper>
                                                         <SwapAccountsProvider>
                                                             <AsyncModalProvider>
-                                                                <LoginModal isOpen={loginOpen} onClose={closeLogin} />
+                                                                {isMobile && <LoginModal isOpen={loginOpen} onClose={closeLogin} />}
                                                                 <AppDialogue />
                                                                 {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true'
                                                                     ? <MaintananceContent />

@@ -125,15 +125,15 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
                     key = result.key
                     credentialId = result.credentialId
                 } else {
-                    ;({ key, credentialId } = await deriveKeyWithPasskey(
+                    ; ({ key, credentialId } = await deriveKeyWithPasskey(
                         { createIfMissing: false },
                         passkeyStorage,
                     ))
                 }
             } else {
-                ;({ key, credentialId } = await deriveKeyWithPasskey(
+                ; ({ key, credentialId } = await deriveKeyWithPasskey(
                     {
-                        createIfMissing: !options?.crossDevice,
+                        createIfMissing: !options?.crossDevice && !options?.credentialId,
                         credentialId: options?.credentialId,
                     },
                     passkeyStorage,

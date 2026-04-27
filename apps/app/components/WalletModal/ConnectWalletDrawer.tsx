@@ -4,7 +4,7 @@ import IconButton from "../buttons/iconButton";
 import VaulDrawer from "../Modal/vaulModal";
 import ConnectorsList from "./ConnectorsList";
 import { useConnectModal } from ".";
-import useWindowDimensions from "@/hooks/useWindowDimensions";
+import { useAppDialogueStore } from "@/stores/appDialogueStore";
 
 const ConnectWalletDrawer: FC = () => {
     const {
@@ -14,10 +14,10 @@ const ConnectWalletDrawer: FC = () => {
         setOpen,
         selectedConnector,
         selectedMultiChainConnector,
-        renderMode,
     } = useConnectModal();
+    const hostedInDialogue = useAppDialogueStore((s) => s.view === 'connectWallet');
 
-    if (renderMode !== 'drawer') return null;
+    if (hostedInDialogue) return null;
 
     return (
         <VaulDrawer
