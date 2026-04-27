@@ -85,7 +85,7 @@ const FormButton = ({
             isDisabled={!isValid}
             isSubmitting={isSubmitting}
         >
-            {ActionText(errors, actionDisplayName)}
+            {isQuoteLoading ? "Getting quote" : ActionText(errors, actionDisplayName)}
         </SwapButton>
     );
 };
