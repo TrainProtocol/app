@@ -1,15 +1,18 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
-import type { SolverQuote, QuoteDetails } from '@train-protocol/sdk'
+import type { SolverQuote, QuoteDetails, AggregatedQuoteResponse } from '@train-protocol/sdk'
 import { useTrainContext } from '../providers/TrainContext'
 import { trainQueryKeys } from '../internal/queryKeys'
 import { normalizeQueryError } from '../internal/normalizeQueryError'
 import type { QuoteParams } from '../types'
 
+export type SolverQuoteError = AggregatedQuoteResponse['errors'][number]
+
 export interface UseQuoteResult {
     quotes: SolverQuote[]
     bestQuote: QuoteDetails | undefined
     bestSolver: SolverQuote | undefined
+    quoteErrors: SolverQuoteError[]
     isLoading: boolean
     error: Error | null
     refetch: () => Promise<void>
@@ -72,7 +75,10 @@ export function useQuote(params: QuoteParams): UseQuoteResult {
                 destinationTokenContract,
                 includeReward: true,
             })
-            return result.quotes ?? []
+            return {
+                quotes: result.quotes ?? [],
+                errors: result.errors ?? [],
+            }
         },
         enabled: canFetch,
         refetchInterval: refreshInterval || false,
@@ -80,7 +86,8 @@ export function useQuote(params: QuoteParams): UseQuoteResult {
         placeholderData: keepPreviousData,
     })
 
-    const quotes = query.data ?? []
+    const quotes = query.data?.quotes ?? []
+    const quoteErrors = query.data?.errors ?? []
     const bestSolver = quotes.find(q => q.isBest)
     const bestQuote = bestSolver?.quote
 
@@ -92,6 +99,7 @@ export function useQuote(params: QuoteParams): UseQuoteResult {
         quotes,
         bestQuote,
         bestSolver,
+        quoteErrors,
         isLoading: isDebouncing || (canFetch && (query.isLoading || query.isPlaceholderData)),
         error: normalizeQueryError(query.error),
         refetch,

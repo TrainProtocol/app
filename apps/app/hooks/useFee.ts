@@ -1,14 +1,16 @@
 import { useMemo, useState, useEffect } from 'react'
-import { parseUnits } from 'viem'
+import { parseUnits, formatUnits } from 'viem'
 import { SwapFormValues } from '../components/DTOs/SwapFormValues'
 import type { SwapQuote } from '@train-protocol/react'
-import { Token } from '../Models/Network'
+import { ExtendedToken, Token } from '../Models/Network'
 import { useQuote } from '@train-protocol/react'
+import { useUsdModeStore } from '@/stores/usdModeStore'
 
 type UseQuoteData = {
     quote?: SwapQuote
     solverId?: string
     quoteError?: QuoteError
+    solverErrorMessage?: string
     isQuoteLoading: boolean
     isDebouncing: boolean
     mutateFee: () => void
@@ -82,7 +84,7 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
     const hasValidAmount = !!debouncedAmount && Number(debouncedAmount) > 0
     const canGetQuote = !!(hasQuoteParams && hasValidAmount && !isDebouncing)
 
-    const { bestQuote, bestSolver, isLoading, error, refetch } = useQuote({
+    const { bestQuote, bestSolver, quoteErrors, isLoading, error, refetch } = useQuote({
         amount: !isReverse ? (debouncedAmount ?? '') : undefined,
         receiveAmount: isReverse ? (debouncedAmount ?? '') : undefined,
         sourceNetwork: from ?? '',
@@ -94,12 +96,22 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
         debounceMs: 0,
     })
 
+    const isUsdMode = useUsdModeStore(s => s.isUsdMode)
+    const limitToken = (isReverse ? toCurrency : fromCurrency) as ExtendedToken | undefined
+    const rawSolverError = !bestQuote && hasQuoteParams && hasValidAmount
+        ? quoteErrors?.find(e => e.message)?.message
+        : undefined
+    const solverErrorMessage = rawSolverError
+        ? formatLimitMessage(rawSolverError, limitToken, isUsdMode)
+        : undefined
+
     return {
         quote: (error || !hasQuoteParams || !hasValidAmount) ? undefined : bestQuote as SwapQuote | undefined,
         solverId: (error || !hasQuoteParams || !hasValidAmount) ? undefined : bestSolver?.solver?.id,
         isQuoteLoading: isLoading || isDebouncing,
         isDebouncing,
         quoteError: error as unknown as QuoteError | undefined,
+        solverErrorMessage,
         mutateFee: refetch,
     }
 }
@@ -112,6 +124,26 @@ export function transformFormValuesToQuoteArgs(values: SwapFormValues): Props | 
         to: values.to?.caip2Id,
         fromCurrency: values.fromCurrency,
         toCurrency: values.toCurrency,
+    }
+}
+
+function formatLimitMessage(message: string, token: ExtendedToken | undefined, isUsdMode: boolean): string {
+    if (!token) return message
+    const match = message.match(/(max|min)\s*amount[^\d]*(\d+)/i)
+    if (!match) return message
+    const kind = match[1].toLowerCase() === 'max' ? 'Max' : 'Min'
+    try {
+        const tokenAmount = formatUnits(BigInt(match[2]), token.decimals)
+        if (isUsdMode && token.priceInUsd && token.priceInUsd > 0) {
+            const usd = Number(tokenAmount) * token.priceInUsd
+            return `${kind} amount is $${usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        }
+        const [whole, frac = ''] = tokenAmount.split('.')
+        const trimmed = frac.slice(0, 6).replace(/0+$/, '')
+        const display = trimmed ? `${whole}.${trimmed}` : whole
+        return `${kind} amount is ${display}${token.symbol ? ` ${token.symbol}` : ''}`
+    } catch {
+        return message
     }
 }
 

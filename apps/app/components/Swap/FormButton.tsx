@@ -27,7 +27,8 @@ const FormButton = ({
     errors,
     isSubmitting,
     actionDisplayName,
-    shouldConnectDestinationWallet
+    shouldConnectDestinationWallet,
+    solverErrorMessage,
 }) => {
     const { isLoggedIn } = useSharedSecretDerivation();
     const { open: openLogin } = useLoginModalStore();
@@ -40,7 +41,7 @@ const FormButton = ({
             isDisabled={true}
             isSubmitting={isSubmitting}
         >
-            Can't get quote
+            {solverErrorMessage || "Can't get quote"}
         </SwapButton>
     }
 

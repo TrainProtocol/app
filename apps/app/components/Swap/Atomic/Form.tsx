@@ -31,7 +31,7 @@ const SwapForm: FC<SwapFormProps> = ({ polling = true, onQuoteChange }) => {
     const query = useQueryState()
 
     const params = useMemo(() => transformFormValuesToQuoteArgs(values), [values])
-    const { quote, solverId, isQuoteLoading } = useQuoteData(params, polling ? 42000 : 0)
+    const { quote, solverId, isQuoteLoading, solverErrorMessage } = useQuoteData(params, polling ? 42000 : 0)
 
     useEffect(() => {
         onQuoteChange?.(quote, solverId)
@@ -65,6 +65,7 @@ const SwapForm: FC<SwapFormProps> = ({ polling = true, onQuoteChange }) => {
                 errors={errors}
                 isSubmitting={isSubmitting || isQuoteLoading}
                 actionDisplayName={actionDisplayName}
+                solverErrorMessage={solverErrorMessage}
             />
         </Widget.Footer>
     </Form>

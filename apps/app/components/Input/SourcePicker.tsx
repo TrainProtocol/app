@@ -68,7 +68,7 @@ const SourcePicker = ({ isQuoteLoading, quote }: Props) => {
                 </div>
 
                 <div className="justify-self-end self-start">
-                    <RoutePicker direction="from" />
+                    <RoutePicker direction="from" quote={quote} />
                 </div>
             </div>
         </div>

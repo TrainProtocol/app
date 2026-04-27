@@ -11,8 +11,9 @@ import useWallet from "@/hooks/useWallet";
 import useSuggestionsLimit from "@/hooks/useSuggestionsLimit";
 import Balance from "@/components/Input/Amount/Balance";
 import PickerWalletConnect from "./PickerWalletConnect";
+import type { SwapQuote } from "@train-protocol/react";
 
-const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ direction, className }) => {
+const RoutePicker: FC<{ direction: SwapDirection, className?: string, quote?: SwapQuote }> = ({ direction, className, quote }) => {
     const {
         values,
         setFieldValue,
@@ -59,7 +60,7 @@ const RoutePicker: FC<{ direction: SwapDirection, className?: string }> = ({ dir
                     )}
                 </SelectorContent>
             </Selector>
-            <Balance values={values} direction={direction} />
+            <Balance values={values} direction={direction} quote={quote} />
         </div>
     )
 };
