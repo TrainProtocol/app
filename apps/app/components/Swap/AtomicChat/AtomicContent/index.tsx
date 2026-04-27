@@ -12,6 +12,7 @@ import { HTLCStatus } from "@train-protocol/react";
 import { Loader2 } from "lucide-react";
 import { useFormikContext } from "formik";
 import { useSettingsState } from "@/context/settings";
+import formatAmount from "@/lib/formatAmount";
 
 type AtomicContentProps = {
     quote?: SwapQuote
@@ -28,7 +29,14 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
     const destination_network = swap.destinationNetwork ? networks.find(n => n.caip2Id == swap.destinationNetwork?.caip2Id) : values?.to
     const source_asset = swap.sourceToken ? source_network?.tokens.find(t => t.contract == swap.sourceToken?.contract) : values?.fromCurrency
     const destination_asset = swap.destinationToken ? destination_network?.tokens.find(t => t.contract == swap.destinationToken?.contract) : values?.toCurrency
-    const amount = swap.requestedAmount ? Number(swap.requestedAmount) : (values?.amount ? Number(values.amount) : undefined)
+    let amount: number | undefined
+    if (swap.requestedAmount != null) {
+        amount = Number(swap.requestedAmount)
+    } else if (quote?.amount && source_asset?.decimals != null) {
+        amount = Number(formatAmount(BigInt(quote.amount), source_asset.decimals))
+    } else if (values?.amount != null) {
+        amount = Number(values.amount)
+    }
     const hashlock = swap.hashlock
 
     const { status: commitStatus } = swap

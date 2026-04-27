@@ -123,7 +123,10 @@ export interface StartSwapParams {
 
 /** Parameters for quote fetching */
 export interface QuoteParams {
-    amount: string
+    /** Amount to send on source chain (base units). Provide this OR receiveAmount, not both. */
+    amount?: string
+    /** Amount to receive on destination chain (base units). Provide this OR amount, not both. */
+    receiveAmount?: string
     sourceNetwork: string
     destinationNetwork: string
     sourceTokenContract?: string

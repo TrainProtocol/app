@@ -23,7 +23,7 @@ export interface QuoteComponentProps {
 }
 
 export default function QuoteDetails({ values, quote, isQuoteLoading }: QuoteComponentProps) {
-    const { toCurrency: toAsset, fromCurrency, amount } = values || {};
+    const { toCurrency: toAsset, fromCurrency } = values || {};
     const [isAccordionOpen, setIsAccordionOpen] = useState<boolean>(false);
 
     if (!quote) return null

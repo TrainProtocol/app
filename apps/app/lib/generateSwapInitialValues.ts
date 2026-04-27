@@ -4,7 +4,7 @@ import { Address } from "./address";
 import { TrainAppSettings } from "../Models/TrainAppSettings";
 
 export function generateSwapInitialValues(settings: TrainAppSettings, queryParams: QueryParams): SwapFormValues {
-    const { destAddress, transferAmount, fromAsset, toAsset, from, to } = queryParams
+    const { destAddress, transferAmount, receiveAmount, fromAsset, toAsset, from, to } = queryParams
     const { networks } = settings || {}
 
     // Find networks by slug (case-insensitive)
@@ -34,11 +34,13 @@ export function generateSwapInitialValues(settings: TrainAppSettings, queryParam
     }
 
     let initialAmount = transferAmount || ''
+    let initialReceiveAmount = initialAmount ? '' : (receiveAmount || '')
 
     const result: SwapFormValues = {
         from: initialSource,
         to: initialDestination,
         amount: initialAmount,
+        receiveAmount: initialReceiveAmount,
         fromCurrency: initialSourceCurrency,
         toCurrency: initialDestinationCurrency,
         destination_address: initialAddress,

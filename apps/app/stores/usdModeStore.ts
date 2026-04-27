@@ -12,7 +12,7 @@ type UsdModeState = {
 export const useUsdModeStore = create<UsdModeState>()(persist((set) => ({
     isUsdMode: false,
     usdAmount: '',
-    toggleMode: () => set((state) => ({ isUsdMode: !state.isUsdMode })),
+    toggleMode: () => set((state) => ({ isUsdMode: !state.isUsdMode, usdAmount: '' })),
     setUsdAmount: (amount) => set({ usdAmount: amount }),
     reset: () => set({ isUsdMode: false, usdAmount: '' }),
 }), {

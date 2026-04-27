@@ -1,14 +1,16 @@
 import { useMemo, useState, useEffect } from 'react'
-import { parseUnits } from 'viem'
+import { parseUnits, formatUnits } from 'viem'
 import { SwapFormValues } from '../components/DTOs/SwapFormValues'
 import type { SwapQuote } from '@train-protocol/react'
-import { Token } from '../Models/Network'
+import { ExtendedToken, Token } from '../Models/Network'
 import { useQuote } from '@train-protocol/react'
+import { useUsdModeStore } from '@/stores/usdModeStore'
 
 type UseQuoteData = {
     quote?: SwapQuote
     solverId?: string
     quoteError?: QuoteError
+    solverErrorMessage?: string
     isQuoteLoading: boolean
     isDebouncing: boolean
     mutateFee: () => void
@@ -39,26 +41,33 @@ type Props = {
     to: string | undefined
     fromCurrency: Token | undefined
     toCurrency: Token | undefined
-    amount: string | number | undefined
+    amount?: string | number
+    receiveAmount?: string | number
 }
 
 export function useQuoteData(formValues: Props | undefined, refreshInterval?: number): UseQuoteData {
-    const { fromCurrency, toCurrency, from, to, amount } = formValues || {}
+    const { fromCurrency, toCurrency, from, to, amount, receiveAmount } = formValues || {}
 
+    const isReverse = receiveAmount != null && receiveAmount !== ''
+    const decimals = isReverse ? toCurrency?.decimals : fromCurrency?.decimals
+    const rawAmount = isReverse ? receiveAmount : amount
     const convertedAmount = useMemo(() => {
-        if (amount == null || amount === '' || !fromCurrency?.decimals) return undefined
+        if (rawAmount == null || rawAmount === '' || !decimals) return undefined
         try {
-            return parseUnits(String(amount), fromCurrency.decimals).toString()
+            return parseUnits(String(rawAmount), decimals).toString()
         } catch {
             return undefined
         }
-    }, [amount, fromCurrency?.decimals])
+    }, [rawAmount, decimals])
 
     const [debouncedAmount, setDebouncedAmount] = useState(convertedAmount)
     const [isDebouncing, setIsDebouncing] = useState(false)
 
     useEffect(() => {
-        if (convertedAmount === debouncedAmount) return
+        if (convertedAmount === debouncedAmount) {
+            setIsDebouncing(false)
+            return
+        }
 
         setIsDebouncing(true)
         const handler = setTimeout(() => {
@@ -71,11 +80,13 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
         }
     }, [convertedAmount, debouncedAmount])
 
-    const canGetQuote = !!(from && to && fromCurrency && toCurrency && debouncedAmount && !isDebouncing)
+    const hasQuoteParams = !!(from && to && fromCurrency && toCurrency)
+    const hasValidAmount = !!debouncedAmount && Number(debouncedAmount) > 0
+    const canGetQuote = !!(hasQuoteParams && hasValidAmount && !isDebouncing)
 
-    // Use React package's useQuote hook
-    const { bestQuote, bestSolver, isLoading, error, refetch } = useQuote({
-        amount: debouncedAmount ?? '',
+    const { bestQuote, bestSolver, quoteErrors, isLoading, error, refetch } = useQuote({
+        amount: !isReverse ? (debouncedAmount ?? '') : undefined,
+        receiveAmount: isReverse ? (debouncedAmount ?? '') : undefined,
         sourceNetwork: from ?? '',
         destinationNetwork: to ?? '',
         sourceTokenContract: fromCurrency?.contract || undefined,
@@ -85,12 +96,22 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
         debounceMs: 0,
     })
 
+    const isUsdMode = useUsdModeStore(s => s.isUsdMode)
+    const limitToken = (isReverse ? toCurrency : fromCurrency) as ExtendedToken | undefined
+    const rawSolverError = !bestQuote && hasQuoteParams && hasValidAmount
+        ? quoteErrors?.find(e => e.message)?.message
+        : undefined
+    const solverErrorMessage = rawSolverError
+        ? formatLimitMessage(rawSolverError, limitToken, isUsdMode)
+        : undefined
+
     return {
-        quote: (error || !canGetQuote) ? undefined : bestQuote as SwapQuote | undefined,
-        solverId: (error || !canGetQuote) ? undefined : bestSolver?.solver?.id,
-        isQuoteLoading: isLoading,
+        quote: (error || !hasQuoteParams || !hasValidAmount) ? undefined : bestQuote as SwapQuote | undefined,
+        solverId: (error || !hasQuoteParams || !hasValidAmount) ? undefined : bestSolver?.solver?.id,
+        isQuoteLoading: isLoading || isDebouncing,
         isDebouncing,
         quoteError: error as unknown as QuoteError | undefined,
+        solverErrorMessage,
         mutateFee: refetch,
     }
 }
@@ -98,10 +119,31 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
 export function transformFormValuesToQuoteArgs(values: SwapFormValues): Props | undefined {
     return {
         amount: values.amount,
+        receiveAmount: values.receiveAmount,
         from: values.from?.caip2Id,
         to: values.to?.caip2Id,
         fromCurrency: values.fromCurrency,
         toCurrency: values.toCurrency,
+    }
+}
+
+function formatLimitMessage(message: string, token: ExtendedToken | undefined, isUsdMode: boolean): string {
+    if (!token) return message
+    const match = message.match(/(max|min)\s*amount[^\d]*(\d+)/i)
+    if (!match) return message
+    const kind = match[1].toLowerCase() === 'max' ? 'Max' : 'Min'
+    try {
+        const tokenAmount = formatUnits(BigInt(match[2]), token.decimals)
+        if (isUsdMode && token.priceInUsd && token.priceInUsd > 0) {
+            const usd = Number(tokenAmount) * token.priceInUsd
+            return `${kind} amount is $${usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        }
+        const [whole, frac = ''] = tokenAmount.split('.')
+        const trimmed = frac.slice(0, 6).replace(/0+$/, '')
+        const display = trimmed ? `${whole}.${trimmed}` : whole
+        return `${kind} amount is ${display}${token.symbol ? ` ${token.symbol}` : ''}`
+    } catch {
+        return message
     }
 }
 
@@ -112,13 +154,15 @@ export function buildQuoteParamsFromAtomic(params: {
     fromCurrency?: Token
     toCurrency?: Token
     amount?: string | number
+    receiveAmount?: string | number
 }): Props | undefined {
-    if (!params.from || !params.to || !params.fromCurrency || !params.toCurrency || params.amount == null || params.amount === '') return undefined
+    if (!params.from || !params.to || !params.fromCurrency || !params.toCurrency || (!params.amount && !params.receiveAmount)) return undefined
     return {
         from: params.from,
         to: params.to,
         fromCurrency: params.fromCurrency,
         toCurrency: params.toCurrency,
-        amount: String(params.amount),
+        amount: params.amount ? String(params.amount) : undefined,
+        receiveAmount: params.receiveAmount ? String(params.receiveAmount) : undefined,
     }
 }

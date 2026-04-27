@@ -1,20 +1,20 @@
 import SourceWalletPicker from "./SourceWalletPicker";
 import RoutePicker from "./RoutePicker";
-import AmountField from "./Amount"
+import AmountField from "./AmountField"
 import { useFormikContext } from "formik";
 import { SwapFormValues } from "../DTOs/SwapFormValues";
 import MinMax from "./Amount/MinMax";
-import type { SwapQuote } from "@train-protocol/react";
 import clsx from "clsx";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { useState } from "react";
+import type { SwapQuote } from "@train-protocol/react";
 
 type Props = {
-    quote?: SwapQuote;
     isQuoteLoading?: boolean;
+    quote?: SwapQuote;
 }
 
-const SourcePicker = ({ quote }: Props) => {
+const SourcePicker = ({ isQuoteLoading, quote }: Props) => {
     const { values } = useFormikContext<SwapFormValues>()
 
     const { fromCurrency, from } = values || {}
@@ -58,11 +58,17 @@ const SourcePicker = ({ quote }: Props) => {
             }
             <div className="grid grid-cols-[1fr_auto] gap-1 w-full max-w-full">
                 <div className="min-w-0 overflow-hidden">
-                    <AmountField fee={quote} actionValue={actionTempValue} actionValueUsd={actionTempValueUsd} />
+                    <AmountField
+                        side="source"
+                        actionValue={actionTempValue}
+                        actionValueUsd={actionTempValueUsd}
+                        isQuoteLoading={isQuoteLoading}
+                        quote={quote}
+                    />
                 </div>
 
                 <div className="justify-self-end self-start">
-                    <RoutePicker direction="from" />
+                    <RoutePicker direction="from" quote={quote} />
                 </div>
             </div>
         </div>
