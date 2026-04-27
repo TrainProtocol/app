@@ -4,19 +4,6 @@ const KEYS_STORE = 'keys'
 const DATA_STORE = 'data'
 const WRAPPING_KEY_ID = 'wrapping-key'
 
-/** AES-GCM encrypted payload stored in IndexedDB */
-interface EncryptedBlob {
-    iv: Uint8Array
-    ciphertext: ArrayBuffer
-}
-
-/** Extract a proper ArrayBuffer from a Uint8Array (handles SharedArrayBuffer edge case). */
-function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
-    const ab = new ArrayBuffer(bytes.byteLength)
-    new Uint8Array(ab).set(bytes)
-    return ab
-}
-
 /**
  * Secure IndexedDB storage with AES-GCM encryption via Web Crypto API.
  *
@@ -41,40 +28,23 @@ export class SecureStorage {
         this.wrappingKey = await this.getOrCreateWrappingKey()
     }
 
-    /** Encrypt a Uint8Array and store it under the given key. */
-    async encryptAndStore(key: string, data: Uint8Array): Promise<void> {
-        if (!this.db || !this.wrappingKey) return
 
-        const iv = crypto.getRandomValues(new Uint8Array(12))
-        const ciphertext = await crypto.subtle.encrypt(
-            { name: 'AES-GCM', iv },
-            this.wrappingKey,
-            toArrayBuffer(data),
-        )
-
-        const blob: EncryptedBlob = { iv, ciphertext }
-        await this.put(DATA_STORE, key, blob)
+    /**
+     * Store a non-extractable CryptoKey directly in IndexedDB.
+     * IndexedDB supports structured cloning of CryptoKey objects,
+     * preserving the non-extractable flag across sessions.
+     */
+    async storeCryptoKey(key: string, cryptoKey: CryptoKey): Promise<void> {
+        if (!this.db) return
+        await this.put(DATA_STORE, key, cryptoKey)
     }
 
-    /** Load and decrypt a Uint8Array from the given key. Returns null if not found. */
-    async loadAndDecrypt(key: string): Promise<Uint8Array | null> {
-        if (!this.db || !this.wrappingKey) return null
-
-        const blob = await this.get<EncryptedBlob>(DATA_STORE, key)
-        if (!blob || !blob.iv || !blob.ciphertext) return null
-
-        try {
-            const iv = blob.iv instanceof Uint8Array ? toArrayBuffer(blob.iv) : blob.iv
-            const plaintext = await crypto.subtle.decrypt(
-                { name: 'AES-GCM', iv },
-                this.wrappingKey,
-                blob.ciphertext,
-            )
-            return new Uint8Array(plaintext)
-        } catch {
-            // Decryption failed (corrupt data or key mismatch)
-            return null
-        }
+    /** Load a CryptoKey from IndexedDB. Returns null if not found. */
+    async loadCryptoKey(key: string): Promise<CryptoKey | null> {
+        if (!this.db) return null
+        const result = await this.get<CryptoKey>(DATA_STORE, key)
+        if (!result || !(result instanceof CryptoKey)) return null
+        return result
     }
 
     /** Store a JSON-serializable value (unencrypted). Use for non-sensitive data. */

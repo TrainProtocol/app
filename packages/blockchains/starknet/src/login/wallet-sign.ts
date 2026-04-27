@@ -1,4 +1,4 @@
-import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/auth'
+import { createProtectedKey } from '@train-protocol/auth'
 
 /**
  * Minimal interface for a Starknet account needed by the login flow.
@@ -18,7 +18,7 @@ export const deriveKeyFromStarknetWallet = async (
     account: StarknetAccountLike,
     _address: string,
     options?: { chainId?: string },
-): Promise<Uint8Array> => {
+): Promise<CryptoKey> => {
     if (!account) {
         throw new Error('Starknet wallet not connected')
     }
@@ -58,6 +58,5 @@ export const deriveKeyFromStarknetWallet = async (
     })
 
     const inputMaterial = new Uint8Array(sigBytes)
-    const identitySalt = new TextEncoder().encode(IDENTITY_SALT)
-    return new Uint8Array(deriveKeyMaterial(inputMaterial, identitySalt))
+    return createProtectedKey(inputMaterial)
 }

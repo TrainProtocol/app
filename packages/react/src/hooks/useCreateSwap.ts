@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
 import {
-    deriveSecretFromTimelock,
+    deriveSecretFromCryptoKey,
     secretToHashlock,
     bytesToHex,
     formatUnits,
@@ -55,7 +55,7 @@ export function useCreateSwap(): UseCreateSwapResult {
             }
 
             const nonce = Date.now()
-            const secretBytes = deriveSecretFromTimelock(derivedKey, nonce)
+            const secretBytes = await deriveSecretFromCryptoKey(derivedKey, nonce)
             const secret = bytesToHex(Array.from(secretBytes))
             const hashlock = secretToHashlock(secret)
 

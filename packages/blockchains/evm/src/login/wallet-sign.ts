@@ -1,4 +1,4 @@
-import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/auth';
+import { createProtectedKey } from '@train-protocol/auth';
 
 export interface Eip1193Provider {
     request(args: { method: string; params: unknown[] }): Promise<unknown>
@@ -38,7 +38,7 @@ export const deriveKeyFromEvmSignature = async (
     provider: Eip1193Provider,
     address: `0x${string}`,
     options?: { sandbox?: boolean; currentChainId?: number }
-): Promise<Uint8Array> => {
+): Promise<CryptoKey> => {
     const isSandbox = options?.sandbox ?? false;
     const signingChainId = isSandbox ? 11155111 : 1;
     const signingChainHex = isSandbox ? '0xAA36A7' : '0x1';
@@ -67,7 +67,7 @@ export const deriveKeyFromEvmSignature = async (
 
     const signatureHex = signature.startsWith('0x') ? signature.slice(2) : signature;
     const inputMaterial = hexToUint8Array(signatureHex);
-    const identitySalt = new TextEncoder().encode(IDENTITY_SALT);
-
-    return new Uint8Array(deriveKeyMaterial(inputMaterial, identitySalt));
+    const key = await createProtectedKey(inputMaterial);
+    inputMaterial.fill(0);
+    return key;
 };

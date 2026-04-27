@@ -1,4 +1,4 @@
-import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/auth'
+import { createProtectedKey } from '@train-protocol/auth'
 
 /**
  * Minimal interface for a Tron wallet needed by the login flow.
@@ -16,7 +16,7 @@ export interface TronWalletLike {
  */
 export const deriveKeyFromTronWallet = async (
     wallet: TronWalletLike,
-): Promise<Uint8Array> => {
+): Promise<CryptoKey> => {
     if (!wallet) {
         throw new Error('Tron wallet not connected')
     }
@@ -28,7 +28,5 @@ export const deriveKeyFromTronWallet = async (
     for (let i = 0; i < sigHex.length; i += 2) {
         inputMaterial[i / 2] = parseInt(sigHex.substring(i, i + 2), 16)
     }
-    const identitySalt = new TextEncoder().encode(IDENTITY_SALT)
-
-    return new Uint8Array(deriveKeyMaterial(inputMaterial, identitySalt))
+    return createProtectedKey(inputMaterial)
 }
