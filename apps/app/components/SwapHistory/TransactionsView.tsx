@@ -11,7 +11,7 @@ export default function TransactionsView() {
 
     return (
         <div className="relative w-full">
-            <div className="hidden md:flex absolute -top-12 right-0 z-10">
+            <div className="hidden md:flex absolute -top-12 left-0 z-10">
                 <button
                     type="button"
                     onClick={() => openDialogue('recoverSwap')}

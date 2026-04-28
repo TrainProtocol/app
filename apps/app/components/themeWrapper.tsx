@@ -5,7 +5,7 @@ import toast, { ToastBar, Toaster } from "react-hot-toast"
 import GlobalFooter from "./globalFooter";
 import { SidebarProvider } from "./shadcn/sidebar";
 import AppSidebar from "./Sidebar/AppSidebar";
-import PendingSwap from "./Swap/PendingSwap";
+import Navbar from "./navbar";
 
 type Props = {
     children: JSX.Element | JSX.Element[]
@@ -15,10 +15,8 @@ export default function ThemeWrapper({ children }: Props) {
         <div className="invisible light"></div>
         <SidebarProvider className="styled-scroll flex min-h-screen w-full overflow-x-hidden">
                 <AppSidebar />
-                <div className={`flex-1 flex flex-col items-center min-h-screen overflow-hidden relative font-robo md:pt-[97.6px]`}>
-                    <div className="hidden md:flex absolute top-0 right-0 w-full items-center justify-end gap-x-2 px-8 py-5 z-30">
-                        <PendingSwap />
-                    </div>
+                <div className={`flex-1 flex flex-col items-center min-h-screen overflow-hidden relative font-robo`}>
+                    <Navbar />
                     <Toaster position="top-center" toastOptions={{
                         duration: 5000,
                         style: {

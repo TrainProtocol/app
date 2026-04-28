@@ -34,11 +34,9 @@ export default function SwapPage() {
         const key = `${sourceNetwork}:${txHash}`;
         if (recoveryAttemptedRef.current === key) return;
         recoveryAttemptedRef.current = key;
-        let cancelled = false;
         recover(txHash, sourceNetwork)
-            .then(hashlock => { if (!cancelled) setActiveHashlock(hashlock); })
-            .catch(e => { if (!cancelled) console.error("Auto-recovery failed:", e); });
-        return () => { cancelled = true; };
+            .then(setActiveHashlock)
+            .catch(e => console.error("Auto-recovery failed:", e));
     }, [sourceNetwork, txHash, activeHashlock, recover, setActiveHashlock]);
 
     useSwapProgress(activeHashlock);
