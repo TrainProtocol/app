@@ -1,15 +1,11 @@
 import { BalanceProvider } from "@/Models/BalanceProvider";
 import { TokenBalance } from "@/Models/Balance";
 import KnownInternalNames from "@/lib/knownIds";
-import { AztecAddress } from "@aztec/aztec.js/addresses";
-import { Fr } from "@aztec/aztec.js/fields";
-import { createAztecNodeClient } from "@aztec/aztec.js/node";
-import { deriveStorageSlotInMap } from "@aztec/stdlib/hash";
 import { formatUnits } from "viem";
 import { getNetworkRpcUrl } from "@/lib/rpc/resolveNetworkRpcUrl";
 
 // Storage slot for public_balances map in the Token contract (slot 9 for standard Aztec token)
-const TOKEN_PUBLIC_BALANCES_SLOT = new Fr(9n)
+const TOKEN_PUBLIC_BALANCES_SLOT_INDEX = 9n
 
 export class AztecBalanceProvider extends BalanceProvider {
     supportsNetwork: BalanceProvider['supportsNetwork'] = (network) => {
@@ -22,6 +18,18 @@ export class AztecBalanceProvider extends BalanceProvider {
         const nodeUrl = getNetworkRpcUrl(network)
         if (!nodeUrl) return []
 
+        // Lazy-load Aztec SDK so it never enters the SSR import graph.
+        // Top-level imports of @aztec/* drag in @aztec/foundation, whose pino logger
+        // tries to dynamically require pino-pretty at module init and crashes Next's
+        // serverless bundle (HTTP 500 on every page → social previews break).
+        const [{ AztecAddress }, { Fr }, { createAztecNodeClient }, { deriveStorageSlotInMap }] = await Promise.all([
+            import("@aztec/aztec.js/addresses"),
+            import("@aztec/aztec.js/fields"),
+            import("@aztec/aztec.js/node"),
+            import("@aztec/stdlib/hash"),
+        ])
+
+        const tokenPublicBalancesSlot = new Fr(TOKEN_PUBLIC_BALANCES_SLOT_INDEX)
         const client = createAztecNodeClient(nodeUrl)
         const owner = AztecAddress.fromString(address)
         const balances: TokenBalance[] = []
@@ -30,7 +38,7 @@ export class AztecBalanceProvider extends BalanceProvider {
             try {
                 const tokenAddr = AztecAddress.fromString(token.contract)
                 // Type assertions needed: @aztec/aztec.js and @aztec/stdlib resolve to different @aztec/foundation versions
-                const slot = await deriveStorageSlotInMap(TOKEN_PUBLIC_BALANCES_SLOT as any, owner as any)
+                const slot = await deriveStorageSlotInMap(tokenPublicBalancesSlot as any, owner as any)
                 const balanceField = await client.getPublicStorageAt('latest', tokenAddr, slot as any)
                 const raw = balanceField.toBigInt()
                 const amount = Number(formatUnits(raw, token.decimals))
