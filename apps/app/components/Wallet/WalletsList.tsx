@@ -13,7 +13,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../shadcn/tooltip";
 import { ImageWithFallback } from "../Common/ImageWithFallback";
 import { AccountIdentity, useSelectedAccount } from "@/context/swapAccounts";
 import { useBalance } from "@/lib/balances/useBalance";
-import { useAppDialogueStore } from "@/stores/appDialogueStore";
 
 type Props = {
     selectable?: boolean;
@@ -23,19 +22,18 @@ type Props = {
     provider?: WalletProvider | undefined;
     onSelect?: (props: SelectAccountProps) => void;
     selectedDepositMethod?: "wallet" | "deposit_address";
+    layout?: "overlay" | "standalone";
 }
 
 const WalletsList: FC<Props> = (props) => {
 
-    const { wallets, token, network, provider, selectable, onSelect, selectedDepositMethod } = props
+    const { wallets, token, network, provider, selectable, onSelect, selectedDepositMethod, layout = "standalone" } = props
 
     const { connect } = useConnectModal()
-    const inOverlay = useAppDialogueStore((s) => s.view !== null)
-    const pushOverlayView = useAppDialogueStore((s) => s.push)
+    const inOverlay = layout === "overlay"
 
     const connectWallet = useCallback(async () => {
-        if (inOverlay) pushOverlayView('connectWallet')
-        const result = await connect(provider)
+        const result = await connect(provider, inOverlay ? { displayMode: 'dialog' } : undefined)
         if (result && onSelect && result.withdrawalSupportedNetworks?.some(n => n === network?.caip2Id)) {
             onSelect({
                 providerName: result.providerName,
@@ -43,7 +41,7 @@ const WalletsList: FC<Props> = (props) => {
                 address: result.address
             })
         }
-    }, [provider, onSelect, network, inOverlay, pushOverlayView, connect])
+    }, [provider, onSelect, network, connect, inOverlay])
 
     const selectedSourceAccount = useSelectedAccount("from", selectedDepositMethod == 'wallet' ? network?.caip2Id : undefined);
 

@@ -1,14 +1,12 @@
 import { ReactNode, useEffect } from 'react';
 import { Loader2, ChevronLeft, AlertTriangle } from 'lucide-react';
-import VaulModal from '@/components/Modal/vaulModal';
 import { useSharedSecretDerivation } from '@train-protocol/react';
 import { mapPasskeyError } from '@train-protocol/auth';
 import { SavedLogins, IntroStep, CreateStep, ErrorStep } from './PasskeyChoice';
 import { loginStepTitle, useLoginWizardState, wizardCanGoBack, type LoginWizard } from './wizard';
 import { Steps, Step } from '@/components/Step';
 import IconButton from '@/components/buttons/iconButton';
-import { useAppDialogueStore } from '@/stores/appDialogueStore';
-import { StepBody } from '@/components/AppDialogue/AppDialogue';
+import { StepBody } from '../StepBody';
 
 export { loginStepTitle, useLoginWizardState, wizardCanGoBack };
 export type { LoginStep, LoginWizard } from './wizard';
@@ -123,29 +121,6 @@ function useLoginFlow({
   return { header, content };
 }
 
-interface LoginModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export function LoginModal({ isOpen, onClose }: LoginModalProps) {
-  const wizard = useLoginWizardState();
-  const { header, content } = useLoginFlow({ isOpen, onClose, wizard });
-
-  return (
-    <VaulModal
-      show={isOpen}
-      setShow={(show) => {
-        if (!show) onClose();
-      }}
-      header={header}
-      modalId="secret-derivation-login-modal"
-    >
-      <VaulModal.Snap id="item-1">{content}</VaulModal.Snap>
-    </VaulModal>
-  );
-}
-
 interface LoginFlowProps {
   isOpen: boolean;
   onClose: () => void;
@@ -155,12 +130,11 @@ interface LoginFlowProps {
 
 export function LoginFlow({ isOpen, onClose, hideHeader, wizard }: LoginFlowProps) {
   const { header, content } = useLoginFlow({ isOpen, onClose, wizard });
-  const inOverlay = useAppDialogueStore((s) => s.view !== null);
 
   return (
-    <div className={`flex flex-col${inOverlay ? ' flex-1' : ''}`}>
+    <div className="flex flex-col flex-1 h-full">
       {!hideHeader && <div className="px-4 pt-3 pb-2 text-secondary-text">{header}</div>}
-      <div className={`px-4${inOverlay ? ' flex-1 flex flex-col' : ' pb-4'}`}>{content}</div>
+      <div className="px-4 flex-1 flex flex-col">{content}</div>
     </div>
   );
 }

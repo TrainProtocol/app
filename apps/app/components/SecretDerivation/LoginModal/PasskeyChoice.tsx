@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { AlertTriangle, Fingerprint, Lock } from 'lucide-react';
 import { DEFAULT_PASSKEY_DISPLAY_NAME, type StoredPasskey } from '@train-protocol/auth';
 import SubmitButton from '../../buttons/submitButton';
-import { StepBody } from '@/components/AppDialogue/AppDialogue';
+import { StepBody } from '../StepBody';
 import { Input } from '@/components/shadcn/input';
 
 interface SavedLoginsProps {
@@ -47,7 +47,7 @@ export function SavedLogins({ credentials, onPick, onUseAnotherMethod, onForgetA
     </div>
   );
 
-  return <StepBody info={info} actions={actions} centerOverlay={false} centerNonOverlay={false} />;
+  return <StepBody info={info} actions={actions} centerOverlay={false} />;
 }
 
 interface IntroStepProps {
@@ -127,7 +127,7 @@ export function CreateStep({ onCreate }: CreateStepProps) {
     </SubmitButton>
   );
 
-  return <StepBody info={info} actions={actions} centerOverlay={false} centerNonOverlay={false} overlayActionMt="mt-6" />;
+  return <StepBody info={info} actions={actions} centerOverlay={false} overlayActionMt="mt-6" />;
 }
 
 interface ErrorStepProps {

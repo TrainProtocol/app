@@ -1,6 +1,6 @@
 "use client"
 
-import { FC } from "react"
+import { FC, useState } from "react"
 import {
     Sidebar,
     SidebarContent,
@@ -28,8 +28,10 @@ import { WalletsIcons } from "@/components/Wallet/ConnectedWallets"
 import { useGoHome } from "@/hooks/useGoHome"
 import useWallet from "@/hooks/useWallet"
 import { Address } from "@/lib/address"
-import { useAppDialogueStore } from "@/stores/appDialogueStore"
 import { LoginDataCard, getLoginIdentity, copyWalletAddress } from "@/components/SecretDerivation/UserStatus"
+import { useConnectModal } from "@/components/WalletModal"
+import { useAuthDialog } from "@/stores/authDialogStore"
+import WalletsDialog from "./WalletsDialog"
 
 const AppSidebar: FC = () => {
     const currentPath = usePathname() ?? '/'
@@ -103,14 +105,16 @@ type WalletsSidebarButtonProps = {
 }
 
 const WalletsSidebarButton: FC<WalletsSidebarButtonProps> = ({ wallets }) => {
-    const openDialogue = useAppDialogueStore((s) => s.open)
+    const [walletsOpen, setWalletsOpen] = useState(false)
+    const { connect } = useConnectModal()
 
     const wallet = wallets[0]
     const hasWallets = wallets.length > 0
     const isMulti = wallets.length > 1
 
     const handleClick = () => {
-        openDialogue(hasWallets ? 'wallets' : 'connectWallet')
+        if (hasWallets) setWalletsOpen(true)
+        else connect(undefined, { displayMode: 'dialog' })
     }
 
     const content = !hasWallets ? (
@@ -135,15 +139,18 @@ const WalletsSidebarButton: FC<WalletsSidebarButtonProps> = ({ wallets }) => {
     )
 
     return (
-        <SidebarMenuButton className={isMulti ? "[&_svg]:size-5" : undefined} onClick={handleClick}>
-            {content}
-        </SidebarMenuButton>
+        <>
+            <SidebarMenuButton className={isMulti ? "[&_svg]:size-5" : undefined} onClick={handleClick}>
+                {content}
+            </SidebarMenuButton>
+            <WalletsDialog open={walletsOpen} onOpenChange={setWalletsOpen} />
+        </>
     )
 }
 
 const SidebarLoginStatus: FC = () => {
     const secretDerivation = useOptionalSecretDerivation()
-    const openDialogue = useAppDialogueStore((s) => s.open)
+    const openAuthDialog = useAuthDialog((s) => s.openAuthDialog)
     const { boot, show, update } = useIntercom()
 
     if (!secretDerivation) return null
@@ -154,7 +161,7 @@ const SidebarLoginStatus: FC = () => {
         return (
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" onClick={() => openDialogue('login')}>
+                    <SidebarMenuButton size="lg" onClick={openAuthDialog}>
                         <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-secondary-400 text-primary-text">
                             <Lock className="size-4" strokeWidth={2} />
                         </div>
