@@ -1,10 +1,12 @@
+"use client"
+
 import { Formik, FormikProps } from "formik";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import React from "react";
 import MainStepValidation from "@/lib/mainStepValidator";
 import SwapForm from "./Form";
-import { NextRouter, useRouter } from "next/router";
+import { useSearchParams, type ReadonlyURLSearchParams } from "next/navigation";
 import { useQueryState } from "@/context/query";
 import useWallet from "@/hooks/useWallet";
 import { useSwapProgress, type SwapQuote, HTLCStatus, useSharedSecretDerivation } from "@train-protocol/react";
@@ -12,7 +14,7 @@ import VaulDrawer from "../../Modal/vaulModal";
 import { Widget } from "../../Widget/Index";
 import { generateSwapInitialValues } from "@/lib/generateSwapInitialValues";
 import { useSettingsState } from "@/context/settings";
-import { resolvePersistantQueryParams } from "@/helpers/querryHelper";
+import { getPersistantSearchParams } from "@/helpers/querryHelper";
 import { buildSwapQuery } from "@/helpers/swapUrl";
 import { useSwapStore } from "@/stores/swapStore";
 import { useActiveSwap } from "@/hooks/useActiveSwap";
@@ -21,7 +23,7 @@ import { useRecentNetworksStore } from "@/stores/recentRoutesStore";
 
 export default function Form() {
     const formikRef = useRef<FormikProps<SwapFormValues>>(null);
-    const router = useRouter();
+    const searchParams = useSearchParams();
     const query = useQueryState()
     const { isLoggedIn } = useSharedSecretDerivation()
     const [quote, setQuote] = useState<SwapQuote | undefined>()
@@ -43,13 +45,13 @@ export default function Form() {
         if (swapModalOpen) {
             setPolling(false);
             if (swap.source && swap.txId) {
-                setSwapInUrl(router, swap.source, swap.txId);
+                setSwapInUrl(searchParams, swap.source, swap.txId);
             }
         } else {
             setPolling(true);
-            removeSwapPath(router);
+            removeSwapPath(searchParams);
         }
-    }, [swapModalOpen, swap.source, swap.txId, router]);
+    }, [swapModalOpen, swap.source, swap.txId, searchParams]);
 
     const handleShowSwapModal = useCallback((value: boolean) => {
         setSwapModalOpen(value);
@@ -97,7 +99,7 @@ export default function Form() {
         catch (error) {
             console.log(error)
         }
-    }, [query, router, getProvider, isLoggedIn, quote, solverId])
+    }, [query, getProvider, isLoggedIn, quote, solverId])
 
     const initialValues: SwapFormValues = generateSwapInitialValues(settings, query)
 
@@ -129,30 +131,17 @@ export default function Form() {
     </>
 }
 
-const removeSwapPath = (router: NextRouter) => {
-    const basePath = router?.basePath || ""
-    let homeURL = window.location.protocol + "//"
-        + window.location.host + basePath
-
-    const params = resolvePersistantQueryParams(router.query)
-    if (params && Object.keys(params).length) {
-        const search = new URLSearchParams(params as any);
-        if (search)
-            homeURL += `?${search}`
-    }
-
-    window.history.replaceState({ ...window.history.state, as: router.asPath, url: homeURL }, '', homeURL);
+const removeSwapPath = (searchParams: ReadonlyURLSearchParams | null) => {
+    const params = new URLSearchParams(getPersistantSearchParams(searchParams))
+    const qs = params.toString()
+    window.history.replaceState(null, "", qs ? `/?${qs}` : "/")
 }
 
-const setSwapInUrl = (router: NextRouter, sourceNetwork: string, txHash: string) => {
-    const basePath = router?.basePath || ""
-    let url = window.location.protocol + "//" + window.location.host + `${basePath}/swap`
-    const params = resolvePersistantQueryParams(router.query)
+const setSwapInUrl = (searchParams: ReadonlyURLSearchParams | null, sourceNetwork: string, txHash: string) => {
     const atomicParams = new URLSearchParams(buildSwapQuery(sourceNetwork, txHash))
-    url += `?${atomicParams}`
-    if (params && Object.keys(params).length) {
-        const search = new URLSearchParams(params as any);
-        url += `&${search}`
+    const persistant = new URLSearchParams(getPersistantSearchParams(searchParams))
+    for (const [key, value] of persistant.entries()) {
+        atomicParams.set(key, value)
     }
-    window.history.replaceState({ ...window.history.state, as: url, url }, '', url);
+    window.history.replaceState(null, "", `/swap?${atomicParams.toString()}`)
 }

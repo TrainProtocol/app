@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import MessageComponent from "./MessageComponent";
 import inIframe from "./utils/inIframe";

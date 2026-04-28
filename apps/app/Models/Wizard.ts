@@ -55,11 +55,14 @@ export enum AuthStep {
 
 export enum MenuStep {
     Menu = "Menu",
+    Login = "Login",
+    LoginStatus = "Login Status",
     Transactions = "Transactions",
     TransactionDetails = "Transaction Details",
     RPCConfiguration = "RPC Configuration",
     NetworkRPCEdit = "Network RPC Edit",
-    RecoverSwap = "Recover Swap"
+    RecoverSwap = "Recover Swap",
+    SuggestFeature = "Suggest a Feature"
 }
 
 export type Steps = AuthStep | SwapWithdrawalStep | SwapCreateStep | MenuStep

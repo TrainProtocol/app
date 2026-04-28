@@ -1,5 +1,5 @@
 // components/SecretDerivation/index.ts
 
-export { LoginModal } from './LoginModal';
+export { LoginFlow } from './LoginModal';
 export { SignFlowModal } from './SignFlowModal';
 export { UserStatusHeader, UserStatusMenu } from './UserStatus';

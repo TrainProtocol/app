@@ -161,6 +161,7 @@ const ConnectorsList: FC<{ onFinish: (result: Wallet | undefined) => void }> = (
                 })
                 onFinish(result)
                 setSelectedConnector(undefined)
+                setSelectedMultiChainConnector(undefined)
             } else {
                 setConnectionError("Connection didn't complete. Please try again.")
             }

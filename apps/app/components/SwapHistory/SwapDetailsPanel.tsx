@@ -1,14 +1,14 @@
 import { FC } from 'react'
 import { ExternalLink, RefreshCw } from 'lucide-react'
-import { useSwapStore } from '@/stores/swapStore'
 import { type SwapData, HTLCStatus, isTerminalStatus } from '@train-protocol/react'
 import { Network } from '@/Models/Network'
 import { getExplorerUrl } from '@/lib/address'
 import shortenString from '@/components/utils/ShortenString'
 import CopyButton from '@/components/buttons/copyButton'
 import StatusIcons from './StatusIcons'
-import { useRouter } from 'next/router'
-import { resolvePersistantQueryParams } from '@/helpers/querryHelper'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { buildHrefWithPersistantParams } from '@/helpers/querryHelper'
+import { buildSwapQuery } from '@/helpers/swapUrl'
 import { getDateDifferenceString } from '@/components/utils/dateDifference'
 
 type Props = {
@@ -19,8 +19,7 @@ type Props = {
 
 const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
     const router = useRouter()
-    const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
-    const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
+    const searchParams = useSearchParams()
 
     const srcExplorerTemplate = sourceNetwork?.explorerUrlTemplate?.transaction
     const destExplorerTemplate = destNetwork?.explorerUrlTemplate?.transaction
@@ -32,24 +31,20 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
     const dateDifferenceString = swap.createdAt ? getDateDifferenceString(swap.createdAt) : undefined
 
     const handleViewSwap = () => {
-        if (swap.hashlock) {
-            setActiveHashlock(swap.hashlock)
-            setSwapModalOpen(true)
-        }
+        if (!swap.source || !swap.txId) return
+        router.push(
+            buildHrefWithPersistantParams('/swap', searchParams, buildSwapQuery(swap.source, swap.txId))
+        )
     }
 
     const handleRepeatSwap = () => {
-        router.push({
-            pathname: '/',
-            query: {
-                from: swap.source,
-                to: swap.destination,
-                fromAsset: swap.source_asset,
-                toAsset: swap.destination_asset,
-                destAddress: swap.address,
-                ...resolvePersistantQueryParams(router.query),
-            },
-        })
+        router.push(buildHrefWithPersistantParams('/', searchParams, {
+            from: swap.source,
+            to: swap.destination,
+            fromAsset: swap.source_asset,
+            toAsset: swap.destination_asset,
+            destAddress: swap.address,
+        }))
     }
 
     return (

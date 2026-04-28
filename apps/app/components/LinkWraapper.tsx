@@ -1,12 +1,14 @@
+"use client"
+
 import Link, { LinkProps } from "next/link";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import { FC } from "react";
-import { resolvePersistantQueryParams } from "../helpers/querryHelper";
+import { getPersistantSearchParams } from "../helpers/querryHelper";
 
 const LinkWrapper: FC<Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps> & LinkProps & {
     children?: React.ReactNode;
 } & React.RefAttributes<HTMLAnchorElement>> = (props) => {
-    const router = useRouter();
+    const searchParams = useSearchParams();
     const { children } = props
 
     const pathname = typeof props.href === 'object' ? props.href.pathname : props.href
@@ -18,7 +20,7 @@ const LinkWrapper: FC<Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof 
             href={{
                 pathname: pathname,
                 query: {
-                    ...resolvePersistantQueryParams(router.query),
+                    ...getPersistantSearchParams(searchParams),
                     ...query
                 }
             }}
