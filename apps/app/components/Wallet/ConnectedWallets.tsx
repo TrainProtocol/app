@@ -6,42 +6,54 @@ import { useState } from "react"
 import WalletsList from "./WalletsList"
 import { Wallet } from "../../Models/WalletProvider"
 import VaulDrawer from "../Modal/vaulModal"
-import { useAppDialogueStore } from "@/stores/appDialogueStore"
+import { useConnectModal } from "@/components/WalletModal"
+import WalletsDialog from "@/components/Sidebar/WalletsDialog"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
 
 export const WalletsHeader = () => {
     const { wallets } = useWallet()
     const { isMobile } = useWindowDimensions()
-    const openDialogue = useAppDialogueStore((s) => s.open)
-    const onClick = () => openDialogue(wallets.length > 0 ? 'wallets' : 'connectWallet')
+    const { connect } = useConnectModal()
+    const [walletsOpen, setWalletsOpen] = useState(false)
+
+    const onClick = () => {
+        if (wallets.length > 0) setWalletsOpen(true)
+        else connect(undefined, { displayMode: 'dialog' })
+    }
 
     if (isMobile) {
         return (
-            <button
-                type="button"
-                onClick={onClick}
-                aria-label="Wallets"
-                className="p-1.5 max-sm:p-2 active:animate-press-down justify-self-start text-secondary-text hover:bg-secondary-500 max-sm:bg-secondary-500 hover:text-primary-text focus:outline-hidden inline-flex rounded-lg items-center"
-            >
-                {wallets.length === 0
-                    ? <WalletIcon className="h-6 w-6 mx-0.5" strokeWidth="2" />
-                    : <WalletsIcons wallets={wallets} />}
-            </button>
+            <>
+                <button
+                    type="button"
+                    onClick={onClick}
+                    aria-label="Wallets"
+                    className="p-1.5 max-sm:p-2 active:animate-press-down justify-self-start text-secondary-text hover:bg-secondary-500 max-sm:bg-secondary-500 hover:text-primary-text focus:outline-hidden inline-flex rounded-lg items-center"
+                >
+                    {wallets.length === 0
+                        ? <WalletIcon className="h-6 w-6 mx-0.5" strokeWidth="2" />
+                        : <WalletsIcons wallets={wallets} />}
+                </button>
+                <WalletsDialog open={walletsOpen} onOpenChange={setWalletsOpen} />
+            </>
         )
     }
 
     const isMulti = wallets.length > 1
     const { label, icon } = getDesktopContent(wallets)
     return (
-        <button
-            type="button"
-            onClick={onClick}
-            aria-label={label}
-            className={`inline-flex items-center gap-2 ${isMulti ? 'py-1.5' : 'py-2'} px-3 rounded-full bg-secondary-500 border border-black/15 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down`}
-        >
-            {icon}
-            <span className="text-sm font-medium truncate max-w-[140px]">{label}</span>
-        </button>
+        <>
+            <button
+                type="button"
+                onClick={onClick}
+                aria-label={label}
+                className={`inline-flex items-center gap-2 ${isMulti ? 'py-1.5' : 'py-2'} px-3 rounded-full bg-secondary-500 border border-black/15 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down`}
+            >
+                {icon}
+                <span className="text-sm font-medium truncate max-w-[140px]">{label}</span>
+            </button>
+            <WalletsDialog open={walletsOpen} onOpenChange={setWalletsOpen} />
+        </>
     )
 }
 

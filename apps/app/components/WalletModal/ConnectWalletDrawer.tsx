@@ -2,9 +2,9 @@ import { FC } from "react";
 import { ChevronLeft } from "lucide-react";
 import IconButton from "../buttons/iconButton";
 import VaulDrawer from "../Modal/vaulModal";
+import AppShellDialog from "../shared/AppShellDialog";
 import ConnectorsList from "./ConnectorsList";
 import { useConnectModal } from ".";
-import { useAppDialogueStore } from "@/stores/appDialogueStore";
 
 const ConnectWalletDrawer: FC = () => {
     const {
@@ -14,10 +14,25 @@ const ConnectWalletDrawer: FC = () => {
         setOpen,
         selectedConnector,
         selectedMultiChainConnector,
+        displayMode,
     } = useConnectModal();
-    const hostedInDialogue = useAppDialogueStore((s) => s.view === 'connectWallet');
 
-    if (hostedInDialogue) return null;
+    const title = (selectedMultiChainConnector && !selectedConnector) ? "Select ecosystem" : "Connect wallet"
+    const showBack = !!(selectedConnector || selectedMultiChainConnector)
+
+    if (displayMode === 'dialog') {
+        return (
+            <AppShellDialog
+                open={open}
+                onOpenChange={(v) => { if (!v) onFinish() }}
+                title={title}
+                onBack={showBack ? goBack : undefined}
+                contentClassName="h-[80svh]!"
+            >
+                <ConnectorsList onFinish={onFinish} />
+            </AppShellDialog>
+        )
+    }
 
     return (
         <VaulDrawer
@@ -27,12 +42,12 @@ const ConnectWalletDrawer: FC = () => {
             modalId={"connectNewWallet"}
             header={
                 <div className="flex items-center gap-1">
-                    {(selectedConnector || selectedMultiChainConnector) && (
+                    {showBack && (
                         <div className="sm:-ml-2 ml-0">
                             <IconButton onClick={goBack} icon={<ChevronLeft className="h-6 w-6" />} />
                         </div>
                     )}
-                    <p>{(selectedMultiChainConnector && !selectedConnector) ? "Select ecosystem" : "Connect wallet"}</p>
+                    <p>{title}</p>
                 </div>
             }>
             <VaulDrawer.Snap openFullHeight id='item-1' className="h-full">

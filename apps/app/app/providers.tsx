@@ -17,8 +17,7 @@ import ThemeWrapper from "@/components/themeWrapper"
 import MaintananceContent from "@/components/Maintanance"
 import ErrorFallback from "@/components/ErrorFallback"
 import WalletsProviders from "@/components/WalletProviders"
-import { LoginModal } from "@/components/SecretDerivation"
-import AppDialogue from "@/components/AppDialogue/AppDialogue"
+import AuthDialog from "@/components/SecretDerivation/AuthDialog"
 import { TooltipProvider } from "@/components/shadcn/tooltip"
 import { SettingsProvider } from "@/context/settings"
 import { AsyncModalProvider } from "@/context/asyncModal"
@@ -31,8 +30,6 @@ import { SendErrorMessage } from "@/lib/telegram"
 import { IsExtensionError } from "@/helpers/errorHelper"
 import AppSettings from "@/lib/AppSettings"
 import { useRpcConfigStore } from "@/stores/rpcConfigStore"
-import { useLoginModalStore } from "@/stores/loginModalStore"
-import useWindowDimensions from "@/hooks/useWindowDimensions"
 
 if (typeof window !== "undefined") {
     registerEvmSdk()
@@ -76,9 +73,6 @@ export function Providers({ children, settings }: Props) {
     const pathname = usePathname()
     const searchParams = useSearchParams()
     const { getEffectiveRpcUrls } = useRpcConfigStore()
-    const loginOpen = useLoginModalStore(s => s.isOpen)
-    const closeLogin = useLoginModalStore(s => s.close)
-    const { isMobile } = useWindowDimensions()
 
     useEffect(() => {
         progress?.finish()
@@ -150,8 +144,7 @@ export function Providers({ children, settings }: Props) {
                                                     <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
                                                         <SwapAccountsProvider>
                                                             <AsyncModalProvider>
-                                                                {isMobile && <LoginModal isOpen={loginOpen} onClose={closeLogin} />}
-                                                                <AppDialogue />
+                                                                <AuthDialog />
                                                                 {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true'
                                                                     ? <MaintananceContent />
                                                                     : children}

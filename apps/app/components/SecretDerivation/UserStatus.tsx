@@ -1,15 +1,14 @@
-import { FC, useState } from "react"
+import { FC } from "react"
 import { Fingerprint, Lock, LogOut } from "lucide-react"
-import VaulDrawer from "../Modal/vaulModal"
 import { useSharedSecretDerivation, useOptionalSecretDerivation } from "@train-protocol/react"
 import { formatPasskeyIdForDisplay } from "@train-protocol/auth"
-import { useAuthDialog } from "@/hooks/useAuthDialog"
+import { useAuthDialog } from "@/stores/authDialogStore"
 import { Address } from "@/lib/address"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
 import WalletIcon from "../Icons/WalletIcon"
 import { Tooltip, TooltipContent, TooltipTrigger } from "../shadcn/tooltip"
 import { Popover, PopoverContent, PopoverTrigger } from "../shadcn/popover"
-import { StepBody } from "@/components/AppDialogue/AppDialogue"
+import { StepBody } from "./StepBody"
 
 export interface LoginWallet {
     address: string
@@ -190,7 +189,6 @@ export const UserStatusContent = ({
             actions={logoutButton}
             gap={showHeader ? 'gap-3' : 'gap-2'}
             centerOverlay={false}
-            centerNonOverlay={false}
             overlayActionMt="mt-4"
         />
     )
@@ -198,19 +196,18 @@ export const UserStatusContent = ({
 
 export const UserStatusHeader = () => {
     const secretDerivation = useOptionalSecretDerivation()
-    const { openLogin, openUserStatus } = useAuthDialog()
-    const [openDrawer, setOpenDrawer] = useState(false)
+    const openAuthDialog = useAuthDialog((s) => s.openAuthDialog)
     const { isMobile } = useWindowDimensions()
 
     if (!secretDerivation) return null
 
-    const { method, isLoggedIn, loginWallet, logout } = secretDerivation
+    const { method, isLoggedIn, loginWallet } = secretDerivation
 
     if (!isLoggedIn) {
         return (
             <button
                 type="button"
-                onClick={openLogin}
+                onClick={openAuthDialog}
                 className="h-11 inline-flex items-center gap-2 py-2 px-3 rounded-full bg-secondary-500 border border-black/15 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down"
             >
                 <Lock className="h-5 w-5" strokeWidth={2} />
@@ -225,37 +222,28 @@ export const UserStatusHeader = () => {
 
     if (isMobile) {
         return (
-            <>
-                <button
-                    type="button"
-                    onClick={() => setOpenDrawer(true)}
-                    className="p-1.5 max-sm:p-2 justify-self-start text-secondary-text hover:bg-secondary-500 max-sm:bg-secondary-500 hover:text-primary-text focus:outline-hidden inline-flex rounded-lg items-center active:animate-press-down relative"
-                >
-                    {method === 'passkey' ? (
-                        <div className="relative">
-                            <Fingerprint className="h-6 w-6" strokeWidth={2} />
-                            <div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 bg-success-foreground rounded-full border-2 border-secondary-900" />
-                        </div>
-                    ) : (
-                        <div className="relative">
-                            <WalletIcon className="h-6 w-6" strokeWidth={2} />
-                            <div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 bg-success-foreground rounded-full border-2 border-secondary-900" />
-                        </div>
-                    )}
-                </button>
-                <UserStatusDrawer
-                    isOpen={openDrawer}
-                    onClose={() => setOpenDrawer(false)}
-                    method={method}
-                    loginWallet={loginWallet}
-                    logout={logout}
-                />
-            </>
+            <button
+                type="button"
+                onClick={openAuthDialog}
+                className="p-1.5 max-sm:p-2 justify-self-start text-secondary-text hover:bg-secondary-500 max-sm:bg-secondary-500 hover:text-primary-text focus:outline-hidden inline-flex rounded-lg items-center active:animate-press-down relative"
+            >
+                {method === 'passkey' ? (
+                    <div className="relative">
+                        <Fingerprint className="h-6 w-6" strokeWidth={2} />
+                        <div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 bg-success-foreground rounded-full border-2 border-secondary-900" />
+                    </div>
+                ) : (
+                    <div className="relative">
+                        <WalletIcon className="h-6 w-6" strokeWidth={2} />
+                        <div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 bg-success-foreground rounded-full border-2 border-secondary-900" />
+                    </div>
+                )}
+            </button>
         )
     }
 
     return (
-        <button type="button" className="h-11 inline-flex items-center gap-2 py-2 px-3 rounded-full bg-secondary-500 border border-black/15 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down" onClick={() => openUserStatus(() => setOpenDrawer(true))}>
+        <button type="button" className="h-11 inline-flex items-center gap-2 py-2 px-3 rounded-full bg-secondary-500 border border-black/15 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down" onClick={openAuthDialog}>
             {method === 'passkey' ? (
                 <Fingerprint className="h-5 w-5 shrink-0" strokeWidth={2} />
             ) : (
@@ -267,15 +255,14 @@ export const UserStatusHeader = () => {
 }
 
 export const UserStatusMenu = () => {
-    const { isLoggedIn, method, loginWallet, logout, activePasskeyCredentialId, passkeyCredentials } = useSharedSecretDerivation()
-    const { openLogin, openUserStatus } = useAuthDialog()
-    const [openModal, setOpenModal] = useState(false)
+    const { isLoggedIn, method, loginWallet, activePasskeyCredentialId, passkeyCredentials } = useSharedSecretDerivation()
+    const openAuthDialog = useAuthDialog((s) => s.openAuthDialog)
     const activePasskeyLabel = passkeyCredentials.find(c => c.id === activePasskeyCredentialId)?.label ?? null
 
     if (!isLoggedIn) {
         return (
             <button
-                onClick={openLogin}
+                onClick={openAuthDialog}
                 type="button"
                 className="py-3 px-4 bg-secondary-400 flex items-center w-full rounded-xl space-x-1 relative font-semibold transform border border-secondary-400 hover:bg-secondary-300 transition duration-200 ease-in-out outline-hidden"
             >
@@ -294,64 +281,25 @@ export const UserStatusMenu = () => {
         : `${loginWallet?.displayName || 'Wallet'}${loginWallet?.address ? ` · ${new Address(loginWallet.address, null, loginWallet.providerName).toShortString()}` : ''}`
 
     return (
-        <>
-            <button
-                onClick={() => openUserStatus(() => setOpenModal(true))}
-                type="button"
-                className="py-3 px-4 bg-secondary-400 flex items-center w-full rounded-xl space-x-1 disabled:text-secondary-text/40 disabled:bg-secondary-600 disabled:cursor-not-allowed relative font-semibold transform border border-secondary-400 hover:bg-secondary-300 transition duration-200 ease-in-out outline-hidden"
-            >
-                <div className="flex gap-4 items-center text-primary-text w-full min-w-0">
-                    {method === 'passkey' ? (
-                        <div className="relative shrink-0">
-                            <Fingerprint className="h-5 w-5" strokeWidth={2} />
-                            <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-success-foreground rounded-full" />
-                        </div>
-                    ) : (
-                        <div className="relative shrink-0">
-                            <WalletIcon className="h-5 w-5" strokeWidth={2} />
-                            <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-success-foreground rounded-full" />
-                        </div>
-                    )}
-                    <span className="truncate">{menuLabel}</span>
-                </div>
-            </button>
-            <UserStatusDrawer
-                isOpen={openModal}
-                onClose={() => setOpenModal(false)}
-                method={method}
-                loginWallet={loginWallet}
-                logout={logout}
-            />
-        </>
-    )
-}
-
-interface UserStatusDrawerProps {
-    isOpen: boolean
-    onClose: () => void
-    method: 'passkey' | 'wallet_sign' | null
-    loginWallet: LoginWallet | null
-    logout: () => void
-}
-
-const UserStatusDrawer = ({ isOpen, onClose, method, loginWallet, logout }: UserStatusDrawerProps) => {
-    return (
-        <VaulDrawer
-            show={isOpen}
-            setShow={onClose}
-            header="Login Status"
-            modalId="userStatus"
+        <button
+            onClick={openAuthDialog}
+            type="button"
+            className="py-3 px-4 bg-secondary-400 flex items-center w-full rounded-xl space-x-1 disabled:text-secondary-text/40 disabled:bg-secondary-600 disabled:cursor-not-allowed relative font-semibold transform border border-secondary-400 hover:bg-secondary-300 transition duration-200 ease-in-out outline-hidden"
         >
-            <VaulDrawer.Snap id="item-1">
-                <UserStatusContent
-                    method={method}
-                    loginWallet={loginWallet}
-                    logout={logout}
-                    onClose={onClose}
-                    showHeader={false}
-                    showPasskeyWarning={false}
-                />
-            </VaulDrawer.Snap>
-        </VaulDrawer>
+            <div className="flex gap-4 items-center text-primary-text w-full min-w-0">
+                {method === 'passkey' ? (
+                    <div className="relative shrink-0">
+                        <Fingerprint className="h-5 w-5" strokeWidth={2} />
+                        <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-success-foreground rounded-full" />
+                    </div>
+                ) : (
+                    <div className="relative shrink-0">
+                        <WalletIcon className="h-5 w-5" strokeWidth={2} />
+                        <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-success-foreground rounded-full" />
+                    </div>
+                )}
+                <span className="truncate">{menuLabel}</span>
+            </div>
+        </button>
     )
 }

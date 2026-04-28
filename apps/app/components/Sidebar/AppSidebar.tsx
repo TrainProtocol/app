@@ -24,7 +24,7 @@ import TwitterLogo from "@/components/Icons/TwitterLogo"
 import GitHubLogo from "@/components/Icons/GitHubLogo"
 import TrainLogo from "@/components/Icons/TrainLogo"
 import { useGoHome } from "@/hooks/useGoHome"
-import { useAppDialogueStore } from "@/stores/appDialogueStore"
+import { useAuthDialog } from "@/stores/authDialogStore"
 import { getLoginIdentity } from "@/components/SecretDerivation/UserStatus"
 
 const AppSidebar: FC = () => {
@@ -105,7 +105,7 @@ const HelpSidebarButton: FC = () => {
 
 const SidebarLoginStatus: FC = () => {
     const secretDerivation = useOptionalSecretDerivation()
-    const openDialogue = useAppDialogueStore((s) => s.open)
+    const openAuthDialog = useAuthDialog((s) => s.openAuthDialog)
 
     if (!secretDerivation) return null
 
@@ -115,7 +115,7 @@ const SidebarLoginStatus: FC = () => {
         return (
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" onClick={() => { if (isReady) openDialogue('login') }}>
+                    <SidebarMenuButton size="lg" onClick={() => { if (isReady) openAuthDialog() }}>
                         <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-secondary-400 text-primary-text">
                             <Lock className="size-4" strokeWidth={2} />
                         </div>
