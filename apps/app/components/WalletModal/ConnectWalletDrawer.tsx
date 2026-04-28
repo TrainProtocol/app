@@ -3,6 +3,7 @@ import { ChevronLeft } from "lucide-react";
 import IconButton from "../buttons/iconButton";
 import VaulDrawer from "../Modal/vaulModal";
 import AppShellDialog from "../shared/AppShellDialog";
+import useWindowDimensions from "@/hooks/useWindowDimensions";
 import ConnectorsList from "./ConnectorsList";
 import { useConnectModal } from ".";
 
@@ -16,11 +17,12 @@ const ConnectWalletDrawer: FC = () => {
         selectedMultiChainConnector,
         displayMode,
     } = useConnectModal();
+    const { isMobile } = useWindowDimensions();
 
     const title = (selectedMultiChainConnector && !selectedConnector) ? "Select ecosystem" : "Connect wallet"
     const showBack = !!(selectedConnector || selectedMultiChainConnector)
 
-    if (displayMode === 'dialog') {
+    if (displayMode === 'dialog' && !isMobile) {
         return (
             <AppShellDialog
                 open={open}

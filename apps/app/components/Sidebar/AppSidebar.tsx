@@ -14,6 +14,7 @@ import {
     SidebarSeparator,
 } from "@/components/shadcn/sidebar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip"
 import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, FileText, ShieldCheck, Home, ChevronsUpDown, LogOut, Lock } from "lucide-react"
 import { useIntercom } from "react-use-intercom"
 import { useOptionalSecretDerivation } from "@train-protocol/react"
@@ -130,7 +131,21 @@ const SidebarLoginStatus: FC = () => {
     }
 
     const activePasskeyLabel = passkeyCredentials.find(c => c.id === activePasskeyCredentialId)?.label ?? null
-    const { Icon, label, idShort } = getLoginIdentity(method, loginWallet, activePasskeyLabel, activePasskeyCredentialId)
+    const { Icon, label, idShort, isPasskey } = getLoginIdentity(method, loginWallet, activePasskeyLabel, activePasskeyCredentialId)
+    const idFull = isPasskey ? activePasskeyCredentialId : (loginWallet?.address ?? null)
+
+    const idShortWithTooltip = idShort && (idFull ? (
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <span className="truncate text-xs text-secondary-text cursor-default">{idShort}</span>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+                <p className="font-mono break-all max-w-[280px]">{idFull}</p>
+            </TooltipContent>
+        </Tooltip>
+    ) : (
+        <span className="truncate text-xs text-secondary-text">{idShort}</span>
+    ))
 
     return (
         <SidebarMenu>
@@ -143,7 +158,7 @@ const SidebarLoginStatus: FC = () => {
                             </div>
                             <div className="grid flex-1 text-left text-sm leading-tight">
                                 {label && <span className="truncate font-semibold">{label}</span>}
-                                {idShort && <span className="truncate text-xs text-secondary-text">{idShort}</span>}
+                                {idShortWithTooltip}
                             </div>
                             <ChevronsUpDown className="ml-auto size-4 text-secondary-text" />
                         </SidebarMenuButton>
@@ -152,7 +167,7 @@ const SidebarLoginStatus: FC = () => {
                         side="right"
                         align="end"
                         sideOffset={8}
-                        className="w-56 p-1 bg-secondary-700 rounded-xl"
+                        className="w-56 p-1 bg-secondary-700 border border-border rounded-xl"
                     >
                         <div className="flex flex-col gap-0.5">
                             <div className="flex h-12 items-center gap-2 overflow-hidden p-2">
@@ -161,7 +176,7 @@ const SidebarLoginStatus: FC = () => {
                                 </div>
                                 <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
                                     {label && <span className="truncate font-semibold">{label}</span>}
-                                    {idShort && <span className="truncate text-xs text-secondary-text">{idShort}</span>}
+                                    {idShortWithTooltip}
                                 </div>
                             </div>
                             <div className="my-1 h-px bg-border" />
