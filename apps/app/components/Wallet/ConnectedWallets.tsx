@@ -47,7 +47,7 @@ export const WalletsHeader = () => {
                 type="button"
                 onClick={onClick}
                 aria-label={label}
-                className={`inline-flex items-center gap-2 ${isMulti ? 'py-1.5' : 'py-2'} px-3 rounded-full bg-secondary-500 border border-black/15 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down`}
+                className={`inline-flex items-center gap-2 ${isMulti ? 'py-1.5' : 'py-2'} px-3 rounded-xl bg-secondary-700 border border-border text-primary-text hover:bg-secondary-500 focus:outline-none transition-colors active:animate-press-down`}
             >
                 {icon}
                 <span className="text-sm font-medium truncate max-w-[140px]">{label}</span>

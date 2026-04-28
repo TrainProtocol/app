@@ -16,7 +16,7 @@ export default function TransactionsView() {
                 <button
                     type="button"
                     onClick={() => setRecoverOpen(true)}
-                    className="inline-flex items-center gap-2 text-sm font-medium text-primary-text bg-secondary-500 hover:bg-secondary-400 transition-colors rounded-full px-3 py-2 border border-black/15"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-primary-text bg-secondary-700 hover:bg-secondary-500 transition-colors rounded-xl px-3 py-2 border border-border"
                 >
                     <RotateCcw className="h-4 w-4" />
                     <span>Recover swap</span>
