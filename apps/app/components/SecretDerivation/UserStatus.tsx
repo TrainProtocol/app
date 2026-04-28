@@ -10,13 +10,13 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../shadcn/tooltip"
 import { Popover, PopoverContent, PopoverTrigger } from "../shadcn/popover"
 import { StepBody } from "./StepBody"
 
-export interface LoginWallet {
+interface LoginWallet {
     address: string
     providerName: string
     displayName?: string
 }
 
-export type LoginIdentityIcon = FC<{ className?: string; strokeWidth?: string | number }>
+type LoginIdentityIcon = FC<{ className?: string; strokeWidth?: string | number }>
 
 export const getLoginIdentity = (
     method: 'passkey' | 'wallet_sign' | null,
@@ -35,10 +35,6 @@ export const getLoginIdentity = (
     return { isPasskey, label, idShort, Icon }
 }
 
-export const copyWalletAddress = (loginWallet: LoginWallet | null) => {
-    if (loginWallet?.address) navigator.clipboard.writeText(loginWallet.address)
-}
-
 interface LoginDataCardProps {
     method: 'passkey' | 'wallet_sign' | null
     loginWallet: LoginWallet | null
@@ -48,7 +44,7 @@ interface LoginDataCardProps {
     className?: string
 }
 
-export const LoginDataCard = ({
+const LoginDataCard = ({
     method,
     loginWallet,
     passkeyLabel,
