@@ -169,7 +169,7 @@ const SidebarLoginStatus: FC = () => {
     }
 
     const activePasskeyLabel = passkeyCredentials.find(c => c.id === activePasskeyCredentialId)?.label ?? null
-    const { Icon, title: methodTitle, label: methodLabel } = getLoginIdentity(method, loginWallet, activePasskeyLabel)
+    const { Icon, label, idShort } = getLoginIdentity(method, loginWallet, activePasskeyLabel, activePasskeyCredentialId)
 
     return (
         <SidebarMenu>
@@ -181,8 +181,8 @@ const SidebarLoginStatus: FC = () => {
                                 <Icon className="size-4" strokeWidth={2} />
                             </div>
                             <div className="grid flex-1 text-left text-sm leading-tight">
-                                <span className="truncate font-semibold">{methodTitle}</span>
-                                <span className="truncate text-xs text-secondary-text">{methodLabel}</span>
+                                {label && <span className="truncate font-semibold">{label}</span>}
+                                {idShort && <span className="truncate text-xs text-secondary-text">{idShort}</span>}
                             </div>
                             <ChevronsUpDown className="ml-auto size-4 text-secondary-text" />
                         </SidebarMenuButton>
@@ -191,7 +191,7 @@ const SidebarLoginStatus: FC = () => {
                         side="top"
                         align="start"
                         sideOffset={8}
-                        className="p-1 bg-secondary-700 border border-border rounded-xl"
+                        className="w-56 p-1 bg-secondary-700 border border-border rounded-xl"
                     >
                         <div className="flex flex-col gap-0.5">
                             <LoginDataCard

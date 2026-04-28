@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Formik } from "formik";
 import { TimerProvider } from "@/context/timerContext";
@@ -24,19 +24,22 @@ export default function SwapPage() {
     const activeHashlock = useSwapStore(s => s.activeHashlock);
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock);
     const { recover, isRecovering, error: recoverError } = useRecoverSwap();
+    const recoveryAttemptedRef = useRef<string | null>(null);
 
     const { sourceNetwork, txHash } = parseSwapQuery(searchParams);
     const pendingRecovery = !!(sourceNetwork && txHash && !activeHashlock && !recoverError);
 
     useEffect(() => {
-        if (!sourceNetwork || !txHash) return;
+        if (!sourceNetwork || !txHash || activeHashlock) return;
+        const key = `${sourceNetwork}:${txHash}`;
+        if (recoveryAttemptedRef.current === key) return;
+        recoveryAttemptedRef.current = key;
         let cancelled = false;
-        setActiveHashlock(null);
         recover(txHash, sourceNetwork)
             .then(hashlock => { if (!cancelled) setActiveHashlock(hashlock); })
             .catch(e => { if (!cancelled) console.error("Auto-recovery failed:", e); });
         return () => { cancelled = true; };
-    }, [sourceNetwork, txHash, recover, setActiveHashlock]);
+    }, [sourceNetwork, txHash, activeHashlock, recover, setActiveHashlock]);
 
     useSwapProgress(activeHashlock);
 

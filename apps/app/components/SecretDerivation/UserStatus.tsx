@@ -23,14 +23,17 @@ export const getLoginIdentity = (
     method: 'passkey' | 'wallet_sign' | null,
     loginWallet: LoginWallet | null,
     passkeyLabel: string | null,
+    activePasskeyCredentialId: string | null,
 ) => {
     const isPasskey = method === 'passkey'
     const Icon: LoginIdentityIcon = isPasskey ? Fingerprint : WalletIcon
-    const title = isPasskey ? 'Passkey' : (loginWallet?.displayName || 'Wallet')
     const label = isPasskey
-        ? (passkeyLabel ?? '')
-        : (loginWallet?.address ? new Address(loginWallet.address, null, loginWallet.providerName).toShortString() : '')
-    return { isPasskey, title, label, Icon }
+        ? passkeyLabel
+        : (loginWallet?.displayName ?? null)
+    const idShort = isPasskey
+        ? (activePasskeyCredentialId ? formatPasskeyIdForDisplay(activePasskeyCredentialId) : null)
+        : (loginWallet?.address ? new Address(loginWallet.address, null, loginWallet.providerName).toShortString() : null)
+    return { isPasskey, label, idShort, Icon }
 }
 
 export const copyWalletAddress = (loginWallet: LoginWallet | null) => {
@@ -57,7 +60,7 @@ export const LoginDataCard = ({
     const { isMobile } = useWindowDimensions()
     const idShort = activePasskeyCredentialId ? formatPasskeyIdForDisplay(activePasskeyCredentialId) : null
     const idTriggerSpan = (
-        <span className="text-secondary-text/80 shrink-0 cursor-default">({idShort})</span>
+        <span className="text-secondary-text text-sm truncate cursor-default">{idShort}</span>
     )
     const idReveal = idShort && activePasskeyCredentialId && (
         isMobile ? (
@@ -84,13 +87,10 @@ export const LoginDataCard = ({
                         <Fingerprint className="h-5 w-5 text-primary-text" strokeWidth={2} />
                     </div>
                     <div className="flex flex-col flex-1 min-w-0">
-                        <span className="text-primary-text font-semibold">Passkey</span>
-                        {(passkeyLabel || idShort) && (
-                            <span className="text-secondary-text text-sm inline-flex items-center gap-1 min-w-0">
-                                {passkeyLabel && <span className="truncate">{passkeyLabel}</span>}
-                                {idReveal}
-                            </span>
+                        {passkeyLabel && (
+                            <span className="text-primary-text font-semibold truncate">{passkeyLabel}</span>
                         )}
+                        {idReveal}
                     </div>
                 </>
             ) : (
