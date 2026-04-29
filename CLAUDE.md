@@ -5,38 +5,48 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build & Dev Commands
 
 ```bash
-pnpm dev              # Start Next.js dev server (apps/app)
-pnpm build            # Build SDK packages first, then the app
-pnpm build:sdk        # Build @train-protocol/sdk only
-pnpm build:packages   # Build all packages
-pnpm --filter train-app lint  # ESLint (next lint on apps/app)
+pnpm dev                              # Start Next.js dev server (apps/app)
+pnpm build                            # Build all packages first, then the app
+pnpm build:sdk                        # Build @train-protocol/sdk only
+pnpm build:packages                   # Build all workspace packages
+pnpm --filter train-app build:workers # Compile worker bundles (tsconfig.worker.json)
 
 # SDK development
-pnpm --filter @train-protocol/sdk dev    # Watch mode for SDK
+pnpm --filter @train-protocol/sdk dev          # Watch mode for SDK
 pnpm --filter @train-protocol/sdk check:types  # Type-check SDK
 ```
 
-Tests use **vitest** (`pnpm test` in each package). Node.js >=20.9.0 required. Package manager: pnpm 10.20.0.
+The app has no `lint` script and no in-app test setup — tests live in packages (vitest), notably `packages/sdk` (`pnpm --filter @train-protocol/sdk test`). Node.js >=20.9.0 required. Package manager: pnpm 10.20.0.
 
 ## Architecture
 
-**Monorepo** (pnpm workspaces):
-- `apps/app` — Next.js 15 frontend (Pages Router, not App Router)
-- `packages/sdk` — `@train-protocol/sdk`: core HTLC protocol logic, API client, lock verification
-- `packages/blockchains/` — chain-specific HTLC client implementations (`evm`, `solana`, `starknet`, `tron`, `aztec`)
+**Monorepo** (pnpm workspaces — `apps/*` and `packages/**`):
+- `apps/app` — Next.js 15.5 frontend (App Router). Entry: `app/layout.tsx` (server, `export const dynamic = "force-dynamic"`) → `app/providers.tsx` (single consolidated client providers function). Route segments: `app/{page,swap,settings,transactions,nocookies}/page.tsx`. Root `error.tsx` + `not-found.tsx`. `middleware.ts` sets `Cache-Control: public, s-maxage=60, stale-while-revalidate`. Every page renders per request on the server (direct analog of Pages Router `getServerSideProps`); CDN caches responses by full URL via the middleware header. Web Workers live in `apps/app/workers/` (e.g. `helios` light client) and are built via `build:workers`.
+- `apps/packagesdemo` — small Next.js Pages-Router demo app for exercising published SDK packages.
+- `packages/sdk` — `@train-protocol/sdk`: core HTLC protocol logic, `TrainApiClient`, lock verification, consensus helpers (vitest tests in `__tests__/`).
+- `packages/blockchains/` — chain-specific HTLC client implementations: `evm`, `solana`, `starknet`, `tron`, `aztec`, plus shared `utils`.
+- `packages/auth` — `@train-protocol/auth` shared auth helpers.
+- `packages/react` — `@train-protocol/react` shared React utilities.
 
-**What the app does**: Cross-chain atomic swaps using HTLC (Hash Time-Locked Contracts). Users lock funds on a source chain, a solver locks on the destination chain, then secrets are revealed to complete the swap. EVM is the primary chain; Solana, Starknet, TON, Aztec support is in progress.
+**What the app does**: Cross-chain atomic swaps using HTLC (Hash Time-Locked Contracts). Users lock funds on a source chain, a solver locks on the destination chain, then secrets are revealed to complete the swap. EVM is the primary chain; Solana, Starknet, TON, Aztec, Tron, and Fuel support is in progress (see `FUEL_PHTLC.json`).
 
 ### State Management
-- **Zustand stores** (`apps/app/stores/`): `swapStore` (main swap state), `secretDerivationStore`, `balanceStore`, `walletStore`, `rpcConfigStore`, etc.
-- **React Context** (`apps/app/context/`): `atomicContext` (HTLC contract interactions), `secretDerivationContext`, `swapAccounts` (wallet/account handling), `formWizardProvider` (multi-step forms), `evmConnectorsContext`
+- **Zustand stores** (`apps/app/stores/`): `swapStore` (main swap state), `walletStore`, `addressesStore`, `balanceStore`, `rpcConfigStore`, `authDialogStore`, `aztecWalletStore`, `starknetWalletStore`, `contractWalletsStore`, `recentRoutesStore`, `routeSortingStore`, `routeTokenSwitchStore`, `swapPreferencesStore`, `usdModeStore`. There is no `secretDerivationStore` — secret derivation lives in helpers/components.
+- **React Context** (`apps/app/context/`): `swapAccounts` (wallet/account handling), `formWizardProvider` (multi-step forms), `walletHookProviders` (per-chain wallet hook composition), `query` (React Query), `settings`, `snapPointsContext`, `timerContext`, `asyncModal`. HTLC contract interactions and EVM connectors are no longer separate contexts — they're handled inline via wallet hooks and the SDK's HTLC clients.
+
+### Layout & navigation
+- `ThemeWrapper` (inside providers) renders the persistent shell: left-side `AppSidebar` + top app-header strip (desktop) that holds `<PendingSwap />` + content area + `GlobalFooter`.
+- `HeaderWithMenu` lives inside `Widget` (not the app shell) and contains back button, mobile-only wallet/menu cluster. On mobile `PendingSwap` also appears here (no top app-header on mobile).
+- **Progress bar**: `progress` (`@badrap/bar-of-progress`) lives at module scope in `providers.tsx`. A single `useEffect` monkey-patches `history.pushState` + listens to `popstate` to `progress.start()` on navigation; the `pathname`-dep effect calls `progress.finish()` on settle. `history.replaceState` is intentionally NOT patched — internal URL-sync calls (e.g. `Swap/Atomic/index.tsx` syncing `/` ↔ `/swap` via `replaceState`) would otherwise start a bar that never finishes.
+- **Maintenance fallback**: when `getSettings()` returns `null`, `app/providers.tsx` renders `<MaintananceContent />` in place of the full provider tree (inside `IntercomProvider` so `useIntercom` works). Root layout does NOT call `notFound()`.
 
 ### API Layer — Station API
-`apps/app/lib/trainApiClient.ts` is a thin wrapper delegating to `@train-protocol/sdk`'s `TrainApiClient`. Uses SSE for streaming:
+`TrainApiClient` is imported directly from `@train-protocol/sdk` (no app-side wrapper). Server-side instantiation lives in `apps/app/lib/getSettings.ts` (cached via `unstable_cache`). Uses SSE for streaming:
 - `GET /api/v1/quote/stream` — quote streaming (events: `quote`, `done`)
 - `GET /api/v1/orders/{hashlock}/stream?solverAddress=0x...` — order status streaming
 - `POST /api/v1/orders/{hashlock}/reveal-secret?solverAddress=0x...` — reveal secret to solver
 - `GET /api/v1/networks` — network/token metadata
+- `GET /api/v1/prices` — token price data
 - `sourceNetwork` param must be a CAIP-2 ID (e.g. `"eip155:11155111"`)
 
 ### HTLC / Atomic Swap Flow
@@ -47,9 +57,9 @@ Tests use **vitest** (`pnpm test` in each package). Node.js >=20.9.0 required. P
 
 Key files:
 - `apps/app/lib/abis/atomic/EVM_HTLC.json` — unified EVM ABI
-- `apps/app/lib/htlc/` — HTLC client creation
+- `apps/app/lib/abis/atomic/FUEL_PHTLC.json` — Fuel PHTLC ABI
 - `packages/blockchains/{evm,solana,starknet,tron,aztec}/src/client/` — chain-specific HTLC implementations (PublicClient + WalletClient)
-- `apps/app/lib/wallets/utils/atomicTypes.ts` — chain-specific wallet/atomic interfaces
+- `apps/app/lib/wallets/{evm,solana,starknet,tron,aztec}/` — per-chain wallet hooks (`useEVM.ts`, `useStarknet.ts`, `useTron.ts`, `useAztec.ts`, etc.) that bridge UI state to the SDK's HTLC clients
 
 ### RPC Node Resolution & Consensus
 - `apps/app/lib/rpc/` — RPC resolution: `nodeResolver.ts` (entry point), `evmNodes.ts` (static chainlist data from `data/chainlistRpcs.json`), `nonEvmNodes.ts` (static registry)
@@ -64,10 +74,13 @@ Key files:
 - Nonce = `Date.now()` timestamp, stored in URL query params (for page refresh recovery) and on-chain via `userData` bytes field
 
 ### Web3 Stack
-- EVM: wagmi 2.x + viem 2.x
-- Starknet: @starknet-react 5.x + starknet.js
-- Solana: @solana/web3.js + wallet-adapter
-- TON: @ton/ton + @tonconnect/ui-react
+- EVM: wagmi 2.14 + viem 2.44 (catalog-pinned in `pnpm-workspace.yaml`)
+- Starknet: @starknet-react 5.0 + starknet.js 8.x
+- Solana: @solana/web3.js 1.98 + wallet-adapter + @coral-xyz/anchor
+- TON: @ton/ton 13.11 + @tonconnect/ui-react
+- Tron: @tronweb3/tronwallet-adapter-* family
+- Aztec: @aztec/aztec.js 4.1 + @aztec/wallet-sdk
+- Fuel: fuels 0.101
 
 ## Key Conventions
 
@@ -77,12 +90,19 @@ Key files:
 - `solver` in swapStore is a solverId string (e.g. `"plorex"`), not a wallet address
 - For destination chain polling, use `getSolverLock` (not `getUserLock`)
 - Contract functions: `userLock`/`redeemUser`/`refundUser`/`getUserLock` + `solverLock`/`redeemSolver`/`getSolverLock`
+- **Active swap modal**: the `VaulDrawer` that reads `useSwapStore.swapModalOpen` is mounted only inside `Swap/Atomic/index.tsx`, which renders on `/` only. Setting `swapModalOpen=true` from `/transactions` / `/settings` flips the flag but nothing opens. To open the active swap from any path, navigate to `/swap?sourceNetwork=X&txHash=Y` (see `handleViewSwap` in `SwapDetailsPanel` and `handleClick` in `PendingSwap`); `/swap` routes through `useRecoverSwap` to rehydrate the active hashlock.
+- **`useSearchParams` placement**: callback-only reads (e.g. `useGoHome`, `useMenuNavigation.handleRecoverSwap`, `Widget.goBack` via `window.location.search`) are fine under `force-dynamic`. Render-time reads in providers / pages / form components also work because `force-dynamic` grants SSR access to the URL — no Suspense boundaries needed.
+- **Persistent query params**: `buildHrefWithPersistantParams(pathname, searchParams, extraParams?)` (in `helpers/querryHelper.ts`) preserves keys defined in `Models/QueryParams` (widget embed params like `appName`, `hideLogo`, `lockNetwork`, etc.) across navigations. Use it for any programmatic `router.push` that should keep the embed state intact.
 
 ## Environment Variables
 
 ```
-NEXT_PUBLIC_TRAIN_API         # Station API base URL
-NEXT_PUBLIC_API_VERSION       # "sandbox" or "mainnet"
-NEXT_PUBLIC_ALCHEMY_KEY       # For light client RPC calls
+NEXT_PUBLIC_TRAIN_API                  # Station API base URL (required)
+NEXT_PUBLIC_API_VERSION                # "sandbox" or "mainnet"
+NEXT_PUBLIC_ALCHEMY_KEY                # For light client RPC calls
 NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID  # WalletConnect
+NEXT_PUBLIC_POSTHOG_KEY                # PostHog analytics
+NEXT_PUBLIC_POSTHOG_HOST               # PostHog host
+NEXT_PUBLIC_VERCEL_ENV                 # Vercel env (production/preview/development)
+NEXT_PUBLIC_VERCEL_URL                 # Vercel deployment URL
 ```

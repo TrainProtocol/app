@@ -1,80 +1,158 @@
+import { useState } from 'react';
+import { AlertTriangle, Fingerprint, Lock } from 'lucide-react';
+import { DEFAULT_PASSKEY_DISPLAY_NAME, type StoredPasskey } from '@train-protocol/auth';
 import SubmitButton from '../../buttons/submitButton';
-import { useSharedSecretDerivation } from '@train-protocol/react';
-import { AlertTriangle, Fingerprint } from 'lucide-react';
+import { StepBody } from '../StepBody';
+import { Input } from '@/components/shadcn/input';
 
-interface PasskeyChoiceProps {
-  error: string;
-  onTryAgain: () => void;
-  onCreateNew: () => void;
-  onCrossDeviceLogin: () => void;
+interface SavedLoginsProps {
+  credentials: StoredPasskey[];
+  onPick: (credentialId: string) => void;
+  onUseAnotherMethod: () => void;
+  onForgetAll: () => void;
 }
 
-export function PasskeyChoice({ error, onTryAgain, onCreateNew, onCrossDeviceLogin }: PasskeyChoiceProps) {
-  const { passkeyCredentials } = useSharedSecretDerivation();
-  const hasStoredPasskeys = passkeyCredentials.length > 0;
-
-  return (
-    <div className="flex flex-col gap-5">
-
-      <div className="flex flex-col items-center gap-2 pt-6 text-center">
-        <div className="p-2.5 bg-secondary-500 rounded-xl">
-          <Fingerprint className="w-12 h-12 text-primary-text" strokeWidth={2} />
-        </div>
-        <div className="flex flex-col">
-          <p className="text-primary-text text-xl font-medium">
-            Passkey
-          </p>
-          <p className="text-secondary-text text-base max-w-xs">
-            {hasStoredPasskeys ? 'You have a passkey on this device. Would you like to try again?' : 'You do not have a passkey on this device. Would you like to create one?'}
-          </p>
-        </div>
+export function SavedLogins({ credentials, onPick, onUseAnotherMethod, onForgetAll }: SavedLoginsProps) {
+  const info = (
+    <div className="flex flex-col items-stretch gap-2 w-full">
+      <p className="text-secondary-text text-xs font-medium uppercase tracking-wide">Saved logins</p>
+      <div className="flex flex-col gap-2">
+        {credentials.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => onPick(c.id)}
+            className="w-full flex items-center gap-3 py-3 px-3 rounded-xl bg-secondary-500 hover:bg-secondary-400 text-primary-text text-left transition-colors active:animate-press-down"
+          >
+            <Fingerprint className="h-5 w-5 shrink-0" strokeWidth={2} />
+            <span className="text-sm font-medium truncate">{c.label}</span>
+          </button>
+        ))}
       </div>
-
-      <div className="flex flex-col gap-3">
-        {error && (
-          <div className="flex items-center gap-2 rounded-xl bg-error-background border border-error-foreground/30 px-3 py-2.5">
-            <AlertTriangle className="w-5 h-5 text-error-foreground shrink-0 mt-0.5" strokeWidth={2} />
-            <p className="text-error-foreground text-sm leading-snug">
-              {error}
-            </p>
-          </div>
-        )}
-        {
-          hasStoredPasskeys
-            ? <>
-              <SubmitButton
-                type="button"
-                onClick={onTryAgain}
-              >
-                Try again
-              </SubmitButton>
-
-              <button
-                type="button"
-                onClick={onCreateNew}
-                className="text-sm text-secondary-text hover:text-primary-text transition-colors text-center underline hover:no-underline w-fit mx-auto"
-              >
-                Create new passkey
-              </button>
-            </>
-            : <>
-              <SubmitButton
-                type="button"
-                onClick={onCreateNew}
-              >
-                Create new passkey
-              </SubmitButton>
-              <button
-                type="button"
-                onClick={onCrossDeviceLogin}
-                className="text-sm text-secondary-text hover:text-primary-text transition-colors text-center underline hover:no-underline w-fit mx-auto"
-              >
-                Log in using existing passkey
-              </button>
-            </>
-        }
-      </div>
-
     </div>
   );
+
+  const actions = (
+    <div className="flex flex-col gap-2 w-full">
+      <SubmitButton type="button" buttonStyle="secondary" onClick={onUseAnotherMethod}>
+        Use another method
+      </SubmitButton>
+      <button
+        type="button"
+        onClick={onForgetAll}
+        className="text-xs text-secondary-text hover:text-primary-text transition-colors text-center underline hover:no-underline w-fit mx-auto"
+      >
+        Forget all logins
+      </button>
+    </div>
+  );
+
+  return <StepBody info={info} actions={actions} centerOverlay={false} />;
+}
+
+interface IntroStepProps {
+  onCreateNew: () => void;
+  onLoginWithExisting: () => void;
+}
+
+export function IntroStep({ onCreateNew, onLoginWithExisting }: IntroStepProps) {
+  const info = (
+    <div className="flex flex-col items-center gap-3 text-center">
+      <div className="w-14 h-14 rounded-2xl bg-secondary-500 flex items-center justify-center">
+        <Lock className="w-8 h-8 text-primary-text" strokeWidth={2} />
+      </div>
+      <p className="text-primary-text text-xl font-medium">Log in</p>
+    </div>
+  );
+
+  const actions = (
+    <div className="flex flex-col gap-2 w-full">
+      <SubmitButton type="button" onClick={onCreateNew}>
+        Create new
+      </SubmitButton>
+      <SubmitButton type="button" buttonStyle="secondary" onClick={onLoginWithExisting}>
+        Log in with existing
+      </SubmitButton>
+    </div>
+  );
+
+  return <StepBody info={info} actions={actions} />;
+}
+
+interface CreateStepProps {
+  onCreate: (label: string) => void;
+}
+
+export function CreateStep({ onCreate }: CreateStepProps) {
+  const [name, setName] = useState('');
+
+  const submit = () => onCreate(name.trim());
+
+  const info = (
+    <>
+      <div className="flex-1 flex items-center justify-center w-full">
+        <div className="w-14 h-14 rounded-2xl bg-secondary-500 flex items-center justify-center">
+          <Fingerprint className="w-8 h-8 text-primary-text" strokeWidth={2} />
+        </div>
+      </div>
+      <div className="w-full flex flex-col gap-1.5">
+        <label htmlFor="passkey-label" className="text-xs text-secondary-text font-medium">
+          Name this passkey
+        </label>
+        <Input
+          id="passkey-label"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder={DEFAULT_PASSKEY_DISPLAY_NAME}
+          maxLength={64}
+          autoFocus
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              submit();
+            }
+          }}
+          className="bg-secondary-500 border-secondary-400 py-3"
+        />
+        <p className="text-xs text-secondary-text">
+          Shown here and in your password manager.
+        </p>
+      </div>
+    </>
+  );
+
+  const actions = (
+    <SubmitButton type="button" onClick={submit}>
+      Create
+    </SubmitButton>
+  );
+
+  return <StepBody info={info} actions={actions} centerOverlay={false} overlayActionMt="mt-6" />;
+}
+
+interface ErrorStepProps {
+  message: string;
+  onBack: () => void;
+}
+
+export function ErrorStep({ message, onBack }: ErrorStepProps) {
+  const info = (
+    <div className="flex flex-col items-center gap-3 text-center">
+      <div className="w-14 h-14 rounded-2xl bg-secondary-500 flex items-center justify-center">
+        <AlertTriangle className="w-8 h-8 text-secondary-text" strokeWidth={2} />
+      </div>
+      <div className="flex flex-col gap-1">
+        <p className="text-primary-text text-xl font-medium">Login failed</p>
+        <p className="text-secondary-text text-sm max-w-[280px]">{message}</p>
+      </div>
+    </div>
+  );
+
+  const actions = (
+    <SubmitButton type="button" buttonStyle="secondary" onClick={onBack}>
+      Back
+    </SubmitButton>
+  );
+
+  return <StepBody info={info} actions={actions} />;
 }

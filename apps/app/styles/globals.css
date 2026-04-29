@@ -118,7 +118,7 @@
 }
 
 [data-theme="light"] {
-  --ls-colors-background: 242, 243, 243;
+  --ls-colors-background: 255, 255, 255;
   --ls-colors-primary: 39, 142, 246;
   --ls-colors-primary-100: 220, 235, 252;
   --ls-colors-primary-200: 185, 215, 248;
@@ -153,7 +153,7 @@
   --ls-colors-success-background: 218, 247, 227;
 
   /* shadcn variables (light mode) */
-  --background: oklch(0.9634 0.0011 197.14);
+  --background: oklch(1 0 0);
   --foreground: oklch(0.148 0.004 228.8);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.148 0.004 228.8);
@@ -177,13 +177,13 @@
   --chart-4: oklch(0.488 0.243 264.376);
   --chart-5: oklch(0.424 0.199 265.638);
   --radius: 0.625rem;
-  --sidebar: oklch(0.987 0.002 197.1);
-  --sidebar-foreground: oklch(0.148 0.004 228.8);
+  --sidebar: rgb(245 245 245);
+  --sidebar-foreground: rgb(23 23 23);
   --sidebar-primary: oklch(0.546 0.245 262.881);
   --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
-  --sidebar-accent: oklch(0.963 0.002 197.1);
-  --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
-  --sidebar-border: oklch(0.925 0.005 214.3);
+  --sidebar-accent: rgb(0 0 0 / 4%);
+  --sidebar-accent-foreground: rgb(23 23 23);
+  --sidebar-border: rgb(0 0 0 / 8%);
   --sidebar-ring: oklch(0.723 0.014 214.4);
 }
 

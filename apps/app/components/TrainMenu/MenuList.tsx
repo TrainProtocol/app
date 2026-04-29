@@ -1,7 +1,7 @@
-import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, CircleHelp, Info, Settings2, Zap, RotateCcw, ScrollText, Sun, Moon, Monitor } from "lucide-react";
+import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, Settings2, Zap, RotateCcw, ScrollText, Sun, Moon, Monitor } from "lucide-react";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useTheme } from "next-themes";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 import { FC, useEffect, useState } from "react";
 import { useIntercom } from "react-use-intercom";
 import ChatIcon from "@/components/Icons/ChatIcon";
@@ -15,7 +15,6 @@ import Menu from "./Menu";
 import dynamic from "next/dynamic";
 import { MenuStep } from "@/Models/Wizard";
 import { Separator } from "@/components/shadcn/separator";
-import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { UserStatusMenu } from "../SecretDerivation";
 
 const WalletsMenu = dynamic(() => import("../Wallet/ConnectedWallets").then((comp) => comp.WalletsMenu), {
@@ -23,11 +22,10 @@ const WalletsMenu = dynamic(() => import("../Wallet/ConnectedWallets").then((com
 })
 
 const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ goToStep }) => {
-    const router = useRouter();
+    const pathname = usePathname();
     const { boot, show, update } = useIntercom()
     const [embedded, setEmbedded] = useState<boolean>()
     const [openFeedbackModal, setOpenFeedbackModal] = useState(false);
-    const { isMobile } = useWindowDimensions()
     const { autoRevealSecret, setAutoRevealSecret } = useSwapPreferencesStore()
     const { theme, setTheme } = useTheme()
 
@@ -35,9 +33,6 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
         setEmbedded(inIframe())
     }, [])
 
-    const handleCloseFeedback = () => {
-        setOpenFeedbackModal(false)
-    }
     return <div className="text-sm font-medium focus:outline-none h-full">
         <Menu>
 
@@ -48,7 +43,7 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
             <Menu.Group>
                 <>
                     {
-                        router.pathname != '/' &&
+                        pathname != '/' &&
                         <Menu.Item pathname='/' icon={<Home className="h-5 w-5" />} >
                             Home
                         </Menu.Item>
@@ -97,19 +92,6 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
                     Help
                 </Menu.Item>
 
-                {
-                    isMobile
-                        ? <>
-                            <Menu.Item pathname='https://v8-docs.layerswap.io/protocol/introduction' target="_blank" icon={<CircleHelp className="h-5 w-5" />} >
-                                How
-                            </Menu.Item>
-                            <Menu.Item pathname='https://v8-docs.layerswap.io/protocol/introduction' target="_blank" icon={<Info className="h-5 w-5" />} >
-                                About
-                            </Menu.Item>
-                        </>
-                        : <></>
-                }
-
                 <Menu.Item pathname='https://v8-docs.layerswap.io/protocol/introduction' target="_blank" icon={<BookOpen className="h-5 w-5" />} >
                     Protocol Docs
                 </Menu.Item>
@@ -139,7 +121,7 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
             >
                 <VaulDrawer.Snap id="item-1">
                     <div className="p-0 md:max-w-md">
-                        <SendFeedback onSend={handleCloseFeedback} />
+                        <SendFeedback onSend={() => setOpenFeedbackModal(false)} />
                     </div>
                 </VaulDrawer.Snap>
             </VaulDrawer>

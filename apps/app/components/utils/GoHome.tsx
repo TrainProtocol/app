@@ -11,9 +11,9 @@ interface Props {
 const GoHomeButton: FC<Props> = (({ className, children, onClick: onClickProp }) => {
     const goHome = useGoHome()
 
-    const onClick = async () => {
+    const onClick = () => {
         onClickProp?.()
-        await goHome()
+        goHome()
     }
 
     return (

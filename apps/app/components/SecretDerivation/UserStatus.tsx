@@ -1,14 +1,14 @@
-import { useState } from "react"
+import { FC } from "react"
 import { Fingerprint, Lock, LogOut } from "lucide-react"
-import VaulDrawer from "../Modal/vaulModal"
-import { Popover, PopoverContent, PopoverTrigger } from "../shadcn/popover"
 import { useSharedSecretDerivation, useOptionalSecretDerivation } from "@train-protocol/react"
-import { useLoginModalStore } from "@/stores/loginModalStore"
+import { formatPasskeyIdForDisplay } from "@train-protocol/auth"
+import { useAuthDialog } from "@/stores/authDialogStore"
 import { Address } from "@/lib/address"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
-import { formatPasskeyIdForDisplay } from "@train-protocol/auth"
 import WalletIcon from "../Icons/WalletIcon"
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../shadcn/tooltip"
+import { Tooltip, TooltipContent, TooltipTrigger } from "../shadcn/tooltip"
+import { Popover, PopoverContent, PopoverTrigger } from "../shadcn/popover"
+import { StepBody } from "./StepBody"
 
 interface LoginWallet {
     address: string
@@ -16,10 +16,30 @@ interface LoginWallet {
     displayName?: string
 }
 
+type LoginIdentityIcon = FC<{ className?: string; strokeWidth?: string | number }>
+
+export const getLoginIdentity = (
+    method: 'passkey' | 'wallet_sign' | null,
+    loginWallet: LoginWallet | null,
+    passkeyLabel: string | null,
+    activePasskeyCredentialId: string | null,
+) => {
+    const isPasskey = method === 'passkey'
+    const Icon: LoginIdentityIcon = isPasskey ? Fingerprint : WalletIcon
+    const label = isPasskey
+        ? passkeyLabel
+        : (loginWallet?.displayName ?? null)
+    const idShort = isPasskey
+        ? (activePasskeyCredentialId ? formatPasskeyIdForDisplay(activePasskeyCredentialId) : null)
+        : (loginWallet?.address ? new Address(loginWallet.address, null, loginWallet.providerName).toShortString() : null)
+    return { isPasskey, label, idShort, Icon }
+}
+
 interface LoginDataCardProps {
     method: 'passkey' | 'wallet_sign' | null
     loginWallet: LoginWallet | null
-    passkeyCredentialId: string | null
+    passkeyLabel: string | null
+    activePasskeyCredentialId: string | null
     onCopyAddress: () => void
     className?: string
 }
@@ -27,55 +47,71 @@ interface LoginDataCardProps {
 const LoginDataCard = ({
     method,
     loginWallet,
-    passkeyCredentialId,
+    passkeyLabel,
+    activePasskeyCredentialId,
     onCopyAddress,
     className = "flex items-center gap-3 p-3 bg-secondary-500 rounded-xl",
-}: LoginDataCardProps) => (
-    <div className={className}>
-        {method === 'passkey' ? (
-            <>
-                <div className="p-2.5 bg-secondary-500 rounded-lg shrink-0">
-                    <Fingerprint className="h-5 w-5 text-primary-text" strokeWidth={2} />
-                </div>
-                <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-primary-text font-semibold">Passkey</span>
-                    {passkeyCredentialId && (
-                        <TooltipProvider delayDuration={200}>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <span className="text-secondary-text text-sm truncate cursor-default w-fit">{formatPasskeyIdForDisplay(passkeyCredentialId)}</span>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p className="font-mono break-all max-w-[280px]">{passkeyCredentialId}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    )}
-                </div>
-            </>
+}: LoginDataCardProps) => {
+    const { isMobile } = useWindowDimensions()
+    const idShort = activePasskeyCredentialId ? formatPasskeyIdForDisplay(activePasskeyCredentialId) : null
+    const idTriggerSpan = (
+        <span className="text-secondary-text text-sm truncate cursor-default">{idShort}</span>
+    )
+    const idReveal = idShort && activePasskeyCredentialId && (
+        isMobile ? (
+            <Popover>
+                <PopoverTrigger asChild>{idTriggerSpan}</PopoverTrigger>
+                <PopoverContent side="top" className="w-auto p-2 bg-secondary-500! rounded-lg!">
+                    <p className="font-mono break-all max-w-[280px] text-xs text-primary-text">{activePasskeyCredentialId}</p>
+                </PopoverContent>
+            </Popover>
         ) : (
-            <>
-                <div className="p-2.5 bg-secondary-500 rounded-lg shrink-0">
-                    <WalletIcon className="h-5 w-5 text-primary-text" strokeWidth={2} />
-                </div>
-                <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-primary-text font-semibold">
-                        {loginWallet?.displayName || 'EVM Wallet'}
-                    </span>
-                    {loginWallet?.address && (
-                        <button
-                            type="button"
-                            onClick={onCopyAddress}
-                            className="text-secondary-text text-sm text-left hover:text-primary-text truncate"
-                        >
-                            {new Address(loginWallet.address, null, loginWallet.providerName).toShortString()}
-                        </button>
-                    )}
-                </div>
-            </>
-        )}
-    </div>
-)
+            <Tooltip>
+                <TooltipTrigger asChild>{idTriggerSpan}</TooltipTrigger>
+                <TooltipContent>
+                    <p className="font-mono break-all max-w-[280px]">{activePasskeyCredentialId}</p>
+                </TooltipContent>
+            </Tooltip>
+        )
+    )
+    return (
+        <div className={className}>
+            {method === 'passkey' ? (
+                <>
+                    <div className="p-2.5 bg-secondary-500 rounded-lg shrink-0">
+                        <Fingerprint className="h-5 w-5 text-primary-text" strokeWidth={2} />
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-0">
+                        {passkeyLabel && (
+                            <span className="text-primary-text font-semibold truncate">{passkeyLabel}</span>
+                        )}
+                        {idReveal}
+                    </div>
+                </>
+            ) : (
+                <>
+                    <div className="p-2.5 bg-secondary-500 rounded-lg shrink-0">
+                        <WalletIcon className="h-5 w-5 text-primary-text" strokeWidth={2} />
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-0">
+                        <span className="text-primary-text font-semibold">
+                            {loginWallet?.displayName || 'EVM Wallet'}
+                        </span>
+                        {loginWallet?.address && (
+                            <button
+                                type="button"
+                                onClick={onCopyAddress}
+                                className="text-secondary-text text-sm text-left hover:text-primary-text truncate"
+                            >
+                                {new Address(loginWallet.address, null, loginWallet.providerName).toShortString()}
+                            </button>
+                        )}
+                    </div>
+                </>
+            )}
+        </div>
+    )
+}
 
 interface UserStatusContentProps {
     method: 'passkey' | 'wallet_sign' | null
@@ -86,7 +122,7 @@ interface UserStatusContentProps {
     showPasskeyWarning?: boolean
 }
 
-const UserStatusContent = ({
+export const UserStatusContent = ({
     method,
     loginWallet,
     logout,
@@ -94,10 +130,9 @@ const UserStatusContent = ({
     showHeader = true,
     showPasskeyWarning = true,
 }: UserStatusContentProps) => {
-    const { passkeyCredentials, removePasskeyCredential, activePasskeyCredentialId } = useSharedSecretDerivation();
+    const { passkeyCredentials, activePasskeyCredentialId } = useSharedSecretDerivation();
 
-    const { isMobile } = useWindowDimensions();
-
+    const activePasskeyLabel = passkeyCredentials.find(c => c.id === activePasskeyCredentialId)?.label ?? null;
 
     const handleLogout = () => {
         logout()
@@ -110,67 +145,18 @@ const UserStatusContent = ({
         }
     }
 
-    const handleRemoveCredential = (credId: string) => {
-        removePasskeyCredential(credId);
-    };
-
-    return (
-        <div className={`flex flex-col ${showHeader ? 'gap-3' : 'gap-2'}`}>
+    const info = (
+        <>
             {showHeader && (
                 <p className="text-secondary-text text-sm font-medium">Connected with</p>
             )}
             <LoginDataCard
                 method={method}
                 loginWallet={loginWallet}
-                passkeyCredentialId={activePasskeyCredentialId}
+                passkeyLabel={activePasskeyLabel}
+                activePasskeyCredentialId={activePasskeyCredentialId}
                 onCopyAddress={handleCopyAddress}
             />
-
-            {method === 'passkey' && passkeyCredentials.length > 0 && (
-                <div className="flex flex-col gap-2">
-                    <p className="text-secondary-text text-xs font-medium uppercase">Registered passkeys</p>
-                    {passkeyCredentials.map(id => (
-                        <div key={id} className="flex items-center justify-between p-2 bg-secondary-700 rounded-lg">
-                            {isMobile ? (
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <span className="text-sm text-primary-text cursor-pointer">
-                                            {formatPasskeyIdForDisplay(id)}
-                                            {id === activePasskeyCredentialId && <span className="text-success-foreground ml-1">(active)</span>}
-                                        </span>
-                                    </PopoverTrigger>
-                                    <PopoverContent side="top" className="w-auto p-2 bg-secondary-500! rounded-lg!">
-                                        <p className="font-mono break-all max-w-[280px] text-xs text-primary-text">{id}</p>
-                                    </PopoverContent>
-                                </Popover>
-                            ) : (
-                                <TooltipProvider delayDuration={200}>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <span className="text-sm text-primary-text cursor-default w-fit">
-                                                {formatPasskeyIdForDisplay(id)}
-                                                {id === activePasskeyCredentialId && <span className="text-success-foreground ml-1">(active)</span>}
-                                            </span>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p className="font-mono break-all max-w-[280px]">{id}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            )}
-                            {passkeyCredentials.length > 1 && (
-                                <button
-                                    type="button"
-                                    onClick={() => handleRemoveCredential(id)}
-                                    className="text-xs text-error-foreground hover:text-error-foreground/80"
-                                >
-                                    Remove
-                                </button>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            )}
 
             {showPasskeyWarning && method === 'passkey' && (
                 <div className="rounded-xl bg-warning-background border border-warning-foreground/30 px-3 py-2.5">
@@ -179,36 +165,45 @@ const UserStatusContent = ({
                     </p>
                 </div>
             )}
+        </>
+    )
 
-            <button
-                type="button"
-                onClick={handleLogout}
-                className="flex items-center justify-center gap-2 py-3 px-4 bg-error-background hover:bg-error-background/80 text-error-foreground rounded-xl font-semibold transition-colors"
-            >
-                <LogOut className="h-5 w-5" strokeWidth={2} />
-                <span>Log out</span>
-            </button>
-        </div>
+    const logoutButton = (
+        <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-error-background hover:bg-error-background/80 text-error-foreground rounded-xl font-semibold transition-colors"
+        >
+            <LogOut className="h-5 w-5" strokeWidth={2} />
+            <span>Log out</span>
+        </button>
+    )
+
+    return (
+        <StepBody
+            info={info}
+            actions={logoutButton}
+            gap={showHeader ? 'gap-3' : 'gap-2'}
+            centerOverlay={false}
+        />
     )
 }
 
 export const UserStatusHeader = () => {
     const secretDerivation = useOptionalSecretDerivation()
-    const openLoginModal = useLoginModalStore((s) => s.open)
-    const [openDrawer, setOpenDrawer] = useState(false)
-    const [openPopover, setOpenPopover] = useState(false)
+    const openAuthDialog = useAuthDialog((s) => s.openAuthDialog)
     const { isMobile } = useWindowDimensions()
 
     if (!secretDerivation) return null
 
-    const { method, isLoggedIn, loginWallet, logout } = secretDerivation
+    const { method, isLoggedIn, loginWallet } = secretDerivation
 
     if (!isLoggedIn) {
         return (
             <button
                 type="button"
-                onClick={openLoginModal}
-                className="inline-flex items-center gap-2 py-2 px-3 rounded-full bg-secondary-500 border border-black/15 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down"
+                onClick={openAuthDialog}
+                className="h-11 inline-flex items-center gap-2 py-2 px-3 rounded-full bg-secondary-500 border border-black/15 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down"
             >
                 <Lock className="h-5 w-5" strokeWidth={2} />
                 <span className="text-sm font-medium">Login</span>
@@ -220,79 +215,49 @@ export const UserStatusHeader = () => {
         ? "Passkey"
         : (loginWallet?.displayName || (loginWallet?.address ? new Address(loginWallet.address, null, loginWallet.providerName).toShortString() : '') || 'Wallet')
 
-    const pillContent = (
-        <>
+    if (isMobile) {
+        return (
+            <button
+                type="button"
+                onClick={openAuthDialog}
+                className="p-1.5 max-sm:p-2 justify-self-start text-secondary-text hover:bg-secondary-500 max-sm:bg-secondary-500 hover:text-primary-text focus:outline-hidden inline-flex rounded-lg items-center active:animate-press-down relative"
+            >
+                {method === 'passkey' ? (
+                    <div className="relative">
+                        <Fingerprint className="h-6 w-6" strokeWidth={2} />
+                        <div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 bg-success-foreground rounded-full border-2 border-secondary-900" />
+                    </div>
+                ) : (
+                    <div className="relative">
+                        <WalletIcon className="h-6 w-6" strokeWidth={2} />
+                        <div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 bg-success-foreground rounded-full border-2 border-secondary-900" />
+                    </div>
+                )}
+            </button>
+        )
+    }
+
+    return (
+        <button type="button" className="h-11 inline-flex items-center gap-2 py-2 px-3 rounded-full bg-secondary-500 border border-black/15 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down" onClick={openAuthDialog}>
             {method === 'passkey' ? (
                 <Fingerprint className="h-5 w-5 shrink-0" strokeWidth={2} />
             ) : (
                 <WalletIcon className="h-5 w-5 shrink-0" strokeWidth={2} />
             )}
             <span className="text-sm font-medium truncate max-w-[120px]">{pillLabel}</span>
-        </>
-    )
-
-    const pillClassName = "inline-flex items-center gap-2 py-2 px-3 rounded-full bg-secondary-500 border border-black/15 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down"
-
-    return (
-        <>
-            {isMobile ? (
-                <>
-                    <button
-                        type="button"
-                        onClick={() => setOpenDrawer(true)}
-                        className="p-1.5 max-sm:p-2 justify-self-start text-secondary-text hover:bg-secondary-500 max-sm:bg-secondary-500 hover:text-primary-text focus:outline-hidden inline-flex rounded-lg items-center active:animate-press-down relative"
-                    >
-                        {method === 'passkey' ? (
-                            <div className="relative">
-                                <Fingerprint className="h-6 w-6" strokeWidth={2} />
-                                <div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 bg-success-foreground rounded-full border-2 border-secondary-900" />
-                            </div>
-                        ) : (
-                            <div className="relative">
-                                <WalletIcon className="h-6 w-6" strokeWidth={2} />
-                                <div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 bg-success-foreground rounded-full border-2 border-secondary-900" />
-                            </div>
-                        )}
-                    </button>
-                    <UserStatusDrawer
-                        isOpen={openDrawer}
-                        onClose={() => setOpenDrawer(false)}
-                        method={method}
-                        loginWallet={loginWallet}
-                        logout={logout}
-                    />
-                </>
-            ) : (
-                <Popover open={openPopover} onOpenChange={setOpenPopover}>
-                    <PopoverTrigger asChild>
-                        <button type="button" className={pillClassName}>
-                            {pillContent}
-                        </button>
-                    </PopoverTrigger>
-                    <PopoverContent align="end" sideOffset={8} className="w-80">
-                        <UserStatusContent
-                            method={method}
-                            loginWallet={loginWallet}
-                            logout={logout}
-                            onClose={() => setOpenPopover(false)}
-                        />
-                    </PopoverContent>
-                </Popover>
-            )}
-        </>
+        </button>
     )
 }
 
 export const UserStatusMenu = () => {
-    const { isLoggedIn, method, loginWallet, logout } = useSharedSecretDerivation()
-    const openLoginModal = useLoginModalStore((s) => s.open)
-    const [openModal, setOpenModal] = useState(false)
-    const { activePasskeyCredentialId } = useSharedSecretDerivation();
+    const { isLoggedIn, method, loginWallet, activePasskeyCredentialId, passkeyCredentials } = useSharedSecretDerivation()
+    const openAuthDialog = useAuthDialog((s) => s.openAuthDialog)
+    const activePasskeyLabel = passkeyCredentials.find(c => c.id === activePasskeyCredentialId)?.label ?? null
 
     if (!isLoggedIn) {
         return (
             <button
-                onClick={openLoginModal}
+                onClick={openAuthDialog}
                 type="button"
                 className="py-3 px-4 bg-secondary-400 flex items-center w-full rounded-xl space-x-1 relative font-semibold transform border border-secondary-400 hover:bg-secondary-300 transition duration-200 ease-in-out outline-hidden"
             >
@@ -305,68 +270,31 @@ export const UserStatusMenu = () => {
     }
 
     const menuLabel = method === 'passkey'
-        ? (activePasskeyCredentialId ? `Passkey · ${formatPasskeyIdForDisplay(activePasskeyCredentialId)}` : 'Passkey')
+        ? (activePasskeyLabel
+            ? `Passkey · ${activePasskeyLabel}${activePasskeyCredentialId ? ` (${formatPasskeyIdForDisplay(activePasskeyCredentialId)})` : ''}`
+            : 'Passkey')
         : `${loginWallet?.displayName || 'Wallet'}${loginWallet?.address ? ` · ${new Address(loginWallet.address, null, loginWallet.providerName).toShortString()}` : ''}`
 
     return (
-        <>
-            <button
-                onClick={() => setOpenModal(true)}
-                type="button"
-                className="py-3 px-4 bg-secondary-400 flex items-center w-full rounded-xl space-x-1 disabled:text-secondary-text/40 disabled:bg-secondary-600 disabled:cursor-not-allowed relative font-semibold transform border border-secondary-400 hover:bg-secondary-300 transition duration-200 ease-in-out outline-hidden"
-            >
-                <div className="flex gap-4 items-center text-primary-text w-full min-w-0">
-                    {method === 'passkey' ? (
-                        <div className="relative shrink-0">
-                            <Fingerprint className="h-5 w-5" strokeWidth={2} />
-                            <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-success-foreground rounded-full" />
-                        </div>
-                    ) : (
-                        <div className="relative shrink-0">
-                            <WalletIcon className="h-5 w-5" strokeWidth={2} />
-                            <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-success-foreground rounded-full" />
-                        </div>
-                    )}
-                    <span className="truncate">{menuLabel}</span>
-                </div>
-            </button>
-            <UserStatusDrawer
-                isOpen={openModal}
-                onClose={() => setOpenModal(false)}
-                method={method}
-                loginWallet={loginWallet}
-                logout={logout}
-            />
-        </>
-    )
-}
-
-interface UserStatusDrawerProps {
-    isOpen: boolean
-    onClose: () => void
-    method: 'passkey' | 'wallet_sign' | null
-    loginWallet: LoginWallet | null
-    logout: () => void
-}
-
-const UserStatusDrawer = ({ isOpen, onClose, method, loginWallet, logout }: UserStatusDrawerProps) => {
-    return (
-        <VaulDrawer
-            show={isOpen}
-            setShow={onClose}
-            header="Login Status"
-            modalId="userStatus"
+        <button
+            onClick={openAuthDialog}
+            type="button"
+            className="py-3 px-4 bg-secondary-400 flex items-center w-full rounded-xl space-x-1 disabled:text-secondary-text/40 disabled:bg-secondary-600 disabled:cursor-not-allowed relative font-semibold transform border border-secondary-400 hover:bg-secondary-300 transition duration-200 ease-in-out outline-hidden"
         >
-            <VaulDrawer.Snap id="item-1">
-                <UserStatusContent
-                    method={method}
-                    loginWallet={loginWallet}
-                    logout={logout}
-                    onClose={onClose}
-                    showHeader={false}
-                    showPasskeyWarning={false}
-                />
-            </VaulDrawer.Snap>
-        </VaulDrawer>
+            <div className="flex gap-4 items-center text-primary-text w-full min-w-0">
+                {method === 'passkey' ? (
+                    <div className="relative shrink-0">
+                        <Fingerprint className="h-5 w-5" strokeWidth={2} />
+                        <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-success-foreground rounded-full" />
+                    </div>
+                ) : (
+                    <div className="relative shrink-0">
+                        <WalletIcon className="h-5 w-5" strokeWidth={2} />
+                        <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-success-foreground rounded-full" />
+                    </div>
+                )}
+                <span className="truncate">{menuLabel}</span>
+            </div>
+        </button>
     )
 }

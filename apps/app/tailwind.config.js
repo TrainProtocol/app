@@ -5,7 +5,7 @@ import typography from '@tailwindcss/typography'
 import animate from 'tailwindcss-animate'
 
 export default {
-  content: ["./pages/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
+  content: ["./app/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
   darkMode: 'media',
   theme: {
     extend: {
@@ -44,6 +44,7 @@ export default {
         gauge_fill: "gauge_fill 1s ease forwards",
 
         'press-down': 'press-down 150ms ease-in-out',
+        'press-down-weak': 'press-down-weak 150ms ease-in-out',
         'shake': 'shake 0.82s cubic-bezier(.36,.07,.19,.97) both',
         shine: 'shine 2s linear infinite',
 
@@ -76,6 +77,11 @@ export default {
         'press-down': {
           '0%': { transform: 'scale(1)' },
           '50%': { transform: 'scale(0.97)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        'press-down-weak': {
+          '0%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(0.99)' },
           '100%': { transform: 'scale(1)' },
         },
         scaleLoop: {
@@ -226,7 +232,7 @@ export default {
       boxShadow: {
         'widget-footer': '-1px -28px 21px -6px var(--ls-colors-secondary-700, #181717)',
         'card': '5px 5px 40px rgba(0, 0, 0, 0.2), 0px 0px 20px rgba(0, 0, 0, 0.43)',
-        'accordion-open': '0 8px 32px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.3)',
+        'accordion-open': '0 6px 16px -4px rgba(0, 0, 0, 0.3)',
       },
       typography: (theme) => ({
         DEFAULT: {

@@ -18,10 +18,12 @@ export type ModalWalletProvider = WalletProvider & {
     isSelectedFromFilter?: boolean;
 }
 
-type SharedType = { provider?: WalletProvider, connectCallback: (value: Wallet | undefined) => void }
+export type ConnectDisplayMode = 'drawer' | 'dialog'
+
+type SharedType = { provider?: WalletProvider, connectCallback: (value: Wallet | undefined) => void, displayMode?: ConnectDisplayMode }
 
 type ConnectModalContextType = {
-    connect: ({ provider, connectCallback }: SharedType) => void;
+    connect: ({ provider, connectCallback, displayMode }: SharedType) => void;
     cancel: () => void;
     selectedProvider: ModalWalletProvider | undefined;
     setSelectedProvider: (value: ModalWalletProvider | undefined) => void;
@@ -34,6 +36,7 @@ type ConnectModalContextType = {
     onFinish: (connectedWallet?: Wallet | undefined) => void;
     setOpen: (value: boolean) => void;
     open: boolean;
+    displayMode: ConnectDisplayMode;
 };
 
 const ConnectModalContext = createContext<ConnectModalContextType | null>(null);
@@ -46,8 +49,9 @@ export function WalletModalProvider({ children }) {
     const [selectedMultiChainConnector, setSelectedMultiChainConnector] = useState<InternalConnector | undefined>(undefined)
     const [open, setOpen] = useState(false);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+    const [displayMode, setDisplayMode] = useState<ConnectDisplayMode>('drawer');
 
-    const connect = useCallback(async ({ provider, connectCallback }: SharedType) => {
+    const connect = useCallback(async ({ provider, connectCallback, displayMode: mode = 'drawer' }: SharedType) => {
         const hasConnectorPicker = !!provider?.availableConnectors?.length
             || !!provider?.additionalConnectors?.length
             || !!provider?.requestAdditionalConnectors
@@ -56,6 +60,7 @@ export function WalletModalProvider({ children }) {
             await provider?.connectWallet()
         }
         setSelectedProvider(provider);
+        setDisplayMode(mode)
         setOpen(true)
         setConnectConfig({ provider, connectCallback });
         return;
@@ -101,9 +106,9 @@ export function WalletModalProvider({ children }) {
         connect, cancel, selectedProvider, setSelectedProvider,
         selectedConnector, setSelectedConnector,
         selectedMultiChainConnector, setSelectedMultiChainConnector,
-        isWalletModalOpen, goBack, onFinish, setOpen, open
+        isWalletModalOpen, goBack, onFinish, setOpen, open, displayMode
     }), [connect, cancel, selectedProvider, selectedConnector,
-        selectedMultiChainConnector, isWalletModalOpen, goBack, onFinish, open])
+        selectedMultiChainConnector, isWalletModalOpen, goBack, onFinish, open, displayMode])
 
     return (
         <ConnectModalContext.Provider value={contextValue}>
@@ -121,9 +126,9 @@ export const useConnectModal = () => {
     }
 
     const connect = useCallback(
-        (provider?: WalletProvider): Promise<Wallet | undefined> =>
+        (provider?: WalletProvider, options?: { displayMode?: ConnectDisplayMode }): Promise<Wallet | undefined> =>
             new Promise((res) => {
-                context.connect({ provider, connectCallback: res });
+                context.connect({ provider, connectCallback: res, displayMode: options?.displayMode });
             }),
         [context.connect]
     );

@@ -1,13 +1,11 @@
-import { useRouter } from "next/router"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback } from "react"
-import { resolvePersistantQueryParams } from "../helpers/querryHelper"
+import { buildHrefWithPersistantParams } from "../helpers/querryHelper"
 
-export const useGoHome = (): () => Promise<boolean> => {
+export const useGoHome = (): () => void => {
     const router = useRouter()
-    return useCallback(async () => {
-        return await router.push({
-            pathname: "/",
-            query: { ...resolvePersistantQueryParams(router.query) }
-        })
-    }, [router])
+    const searchParams = useSearchParams()
+    return useCallback(() => {
+        router.push(buildHrefWithPersistantParams("/", searchParams))
+    }, [router, searchParams])
 }

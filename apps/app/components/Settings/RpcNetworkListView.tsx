@@ -50,7 +50,7 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
                 />
             </div>
 
-            <div className="space-y-2 overflow-y-auto">
+            <div className="space-y-2 overflow-y-auto max-h-[55vh] styled-scroll pr-1">
                 {filteredNetworks.length === 0 ? (
                     <div className="text-center py-8 text-secondary-text">
                         {searchQuery ? 'No networks found matching your search' : 'No networks with RPC support available'}

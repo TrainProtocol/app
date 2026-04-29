@@ -64,7 +64,7 @@ const SendFeedback: FC<Props> = ({ onSend }) => {
                             onChange={e => {
                                 handleChange(e)
                             }}
-                            className="h-40 max-h-60 appearance-none block bg-secondary-500 text-primary-text border border-secondary-500 rounded-md py-3 px-4 mb-3 leading-tight focus:ring-0 focus:bg-secondary-500 focus:border-secondary-100 "
+                            className="h-72 max-h-96 appearance-none block bg-secondary-500 text-primary-text border border-secondary-500 rounded-md py-3 px-4 mb-3 leading-tight focus:ring-0 focus:bg-secondary-500 focus:border-secondary-100 "
                         />
                         <button
                             type="button"

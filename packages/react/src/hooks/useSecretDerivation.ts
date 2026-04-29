@@ -12,7 +12,7 @@ import {
     deriveKeyFromWallet,
     checkPrfSupport,
 } from '@train-protocol/auth'
-import type { PrfSupportResult, PasskeyCredentialStorage } from '@train-protocol/auth'
+import type { PrfSupportResult, PasskeyCredentialStorage, StoredPasskey } from '@train-protocol/auth'
 import type { DerivationMethod } from '../types'
 import { chainNamespace as brandChainNamespace } from '../internal/branded'
 import { useWalletContextOptional } from '../wallet/WalletContext'
@@ -37,6 +37,8 @@ export interface PasskeyLoginOptions {
     label?: string
     /** Only authenticate with existing passkey, never auto-create */
     crossDevice?: boolean
+    /** Target a specific stored credential via WebAuthn allowCredentials */
+    credentialId?: string
 }
 
 export interface UseSecretDerivationResult {
@@ -62,9 +64,10 @@ export interface UseSecretDerivationResult {
 
     // Passkey management
     registerPasskey: (displayName?: string) => Promise<void>
-    passkeyCredentials: string[]
+    passkeyCredentials: StoredPasskey[]
     activePasskeyCredentialId: string | null
     removePasskeyCredential: (id: string) => void
+    clearAllPasskeyCredentials: () => void
 
     prfSupport: PrfSupportResult | null
     checkPasskeySupport: () => Promise<PrfSupportResult>
@@ -122,18 +125,23 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
                     key = result.key
                     credentialId = result.credentialId
                 } else {
-                    ;({ key, credentialId } = await deriveKeyWithPasskey(
+                    ; ({ key, credentialId } = await deriveKeyWithPasskey(
                         { createIfMissing: false },
                         passkeyStorage,
                     ))
                 }
             } else {
-                ;({ key, credentialId } = await deriveKeyWithPasskey(
-                    { createIfMissing: !options?.crossDevice },
+                ; ({ key, credentialId } = await deriveKeyWithPasskey(
+                    {
+                        createIfMissing: !options?.crossDevice && !options?.credentialId,
+                        credentialId: options?.credentialId,
+                    },
                     passkeyStorage,
                 ))
             }
 
+            // storeCredentialId without a label is idempotent for existing entries (preserves label),
+            // and on a fresh cross-device credential falls back to DEFAULT_PASSKEY_DISPLAY_NAME.
             await passkeyStorage?.storeCredentialId(credentialId)
             store.getState().setLogin('passkey', key)
             store.getState().bumpCredentialVersion()
@@ -215,7 +223,7 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
     }, [store, passkeyStorage])
 
     // Read from in-memory cache (sync) — IndexedDBPasskeyStorage returns sync from memory
-    const passkeyCredentials = (passkeyStorage?.getAllCredentialIds() ?? []) as string[]
+    const passkeyCredentials = (passkeyStorage?.getAllCredentials() ?? []) as StoredPasskey[]
     const activePasskeyCredentialId = (passkeyStorage?.getActiveCredentialId() ?? null) as string | null
     // Subscribe to credentialVersion so React re-renders when credentials change.
     // The value itself is unused — reading it is enough to create the dependency.
@@ -224,6 +232,11 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
 
     const removePasskeyCredential = useCallback((id: string) => {
         passkeyStorage?.removeCredentialId?.(id)
+        store.getState().bumpCredentialVersion()
+    }, [store, passkeyStorage])
+
+    const clearAllPasskeyCredentials = useCallback(() => {
+        passkeyStorage?.clearAllCredentials?.()
         store.getState().bumpCredentialVersion()
     }, [store, passkeyStorage])
 
@@ -252,6 +265,7 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
         passkeyCredentials,
         activePasskeyCredentialId,
         removePasskeyCredential,
+        clearAllPasskeyCredentials,
         prfSupport,
         checkPasskeySupport,
         _store: store,

@@ -22,17 +22,18 @@ type Props = {
     provider?: WalletProvider | undefined;
     onSelect?: (props: SelectAccountProps) => void;
     selectedDepositMethod?: "wallet" | "deposit_address";
+    layout?: "overlay" | "standalone";
 }
 
 const WalletsList: FC<Props> = (props) => {
 
-    const { wallets, token, network, provider, selectable, onSelect, selectedDepositMethod } = props
+    const { wallets, token, network, provider, selectable, onSelect, selectedDepositMethod, layout = "standalone" } = props
 
     const { connect } = useConnectModal()
+    const inOverlay = layout === "overlay"
 
     const connectWallet = useCallback(async () => {
-        const result = await connect(provider)
-
+        const result = await connect(provider, inOverlay ? { displayMode: 'dialog' } : undefined)
         if (result && onSelect && result.withdrawalSupportedNetworks?.some(n => n === network?.caip2Id)) {
             onSelect({
                 providerName: result.providerName,
@@ -40,37 +41,50 @@ const WalletsList: FC<Props> = (props) => {
                 address: result.address
             })
         }
-
-    }, [provider, onSelect, network])
+    }, [provider, onSelect, network, connect, inOverlay])
 
     const selectedSourceAccount = useSelectedAccount("from", selectedDepositMethod == 'wallet' ? network?.caip2Id : undefined);
 
+    const connectButton = (
+        <button type='button' onClick={connectWallet} className="w-full flex justify-center p-2 bg-secondary-500 rounded-lg hover:bg-secondary-400">
+            <div className="flex items-center text-secondary-text gap-1 px-3 py-1">
+                <Plus className="h-4 w-4" />
+                <span className="text-sm">
+                    Connect new wallet
+                </span>
+            </div>
+        </button>
+    )
+
+    const walletsListBlock = wallets.length > 0 && (
+        <div className="flex flex-col justify-start space-y-2">
+            {
+                wallets.map((wallet, index) => <WalletItem
+                    key={`${index}${wallet.providerName}`}
+                    account={wallet}
+                    selectable={selectable}
+                    token={token}
+                    network={network}
+                    onWalletSelect={onSelect}
+                    selectedAddress={selectedSourceAccount?.address}
+                />)
+            }
+        </div>
+    )
+
+    if (inOverlay) {
+        return (
+            <div className="flex flex-col min-h-full">
+                <div className="flex-1">{walletsListBlock}</div>
+                <div className="mt-4">{connectButton}</div>
+            </div>
+        )
+    }
+
     return (
         <div className="space-y-2">
-            <button type='button' onClick={connectWallet} className="w-full flex justify-center p-2 bg-secondary-500 rounded-lg hover:bg-secondary-400">
-                <div className="flex items-center text-secondary-text gap-1 px-3 py-1">
-                    <Plus className="h-4 w-4" />
-                    <span className="text-sm">
-                        Connect new wallet
-                    </span>
-                </div>
-            </button>
-            {
-                wallets.length > 0 &&
-                <div className="flex flex-col justify-start space-y-2">
-                    {
-                        wallets.map((wallet, index) => <WalletItem
-                            key={`${index}${wallet.providerName}`}
-                            account={wallet}
-                            selectable={selectable}
-                            token={token}
-                            network={network}
-                            onWalletSelect={onSelect}
-                            selectedAddress={selectedSourceAccount?.address}
-                        />)
-                    }
-                </div>
-            }
+            {connectButton}
+            {walletsListBlock}
         </div >
     )
 }
@@ -98,17 +112,31 @@ export const WalletItem: FC<WalletItemProps> = ({ selectable, account: wallet, n
     const isSelected = selectable && (wallet.addresses.length == 1 && wallet.address == selectedAddress)
     const walletBalanceAmount = walletBalance?.amount !== undefined ? truncateDecimals(walletBalance.amount, token?.decimals) : ''
 
+    const isClickable = selectable && wallet.addresses.length == 1 && !!onWalletSelect
+    const handleSelect = () => {
+        if (!isClickable) return
+        onWalletSelect!({
+            providerName: wallet.providerName,
+            walletId: wallet.id,
+            address: wallet.address,
+        })
+    }
+
     return (
         <div className="rounded-md outline-hidden text-primary-tex">
-            <button
-                type="button"
-                onClick={() => (selectable && wallet.addresses.length == 1 && onWalletSelect) && onWalletSelect({
-                    providerName: wallet.providerName,
-                    walletId: wallet.id,
-                    address: wallet.address
-                })}
+            <div
+                role={isClickable ? 'button' : undefined}
+                tabIndex={isClickable ? 0 : undefined}
+                onClick={handleSelect}
+                onKeyDown={(e) => {
+                    if (!isClickable) return
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        handleSelect()
+                    }
+                }}
                 className={clsx('w-full relative items-center justify-between gap-2 flex rounded-xl outline-hidden bg-secondary-500 text-primary-text p-3 group/addressItem', {
-                    'hover:bg-secondary-400 cursor-pointer': selectable && wallet.addresses.length == 1,
+                    'hover:bg-secondary-400 cursor-pointer': isClickable,
                     'bg-secondary-400 py-2': wallet.addresses.length > 1
                 })}>
 
@@ -203,7 +231,7 @@ export const WalletItem: FC<WalletItemProps> = ({ selectable, account: wallet, n
                         <FilledCheck />
                     </div>
                 }
-            </button>
+            </div>
             {
                 wallet.addresses.length > 1 &&
                 <div className='w-full grow py-1 mt-1 bg-secondary-500 rounded-lg' >

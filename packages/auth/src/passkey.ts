@@ -1,7 +1,21 @@
 import { sha256 } from "@noble/hashes/sha2.js";
 import { deriveKeyMaterial, IDENTITY_SALT } from './key-derivation'
-import type { PasskeyCredentialStorage } from './storage'
+import { DEFAULT_PASSKEY_DISPLAY_NAME, type PasskeyCredentialStorage } from './storage'
 import { base64URLStringToBuffer, bufferToBase64URLString } from './utils'
+
+/** Derive the WebAuthn `user.name` (password-manager username) from the user-chosen display name.
+ *  Lowercases, collapses whitespace, and strips characters that look ugly in a username field. */
+const slugifyPasskeyName = (name: string | undefined): string => {
+    const trimmed = name?.trim()
+    if (!trimmed) return 'train-user'
+    const slug = trimmed
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9._-]/g, '')
+        .replace(/-+/g, '-')
+        .replace(/^[-._]+|[-._]+$/g, '')
+    return slug || 'train-user'
+}
 
 export const getPasskeyPrfSalt = (): Uint8Array => {
     const input = new TextEncoder().encode(`train-passkey-prf-salt-v1:${IDENTITY_SALT}`);
@@ -92,13 +106,15 @@ export const registerPasskey = async (
         id: base64URLStringToBuffer(id),
     }));
 
+    const label = displayName?.trim() || DEFAULT_PASSKEY_DISPLAY_NAME;
+
     const publicKey: PublicKeyCredentialCreationOptions = {
         challenge: challengeBytes,
         rp: { name: 'Train', id: window.location.hostname },
         user: {
             id: userIdBytes,
-            name: 'train-user',
-            displayName: displayName?.trim() || 'Train user',
+            name: slugifyPasskeyName(displayName),
+            displayName: label,
         },
         pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
         excludeCredentials,
@@ -112,7 +128,7 @@ export const registerPasskey = async (
     if (!credential) throw new Error('Failed to create passkey credential');
 
     const credentialId = bufferToBase64URLString(credential.rawId);
-    await storage?.storeCredentialId(credentialId);
+    await storage?.storeCredentialId(credentialId, label);
 
     const ext: any = credential.getClientExtensionResults?.() ?? {};
     const prfFirst: ArrayBuffer | undefined = ext?.prf?.results?.first;
@@ -128,7 +144,7 @@ export const registerPasskey = async (
 };
 
 export const deriveKeyWithPasskey = async (
-    options?: { createIfMissing?: boolean },
+    options?: { createIfMissing?: boolean; credentialId?: string },
     storage?: PasskeyCredentialStorage
 ): Promise<{ key: Uint8Array; credentialId: string }> => {
     const createIfMissing = options?.createIfMissing !== false;
@@ -146,6 +162,13 @@ export const deriveKeyWithPasskey = async (
         userVerification: 'required',
         extensions: { prf: { eval: { first: prfSalt } } } as any,
     };
+
+    if (options?.credentialId) {
+        publicKey.allowCredentials = [{
+            type: 'public-key',
+            id: base64URLStringToBuffer(options.credentialId),
+        }];
+    }
 
     let cred = (await navigator.credentials.get({ publicKey })) as PublicKeyCredential | null;
 
