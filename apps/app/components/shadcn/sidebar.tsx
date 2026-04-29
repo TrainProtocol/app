@@ -446,8 +446,7 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 const SIDEBAR_MENU_BUTTON_BASE = "peer/menu-button group/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! hover:bg-sidebar-hover hover:text-sidebar-accent-foreground focus-visible:ring-2 active:animate-press-down-weak active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-hover data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate"
 
 const SIDEBAR_MENU_BUTTON_VARIANTS: Record<string, string> = {
-  default: "hover:bg-sidebar-hover hover:text-sidebar-accent-foreground",
-  outline: "bg-sidebar ring-1 ring-sidebar-border hover:bg-sidebar-hover hover:text-sidebar-accent-foreground hover:ring-1 hover:ring-sidebar-border",
+  outline: "bg-sidebar ring-1 ring-sidebar-border hover:ring-1 hover:ring-sidebar-border",
 }
 
 const SIDEBAR_MENU_BUTTON_SIZES: Record<string, string> = {
