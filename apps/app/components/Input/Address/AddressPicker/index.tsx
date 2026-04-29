@@ -5,7 +5,7 @@ import { Partner } from "@/Models/Partner";
 import useWallet from "@/hooks/useWallet";
 import { Address as AddressClass } from "@/lib/address";
 import ManualAddressInput from "./ManualAddressInput";
-import Modal from "@/components/Modal/modal";
+import VaulDrawer from "@/components/Modal/vaulModal";
 import { Network } from "@/Models/Network";
 import AddressBook from "./AddressBook";
 import AddressButton from "./AddressButton";
@@ -177,65 +177,67 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
                 partner={partner}
                 destination={destination}
             >{children({ destination, addressItem: destinationAddressItem, connectedWallet: connectedWallet, partner })}</AddressButton>
-            <Modal
+            <VaulDrawer
+                mode="fitHeight"
                 header='Send To'
-                height="80%"
                 show={showAddressModal}
                 setShow={setShowAddressModal}
                 modalId="address"
             >
-                <div className='w-full flex flex-col justify-between h-full text-primary-text'>
-                    <div className='flex flex-col self-center grow w-full space-y-5 h-full'>
+                <VaulDrawer.Snap id="item-1">
+                    <div className='w-full flex flex-col justify-between h-full text-primary-text min-h-[200px]'>
+                        <div className='flex flex-col self-center grow w-full space-y-5 h-full'>
 
-                        {
-                            destination
-                            && provider
-                            && !connectedWallets.length &&
-                            <ConnectWalletButton
-                                provider={provider}
-                                onConnect={onConnect}
-                            />
-                        }
+                            {
+                                destination
+                                && provider
+                                && !connectedWallets.length &&
+                                <ConnectWalletButton
+                                    provider={provider}
+                                    onConnect={onConnect}
+                                />
+                            }
 
-                        <ManualAddressInput
-                            manualAddress={manualAddress}
-                            setManualAddress={setManualAddress}
-                            setNewAddress={(props) => updateDestAddress(props?.address)}
-                            values={values}
-                            partner={partner}
-                            name={name}
-                            inputReference={inputReference}
-                            setFieldValue={setFieldValue}
-                            close={close}
-                            addresses={groupedAddresses}
-                        />
-                        {
-                            destination
-                            && provider
-                            && !manualAddress &&
-                            <ConnectedWallets
-                                provider={provider}
-                                notCompatibleWallets={unAvailableWallets}
-                                onClick={(props) => handleSelectAddress(props.address)}
-                                onConnect={onConnect}
-                                destination={destination}
-                                destination_address={destination_address}
-                            />
-                        }
-
-                        {
-                            addressBookAddresses && addressBookAddresses?.length > 0 && !manualAddress && destination &&
-                            <AddressBook
-                                addressBook={addressBookAddresses}
-                                onSelectAddress={handleSelectAddress}
-                                destination={destination}
-                                destination_address={destination_address}
+                            <ManualAddressInput
+                                manualAddress={manualAddress}
+                                setManualAddress={setManualAddress}
+                                setNewAddress={(props) => updateDestAddress(props?.address)}
+                                values={values}
                                 partner={partner}
+                                name={name}
+                                inputReference={inputReference}
+                                setFieldValue={setFieldValue}
+                                close={close}
+                                addresses={groupedAddresses}
                             />
-                        }
+                            {
+                                destination
+                                && provider
+                                && !manualAddress &&
+                                <ConnectedWallets
+                                    provider={provider}
+                                    notCompatibleWallets={unAvailableWallets}
+                                    onClick={(props) => handleSelectAddress(props.address)}
+                                    onConnect={onConnect}
+                                    destination={destination}
+                                    destination_address={destination_address}
+                                />
+                            }
+
+                            {
+                                addressBookAddresses && addressBookAddresses?.length > 0 && !manualAddress && destination &&
+                                <AddressBook
+                                    addressBook={addressBookAddresses}
+                                    onSelectAddress={handleSelectAddress}
+                                    destination={destination}
+                                    destination_address={destination_address}
+                                    partner={partner}
+                                />
+                            }
+                        </div>
                     </div>
-                </div>
-            </Modal>
+                </VaulDrawer.Snap>
+            </VaulDrawer>
         </>
     )
 });

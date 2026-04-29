@@ -263,7 +263,7 @@ export const UserStatusMenu = () => {
             >
                 <div className="flex gap-4 items-center text-primary-text w-full">
                     <Lock className="h-5 w-5 shrink-0" strokeWidth={2} />
-                    <span>Login</span>
+                    <span className="grow text-center pr-9">Login</span>
                 </div>
             </button>
         )

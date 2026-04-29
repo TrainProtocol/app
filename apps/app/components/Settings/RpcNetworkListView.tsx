@@ -33,7 +33,7 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
     })
 
     return (
-        <div className="h-full">
+        <div className="flex flex-col h-full">
             <p className="text-sm text-secondary-text mb-4">
                 Configure custom RPC URLs for each network to use your own nodes
             </p>
@@ -50,7 +50,7 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
                 />
             </div>
 
-            <div className="space-y-2 overflow-y-auto max-h-[55vh] styled-scroll pr-1">
+            <div className="space-y-2 overflow-y-auto h-[78svh] sm:h-[65svh] styled-scroll pr-1">
                 {filteredNetworks.length === 0 ? (
                     <div className="text-center py-8 text-secondary-text">
                         {searchQuery ? 'No networks found matching your search' : 'No networks with RPC support available'}
@@ -82,7 +82,7 @@ const RpcNetworkListView: FC<RpcNetworkListViewProps> = ({ onNetworkSelect }) =>
                                                 {network.displayName}
                                             </span>
                                             {supportsLightClient(network) && (
-                                                <span className="flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-blue-900/20 text-blue-400 rounded">
+                                                <span className="flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-primary/20 text-primary rounded">
                                                     <Zap className="w-3 h-3" />
                                                     Light Client
                                                 </span>

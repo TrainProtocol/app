@@ -9,16 +9,25 @@ import VaulDrawer from "../Modal/vaulModal"
 import { useConnectModal } from "@/components/WalletModal"
 import WalletsDialog from "@/components/Sidebar/WalletsDialog"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
+import { useAccount } from "wagmi"
+import { useWallet as useSolanaWallet } from "@solana/wallet-adapter-react"
 
 export const WalletsHeader = () => {
-    const { wallets } = useWallet()
+    const { wallets, providers } = useWallet()
     const { isMobile } = useWindowDimensions()
     const { connect } = useConnectModal()
     const [walletsOpen, setWalletsOpen] = useState(false)
+    const { status: evmStatus } = useAccount()
+    const { connecting: solanaConnecting } = useSolanaWallet()
+
+    const noWallets = wallets.length === 0
+    const isInitializing = noWallets && (evmStatus === 'connecting' || evmStatus === 'reconnecting' || solanaConnecting)
+    const connectDisabled = noWallets && providers.filter(p => !!p.autofillSupportedNetworks).length === 0
 
     const onClick = () => {
-        if (wallets.length > 0) setWalletsOpen(true)
-        else connect(undefined, { displayMode: 'dialog' })
+        if (isInitializing) return
+        if (!noWallets) setWalletsOpen(true)
+        else if (!connectDisabled) connect(undefined, { displayMode: 'dialog' })
     }
 
     if (isMobile) {
@@ -27,10 +36,11 @@ export const WalletsHeader = () => {
                 <button
                     type="button"
                     onClick={onClick}
+                    disabled={connectDisabled || isInitializing}
                     aria-label="Wallets"
-                    className="p-1.5 max-sm:p-2 active:animate-press-down justify-self-start text-secondary-text hover:bg-secondary-500 max-sm:bg-secondary-500 hover:text-primary-text focus:outline-hidden inline-flex rounded-lg items-center"
+                    className="p-1.5 max-sm:p-2 active:animate-press-down justify-self-start text-secondary-text hover:bg-secondary-500 max-sm:bg-secondary-500 hover:text-primary-text focus:outline-hidden inline-flex rounded-lg items-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    {wallets.length === 0
+                    {noWallets
                         ? <WalletIcon className="h-6 w-6 mx-0.5" strokeWidth="2" />
                         : <WalletsIcons wallets={wallets} />}
                 </button>
@@ -46,8 +56,9 @@ export const WalletsHeader = () => {
             <button
                 type="button"
                 onClick={onClick}
+                disabled={connectDisabled || isInitializing}
                 aria-label={label}
-                className={`inline-flex items-center gap-2 ${isMulti ? 'py-1.5' : 'py-2'} px-3 rounded-xl bg-secondary-700 border border-border text-primary-text hover:bg-secondary-500 focus:outline-none transition-colors active:animate-press-down`}
+                className={`inline-flex items-center gap-2 ${isMulti ? 'py-1.5' : 'py-2'} px-3 rounded-xl bg-secondary-700 border border-border text-primary-text hover:bg-secondary-500 focus:outline-none transition-colors active:animate-press-down disabled:opacity-50 disabled:cursor-not-allowed`}
             >
                 {icon}
                 <span className="text-sm font-medium truncate max-w-[140px]">{label}</span>

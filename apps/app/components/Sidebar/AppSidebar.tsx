@@ -139,7 +139,7 @@ const SidebarLoginStatus: FC = () => {
             <TooltipTrigger asChild>
                 <span className="truncate text-xs text-secondary-text cursor-default">{idShort}</span>
             </TooltipTrigger>
-            <TooltipContent side="right">
+            <TooltipContent side="top">
                 <p className="font-mono break-all max-w-[280px]">{idFull}</p>
             </TooltipContent>
         </Tooltip>

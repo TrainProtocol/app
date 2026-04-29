@@ -49,7 +49,8 @@ const SettingsWizard: FC = () => {
     }, [setWrapperWidth])
 
     return (
-        <div ref={wrapperRef} className="max-md:px-4">
+        <div className="max-md:px-4">
+            <div ref={wrapperRef}>
             <WizardItem StepName={MenuStep.Menu} inModal disableAnimation>
                 <MenuStepContent onOpenRpc={() => goToStep(MenuStep.RPCConfiguration)} />
             </WizardItem>
@@ -83,6 +84,7 @@ const SettingsWizard: FC = () => {
                     )}
                 </StepCard>
             </WizardItem>
+            </div>
         </div>
     )
 }
