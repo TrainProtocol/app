@@ -185,7 +185,6 @@ export const UserStatusContent = ({
             actions={logoutButton}
             gap={showHeader ? 'gap-3' : 'gap-2'}
             centerOverlay={false}
-            overlayActionMt="mt-4"
         />
     )
 }

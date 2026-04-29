@@ -25,7 +25,7 @@ const WalletsDialog: FC<WalletsDialogProps> = ({ open, onOpenChange }) => {
                 modalId="connected-wallets"
                 mode="fitHeight"
             >
-                <VaulDrawer.Snap id="item-1">
+                <VaulDrawer.Snap id="item-1" className="pb-0">
                     <WalletsList wallets={wallets} layout="overlay" />
                 </VaulDrawer.Snap>
             </VaulDrawer>
