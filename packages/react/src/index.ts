@@ -33,6 +33,8 @@ export { useSecretDerivation } from './hooks/useSecretDerivation'
 export { usePasskeyLogin } from './hooks/usePasskeyLogin'
 export { useWalletLogin } from './hooks/useWalletLogin'
 export { useLoginIdentityMismatch } from './hooks/useLoginIdentityMismatch'
+export { useRecoveryIdentityCheck } from './hooks/useRecoveryIdentityCheck'
+export type { RecoveryIdentityCheckInput } from './hooks/useRecoveryIdentityCheck'
 
 // --- Wallet Adapter ---
 export { useRegisterWallet } from './wallet/useRegisterWallet'

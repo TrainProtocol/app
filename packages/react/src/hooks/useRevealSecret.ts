@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import {
     deriveSecretFromTimelock,
+    secretToHashlock,
     bytesToHex,
 } from '@train-protocol/sdk'
 import type { UserLockDetails } from '@train-protocol/sdk'
@@ -108,6 +109,14 @@ export function useRevealSecret(): UseRevealSecretResult {
         try {
             const secretBytes = deriveSecretFromTimelock(derivedKey, nonce)
             const secret = bytesToHex(Array.from(secretBytes))
+
+            const normalize = (h: string) => (h.startsWith('0x') ? h : '0x' + h).toLowerCase()
+            if (normalize(secretToHashlock(secret)) !== normalize(swap.hashlock)) {
+                throw new TrainError(
+                    'Cannot reveal: current login does not match the identity that created this swap',
+                    TrainErrorCode.RevealFailed,
+                )
+            }
 
             await apiClient.revealSecret(swap.hashlock, secret, swap.destinationSolverAddress)
             actions.updateSwapFlags(hashlock, { secretRevealedToApi: true })

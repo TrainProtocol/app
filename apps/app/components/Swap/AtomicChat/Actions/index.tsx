@@ -15,7 +15,7 @@ import { Widget } from "@/components/Widget/Index";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
-import { useLoginIdentityMismatch, HTLCStatus } from "@train-protocol/react";
+import { useLoginIdentityMismatch, useRecoveryIdentityCheck, HTLCStatus } from "@train-protocol/react";
 import { useSwapStore } from "@/stores/swapStore";
 import { Drawer } from "@/components/Modal/vaul";
 
@@ -112,8 +112,14 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const [autoRevealFailed, setAutoRevealFailed] = useState(false)
     const attemptedRef = useRef(false)
     const { verified, skipped, mismatches } = useSolverLockVerification()
-    const { consensusVerified, consensusVerifying, loginIdentity } = useActiveSwap()
-    const { warning } = useLoginIdentityMismatch(loginIdentity ?? undefined)
+    const { consensusVerified, consensusVerifying, loginIdentity, hashlock, sourceDetails } = useActiveSwap()
+    const { warning: metadataWarning } = useLoginIdentityMismatch(loginIdentity ?? undefined)
+    const recoveryWarning = useRecoveryIdentityCheck({
+        hashlock,
+        userData: sourceDetails?.userData,
+        loginIdentity,
+    })
+    const warning = metadataWarning ?? recoveryWarning
 
     // Wait for both quote verification AND multi-RPC consensus before revealing
     const consensusReady = consensusVerified || skipped
