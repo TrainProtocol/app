@@ -184,9 +184,9 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
                 setShow={setShowAddressModal}
                 modalId="address"
             >
-                <VaulDrawer.Snap id="item-1">
-                    <div className='w-full flex flex-col justify-between h-full text-primary-text min-h-[200px]'>
-                        <div className='flex flex-col self-center grow w-full space-y-5 h-full'>
+                <VaulDrawer.Snap id="item-1" className="pb-0">
+                    <div className='w-full flex flex-col text-primary-text'>
+                        <div className='flex flex-col self-center w-full space-y-5'>
 
                             {
                                 destination

@@ -51,39 +51,39 @@ const SettingsWizard: FC = () => {
     return (
         <div className="max-md:px-4">
             <div ref={wrapperRef}>
-            <WizardItem StepName={MenuStep.Menu} inModal disableAnimation>
-                <MenuStepContent onOpenRpc={() => goToStep(MenuStep.RPCConfiguration)} />
-            </WizardItem>
-            <WizardItem
-                StepName={MenuStep.RPCConfiguration}
-                GoBack={() => goToStep(MenuStep.Menu, "back")}
-                inModal
-                disableAnimation
-            >
-                <StepCard
-                    title="RPC Configuration"
-                    onBack={() => goToStep(MenuStep.Menu, "back")}
+                <WizardItem StepName={MenuStep.Menu} inModal disableAnimation>
+                    <MenuStepContent onOpenRpc={() => goToStep(MenuStep.RPCConfiguration)} />
+                </WizardItem>
+                <WizardItem
+                    StepName={MenuStep.RPCConfiguration}
+                    GoBack={() => goToStep(MenuStep.Menu, "back")}
+                    inModal
+                    disableAnimation
                 >
-                    <RpcNetworkListView onNetworkSelect={handleNetworkSelect} />
-                </StepCard>
-            </WizardItem>
-            <WizardItem
-                StepName={MenuStep.NetworkRPCEdit}
-                GoBack={() => goToStep(MenuStep.RPCConfiguration, "back")}
-                inModal
-                disableAnimation
-            >
-                <StepCard
-                    title={selectedNetwork ? `${selectedNetwork.displayName} RPC` : "Network RPC"}
-                    onBack={() => goToStep(MenuStep.RPCConfiguration, "back")}
+                    <StepCard
+                        title="RPC Configuration"
+                        onBack={() => goToStep(MenuStep.Menu, "back")}
+                    >
+                        <RpcNetworkListView onNetworkSelect={handleNetworkSelect} />
+                    </StepCard>
+                </WizardItem>
+                <WizardItem
+                    StepName={MenuStep.NetworkRPCEdit}
+                    GoBack={() => goToStep(MenuStep.RPCConfiguration, "back")}
+                    inModal
+                    disableAnimation
                 >
-                    {selectedNetwork ? (
-                        <NetworkRpcEditView network={selectedNetwork} onSave={handleNetworkSave} />
-                    ) : (
-                        <div>Loading...</div>
-                    )}
-                </StepCard>
-            </WizardItem>
+                    <StepCard
+                        title={selectedNetwork ? `${selectedNetwork.displayName} RPC` : "Network RPC"}
+                        onBack={() => goToStep(MenuStep.RPCConfiguration, "back")}
+                    >
+                        {selectedNetwork ? (
+                            <NetworkRpcEditView network={selectedNetwork} onSave={handleNetworkSave} />
+                        ) : (
+                            <div>Loading...</div>
+                        )}
+                    </StepCard>
+                </WizardItem>
             </div>
         </div>
     )

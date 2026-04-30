@@ -259,12 +259,12 @@ export const UserStatusMenu = () => {
             <button
                 onClick={openAuthDialog}
                 type="button"
-                className="py-3 px-4 bg-secondary-400 flex items-center w-full rounded-xl space-x-1 relative font-semibold transform border border-secondary-400 hover:bg-secondary-300 transition duration-200 ease-in-out outline-hidden"
+                className="py-3 px-4 bg-secondary-400 flex items-center w-full rounded-xl space-x-1 relative font-semibold transform border border-secondary-400 text-primary-text hover:bg-secondary-300 transition duration-200 ease-in-out outline-hidden"
             >
-                <div className="flex gap-4 items-center text-primary-text w-full">
-                    <Lock className="h-5 w-5 shrink-0" strokeWidth={2} />
-                    <span className="grow text-center pr-9">Login</span>
-                </div>
+                <span className="order-first absolute left-0 inset-y-0 flex items-center pl-3">
+                    <Lock className="h-5 w-5" strokeWidth={2} />
+                </span>
+                <span className="grow text-center">Login</span>
             </button>
         )
     }
