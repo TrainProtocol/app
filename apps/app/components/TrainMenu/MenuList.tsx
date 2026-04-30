@@ -1,4 +1,4 @@
-import { BookOpen, Home, LibraryIcon, Shield, MessageSquarePlus, Settings2, Zap, RotateCcw, ScrollText, Sun, Moon, Monitor } from "lucide-react";
+import { BookOpen, Home, Settings2, Zap, RotateCcw, ScrollText, Sun, Moon, Monitor } from "lucide-react";
 import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
@@ -9,8 +9,6 @@ import inIframe from "@/components/utils/inIframe";
 import GitHubLogo from "@/components/Icons/GitHubLogo";
 import TwitterLogo from "@/components/Icons/TwitterLogo";
 import Link from "next/link";
-import VaulDrawer from "@/components/Modal/vaulModal";
-import SendFeedback from "@/components/sendFeedback";
 import Menu from "./Menu";
 import dynamic from "next/dynamic";
 import { MenuStep } from "@/Models/Wizard";
@@ -25,7 +23,6 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
     const pathname = usePathname();
     const { boot, show, update } = useIntercom()
     const [embedded, setEmbedded] = useState<boolean>()
-    const [openFeedbackModal, setOpenFeedbackModal] = useState(false);
     const { autoRevealSecret, setAutoRevealSecret } = useSwapPreferencesStore()
     const { theme, setTheme } = useTheme()
 
@@ -96,35 +93,6 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
                     Protocol Docs
                 </Menu.Item>
             </Menu.Group>
-
-            <Menu.Group>
-                <Menu.Item pathname='https://docs.layerswap.io/user-docs/information/privacy-policy/' target="_blank" icon={<Shield className="h-5 w-5" />} >
-                    Privacy Policy
-                </Menu.Item>
-                <Menu.Item pathname='https://docs.layerswap.io/user-docs/information/terms-of-services/' target="_blank" icon={<LibraryIcon className="h-5 w-5" />} >
-                    Terms of Service
-                </Menu.Item>
-            </Menu.Group>
-
-
-            <Menu.Group>
-                <Menu.Item onClick={() => setOpenFeedbackModal(true)} target="_blank" icon={<MessageSquarePlus className="h-5 w-5" />}>
-                    Suggest a Feature
-                </Menu.Item>
-            </Menu.Group>
-            <VaulDrawer
-                show={openFeedbackModal}
-                header="Suggest a Feature"
-                setShow={setOpenFeedbackModal}
-                modalId="suggestFeature"
-                mode="fitHeight"
-            >
-                <VaulDrawer.Snap id="item-1">
-                    <div className="p-0 md:max-w-md">
-                        <SendFeedback onSend={() => setOpenFeedbackModal(false)} />
-                    </div>
-                </VaulDrawer.Snap>
-            </VaulDrawer>
 
             <div className="space-y-3 w-full">
                 <Separator className="bg-secondary-500" />

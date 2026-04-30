@@ -15,7 +15,7 @@ import {
 } from "@/components/shadcn/sidebar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip"
-import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, FileText, ShieldCheck, Home, ChevronsUpDown, LogOut, Lock } from "lucide-react"
+import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, Home, ChevronsUpDown, LogOut, Lock } from "lucide-react"
 import { useIntercom } from "react-use-intercom"
 import { useOptionalSecretDerivation } from "@train-protocol/react"
 import { usePathname } from "next/navigation"
@@ -200,8 +200,6 @@ const MORE_LINKS: { name: string; href: string; icon: FC<{ className?: string }>
     { name: 'Docs', href: 'https://v8-docs.layerswap.io/protocol/introduction', icon: ({ className }) => <BookOpen className={className} /> },
     { name: 'Twitter', href: 'https://x.com/trainprotocol', icon: ({ className }) => <TwitterLogo className={className} /> },
     { name: 'GitHub', href: 'https://github.com/TrainProtocol/app', icon: ({ className }) => <GitHubLogo className={className} /> },
-    { name: 'Privacy Policy', href: 'https://docs.layerswap.io/user-docs/information/privacy-policy/', icon: ({ className }) => <ShieldCheck className={className} /> },
-    { name: 'Terms of Services', href: 'https://docs.layerswap.io/user-docs/information/terms-of-services/', icon: ({ className }) => <FileText className={className} /> },
 ]
 
 const MoreMenu: FC = () => {

@@ -1,15 +1,7 @@
 const configs: {
-    feedback_token: string,
-    feedback_chat_id: string,
     error_token: string,
     error_chat_id: string
 } = process.env.NEXT_PUBLIC_TELEGRAM_CONFIGS ? JSON.parse(process.env.NEXT_PUBLIC_TELEGRAM_CONFIGS) : undefined
-
-export const SendFeedbackMessage = async (title: string, text: string) => {
-    if (!configs.feedback_token || !configs.feedback_chat_id) return
-
-    return await (await fetch(`https://api.telegram.org/bot${configs.feedback_token}/sendMessage?chat_id=${configs.feedback_chat_id}&text=${title} %0A ${text}`)).json()
-}
 
 export const SendErrorMessage = async (title: string, text: string) => {
     if (!configs.error_token || !configs.error_chat_id) return
