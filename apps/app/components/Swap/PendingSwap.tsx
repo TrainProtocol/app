@@ -48,7 +48,7 @@ export default function PendingSwap() {
             >
                 <div
                     onClick={handleClick}
-                    className="cursor-pointer relative inline-flex items-center gap-2 p-2 md:py-2 md:px-3 rounded-lg md:rounded-xl bg-secondary-500 md:bg-secondary-700 md:border md:border-border text-primary-text hover:bg-secondary-500 md:hover:bg-secondary-500 transition-colors md:active:animate-press-down">
+                    className="cursor-pointer relative inline-flex items-center gap-2 p-2.5 md:py-2 md:px-3 rounded-lg md:rounded-xl bg-secondary-500 md:bg-secondary-700 md:border md:border-border text-primary-text hover:bg-secondary-500 md:hover:bg-secondary-500 transition-colors md:active:animate-press-down">
                     <div className="shrink-0 h-5 w-5 relative">
                         {source_network ?
                             <ImageWithFallback
