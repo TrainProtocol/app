@@ -62,7 +62,6 @@ export enum MenuStep {
     RPCConfiguration = "RPC Configuration",
     NetworkRPCEdit = "Network RPC Edit",
     RecoverSwap = "Recover Swap",
-    SuggestFeature = "Suggest a Feature"
 }
 
 export type Steps = AuthStep | SwapWithdrawalStep | SwapCreateStep | MenuStep

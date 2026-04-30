@@ -48,33 +48,29 @@ export default function PendingSwap() {
             >
                 <div
                     onClick={handleClick}
-                    className="cursor-pointer relative bg-secondary-700 border border-border rounded-xl hover:bg-secondary-500 transition-colors">
-                    <div className="flex items-center">
-                        <div className="text-primary-text flex px-3 p-2 items-center space-x-2">
-                            <div className="shrink-0 h-5 w-5 relative">
-                                {source_network ?
-                                    <ImageWithFallback
-                                        src={source_network.logoUrl ?? ''}
-                                        alt="From Logo"
-                                        height="20"
-                                        width="20"
-                                        className="rounded-md object-contain"
-                                    /> : null
-                                }
-                            </div>
-                            <ChevronRight className="block h-4 w-4 mx-1" />
-                            <div className="shrink-0 h-5 w-5 relative block">
-                                {destination_network ?
-                                    <ImageWithFallback
-                                        src={destination_network.logoUrl ?? ''}
-                                        alt="To Logo"
-                                        height="20"
-                                        width="20"
-                                        className="rounded-md object-contain"
-                                    /> : null
-                                }
-                            </div>
-                        </div>
+                    className="cursor-pointer relative inline-flex items-center gap-2 p-2 md:py-2 md:px-3 rounded-lg md:rounded-xl bg-secondary-500 md:bg-secondary-700 md:border md:border-border text-primary-text hover:bg-secondary-500 md:hover:bg-secondary-500 transition-colors md:active:animate-press-down">
+                    <div className="shrink-0 h-5 w-5 relative">
+                        {source_network ?
+                            <ImageWithFallback
+                                src={source_network.logoUrl ?? ''}
+                                alt="From Logo"
+                                height="20"
+                                width="20"
+                                className="rounded-md object-contain"
+                            /> : null
+                        }
+                    </div>
+                    <ChevronRight className="block h-4 w-4" />
+                    <div className="shrink-0 h-5 w-5 relative block">
+                        {destination_network ?
+                            <ImageWithFallback
+                                src={destination_network.logoUrl ?? ''}
+                                alt="To Logo"
+                                height="20"
+                                width="20"
+                                className="rounded-md object-contain"
+                            /> : null
+                        }
                     </div>
                 </div>
             </motion.div>

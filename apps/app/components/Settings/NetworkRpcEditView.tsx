@@ -21,6 +21,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
     const [validatingIndex, setValidatingIndex] = useState<number | null>(null)
     const [validationErrors, setValidationErrors] = useState<Record<number, string>>({})
     const [validatedUrls, setValidatedUrls] = useState<Record<number, boolean>>({})
+    const [focusedIndex, setFocusedIndex] = useState<number | null>(null)
 
     const hasLightClient = supportsLightClient(network)
 
@@ -169,7 +170,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                         <div className="flex items-center gap-2">
                             <div className="font-semibold text-primary-text">{network.displayName}</div>
                             {hasLightClient && (
-                                <span className="flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-warning-background text-warning-foreground rounded">
+                                <span className="flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-primary/20 text-primary rounded">
                                     <Zap className="w-3 h-3" />
                                     Light Client
                                 </span>
@@ -215,24 +216,28 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                                 <Input
                                     type="text"
                                     value={url}
+                                    onFocus={() => setFocusedIndex(index)}
+                                    onBlur={() => setFocusedIndex(null)}
                                     onChange={(e) => handleUrlChange(index, e.target.value)}
                                     placeholder="https://your-rpc-endpoint.com"
-                                    className={`pr-10 py-2 rounded-xl ${validationErrors[index]
+                                    className={`py-2 rounded-xl text-ellipsis ${focusedIndex === index ? "pr-3" : "pr-10"} ${validationErrors[index]
                                         ? "border-error-foreground focus-visible:ring-error-foreground/30 focus-visible:border-error-foreground"
                                         : validatedUrls[index]
                                             ? "border-success-foreground focus-visible:ring-success-foreground/30 focus-visible:border-success-foreground"
                                             : ""
                                         }`}
                                 />
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-10">
-                                    {validatingIndex === index ? (
-                                        <Loader className="w-4 h-4 text-secondary-text animate-spin" />
-                                    ) : validatedUrls[index] ? (
-                                        <CheckCircle className="w-4 h-4 text-success-foreground" />
-                                    ) : validationErrors[index] ? (
-                                        <AlertCircle className="w-4 h-4 text-error-foreground" />
-                                    ) : null}
-                                </div>
+                                {focusedIndex !== index && (
+                                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                        {validatingIndex === index ? (
+                                            <Loader className="w-4 h-4 text-secondary-text animate-spin" />
+                                        ) : validatedUrls[index] ? (
+                                            <CheckCircle className="w-4 h-4 text-success-foreground" />
+                                        ) : validationErrors[index] ? (
+                                            <AlertCircle className="w-4 h-4 text-error-foreground" />
+                                        ) : null}
+                                    </div>
+                                )}
                             </div>
                             {customUrls.length > 1 && (
                                 <button

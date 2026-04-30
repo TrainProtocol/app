@@ -1,64 +1,66 @@
-import { Home, RefreshCcw } from "lucide-react";
-import React from "react";
-import SubmitButton from "./buttons/submitButton"
-import ContactSupport from "./ContactSupport"
-import MessageComponent from "./MessageComponent"
-import GoHomeButton from "./utils/GoHome"
-import { IsExtensionError } from "../helpers/errorHelper";
+import { Home, RotateCcw } from "lucide-react";
+import MessageComponent from "./MessageComponent";
+import NotFoundIcon from "./Icons/NotFoundIcon";
+import GoHomeButton from "./utils/GoHome";
+import SubmitButton from "./buttons/submitButton";
+import ContactSupport from "./ContactSupport";
 import { Widget } from "./Widget/Index";
 
 export default function ErrorFallback({ error, resetErrorBoundary }) {
-
-    const extension_error = IsExtensionError(error)
-
     return (
         <Widget hideMenu>
-            <Widget.Content center>
+            <div className="flex flex-col h-[80svh] sm:h-[390px]">
                 <MessageComponent>
-                    <MessageComponent.Content icon="red">
-                        <MessageComponent.Header>
-                            Unable to complete the request
+                    <MessageComponent.Content center>
+                        <MessageComponent.Header className="mb-3">
+                            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-error-background">
+                                <NotFoundIcon className="text-error-foreground" />
+                            </div>
+                            <h1 className="text-center text-2xl font-semibold text-primary-text">
+                                Unable to complete the request
+                            </h1>
                         </MessageComponent.Header>
                         <MessageComponent.Description>
-                            <p>
-                                <span>Sorry, but we were unable to complete this request.&nbsp;</span>
-                                {
-                                    extension_error ?
-                                        <span>It seems that some of your extensions are preventing the app from running.</span>
-                                        : <span>We are informed, and are now investigating the issue.</span>
-                                }
-                            </p>
-                            <p>
-                                {
-                                    extension_error ?
-                                        <span>Please disable extensions and try again or open in incognito mode. If the issue keeps happening,&nbsp;</span>
-                                        :
-                                        <span>Please try again. If the issue keeps happening,&nbsp;</span>
-                                }
-                                <span className="underline cursor-pointer text-primary "><ContactSupport>contact our support team.</ContactSupport></span>
+                            <p className="mx-auto text-center text-base font-normal leading-5 text-secondary-text px-9">
+                                <span>Our team is informed and are now investigating the issue. Please try again, if the issue persists you can</span>
+                                <ContactSupport>
+                                    <button
+                                        type="button"
+                                        className="mx-1 underline decoration-gray-400 underline-offset-2 hover:decoration-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-secondary-700 focus:ring-gray-400 rounded"
+                                    >
+                                        <span>contact our support.</span>
+                                    </button>
+                                </ContactSupport>
                             </p>
                         </MessageComponent.Description>
                     </MessageComponent.Content>
                     <MessageComponent.Buttons>
-                        <div className="flex flex-row text-primary-text text-xs sm:text-base space-x-2">
-                            <div className='flex-1'>
-                                <GoHomeButton onClick={resetErrorBoundary}>
-                                    <SubmitButton buttonStyle="secondary" isDisabled={false} isSubmitting={false} icon={<Home className="h-5 w-5" aria-hidden="true" />}>
-                                        Go home
-                                    </SubmitButton>
-                                </GoHomeButton>
-                            </div>
-                            <div className='flex-1'>
-                                <SubmitButton isDisabled={false} isSubmitting={false}
-                                    onClick={() => resetErrorBoundary()}
-                                    icon={<RefreshCcw className="h-5 w-5" aria-hidden="true" />}>
-                                    Try Again
-                                </SubmitButton>
-                            </div>
+                        <div className="flex flex-col w-full text-primary-text text-base space-y-2">
+                            <SubmitButton
+                                style={{ display: 'ruby' }}
+                                className="py-3 text-center"
+                                button_align="right"
+                                text_align="left"
+                                isDisabled={false}
+                                isSubmitting={false}
+                                onClick={() => resetErrorBoundary()}
+                                icon={<RotateCcw className="h-5 w-5" aria-hidden="true" />}
+                            >
+                                <span>Try Again</span>
+                            </SubmitButton>
+                            <GoHomeButton onClick={resetErrorBoundary}>
+                                <button
+                                    type="button"
+                                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-secondary-400 px-5 py-3 text-base font-semibold leading-6 hover:bg-secondary-300 focus:outline-none transition"
+                                >
+                                    <Home className="h-5 w-5" aria-hidden="true" />
+                                    <span>Back to app</span>
+                                </button>
+                            </GoHomeButton>
                         </div>
                     </MessageComponent.Buttons>
                 </MessageComponent>
-            </Widget.Content>
+            </div>
         </Widget>
     );
 }

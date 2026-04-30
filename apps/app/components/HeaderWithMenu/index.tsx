@@ -3,7 +3,6 @@ import GoHomeButton from "@/components/utils/GoHome"
 import { ArrowLeft } from 'lucide-react'
 import TrainMenu from "@/components/TrainMenu"
 import { useQueryState } from "@/context/query"
-import { UserStatusHeader } from "../SecretDerivation"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
 import dynamic from "next/dynamic"
 import PendingSwap from "../Swap/PendingSwap"
@@ -39,7 +38,6 @@ function HeaderWithMenu({ goBack }: { goBack: (() => void) | undefined | null })
          {isMobile && (
             <div className="col-start-5 justify-self-end self-center flex items-center gap-x-2 sm:gap-x-1">
                <PendingSwap />
-               <UserStatusHeader />
                <WalletsHeader />
                <TrainMenu />
             </div>
