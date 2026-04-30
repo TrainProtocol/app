@@ -3,8 +3,7 @@
 import { FC, ReactNode, useEffect, useRef } from "react"
 import { useTheme } from "next-themes"
 import { motion, LayoutGroup } from "framer-motion"
-import { ChevronLeft, ChevronRight, Globe, LucideIcon, Monitor, Moon, Shield, Sun } from "lucide-react"
-import { Switch } from "@/components/shadcn/switch"
+import { ChevronLeft, ChevronRight, Globe, LucideIcon, Monitor, Moon, Sun } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { FormWizardProvider, useFormWizardaUpdate } from "@/context/formWizardProvider"
 import { MenuStep } from "@/Models/Wizard"
@@ -12,7 +11,6 @@ import WizardItem from "@/components/Wizard/WizardItem"
 import RpcNetworkListView from "@/components/Settings/RpcNetworkListView"
 import NetworkRpcEditView from "@/components/Settings/NetworkRpcEditView"
 import { useMenuNavigation } from "@/hooks/useMenuNavigation"
-import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore"
 import SettingsCard from "./SettingsCard"
 import MobilePageHeader from "@/components/MobilePageHeader"
 
@@ -143,26 +141,12 @@ const ThemeSegmentedPicker: FC<{ value: string; onChange: (v: string) => void }>
 )
 
 const MenuStepContent: FC<{ onOpenRpc: () => void }> = ({ onOpenRpc }) => {
-    const { autoRevealSecret, setAutoRevealSecret } = useSwapPreferencesStore()
     const { theme, setTheme } = useTheme()
 
     return (
         <div className="flex flex-col gap-3">
             <SettingsCard
                 showTestnetBanner
-                icon={<IconChip icon={Shield} />}
-                iconAlign="start"
-                title="Auto Reveal Secret"
-                description="Reveal the HTLC secret automatically once the solver has locked on the destination chain."
-                action={
-                    <Switch
-                        checked={autoRevealSecret}
-                        onCheckedChange={setAutoRevealSecret}
-                    />
-                }
-            />
-
-            <SettingsCard
                 icon={<IconChip icon={Globe} />}
                 iconAlign="center"
                 title="RPC Configuration"

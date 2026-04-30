@@ -1,6 +1,5 @@
 import { FC, useEffect, useRef, useState } from "react";
 import { useActiveSwap } from "@/hooks/useActiveSwap";
-import { RevealSecretAction } from "./RevealSecret";
 import { ManualRedeemAction } from "./ManualClaim";
 import { UserRefundAction, UserLockAction } from "./UserActions";
 import TransactionMessages from "@/components/Swap/messages/TransactionMessages";
@@ -12,7 +11,6 @@ import { ExternalLink, Home } from "lucide-react";
 import { useGoHome } from "@/hooks/useGoHome";
 import { getExplorerUrl } from "@/lib/address";
 import { Widget } from "@/components/Widget/Index";
-import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
 import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
 import { useLoginIdentityMismatch, useRecoveryIdentityCheck, HTLCStatus } from "@train-protocol/react";
@@ -98,7 +96,7 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode,
         case HTLCStatus.SecretRevealed:
             return <></>
         case HTLCStatus.SolverLockDetected:
-            return <SolverLockDetectedAction type={type} />
+            return <SolverLockDetectedAction />
         case HTLCStatus.UserLocked:
             return <></>
         default:
@@ -106,13 +104,11 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode,
     }
 }
 
-const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
-    const { autoRevealSecret, hasSeenAutoRevealPrompt } = useSwapPreferencesStore()
+const SolverLockDetectedAction: FC = () => {
     const { revealSecret } = useRevealSecret()
-    const [autoRevealFailed, setAutoRevealFailed] = useState(false)
     const attemptedRef = useRef(false)
-    const { verified, skipped, mismatches } = useSolverLockVerification()
-    const { consensusVerified, consensusVerifying, loginIdentity, hashlock, sourceDetails } = useActiveSwap()
+    const { verified, skipped } = useSolverLockVerification()
+    const { consensusVerified, loginIdentity, hashlock, sourceDetails } = useActiveSwap()
     const { warning: metadataWarning } = useLoginIdentityMismatch(loginIdentity ?? undefined)
     const recoveryWarning = useRecoveryIdentityCheck({
         hashlock,
@@ -123,32 +119,21 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
 
     // Wait for both quote verification AND multi-RPC consensus before revealing
     const consensusReady = consensusVerified || skipped
-    const shouldAutoReveal = autoRevealSecret && hasSeenAutoRevealPrompt && !autoRevealFailed && verified && consensusReady && !warning
+    const ready = verified && consensusReady && !warning
 
     useEffect(() => {
-        if (shouldAutoReveal && !attemptedRef.current) {
+        if (ready && !attemptedRef.current) {
             attemptedRef.current = true
             revealSecret().catch(() => {
-                setAutoRevealFailed(true)
+                // Errors surface via useActiveSwap().error → TransactionMessage in the parent.
             })
         }
-    }, [shouldAutoReveal, revealSecret])
+    }, [ready, revealSecret])
 
     if (warning) {
         return <WalletMessage status="warning" header={warning.header} details={warning.details} />
     }
-    // Wait for consensus verification before allowing secret reveal
-    if (consensusVerifying) return <></>
-
-    if (shouldAutoReveal) return <></>
-
-    // Verification failed — hide reveal button, progress panel shows the error
-    if (!verified && !skipped && mismatches.length > 0) {
-        return <></>
-    }
-
-    // First time: show checkbox. After that (or on auto-reveal failure): just the button
-    return <RevealSecretAction showCheckbox={!hasSeenAutoRevealPrompt} type={type} verificationSkipped={skipped} />
+    return <></>
 }
 
 export const ActionWrapper: FC<{ children: React.ReactNode, type: SwapViewType }> = ({ children, type }) => {
@@ -216,7 +201,7 @@ const TransactionMessage: FC<{ error: string | undefined, errorCode?: TrainError
         return <TransactionMessages.InsufficientFundsMessage />
     }
     if (error?.includes('verification failed') || error?.includes('VERIFICATION_FAILED') || errorCode === TrainErrorCode.VerificationFailed) {
-        return <WalletMessage status="error" header="Verification failed" details={error || "Verification of the solver lock transaction has failed. Please do not reveal you seceret untill you have verified the transaction."} />
+        return <WalletMessage status="error" header="Verification failed" details={error || "Verification of the solver lock transaction has failed. Please do not reveal your secret until you have verified the transaction."} />
     }
     if (error?.includes('Cannot reveal') || error?.includes('REVEAL_FAILED') || errorCode === TrainErrorCode.RevealFailed) {
         return <WalletMessage status="error" header="Reveal failed" details={error || "Secret reveal failed"} />
