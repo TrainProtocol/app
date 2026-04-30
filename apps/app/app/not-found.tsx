@@ -19,7 +19,7 @@ export default function NotFound() {
 
     return (
         <Widget hideMenu>
-            <div className="flex flex-col h-[80svh] sm:h-[400px]">
+            <div className="flex flex-col h-[80svh] sm:h-[390px]">
                 <MessageComponent>
                     <MessageComponent.Content center>
                         <MessageComponent.Header className="mb-3">
@@ -36,7 +36,7 @@ export default function NotFound() {
                                 <ContactSupport>
                                     <button
                                         type="button"
-                                        className="mx-1 underline decoration-gray-400 underline-offset-2 hover:decoration-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0f1420] focus:ring-gray-400 rounded"
+                                        className="mx-1 underline decoration-gray-400 underline-offset-2 hover:decoration-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-secondary-700 focus:ring-gray-400 rounded"
                                     >
                                         <span>contact our support</span>
                                     </button>
