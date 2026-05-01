@@ -39,13 +39,12 @@ type StepOverride = {
 const HAPPY_STEPS: StepTemplate[] = [
     { activeName: "Lock funds", completeName: "Funds locked", linkKey: "source" },
     { activeName: "Awaiting reservation", completeName: "Assets reserved", linkKey: "dest" },
-    { activeName: "Reveal secret", completeName: "Secret revealed" },
     { activeName: "Receive assets", completeName: "Assets received", linkKey: "redeem" },
 ];
 
 const REFUND_STEPS: StepTemplate[] = [
     { activeName: "Funds locked", completeName: "Funds locked", linkKey: "source" },
-    { activeName: "Timelock expired", completeName: "Timelock expired", isFailed: true },
+    { activeName: "Time expired", completeName: "Time expired", isFailed: true },
     { activeName: "Refund", completeName: "Refund completed", linkKey: "refund" },
 ];
 
@@ -99,7 +98,7 @@ function buildSteps(
 // --- Verification Status ---
 
 const VerificationStatus: FC = () => {
-    const { consensusVerifying, consensusVerified } = useActiveSwap();
+    const { consensusVerifying, consensusVerified, verifiedNodeCount } = useActiveSwap();
 
     if (consensusVerifying) {
         return (
@@ -111,11 +110,14 @@ const VerificationStatus: FC = () => {
     }
 
     if (consensusVerified) {
+        const label = verifiedNodeCount === 1
+            ? '1 RPC'
+            : `${verifiedNodeCount} RPCs`;
         return (
             <div className="flex items-center gap-1 text-sm">
                 <span>Verified by</span>
                 <span className="font-medium text-primary flex items-center gap-1">
-                    multiple RPCs
+                    {label}
                     <LockIcon className="h-4 w-4 text-primary" />
                 </span>
             </div>
@@ -137,7 +139,6 @@ export function useSwapProgress(): SwapProgress {
         sourceDetails,
         destRedeemTxId: destRedeemTx,
         htlcFromApi,
-        consensusVerifying,
         error
     } = useActiveSwap();
 
@@ -158,11 +159,11 @@ export function useSwapProgress(): SwapProgress {
         if (htlcStatus === HTLCStatus.TimelockExpired && !isRefunded && !refundTxId) {
             return {
                 gaugeValue: 25, gaugeIcon: "x",
-                title: "Timelock expired",
-                subtitle: "The response was not received in time.",
+                title: "Swap timed out",
+                subtitle: "No response in time.",
                 steps: buildSteps(REFUND_STEPS, 2, { source: sourceTxLink }, {
-                    1: { description: "Solver did not respond in time" },
-                    2: { status: StepStatus.Upcoming, description: "Cancel & refund to get your assets back" },
+                    1: { description: "No response in time" },
+                    2: { status: StepStatus.Upcoming, description: "Cancel to get your assets back" },
                 }),
             };
         }
@@ -174,7 +175,7 @@ export function useSwapProgress(): SwapProgress {
                 title: "Processing refund",
                 subtitle: "Your refund is being processed.",
                 steps: buildSteps(REFUND_STEPS, 2, { source: sourceTxLink }, {
-                    2: { name: "Refund pending", description: "Assets are being returned to your source wallet" },
+                    2: { name: "Refund pending", description: "Returning assets to your wallet" },
                 }),
             };
         }
@@ -225,10 +226,10 @@ export function useSwapProgress(): SwapProgress {
             return {
                 gaugeValue: 25, gaugeIcon: null,
                 title: "Transfer in progress",
-                subtitle: "Waiting for solver to reserve assets.",
+                subtitle: "Reserving assets on destination…",
                 steps: buildSteps(HAPPY_STEPS, 1, { source: sourceTxLink }, {
                     0: { description: "Transaction confirmed", timelock: sourceDetails?.timelock },
-                    1: { description: "Solver is reserving assets on destination" },
+                    1: { description: "Reserving assets…" },
                 }),
             };
         }
@@ -237,34 +238,25 @@ export function useSwapProgress(): SwapProgress {
         if (htlcStatus === HTLCStatus.SolverLockDetected && !verified && !skipped && mismatches.length > 0) {
             return {
                 gaugeValue: 50, gaugeIcon: "x",
-                title: "Solver lock mismatch",
-                subtitle: "Do not reveal your secret. Wait for the timelock to expire, then refund.",
+                title: "Reservation mismatch",
+                subtitle: "You can refund once the time expires.",
                 steps: buildSteps(HAPPY_STEPS, 1, { source: sourceTxLink, dest: destTxLink }, {
                     0: { timelock: sourceDetails?.timelock },
                     1: { name: "Reservation mismatch", status: StepStatus.Failed, description: mismatches.join('. ') },
-                    2: { status: StepStatus.Upcoming },
                 }),
             };
         }
 
-        // Solver lock detected — user can reveal secret after verification
+        // Solver lock detected — verifying and auto-revealing under the hood
         if (htlcStatus === HTLCStatus.SolverLockDetected) {
-            // During consensus, step 1 (Assets reserved) is current; after consensus, step 2 (Reveal secret) is current
-            const currentStep = consensusVerifying ? 1 : 2;
-            const solverLockOverrides: Record<number, StepOverride> = {
-                0: { timelock: sourceDetails?.timelock },
-                1: { description: <VerificationStatus /> },
-            };
-            if (!consensusVerifying) {
-                solverLockOverrides[2] = { description: "Verify solver lock and reveal secret" };
-            }
             return {
                 gaugeValue: 50, gaugeIcon: null,
                 title: "Transfer in progress",
-                subtitle: consensusVerifying
-                    ? "Verifying solver lock with multiple nodes..."
-                    : "Verify solver lock and reveal your secret.",
-                steps: buildSteps(HAPPY_STEPS, currentStep, { source: sourceTxLink, dest: destTxLink }, solverLockOverrides),
+                subtitle: "Verifying transfer…",
+                steps: buildSteps(HAPPY_STEPS, 1, { source: sourceTxLink, dest: destTxLink }, {
+                    0: { timelock: sourceDetails?.timelock },
+                    1: { description: <VerificationStatus /> },
+                }),
             };
         }
 
@@ -274,10 +266,10 @@ export function useSwapProgress(): SwapProgress {
                 gaugeValue: 75, gaugeIcon: null,
                 title: "Releasing assets",
                 subtitle: "You will receive your assets shortly.",
-                steps: buildSteps(HAPPY_STEPS, 3, { source: sourceTxLink, dest: destTxLink }, {
+                steps: buildSteps(HAPPY_STEPS, 2, { source: sourceTxLink, dest: destTxLink }, {
                     0: { timelock: sourceDetails?.timelock },
                     1: { description: <VerificationStatus /> },
-                    3: { name: "Receiving assets", status: StepStatus.Current, description: "Solver is claiming on destination" },
+                    2: { name: "Receiving assets", status: StepStatus.Current, description: "Finalizing on destination…" },
                 }),
             };
         }
@@ -287,10 +279,10 @@ export function useSwapProgress(): SwapProgress {
             return {
                 gaugeValue: 85, gaugeIcon: null,
                 title: "Action required",
-                subtitle: "Claim your assets manually on the destination chain.",
-                steps: buildSteps(HAPPY_STEPS, 3, { source: sourceTxLink, dest: destTxLink }, {
+                subtitle: "Claim your assets manually to finish.",
+                steps: buildSteps(HAPPY_STEPS, 2, { source: sourceTxLink, dest: destTxLink }, {
                     1: { description: <VerificationStatus /> },
-                    3: { name: "Claim assets", status: !redeemTxLink ? StepStatus.Upcoming : StepStatus.Current, description: "Solver didn't complete the claim. You can claim your assets manually." },
+                    2: { name: "Claim assets", status: !redeemTxLink ? StepStatus.Upcoming : StepStatus.Current, description: "The transfer didn't complete automatically. Claim manually to finish." },
                 }),
             };
         }
@@ -320,7 +312,6 @@ export function useSwapProgress(): SwapProgress {
         verified,
         skipped,
         mismatches,
-        consensusVerifying,
         error
     ]);
 }

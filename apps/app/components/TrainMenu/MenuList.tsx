@@ -1,11 +1,9 @@
-import { BookOpen, Home, Settings2, Zap, RotateCcw, ScrollText, Sun, Moon, Monitor } from "lucide-react";
-import { useSwapPreferencesStore } from "@/stores/swapPreferencesStore";
+import { BookOpen, Home, Settings2, RotateCcw, ScrollText, Sun, Moon, Monitor } from "lucide-react";
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
-import { FC, useEffect, useState } from "react";
+import { FC } from "react";
 import { useIntercom } from "react-use-intercom";
 import ChatIcon from "@/components/Icons/ChatIcon";
-import inIframe from "@/components/utils/inIframe";
 import GitHubLogo from "@/components/Icons/GitHubLogo";
 import TwitterLogo from "@/components/Icons/TwitterLogo";
 import Link from "next/link";
@@ -22,13 +20,7 @@ const WalletsMenu = dynamic(() => import("../Wallet/ConnectedWallets").then((com
 const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ goToStep }) => {
     const pathname = usePathname();
     const { boot, show, update } = useIntercom()
-    const [embedded, setEmbedded] = useState<boolean>()
-    const { autoRevealSecret, setAutoRevealSecret } = useSwapPreferencesStore()
     const { theme, setTheme } = useTheme()
-
-    useEffect(() => {
-        setEmbedded(inIframe())
-    }, [])
 
     return <div className="text-sm font-medium focus:outline-none h-full">
         <Menu>
@@ -57,14 +49,6 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
                     <Menu.Item onClick={() => goToStep(MenuStep.Transactions)} icon={<ScrollText className="h-5 w-5" />} >
                         Transactions
                     </Menu.Item>
-
-                    <Menu.ToggleItem
-                        icon={<Zap className="h-5 w-5" />}
-                        checked={autoRevealSecret}
-                        onChange={setAutoRevealSecret}
-                    >
-                        Auto Reveal Secret
-                    </Menu.ToggleItem>
 
                     <Menu.SelectorItem
                         label="Theme"

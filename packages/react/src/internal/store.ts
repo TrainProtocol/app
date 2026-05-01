@@ -11,6 +11,7 @@ export type ConsensusPhase = 'none' | 'detecting' | 'verifying' | 'verified' | '
 export interface SwapFlags {
     secretRevealedToApi: boolean
     consensusPhase: ConsensusPhase
+    verifiedNodeCount: number
     error: TrainError | null
     manualClaimStartedAt: number | null
 }
@@ -18,6 +19,7 @@ export interface SwapFlags {
 const DEFAULT_FLAGS: SwapFlags = {
     secretRevealedToApi: false,
     consensusPhase: 'none',
+    verifiedNodeCount: 0,
     error: null,
     manualClaimStartedAt: null,
 }

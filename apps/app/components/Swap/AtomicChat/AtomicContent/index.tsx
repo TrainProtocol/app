@@ -7,7 +7,7 @@ import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import { Gauge } from "./Gauge";
 import Timeline from "./Timeline";
 import { useSwapProgress } from "./useSwapProgress";
-import { CircleCheck, SearchX, Undo2, X } from "lucide-react";
+import { CircleCheck, Info, SearchX, Undo2, X } from "lucide-react";
 import { HTLCStatus } from "@train-protocol/react";
 import { Loader2 } from "lucide-react";
 import { useSettingsState } from "@/context/settings";
@@ -65,14 +65,33 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false, 
                 quote={quote}
             />
 
+            {(!isInitial || hashlock) && (
+                <>
+                    <SwapProgressPanel />
+                    {IN_PROGRESS_STATUSES.includes(commitStatus) && <KeepTabOpenNote />}
+                </>
+            )}
+
             {isInitial && !hashlock && (
                 <SwapQuoteComp values={summaryValues} quote={quote} isQuoteLoading={isQuoteLoading} />
             )}
-
-            {(!isInitial || hashlock) && <SwapProgressPanel />}
         </>
     )
 }
+
+const IN_PROGRESS_STATUSES: HTLCStatus[] = [
+    HTLCStatus.Initial,
+    HTLCStatus.UserLocked,
+    HTLCStatus.SolverLockDetected,
+    HTLCStatus.SecretRevealed,
+]
+
+const KeepTabOpenNote: FC = () => (
+    <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-secondary-600 text-sm text-secondary-text">
+        <Info className="h-4 w-4 shrink-0" />
+        <span>Please keep this tab open</span>
+    </div>
+)
 
 // New gauge + timeline progress panel
 const SwapProgressPanel: FC = () => {
@@ -100,7 +119,7 @@ const SwapProgressPanel: FC = () => {
                             <Gauge value={gaugeValue} size="small" showCheckmark={gaugeIcon === "check"} />
                         )}
                     </div>
-                    <div className="flex-col text-center max-w-[370px]">
+                    <div className="flex-col text-center max-w-92.5">
                         <span className="font-medium text-primary-text">{title}</span>
                         {subtitle && (
                             <CollapsibleSubtitle text={subtitle} />
@@ -156,14 +175,14 @@ const CollapsibleSubtitle: FC<{ text: string }> = ({ text }) => {
 };
 
 export const SwapLoading: FC<{ message?: string }> = ({ message = "Loading swap data..." }) => (
-    <div className="flex flex-col items-center justify-center gap-2 w-full min-h-[374px]">
+    <div className="flex flex-col items-center justify-center gap-2 w-full min-h-93.5">
         <Loader2 className="h-10 w-10 text-primary animate-spin" />
         <span className="text-sm text-secondary-text">{message}</span>
     </div>
 );
 
 const SwapNotFound: FC = () => (
-    <div className="flex flex-col items-center justify-center gap-2 w-full min-h-[374px]">
+    <div className="flex flex-col items-center justify-center gap-2 w-full min-h-93.5">
         <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/20">
             <SearchX className="h-10 w-10 text-primary" aria-hidden="true" />
         </span>

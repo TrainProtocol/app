@@ -33,7 +33,7 @@ export function useRevealSecret(): UseRevealSecretResult {
     const sdStore = useSDStoreContext()
     const walletCtx = useWalletContext()
     const queryClient = useQueryClient()
-    const { networks, networkMap } = useNetworksContext()
+    const { networkMap } = useNetworksContext()
     const [isRevealing, setIsRevealing] = useState(false)
     const [error, setError] = useState<Error | null>(null)
     const inFlight = useRef(false)
@@ -44,24 +44,25 @@ export function useRevealSecret(): UseRevealSecretResult {
         setIsRevealing(true)
         setError(null)
 
-        const swap = actions.getSwap(hashlock)
-
-        if (!swap?.hashlock) {
-            const err = new TrainError('Cannot reveal: missing hashlock', TrainErrorCode.RevealFailed)
+        const reportError = (message: string): TrainError => {
+            const err = new TrainError(message, TrainErrorCode.RevealFailed)
             setError(err)
+            actions.updateSwapFlags(hashlock, { error: err })
+            config.onError?.(err)
             inFlight.current = false
             setIsRevealing(false)
-            throw err
+            return err
+        }
+
+        const swap = actions.getSwap(hashlock)
+        if (!swap || !swap.hashlock) {
+            throw reportError('Cannot reveal: missing hashlock')
         }
 
         // Derive secret on-demand from derivedKey + nonce
         const derivedKey = sdStore?.getState().derivedKey
         if (!derivedKey) {
-            const err = new TrainError('Cannot reveal: not logged in (derivedKey unavailable)', TrainErrorCode.RevealFailed)
-            setError(err)
-            inFlight.current = false
-            setIsRevealing(false)
-            throw err
+            throw reportError('Cannot reveal: not logged in (derivedKey unavailable)')
         }
 
         // Resolve nonce: try cache first, fall back to on-chain read
@@ -76,10 +77,12 @@ export function useRevealSecret(): UseRevealSecretResult {
 
         // Tier 2: on-chain RPC fallback (cache was GC'd or not yet populated)
         if (!nonce && swap.source && swap.srcContract) {
+            const sourceNetwork = caip2Id(swap.source)
+            const sourceTokenDecimals = networkMap.get(swap.source)?.tokens.find(t => t.symbol == swap.source_asset)?.decimals
+            if (!sourceTokenDecimals) {
+                throw reportError('Cannot reveal: source token decimals unavailable')
+            }
             try {
-                const sourceNetwork = caip2Id(swap.source)
-                const sourceTokenDecimals = networkMap.get(swap.source)?.tokens.find(t => t.symbol == swap.source_asset)?.decimals
-                if (!sourceTokenDecimals) return
                 const client = walletCtx.createClient(sourceNetwork)
                 const chainId = parseCaip2Id(sourceNetwork).reference
                 const details = await client.getUserLockDetails({
@@ -94,16 +97,12 @@ export function useRevealSecret(): UseRevealSecretResult {
                     nonce = onChainNonce
                 }
             } catch {
-                // Fall through to error below
+                // RPC failure — fall through to the nonce-unavailable error below
             }
         }
 
         if (!nonce) {
-            const err = new TrainError('Cannot reveal: nonce unavailable from cache or on-chain data', TrainErrorCode.RevealFailed)
-            setError(err)
-            inFlight.current = false
-            setIsRevealing(false)
-            throw err
+            throw reportError('Cannot reveal: nonce unavailable from cache or on-chain data')
         }
 
         try {

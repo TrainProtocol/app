@@ -1,38 +1,28 @@
-import { useState, useCallback } from "react";
-import { useActiveSwap } from "@/hooks/useActiveSwap";
-import useWallet from "@/hooks/useWallet";
+import { useCallback } from "react";
 import posthog from "posthog-js";
-import { useRevealSecret as useRevealSecretHook } from "@train-protocol/react";
+import { TrainError, useRevealSecret as useRevealSecretHook } from "@train-protocol/react";
 import { useSwapStore } from "@/stores/swapStore";
 
 export function useRevealSecret() {
-    const { sourceNetwork, hashlock } = useActiveSwap()
     const activeHashlock = useSwapStore(s => s.activeHashlock)
     const { reveal: revealSecretAction } = useRevealSecretHook()
-    const { provider } = useWallet(sourceNetwork, 'withdrawal')
-    const wallet = provider?.activeWallet
-
-    const [isRevealing, setIsRevealing] = useState(false)
 
     const revealSecret = useCallback(async () => {
+        if (!activeHashlock) throw new Error("No hashlock")
+
         try {
-            if (!activeHashlock) throw new Error("No hashlock")
-
-            setIsRevealing(true)
-
             await revealSecretAction(activeHashlock)
-
-            posthog.capture("RevealSecret", {
-                hashlock,
+            posthog.capture("RevealSecret", { hashlock: activeHashlock })
+        } catch (e) {
+            console.error('[RevealSecret] failed', e)
+            posthog.capture("RevealSecretFailed", {
+                hashlock: activeHashlock,
+                errorCode: e instanceof TrainError ? e.code : undefined,
+                message: e instanceof Error ? e.message : String(e),
             })
-        }
-        catch (e: any) {
             throw e
         }
-        finally {
-            setIsRevealing(false)
-        }
-    }, [activeHashlock, hashlock, revealSecretAction])
+    }, [activeHashlock, revealSecretAction])
 
-    return { revealSecret, isRevealing, source_network: sourceNetwork, wallet }
+    return { revealSecret }
 }

@@ -51,7 +51,7 @@ const TimelockTimer = ({ timelock, children }: { timelock: number, children?: Re
                 <p className="text-sm">
                     <span>Refund available in</span> <span className="w-9"><Timer timelock={timelock} /></span>
                 </p>
-                <p className="text-xs opacity-70">If the transfer is not completed before the timelock expires, you can always request a refund</p>
+                <p className="text-xs opacity-70">If the swap doesn't complete in time, you can cancel and refund.</p>
             </div>
         </MobileTooltip>
     )

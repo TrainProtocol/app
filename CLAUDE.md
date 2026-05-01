@@ -31,7 +31,7 @@ The app has no `lint` script and no in-app test setup — tests live in packages
 **What the app does**: Cross-chain atomic swaps using HTLC (Hash Time-Locked Contracts). Users lock funds on a source chain, a solver locks on the destination chain, then secrets are revealed to complete the swap. EVM is the primary chain; Solana, Starknet, TON, Aztec, Tron, and Fuel support is in progress (see `FUEL_PHTLC.json`).
 
 ### State Management
-- **Zustand stores** (`apps/app/stores/`): `swapStore` (main swap state), `walletStore`, `addressesStore`, `balanceStore`, `rpcConfigStore`, `authDialogStore`, `aztecWalletStore`, `starknetWalletStore`, `contractWalletsStore`, `recentRoutesStore`, `routeSortingStore`, `routeTokenSwitchStore`, `swapPreferencesStore`, `usdModeStore`. There is no `secretDerivationStore` — secret derivation lives in helpers/components.
+- **Zustand stores** (`apps/app/stores/`): `swapStore` (main swap state), `walletStore`, `addressesStore`, `balanceStore`, `rpcConfigStore`, `authDialogStore`, `aztecWalletStore`, `starknetWalletStore`, `contractWalletsStore`, `recentRoutesStore`, `routeSortingStore`, `routeTokenSwitchStore`, `usdModeStore`. There is no `secretDerivationStore` — secret derivation lives in helpers/components.
 - **React Context** (`apps/app/context/`): `swapAccounts` (wallet/account handling), `formWizardProvider` (multi-step forms), `walletHookProviders` (per-chain wallet hook composition), `query` (React Query), `settings`, `snapPointsContext`, `timerContext`, `asyncModal`. HTLC contract interactions and EVM connectors are no longer separate contexts — they're handled inline via wallet hooks and the SDK's HTLC clients.
 
 ### Layout & navigation
@@ -52,7 +52,7 @@ The app has no `lint` script and no in-app test setup — tests live in packages
 ### HTLC / Atomic Swap Flow
 1. `userLock()` — user locks funds with hashlock on source chain (single-step, no separate commit)
 2. Poll `getSolverLock` — wait for solver to lock on destination chain
-3. Reveal secret via API (`RevealSecret`) — solver claims on destination then source
+3. **Auto-reveal** — once solver-lock verification (against the original quote) and multi-RPC consensus pass, the secret is revealed automatically via the API (`RevealSecret`). No user click; manual `RevealSecretAction` button and the `swapPreferencesStore.autoRevealSecret` toggle have been removed. When verification is `skipped` (no on-chain `dstAmount` to compare against), reveal still proceeds, but `SolverLockDetectedAction` shows a "Verification skipped — proceeding with caution" banner. On reveal failure, a "Try again" button is rendered.
 4. Swap complete when solver redeems
 
 Key files:
@@ -65,9 +65,9 @@ Key files:
 - `apps/app/lib/rpc/` — RPC resolution: `nodeResolver.ts` (entry point), `evmNodes.ts` (static chainlist data from `data/chainlistRpcs.json`), `nonEvmNodes.ts` (static registry)
 - `resolveNodes(caip2Id)` returns all available RPCs (existing nodes first, then dynamic/static). Called server-side in `getSettings.ts`
 - `rpcConfigStore` manages user custom RPC overrides; `getEffectiveRpcUrls(network)` returns custom URLs or `network.nodes`
-- **Consensus verification**: `getSolverLockDetailsWithConsensus()` in SDK queries nodes in batches of `batchSize` (default 3), retries with next batch if quorum (`minQuorum`, default 2) not met
+- **Consensus verification**: `getSolverLockDetailsWithConsensus()` in SDK queries nodes in batches of `batchSize` (default 3), retries with next batch if quorum (`minQuorum`, default 2) not met. Returns `ConsensusResult { details, agreedCount } | null` (the `agreedCount` is the number of nodes that agreed on the lock data).
 - `ConsensusOptions`: `{ minQuorum?: number, batchSize?: number }` — configurable per-call or via subclass defaults
-- Consensus runs once on first solver lock detection (tracked by `consensusVerified` ref in `useSolverLockPolling`), then falls back to single-node polling
+- Consensus runs once on first solver lock detection (tracked by `consensusVerified` ref in `useSolverLockPolling`), then falls back to single-node polling. The hook also tracks `verifiedNodeCount` (=1 on the single-node fast path, =`agreedCount` after multi-node consensus) and writes it to swap flags so the `VerificationStatus` UI can render "Verified by N RPCs" accurately.
 
 ### Secret & Nonce
 - Secret derived from: `deriveInitialKey()` + `deriveSecretFromTimelock(key, nonce)`
