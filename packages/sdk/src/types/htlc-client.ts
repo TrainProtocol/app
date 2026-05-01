@@ -6,7 +6,7 @@ import { Network } from "./network"
 export interface IHTLCPublicClient {
     getUserLockDetails(params: LockParams): Promise<UserLockDetails | null>
     getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null>
-    getSolverLockDetailsWithConsensus(params: LockParams, nodeUrls: string[], options?: ConsensusOptions & { prefetchedResult?: SolverLockDetails }): Promise<SolverLockDetails | null>
+    getSolverLockDetailsWithConsensus(params: LockParams, nodeUrls: string[], options?: ConsensusOptions & { prefetchedResult?: SolverLockDetails }): Promise<ConsensusResult | null>
     recoverSwap(txHash: string, network: Network): Promise<UserLockDetails>
     getTransaction(txHash: string): Promise<TransactionInfo | null>
 }
@@ -24,7 +24,7 @@ export abstract class HTLCPublicClient implements IHTLCPublicClient {
         params: LockParams,
         nodeUrls: string[],
         options?: ConsensusOptions & { prefetchedResult?: SolverLockDetails }
-    ): Promise<SolverLockDetails | null> {
+    ): Promise<ConsensusResult | null> {
         const minQuorum = options?.minQuorum ?? this.consensusOptions.minQuorum
         const batchSize = options?.batchSize ?? this.consensusOptions.batchSize
         const prefetchedResult = options?.prefetchedResult
@@ -48,7 +48,7 @@ export abstract class HTLCPublicClient implements IHTLCPublicClient {
 
         // Prefetched alone satisfies quorum (e.g. Aztec minQuorum=1)
         if (allValidResults.length >= effectiveQuorum) {
-            return allValidResults[0]
+            return { details: allValidResults[0], agreedCount: allValidResults.length }
         }
 
         for (const batch of batches) {
@@ -82,7 +82,7 @@ export abstract class HTLCPublicClient implements IHTLCPublicClient {
                 )) {
                     throw new Error('Lock details do not match across the provided nodes')
                 }
-                return first
+                return { details: first, agreedCount: allValidResults.length }
             }
         }
 
@@ -106,4 +106,9 @@ export abstract class HTLCPublicClient implements IHTLCPublicClient {
 export interface ConsensusOptions {
     minQuorum?: number
     batchSize?: number
+}
+
+export interface ConsensusResult {
+    details: SolverLockDetails
+    agreedCount: number
 }

@@ -128,7 +128,7 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         onTransactionFailed: onUserLockTxFailed,
     })
 
-    const { consensusPhase } = useSolverLockPolling({
+    const { consensusPhase, verifiedNodeCount } = useSolverLockPolling({
         client: destReadClient,
         params: solverLockParams,
         hashlock: hl,
@@ -137,12 +137,13 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         onConsensusFailed,
     })
 
-    // Sync consensus phase to store flags (one-way, for useDerivedSwapState in other components)
+    // Sync consensus phase + verified node count to store flags
+    // (one-way, for useDerivedSwapState in other components)
     useEffect(() => {
         if (hl && consensusPhase !== 'none') {
-            actions.updateSwapFlags(hl, { consensusPhase })
+            actions.updateSwapFlags(hl, { consensusPhase, verifiedNodeCount })
         }
-    }, [hl, actions, consensusPhase])
+    }, [hl, actions, consensusPhase, verifiedNodeCount])
 
     // Order streaming
     const destRedeemTx = derived.htlcFromApi?.transactions?.find(

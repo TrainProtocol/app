@@ -16,6 +16,7 @@ export interface UseSolverLockPollingOptions {
 export interface SolverLockPollingResult {
     solverLockDetails: SolverLockDetails | null
     consensusPhase: ConsensusPhase
+    verifiedNodeCount: number
 }
 
 /**
@@ -35,6 +36,7 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
     const failed = useRef(false)
 
     const [consensusPhase, setConsensusPhase] = useState<ConsensusPhase>('none')
+    const [verifiedNodeCount, setVerifiedNodeCount] = useState(0)
 
     const onConsensusFailedRef = useRef(onConsensusFailed)
     onConsensusFailedRef.current = onConsensusFailed
@@ -46,6 +48,7 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
         verified.current = false
         failed.current = false
         setConsensusPhase('none')
+        setVerifiedNodeCount(0)
     }, [hashlock, client, nodeUrlsKey])
 
     const query = useQuery({
@@ -74,20 +77,22 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
                 if (nodeUrls.length <= 1) {
                     verified.current = true
                     setConsensusPhase('verified')
+                    setVerifiedNodeCount(1)
                     return details
                 }
 
                 // Multi-node consensus
                 setConsensusPhase('verifying')
                 try {
-                    const consensusDetails = await client.getSolverLockDetailsWithConsensus(
+                    const consensusResult = await client.getSolverLockDetailsWithConsensus(
                         params,
                         nodeUrls,
                         { prefetchedResult: details },
                     )
                     verified.current = true
                     setConsensusPhase('verified')
-                    return consensusDetails
+                    setVerifiedNodeCount(consensusResult?.agreedCount ?? 0)
+                    return consensusResult?.details ?? null
                 } catch (err) {
                     const errorMsg = err instanceof Error ? err.message : String(err)
                     // Permanent failure: lock details mismatch across nodes
@@ -120,5 +125,6 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
     return {
         solverLockDetails: query.data ?? null,
         consensusPhase,
+        verifiedNodeCount,
     }
 }

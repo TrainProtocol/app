@@ -51,6 +51,7 @@ export interface DerivedSwapState {
     error: TrainError | null
     consensusVerifying: boolean
     consensusVerified: boolean
+    verifiedNodeCount: number
 
     // Persisted swap metadata
     source: string | null
@@ -87,6 +88,7 @@ const EMPTY_STATE: DerivedSwapState = {
     error: null,
     consensusVerifying: false,
     consensusVerified: false,
+    verifiedNodeCount: 0,
     source: null,
     destination: null,
     sourceAddress: null,
@@ -247,6 +249,7 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
             error: flags.error,
             consensusVerifying: flags.consensusPhase === 'verifying',
             consensusVerified: flags.consensusPhase === 'verified',
+            verifiedNodeCount: flags.verifiedNodeCount,
 
             source: swapData?.source ?? null,
             destination: swapData?.destination ?? null,

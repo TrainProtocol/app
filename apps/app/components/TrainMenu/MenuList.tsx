@@ -1,10 +1,9 @@
 import { BookOpen, Home, Settings2, RotateCcw, ScrollText, Sun, Moon, Monitor } from "lucide-react";
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
-import { FC, useEffect, useState } from "react";
+import { FC } from "react";
 import { useIntercom } from "react-use-intercom";
 import ChatIcon from "@/components/Icons/ChatIcon";
-import inIframe from "@/components/utils/inIframe";
 import GitHubLogo from "@/components/Icons/GitHubLogo";
 import TwitterLogo from "@/components/Icons/TwitterLogo";
 import Link from "next/link";
