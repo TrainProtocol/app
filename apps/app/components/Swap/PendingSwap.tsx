@@ -17,8 +17,7 @@ export default function PendingSwap() {
     const settings = useSettingsState()
     const pathname = usePathname()
 
-
-    if (!mounted || !activeHashlock || !activeSwap || swapModalOpen || !settings || pathname == '/swap') return null
+    if (!mounted || !activeHashlock || !activeSwap || swapModalOpen || !settings || pathname !== '/') return null
 
     const { networks } = settings
     const source_network = networks.find(n => n.caip2Id.toUpperCase() === activeSwap.source?.toUpperCase())
