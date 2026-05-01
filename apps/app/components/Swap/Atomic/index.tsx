@@ -9,16 +9,14 @@ import SwapForm from "./Form";
 import { useSearchParams, type ReadonlyURLSearchParams } from "next/navigation";
 import { useQueryState } from "@/context/query";
 import useWallet from "@/hooks/useWallet";
-import { useSwapProgress, type SwapQuote, HTLCStatus, useSharedSecretDerivation } from "@train-protocol/react";
-import VaulDrawer from "../../Modal/vaulModal";
+import { type SwapQuote, useSharedSecretDerivation } from "@train-protocol/react";
 import { Widget } from "../../Widget/Index";
 import { generateSwapInitialValues } from "@/lib/generateSwapInitialValues";
 import { useSettingsState } from "@/context/settings";
-import { getPersistantSearchParams } from "@/helpers/querryHelper";
+import { getPersistantSearchParams, silentReplaceState } from "@/helpers/querryHelper";
 import { buildSwapQuery } from "@/helpers/swapUrl";
 import { useSwapStore } from "@/stores/swapStore";
 import { useActiveSwap } from "@/hooks/useActiveSwap";
-import AtomicPage from "../AtomicChat";
 import { useRecentNetworksStore } from "@/stores/recentRoutesStore";
 
 export default function Form() {
@@ -30,16 +28,13 @@ export default function Form() {
     const [solverId, setSolverId] = useState<string | undefined>()
     const [polling, setPolling] = useState(true)
     const { getProvider } = useWallet()
-    const activeHashlock = useSwapStore(s => s.activeHashlock)
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
     const settings = useSettingsState()
     const swapModalOpen = useSwapStore(s => s.swapModalOpen)
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
+    const setPendingFormValues = useSwapStore(s => s.setPendingFormValues)
     const updateRecentNetworks = useRecentNetworksStore(s => s.updateRecentNetworks);
     const swap = useActiveSwap()
-
-    // Monitor the active swap lifecycle
-    const { status: htlcStatus } = useSwapProgress(activeHashlock)
 
     useEffect(() => {
         if (swapModalOpen) {
@@ -52,19 +47,6 @@ export default function Form() {
             removeSwapPath(searchParams);
         }
     }, [swapModalOpen, swap.source, swap.txId, searchParams]);
-
-    const handleShowSwapModal = useCallback((value: boolean) => {
-        setSwapModalOpen(value);
-    }, [setSwapModalOpen]);
-
-    const handleDrawerAnimationEnd = useCallback((open: boolean) => {
-        if (!open) {
-            const isTerminal = htlcStatus === HTLCStatus.RedeemCompleted || htlcStatus === HTLCStatus.Refunded
-            if (isTerminal) {
-                setActiveHashlock(null)
-            }
-        }
-    }, [htlcStatus, setActiveHashlock]);
 
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
@@ -88,11 +70,8 @@ export default function Form() {
                 to: values.to && values.toCurrency ? { network: values.to.caip2Id, token: values.toCurrency.symbol } : undefined,
             })
 
-            // Reset any previous swap so the modal starts fresh
             setActiveHashlock(null)
-
-            // Open the swap modal — pre-lock data comes from Formik context,
-            // UserLockAction inside will call createSwap
+            setPendingFormValues(values)
             setSwapModalOpen(true)
             setPolling(false)
         }
@@ -111,22 +90,9 @@ export default function Form() {
             validate={MainStepValidation}
             onSubmit={handleSubmit}
         >
-            <>
-                <VaulDrawer
-                    mode="fitHeight"
-                    show={swapModalOpen}
-                    setShow={handleShowSwapModal}
-                    header="Complete the swap"
-                    modalId="showAtomicSwap"
-                    className="expandContainerHeight"
-                    onAnimationEnd={handleDrawerAnimationEnd}
-                >
-                    <AtomicPage type='contained' />
-                </VaulDrawer>
-                <Widget>
-                    <SwapForm polling={polling} onQuoteChange={(q, id) => { setQuote(q); setSolverId(id) }} />
-                </Widget>
-            </>
+            <Widget>
+                <SwapForm polling={polling} onQuoteChange={(q, id) => { setQuote(q); setSolverId(id) }} />
+            </Widget>
         </Formik>
     </>
 }
@@ -134,7 +100,7 @@ export default function Form() {
 const removeSwapPath = (searchParams: ReadonlyURLSearchParams | null) => {
     const params = new URLSearchParams(getPersistantSearchParams(searchParams))
     const qs = params.toString()
-    window.history.replaceState(null, "", qs ? `/?${qs}` : "/")
+    silentReplaceState(qs ? `/?${qs}` : "/")
 }
 
 const setSwapInUrl = (searchParams: ReadonlyURLSearchParams | null, sourceNetwork: string, txHash: string) => {
@@ -143,5 +109,5 @@ const setSwapInUrl = (searchParams: ReadonlyURLSearchParams | null, sourceNetwor
     for (const [key, value] of persistant.entries()) {
         atomicParams.set(key, value)
     }
-    window.history.replaceState(null, "", `/swap?${atomicParams.toString()}`)
+    silentReplaceState(`/swap?${atomicParams.toString()}`)
 }

@@ -10,39 +10,38 @@ import { useSwapProgress } from "./useSwapProgress";
 import { CircleCheck, SearchX, Undo2, X } from "lucide-react";
 import { HTLCStatus } from "@train-protocol/react";
 import { Loader2 } from "lucide-react";
-import { useFormikContext } from "formik";
 import { useSettingsState } from "@/context/settings";
 import formatAmount from "@/lib/formatAmount";
 
 type AtomicContentProps = {
     quote?: SwapQuote
     isQuoteLoading?: boolean
+    formValues?: SwapFormValues
 }
 
-const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }) => {
+const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false, formValues }) => {
     const swap = useActiveSwap()
-    const { values } = useFormikContext<SwapFormValues>()
     const { networks } = useSettingsState()
 
-    // Post-lock: use derived state. Pre-lock: use Formik values.
-    const source_network = swap.sourceNetwork ? networks.find(n => n.caip2Id == swap.sourceNetwork?.caip2Id) : values?.from
-    const destination_network = swap.destinationNetwork ? networks.find(n => n.caip2Id == swap.destinationNetwork?.caip2Id) : values?.to
-    const source_asset = swap.sourceToken ? source_network?.tokens.find(t => t.contract == swap.sourceToken?.contract) : values?.fromCurrency
-    const destination_asset = swap.destinationToken ? destination_network?.tokens.find(t => t.contract == swap.destinationToken?.contract) : values?.toCurrency
+    // Post-lock: use derived state. Pre-lock: use form values from caller.
+    const source_network = swap.sourceNetwork ? networks.find(n => n.caip2Id == swap.sourceNetwork?.caip2Id) : formValues?.from
+    const destination_network = swap.destinationNetwork ? networks.find(n => n.caip2Id == swap.destinationNetwork?.caip2Id) : formValues?.to
+    const source_asset = swap.sourceToken ? source_network?.tokens.find(t => t.contract == swap.sourceToken?.contract) : formValues?.fromCurrency
+    const destination_asset = swap.destinationToken ? destination_network?.tokens.find(t => t.contract == swap.destinationToken?.contract) : formValues?.toCurrency
     let amount: number | undefined
     if (swap.requestedAmount != null) {
         amount = Number(swap.requestedAmount)
     } else if (quote?.amount && source_asset?.decimals != null) {
         amount = Number(formatAmount(BigInt(quote.amount), source_asset.decimals))
-    } else if (values?.amount != null) {
-        amount = Number(values.amount)
+    } else if (formValues?.amount != null) {
+        amount = Number(formValues.amount)
     }
     const hashlock = swap.hashlock
 
     const { status: commitStatus } = swap
     const isInitial = commitStatus === HTLCStatus.Initial
 
-    const formValues: SwapFormValues = {
+    const summaryValues: SwapFormValues = {
         amount: amount?.toString(),
         from: source_network,
         to: destination_network,
@@ -67,7 +66,7 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false }
             />
 
             {isInitial && !hashlock && (
-                <SwapQuoteComp values={formValues} quote={quote} isQuoteLoading={isQuoteLoading} />
+                <SwapQuoteComp values={summaryValues} quote={quote} isQuoteLoading={isQuoteLoading} />
             )}
 
             {(!isInitial || hashlock) && <SwapProgressPanel />}

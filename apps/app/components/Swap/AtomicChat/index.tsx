@@ -3,23 +3,22 @@ import { Widget } from "../../Widget/Index";
 import { Actions, SwapViewType } from "./Actions";
 import AtomicContent from "./AtomicContent";
 import { useActiveSwap } from "@/hooks/useActiveSwap";
-import { useFormikContext } from "formik";
 import type { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import { buildQuoteParamsFromAtomic, useQuoteData } from "../../../hooks/useFee";
 
 type ContainerProps = {
     type: SwapViewType,
+    formValues?: SwapFormValues,
 }
 
-const Swap: FC<ContainerProps> = ({ type }) => {
+const Swap: FC<ContainerProps> = ({ type, formValues }) => {
     const swap = useActiveSwap()
-    const { values } = useFormikContext<SwapFormValues>()
 
-    // Post-lock: use derived state. Pre-lock: use Formik values.
-    const sourceNetwork = swap.sourceNetwork ?? values?.from
-    const destinationNetwork = swap.destinationNetwork ?? values?.to
-    const sourceAsset = swap.sourceToken ?? values?.fromCurrency
-    const destinationAsset = swap.destinationToken ?? values?.toCurrency
+    // Post-lock: use derived state. Pre-lock: use form values from caller.
+    const sourceNetwork = swap.sourceNetwork ?? formValues?.from
+    const destinationNetwork = swap.destinationNetwork ?? formValues?.to
+    const sourceAsset = swap.sourceToken ?? formValues?.fromCurrency
+    const destinationAsset = swap.destinationToken ?? formValues?.toCurrency
     const hashlock = swap.hashlock
 
     const quoteParams = useMemo(() => {
@@ -29,19 +28,19 @@ const Swap: FC<ContainerProps> = ({ type }) => {
             to: destinationNetwork?.caip2Id,
             fromCurrency: sourceAsset,
             toCurrency: destinationAsset,
-            amount: values?.amount,
-            receiveAmount: values?.receiveAmount,
+            amount: formValues?.amount,
+            receiveAmount: formValues?.receiveAmount,
         });
-    }, [hashlock, sourceNetwork?.caip2Id, destinationNetwork?.caip2Id, sourceAsset, destinationAsset, values?.amount, values?.receiveAmount]);
+    }, [hashlock, sourceNetwork?.caip2Id, destinationNetwork?.caip2Id, sourceAsset, destinationAsset, formValues?.amount, formValues?.receiveAmount]);
 
     const { quote, solverId, isQuoteLoading } = useQuoteData(quoteParams, 42000);
 
     return (
         <>
             <Widget.Content>
-                <AtomicContent quote={quote} isQuoteLoading={isQuoteLoading} />
+                <AtomicContent quote={quote} isQuoteLoading={isQuoteLoading} formValues={formValues} />
             </Widget.Content>
-            <Actions quote={quote} solverId={solverId} type={type} />
+            <Actions quote={quote} solverId={solverId} type={type} formValues={formValues} />
         </>
     )
 }

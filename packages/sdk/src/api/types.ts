@@ -58,7 +58,7 @@ export type SolverQuote = {
 }
 
 type QuoteRouteEndpoint = {
-    networkSlug: string;
+    network: string;
     tokenSymbol: string;
     tokenContract: string;
     tokenDecimals: number;

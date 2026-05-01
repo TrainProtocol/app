@@ -29,3 +29,8 @@ export const buildHrefWithPersistantParams = (
     const qs = params.toString()
     return qs ? `${pathname}?${qs}` : pathname
 }
+
+export const silentReplaceState = (url: string) => {
+    if (typeof window === "undefined") return
+    History.prototype.replaceState.call(window.history, null, "", url)
+}

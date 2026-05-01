@@ -8,8 +8,7 @@ import { SwapViewType } from ".";
 import { useSelectedAccount } from "@/context/swapAccounts";
 import { Address } from "@/lib/address";
 import { useSwapStore } from "@/stores/swapStore";
-import { useFormikContext } from "formik";
-import type { SwapFormValues } from "@/components/DTOs/SwapFormValues";
+import { useSettingsState } from "@/context/settings";
 import formatAmount from "@/lib/formatAmount";
 
 type UserCommitActionProps = {
@@ -17,21 +16,22 @@ type UserCommitActionProps = {
     solverId?: string
     type: SwapViewType
     setError: (error: Error | undefined) => void
+    destinationAddress?: string
 }
 
-export const UserLockAction: FC<UserCommitActionProps> = ({ quote, solverId, type, setError }) => {
-    // Before lock: read from Formik (form values have Network/Token objects)
-    const { values } = useFormikContext<SwapFormValues>()
+export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type, setError, destinationAddress }) => {
+    // Pre-lock only — route info comes from the quote; caller supplies the user's destination address.
     const { hashlock } = useActiveSwap()
     const { createSwap } = useCreateSwap()
-    const source_network = values.from
-    const destination_network = values.to
-    const source_asset = values.fromCurrency
-    const destination_asset = values.toCurrency
+    const { networks } = useSettingsState()
+    const source_network = networks.find(n => n.caip2Id === quote?.route.source.network)
+    const destination_network = networks.find(n => n.caip2Id === quote?.route.destination.network)
+    const source_asset = source_network?.tokens.find(t => t.contract === quote?.route.source.tokenContract)
+    const destination_asset = destination_network?.tokens.find(t => t.contract === quote?.route.destination.tokenContract)
     const amount = (quote?.amount && source_asset?.decimals != null)
         ? Number(formatAmount(BigInt(quote.amount), source_asset.decimals))
-        : (values.amount ? Number(values.amount) : undefined)
-    const address = values.destination_address
+        : undefined
+    const address = destinationAddress
 
     const { provider } = useWallet(source_network, 'withdrawal')
     const wallet = provider?.activeWallet

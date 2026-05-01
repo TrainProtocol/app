@@ -8,8 +8,8 @@ import CopyButton from '@/components/buttons/copyButton'
 import StatusIcons from './StatusIcons'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { buildHrefWithPersistantParams } from '@/helpers/querryHelper'
-import { buildSwapQuery } from '@/helpers/swapUrl'
 import { getDateDifferenceString } from '@/components/utils/dateDifference'
+import { useSwapStore } from '@/stores/swapStore'
 
 type Props = {
     swap: SwapData
@@ -20,6 +20,8 @@ type Props = {
 const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
     const router = useRouter()
     const searchParams = useSearchParams()
+    const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
+    const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
 
     const srcExplorerTemplate = sourceNetwork?.explorerUrlTemplate?.transaction
     const destExplorerTemplate = destNetwork?.explorerUrlTemplate?.transaction
@@ -31,10 +33,9 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
     const dateDifferenceString = swap.createdAt ? getDateDifferenceString(swap.createdAt) : undefined
 
     const handleViewSwap = () => {
-        if (!swap.source || !swap.txId) return
-        router.push(
-            buildHrefWithPersistantParams('/swap', searchParams, buildSwapQuery(swap.source, swap.txId))
-        )
+        if (!swap.hashlock) return
+        setActiveHashlock(swap.hashlock)
+        setSwapModalOpen(true)
     }
 
     const handleRepeatSwap = () => {

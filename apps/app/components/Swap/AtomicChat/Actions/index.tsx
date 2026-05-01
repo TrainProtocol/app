@@ -18,6 +18,7 @@ import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerificatio
 import { useLoginIdentityMismatch, useRecoveryIdentityCheck, HTLCStatus } from "@train-protocol/react";
 import { useSwapStore } from "@/stores/swapStore";
 import { Drawer } from "@/components/Modal/vaul";
+import type { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 
 export type SwapViewType = "widget" | "contained"
 
@@ -25,9 +26,10 @@ type ActionsProps = {
     quote?: SwapQuote
     solverId?: string
     type: SwapViewType
+    formValues?: SwapFormValues
 }
 
-export const Actions: FC<ActionsProps> = ({ quote, solverId, type }) => {
+export const Actions: FC<ActionsProps> = ({ quote, solverId, type, formValues }) => {
     const { status: commitStatus, error } = useActiveSwap()
     const [actionError, setActionError] = useState<Error | undefined>(undefined)
 
@@ -47,6 +49,7 @@ export const Actions: FC<ActionsProps> = ({ quote, solverId, type }) => {
                     quote={quote}
                     solverId={solverId}
                     type={type}
+                    formValues={formValues}
                 />
             </DestinationWalletWrapper>
         </>
@@ -62,9 +65,10 @@ type ResolveActionProps = {
     quote?: SwapQuote
     solverId?: string
     type: SwapViewType
+    formValues?: SwapFormValues
 }
 
-const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode, actionError, setActionError, quote, solverId, type }) => {
+const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode, actionError, setActionError, quote, solverId, type, formValues }) => {
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
     const goHome = useGoHome()
 
@@ -102,7 +106,7 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode,
         case HTLCStatus.UserLocked:
             return <></>
         default:
-            return <UserLockAction quote={quote} solverId={solverId} type={type} setError={setActionError} />
+            return <UserLockAction quote={quote} solverId={solverId} type={type} setError={setActionError} destinationAddress={formValues?.destination_address} />
     }
 }
 

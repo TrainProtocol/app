@@ -5,9 +5,7 @@ import { useSettingsState } from "../../context/settings";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { ImageWithFallback } from "../Common/ImageWithFallback";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { buildHrefWithPersistantParams } from "@/helpers/querryHelper";
-import { buildSwapQuery } from "@/helpers/swapUrl";
+import { usePathname } from "next/navigation";
 
 export default function PendingSwap() {
     const [mounted, setMounted] = useState(false)
@@ -18,23 +16,16 @@ export default function PendingSwap() {
     const activeSwap = useSwap(activeHashlock)
     const settings = useSettingsState()
     const pathname = usePathname()
-    const router = useRouter()
-    const searchParams = useSearchParams()
 
-    if (!mounted || !activeHashlock || !activeSwap || swapModalOpen || !settings) return null
+
+    if (!mounted || !activeHashlock || !activeSwap || swapModalOpen || !settings || pathname == '/swap') return null
 
     const { networks } = settings
     const source_network = networks.find(n => n.caip2Id.toUpperCase() === activeSwap.source?.toUpperCase())
     const destination_network = networks.find(n => n.caip2Id.toUpperCase() === activeSwap.destination?.toUpperCase())
 
     const handleClick = () => {
-        if (pathname === "/") {
-            setSwapModalOpen(true)
-            return
-        }
-        if (activeSwap.source && activeSwap.txId) {
-            router.push(buildHrefWithPersistantParams('/swap', searchParams, buildSwapQuery(activeSwap.source, activeSwap.txId)))
-        }
+        setSwapModalOpen(true)
     }
 
     return (

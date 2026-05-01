@@ -2,25 +2,16 @@
 
 import React, { useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { Formik } from "formik";
-import { TimerProvider } from "@/context/timerContext";
 import AtmoicSteps from "@/components/Swap/AtomicChat";
 import { Widget } from "@/components/Widget/Index";
 import { SwapLoading } from "@/components/Swap/AtomicChat/AtomicContent";
 import { SearchX } from "lucide-react";
 import { parseSwapQuery } from "@/helpers/swapUrl";
-import { useQueryState } from "@/context/query";
-import { generateSwapInitialValues } from "@/lib/generateSwapInitialValues";
-import { useSettingsState } from "@/context/settings";
 import { useSwapStore } from "@/stores/swapStore";
 import { useSwapProgress, useRecoverSwap } from "@train-protocol/react";
-import type { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 
 export default function SwapPage() {
     const searchParams = useSearchParams();
-    const query = useQueryState();
-    const settingsState = useSettingsState();
-    const initialValues: SwapFormValues = generateSwapInitialValues(settingsState, query ?? {});
     const activeHashlock = useSwapStore(s => s.activeHashlock);
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock);
     const { recover, isRecovering, error: recoverError } = useRecoverSwap();
@@ -70,10 +61,6 @@ export default function SwapPage() {
     }
 
     return (
-        <TimerProvider>
-            <Formik initialValues={initialValues} onSubmit={() => { }}>
-                <AtmoicSteps type="widget" />
-            </Formik>
-        </TimerProvider>
+        <AtmoicSteps type="widget" />
     );
 }
