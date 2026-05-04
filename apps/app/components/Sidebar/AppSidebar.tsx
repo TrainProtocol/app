@@ -27,6 +27,7 @@ import TrainLogo from "@/components/Icons/TrainLogo"
 import { useGoHome } from "@/hooks/useGoHome"
 import { useAuthDialog } from "@/stores/authDialogStore"
 import { getLoginIdentity } from "@/components/SecretDerivation/UserStatus"
+import TelegramLogo from "../Icons/TelegramLogo"
 
 const AppSidebar: FC = () => {
     const currentPath = usePathname() ?? '/'
@@ -80,11 +81,11 @@ const AppSidebar: FC = () => {
             </SidebarContent>
 
             <SidebarFooter className="gap-0 p-0">
-                <SidebarMenu className="pb-2">
+                {/* <SidebarMenu className="pb-2">
                     <SidebarMenuItem>
                         <HelpSidebarButton />
                     </SidebarMenuItem>
-                </SidebarMenu>
+                </SidebarMenu> */}
                 <SidebarSeparator className="-mx-4 data-horizontal:w-[calc(100%+2rem)]" />
                 <div className="py-2">
                     <SidebarLoginStatus />
@@ -200,6 +201,7 @@ const MORE_LINKS: { name: string; href: string; icon: FC<{ className?: string }>
     { name: 'Docs', href: 'https://v8-docs.layerswap.io/protocol/introduction', icon: ({ className }) => <BookOpen className={className} /> },
     { name: 'Twitter', href: 'https://x.com/trainprotocol', icon: ({ className }) => <TwitterLogo className={className} /> },
     { name: 'GitHub', href: 'https://github.com/TrainProtocol/app', icon: ({ className }) => <GitHubLogo className={className} /> },
+    { name: 'Telegram', href: 'https://t.me/trainprotocol', icon: ({ className }) => <TelegramLogo className={className} /> }
 ]
 
 const MoreMenu: FC = () => {

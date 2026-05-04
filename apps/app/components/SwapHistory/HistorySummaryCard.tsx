@@ -14,7 +14,7 @@ type Props = {
 const HistorySummaryCard: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
     const sourceToken = sourceNetwork?.tokens.find(t => t.symbol === swap.source_asset)
     const destToken = destNetwork?.tokens.find(t => t.symbol === swap.destination_asset)
-
+console.log(sourceToken, destToken)
     const showStrip = !!swap.status && !isTerminalStatus(swap.status) && swap.status !== HTLCStatus.Initial
     const stripBg = swap.status === HTLCStatus.UserLocked || swap.status === HTLCStatus.SolverLockDetected || swap.status === HTLCStatus.SecretRevealed
         ? 'bg-primary-900'
@@ -28,9 +28,9 @@ const HistorySummaryCard: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => 
                     <div className="col-span-6 flex items-center gap-2 p-3">
                         <div className="w-8 h-8 relative shrink-0">
                             <div className="h-[30px] w-[30px] rounded-full overflow-hidden">
-                                {sourceToken?.logo ? (
+                                {sourceToken?.logoUrl ? (
                                     <ImageWithFallback
-                                        src={sourceToken.logo}
+                                        src={sourceToken.logoUrl}
                                         alt={sourceToken.symbol}
                                         width={30}
                                         height={30}
@@ -82,9 +82,9 @@ const HistorySummaryCard: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => 
                         </div>
                         <div className="relative w-8 h-8 shrink-0">
                             <div className="h-[30px] w-[30px] rounded-full overflow-hidden">
-                                {destToken?.logo ? (
+                                {destToken?.logoUrl ? (
                                     <ImageWithFallback
-                                        src={destToken.logo}
+                                        src={destToken.logoUrl}
                                         alt={destToken.symbol}
                                         width={30}
                                         height={30}

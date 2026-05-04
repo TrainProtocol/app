@@ -22,5 +22,5 @@ export class Token {
     symbol: string;
     contract: string;
     decimals: number;
-    logo?: string;
+    logoUrl?: string;
 }
