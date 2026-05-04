@@ -12,9 +12,9 @@ type Props = {
 export default function ThemeWrapper({ children }: Props) {
     return <div className='styled-scroll'>
         <div className="invisible light"></div>
-        <SidebarProvider className="styled-scroll flex min-h-screen w-full overflow-x-hidden">
+        <SidebarProvider className="styled-scroll flex min-h-screen w-full">
             <AppSidebar />
-            <div className={`flex-1 flex flex-col items-center min-h-screen overflow-hidden relative font-robo`}>
+            <div className={`flex-1 flex flex-col items-center min-h-screen overflow-y-auto overflow-x-hidden relative font-robo`}>
                 <Navbar />
                 <Toaster position="top-center" toastOptions={{
                     duration: 5000,
