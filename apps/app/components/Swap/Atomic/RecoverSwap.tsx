@@ -42,10 +42,10 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
     return (
         <div className="flex flex-col w-full space-y-3">
             <p className="text-sm text-secondary-text leading-snug">
-                Lost track of a swap? Pick the source network you locked funds on, then paste the lock transaction hash below. We&apos;ll rebuild the swap from on-chain data.
+                Lost track of a swap? Pick the network you sent from, then paste the transaction hash below. We&apos;ll restore your swap from there.
             </p>
             <div className="flex flex-col space-y-2">
-                <label className="text-sm text-secondary-text">Source network</label>
+                <label className="text-sm text-secondary-text">From network</label>
                 <Select
                     size="lg"
                     value={selectedNetwork?.caip2Id ?? ''}
@@ -87,7 +87,7 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
                         }
                     >
                         <p>
-                            The hash of the transaction where you locked funds on the source chain. You can find it in your wallet activity or on the source chain&apos;s block explorer. This is not the destination-chain or solver transaction.
+                            The hash of the transaction you sent from the source network. You can find it in your wallet activity or on the network&apos;s block explorer.
                         </p>
                     </MobileTooltip>
                 </label>
@@ -95,7 +95,7 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
                     type="text"
                     value={txHash}
                     onChange={e => setTxHash(e.target.value.trim())}
-                    placeholder="0x… lock transaction hash"
+                    placeholder="0x… source transaction hash"
                     className="rounded-xl py-2.5"
                 />
             </div>
