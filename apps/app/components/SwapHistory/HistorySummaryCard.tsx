@@ -14,7 +14,7 @@ type Props = {
 const HistorySummaryCard: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
     const sourceToken = sourceNetwork?.tokens.find(t => t.symbol === swap.source_asset)
     const destToken = destNetwork?.tokens.find(t => t.symbol === swap.destination_asset)
-console.log(sourceToken, destToken)
+
     const showStrip = !!swap.status && !isTerminalStatus(swap.status) && swap.status !== HTLCStatus.Initial
     const stripBg = swap.status === HTLCStatus.UserLocked || swap.status === HTLCStatus.SolverLockDetected || swap.status === HTLCStatus.SecretRevealed
         ? 'bg-primary-900'
