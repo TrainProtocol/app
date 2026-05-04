@@ -2,7 +2,6 @@
 
 import { X } from "lucide-react";
 import toast, { ToastBar, Toaster } from "react-hot-toast"
-import GlobalFooter from "./globalFooter";
 import { SidebarProvider } from "./shadcn/sidebar";
 import AppSidebar from "./Sidebar/AppSidebar";
 import Navbar from "./navbar";
@@ -53,7 +52,6 @@ export default function ThemeWrapper({ children }: Props) {
                     </div>
                 </div>
                 <div id="offset-for-stickyness" className="block md:hidden"></div>
-                <GlobalFooter />
             </div>
         </SidebarProvider>
     </div>
