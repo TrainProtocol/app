@@ -28,11 +28,33 @@ export async function getContractInstance(
 
     if (!trainInstance) throw new Error('Train contract not found')
 
-    await signer.wallet.registerContract(trainInstance, TrainContract.artifact)
+    await registerContractWithArtifactFallback(signer.wallet, trainInstance, TrainContract.artifact)
     const contract = TrainContract.at(aztecAtomicContract, signer.wallet)
     const userAztecAddress = AztecAddress.fromString(signer.address)
 
     return { contract, userAztecAddress, node }
+}
+
+// Register a contract instance with the wallet. If the local artifact's class
+// id doesn't match the deployed instance, fall back to registering without the
+// artifact — the wallet then fetches the artifact from the node. Local typed
+// `Contract.at` wrappers still use the local artifact for call encoding, so
+// this works as long as function selectors / ABI match the deployed contract.
+export async function registerContractWithArtifactFallback(
+    wallet: AztecSigner['wallet'],
+    instance: Awaited<ReturnType<AztecNode['getContract']>>,
+    artifact: any,
+): Promise<void> {
+    try {
+        await wallet.registerContract(instance as any, artifact)
+    } catch (err) {
+        const message = err instanceof Error ? err.message : String(err)
+        if (message.includes("doesn't match instance's current class id")) {
+            await wallet.registerContract(instance as any)
+            return
+        }
+        throw err
+    }
 }
 
 export function parseSecret(rawSecret: unknown): bigint {

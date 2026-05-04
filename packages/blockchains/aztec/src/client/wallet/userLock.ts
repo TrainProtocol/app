@@ -11,7 +11,7 @@ import type { UserLockParams, AtomicResult } from '@train-protocol/sdk'
 import { TokenContract } from '../../artifacts/Token'
 import { TrainContract } from '../../artifacts/Train'
 import type { AztecSigner } from '../../types'
-import { strToBytes } from '../helpers'
+import { registerContractWithArtifactFallback, strToBytes } from '../helpers'
 
 // ── FPC Helpers (private to userLock) ─────────────────────────────────
 
@@ -37,7 +37,7 @@ async function registerSponsoredFPC(
     wallet: Wallet,
     fpcInstance: Awaited<ReturnType<typeof getContractInstanceFromInstantiationParams>>,
 ): Promise<void> {
-    await wallet.registerContract(fpcInstance, SponsoredFPCContract.artifact)
+    await registerContractWithArtifactFallback(wallet, fpcInstance, SponsoredFPCContract.artifact)
 }
 
 // ── Main ──────────────────────────────────────────────────────────────
@@ -62,7 +62,7 @@ export async function userLock(
         // Register Train contract
         const trainInstance = await node.getContract(trainAddress)
         if (!trainInstance) throw new Error('Train contract not found')
-        await signer.wallet.registerContract(trainInstance, TrainContract.artifact)
+        await registerContractWithArtifactFallback(signer.wallet, trainInstance, TrainContract.artifact)
         const train = TrainContract.at(trainAddress, signer.wallet)
 
         // Register Token contract
@@ -72,7 +72,7 @@ export async function userLock(
                 `Token contract not found at ${tokenAddress.toString()} on node ${rpcUrl}`,
             )
         }
-        await signer.wallet.registerContract(tokenInstance, TokenContract.artifact)
+        await registerContractWithArtifactFallback(signer.wallet, tokenInstance, TokenContract.artifact)
         const token = TokenContract.at(tokenAddress, signer.wallet)
 
         const amount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
