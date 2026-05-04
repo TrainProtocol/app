@@ -29,7 +29,7 @@ export const NON_EVM_NODES: Record<string, NetworkNode[]> = {
     ],
 
     // ── Aztec ──
-    'aztec:aztec-devnet': [
+    'aztec:4138294185': [
         { url: 'https://rpc.testnet.aztec-labs.com', providerName: 'aztec-labs' },
     ],
 
