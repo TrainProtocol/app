@@ -1,4 +1,4 @@
-import { BookOpen, Home, Settings2, RotateCcw, ScrollText, Sun, Moon, Monitor } from "lucide-react";
+import { BookOpen, Home, Settings2, RotateCcw, ScrollText, Sun, Moon, Monitor, Circle } from "lucide-react";
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
 import { FC } from "react";
@@ -59,6 +59,7 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
                             { value: "system", icon: Monitor, label: "System" },
                             { value: "light", icon: Sun, label: "Light" },
                             { value: "default", icon: Moon, label: "Dark" },
+                            { value: "mist", icon: Circle, label: "Mist" },
                         ]}
                     />
 

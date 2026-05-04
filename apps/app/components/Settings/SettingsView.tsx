@@ -3,7 +3,7 @@
 import { FC, ReactNode, useEffect, useRef } from "react"
 import { useTheme } from "next-themes"
 import { motion, LayoutGroup } from "framer-motion"
-import { ChevronLeft, ChevronRight, Globe, LucideIcon, Monitor, Moon, Sun } from "lucide-react"
+import { ChevronLeft, ChevronRight, Circle, Globe, LucideIcon, Monitor, Moon, Sun } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { FormWizardProvider, useFormWizardaUpdate } from "@/context/formWizardProvider"
 import { MenuStep } from "@/Models/Wizard"
@@ -97,6 +97,7 @@ const THEME_OPTIONS: { value: string; label: string; icon: LucideIcon }[] = [
     { value: "system", label: "System", icon: Monitor },
     { value: "light", label: "Light", icon: Sun },
     { value: "dark", label: "Dark", icon: Moon },
+    { value: "mist", label: "Mist", icon: Circle },
 ]
 
 const ThemeSegmentedPicker: FC<{ value: string; onChange: (v: string) => void }> = ({ value, onChange }) => (

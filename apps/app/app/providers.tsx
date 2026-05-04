@@ -123,11 +123,11 @@ export function Providers({ children, settings }: Props) {
                 <ThemeProvider
                     attribute="data-theme"
                     defaultTheme="system"
-                    themes={["default", "light"]}
+                    themes={["default", "light", "mist"]}
                     storageKey="theme"
                     disableTransitionOnChange
                     enableSystem
-                    value={{ light: "light", dark: "default" }}
+                    value={{ light: "light", dark: "default", mist: "mist" }}
                 >
                     <IntercomProvider appId={INTERCOM_APP_ID} initializeDelay={2500}>
                         {settings ? (

@@ -3,7 +3,7 @@
 @import 'shadcn/tailwind.css';
 @config '../tailwind.config.js';
 
-@custom-variant dark (&:is([data-theme="default"] *));
+@custom-variant dark (&:is([data-theme="default"] *, [data-theme="mist"] *));
 
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
@@ -48,7 +48,7 @@
 /* Theme variable definitions — scoped to [data-theme] attribute set by next-themes before paint */
 :root,
 [data-theme="default"] {
-  --ls-colors-background: 9, 11, 12;
+  --ls-colors-background: 10, 10, 10;
   --ls-colors-primary: 39, 142, 246;
   --ls-colors-primary-100: 220, 235, 252;
   --ls-colors-primary-200: 185, 215, 248;
@@ -59,22 +59,22 @@
   --ls-colors-primary-700: 30, 110, 195;
   --ls-colors-primary-800: 25, 90, 165;
   --ls-colors-primary-900: 20, 70, 135;
-  --ls-colors-primary-text: 249, 251, 251;
-  --ls-colors-text-tertiary: 103, 120, 124;
+  --ls-colors-primary-text: 250, 250, 250;
+  --ls-colors-text-tertiary: 115, 115, 115;
   --ls-colors-buttonTextColor: 255, 255, 255;
   --ls-colors-actionButtonColor: 39, 142, 246;
-  --ls-colors-logo: 249, 251, 251;
-  --ls-colors-secondary: 28, 34, 36;
-  --ls-colors-secondary-100: 38, 48, 50;
-  --ls-colors-secondary-200: 36, 45, 47;
-  --ls-colors-secondary-300: 33, 41, 43;
-  --ls-colors-secondary-400: 31, 38, 40;
-  --ls-colors-secondary-500: 28, 34, 36;
-  --ls-colors-secondary-600: 25, 31, 33;
-  --ls-colors-secondary-700: 22, 27, 29;
-  --ls-colors-secondary-800: 19, 24, 26;
-  --ls-colors-secondary-900: 16, 20, 22;
-  --ls-colors-secondary-text: 156, 168, 171;
+  --ls-colors-logo: 250, 250, 250;
+  --ls-colors-secondary: 38, 38, 38;
+  --ls-colors-secondary-100: 64, 64, 64;
+  --ls-colors-secondary-200: 56, 56, 56;
+  --ls-colors-secondary-300: 48, 48, 48;
+  --ls-colors-secondary-400: 42, 42, 42;
+  --ls-colors-secondary-500: 38, 38, 38;
+  --ls-colors-secondary-600: 32, 32, 32;
+  --ls-colors-secondary-700: 26, 26, 26;
+  --ls-colors-secondary-800: 22, 22, 22;
+  --ls-colors-secondary-900: 18, 18, 18;
+  --ls-colors-secondary-text: 163, 163, 163;
   --ls-colors-warning-foreground: 255, 201, 74;
   --ls-colors-warning-background: 47, 43, 29;
   --ls-colors-error-foreground: 255, 97, 97;
@@ -82,39 +82,39 @@
   --ls-colors-success-foreground: 89, 224, 125;
   --ls-colors-success-background: 14, 43, 22;
 
-  /* shadcn variables (dark mode) */
-  --background: oklch(0.148 0.004 228.8);
-  --foreground: oklch(0.987 0.002 197.1);
-  --card: oklch(0.218 0.008 223.9);
-  --card-foreground: oklch(0.987 0.002 197.1);
-  --popover: oklch(0.218 0.008 223.9);
-  --popover-foreground: oklch(0.987 0.002 197.1);
-  --primary: oklch(0.424 0.199 265.638);
+  /* shadcn variables — shadcn neutral base, dark mode */
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.269 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.488 0.243 264.376);
   --primary-foreground: oklch(0.97 0.014 254.604);
-  --secondary: oklch(0.274 0.006 286.033);
+  --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.275 0.011 216.9);
-  --muted-foreground: oklch(0.723 0.014 214.4);
-  --accent: oklch(0.275 0.011 216.9);
-  --accent-foreground: oklch(0.987 0.002 197.1);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.371 0 0);
+  --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.56 0.021 213.5);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
   --radius: 0.625rem;
-  --sidebar: oklch(0.218 0.008 223.9);
-  --sidebar-foreground: oklch(0.987 0.002 197.1);
-  --sidebar-primary: oklch(0.623 0.214 259.815);
-  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
-  --sidebar-accent: oklch(0.275 0.011 216.9);
-  --sidebar-accent-foreground: oklch(0.987 0.002 197.1);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.56 0.021 213.5);
+  --sidebar-ring: oklch(0.439 0 0);
 }
 
 [data-theme="light"] {
@@ -185,6 +185,76 @@
   --sidebar-accent-foreground: rgb(23 23 23);
   --sidebar-border: rgb(0 0 0 / 8%);
   --sidebar-ring: oklch(0.723 0.014 214.4);
+}
+
+[data-theme="mist"] {
+  --ls-colors-background: 9, 11, 12;
+  --ls-colors-primary: 39, 142, 246;
+  --ls-colors-primary-100: 220, 235, 252;
+  --ls-colors-primary-200: 185, 215, 248;
+  --ls-colors-primary-300: 150, 195, 248;
+  --ls-colors-primary-400: 100, 170, 247;
+  --ls-colors-primary-500: 39, 142, 246;
+  --ls-colors-primary-600: 35, 128, 222;
+  --ls-colors-primary-700: 30, 110, 195;
+  --ls-colors-primary-800: 25, 90, 165;
+  --ls-colors-primary-900: 20, 70, 135;
+  --ls-colors-primary-text: 249, 251, 251;
+  --ls-colors-text-tertiary: 103, 120, 124;
+  --ls-colors-buttonTextColor: 255, 255, 255;
+  --ls-colors-actionButtonColor: 39, 142, 246;
+  --ls-colors-logo: 249, 251, 251;
+  --ls-colors-secondary: 28, 34, 36;
+  --ls-colors-secondary-100: 38, 48, 50;
+  --ls-colors-secondary-200: 36, 45, 47;
+  --ls-colors-secondary-300: 33, 41, 43;
+  --ls-colors-secondary-400: 31, 38, 40;
+  --ls-colors-secondary-500: 28, 34, 36;
+  --ls-colors-secondary-600: 25, 31, 33;
+  --ls-colors-secondary-700: 22, 27, 29;
+  --ls-colors-secondary-800: 19, 24, 26;
+  --ls-colors-secondary-900: 16, 20, 22;
+  --ls-colors-secondary-text: 156, 168, 171;
+  --ls-colors-warning-foreground: 255, 201, 74;
+  --ls-colors-warning-background: 47, 43, 29;
+  --ls-colors-error-foreground: 255, 97, 97;
+  --ls-colors-error-background: 46, 27, 27;
+  --ls-colors-success-foreground: 89, 224, 125;
+  --ls-colors-success-background: 14, 43, 22;
+
+  /* shadcn variables — mist (cyan-tinted) dark mode */
+  --background: oklch(0.148 0.004 228.8);
+  --foreground: oklch(0.987 0.002 197.1);
+  --card: oklch(0.218 0.008 223.9);
+  --card-foreground: oklch(0.987 0.002 197.1);
+  --popover: oklch(0.218 0.008 223.9);
+  --popover-foreground: oklch(0.987 0.002 197.1);
+  --primary: oklch(0.424 0.199 265.638);
+  --primary-foreground: oklch(0.97 0.014 254.604);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.275 0.011 216.9);
+  --muted-foreground: oklch(0.723 0.014 214.4);
+  --accent: oklch(0.275 0.011 216.9);
+  --accent-foreground: oklch(0.987 0.002 197.1);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.56 0.021 213.5);
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.218 0.008 223.9);
+  --sidebar-foreground: oklch(0.987 0.002 197.1);
+  --sidebar-primary: oklch(0.623 0.214 259.815);
+  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
+  --sidebar-accent: oklch(0.275 0.011 216.9);
+  --sidebar-accent-foreground: oklch(0.987 0.002 197.1);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.56 0.021 213.5);
 }
 
 @theme static {
