@@ -1,9 +1,18 @@
 import { useState } from 'react';
 import { AlertTriangle, Fingerprint, Lock } from 'lucide-react';
-import { DEFAULT_PASSKEY_DISPLAY_NAME, type StoredPasskey } from '@train-protocol/auth';
+import { type StoredPasskey } from '@train-protocol/auth';
 import SubmitButton from '../../buttons/submitButton';
 import { StepBody } from '../StepBody';
 import { Input } from '@/components/shadcn/input';
+
+const PASSKEY_NAME_ADJECTIVES = ['Swift', 'Brave', 'Quiet', 'Bright', 'Clever', 'Bold', 'Calm', 'Wild', 'Lucky', 'Mellow', 'Sunny', 'Crisp', 'Nimble', 'Gentle', 'Rapid'];
+const PASSKEY_NAME_ANIMALS = ['Fox', 'Otter', 'Heron', 'Lynx', 'Falcon', 'Badger', 'Marten', 'Wren', 'Hare', 'Stoat', 'Owl', 'Raven', 'Puma', 'Sable', 'Crane'];
+
+const generateRandomPasskeyName = (): string => {
+  const adj = PASSKEY_NAME_ADJECTIVES[Math.floor(Math.random() * PASSKEY_NAME_ADJECTIVES.length)];
+  const animal = PASSKEY_NAME_ANIMALS[Math.floor(Math.random() * PASSKEY_NAME_ANIMALS.length)];
+  return `${adj} ${animal}`;
+};
 
 interface SavedLoginsProps {
   credentials: StoredPasskey[];
@@ -85,8 +94,9 @@ interface CreateStepProps {
 
 export function CreateStep({ onCreate }: CreateStepProps) {
   const [name, setName] = useState('');
+  const [suggestedName] = useState(generateRandomPasskeyName);
 
-  const submit = () => onCreate(name.trim());
+  const submit = () => onCreate(name.trim() || suggestedName);
 
   const info = (
     <>
@@ -103,7 +113,7 @@ export function CreateStep({ onCreate }: CreateStepProps) {
           id="passkey-label"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder={DEFAULT_PASSKEY_DISPLAY_NAME}
+          placeholder={suggestedName}
           maxLength={64}
           autoFocus
           onKeyDown={(e) => {

@@ -100,11 +100,6 @@ export const registerPasskey = async (
     window.crypto.getRandomValues(userIdBytes);
 
     const prfSalt = getPasskeyPrfSalt();
-    const existingIds = (await storage?.getAllCredentialIds()) ?? [];
-    const excludeCredentials = existingIds.map(id => ({
-        type: 'public-key' as const,
-        id: base64URLStringToBuffer(id),
-    }));
 
     const label = displayName?.trim() || DEFAULT_PASSKEY_DISPLAY_NAME;
 
@@ -117,7 +112,6 @@ export const registerPasskey = async (
             displayName: label,
         },
         pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
-        excludeCredentials,
         authenticatorSelection: { residentKey: 'required', userVerification: 'required' },
         attestation: 'none',
         timeout: 60000,
