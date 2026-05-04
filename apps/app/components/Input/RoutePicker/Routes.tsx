@@ -12,6 +12,7 @@ import { resolveTokenLogoUrl } from "@/components/utils/resolveTokenLogoUrl";
 import { formatUsd } from "@/components/utils/formatUsdAmount";
 import { getTotalBalanceInUSD } from "@/helpers/balanceHelper";
 import { getKey, useBalanceStore } from "@/stores/balanceStore";
+import { TokenInfoIcon } from "./TokenTitleDetails";
 
 type TokenItemProps = {
     network: ExtendedNetwork;
@@ -57,19 +58,32 @@ export const NetworkTokenTitle = (props: NetworkTokenItemProps) => {
         : '';
     const usdAmount = (tokenBalance?.amount && item?.priceInUsd) ? item?.priceInUsd * tokenBalance?.amount : undefined;
 
+    const hasUsd = !!(tokenBalance && Number(tokenBalance?.amount) > 0 && Number(usdAmount) > 0);
     return <SelectItem.DetailedTitle
         title={
             <div className="flex items-center justify-between w-full gap-2">
-                <span className="font-medium">{item.symbol}</span>
-                {(tokenBalance && Number(tokenBalance?.amount) > 0 && Number(usdAmount) > 0) && (
-                    <div className="text-primary-text text-lg leading-[22px] font-medium">{formatUsd(usdAmount)}</div>
+                <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
+                    <span className="font-medium shrink-0">{item.symbol}</span>
+                    <TokenInfoIcon
+                        item={item}
+                        network={network}
+                        className={`hidden xs:block min-w-0 overflow-hidden ${hasUsd ? "max-w-[90px]" : ""} transition-all duration-300 opacity-0 group-hover:opacity-100 data-[popover-open=true]:opacity-100 data-[tooltip-open=true]:opacity-100 data-[popover-open=true]:delay-0 data-[tooltip-open=true]:delay-0 group-hover:delay-400 pointer-events-none group-hover:pointer-events-auto data-[popover-open=true]:pointer-events-auto data-[tooltip-open=true]:pointer-events-auto`}
+                    />
+                </div>
+                {hasUsd && (
+                    <div className="text-primary-text text-lg leading-[22px] font-medium shrink-0">{formatUsd(usdAmount)}</div>
                 )}
             </div>
         }
         secondaryImageAlt={network.displayName}
         secondary={
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 min-w-0">
                 <span className="truncate">{network.displayName}</span>
+                <TokenInfoIcon
+                    item={item}
+                    network={network}
+                    className="xs:hidden max-w-0 group-hover:max-w-full data-[popover-open=true]:max-w-full data-[tooltip-open=true]:max-w-full overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 data-[popover-open=true]:opacity-100 data-[tooltip-open=true]:opacity-100 data-[popover-open=true]:delay-0 data-[tooltip-open=true]:delay-0 group-hover:delay-400 pointer-events-none group-hover:pointer-events-auto data-[popover-open=true]:pointer-events-auto data-[tooltip-open=true]:pointer-events-auto"
+                />
             </div>
         }
         secondaryLogoSrc={network.logoUrl}

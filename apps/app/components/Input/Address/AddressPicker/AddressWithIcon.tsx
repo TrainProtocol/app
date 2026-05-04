@@ -139,6 +139,8 @@ type ExtendedAddressProps = {
     isNativeToken?: boolean;
     network?: Network;
     providerName?: string;
+    onPopoverOpenChange?: (open: boolean) => void;
+    onTooltipOpenChange?: (open: boolean) => void;
 }
 
 const calculateMaxWidth = (balance: string | undefined) => {
@@ -153,7 +155,7 @@ const calculateMaxWidth = (balance: string | undefined) => {
     }
 };
 
-export const ExtendedAddress: FC<ExtendedAddressProps> = ({ address, network, providerName, isForCurrency, children, onDisconnect, showDetails = false, title, description, logo: Logo, shouldShowChevron = true, isNativeToken = false }) => {
+export const ExtendedAddress: FC<ExtendedAddressProps> = ({ address, network, providerName, isForCurrency, children, onDisconnect, showDetails = false, title, description, logo: Logo, shouldShowChevron = true, isNativeToken = false, onPopoverOpenChange, onTooltipOpenChange }) => {
     const [isCopied, setCopied] = useCopyClipboard()
     const [isPopoverOpen, setPopoverOpen] = useState(false)
 
@@ -204,10 +206,10 @@ export const ExtendedAddress: FC<ExtendedAddressProps> = ({ address, network, pr
 
     return (
         <div onClick={(e) => e.stopPropagation()}>
-            <Popover open={isPopoverOpen} onOpenChange={() => setPopoverOpen(!isPopoverOpen)} modal={false}>
+            <Popover open={isPopoverOpen} onOpenChange={(open) => { setPopoverOpen(open); onPopoverOpenChange?.(open); }} modal={false}>
                 <PopoverTrigger asChild>
                     <div>
-                        <Tooltip>
+                        <Tooltip onOpenChange={onTooltipOpenChange}>
                             <TooltipTrigger asChild>
                                 {
                                     children ??
