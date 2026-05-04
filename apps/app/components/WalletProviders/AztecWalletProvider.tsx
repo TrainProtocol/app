@@ -3,6 +3,8 @@ import type { Wallet as AztecWallet } from "@aztec/aztec.js/wallet";
 import type { WalletProvider as AztecSDKWalletProvider, PendingConnection } from "@aztec/wallet-sdk/manager";
 import { AZTEC_APP_ID, useAztecChainInfo } from "@/lib/wallets/aztec/configs";
 import { useAztecWalletStore } from "@/stores/aztecWalletStore";
+import { useSettingsState } from "@/context/settings";
+import { NetworkContractType, NetworkTypes } from "@/Models/Network";
 import { ActiveAztecAccountProvider } from "./ActiveAztecAccount";
 import SubmitButton from "../buttons/submitButton";
 
@@ -15,6 +17,7 @@ const AztecWalletContext = createContext<AztecWalletContextType | undefined>(und
 
 export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { setWallet } = useAztecWalletStore();
+    const { networks } = useSettingsState();
     const [pendingConnection, setPendingConnection] = useState<PendingConnection | null>(null);
     const [verificationEmojis, setVerificationEmojis] = useState<string | null>(null);
 
@@ -92,8 +95,22 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
             const connectedWallet = await pendingConnection.confirm();
             setWallet(connectedWallet);
 
-            // Request capabilities (accounts + authwit permission for HTLC flow)
+            // Request capabilities (accounts + contracts/simulation/transaction
+            // for HTLC flow). The wallet rejects calls like `registerContract` /
+            // `simulate` / `sendTx` for chain+method pairs not declared here.
             try {
+                const { AztecAddress } = await import('@aztec/aztec.js/addresses');
+                const aztecNetworks = networks.filter(n => n.caip2Id.startsWith(`${NetworkTypes.Aztec}:`));
+                const trainContracts = aztecNetworks
+                    .map(n => n.contracts?.find(c => c.type === NetworkContractType.Train)?.address)
+                    .filter((addr): addr is string => !!addr)
+                    .map(addr => AztecAddress.fromString(addr));
+                const tokenContracts = aztecNetworks
+                    .flatMap(n => n.tokens.map(t => t.contract))
+                    .filter((addr): addr is string => !!addr)
+                    .map(addr => AztecAddress.fromString(addr));
+                const allContracts = [...trainContracts, ...tokenContracts];
+
                 await connectedWallet.requestCapabilities({
                     version: '1.0' as const,
                     metadata: {
@@ -104,6 +121,30 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
                     },
                     capabilities: [
                         { type: 'accounts', canGet: true, canCreateAuthWit: true },
+                        {
+                            type: 'contracts',
+                            contracts: allContracts,
+                            canRegister: true,
+                            canGetMetadata: true,
+                        },
+                        {
+                            type: 'simulation',
+                            utilities: { scope: [{ contract: '*', function: '*' }] },
+                            transactions: { scope: [{ contract: '*', function: '*' }] },
+                        },
+                        {
+                            type: 'transaction',
+                            scope: [
+                                ...trainContracts.flatMap(addr => [
+                                    { contract: addr, function: 'user_lock' },
+                                    { contract: addr, function: 'redeem_solver' },
+                                    { contract: addr, function: 'refund_user' },
+                                ]),
+                                ...tokenContracts.flatMap(addr => [
+                                    { contract: addr, function: 'transfer_public_to_public' },
+                                ]),
+                            ],
+                        },
                     ],
                 });
             } catch (err) {
@@ -138,7 +179,7 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
         } finally {
             isConfirmingRef.current = false;
         }
-    }, [pendingConnection, resetConnection]);
+    }, [pendingConnection, resetConnection, networks]);
 
     const cancelConnection = useCallback(() => {
         if (pendingConnection) {
