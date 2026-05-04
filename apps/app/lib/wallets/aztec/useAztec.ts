@@ -11,6 +11,7 @@ import KnownAztecConnectors from "./KnownAztecConnectors";
 
 const commonSupportedNetworks = [
     KnownInternalNames.Networks.AztecDevnet,
+    KnownInternalNames.Networks.AztecTestnet,
 ]
 
 const name = 'Aztec'

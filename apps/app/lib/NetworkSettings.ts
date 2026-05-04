@@ -49,6 +49,9 @@ export default class NetworkSettings {
         NetworkSettings.KnownSettings[KnownInternalNames.Networks.AztecDevnet] = {
             ChainId: 'aztec-devnet',
         };
+        NetworkSettings.KnownSettings[KnownInternalNames.Networks.AztecTestnet] = {
+            ChainId: 4138294185,
+        };
         NetworkSettings.KnownSettings[KnownInternalNames.Networks.SolanaDevnet] = {
             ChainId: 'devnet',
         };

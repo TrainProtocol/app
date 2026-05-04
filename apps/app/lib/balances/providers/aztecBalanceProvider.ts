@@ -10,6 +10,7 @@ const TOKEN_PUBLIC_BALANCES_SLOT_INDEX = 9n
 export class AztecBalanceProvider extends BalanceProvider {
     supportsNetwork: BalanceProvider['supportsNetwork'] = (network) => {
         return network.caip2Id === KnownInternalNames.Networks.AztecDevnet
+            || network.caip2Id === KnownInternalNames.Networks.AztecTestnet
     }
 
     fetchBalance: BalanceProvider['fetchBalance'] = async (address, network) => {
