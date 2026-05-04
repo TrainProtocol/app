@@ -1,12 +1,14 @@
 "use client"
 
-import { useCallback } from "react"
+import { useCallback, useEffect } from "react"
+import { usePathname } from "next/navigation"
 import { useSwapProgress, HTLCStatus } from "@train-protocol/react"
 import VaulDrawer from "../Modal/vaulModal"
 import AtomicPage from "../Swap/AtomicChat"
 import { useSwapStore } from "@/stores/swapStore"
 
 export default function SwapModalRoot() {
+    const pathname = usePathname()
     const swapModalOpen = useSwapStore(s => s.swapModalOpen)
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
     const activeHashlock = useSwapStore(s => s.activeHashlock)
@@ -14,6 +16,10 @@ export default function SwapModalRoot() {
     const pendingFormValues = useSwapStore(s => s.pendingFormValues)
     const setPendingFormValues = useSwapStore(s => s.setPendingFormValues)
     const { status: htlcStatus } = useSwapProgress(activeHashlock)
+
+    useEffect(() => {
+        setSwapModalOpen(false)
+    }, [pathname])
 
     const handleShowSwapModal = useCallback((value: boolean) => {
         setSwapModalOpen(value)
