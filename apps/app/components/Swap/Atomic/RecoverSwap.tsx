@@ -6,6 +6,8 @@ import { useRecoverSwap } from '@train-protocol/react'
 import SubmitButton from '@/components/buttons/submitButton'
 import Image from 'next/image'
 import { useSwapStore } from '@/stores/swapStore'
+import MobileTooltip from '@/components/Modal/mobileTooltip'
+import InfoIcon from '@/components/Icons/InfoIcon'
 import {
     Select,
     SelectContent,
@@ -39,6 +41,9 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
 
     return (
         <div className="flex flex-col w-full space-y-3">
+            <p className="text-sm text-secondary-text leading-snug">
+                Lost track of a swap? Pick the source network you locked funds on, then paste the lock transaction hash below. We&apos;ll rebuild the swap from on-chain data.
+            </p>
             <div className="flex flex-col space-y-2">
                 <label className="text-sm text-secondary-text">Source network</label>
                 <Select
@@ -72,12 +77,25 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
             </div>
 
             <div className="flex flex-col space-y-2">
-                <label className="text-sm text-secondary-text">Transaction hash</label>
+                <label className="text-sm text-secondary-text flex items-center gap-1.5">
+                    <span>Transaction hash</span>
+                    <MobileTooltip
+                        trigger={
+                            <button type="button" className="flex items-center" aria-label="What transaction hash?">
+                                <InfoIcon className="w-3.5 h-3.5 text-primary-text-tertiary hover:text-primary-text transition-colors" />
+                            </button>
+                        }
+                    >
+                        <p>
+                            The hash of the transaction where you locked funds on the source chain. You can find it in your wallet activity or on the source chain&apos;s block explorer. This is not the destination-chain or solver transaction.
+                        </p>
+                    </MobileTooltip>
+                </label>
                 <Input
                     type="text"
                     value={txHash}
                     onChange={e => setTxHash(e.target.value.trim())}
-                    placeholder="0x..."
+                    placeholder="0x… lock transaction hash"
                     className="rounded-xl py-2.5"
                 />
             </div>

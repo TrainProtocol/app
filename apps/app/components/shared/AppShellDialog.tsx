@@ -29,7 +29,7 @@ const AppShellDialog: FC<AppShellDialogProps> = ({ open, onOpenChange, title, on
             >
                 <DialogTitle className="sr-only">{title}</DialogTitle>
                 <div className="relative h-full w-full bg-secondary-700 rounded-3xl flex flex-col overflow-hidden">
-                    <div className="flex items-center gap-2 px-5 pt-4 pb-3">
+                    <div className="flex items-center gap-2 p-4 pb-2">
                         {onBack && (
                             <div className="-ml-2">
                                 <IconButton onClick={onBack} icon={<ChevronLeft strokeWidth={2} className="h-7 w-7" />} />
