@@ -26,7 +26,7 @@ export const CurrencySelectItemDisplay = memo((props: TokenItemProps) => {
 
     return <SelectItem className="group">
         <SelectItem.Logo
-            imgSrc={item.logo || resolveTokenLogoUrl(item.symbol)}
+            imgSrc={item.logoUrl || resolveTokenLogoUrl(item.symbol)}
             altText={`${item.symbol} logo`}
             className="rounded-full"
         />
@@ -124,7 +124,7 @@ export const NetworkRouteSelectItemDisplay = (props: NetworkItemProps) => {
                                     {filteredNetworkTokens.slice(0, 3).map((t, index) => (
                                         <ImageWithFallback
                                             key={`${t.symbol}-${index}`}
-                                            src={t.logo || resolveTokenLogoUrl(t.symbol)}
+                                            src={t.logoUrl || resolveTokenLogoUrl(t.symbol)}
                                             alt={`${t.symbol} logo`}
                                             height="16"
                                             width="16"
@@ -204,7 +204,7 @@ export const GroupedTokenHeader = ({
     return (
         <SelectItem className="accordion-item-focused bg-secondary-500 group rounded-xl hover:bg-secondary-400 group/item relative pr-7 py-2">
             <SelectItem.Logo
-                imgSrc={mainToken.logo || resolveTokenLogoUrl(mainToken.symbol)}
+                imgSrc={mainToken.logoUrl || resolveTokenLogoUrl(mainToken.symbol)}
                 altText={`${mainToken.symbol} logo`}
                 className="rounded-full"
             />
@@ -265,7 +265,7 @@ export const SelectedRouteDisplay = ({ network, token, placeholder }: SelectedRo
                     <div className="inline-flex items-center relative shrink-0 h-7 w-7">
                         <div className="h-6 w-6">
                             <ImageWithFallback
-                                src={token.logo || resolveTokenLogoUrl(token.symbol)}
+                                src={token.logoUrl || resolveTokenLogoUrl(token.symbol)}
                                 alt="Token Logo"
                                 height="24"
                                 width="24"

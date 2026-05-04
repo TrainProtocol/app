@@ -77,7 +77,7 @@ const RouteTokenPair: FC<RouteTokenPairProps> = ({ route, token }) => {
         <div className="flex grow gap-4 text-left items-center md:text-base relative col-span-6 align-center">
             <div className="inline-flex items-center relative shrink-0 h-8 w-8">
                 <ImageWithFallback
-                    src={token.logo || resolveTokenLogoUrl(token.symbol)}
+                    src={token.logoUrl || resolveTokenLogoUrl(token.symbol)}
                     alt="Token Logo"
                     height="28"
                     width="28"
