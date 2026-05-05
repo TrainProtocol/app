@@ -14,15 +14,19 @@ const generateRandomPasskeyName = (): string => {
   return `${adj} ${animal}`;
 };
 
-interface SavedLoginsProps {
+interface EntryStepProps {
   credentials: StoredPasskey[];
   onPick: (credentialId: string) => void;
-  onUseAnotherMethod: () => void;
+  onCreateNew: () => void;
+  onLoginWithExisting: () => void;
   onForgetAll: () => void;
+  onShowFaq: () => void;
 }
 
-export function SavedLogins({ credentials, onPick, onUseAnotherMethod, onForgetAll }: SavedLoginsProps) {
-  const info = (
+export function EntryStep({ credentials, onPick, onCreateNew, onLoginWithExisting, onForgetAll, onShowFaq }: EntryStepProps) {
+  const hasSaved = credentials.length > 0;
+
+  const info = hasSaved ? (
     <div className="flex flex-col items-stretch gap-2 w-full">
       <p className="text-secondary-text text-xs font-medium uppercase tracking-wide">Saved logins</p>
       <div className="flex flex-col gap-2">
@@ -39,33 +43,7 @@ export function SavedLogins({ credentials, onPick, onUseAnotherMethod, onForgetA
         ))}
       </div>
     </div>
-  );
-
-  const actions = (
-    <div className="flex flex-col gap-2 w-full">
-      <SubmitButton type="button" buttonStyle="secondary" onClick={onUseAnotherMethod}>
-        Use another method
-      </SubmitButton>
-      <button
-        type="button"
-        onClick={onForgetAll}
-        className="text-xs text-secondary-text hover:text-primary-text transition-colors text-center underline hover:no-underline w-fit mx-auto"
-      >
-        Forget all logins
-      </button>
-    </div>
-  );
-
-  return <StepBody info={info} actions={actions} centerOverlay={false} />;
-}
-
-interface IntroStepProps {
-  onCreateNew: () => void;
-  onLoginWithExisting: () => void;
-}
-
-export function IntroStep({ onCreateNew, onLoginWithExisting }: IntroStepProps) {
-  const info = (
+  ) : (
     <div className="flex flex-col items-center gap-3 text-center">
       <div className="w-14 h-14 rounded-2xl bg-secondary-500 flex items-center justify-center">
         <Lock className="w-8 h-8 text-primary-text" strokeWidth={2} />
@@ -82,17 +60,36 @@ export function IntroStep({ onCreateNew, onLoginWithExisting }: IntroStepProps) 
       <SubmitButton type="button" buttonStyle="secondary" onClick={onLoginWithExisting}>
         Log in with existing
       </SubmitButton>
+      <div className="flex items-center justify-center gap-3 mt-1">
+        <button
+          type="button"
+          onClick={onShowFaq}
+          className="text-xs text-secondary-text hover:text-primary-text transition-colors underline hover:no-underline"
+        >
+          What's a passkey?
+        </button>
+        {hasSaved && (
+          <button
+            type="button"
+            onClick={onForgetAll}
+            className="text-xs text-secondary-text hover:text-primary-text transition-colors underline hover:no-underline"
+          >
+            Forget all logins
+          </button>
+        )}
+      </div>
     </div>
   );
 
-  return <StepBody info={info} actions={actions} />;
+  return <StepBody info={info} actions={actions} centerOverlay={!hasSaved} />;
 }
 
 interface CreateStepProps {
   onCreate: (label: string) => void;
+  onShowFaq: () => void;
 }
 
-export function CreateStep({ onCreate }: CreateStepProps) {
+export function CreateStep({ onCreate, onShowFaq }: CreateStepProps) {
   const [name, setName] = useState('');
   const [suggestedName] = useState(generateRandomPasskeyName);
 
@@ -125,7 +122,7 @@ export function CreateStep({ onCreate }: CreateStepProps) {
           className="bg-secondary-500 border-secondary-400 py-3"
         />
         <p className="text-xs text-secondary-text">
-          Shown here and in your password manager.
+          Shown here and in your password manager. <button type="button" onClick={onShowFaq} className="text-secondary-text hover:text-primary-text transition-colors underline hover:no-underline">What's a passkey?</button>
         </p>
       </div>
     </>

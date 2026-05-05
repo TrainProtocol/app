@@ -2,7 +2,8 @@ import { ReactNode, useEffect } from 'react';
 import { Loader2, ChevronLeft, AlertTriangle } from 'lucide-react';
 import { useSharedSecretDerivation } from '@train-protocol/react';
 import { mapPasskeyError } from '@train-protocol/auth';
-import { SavedLogins, IntroStep, CreateStep, ErrorStep } from './PasskeyChoice';
+import { EntryStep, CreateStep, ErrorStep } from './PasskeyChoice';
+import { PasskeyFAQ } from './PasskeyFAQ';
 import { loginStepTitle, useLoginWizardState, wizardCanGoBack, type LoginWizard } from './wizard';
 import { Steps, Step } from '@/components/Step';
 import IconButton from '@/components/buttons/iconButton';
@@ -41,7 +42,6 @@ function useLoginFlow({
     if (!isOpen || !isReady) return;
     setErrorMessage(null);
     if (passkeyUnsupported) resetTo('unsupported');
-    else if (passkeyCredentials.length > 0) resetTo('saved');
     else resetTo('intro');
     // intentionally only runs when the modal opens / readiness flips
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -66,7 +66,7 @@ function useLoginFlow({
   };
 
   const headerTitle = loginStepTitle(currentStep);
-  const showHeaderTitle = currentStep !== 'intro';
+  const showHeaderTitle = currentStep !== 'intro' || passkeyCredentials.length > 0;
 
   const header = (
     <div className="inline-flex items-center gap-1">
@@ -85,27 +85,22 @@ function useLoginFlow({
         <UnsupportedBrowser onClose={onClose} />
       </Step>
 
-      <Step name="saved">
-        <SavedLogins
+      <Step name="intro">
+        <EntryStep
           credentials={passkeyCredentials}
           onPick={(credentialId) => runLogin({ credentialId })}
-          onUseAnotherMethod={() => push('intro')}
-          onForgetAll={() => {
-            clearAllPasskeyCredentials();
-            resetTo('intro');
-          }}
-        />
-      </Step>
-
-      <Step name="intro">
-        <IntroStep
           onCreateNew={() => push('create')}
           onLoginWithExisting={() => runLogin({ crossDevice: true })}
+          onForgetAll={clearAllPasskeyCredentials}
+          onShowFaq={() => push('faq')}
         />
       </Step>
 
       <Step name="create">
-        <CreateStep onCreate={(label) => runLogin({ forceCreate: true, label: label || undefined })} />
+        <CreateStep
+          onCreate={(label) => runLogin({ forceCreate: true, label: label || undefined })}
+          onShowFaq={() => push('faq')}
+        />
       </Step>
 
       <Step name="signing">
@@ -114,6 +109,10 @@ function useLoginFlow({
 
       <Step name="error">
         <ErrorStep message={errorMessage || ''} onBack={pop} />
+      </Step>
+
+      <Step name="faq">
+        <PasskeyFAQ />
       </Step>
     </Steps>
   );

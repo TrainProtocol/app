@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 
-export type LoginStep = 'unsupported' | 'saved' | 'intro' | 'create' | 'signing' | 'error';
+export type LoginStep = 'unsupported' | 'intro' | 'create' | 'signing' | 'error' | 'faq';
 
 export interface LoginWizard {
   history: LoginStep[];
@@ -34,6 +34,7 @@ export const loginStepTitle = (step: LoginStep): string =>
     : step === 'unsupported' ? 'Browser not supported'
     : step === 'create' ? 'Create passkey'
     : step === 'error' ? 'Login failed'
+    : step === 'faq' ? 'Passkey FAQ'
     : 'Log in';
 
 // Back is available when there's something in the stack behind us, except while
