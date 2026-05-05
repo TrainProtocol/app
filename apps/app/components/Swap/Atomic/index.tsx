@@ -51,7 +51,7 @@ export default function Form() {
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
             if (!isLoggedIn) {
-                throw new Error("Please login first")
+                throw new Error("Please log in first")
             }
 
             if (!values.amount && !values.receiveAmount) throw new Error("No amount specified")

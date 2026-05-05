@@ -11,16 +11,14 @@ import {
     SidebarMenu,
     SidebarMenuItem,
     SidebarMenuButton,
-    SidebarSeparator,
 } from "@/components/shadcn/sidebar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip"
-import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, Home, ChevronsUpDown, LogOut, Lock } from "lucide-react"
+import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, Home, ChevronsUpDown, LogOut, Lock, MessageCircle } from "lucide-react"
 import { useIntercom } from "react-use-intercom"
 import { useOptionalSecretDerivation } from "@train-protocol/react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import ChatIcon from "@/components/Icons/ChatIcon"
 import TwitterLogo from "@/components/Icons/TwitterLogo"
 import GitHubLogo from "@/components/Icons/GitHubLogo"
 import TrainLogo from "@/components/Icons/TrainLogo"
@@ -34,17 +32,22 @@ const AppSidebar: FC = () => {
     const goHome = useGoHome()
 
     return (
-        <Sidebar side="left" collapsible="none" className="hidden md:flex px-4">
-            <SidebarHeader className="px-0 py-4">
-                <div onClick={goHome} className="cursor-pointer">
-                    <TrainLogo className="h-auto w-36 text-primary-logoColor fill-primary-text" />
-                </div>
+        <Sidebar side="left" collapsible="none" className="hidden md:flex">
+            <SidebarHeader className="px-2 py-2 mb-2">
+                <button
+                    type="button"
+                    onClick={goHome}
+                    aria-label="Home"
+                    className="flex h-9 w-fit items-center rounded-md px-2 hover:bg-sidebar-accent transition-colors cursor-pointer"
+                >
+                    <TrainLogo className="h-7 -ml-1 w-auto text-primary-logoColor fill-primary-text" />
+                </button>
             </SidebarHeader>
 
-            <SidebarContent>
-                <SidebarGroup className="px-0">
+            <SidebarContent className="px-2">
+                <SidebarGroup className="px-0 py-0">
                     <SidebarGroupContent>
-                        <SidebarMenu>
+                        <SidebarMenu className="gap-0.5">
                             <SidebarMenuItem>
                                 <SidebarMenuButton asChild isActive={currentPath === "/"}>
                                     <Link href="/">
@@ -81,27 +84,29 @@ const AppSidebar: FC = () => {
             </SidebarContent>
 
             <SidebarFooter className="gap-0 p-0">
-                {/* <SidebarMenu className="pb-2">
-                    <SidebarMenuItem>
-                        <HelpSidebarButton />
-                    </SidebarMenuItem>
-                </SidebarMenu> */}
-                <SidebarSeparator className="-mx-4 data-horizontal:w-[calc(100%+2rem)]" />
-                <div className="py-2">
+                <div className="border-t border-sidebar-border" />
+                <div className="px-2 py-2">
                     <SidebarLoginStatus />
                 </div>
+                {/* <div className="px-3 pt-1 pb-3">
+                    <HelpPillButton />
+                </div> */}
             </SidebarFooter>
         </Sidebar>
     )
 }
 
-const HelpSidebarButton: FC = () => {
+const HelpPillButton: FC = () => {
     const { boot, show, update } = useIntercom()
     return (
-        <SidebarMenuButton onClick={() => { boot(); show(); update() }}>
-            <ChatIcon strokeWidth={2} />
+        <button
+            type="button"
+            onClick={() => { boot(); show(); update() }}
+            className="flex w-full items-center justify-center gap-1.5 rounded-full border border-sidebar-border bg-sidebar px-3 py-2 text-xs font-medium text-primary-text hover:bg-sidebar-accent transition-colors"
+        >
+            <MessageCircle className="size-4" strokeWidth={2} />
             <span>Get help</span>
-        </SidebarMenuButton>
+        </button>
     )
 }
 
@@ -118,11 +123,11 @@ const SidebarLoginStatus: FC = () => {
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" onClick={() => { if (isReady) openAuthDialog() }}>
-                        <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-secondary-400 text-primary-text">
-                            <Lock className="size-4" strokeWidth={2} />
+                        <div className="flex aspect-square size-6 items-center justify-center rounded-full bg-secondary-400 text-primary-text shrink-0">
+                            <Lock className="size-3.5" strokeWidth={2} />
                         </div>
-                        <div className="grid flex-1 text-left text-sm leading-tight">
-                            <span className="truncate font-semibold">Login</span>
+                        <div className="grid flex-1 text-left leading-tight min-w-0">
+                            <span className="truncate text-sm font-semibold">Log in</span>
                             <span className="truncate text-xs text-secondary-text">Not signed in</span>
                         </div>
                     </SidebarMenuButton>
@@ -154,14 +159,14 @@ const SidebarLoginStatus: FC = () => {
                 <Popover>
                     <PopoverTrigger asChild>
                         <SidebarMenuButton size="lg" className="data-[state=open]:bg-secondary-500">
-                            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-secondary-400 text-primary-text">
-                                <Icon className="size-4" strokeWidth={2} />
+                            <div className="flex aspect-square size-6 items-center justify-center rounded-full bg-secondary-400 text-primary-text shrink-0">
+                                <Icon className="size-3.5" strokeWidth={2} />
                             </div>
-                            <div className="grid flex-1 text-left text-sm leading-tight">
-                                {label && <span className="truncate font-semibold">{label}</span>}
+                            <div className="grid flex-1 text-left leading-tight min-w-0">
+                                {label && <span className="truncate text-sm font-semibold">{label}</span>}
                                 {idShortWithTooltip}
                             </div>
-                            <ChevronsUpDown className="ml-auto size-4 text-secondary-text" />
+                            <ChevronsUpDown className="ml-auto size-4 text-secondary-text shrink-0" />
                         </SidebarMenuButton>
                     </PopoverTrigger>
                     <PopoverContent

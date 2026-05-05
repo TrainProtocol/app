@@ -46,7 +46,7 @@ const FormButton = ({
     if (!isLoggedIn) {
         return (
             <SubmitButton type="button" onClick={openAuthDialog}>
-                Login to continue
+                Log in to continue
             </SubmitButton>
         );
     }

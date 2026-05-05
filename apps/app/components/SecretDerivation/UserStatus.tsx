@@ -206,7 +206,7 @@ export const UserStatusHeader = () => {
                 className="h-11 inline-flex items-center gap-2 py-2 px-3 rounded-full bg-secondary-500 border border-black/15 text-primary-text hover:bg-secondary-400 focus:outline-none transition-colors active:animate-press-down"
             >
                 <Lock className="h-5 w-5" strokeWidth={2} />
-                <span className="text-sm font-medium">Login</span>
+                <span className="text-sm font-medium">Log in</span>
             </button>
         )
     }
@@ -264,7 +264,7 @@ export const UserStatusMenu = () => {
                 <span className="order-first absolute left-0 inset-y-0 flex items-center pl-3">
                     <Lock className="h-5 w-5" strokeWidth={2} />
                 </span>
-                <span className="grow text-center">Login</span>
+                <span className="grow text-center">Log in</span>
             </button>
         )
     }
