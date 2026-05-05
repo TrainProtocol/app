@@ -1,4 +1,4 @@
-import { BookOpen, Home, Settings2, RotateCcw, ScrollText, Sun, Moon, Monitor, Circle } from "lucide-react";
+import { BookOpen, Home, Settings2, RotateCcw, ScrollText, Sun, Moon, Monitor, Circle, HandCoins } from "lucide-react";
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
 import { FC } from "react";
@@ -12,6 +12,7 @@ import dynamic from "next/dynamic";
 import { MenuStep } from "@/Models/Wizard";
 import { Separator } from "@/components/shadcn/separator";
 import { UserStatusMenu } from "../SecretDerivation";
+import AppSettings from "@/lib/AppSettings";
 
 const WalletsMenu = dynamic(() => import("../Wallet/ConnectedWallets").then((comp) => comp.WalletsMenu), {
     loading: () => <></>
@@ -49,6 +50,12 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
                     <Menu.Item onClick={() => goToStep(MenuStep.Transactions)} icon={<ScrollText className="h-5 w-5" />} >
                         Transactions
                     </Menu.Item>
+
+                    {AppSettings.ApiVersion === 'sandbox' && (
+                        <Menu.Item pathname='/faucet' icon={<HandCoins className="h-5 w-5" />} >
+                            Faucet
+                        </Menu.Item>
+                    )}
 
                     <Menu.SelectorItem
                         label="Theme"

@@ -4,7 +4,7 @@ import { Network } from '@/Models/Network'
 import { useSettingsState } from '@/context/settings'
 import { useRecoverSwap } from '@train-protocol/react'
 import SubmitButton from '@/components/buttons/submitButton'
-import Image from 'next/image'
+import { ImageWithFallback } from '@/components/Common/ImageWithFallback'
 import { useSwapStore } from '@/stores/swapStore'
 import MobileTooltip from '@/components/Modal/mobileTooltip'
 import InfoIcon from '@/components/Icons/InfoIcon'
@@ -57,11 +57,11 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
                     <SelectTrigger className="w-full rounded-xl">
                         <SelectValue placeholder="Select network" />
                     </SelectTrigger>
-                    <SelectContent className='rounded-xl'>
+                    <SelectContent position="popper" className='rounded-xl'>
                         {networks.map(network => (
                             <SelectItem key={network.caip2Id} value={network.caip2Id} className='rounded-xl'>
                                 {network.logoUrl && (
-                                    <Image
+                                    <ImageWithFallback
                                         src={network.logoUrl}
                                         alt={network.displayName}
                                         width={20}

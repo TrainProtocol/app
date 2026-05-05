@@ -14,7 +14,8 @@ import {
 } from "@/components/shadcn/sidebar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip"
-import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, Home, ChevronsUpDown, LogOut, Lock, MessageCircle } from "lucide-react"
+import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, Home, ChevronsUpDown, LogOut, Lock, MessageCircle, HandCoins } from "lucide-react"
+import AppSettings from "@/lib/AppSettings"
 import { useIntercom } from "react-use-intercom"
 import { useOptionalSecretDerivation } from "@train-protocol/react"
 import { usePathname } from "next/navigation"
@@ -65,6 +66,17 @@ const AppSidebar: FC = () => {
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
+
+                            {AppSettings.ApiVersion === 'sandbox' && (
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={currentPath === "/faucet"}>
+                                        <Link href="/faucet">
+                                            <HandCoins />
+                                            <span>Faucet</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            )}
 
                             <SidebarMenuItem>
                                 <SidebarMenuButton asChild isActive={currentPath === "/settings"}>

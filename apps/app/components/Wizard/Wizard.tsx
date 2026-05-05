@@ -2,7 +2,7 @@ import { FC, useEffect, useRef } from 'react'
 import { useFormWizardaUpdate, useFormWizardState } from '@/context/formWizardProvider';
 import { AnimatePresence } from 'framer-motion';
 import HeaderWithMenu from '../HeaderWithMenu';
-import AppSettings from '@/lib/AppSettings';
+import TestnetBadge from '../TestnetBadge';
 
 type Props = {
    children: JSX.Element | JSX.Element[];
@@ -33,14 +33,7 @@ const Wizard: FC<Props> = ({ children, wizardId, className }) => {
    return <>
       <div id='widget' className={noToolBar ? `w-full h-full` : ` bg-secondary-700 md:box-shadow rounded-3xl w-full sm:overflow-hidden max-sm:has-openpicker:min-h-svh max-sm:min-h-[99.8svh] sm:has-openpicker:min-h-[79svh]! relative`}>
          <div className="relative z-20 pb-1 sm:pb-0">
-            {
-               AppSettings.ApiVersion === 'sandbox' && !noToolBar &&
-               <div className="relative z-20">
-                  <div className="absolute -top-1 right-[calc(50%-68px)] bg-[#D95E1B] py-0.5 px-10 rounded-b-md text-xs scale-75">
-                     TESTNET
-                  </div>
-               </div>
-            }
+            {!noToolBar && <TestnetBadge />}
          </div>
          {
             !hideMenu &&

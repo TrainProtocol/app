@@ -8,11 +8,15 @@ import { getNetworkRpcUrl } from "./rpc/resolveNetworkRpcUrl";
 export default function resolveChain(network: ExtendedNetwork, customRpcUrl?: string) {
 
     const nativeToken = getNativeToken(network);
-    const nativeCurrency = nativeToken?.symbol;
+    const fallbackNativeTokenInfo = NetworkSettings.KnownSettings[network.caip2Id]?.NativeTokenInfo;
+
+    const nativeCurrency = nativeToken
+        ? { name: nativeToken.symbol, symbol: nativeToken.symbol, decimals: nativeToken.decimals }
+        : fallbackNativeTokenInfo;
 
     const evm_multicall_contract = network.contracts?.find(c => c.type === "Multicall")?.address || undefined
 
-    if (!nativeCurrency || !nativeToken) {
+    if (!nativeCurrency) {
         SendErrorMessage("UI Settings error", `env: ${process.env.NEXT_PUBLIC_VERCEL_ENV} %0A url: ${process.env.NEXT_PUBLIC_VERCEL_URL} %0A message: could not find native currency for ${network.caip2Id} ${JSON.stringify(network)} %0A`)
         return
     }
@@ -25,11 +29,7 @@ export default function resolveChain(network: ExtendedNetwork, customRpcUrl?: st
     const res = defineChain({
         id: Number(network.chainId),
         name: network.displayName,
-        nativeCurrency: {
-            name: nativeCurrency,
-            symbol: nativeCurrency,
-            decimals: nativeToken.decimals
-        },
+        nativeCurrency,
         rpcUrls: {
             default: {
                 http: [rpcUrl],

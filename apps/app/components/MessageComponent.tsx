@@ -16,16 +16,16 @@ function constructIcons(icon: iconStyle) {
 
     switch (icon) {
         case 'red':
-            iconStyle = <FailIcon />;
+            iconStyle = <FailIcon className="text-error-foreground" />;
             break;
         case 'green':
-            iconStyle = <SuccessIcon />;
+            iconStyle = <SuccessIcon className="text-success-foreground" />;
             break;
         case 'yellow':
-            iconStyle = <DelayIcon />
+            iconStyle = <DelayIcon className="text-warning-foreground" />
             break
         case 'gray':
-            iconStyle = CancelIcon
+            iconStyle = <CancelIcon className="text-secondary-text" />
             break
     }
     return iconStyle

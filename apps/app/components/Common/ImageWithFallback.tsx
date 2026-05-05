@@ -16,7 +16,7 @@ export const ImageWithFallback = forwardRef<HTMLImageElement, ImageProps>(({ src
     }, [setHasError]);
 
     if (hasError) {
-        return <LogoPlaceholder {...props} />;
+        return <LogoPlaceholder className={props.className} width={props.width} height={props.height} />;
     }
 
     return <Image

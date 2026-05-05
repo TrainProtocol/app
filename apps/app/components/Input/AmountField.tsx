@@ -233,7 +233,7 @@ function formatTokenAmount(value: number, precision: number): string {
     return decPart ? `${formattedInt}.${decPart}` : formattedInt;
 }
 
-function sanitizeDecimalInput(raw: string, maxDecimals?: number): string | null {
+export function sanitizeDecimalInput(raw: string, maxDecimals?: number): string | null {
     const v = raw.replace(',', '.');
     if (v !== '' && !/^[0-9]*[.,]?[0-9]*$/.test(v)) return null;
     if (maxDecimals != null && v.includes('.')) {

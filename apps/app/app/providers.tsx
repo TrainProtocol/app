@@ -82,15 +82,19 @@ export function Providers({ children, settings }: Props) {
 
     useEffect(() => {
         if (!progress) return
-        const origPushState = history.pushState
-        history.pushState = function (...args) {
+        const onClick = (e: MouseEvent) => {
+            if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+            const a = (e.target as HTMLElement | null)?.closest?.('a')
+            if (!a || (a.target && a.target !== '_self')) return
+            const href = a.getAttribute('href')
+            if (!href || href.startsWith('#') || href.startsWith('http')) return
             progress.start()
-            return origPushState.apply(this, args)
         }
         const onPopState = () => progress.start()
+        document.addEventListener('click', onClick)
         window.addEventListener('popstate', onPopState)
         return () => {
-            history.pushState = origPushState
+            document.removeEventListener('click', onClick)
             window.removeEventListener('popstate', onPopState)
         }
     }, [])

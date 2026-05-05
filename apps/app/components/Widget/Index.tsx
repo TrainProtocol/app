@@ -6,7 +6,7 @@ import { default as Content } from './Content';
 import { default as Footer } from './Footer';
 import { useCallback, useEffect, useRef } from "react";
 import { buildHrefWithPersistantParams } from "@/helpers/querryHelper";
-import AppSettings from "@/lib/AppSettings";
+import TestnetBadge from "../TestnetBadge";
 
 type Props = {
    children: JSX.Element | JSX.Element[];
@@ -37,14 +37,7 @@ const Widget = ({ children, className, hideMenu }: Props) => {
    return <>
       <div id='widget' className={`bg-secondary-700 md:shadow-md border-0 sm:border sm:border-border rounded-3xl w-full sm:overflow-hidden has-expandContainerHeight:min-h-[675px] max-sm:has-openpicker:min-h-svh max-sm:min-h-[99.8svh] sm:has-openpicker:min-h-[79svh]! sm:min-h-[408px] relative`}>
          <div className="relative z-20 pb-1 sm:pb-0">
-            {
-               AppSettings.ApiVersion === 'sandbox' &&
-               <div className="relative z-20">
-                  <div className="absolute -top-1 right-[calc(50%-68px)] bg-[#D95E1B] py-0.5 px-10 rounded-b-md text-xs scale-75">
-                     TESTNET
-                  </div>
-               </div>
-            }
+            <TestnetBadge />
          </div>
          {
             !hideMenu &&
