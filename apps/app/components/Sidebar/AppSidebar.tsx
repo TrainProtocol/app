@@ -88,9 +88,9 @@ const AppSidebar: FC = () => {
                 <div className="px-2 pt-2">
                     <SidebarLoginStatus />
                 </div>
-                <div className="px-3 pt-1 pb-3">
+                {/* <div className="px-3 pt-1 pb-3">
                     <HelpPillButton />
-                </div>
+                </div> */}
             </SidebarFooter>
         </Sidebar>
     )
