@@ -102,7 +102,7 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
         ? quoteErrors?.find(e => e.message)?.message
         : undefined
     const solverErrorMessage = rawSolverError
-        ? formatLimitMessage(rawSolverError, limitToken, isUsdMode)
+        ? resolveErrorMessage(rawSolverError, limitToken, isUsdMode)
         : undefined
 
     return {
@@ -127,10 +127,14 @@ export function transformFormValuesToQuoteArgs(values: SwapFormValues): Props | 
     }
 }
 
-function formatLimitMessage(message: string, token: ExtendedToken | undefined, isUsdMode: boolean): string {
-    if (!token) return message
+function resolveErrorMessage(message: string, token: ExtendedToken | undefined, isUsdMode: boolean): string {
+    return formatLimitMessage(message, token, isUsdMode) ?? "Can't get quote"
+}
+
+function formatLimitMessage(message: string, token: ExtendedToken | undefined, isUsdMode: boolean): string | undefined {
+    if (!token) return undefined
     const match = message.match(/(max|min)\s*amount[^\d]*(\d+)/i)
-    if (!match) return message
+    if (!match) return undefined
     const kind = match[1].toLowerCase() === 'max' ? 'Max' : 'Min'
     try {
         const tokenAmount = formatUnits(BigInt(match[2]), token.decimals)
@@ -143,7 +147,7 @@ function formatLimitMessage(message: string, token: ExtendedToken | undefined, i
         const display = trimmed ? `${whole}.${trimmed}` : whole
         return `${kind} amount is ${display}${token.symbol ? ` ${token.symbol}` : ''}`
     } catch {
-        return message
+        return undefined
     }
 }
 

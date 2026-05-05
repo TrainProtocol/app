@@ -4,7 +4,6 @@ import { PlusIcon } from "lucide-react";
 import SwapButton from "../buttons/swapButton";
 import { FormikErrors } from "formik";
 import { SwapFormValues } from "../DTOs/SwapFormValues";
-import KnownInternalNames from "../../lib/knownIds";
 import { FC } from "react";
 import { useFormikContext } from "formik";
 import useWallet from "../../hooks/useWallet";
@@ -36,7 +35,6 @@ const FormButton = ({
     const hasUserAmount = values.amount || values.receiveAmount;
     if (values.from && values.to && values.fromCurrency && values.toCurrency && hasUserAmount && !quote && !isQuoteLoading) {
         return <SwapButton
-            className="plausible-event-name=Swap+initiated"
             type="submit"
             isDisabled={true}
             isSubmitting={isSubmitting}
@@ -75,7 +73,6 @@ const FormButton = ({
 
     return (
         <SwapButton
-            className="plausible-event-name=Swap+initiated"
             type="submit"
             isDisabled={!isValid}
             isSubmitting={isSubmitting}

@@ -86,7 +86,7 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
 
             <div className="grid grid-cols-2 gap-2 justify-center">
                 {navigation.social.map((item, index) => (
-                    <Link key={index} target="_blank" href={item.href} className={`flex relative bg-secondary-500 hover:bg-secondary-400 rounded-md cursor-pointer select-none items-center outline-none text-primary-text ${item.className}`}>
+                    <Link key={index} target="_blank" href={item.href} className={`flex relative bg-secondary-500 hover:bg-secondary-400 rounded-md cursor-pointer select-none items-center outline-none text-primary-text`}>
                         <div className="p-2 w-full flex justify-center gap-1">
                             <item.icon className="h-5 w-5" aria-hidden="true" />
                             <p>{item.name}</p>
@@ -104,13 +104,11 @@ const navigation = {
             name: 'Twitter',
             href: 'https://x.com/trainprotocol',
             icon: (props) => TwitterLogo(props),
-            className: 'plausible-event-name=Twitter'
         },
         {
             name: 'GitHub',
             href: 'https://github.com/TrainProtocol/app',
             icon: (props) => GitHubLogo(props),
-            className: 'plausible-event-name=GitHub'
         },
     ]
 }
