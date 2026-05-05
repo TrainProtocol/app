@@ -52,7 +52,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type, setErro
 
             if (provider && sourceWallet && (sourceWallet.chainId != source_network.chainId) && provider.switchChain) await provider.switchChain(sourceWallet, source_network.chainId)
 
-            if (!isLoggedIn) throw new Error('Please login first')
+            if (!isLoggedIn) throw new Error('Please log in first')
 
             const params: StartSwapParams = {
                 sourceNetwork: source_network.caip2Id,

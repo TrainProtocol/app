@@ -127,7 +127,7 @@ const SidebarLoginStatus: FC = () => {
                             <Lock className="size-3.5" strokeWidth={2} />
                         </div>
                         <div className="grid flex-1 text-left leading-tight min-w-0">
-                            <span className="truncate text-sm font-semibold">Login</span>
+                            <span className="truncate text-sm font-semibold">Log in</span>
                             <span className="truncate text-xs text-secondary-text">Not signed in</span>
                         </div>
                     </SidebarMenuButton>
