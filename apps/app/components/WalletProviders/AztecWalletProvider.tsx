@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useRef, ReactNode } from "react";
 import type { Wallet as AztecWallet } from "@aztec/aztec.js/wallet";
 import type { WalletProvider as AztecSDKWalletProvider, PendingConnection } from "@aztec/wallet-sdk/manager";
-import { AZTEC_APP_ID, useAztecChainInfo } from "@/lib/wallets/aztec/configs";
+import { AZTEC_APP_ID, useAztecCapabilityManifest, useAztecChainInfo } from "@/lib/wallets/aztec/configs";
 import { useAztecWalletStore } from "@/stores/aztecWalletStore";
 import { ActiveAztecAccountProvider } from "./ActiveAztecAccount";
 import SubmitButton from "../buttons/submitButton";
@@ -26,6 +26,7 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
     const isConfirmingRef = useRef(false);
 
     const chainInfo = useAztecChainInfo();
+    const buildCapabilityManifest = useAztecCapabilityManifest();
 
     const resetConnection = useCallback(() => {
         disconnectUnsubRef.current?.();
@@ -92,20 +93,10 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
             const connectedWallet = await pendingConnection.confirm();
             setWallet(connectedWallet);
 
-            // Request capabilities (accounts + authwit permission for HTLC flow)
+            // Request capabilities (accounts, contract registration, scoped simulation/transaction)
             try {
-                await connectedWallet.requestCapabilities({
-                    version: '1.0' as const,
-                    metadata: {
-                        name: 'Train Protocol',
-                        version: '1.0.0',
-                        description: 'Cross-chain atomic swaps',
-                        url: typeof window !== 'undefined' ? window.location.origin : '',
-                    },
-                    capabilities: [
-                        { type: 'accounts', canGet: true, canCreateAuthWit: true },
-                    ],
-                });
+                const manifest = await buildCapabilityManifest();
+                await connectedWallet.requestCapabilities(manifest);
             } catch (err) {
                 console.warn('requestCapabilities not supported:', err);
             }
@@ -138,7 +129,7 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
         } finally {
             isConfirmingRef.current = false;
         }
-    }, [pendingConnection, resetConnection]);
+    }, [pendingConnection, resetConnection, buildCapabilityManifest]);
 
     const cancelConnection = useCallback(() => {
         if (pendingConnection) {

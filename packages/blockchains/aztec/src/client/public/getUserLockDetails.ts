@@ -19,7 +19,7 @@ export async function getUserLockDetails(
         .get_user_lock(hashlockBytes)
         .simulate({ from: userAztecAddress })
 
-    const parsedResult = resolveUserLock(result, id, params.decimals)
+    const parsedResult = resolveUserLock(result.result, id, params.decimals)
     if (!parsedResult) return null
 
     let eventDerivedData = {} as Partial<EventDerivedData>
@@ -40,7 +40,7 @@ export function resolveUserLock(result: any, id: string, decimals: number): Base
         secret: parseSecret(result.secret),
         timelock: Number(result.timelock),
         status,
-        sender: result.sender?.toString() ?? '',
+        sender: result.refund_to?.toString() ?? '',
         recipient: result.recipient?.toString() ?? '',
         token: result.token?.toString() ?? '',
     }

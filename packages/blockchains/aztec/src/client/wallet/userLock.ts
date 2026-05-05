@@ -1,11 +1,8 @@
 import { AztecAddress } from '@aztec/aztec.js/addresses'
 import { SetPublicAuthwitContractInteraction } from '@aztec/aztec.js/authorization'
-import { BatchCall, getContractInstanceFromInstantiationParams } from '@aztec/aztec.js/contracts'
-import { SponsoredFeePaymentMethod } from '@aztec/aztec.js/fee'
+import { BatchCall } from '@aztec/aztec.js/contracts'
 import { Fr } from '@aztec/aztec.js/fields'
 import type { AztecNode } from '@aztec/aztec.js/node'
-import type { Wallet } from '@aztec/aztec.js/wallet'
-import { SponsoredFPCContract } from '@aztec/noir-contracts.js/SponsoredFPC'
 import { parseUnits, hexToBytes } from '@train-protocol/sdk'
 import type { UserLockParams, AtomicResult } from '@train-protocol/sdk'
 import { TokenContract } from '../../artifacts/Token'
@@ -13,46 +10,13 @@ import { TrainContract } from '../../artifacts/Train'
 import type { AztecSigner } from '../../types'
 import { strToBytes } from '../helpers'
 
-// ── FPC Helpers (private to userLock) ─────────────────────────────────
-
-async function getSponsoredFPCInstance(
-    cached?: Awaited<ReturnType<typeof getContractInstanceFromInstantiationParams>>,
-) {
-    if (cached) return cached
-    return getContractInstanceFromInstantiationParams(
-        SponsoredFPCContract.artifact,
-        { salt: new Fr(0) },
-    )
-}
-
-async function createFeeOptions(
-    fpcInstance: Awaited<ReturnType<typeof getContractInstanceFromInstantiationParams>>,
-) {
-    return {
-        paymentMethod: new SponsoredFeePaymentMethod(fpcInstance.address),
-    }
-}
-
-async function registerSponsoredFPC(
-    wallet: Wallet,
-    fpcInstance: Awaited<ReturnType<typeof getContractInstanceFromInstantiationParams>>,
-): Promise<void> {
-    await wallet.registerContract(fpcInstance, SponsoredFPCContract.artifact)
-}
-
-// ── Main ──────────────────────────────────────────────────────────────
-
 export async function userLock(
     signer: AztecSigner,
     rpcUrl: string,
     params: UserLockParams,
     node: AztecNode,
-    sponsoredFPCInstance?: Awaited<ReturnType<typeof getContractInstanceFromInstantiationParams>>,
-): Promise<{ result: AtomicResult; fpcInstance: Awaited<ReturnType<typeof getContractInstanceFromInstantiationParams>> }> {
+): Promise<AtomicResult> {
     try {
-        const fpcInstance = await getSponsoredFPCInstance(sponsoredFPCInstance)
-        const feeOptions = await createFeeOptions(fpcInstance)
-
         const accounts = await signer.wallet.getAccounts()
         const senderAddress = accounts[0].item
 
@@ -116,13 +80,10 @@ export async function userLock(
             strToBytes(params.solverData ?? '', 256),
         )
 
-        await registerSponsoredFPC(signer.wallet, fpcInstance)
-
         const batch = new BatchCall(signer.wallet, [setPublicAuthwit, userLockInteraction])
         const txTimeout = 120000
         const tx = await batch.send({
             from: senderAddress,
-            fee: feeOptions,
             wait: { timeout: txTimeout, dontThrowOnRevert: true },
         })
 
@@ -131,12 +92,9 @@ export async function userLock(
         }
 
         return {
-            result: {
-                hash: tx.receipt.txHash?.toString() ?? String(tx),
-                hashlock: params.hashlock,
-                nonce: params.nonce,
-            },
-            fpcInstance,
+            hash: tx.receipt.txHash?.toString() ?? String(tx),
+            hashlock: params.hashlock,
+            nonce: params.nonce,
         }
     } catch (error) {
         console.error('Error in userLock:', error)
