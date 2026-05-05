@@ -13,7 +13,6 @@ const ALLOWED_TRACKING = new Set(['none', 'limited'])
 const PRIORITY_PROVIDERS = [
     'publicnode',   // 100% success, ~180-210ms avg across all chains
     'nodies',       // 100% success, ~165-189ms avg (Eth Sepolia, Base Sepolia)
-    'drpc',         // 100% success, ~200-240ms avg (Arb Sepolia, Base Sepolia)
     '0xrpc',        // 100% success, ~334ms avg (Eth Sepolia)
     '1rpc',         // 100% success, ~379ms avg (Eth Sepolia)
     'sentio',       // 100% success, ~340-435ms avg (Eth Sepolia, Base Sepolia)
@@ -31,6 +30,7 @@ const BLOCKED_PROVIDERS = new Set([
     'unifra',       // connection failures
     '4everland',    // HTTP 403
     'owlracle',     // HTTP 401
+    'drpc',         
 ])
 
 function extractProviderName(url: string): string {

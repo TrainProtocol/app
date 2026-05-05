@@ -13,7 +13,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'github.com',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: 'prodlslayerswapbridgesa.blob.core.windows.net',}
     ]
   },
   async rewrites() {

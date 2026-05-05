@@ -26,9 +26,10 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type, setErro
     const { networks } = useSettingsState()
     const source_network = networks.find(n => n.caip2Id === quote?.route.source.network)
     const destination_network = networks.find(n => n.caip2Id === quote?.route.destination.network)
-    const source_asset = source_network?.tokens.find(t => t.contract === quote?.route.source.tokenContract)
-    const destination_asset = destination_network?.tokens.find(t => t.contract === quote?.route.destination.tokenContract)
-    const amount = (quote?.amount && source_asset?.decimals != null)
+    const source_asset = quote?.route.source.tokenContract && source_network?.tokens.find(t => Address.equals(t.contract, quote?.route.source.tokenContract, source_network))
+    const destination_asset = quote?.route.destination.tokenContract && destination_network?.tokens.find(t => Address.equals(t.contract, quote?.route.destination.tokenContract, destination_network))
+
+    const amount = (quote?.amount && source_asset && source_asset?.decimals != null)
         ? Number(formatAmount(BigInt(quote.amount), source_asset.decimals))
         : undefined
     const address = destinationAddress
