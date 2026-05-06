@@ -1,12 +1,13 @@
-import { FC } from "react";
-import { AlertTriangle, ChevronDown } from "lucide-react";
+import { FC, ReactNode } from "react";
+import { AlertTriangle, CheckIcon, ChevronDown } from "lucide-react";
 import FailIcon from "../../Icons/FailIcon";
+import SuccessIcon from "../../Icons/SuccessIcon";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/shadcn/accordion";
 
 export type WalletMessageProps = {
     header: string;
-    details: string;
-    status: 'pending' | 'error' | 'warning';
+    details: ReactNode;
+    status: 'pending' | 'error' | 'warning' | 'success';
 }
 const StatusIcon: FC<{ status: WalletMessageProps['status'] }> = ({ status }) => {
     switch (status) {
@@ -14,6 +15,8 @@ const StatusIcon: FC<{ status: WalletMessageProps['status'] }> = ({ status }) =>
             return <AlertTriangle className="relative top-0 left-0 h-5 w-5 text-warning-foreground" />
         case 'error':
             return <FailIcon className="relative top-0 left-0 h-5 w-5 text-error-foreground" />
+        case 'success':
+            return <CheckIcon className="relative top-0 left-0 h-5 w-5 text-primary" />
         case 'pending':
             return <>
                 <div className='absolute top-1.5 left-1.5 w-4 h-4 md:w-5 md:h-5 opacity-40 bg-primary-text rounded-full animate-ping'></div>

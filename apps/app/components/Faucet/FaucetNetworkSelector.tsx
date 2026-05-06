@@ -1,37 +1,30 @@
-import { FC, useMemo } from "react"
-import { useSettingsState } from "@/context/settings"
+import { FC } from "react"
 import { ExtendedNetwork } from "@/Models/Network"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/shadcn/select"
 import { ImageWithFallback } from "@/components/Common/ImageWithFallback"
-import { FAUCET_CONTRACTS } from "@/lib/faucet/contracts"
 
 type Props = {
+    networks: ExtendedNetwork[]
     value: ExtendedNetwork | null
     onChange: (network: ExtendedNetwork) => void
+    disabled?: boolean
 }
 
-const FaucetNetworkSelector: FC<Props> = ({ value, onChange }) => {
-    const { networks } = useSettingsState()
-
-    const faucetNetworks = useMemo(() => {
-        const allowed = new Set(FAUCET_CONTRACTS.map(c => c.caip2Id))
-        return networks.filter(n => allowed.has(n.caip2Id))
-    }, [networks])
-
+const FaucetNetworkSelector: FC<Props> = ({ networks, value, onChange, disabled }) => {
     return (
         <Select
             size="lg"
             value={value?.caip2Id ?? ''}
             onValueChange={(v) => {
-                const network = faucetNetworks.find(n => n.caip2Id === v)
+                const network = networks.find(n => n.caip2Id === v)
                 if (network) onChange(network)
             }}
         >
-            <SelectTrigger disabled={faucetNetworks.length === 0} className="w-full rounded-xl text-primary-text text-base font-medium">
+            <SelectTrigger disabled={disabled || networks.length === 0} className="w-full rounded-xl text-primary-text text-base font-medium">
                 <SelectValue placeholder="Select network" />
             </SelectTrigger>
             <SelectContent position="popper" className="rounded-xl" onCloseAutoFocus={e => e.preventDefault()}>
-                {faucetNetworks.map(network => (
+                {networks.map(network => (
                     <SelectItem key={network.caip2Id} value={network.caip2Id} className="rounded-xl">
                         {network.logoUrl && (
                             <ImageWithFallback

@@ -14,9 +14,10 @@ type Props = {
     provider: WalletProvider | undefined
     value: string | null
     onChange: (address: string) => void
+    disabled?: boolean
 }
 
-const FaucetWalletPicker: FC<Props> = ({ network, wallets, notCompatibleWallets, provider, value, onChange }) => {
+const FaucetWalletPicker: FC<Props> = ({ network, wallets, notCompatibleWallets, provider, value, onChange, disabled }) => {
     const [open, setOpen] = useState(false)
     const [manualInput, setManualInput] = useState("")
 
@@ -34,7 +35,7 @@ const FaucetWalletPicker: FC<Props> = ({ network, wallets, notCompatibleWallets,
         <>
             <button
                 type="button"
-                disabled={!network}
+                disabled={disabled || !network}
                 onClick={() => setOpen(true)}
                 className="flex items-center justify-between w-full px-3 py-3 rounded-xl bg-secondary-500 enabled:hover:bg-secondary-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-left"
             >

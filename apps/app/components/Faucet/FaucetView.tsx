@@ -2,71 +2,45 @@
 
 import { FC, useEffect, useMemo, useState } from "react"
 import useSWR from "swr"
-import { useConfig, type Config, type Connector } from "wagmi"
-import { getConnections, getWalletClient } from "wagmi/actions"
-import { createPublicClient, encodeFunctionData, http, parseUnits } from "viem"
 import { ExtendedNetwork } from "@/Models/Network"
-import { Address } from "@/lib/address"
-import resolveChain from "@/lib/resolveChain"
+import { Address, getExplorerUrl } from "@/lib/address"
+import { getFaucetNetworks, claimFaucet, getClaimStatus, FaucetApiError } from "@/lib/faucet/api"
 import useWallet from "@/hooks/useWallet"
-import { FAUCET_CONTRACTS } from "@/lib/faucet/contracts"
-import { FAUCET_ABI } from "@/lib/faucet/abi"
+import { useSettingsState } from "@/context/settings"
 import { Widget } from "@/components/Widget/Index"
 import { useConnectModal } from "@/components/WalletModal"
 import HeaderWithMenu from "@/components/HeaderWithMenu"
 import SubmitButton from "@/components/buttons/submitButton"
 import WalletIcon from "@/components/Icons/WalletIcon"
-import VaulDrawer from "@/components/Modal/vaulModal"
+import WalletMessage from "@/components/Swap/messages/Message"
 import FaucetNetworkSelector from "./FaucetNetworkSelector"
 import FaucetWalletPicker from "./FaucetWalletPicker"
-import FaucetAmountInput from "./FaucetAmountInput"
-import FaucetMintProgress, { MintAttempt } from "./FaucetMintProgress"
-
-const RECEIPT_TIMEOUT_MS = 60_000
-
-type Signer = { address: string; connector: Connector }
-
-async function sendWithChainSwitch(send: () => Promise<`0x${string}`>, connector: Connector, chainId: number): Promise<`0x${string}`> {
-    try {
-        return await send()
-    } catch (e) {
-        const isChainMismatch = e instanceof Error && (
-            e.name === 'ChainMismatchError' ||
-            (e.cause instanceof Error && e.cause.name === 'ChainMismatchError')
-        )
-        if (!isChainMismatch || !connector.switchChain) throw e
-        await connector.switchChain({ chainId })
-        return await send()
-    }
-}
-
-function findSignerForRecipient(config: Config, recipient: string): Signer | null {
-    const lower = recipient.toLowerCase()
-    const connections = getConnections(config)
-    const matched = connections.find(c => c.accounts.some(a => a.toLowerCase() === lower))
-    const connection = matched ?? connections[0]
-    if (!connection) return null
-    const signerAddress = matched
-        ? connection.accounts.find(a => a.toLowerCase() === lower)!
-        : connection.accounts[0]
-    return { address: signerAddress, connector: connection.connector }
-}
-
-function isUserRejection(err: unknown): boolean {
-    if (!(err instanceof Error)) return false
-    if (err.name === 'UserRejectedRequestError') return true
-    const cause = err.cause
-    if (cause instanceof Error && cause.name === 'UserRejectedRequestError') return true
-    return /user rejected|user denied|USER_REFUSED_OP/i.test(err.message)
-}
 
 const FaucetView: FC = () => {
     const [network, setNetwork] = useState<ExtendedNetwork | null>(null)
     const [recipient, setRecipient] = useState<string | null>(null)
-    const [amount, setAmount] = useState<string>("")
-    const [mint, setMint] = useState<MintAttempt | null>(null)
+    const { networks } = useSettingsState()
+    const { data: faucetNetworks } = useSWR("faucet-networks", getFaucetNetworks)
 
-    const config = useConfig()
+    const faucetByCaip2Id = useMemo(
+        () => new Map((faucetNetworks ?? []).map(f => [f.caip2Id, f])),
+        [faucetNetworks],
+    )
+    const availableNetworks = useMemo(
+        () => networks.filter(n => faucetByCaip2Id.has(n.caip2Id)),
+        [networks, faucetByCaip2Id],
+    )
+
+    const [posting, setPosting] = useState(false)
+    const [postError, setPostError] = useState<Error | null>(null)
+    const [correlationId, setCorrelationId] = useState<string | null>(null)
+
+    const { data: claimStatus } = useSWR(
+        correlationId ? ["faucet-claim-status", correlationId] : null,
+        ([, id]) => getClaimStatus(id),
+        { refreshInterval: (data) => (data?.txHash || data?.failureReason) ? 0 : 2000 },
+    )
+
     const { provider, unAvailableWallets } = useWallet(network, "withdrawal")
     const { connect } = useConnectModal()
 
@@ -77,29 +51,33 @@ const FaucetView: FC = () => {
     const hasWallet = availableWallets.length > 0
 
     useEffect(() => {
-        if (recipient === null && availableWallets.length > 0) {
+        if (!recipient && availableWallets.length > 0) {
             setRecipient(availableWallets[0].address)
         }
     }, [availableWallets, recipient])
 
-    const { data: token } = useSWR(
-        network ? ['faucet-token', network.caip2Id] : null,
-        async () => {
-            const faucet = FAUCET_CONTRACTS.find(c => c.caip2Id === network!.caip2Id)
-            const chain = faucet && resolveChain(network!)
-            if (!faucet || !chain) return null
-            const client = createPublicClient({ chain, transport: http() })
-            const [symbol, decimals] = await Promise.all([
-                client.readContract({ address: faucet.faucetAddress, abi: FAUCET_ABI, functionName: 'symbol' }),
-                client.readContract({ address: faucet.faucetAddress, abi: FAUCET_ABI, functionName: 'decimals' }),
-            ])
-            return { caip2Id: network!.caip2Id, symbol, decimals }
-        },
-    )
-    const tokenForCurrentNetwork = token && network && token.caip2Id === network.caip2Id ? token : null
+    useEffect(() => {
+        setPostError(null)
+        setCorrelationId(null)
+    }, [network?.caip2Id, recipient])
 
-    const amountNum = Number(amount)
-    const submitting = !!mint && mint.phase !== 'success' && !mint.error
+    const claimDone = !!(claimStatus?.txHash || claimStatus?.failureReason)
+    const submitting = posting || (correlationId !== null && !claimDone)
+    const errorMessage =
+        (postError instanceof FaucetApiError && postError.status === 429
+            ? "Rate limit reached. Please try again later."
+            : postError instanceof Error ? postError.message : null)
+        ?? claimStatus?.failureReason ?? null
+    const successTxHash = !errorMessage && claimStatus?.txHash ? claimStatus.txHash : null
+    const txLink = network && successTxHash
+        ? getExplorerUrl(network.explorerUrlTemplate?.transaction, successTxHash)
+        : undefined
+
+    useEffect(() => {
+        if (!successTxHash) return
+        const t = setTimeout(() => setCorrelationId(null), 4000)
+        return () => clearTimeout(t)
+    }, [successTxHash])
 
     const handleConnect = async () => {
         if (!provider) return
@@ -107,62 +85,26 @@ const FaucetView: FC = () => {
         if (wallet?.address) setRecipient(wallet.address)
     }
 
-    const updateMint = (patch: Partial<MintAttempt>) => setMint(m => m && { ...m, ...patch } as MintAttempt)
-    const fail = (error: string) => updateMint({ error })
-
-    const closeDrawer = () => {
-        if (submitting) return
-        setMint(null)
-    }
-
     const onMint = async () => {
-        if (!network || !recipient || !amount || !tokenForCurrentNetwork) return
-        if (!/^0x[0-9a-fA-F]{40}$/.test(recipient) || !Address.isValid(recipient, network)) return
-        const recipientHex = recipient as `0x${string}`
-        const faucet = FAUCET_CONTRACTS.find(c => c.caip2Id === network.caip2Id)
-        const chain = faucet && resolveChain(network)
-        if (!faucet || !chain) return
-
-        setMint({ phase: 'preparing', network, recipient, symbol: tokenForCurrentNetwork.symbol, amount })
-
-        const signer = findSignerForRecipient(config, recipient)
-        if (!signer) return fail('No wallet connected to sign the transaction')
-
+        if (!network || !recipient) return
+        if (!Address.isValid(recipient, network)) return
+        const faucet = faucetByCaip2Id.get(network.caip2Id)
+        const token = faucet?.tokens[0]
+        if (!token) return
+        setPosting(true)
+        setPostError(null)
+        setCorrelationId(null)
         try {
-            const walletClient = await getWalletClient(config, { chainId: chain.id, account: signer.address as `0x${string}`, connector: signer.connector })
-            updateMint({ phase: 'awaiting_signature' })
-
-            const hash = await sendWithChainSwitch(
-                () => walletClient.sendTransaction({
-                    to: faucet.faucetAddress,
-                    data: encodeFunctionData({ abi: FAUCET_ABI, functionName: 'mint', args: [recipientHex, parseUnits(amount, tokenForCurrentNetwork.decimals)] }),
-                    chain,
-                    account: walletClient.account,
-                }),
-                signer.connector,
-                chain.id,
-            )
-            updateMint({ phase: 'confirming', txHash: hash })
-
-            const publicClient = createPublicClient({ chain, transport: http() })
-            try {
-                const receipt = await publicClient.waitForTransactionReceipt({ hash, timeout: RECEIPT_TIMEOUT_MS, confirmations: 1 })
-                if (receipt.status === 'success') updateMint({ phase: 'success' })
-                else fail('Transaction reverted')
-            } catch (err) {
-                if (err instanceof Error && err.name === 'WaitForTransactionReceiptTimeoutError') {
-                    fail('Timed out waiting for confirmation. The transaction may still be pending — check the explorer.')
-                } else {
-                    throw err
-                }
-            }
+            const { correlationId: id } = await claimFaucet({
+                caip2Id: network.caip2Id,
+                tokenContract: token.contract,
+                recipientAddress: recipient,
+            })
+            setCorrelationId(id)
         } catch (err) {
-            console.error(err)
-            if (isUserRejection(err)) {
-                setMint(null)
-                return
-            }
-            fail(err instanceof Error ? err.message : 'Mint failed')
+            setPostError(err instanceof Error ? err : new Error(String(err)))
+        } finally {
+            setPosting(false)
         }
     }
 
@@ -170,56 +112,62 @@ const FaucetView: FC = () => {
     const buttonLabel = showConnect ? "Connect a wallet" : "Mint"
     const buttonIcon = showConnect ? <WalletIcon className="h-6 w-6" strokeWidth={2} /> : undefined
     const buttonAction = showConnect ? handleConnect : onMint
-    const buttonDisabled = showConnect ? !provider : !network || !recipient || !tokenForCurrentNetwork || amountNum <= 0 || submitting
+    const buttonDisabled = showConnect ? !provider : !network || !recipient || submitting
 
     return (
-        <>
-            <Widget hideMenu>
-                <div className="sm:hidden">
-                    <HeaderWithMenu goBack={null} />
+        <Widget hideMenu>
+            <div className="sm:hidden">
+                <HeaderWithMenu goBack={null} />
+            </div>
+            <div className="flex flex-col min-h-[400px] h-full">
+                <div className="space-y-1 pt-4">
+                    <h1 className="text-primary-text text-xl font-semibold">Faucet</h1>
+                    <p className="text-secondary-text text-sm">Mint test tokens to your wallet on a supported testnet.</p>
                 </div>
-                <div className="flex flex-col min-h-[400px] h-full">
-                    <div className="space-y-1 pt-4">
-                        <h1 className="text-primary-text text-xl font-semibold">Faucet</h1>
-                        <p className="text-secondary-text text-sm">Mint test tokens to your wallet on a supported testnet.</p>
-                    </div>
-                    <div className="space-y-3 mt-4">
-                        <FaucetNetworkSelector value={network} onChange={setNetwork} />
-                        <FaucetWalletPicker
-                            network={network}
-                            wallets={availableWallets}
-                            notCompatibleWallets={unAvailableWallets}
-                            provider={provider}
-                            value={recipient}
-                            onChange={setRecipient}
+                <div className="space-y-3 mt-4">
+                    <FaucetNetworkSelector
+                        networks={availableNetworks}
+                        value={network}
+                        onChange={setNetwork}
+                        disabled={submitting}
+                    />
+                    <FaucetWalletPicker
+                        network={network}
+                        wallets={availableWallets}
+                        notCompatibleWallets={unAvailableWallets}
+                        provider={provider}
+                        value={recipient}
+                        onChange={setRecipient}
+                        disabled={submitting}
+                    />
+                </div>
+                <div className="mt-auto pt-6 space-y-3">
+                    {errorMessage && (
+                        <WalletMessage status="error" header="Mint failed" details={errorMessage} />
+                    )}
+                    {successTxHash && (
+                        <WalletMessage
+                            status="success"
+                            header="Tokens sent"
+                            details={txLink ? (
+                                <a href={txLink} target="_blank" rel="noopener noreferrer" className="underline">
+                                    View transaction
+                                </a>
+                            ) : null}
                         />
-                        <FaucetAmountInput value={amount} onChange={setAmount} disabled={!network} symbol={tokenForCurrentNetwork?.symbol} />
-                    </div>
-                    <div className="mt-auto pt-6">
-                        <SubmitButton
-                            type="button"
-                            onClick={buttonAction}
-                            isDisabled={buttonDisabled}
-                            isSubmitting={submitting}
-                            icon={buttonIcon}
-                        >
-                            {buttonLabel}
-                        </SubmitButton>
-                    </div>
+                    )}
+                    <SubmitButton
+                        type="button"
+                        onClick={buttonAction}
+                        isDisabled={buttonDisabled}
+                        isSubmitting={submitting}
+                        icon={buttonIcon}
+                    >
+                        {buttonLabel}
+                    </SubmitButton>
                 </div>
-            </Widget>
-
-            <VaulDrawer
-                mode="fitHeight"
-                show={!!mint}
-                setShow={open => { if (!open) closeDrawer() }}
-                header="Mint test tokens"
-                modalId="faucetMint"
-                className="expandContainerHeight"
-            >
-                {mint && <FaucetMintProgress attempt={mint} onClose={closeDrawer} />}
-            </VaulDrawer>
-        </>
+            </div>
+        </Widget>
     )
 }
 
