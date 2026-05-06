@@ -28,6 +28,7 @@ const EMPTY_STORE = createStore<SwapStoreState>()(() => ({
     subscribe: () => {},
     unsubscribe: () => {},
     updateSwapFlags: () => {},
+    markVerifiedManually: () => {},
     setOrderData: () => {},
     getSwap: () => undefined,
     getSwapFlags: () => undefined,
@@ -51,6 +52,7 @@ export interface DerivedSwapState {
     error: TrainError | null
     consensusVerifying: boolean
     consensusVerified: boolean
+    consensusFailed: boolean
     verifiedNodeCount: number
 
     // Persisted swap metadata
@@ -88,6 +90,7 @@ const EMPTY_STATE: DerivedSwapState = {
     error: null,
     consensusVerifying: false,
     consensusVerified: false,
+    consensusFailed: false,
     verifiedNodeCount: 0,
     source: null,
     destination: null,
@@ -249,6 +252,7 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
             error: flags.error,
             consensusVerifying: flags.consensusPhase === 'verifying',
             consensusVerified: flags.consensusPhase === 'verified',
+            consensusFailed: flags.consensusPhase === 'failed',
             verifiedNodeCount: flags.verifiedNodeCount,
 
             source: swapData?.source ?? null,

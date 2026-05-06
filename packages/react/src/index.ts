@@ -24,6 +24,7 @@ export { useRefund } from './hooks/useRefund'
 export { useManualClaim } from './hooks/useManualClaim'
 export { useSolverLockVerification } from './hooks/useSolverLockVerification'
 export { useClearSwapError } from './hooks/useClearSwapError'
+export { useMarkVerifiedManually } from './hooks/useMarkVerifiedManually'
 export { useUpdateSwap } from './hooks/useUpdateSwap'
 
 // --- Secret Derivation ---

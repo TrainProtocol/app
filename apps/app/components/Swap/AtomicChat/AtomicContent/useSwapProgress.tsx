@@ -110,6 +110,14 @@ const VerificationStatus: FC = () => {
     }
 
     if (consensusVerified) {
+        if (verifiedNodeCount === 0) {
+            return (
+                <div className="flex items-center gap-1 text-sm">
+                    <span>Verified manually</span>
+                    <LockIcon className="h-4 w-4 text-primary" />
+                </div>
+            );
+        }
         const label = verifiedNodeCount === 1
             ? '1 RPC'
             : `${verifiedNodeCount} RPCs`;

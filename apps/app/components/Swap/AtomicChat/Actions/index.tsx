@@ -1,5 +1,5 @@
 import { FC, useCallback, useEffect, useRef, useState } from "react";
-import { useActiveSwap, useClearSwapError } from "@/hooks/useActiveSwap";
+import { useActiveSwap, useClearSwapError, useMarkVerifiedManually } from "@/hooks/useActiveSwap";
 import { ManualRedeemAction } from "./ManualClaim";
 import { UserRefundAction, UserLockAction } from "./UserActions";
 import TransactionMessages from "@/components/Swap/messages/TransactionMessages";
@@ -112,8 +112,9 @@ const SolverLockDetectedAction: FC = () => {
     const { revealSecret } = useRevealSecret()
     const attemptedRef = useRef(false)
     const { verified, skipped } = useSolverLockVerification()
-    const { consensusVerified, loginIdentity, hashlock, sourceDetails, error } = useActiveSwap()
+    const { consensusVerified, consensusFailed, loginIdentity, hashlock, sourceDetails, error } = useActiveSwap()
     const clearSwapError = useClearSwapError()
+    const markVerifiedManually = useMarkVerifiedManually()
     const { warning: metadataWarning } = useLoginIdentityMismatch(loginIdentity ?? undefined)
     const recoveryWarning = useRecoveryIdentityCheck({
         hashlock,
@@ -127,6 +128,7 @@ const SolverLockDetectedAction: FC = () => {
     // warning but proceed, mirroring the previous "proceed with caution" manual flow).
     const ready = (verified || skipped) && consensusVerified && !warning
     const revealFailed = error?.code === TrainErrorCode.RevealFailed
+    const verificationFailed = error?.code === TrainErrorCode.VerificationFailed || consensusFailed
 
     const attemptReveal = useCallback(() => {
         attemptedRef.current = true
@@ -156,6 +158,21 @@ const SolverLockDetectedAction: FC = () => {
             <SubmitButton type="button" onClick={handleRetry}>
                 Try again
             </SubmitButton>
+        )
+    }
+
+    if (verificationFailed) {
+        return (
+            <div className="flex flex-col gap-2">
+                <WalletMessage
+                    status="error"
+                    header="We can't verify the solver's lock"
+                    details={error?.message ?? "Our RPC nodes aren't responding. You can review the solver's lock yourself and continue, or wait for the timelock to expire and refund."}
+                />
+                <SubmitButton type="button" onClick={markVerifiedManually}>
+                    Verify and continue
+                </SubmitButton>
+            </div>
         )
     }
 
@@ -237,7 +254,8 @@ const TransactionMessage: FC<{ error: string | undefined, errorCode?: TrainError
         return <TransactionMessages.InsufficientFundsMessage />
     }
     if (error?.includes('verification failed') || error?.includes('VERIFICATION_FAILED') || errorCode === TrainErrorCode.VerificationFailed) {
-        return <WalletMessage status="error" header="Verification failed" details={error || "Verification of the solver lock transaction has failed. Please do not reveal your secret until you have verified the transaction."} />
+        // SolverLockDetectedAction owns the verification-failed surface (message + Verify button)
+        return <></>
     }
     if (error?.includes('Cannot reveal') || error?.includes('REVEAL_FAILED') || errorCode === TrainErrorCode.RevealFailed) {
         return <WalletMessage status="error" header="Reveal failed" details={error || "Secret reveal failed"} />
