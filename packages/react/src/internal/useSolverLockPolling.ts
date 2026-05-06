@@ -82,6 +82,10 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
     const verified = useRef(false)
     const failed = useRef(false)
     const consecutiveRpcFailures = useRef(0)
+    // Last SolverLockDetails we successfully observed. Returned from refetches
+    // (e.g. window-focus) once polling is stopped, so the derived htlcStatus
+    // doesn't collapse back to UserLocked.
+    const lastDetailsRef = useRef<SolverLockDetails | null>(null)
 
     const [consensusPhase, setConsensusPhase] = useState<ConsensusPhase>('none')
     const [verifiedNodeCount, setVerifiedNodeCount] = useState(0)
@@ -96,6 +100,7 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
         verified.current = false
         failed.current = false
         consecutiveRpcFailures.current = 0
+        lastDetailsRef.current = null
         setConsensusPhase('none')
         setVerifiedNodeCount(0)
     }, [hashlock, client, nodeUrlsKey])
@@ -116,9 +121,17 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
     const query = useQuery({
         queryKey: trainQueryKeys.solverLock(params?.id ?? ''),
         queryFn: async (): Promise<SolverLockDetails | null> => {
-            if (!client || !params || failed.current) return null
+            if (!client || !params) return lastDetailsRef.current
+            // Polling has stopped after a permanent failure — keep returning the
+            // last seen details so the cached lock survives a window-focus refetch.
+            if (failed.current) return lastDetailsRef.current
             const primaryUrl = nodeUrls[0]
             if (!primaryUrl) throw new Error('No node url')
+
+            const remember = (d: SolverLockDetails | null): SolverLockDetails | null => {
+                if (d) lastDetailsRef.current = d
+                return d ?? lastDetailsRef.current
+            }
 
             const markDetected = () => {
                 if (detected.current) return
@@ -149,13 +162,13 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
             const verifySingleNode = (primary: PrimaryOutcome): SolverLockDetails | null => {
                 if (primary.failed) {
                     if (recordRpcFailure()) failVerification('primaryDown')
-                    return null
+                    return remember(null)
                 }
                 consecutiveRpcFailures.current = 0
-                if (!primary.details) return null
+                if (!primary.details) return remember(null)
                 markDetected()
                 markVerified(1)
-                return primary.details
+                return remember(primary.details)
             }
 
             const runConsensus = async (primary: PrimaryOutcome): Promise<SolverLockDetails | null> => {
@@ -169,9 +182,9 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
                     )
                     consecutiveRpcFailures.current = 0
                     // Reachable nodes returned null — solver hasn't locked yet on any of them.
-                    if (!result) return primary.details
+                    if (!result) return remember(primary.details)
                     markVerified(result.agreedCount)
-                    return result.details
+                    return remember(result.details)
                 } catch (err) {
                     const message = err instanceof Error ? err.message : String(err)
                     const kind = classifyConsensusError(message)
@@ -184,21 +197,21 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
                     if (kind === 'insufficient') {
                         // Quorum unreachable — keep primary so the user can manually verify and continue.
                         failVerification('insufficient', err)
-                        return primary.details
+                        return remember(primary.details)
                     }
                     if (recordRpcFailure()) {
                         failVerification('rpc', err)
-                        return primary.details
+                        return remember(primary.details)
                     }
                     console.warn('[SolverLockPolling] consensus transient error, will retry:', message)
-                    return primary.details
+                    return remember(primary.details)
                 }
             }
 
             const primary = await fetchFromPrimary(client, params, primaryUrl)
 
             // Already verified — just refresh from primary.
-            if (verified.current) return primary.details
+            if (verified.current) return remember(primary.details)
 
             // Single-node config — no consensus possible.
             if (nodeUrls.length <= 1) return verifySingleNode(primary)
@@ -206,13 +219,18 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
             // Pre-detection on a healthy primary — keep polling cheaply.
             if (!primary.failed && !primary.details) {
                 consecutiveRpcFailures.current = 0
-                return null
+                return remember(null)
             }
 
             return runConsensus(primary)
         },
         enabled: enabled && !!client && !!params && !!hashlock,
         refetchInterval: () => failed.current ? false : 3000,
+        // Polling drives updates; skip auto-refetch on focus/reconnect so
+        // brief tab switches (e.g. opening an explorer link) don't re-run
+        // the queryFn against dead nodes.
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
         retry: false,
         staleTime: 0,
         gcTime: Infinity,

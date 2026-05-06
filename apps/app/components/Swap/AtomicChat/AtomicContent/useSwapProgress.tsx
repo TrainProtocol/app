@@ -98,7 +98,11 @@ function buildSteps(
 // --- Verification Status ---
 
 const VerificationStatus: FC = () => {
-    const { consensusVerifying, consensusVerified, verifiedNodeCount } = useActiveSwap();
+    const { consensusVerifying, consensusVerified, consensusFailed, verifiedNodeCount } = useActiveSwap();
+
+    if (consensusFailed) {
+        return <span className="text-sm text-secondary-text">Couldn't verify with RPCs</span>;
+    }
 
     if (consensusVerifying) {
         return (
@@ -132,7 +136,7 @@ const VerificationStatus: FC = () => {
         );
     }
 
-    return <span className="text-sm">Verified by RPCs</span>;
+    return <span className="text-sm">Verifying…</span>;
 };
 
 // --- Main Hook ---
