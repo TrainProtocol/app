@@ -7,7 +7,7 @@ import Xverse from "@/components/Icons/Wallets/Xverse"
 
 const KnownStarknetConnectors = [
     {
-        id: 'ready wallet (formerly argent)',
+        id: 'ready x',
         icon: ArgentX
     },
     {
