@@ -1,11 +1,34 @@
-import React, { Context, FC } from 'react'
+"use client"
+
+import React, { Context, FC, useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { QueryParams } from '../Models/QueryParams';
 
 export const QueryStateContext = React.createContext<QueryParams | null>(null);
 
-const QueryProvider: FC<{ query: QueryParams, children?: React.ReactNode }> = ({ query, children }) => {
+const QueryProvider: FC<{ children?: React.ReactNode }> = ({ children }) => {
+  const searchParams = useSearchParams()
+
+  const value = useMemo<QueryParams>(() => {
+    const isTrue = (k: string) => searchParams?.get(k) === 'true'
+    const raw: QueryParams = {
+      ...Object.fromEntries(searchParams?.entries() ?? []),
+      lockNetwork: isTrue('lockNetwork'),
+      hideAddress: isTrue('hideAddress'),
+      hideFrom: isTrue('hideFrom'),
+      hideTo: isTrue('hideTo'),
+      lockFrom: isTrue('lockFrom'),
+      lockTo: isTrue('lockTo'),
+      lockAsset: isTrue('lockAsset'),
+      lockFromAsset: isTrue('lockFromAsset'),
+      lockToAsset: isTrue('lockToAsset'),
+      hideLogo: isTrue('hideLogo'),
+    }
+    return mapLegacyQueryParams(raw)
+  }, [searchParams])
+
   return (
-    <QueryStateContext.Provider value={mapLegacyQueryParams(query)}>
+    <QueryStateContext.Provider value={value}>
       {children}
     </QueryStateContext.Provider>
   );
