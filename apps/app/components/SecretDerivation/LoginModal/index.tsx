@@ -1,9 +1,9 @@
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Loader2, ChevronLeft, AlertTriangle } from 'lucide-react';
 import { useSharedSecretDerivation } from '@train-protocol/react';
 import { mapPasskeyError } from '@train-protocol/auth';
 import { EntryStep, CreateStep, ErrorStep } from './PasskeyChoice';
-import { PasskeyFAQ } from './PasskeyFAQ';
+import { PasskeyFAQModal } from './PasskeyFAQ';
 import { loginStepTitle, useLoginWizardState, wizardCanGoBack, type LoginWizard } from './wizard';
 import { Steps, Step } from '@/components/Step';
 import IconButton from '@/components/buttons/iconButton';
@@ -34,6 +34,7 @@ function useLoginFlow({
   } = useSharedSecretDerivation();
   const { history, errorMessage, push, pop, replaceTop, resetTo, setErrorMessage } = wizard;
   const currentStep = history[history.length - 1];
+  const [faqOpen, setFaqOpen] = useState(false);
 
   const passkeyUnsupported = isReady && prfSupportDetails && !prfSupportDetails.supported;
 
@@ -80,41 +81,40 @@ function useLoginFlow({
   );
 
   const content = (
-    <Steps currentStep={currentStep}>
-      <Step name="unsupported">
-        <UnsupportedBrowser onClose={onClose} />
-      </Step>
+    <>
+      <Steps currentStep={currentStep}>
+        <Step name="unsupported">
+          <UnsupportedBrowser onClose={onClose} />
+        </Step>
 
-      <Step name="intro">
-        <EntryStep
-          credentials={passkeyCredentials}
-          onPick={(credentialId) => runLogin({ credentialId })}
-          onCreateNew={() => push('create')}
-          onLoginWithExisting={() => runLogin({ crossDevice: true })}
-          onForgetAll={clearAllPasskeyCredentials}
-          onShowFaq={() => push('faq')}
-        />
-      </Step>
+        <Step name="intro">
+          <EntryStep
+            credentials={passkeyCredentials}
+            onPick={(credentialId) => runLogin({ credentialId })}
+            onCreateNew={() => push('create')}
+            onLoginWithExisting={() => runLogin({ crossDevice: true })}
+            onForgetAll={clearAllPasskeyCredentials}
+            onShowFaq={() => setFaqOpen(true)}
+          />
+        </Step>
 
-      <Step name="create">
-        <CreateStep
-          onCreate={(label) => runLogin({ forceCreate: true, label: label || undefined })}
-          onShowFaq={() => push('faq')}
-        />
-      </Step>
+        <Step name="create">
+          <CreateStep
+            onCreate={(label) => runLogin({ forceCreate: true, label: label || undefined })}
+            onShowFaq={() => setFaqOpen(true)}
+          />
+        </Step>
 
-      <Step name="signing">
-        <Signing derivationMessage={derivationMessage} />
-      </Step>
+        <Step name="signing">
+          <Signing derivationMessage={derivationMessage} />
+        </Step>
 
-      <Step name="error">
-        <ErrorStep message={errorMessage || ''} onBack={pop} />
-      </Step>
-
-      <Step name="faq">
-        <PasskeyFAQ />
-      </Step>
-    </Steps>
+        <Step name="error">
+          <ErrorStep message={errorMessage || ''} onBack={pop} />
+        </Step>
+      </Steps>
+      <PasskeyFAQModal open={faqOpen} onClose={() => setFaqOpen(false)} />
+    </>
   );
 
   return { header, content };

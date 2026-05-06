@@ -44,7 +44,7 @@ const AppShellDialog: FC<AppShellDialogProps> = ({ open, onOpenChange, title, on
                             type="button"
                             onClick={() => onOpenChange(false)}
                             aria-label="Close"
-                            className="inline-flex items-center justify-center w-10 h-10 shrink-0 text-secondary-text hover:bg-secondary-500 hover:text-primary-text rounded-lg transition-colors -mr-2"
+                            className="inline-flex items-center justify-center w-10 h-10 shrink-0 text-secondary-text hover:bg-secondary-500 hover:text-primary-text rounded-lg transition-colors"
                         >
                             <X className="w-7 h-7" strokeWidth={2} />
                         </button>

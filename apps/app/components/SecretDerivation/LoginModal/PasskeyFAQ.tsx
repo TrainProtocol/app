@@ -1,5 +1,10 @@
-import { ChevronDown } from 'lucide-react';
+"use client"
+
+import { ChevronDown, Fingerprint } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, } from '@/components/shadcn/accordion';
+import AppShellDialog from '@/components/shared/AppShellDialog';
+import VaulDrawer from '@/components/Modal/vaulModal';
+import useWindowDimensions from '@/hooks/useWindowDimensions';
 
 const FAQ_ITEMS: { id: string; question: string; answer: string }[] = [
   {
@@ -40,29 +45,81 @@ const FAQ_ITEMS: { id: string; question: string; answer: string }[] = [
   },
 ];
 
-export function PasskeyFAQ() {
+function PasskeyFAQContent() {
   return (
-    <div className="sm:overflow-y-auto sm:styled-scroll sm:max-h-[60svh] -mx-1 px-1">
-      <Accordion type="single" collapsible className="flex flex-col gap-2">
-        {FAQ_ITEMS.map((item) => (
-          <AccordionItem
-            key={item.id}
-            value={item.id}
-            className="rounded-xl bg-secondary-500 hover:bg-secondary-400 transition-colors overflow-hidden"
-          >
-            <AccordionTrigger className="group flex items-center justify-between gap-3 py-3 px-3 text-left">
-              <span className="text-sm font-medium text-primary-text">{item.question}</span>
-              <ChevronDown
-                className="h-4 w-4 shrink-0 text-secondary-text transition-transform duration-200 group-aria-expanded:rotate-180"
-                strokeWidth={2}
-              />
-            </AccordionTrigger>
-            <AccordionContent className="px-3 pb-3 text-sm text-secondary-text leading-relaxed">
-              {item.answer}
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
-    </div>
+    <>
+      <div className="flex flex-col items-center gap-3 text-center pt-2 pb-6 shrink-0">
+        <div className="w-20 h-20 rounded-3xl bg-secondary-500 flex items-center justify-center">
+          <Fingerprint className="w-12 h-12 text-primary-text" strokeWidth={2} />
+        </div>
+        <div className="flex flex-col gap-1">
+          <p className="text-primary-text text-xl font-semibold">Passkey FAQ</p>
+          <p className="text-secondary-text text-sm max-w-[320px]">
+            Common questions about how passkeys work and how to use them.
+          </p>
+        </div>
+      </div>
+      <div className="max-h-[55svh] overflow-y-auto styled-scroll -mx-1 px-1">
+        <Accordion type="single" collapsible className="flex flex-col gap-2">
+          {FAQ_ITEMS.map((item) => (
+            <AccordionItem
+              key={item.id}
+              value={item.id}
+              className="rounded-xl bg-secondary-500 hover:bg-secondary-400 transition-colors overflow-hidden"
+            >
+              <AccordionTrigger className="group flex items-center justify-between gap-3 py-4 px-3 text-left">
+                <span className="text-sm font-medium text-primary-text">{item.question}</span>
+                <ChevronDown
+                  className="h-4 w-4 shrink-0 text-secondary-text transition-transform duration-200 group-aria-expanded:rotate-180"
+                  strokeWidth={2}
+                />
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="px-3 pb-3 text-sm text-secondary-text leading-relaxed">
+                  {item.answer}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </div>
+    </>
+  );
+}
+
+interface PasskeyFAQModalProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+export function PasskeyFAQModal({ open, onClose }: PasskeyFAQModalProps) {
+  const { isMobile } = useWindowDimensions();
+
+  if (isMobile) {
+    return (
+      <VaulDrawer
+        show={open}
+        setShow={(show) => { if (!show) onClose(); }}
+        modalId="passkey-faq"
+        mode="fitHeight"
+        header={<p>Passkey FAQ</p>}
+      >
+        <VaulDrawer.Snap id="item-1" openFullHeight className="h-full">
+          <div className="px-4 pb-4">
+            <PasskeyFAQContent />
+          </div>
+        </VaulDrawer.Snap>
+      </VaulDrawer>
+    );
+  }
+
+  return (
+    <AppShellDialog
+      open={open}
+      onOpenChange={(o) => { if (!o) onClose(); }}
+      title="Passkey FAQ"
+    >
+      <PasskeyFAQContent />
+    </AppShellDialog>
   );
 }
