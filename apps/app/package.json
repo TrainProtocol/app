@@ -21,7 +21,6 @@
     "@aztec/protocol-contracts": "^4.2.0",
     "@aztec/stdlib": "^4.2.0",
     "@aztec/wallet-sdk": "^4.2.0",
-    "@badrap/bar-of-progress": "^0.2.2",
     "@cartridge/controller": "^0.10.7",
     "@coral-xyz/anchor": "catalog:",
     "@defi-wonderland/aztec-standards": "4.2.0-aztecnr-rc.2",

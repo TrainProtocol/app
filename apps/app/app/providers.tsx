@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useCallback, useEffect, useMemo } from "react"
-import { usePathname, useSearchParams } from "next/navigation"
+import React, { useCallback, useMemo } from "react"
+import { useSearchParams } from "next/navigation"
 import { IntercomProvider } from "react-use-intercom"
 import { SWRConfig } from "swr"
 import { PostHogProvider } from "posthog-js/react"
@@ -11,7 +11,6 @@ import { ThemeProvider } from "next-themes"
 import { ErrorBoundary } from "react-error-boundary"
 import { registerEvmSdk } from "@train-protocol/evm"
 import { TrainProvider } from "@train-protocol/react"
-import ProgressBar from "@badrap/bar-of-progress"
 
 import ThemeWrapper from "@/components/themeWrapper"
 import MaintananceContent from "@/components/Maintanance"
@@ -44,9 +43,6 @@ const INTERCOM_APP_ID = "h5zisg78"
 const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY
 const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com"
 
-const progress = typeof window !== "undefined"
-    ? new ProgressBar({ size: 2, color: "rgb(var(--ls-colors-primary))", className: "bar-of-progress", delay: 100 })
-    : null
 
 if (typeof window !== "undefined" && posthogKey) {
     posthog.init(posthogKey, {
@@ -71,29 +67,8 @@ type Props = {
 }
 
 export function Providers({ children, settings }: Props) {
-    const pathname = usePathname()
     const searchParams = useSearchParams()
     const { getEffectiveRpcUrls } = useRpcConfigStore()
-
-    useEffect(() => {
-        progress?.finish()
-        posthog?.capture("$pageview")
-    }, [pathname])
-
-    useEffect(() => {
-        if (!progress) return
-        const origPushState = history.pushState
-        history.pushState = function (...args) {
-            progress.start()
-            return origPushState.apply(this, args)
-        }
-        const onPopState = () => progress.start()
-        window.addEventListener('popstate', onPopState)
-        return () => {
-            history.pushState = origPushState
-            window.removeEventListener('popstate', onPopState)
-        }
-    }, [])
 
     const resolveNodeUrls = useCallback((networkId: string) => {
         const network = settings?.networks.find(n => n.caip2Id === networkId)
