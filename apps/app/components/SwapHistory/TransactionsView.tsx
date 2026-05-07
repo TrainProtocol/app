@@ -24,7 +24,7 @@ export default function TransactionsView() {
             </div>
             <MobilePageHeader />
             <Widget hideMenu>
-                <div className="openpicker pt-4 h-[79svh] overflow-y-auto styled-scroll">
+                <div className="openpicker pt-4 h-[79svh] overflow-y-scroll overflow-x-hidden -mr-4 pr-2 scrollbar:w-1.5! scrollbar:h-1.5! scrollbar-thumb:bg-transparent styled-scroll">
                     <SwapHistory />
                 </div>
             </Widget>
