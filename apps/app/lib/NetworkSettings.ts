@@ -5,12 +5,19 @@ export enum GasCalculation {
     OptimismType = 'optimismType'
 }
 
+export type NativeTokenInfo = {
+    name: string;
+    symbol: string;
+    decimals: number;
+}
+
 export default class NetworkSettings {
     ChainId?: number | string;
     DefaultPriorityFee?: number;
     BaseFeeMultiplier?: number;
     GasCalculationType?: GasCalculation
     isFeatured?: boolean
+    NativeTokenInfo?: NativeTokenInfo
 
     public static KnownSettings: { [network: string]: NetworkSettings } = {};
 
@@ -45,6 +52,10 @@ export default class NetworkSettings {
         };
         NetworkSettings.KnownSettings[KnownInternalNames.Networks.ArbitrumSepolia] = {
             ChainId: 421614,
+        };
+        NetworkSettings.KnownSettings[KnownInternalNames.Networks.MonadTestnet] = {
+            ChainId: 10143,
+            NativeTokenInfo: { name: 'Monad', symbol: 'MON', decimals: 18 },
         };
         NetworkSettings.KnownSettings[KnownInternalNames.Networks.AztecDevnet] = {
             ChainId: 'aztec-devnet',

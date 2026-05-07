@@ -5,7 +5,6 @@ import { getExplorerUrl } from "@/lib/address";
 import { useActiveSwap } from "@/hooks/useActiveSwap";
 import WalletIcon from "@/components/Icons/WalletIcon";
 import LockIcon from "@/components/Icons/LockIcon";
-import SignatureIcon from "@/components/Icons/SignatureIcon";
 import { HTLCTransaction } from "@train-protocol/react";
 
 const Details: FC = () => {

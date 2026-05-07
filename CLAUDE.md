@@ -37,7 +37,7 @@ The app has no `lint` script and no in-app test setup — tests live in packages
 ### Layout & navigation
 - `ThemeWrapper` (inside providers) renders the persistent shell: left-side `AppSidebar` + top app-header strip (desktop) that holds `<PendingSwap />` + content area + `GlobalFooter`.
 - `HeaderWithMenu` lives inside `Widget` (not the app shell) and contains back button, mobile-only wallet/menu cluster. On mobile `PendingSwap` also appears here (no top app-header on mobile).
-- **Progress bar**: `progress` (`@badrap/bar-of-progress`) lives at module scope in `providers.tsx`. A single `useEffect` monkey-patches `history.pushState` + listens to `popstate` to `progress.start()` on navigation; the `pathname`-dep effect calls `progress.finish()` on settle. `history.replaceState` is intentionally NOT patched — internal URL-sync calls (e.g. `Swap/Atomic/index.tsx` syncing `/` ↔ `/swap` via `replaceState`) would otherwise start a bar that never finishes.
+- **Route loading skeletons**: `app/{settings,transactions,swap,faucet}/loading.tsx` each inline a centered `Loader2` spinner (identical body — `flex items-center justify-center w-full min-h-93.5` wrapper around `<Loader2 className="h-10 w-10 text-primary animate-spin" />`). `components/Loading.tsx` holds the same body for non-route Suspense boundaries. Copy the body into a new `loading.tsx` when adding a route that needs a Suspense fallback; let it diverge if that route eventually wants a different skeleton.
 - **Maintenance fallback**: when `getSettings()` returns `null`, `app/providers.tsx` renders `<MaintananceContent />` in place of the full provider tree (inside `IntercomProvider` so `useIntercom` works). Root layout does NOT call `notFound()`.
 
 ### API Layer — Station API
