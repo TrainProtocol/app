@@ -52,6 +52,12 @@ export interface SwapStoreState {
     // Flag actions
     /** Update one or more flags for a swap. `manualClaimStartedAt` is write-once (ignored if already set). */
     updateSwapFlags: (hashlock: string, updates: Partial<SwapFlags>) => void
+    /**
+     * User-driven override of a failed solver-lock consensus check.
+     * Flips consensusPhase to 'verified' (with verifiedNodeCount=0 as the manual sentinel)
+     * and clears any verification error so the auto-reveal flow can proceed.
+     */
+    markVerifiedManually: (hashlock: string) => void
 
     // Order data (SSE stream)
     setOrderData: (hashlock: string, data: HTLCFromApi) => void
@@ -170,6 +176,14 @@ function createActions(set: SetFn, get: GetFn) {
                 }
                 return { ...flags, ...updates }
             })),
+
+        markVerifiedManually: (hashlock: string) =>
+            set((state) => updateFlags(state, hashlock, (flags) => ({
+                ...flags,
+                consensusPhase: 'verified',
+                verifiedNodeCount: 0,
+                error: null,
+            }))),
 
         // --- Order data ---
         setOrderData: (hashlock: string, data: HTLCFromApi) =>

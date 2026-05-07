@@ -1,7 +1,6 @@
 "use client"
 
-import React, { useCallback, useMemo } from "react"
-import { useSearchParams } from "next/navigation"
+import React, { Suspense, useCallback } from "react"
 import { IntercomProvider } from "react-use-intercom"
 import { SWRConfig } from "swr"
 import { PostHogProvider } from "posthog-js/react"
@@ -25,11 +24,11 @@ import { SwapAccountsProvider } from "@/context/swapAccounts"
 import QueryProvider from "@/context/query"
 import { TrainAppSettings } from "@/Models/TrainAppSettings"
 import { TrainSettings } from "@/Models/TrainSettings"
-import { QueryParams } from "@/Models/QueryParams"
 import { SendErrorMessage } from "@/lib/telegram"
 import { IsExtensionError } from "@/helpers/errorHelper"
 import AppSettings from "@/lib/AppSettings"
 import { useRpcConfigStore } from "@/stores/rpcConfigStore"
+import Loading from "@/components/Loading"
 
 if (typeof window !== "undefined") {
     registerEvmSdk()
@@ -67,31 +66,6 @@ type Props = {
 }
 
 export function Providers({ children, settings }: Props) {
-    const searchParams = useSearchParams()
-    const { getEffectiveRpcUrls } = useRpcConfigStore()
-
-    const resolveNodeUrls = useCallback((networkId: string) => {
-        const network = settings?.networks.find(n => n.caip2Id === networkId)
-        return network ? getEffectiveRpcUrls(network) : []
-    }, [settings, getEffectiveRpcUrls])
-
-    const query = useMemo<QueryParams>(() => {
-        const isTrue = (k: string) => searchParams?.get(k) === 'true'
-        return {
-            ...Object.fromEntries(searchParams?.entries() ?? []),
-            lockNetwork: isTrue('lockNetwork'),
-            hideAddress: isTrue('hideAddress'),
-            hideFrom: isTrue('hideFrom'),
-            hideTo: isTrue('hideTo'),
-            lockFrom: isTrue('lockFrom'),
-            lockTo: isTrue('lockTo'),
-            lockAsset: isTrue('lockAsset'),
-            lockFromAsset: isTrue('lockFromAsset'),
-            lockToAsset: isTrue('lockToAsset'),
-            hideLogo: isTrue('hideLogo'),
-        }
-    }, [searchParams])
-
     return (
         <PostHogProvider client={posthog}>
             <SWRConfig value={{ revalidateOnFocus: false, dedupingInterval: 5000 }}>
@@ -106,34 +80,7 @@ export function Providers({ children, settings }: Props) {
                 >
                     <IntercomProvider appId={INTERCOM_APP_ID} initializeDelay={2500}>
                         {settings ? (
-                            <QueryProvider query={query}>
-                                <SettingsProvider data={new TrainAppSettings(settings)}>
-                                    <TooltipProvider delayDuration={500}>
-                                        <TrainProvider
-                                            baseUrl={AppSettings.TrainApiUri ?? ''}
-                                            resolveNodeUrls={resolveNodeUrls}
-                                            initialNetworks={settings.networks}
-                                            secretDerivation={{ persist: true }}
-                                        >
-                                            <WalletsProviders appName={searchParams?.get('appName') ?? undefined}>
-                                                <ThemeWrapper>
-                                                    <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
-                                                        <SwapAccountsProvider>
-                                                            <AsyncModalProvider>
-                                                                <AuthDialog />
-                                                                <SwapModalRoot />
-                                                                {process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true'
-                                                                    ? <MaintananceContent />
-                                                                    : children}
-                                                            </AsyncModalProvider>
-                                                        </SwapAccountsProvider>
-                                                    </ErrorBoundary>
-                                                </ThemeWrapper>
-                                            </WalletsProviders>
-                                        </TrainProvider>
-                                    </TooltipProvider>
-                                </SettingsProvider>
-                            </QueryProvider>
+                            <AppShell settings={settings}>{children}</AppShell>
                         ) : (
                             <div className="styled-scroll flex min-h-screen w-full items-center justify-center">
                                 <MaintananceContent />
@@ -144,5 +91,49 @@ export function Providers({ children, settings }: Props) {
             </SWRConfig>
             <Analytics />
         </PostHogProvider>
+    )
+}
+
+function AppShell({ children, settings }: { children: React.ReactNode; settings: TrainSettings }) {
+    const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
+
+    const resolveNodeUrls = useCallback((networkId: string) => {
+        const network = settings.networks.find(n => n.caip2Id === networkId)
+        return network ? getEffectiveRpcUrls(network) : []
+    }, [settings.networks, getEffectiveRpcUrls])
+
+    const pageContent = process.env.NEXT_PUBLIC_IN_MAINTANANCE === 'true'
+        ? <MaintananceContent />
+        : children
+
+    return (
+        <SettingsProvider data={new TrainAppSettings(settings)}>
+            <TooltipProvider delayDuration={500}>
+                <TrainProvider
+                    baseUrl={AppSettings.TrainApiUri ?? ''}
+                    resolveNodeUrls={resolveNodeUrls}
+                    initialNetworks={settings.networks}
+                    secretDerivation={{ persist: true }}
+                >
+                    <WalletsProviders>
+                        <ThemeWrapper>
+                            <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
+                                <SwapAccountsProvider>
+                                    <AsyncModalProvider>
+                                        <Suspense fallback={<Loading />}>
+                                            <QueryProvider>
+                                                <AuthDialog />
+                                                <SwapModalRoot />
+                                                {pageContent}
+                                            </QueryProvider>
+                                        </Suspense>
+                                    </AsyncModalProvider>
+                                </SwapAccountsProvider>
+                            </ErrorBoundary>
+                        </ThemeWrapper>
+                    </WalletsProviders>
+                </TrainProvider>
+            </TooltipProvider>
+        </SettingsProvider>
     )
 }

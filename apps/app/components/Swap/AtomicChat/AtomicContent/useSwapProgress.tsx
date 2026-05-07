@@ -98,7 +98,11 @@ function buildSteps(
 // --- Verification Status ---
 
 const VerificationStatus: FC = () => {
-    const { consensusVerifying, consensusVerified, verifiedNodeCount } = useActiveSwap();
+    const { consensusVerifying, consensusVerified, consensusFailed, verifiedNodeCount } = useActiveSwap();
+
+    if (consensusFailed) {
+        return <span className="text-sm text-secondary-text">Couldn't verify with RPCs</span>;
+    }
 
     if (consensusVerifying) {
         return (
@@ -110,6 +114,14 @@ const VerificationStatus: FC = () => {
     }
 
     if (consensusVerified) {
+        if (verifiedNodeCount === 0) {
+            return (
+                <div className="flex items-center gap-1 text-sm">
+                    <span>Verified manually</span>
+                    <LockIcon className="h-4 w-4 text-primary" />
+                </div>
+            );
+        }
         const label = verifiedNodeCount === 1
             ? '1 RPC'
             : `${verifiedNodeCount} RPCs`;
@@ -124,7 +136,7 @@ const VerificationStatus: FC = () => {
         );
     }
 
-    return <span className="text-sm">Verified by RPCs</span>;
+    return <span className="text-sm">Verifying…</span>;
 };
 
 // --- Main Hook ---

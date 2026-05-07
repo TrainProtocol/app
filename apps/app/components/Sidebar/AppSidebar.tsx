@@ -1,6 +1,6 @@
 "use client"
 
-import { FC } from "react"
+import { FC, Suspense } from "react"
 import {
     Sidebar,
     SidebarContent,
@@ -18,74 +18,34 @@ import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, Home, Chevro
 import AppSettings from "@/lib/AppSettings"
 import { useIntercom } from "react-use-intercom"
 import { useOptionalSecretDerivation } from "@train-protocol/react"
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import Link from "next/link"
+import { buildHrefWithPersistantParams } from "@/helpers/querryHelper"
 import TwitterLogo from "@/components/Icons/TwitterLogo"
 import GitHubLogo from "@/components/Icons/GitHubLogo"
 import TrainLogo from "@/components/Icons/TrainLogo"
-import { useGoHome } from "@/hooks/useGoHome"
 import { useAuthDialog } from "@/stores/authDialogStore"
 import { getLoginIdentity } from "@/components/SecretDerivation/UserStatus"
 import TelegramLogo from "../Icons/TelegramLogo"
 
 const AppSidebar: FC = () => {
     const currentPath = usePathname() ?? '/'
-    const goHome = useGoHome()
 
     return (
         <Sidebar side="left" collapsible="none" className="hidden md:flex">
             <SidebarHeader className="px-2 py-2 mb-2">
-                <button
-                    type="button"
-                    onClick={goHome}
-                    aria-label="Home"
-                    className="flex h-9 w-fit items-center rounded-md px-2 hover:bg-sidebar-accent transition-colors cursor-pointer"
-                >
-                    <TrainLogo className="h-7 -ml-1 w-auto text-primary-logoColor fill-primary-text" />
-                </button>
+                <Suspense fallback={<SidebarLogo href="/" />}>
+                    <SidebarLogoWithParams />
+                </Suspense>
             </SidebarHeader>
 
             <SidebarContent className="px-2">
                 <SidebarGroup className="px-0 py-0">
                     <SidebarGroupContent>
                         <SidebarMenu className="gap-0.5">
-                            <SidebarMenuItem>
-                                <SidebarMenuButton asChild isActive={currentPath === "/"}>
-                                    <Link href="/">
-                                        <Home />
-                                        <span>Home</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-
-                            <SidebarMenuItem>
-                                <SidebarMenuButton asChild isActive={currentPath === "/transactions"}>
-                                    <Link href="/transactions">
-                                        <History />
-                                        <span>History</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-
-                            {AppSettings.ApiVersion === 'sandbox' && (
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild isActive={currentPath === "/faucet"}>
-                                        <Link href="/faucet">
-                                            <HandCoins />
-                                            <span>Faucet</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            )}
-
-                            <SidebarMenuItem>
-                                <SidebarMenuButton asChild isActive={currentPath === "/settings"}>
-                                    <Link href="/settings">
-                                        <Settings />
-                                        <span>Settings</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
+                            <Suspense fallback={<NavItems currentPath={currentPath} hrefs={{ home: "/", transactions: "/transactions", settings: "/settings", faucet: "/faucet" }} />}>
+                                <NavItemsWithParams currentPath={currentPath} />
+                            </Suspense>
 
                             <SidebarMenuItem>
                                 <MoreMenu />
@@ -211,6 +171,81 @@ const SidebarLoginStatus: FC = () => {
                 </Popover>
             </SidebarMenuItem>
         </SidebarMenu>
+    )
+}
+
+const SidebarLogo: FC<{ href: string }> = ({ href }) => (
+    <Link
+        href={href}
+        prefetch={false}
+        aria-label="Home"
+        className="flex h-9 w-fit items-center rounded-md px-2 hover:bg-sidebar-accent transition-colors cursor-pointer"
+    >
+        <TrainLogo className="h-7 -ml-1 w-auto text-primary-logoColor fill-primary-text" />
+    </Link>
+)
+
+const SidebarLogoWithParams: FC = () => {
+    const searchParams = useSearchParams()
+    return <SidebarLogo href={buildHrefWithPersistantParams("/", searchParams)} />
+}
+
+type NavHrefs = { home: string; transactions: string; settings: string; faucet: string }
+
+const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, hrefs }) => (
+    <>
+        <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={currentPath === "/"}>
+                <Link href={hrefs.home}>
+                    <Home />
+                    <span>Home</span>
+                </Link>
+            </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={currentPath === "/transactions"}>
+                <Link href={hrefs.transactions}>
+                    <History />
+                    <span>History</span>
+                </Link>
+            </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        {AppSettings.ApiVersion === 'sandbox' && (
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={currentPath === "/faucet"}>
+                    <Link href={hrefs.faucet}>
+                        <HandCoins />
+                        <span>Faucet</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+        )}
+
+        <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={currentPath === "/settings"}>
+                <Link href={hrefs.settings}>
+                    <Settings />
+                    <span>Settings</span>
+                </Link>
+            </SidebarMenuButton>
+        </SidebarMenuItem>
+    </>
+)
+
+const NavItemsWithParams: FC<{ currentPath: string }> = ({ currentPath }) => {
+    const searchParams = useSearchParams()
+    return (
+        <NavItems
+            currentPath={currentPath}
+            hrefs={{
+                home: buildHrefWithPersistantParams("/", searchParams),
+                transactions: buildHrefWithPersistantParams("/transactions", searchParams),
+                settings: buildHrefWithPersistantParams("/settings", searchParams),
+                faucet: buildHrefWithPersistantParams("/faucet", searchParams),
+            }}
+        />
     )
 }
 

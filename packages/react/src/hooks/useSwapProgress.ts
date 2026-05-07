@@ -128,21 +128,29 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         onTransactionFailed: onUserLockTxFailed,
     })
 
+    // A user-driven override leaves consensusPhase='verified' with verifiedNodeCount=0.
+    // Detect that to keep the polling hook from clobbering it on remount.
+    const flags = hl ? actions.getSwapFlags(hl) : undefined
+    const manuallyOverridden = flags?.consensusPhase === 'verified' && flags?.verifiedNodeCount === 0
+
     const { consensusPhase, verifiedNodeCount } = useSolverLockPolling({
         client: destReadClient,
         params: solverLockParams,
         hashlock: hl,
         nodeUrls: destNodeUrls,
         enabled: isActive && derived.status !== HTLCStatus.Initial,
+        manuallyOverridden,
         onConsensusFailed,
     })
 
     // Sync consensus phase + verified node count to store flags
     // (one-way, for useDerivedSwapState in other components)
     useEffect(() => {
-        if (hl && consensusPhase !== 'none') {
-            actions.updateSwapFlags(hl, { consensusPhase, verifiedNodeCount })
-        }
+        if (!hl || consensusPhase === 'none') return
+        // Never downgrade a manual override that's already in the flags.
+        const current = actions.getSwapFlags(hl)
+        if (current?.consensusPhase === 'verified' && current?.verifiedNodeCount === 0) return
+        actions.updateSwapFlags(hl, { consensusPhase, verifiedNodeCount })
     }, [hl, actions, consensusPhase, verifiedNodeCount])
 
     // Order streaming

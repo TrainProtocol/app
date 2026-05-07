@@ -5,8 +5,6 @@ import type { Metadata, Viewport } from "next";
 import { getSettings } from "@/lib/getSettings";
 import { Providers } from "./providers";
 
-export const dynamic = "force-dynamic";
-
 const title = "TRAIN I The First Scalable Cross-Chain Bridge";
 const description = "The trustless and permissionless way of cross-chain asset bridging & swapping. Move assets across blockchains without third parties, secured by a battle-tested system.";
 
