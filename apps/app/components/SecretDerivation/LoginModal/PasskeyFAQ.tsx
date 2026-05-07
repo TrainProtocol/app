@@ -11,37 +11,49 @@ const FAQ_ITEMS: { id: string; question: string; answer: string }[] = [
     id: 'faq-1',
     question: 'What is a passkey?',
     answer:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+      "A passkey is a modern way to sign in using your device's built-in security — like Face ID, Touch ID, Windows Hello, or your phone's fingerprint sensor. Instead of a password you have to remember, your device proves it's you with a unique cryptographic key that's created and protected on the device itself.",
   },
   {
     id: 'faq-2',
-    question: 'How is a passkey different from a password?',
+    question: 'Why does Train use passkeys?',
     answer:
-      'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+      "Every Train swap is locked with a one-time secret. Your passkey is what generates that secret and re-creates it later to unlock your funds — so you don't need to remember a password, write down a backup phrase, or trust anyone to hold a key for you. A quick fingerprint or face scan is all it takes to authorize a swap.",
   },
   {
     id: 'faq-3',
-    question: 'Where is my passkey stored?',
+    question: 'Does Train ever see my passkey or my swap secret?',
     answer:
-      'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.',
+      "No. Your passkey stays sealed inside your device's secure store, and your swap secret is generated locally only when it's needed. The only thing Train sees is a public fingerprint of that secret (called the hashlock), which is what your funds are locked against on-chain. The fingerprint can't be reversed back into the secret.",
   },
   {
     id: 'faq-4',
-    question: 'Can I use the same passkey on multiple devices?',
+    question: 'How is a passkey different from a password?',
     answer:
-      'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet.',
+      "You can't forget a passkey, type it into the wrong site, or have it leaked from a database. It's tied to your device and unlocked with biometrics, which makes it far harder to phish, guess, or reuse against you than any password — even a strong one.",
   },
   {
     id: 'faq-5',
-    question: 'What happens if I lose my device?',
+    question: 'Where is my passkey stored?',
     answer:
-      'At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.',
+      "Your passkey is stored by your operating system or password manager — for example iCloud Keychain on Apple, Google Password Manager on Android, Windows Hello, or apps like 1Password and Dashlane. The actual key material is kept inside that secure store and is never exposed to Train or any website you visit.",
   },
   {
     id: 'faq-6',
+    question: 'Can I use the same passkey on multiple devices?',
+    answer:
+      "Yes, if your passkey is synced through a service like iCloud Keychain, Google Password Manager, or 1Password — it'll appear automatically on your other signed-in devices. Hardware security keys (like a YubiKey) stay on the physical key itself and aren't synced; you'd plug the same key into each device you want to use.",
+  },
+  {
+    id: 'faq-7',
+    question: 'What happens if I lose my device?',
+    answer:
+      "If your passkey is synced through a cloud-backed password manager (iCloud, Google, 1Password, etc.), you can sign in again on a new device once it syncs over. If it isn't synced — for example a hardware security key with no backup — that passkey can't be recovered and you'd need to create a new one. We recommend using a synced passkey so you always have a way back in.",
+  },
+  {
+    id: 'faq-8',
     question: 'Is a passkey safer than a password?',
     answer:
-      'Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus.',
+      "In almost every way, yes. Passkeys can't be phished (they only work on the real Train site), can't be reused on a fake page, and can't be stolen from a database since the secret part never leaves your device. They also require your face, fingerprint, or device PIN to use — so even someone with your unlocked computer would have a hard time signing in as you.",
   },
 ];
 
@@ -102,7 +114,6 @@ export function PasskeyFAQModal({ open, onClose }: PasskeyFAQModalProps) {
         setShow={(show) => { if (!show) onClose(); }}
         modalId="passkey-faq"
         mode="fitHeight"
-        header={<p>Passkey FAQ</p>}
       >
         <VaulDrawer.Snap id="item-1" openFullHeight className="h-full">
           <div className="px-4 pb-4">
@@ -117,7 +128,6 @@ export function PasskeyFAQModal({ open, onClose }: PasskeyFAQModalProps) {
     <AppShellDialog
       open={open}
       onOpenChange={(o) => { if (!o) onClose(); }}
-      title="Passkey FAQ"
     >
       <PasskeyFAQContent />
     </AppShellDialog>
