@@ -29,7 +29,7 @@ const ConnectWalletDrawer: FC = () => {
                 onOpenChange={(v) => { if (!v) onFinish() }}
                 title={title}
                 onBack={showBack ? goBack : undefined}
-                contentClassName="h-[670px]! max-h-[85svh]!"
+                contentClassName="h-[550px]! max-h-[85svh]!"
             >
                 <ConnectorsList onFinish={onFinish} />
             </AppShellDialog>

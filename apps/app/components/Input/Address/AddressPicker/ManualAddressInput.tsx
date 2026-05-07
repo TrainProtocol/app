@@ -80,7 +80,7 @@ export const ManualAddressInputCore: FC<CoreProps> = ({ value, onChange, onSave,
         : undefined
 
     return (
-        <div className="text-left">
+        <div className="text-left pt-1">
             <div className="relative flex grow rounded-lg shadow-xs w-full">
                 <Input
                     value={value}
