@@ -3,13 +3,13 @@
 
 /* eslint-disable */
 import { AztecAddress } from '@aztec/aztec.js/addresses';
-import { type AbiType, type AztecAddressLike, type ContractArtifact, EventSelector, type FieldLike, loadContractArtifact, loadContractArtifactForPublic, type NoirCompiledContract } from '@aztec/aztec.js/abi';
+import { type AbiType, type AztecAddressLike, type ContractArtifact, EventSelector, type FieldLike, loadContractArtifact, loadContractArtifactForPublic, type NoirCompiledContract, OptionLike } from '@aztec/aztec.js/abi';
 import { Contract, ContractBase, ContractFunctionInteraction, type ContractMethod, type ContractStorageLayout, DeployMethod } from '@aztec/aztec.js/contracts';
 import { Fr } from '@aztec/aztec.js/fields';
 import { PublicKeys } from '@aztec/aztec.js/keys';
 import type { Wallet } from '@aztec/aztec.js/wallet';
 import TrainContractArtifactJson from './train-Train.json';
-export const TrainContractArtifact = loadContractArtifact(TrainContractArtifactJson as NoirCompiledContract);
+export const TrainContractArtifact = loadContractArtifact(TrainContractArtifactJson as unknown as NoirCompiledContract);
 
 
 export type UserRefunded = {
@@ -153,7 +153,7 @@ export class TrainContract extends ContractBase {
    * Returns this contract's artifact with public bytecode.
    */
   public static get artifactForPublic(): ContractArtifact {
-    return loadContractArtifactForPublic(TrainContractArtifactJson as NoirCompiledContract);
+    return loadContractArtifactForPublic(TrainContractArtifactJson as unknown as NoirCompiledContract);
   }
 
 
@@ -187,8 +187,8 @@ export class TrainContract extends ContractBase {
     /** get_user_lock(hashlock: array) */
     get_user_lock: ((hashlock: (bigint | number)[]) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
 
-    /** process_message(message_ciphertext: struct, message_context: struct) */
-    process_message: ((message_ciphertext: FieldLike[], message_context: { tx_hash: FieldLike, unique_note_hashes_in_tx: FieldLike[], first_nullifier_in_tx: FieldLike, recipient: AztecAddressLike }) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
+    /** offchain_receive(messages: struct) */
+    offchain_receive: ((messages: { ciphertext: FieldLike[], recipient: AztecAddressLike, tx_hash: OptionLike<FieldLike>, anchor_block_timestamp: (bigint | number) }[]) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
 
     /** public_dispatch(selector: field) */
     public_dispatch: ((selector: FieldLike) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
@@ -205,16 +205,15 @@ export class TrainContract extends ContractBase {
     /** refund_user(hashlock: array) */
     refund_user: ((hashlock: (bigint | number)[]) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
 
-    /** solver_lock(hashlock: array, amount: integer, transfer_nonce: field, reward: integer, reward_transfer_nonce: field, timelock_delta: integer, reward_timelock_delta: integer, sender: struct, recipient: struct, reward_recipient: struct, token: struct, reward_token: struct, src_chain: array, dst_chain: array, dst_address: array, dst_amount: integer, dst_token: array, data: array) */
-    solver_lock: ((hashlock: (bigint | number)[], amount: (bigint | number), transfer_nonce: FieldLike, reward: (bigint | number), reward_transfer_nonce: FieldLike, timelock_delta: (bigint | number), reward_timelock_delta: (bigint | number), sender: AztecAddressLike, recipient: AztecAddressLike, reward_recipient: AztecAddressLike, token: AztecAddressLike, reward_token: AztecAddressLike, src_chain: (bigint | number)[], dst_chain: (bigint | number)[], dst_address: (bigint | number)[], dst_amount: (bigint | number), dst_token: (bigint | number)[], data: (bigint | number)[]) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
+    /** solver_lock(hashlock: array, amount: integer, transfer_nonce: field, reward: integer, reward_transfer_nonce: field, timelock_delta: integer, reward_timelock_delta: integer, refund_to: struct, recipient: struct, reward_recipient: struct, token: struct, reward_token: struct, src_chain: array, dst_chain: array, dst_address: array, dst_amount: integer, dst_token: array, data: array) */
+    solver_lock: ((hashlock: (bigint | number)[], amount: (bigint | number), transfer_nonce: FieldLike, reward: (bigint | number), reward_transfer_nonce: FieldLike, timelock_delta: (bigint | number), reward_timelock_delta: (bigint | number), refund_to: AztecAddressLike, recipient: AztecAddressLike, reward_recipient: AztecAddressLike, token: AztecAddressLike, reward_token: AztecAddressLike, src_chain: (bigint | number)[], dst_chain: (bigint | number)[], dst_address: (bigint | number)[], dst_amount: (bigint | number), dst_token: (bigint | number)[], data: (bigint | number)[]) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
 
-    /** sync_state() */
-    sync_state: (() => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
+    /** sync_state(scope: struct) */
+    sync_state: ((scope: AztecAddressLike) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
 
-    /** user_lock(hashlock: array, amount: integer, transfer_nonce: field, reward_amount: integer, timelock_delta: integer, reward_timelock_delta: integer, quote_expiry: integer, sender: struct, recipient: struct, token: struct, reward_token: array, reward_recipient: array, src_chain: array, dst_chain: array, dst_address: array, dst_amount: integer, dst_token: array, user_data: array, solver_data: array) */
-    user_lock: ((hashlock: (bigint | number)[], amount: (bigint | number), transfer_nonce: FieldLike, reward_amount: (bigint | number), timelock_delta: (bigint | number), reward_timelock_delta: (bigint | number), quote_expiry: (bigint | number), sender: AztecAddressLike, recipient: AztecAddressLike, token: AztecAddressLike, reward_token: (bigint | number)[], reward_recipient: (bigint | number)[], src_chain: (bigint | number)[], dst_chain: (bigint | number)[], dst_address: (bigint | number)[], dst_amount: (bigint | number), dst_token: (bigint | number)[], user_data: (bigint | number)[], solver_data: (bigint | number)[]) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
+    /** user_lock(hashlock: array, amount: integer, transfer_nonce: field, reward_amount: integer, timelock_delta: integer, reward_timelock_delta: integer, quote_expiry: integer, refund_to: struct, recipient: struct, token: struct, reward_token: array, reward_recipient: array, src_chain: array, dst_chain: array, dst_address: array, dst_amount: integer, dst_token: array, user_data: array, solver_data: array) */
+    user_lock: ((hashlock: (bigint | number)[], amount: (bigint | number), transfer_nonce: FieldLike, reward_amount: (bigint | number), timelock_delta: (bigint | number), reward_timelock_delta: (bigint | number), quote_expiry: (bigint | number), refund_to: AztecAddressLike, recipient: AztecAddressLike, token: AztecAddressLike, reward_token: (bigint | number)[], reward_recipient: (bigint | number)[], src_chain: (bigint | number)[], dst_chain: (bigint | number)[], dst_address: (bigint | number)[], dst_amount: (bigint | number), dst_token: (bigint | number)[], user_data: (bigint | number)[], solver_data: (bigint | number)[]) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
   };
-
 
   public static get events(): { UserRefunded: { abiType: AbiType, eventSelector: EventSelector, fieldNames: string[] }, UserRedeemed: { abiType: AbiType, eventSelector: EventSelector, fieldNames: string[] }, UserLocked: { abiType: AbiType, eventSelector: EventSelector, fieldNames: string[] }, SolverRefunded: { abiType: AbiType, eventSelector: EventSelector, fieldNames: string[] }, SolverRedeemed: { abiType: AbiType, eventSelector: EventSelector, fieldNames: string[] }, SolverLocked: { abiType: AbiType, eventSelector: EventSelector, fieldNames: string[] } } {
     return {

@@ -1,11 +1,12 @@
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback } from "react"
+import { useCallback, startTransition } from "react"
 import { buildHrefWithPersistantParams } from "../helpers/querryHelper"
 
 export const useGoHome = (): () => void => {
     const router = useRouter()
     const searchParams = useSearchParams()
     return useCallback(() => {
-        router.push(buildHrefWithPersistantParams("/", searchParams))
+        const href = buildHrefWithPersistantParams("/", searchParams)
+        startTransition(() => router.push(href))
     }, [router, searchParams])
 }

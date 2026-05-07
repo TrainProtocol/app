@@ -46,7 +46,7 @@ const FormButton = ({
     if (!isLoggedIn) {
         return (
             <SubmitButton type="button" onClick={openAuthDialog}>
-                Login to continue
+                Log in to continue
             </SubmitButton>
         );
     }
@@ -112,7 +112,7 @@ export const FormDestinationWalletButton: FC = () => {
 
     if (!availableWallets.length && destinationNetwork) {
         return (
-            <SubmitButton icon={<PlusIcon className="stroke-1" />} onClick={handleConnect}>
+            <SubmitButton type="button" icon={<PlusIcon className="stroke-1" />} onClick={handleConnect}>
                 Connect {destinationNetwork.displayName} wallet
             </SubmitButton>
         );

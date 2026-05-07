@@ -39,7 +39,7 @@ const AddressBook: FC<AddressBookProps> = ({ addressBook, onSelectAddress, desti
                                     <CommandItem key={item.address} onSelect={() => onSelectAddress(item.address, item.wallet)} className={`group/addressItem px-3 py-3 hover:bg-secondary-400 w-full transition duration-200 bg-secondary-500 ${isSelected && 'bg-secondary-400'}`}>
                                         <div className={`flex items-center justify-between w-full`}>
                                             <AddressWithIcon addressItem={item} partner={partner} network={destination} />
-                                            <div className="flex h-6 items-center px-1">
+                                            <div className="flex h-6 items-center px-1 text-primary-text-tertiary">
                                                 {
                                                     isSelected &&
                                                     <FilledCheck />

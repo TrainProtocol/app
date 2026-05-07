@@ -1,4 +1,4 @@
-import { EventSelector, decodeFromAbi } from '@aztec/aztec.js/abi'
+import { decodeFromAbi } from '@aztec/aztec.js/abi'
 import { AztecAddress } from '@aztec/aztec.js/addresses'
 import { type AztecNode, createAztecNodeClient } from '@aztec/aztec.js/node'
 import { TxHash } from '@aztec/aztec.js/tx'
@@ -6,6 +6,10 @@ import type { EventDerivedData } from '@train-protocol/sdk'
 import { bytesToHex } from '@train-protocol/sdk'
 import { TrainContract } from '../artifacts/Train'
 import type { AztecSigner } from '../types'
+
+// Train contract emits via `emit_public_log_unsafe(tag, struct)`, so the first
+// emitted field is the event tag and there is no selector at the end.
+const EVENT_USER_LOCKED_TAG = 1n
 
 export function requireSigner(signer?: AztecSigner): AztecSigner {
     if (!signer) throw new Error('Signer required')
@@ -69,13 +73,12 @@ export async function findEventDataFromLogs(
             const emittedFields = log.log.getEmittedFields()
             if (emittedFields.length === 0) continue
 
-            const selectorField = emittedFields[emittedFields.length - 1]
-            const selector = EventSelector.fromField(selectorField)
-            if (selector.toString() !== eventDef.eventSelector.toString()) continue
+            // First field is the event tag; skip non-UserLocked logs
+            if (emittedFields[0].toBigInt() !== EVENT_USER_LOCKED_TAG) continue
 
             const decoded = decodeFromAbi(
                 [eventDef.abiType],
-                log.log.fields,
+                emittedFields.slice(1),
             ) as Record<string, any>
 
             const decodedHashlock = bytesToHex(Array.from(decoded.hashlock).map(Number))

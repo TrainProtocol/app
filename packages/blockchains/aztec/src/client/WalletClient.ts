@@ -1,4 +1,3 @@
-import { getContractInstanceFromInstantiationParams } from '@aztec/aztec.js/contracts'
 import type {
     IHTLCWalletClient,
     UserLockParams,
@@ -14,7 +13,6 @@ import { redeemSolver } from './wallet/redeemSolver'
 
 export class AztecHTLCWalletClient extends AztecHTLCPublicClient implements IHTLCWalletClient {
     declare protected readonly signer: AztecSigner
-    private _sponsoredFPCInstance?: Awaited<ReturnType<typeof getContractInstanceFromInstantiationParams>>
 
     constructor(config: AztecHTLCWalletClientConfig) {
         super(config)
@@ -23,37 +21,14 @@ export class AztecHTLCWalletClient extends AztecHTLCPublicClient implements IHTL
     // ── Write Operations ───────────────────────────────────────────────
 
     async userLock(params: UserLockParams): Promise<AtomicResult> {
-        const { result, fpcInstance } = await userLock(
-            this.signer,
-            this.rpcUrl,
-            params,
-            this.getNode(),
-            this._sponsoredFPCInstance,
-        )
-        this._sponsoredFPCInstance = fpcInstance
-        return result
+        return userLock(this.signer, this.rpcUrl, params, this.getNode())
     }
 
     async refund(params: RefundParams): Promise<string> {
-        const { hash, fpcInstance } = await refund(
-            this.signer,
-            params,
-            this.getNode(),
-            this._sponsoredFPCInstance,
-        )
-        this._sponsoredFPCInstance = fpcInstance
-        return hash
+        return refund(this.signer, params, this.getNode())
     }
 
     async redeemSolver(params: RedeemSolverParams): Promise<string> {
-        const { hash, fpcInstance } = await redeemSolver(
-            this.signer,
-            this.rpcUrl,
-            params,
-            this.getNode(),
-            this._sponsoredFPCInstance,
-        )
-        this._sponsoredFPCInstance = fpcInstance
-        return hash
+        return redeemSolver(this.signer, this.rpcUrl, params, this.getNode())
     }
 }

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, startTransition } from "react"
 import { useFormWizardaUpdate } from "@/context/formWizardProvider"
 import { MenuStep } from "@/Models/Wizard"
 import { ExtendedNetwork } from "@/Models/Network"
@@ -36,7 +36,8 @@ export function useMenuNavigation() {
     }, [goToStep])
 
     const handleRecoverSwap = useCallback((sourceNetwork: string, txHash: string) => {
-        router.push(buildHrefWithPersistantParams('/swap', searchParams, buildSwapQuery(sourceNetwork, txHash)))
+        const href = buildHrefWithPersistantParams('/swap', searchParams, buildSwapQuery(sourceNetwork, txHash))
+        startTransition(() => router.push(href))
     }, [router, searchParams])
 
     return {

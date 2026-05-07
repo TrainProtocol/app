@@ -35,6 +35,8 @@ export function useSwapActions() {
             store?.getState().clearSwap(hashlock),
         updateSwapFlags: (hashlock: string, updates: Partial<SwapFlags>) =>
             store?.getState().updateSwapFlags(hashlock, updates),
+        markVerifiedManually: (hashlock: string) =>
+            store?.getState().markVerifiedManually(hashlock),
         setOrderData: (hashlock: string, data: HTLCFromApi) =>
             store?.getState().setOrderData(hashlock, data),
 

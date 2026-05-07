@@ -7,7 +7,6 @@ import { useSwapActions } from '../internal/useSwapActions'
 import { useUserLockPolling } from '../internal/useUserLockPolling'
 import { useSolverLockPolling } from '../internal/useSolverLockPolling'
 import { useOrderStream } from '../internal/useOrderStream'
-import { useOrderPolling } from '../internal/useOrderPolling'
 import { useDerivedSwapState, type DerivedSwapState } from '../internal/useDerivedSwapState'
 import { parseCaip2Id, caip2Id } from '../internal/branded'
 import { TrainError, TrainErrorCode } from '../types'
@@ -128,21 +127,29 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         onTransactionFailed: onUserLockTxFailed,
     })
 
+    // A user-driven override leaves consensusPhase='verified' with verifiedNodeCount=0.
+    // Detect that to keep the polling hook from clobbering it on remount.
+    const flags = hl ? actions.getSwapFlags(hl) : undefined
+    const manuallyOverridden = flags?.consensusPhase === 'verified' && flags?.verifiedNodeCount === 0
+
     const { consensusPhase, verifiedNodeCount } = useSolverLockPolling({
         client: destReadClient,
         params: solverLockParams,
         hashlock: hl,
         nodeUrls: destNodeUrls,
         enabled: isActive && derived.status !== HTLCStatus.Initial,
+        manuallyOverridden,
         onConsensusFailed,
     })
 
     // Sync consensus phase + verified node count to store flags
     // (one-way, for useDerivedSwapState in other components)
     useEffect(() => {
-        if (hl && consensusPhase !== 'none') {
-            actions.updateSwapFlags(hl, { consensusPhase, verifiedNodeCount })
-        }
+        if (!hl || consensusPhase === 'none') return
+        // Never downgrade a manual override that's already in the flags.
+        const current = actions.getSwapFlags(hl)
+        if (current?.consensusPhase === 'verified' && current?.verifiedNodeCount === 0) return
+        actions.updateSwapFlags(hl, { consensusPhase, verifiedNodeCount })
     }, [hl, actions, consensusPhase, verifiedNodeCount])
 
     // Order streaming
@@ -157,8 +164,8 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         config.onError?.(error)
     }, [actions, hl, config])
 
-    // TEMP: SSE stream unreliable — using polling fallback. Swap back to useOrderStream when stable.
-    useOrderPolling({
+    useOrderStream({
+        baseUrl: config.baseUrl,
         solverAddress: swap?.destinationSolverAddress ?? undefined,
         hashlock: hl ?? undefined,
         enabled: !!swap?.hashlock && !destRedeemTx,

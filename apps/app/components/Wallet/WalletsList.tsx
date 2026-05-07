@@ -227,7 +227,7 @@ export const WalletItem: FC<WalletItemProps> = ({ selectable, account: wallet, n
                 }
                 {
                     isSelected &&
-                    <div className="flex h-6 items-center px-1">
+                    <div className="flex h-6 items-center px-1 text-primary-text-tertiary">
                         <FilledCheck />
                     </div>
                 }
@@ -333,7 +333,7 @@ const NestedWalletAddress: FC<NestedWalletAddressProps> = ({ selectable, address
                 }
                 {
                     isNestedSelected &&
-                    <div className="flex h-6 items-center">
+                    <div className="flex h-6 items-center text-primary-text-tertiary">
                         <FilledCheck />
                     </div>
                 }

@@ -9,7 +9,7 @@ import { WalletBridges } from "../WalletBridges";
 import TronProvider from "./TronProvider";
 import ConnectWalletDrawer from "../WalletModal/ConnectWalletDrawer";
 
-const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[], appName: string | undefined }> = ({ children, appName }) => {
+const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[] }> = ({ children }) => {
     return (
         <SolanaProvider>
             <TronProvider>

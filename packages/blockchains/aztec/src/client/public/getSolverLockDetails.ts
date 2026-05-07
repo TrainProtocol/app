@@ -1,4 +1,3 @@
-import { createAztecNodeClient } from '@aztec/aztec.js/node'
 import { formatUnits, hexToBytes } from '@train-protocol/sdk'
 import type { LockParams, LockStatus, SolverLockDetails } from '@train-protocol/sdk'
 import type { AztecSigner } from '../../types'
@@ -16,15 +15,15 @@ export async function getSolverLockDetails(
 
     const hashlockBytes = hexToBytes(id, 32)
 
-    const count = Number(await contract.methods
+    const count = await contract.methods
         .get_solver_lock_count(hashlockBytes)
-        .simulate({ from: userAztecAddress }))
-    if (count === 0) return null
+        .simulate({ from: userAztecAddress })
+    if (Number(count.result) === 0) return null
 
-    for (let i = 1; i <= count; i++) {
+    for (let i = 1; i <= Number(count.result); i++) {
         const result = await getSolverLockByIndex(rpcUrl, signer, params, i, nodeUrl)
         if (!result) continue
-        if (params.solverAddress && result.sender?.toLowerCase() !== params.solverAddress.toLowerCase()) continue
+        // if (params.solverAddress && result.sender?.toLowerCase() !== params.solverAddress.toLowerCase()) continue
         return result
     }
 
@@ -48,7 +47,7 @@ export async function getSolverLockByIndex(
         .get_solver_lock(hashlockBytes, BigInt(index))
         .simulate({ from: userAztecAddress })
 
-    return resolveSolverLock(result, id, params.decimals, index)
+    return resolveSolverLock(result.result, id, params.decimals, index)
 }
 
 export function resolveSolverLock(result: any, id: string, decimals: number, index: number): SolverLockDetails | null {
@@ -61,7 +60,7 @@ export function resolveSolverLock(result: any, id: string, decimals: number, ind
         secret: parseSecret(result.secret),
         timelock: Number(result.timelock),
         status,
-        sender: result.sender?.toString() ?? '',
+        sender: result.refund_to?.toString() ?? '',
         recipient: result.recipient?.toString() ?? '',
         token: result.token?.toString() ?? '',
         reward: Number(formatUnits(BigInt(result.reward), decimals)),

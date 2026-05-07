@@ -6,18 +6,9 @@ import { useStarknetStore } from "../../stores/starknetWalletStore";
 import KnownInternalNames from "../../lib/knownIds";
 import useStarknet, { resolveStarknetWallet, starknetNames } from "../../lib/wallets/starknet/useStarknet";
 import { RpcMessage, RequestFnCall, RpcTypeToMessageMap } from "@starknet-io/types-js";
-//@ts-ignore
-import { ArgentMobileConnector } from "starknetkit/argentMobile"
-// @ts-ignore
-import { InjectedConnector } from "starknetkit/injected"
-// @ts-ignore
-import { WebWalletConnector } from "starknetkit/webwallet"
-// @ts-ignore
-import { ControllerConnector } from "starknetkit/controller"
 import { useRpcConfigStore } from "@/stores/rpcConfigStore";
-import AppSettings from "@/lib/AppSettings";
 
-const WALLETCONNECT_PROJECT_ID = AppSettings.WalletConnectProjectId;
+let getInjectedWalletById: ((id: string) => unknown) | undefined;
 class DiscoveryConnector extends Connector {
     #wallet;
     #store;
@@ -79,6 +70,17 @@ const StarknetProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const [connectors, setConnectors] = useState<any[]>([])
 
     const resolveConnectors = async () => {
+        // @ts-ignore
+        const injectedModule = await import("starknetkit/injected");
+        // @ts-ignore
+        const webWalletModule = await import("starknetkit/webwallet");
+        // @ts-ignore
+        const controllerModule = await import("starknetkit/controller");
+
+        const InjectedConnector = (injectedModule as any).InjectedConnector;
+        const WebWalletConnector = (webWalletModule as any).WebWalletConnector;
+        const ControllerConnector = (controllerModule as any).ControllerConnector;
+        getInjectedWalletById = InjectedConnector?.getInjectedWallet;
 
         const isSafari =
             typeof window !== "undefined"
@@ -90,14 +92,12 @@ const StarknetProvider: FC<{ children: ReactNode }> = ({ children }) => {
         const defaultConnectors: any[] = []
 
         if (!isSafari) {
-            if (!(isAndroid || isIOS)) {
-                defaultConnectors.push(
-                    new InjectedConnector({ options: { id: "argentX" } }),
-                )
-                defaultConnectors.push(
-                    new InjectedConnector({ options: { id: "keplr" } }),
-                )
-            }
+            defaultConnectors.push(
+                new InjectedConnector({ options: { id: "argentX" } }),
+            )
+            defaultConnectors.push(
+                new InjectedConnector({ options: { id: "keplr" } }),
+            )
             defaultConnectors.push(
                 new InjectedConnector({ options: { id: "braavos" } }),
             )
@@ -112,18 +112,8 @@ const StarknetProvider: FC<{ children: ReactNode }> = ({ children }) => {
             const discoverWallets = (await starknet.getDiscoveryWallets()).filter(w => {
                 return (isAndroid && w.downloads["android"]) || (isIOS && w.downloads["ios"]);
             })
-
             if (discoverWallets.length) defaultConnectors.push(...discoverWallets.map(w => new DiscoveryConnector(w, isAndroid ? "android" : "ios")))
         }
-
-        defaultConnectors.push(ArgentMobileConnector.init({
-            options: {
-                dappName: 'Train',
-                projectId: WALLETCONNECT_PROJECT_ID,
-                url: 'https://app.train.tech/',
-                description: 'Move crypto across exchanges, blockchains, and wallets.'
-            }
-        }))
 
         defaultConnectors.push(
             new ControllerConnector(),
@@ -135,10 +125,13 @@ const StarknetProvider: FC<{ children: ReactNode }> = ({ children }) => {
     }
 
     useEffect(() => {
-        (async () => {
-            const result = await resolveConnectors()
-            setConnectors(result)
-        })()
+        let cancelled = false;
+        resolveConnectors().then((result) => {
+            if (!cancelled) setConnectors(result)
+        }).catch(() => {
+            if (!cancelled) setConnectors([])
+        });
+        return () => { cancelled = true };
     }, [])
 
     const chains = [mainnet, sepolia]
@@ -177,7 +170,7 @@ const StarknetWalletInitializer = () => {
         const checkConnectorsReady = () => {
             const hasWallet = connectors.some(connector => {
                 try {
-                    const wallet = InjectedConnector.getInjectedWallet(connector.id);
+                    const wallet = getInjectedWalletById?.(connector.id);
                     return wallet !== null && wallet !== undefined;
                 } catch {
                     return false;

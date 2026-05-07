@@ -103,12 +103,11 @@ export const FormSourceWalletButton: FC = () => {
         setFieldValue
     } = useFormikContext<SwapFormValues>();
 
-    const [mountWalletPortal, setMounWalletPortal] = useState<boolean>(false)
 
     const walletNetwork = values.from
     const { provider } = useWallet(walletNetwork, 'withdrawal')
 
-    const { isWalletModalOpen, cancel, selectedConnector, connect } = useConnectModal()
+    const { cancel, connect } = useConnectModal()
 
     const selectSourceAccount = useSelectSwapAccount("from");
 
@@ -133,7 +132,6 @@ export const FormSourceWalletButton: FC = () => {
     }
 
     const handleConnect = async () => {
-        setMounWalletPortal(true)
         const result = await connect(provider)
         if (result) {
             selectSourceAccount({
@@ -142,7 +140,6 @@ export const FormSourceWalletButton: FC = () => {
                 providerName: result.providerName
             })
         }
-        setMounWalletPortal(false)
     }
     const availableWallets = provider?.connectedWallets?.filter(w => !w.isNotAvailable) || []
 
@@ -174,19 +171,17 @@ export const FormSourceWalletButton: FC = () => {
             </VaulDrawer >
         </>
     }
-    return <Connect setMountWalletPortal={setMounWalletPortal} />
+    return <Connect />
 }
 
-const Connect: FC<{ connectFn?: () => Promise<Wallet | undefined | void>; setMountWalletPortal?: Dispatch<SetStateAction<boolean>> }> = ({ connectFn, setMountWalletPortal }) => {
+const Connect: FC<{ connectFn?: () => Promise<Wallet | undefined | void> }> = ({ connectFn }) => {
     const { connect } = useConnectModal()
     const { providers } = useWallet()
 
     const isProvidersReady = providers.every(p => p.ready)
 
     const connectWallet = async () => {
-        setMountWalletPortal && setMountWalletPortal(true)
         await connect()
-        setMountWalletPortal && setMountWalletPortal(false)
     }
 
     return <SubmitButton

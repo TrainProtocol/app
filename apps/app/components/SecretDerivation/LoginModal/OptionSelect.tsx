@@ -43,7 +43,7 @@ const OptionSelect = ({ onPasskeyLogin }: {
 
     return (
         <div className="flex flex-col gap-2">
-            <p className="text-sm text-secondary-text">Choose how to login.</p>
+            <p className="text-sm text-secondary-text">Choose how to log in.</p>
             <OptionItem
                 onClick={passkeyDisabled ? undefined : onPasskeyLogin}
                 icon={Fingerprint}

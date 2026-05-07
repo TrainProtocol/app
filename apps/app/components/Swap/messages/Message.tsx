@@ -1,19 +1,22 @@
-import { FC } from "react";
-import { AlertTriangle, ChevronDown } from "lucide-react";
+import { FC, ReactNode } from "react";
+import { AlertTriangle, CheckIcon, ChevronDown } from "lucide-react";
 import FailIcon from "../../Icons/FailIcon";
+import SuccessIcon from "../../Icons/SuccessIcon";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/shadcn/accordion";
 
 export type WalletMessageProps = {
     header: string;
-    details: string;
-    status: 'pending' | 'error' | 'warning';
+    details: ReactNode;
+    status: 'pending' | 'error' | 'warning' | 'success';
 }
 const StatusIcon: FC<{ status: WalletMessageProps['status'] }> = ({ status }) => {
     switch (status) {
         case 'warning':
             return <AlertTriangle className="relative top-0 left-0 h-5 w-5 text-warning-foreground" />
         case 'error':
-            return <FailIcon className="relative top-0 left-0 h-5 w-5" />
+            return <FailIcon className="relative top-0 left-0 h-5 w-5 text-error-foreground" />
+        case 'success':
+            return <CheckIcon className="relative top-0 left-0 h-5 w-5 text-primary" />
         case 'pending':
             return <>
                 <div className='absolute top-1.5 left-1.5 w-4 h-4 md:w-5 md:h-5 opacity-40 bg-primary-text rounded-full animate-ping'></div>
@@ -31,9 +34,9 @@ const WalletMessage: FC<WalletMessageProps> = ({ header, details, status }) => {
                 <span className="shrink-0 p-0.5">
                     <StatusIcon status={status} />
                 </span>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 min-w-0">
                     <p className={`font-medium leading-4 text-base mt-0.5 ${isWarning ? 'text-warning-foreground' : 'text-primary-text'}`}>{header}</p>
-                    {details ? <p className="text-secondary-text text-sm leading-[18px]">{details}</p> : null}
+                    {details ? <p className="text-secondary-text text-sm leading-[18px] wrap-anywhere">{details}</p> : null}
                 </div>
             </div>
         </div>
@@ -46,7 +49,7 @@ export const WalletUnknownError: FC = () => {
             <AccordionItem value="wallet-message">
                 <AccordionTrigger className="flex justify-between w-full gap-2 items-center px-2 py-3 bg-secondary-400 rounded-2xl group">
                     <div className="shrink-0 p-0.5 self-start">
-                        <FailIcon className="h-5 w-5" />
+                        <FailIcon className="h-5 w-5 text-error-foreground" />
                     </div>
                     <div className="flex flex-col gap-1 items-start">
                         <p className="text-primary-text font-medium leading-4 text-base">Wallet error</p>

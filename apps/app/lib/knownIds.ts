@@ -6,7 +6,11 @@ export default class KnownInternalNames {
 
         public static readonly BaseSepolia: string = "eip155:84532";
 
+        public static readonly MonadTestnet: string = "eip155:10143";
+
         public static readonly AztecDevnet: string = "aztec:aztec-devnet"
+
+        public static readonly AztecTestnet: string = "aztec:4138294185"
 
         public static readonly SolanaDevnet: string = "solana:devnet";
 

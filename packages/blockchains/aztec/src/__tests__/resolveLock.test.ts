@@ -8,7 +8,7 @@ const hashlock = '0x' + 'ab'.repeat(32)
 describe('Aztec resolveUserLock', () => {
     it('resolves a basic user lock', () => {
         const result = resolveUserLock({
-            sender: { toString: () => '0x1234' }, recipient: { toString: () => '0x5678' },
+            refund_to: { toString: () =>'0x1234' }, recipient: { toString: () => '0x5678' },
             token: { toString: () => '0x9abc' },
             amount: 1000000000000000000n, timelock: 1700000000n, status: 1,
             secret: new Array(32).fill(0),
@@ -21,7 +21,7 @@ describe('Aztec resolveUserLock', () => {
 
     it('returns null when status is 0 (Empty)', () => {
         expect(resolveUserLock({
-            sender: { toString: () => '0x1234' }, recipient: { toString: () => '0x5678' },
+            refund_to: { toString: () =>'0x1234' }, recipient: { toString: () => '0x5678' },
             token: { toString: () => '0x9abc' },
             amount: 0n, timelock: 0n, status: 0, secret: [],
         }, hashlock, 18)).toBeNull()
@@ -29,7 +29,7 @@ describe('Aztec resolveUserLock', () => {
 
     it('formats amount with correct decimals', () => {
         const result = resolveUserLock({
-            sender: { toString: () => 'S' }, recipient: { toString: () => 'R' },
+            refund_to: { toString: () =>'S' }, recipient: { toString: () => 'R' },
             token: { toString: () => 'T' },
             amount: 1500000n, timelock: 0n, status: 1, secret: [],
         }, hashlock, 6)
@@ -40,7 +40,7 @@ describe('Aztec resolveUserLock', () => {
         const secretBytes = new Array(32).fill(0)
         secretBytes[0] = 0xde
         const result = resolveUserLock({
-            sender: { toString: () => 'S' }, recipient: { toString: () => 'R' },
+            refund_to: { toString: () =>'S' }, recipient: { toString: () => 'R' },
             token: { toString: () => 'T' },
             amount: 0n, timelock: 0n, status: 1, secret: secretBytes,
         }, hashlock, 18)
@@ -51,7 +51,7 @@ describe('Aztec resolveUserLock', () => {
 describe('Aztec resolveSolverLock', () => {
     it('resolves solver lock with reward fields and index', () => {
         const result = resolveSolverLock({
-            sender: { toString: () => '0xSolver' }, recipient: { toString: () => '0xUser' },
+            refund_to: { toString: () =>'0xSolver' }, recipient: { toString: () => '0xUser' },
             token: { toString: () => '0xToken' },
             amount: 2000000000000000000n, timelock: 1700000000n, status: 1,
             secret: new Array(32).fill(0),
@@ -67,7 +67,7 @@ describe('Aztec resolveSolverLock', () => {
 
     it('returns null when status is 0', () => {
         expect(resolveSolverLock({
-            sender: { toString: () => 'S' }, recipient: { toString: () => 'R' },
+            refund_to: { toString: () =>'S' }, recipient: { toString: () => 'R' },
             token: { toString: () => 'T' },
             amount: 0n, timelock: 0n, status: 0, secret: [],
             reward: 0n, reward_timelock: 0n,

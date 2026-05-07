@@ -26,9 +26,10 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type, setErro
     const { networks } = useSettingsState()
     const source_network = networks.find(n => n.caip2Id === quote?.route.source.network)
     const destination_network = networks.find(n => n.caip2Id === quote?.route.destination.network)
-    const source_asset = source_network?.tokens.find(t => t.contract === quote?.route.source.tokenContract)
-    const destination_asset = destination_network?.tokens.find(t => t.contract === quote?.route.destination.tokenContract)
-    const amount = (quote?.amount && source_asset?.decimals != null)
+    const source_asset = quote?.route.source.tokenContract && source_network?.tokens.find(t => Address.equals(t.contract, quote?.route.source.tokenContract, source_network))
+    const destination_asset = quote?.route.destination.tokenContract && destination_network?.tokens.find(t => Address.equals(t.contract, quote?.route.destination.tokenContract, destination_network))
+
+    const amount = (quote?.amount && source_asset && source_asset?.decimals != null)
         ? Number(formatAmount(BigInt(quote.amount), source_asset.decimals))
         : undefined
     const address = destinationAddress
@@ -51,7 +52,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type, setErro
 
             if (provider && sourceWallet && (sourceWallet.chainId != source_network.chainId) && provider.switchChain) await provider.switchChain(sourceWallet, source_network.chainId)
 
-            if (!isLoggedIn) throw new Error('Please login first')
+            if (!isLoggedIn) throw new Error('Please log in first')
 
             const params: StartSwapParams = {
                 sourceNetwork: source_network.caip2Id,

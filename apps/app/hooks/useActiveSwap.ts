@@ -1,4 +1,4 @@
-import { useSwapState, useClearSwapError as useClearSwapErrorHook } from '@train-protocol/react'
+import { useSwapState, useClearSwapError as useClearSwapErrorHook, useMarkVerifiedManually as useMarkVerifiedManuallyHook } from '@train-protocol/react'
 import { useSwapStore } from '@/stores/swapStore'
 
 /**
@@ -19,4 +19,12 @@ export function useActiveSwap() {
 export function useClearSwapError() {
     const activeHashlock = useSwapStore(s => s.activeHashlock)
     return useClearSwapErrorHook(activeHashlock)
+}
+
+/**
+ * Manually override a failed solver-lock consensus check on the active swap.
+ */
+export function useMarkVerifiedManually() {
+    const activeHashlock = useSwapStore(s => s.activeHashlock)
+    return useMarkVerifiedManuallyHook(activeHashlock)
 }
