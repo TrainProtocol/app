@@ -63,21 +63,22 @@ const FaucetView: FC = () => {
 
     const claimDone = !!(claimStatus?.txHash || claimStatus?.failureReason)
     const submitting = posting || (correlationId !== null && !claimDone)
-    const errorMessage =
-        (postError instanceof FaucetApiError && postError.status === 429
-            ? "Rate limit reached. Please try again later."
-            : postError instanceof Error ? postError.message : null)
-        ?? claimStatus?.failureReason ?? null
+    const errorMessage = (() => {
+        if (postError instanceof FaucetApiError && postError.status === 429) {
+            const match = postError.message.match(/Try again in (\d+) seconds/i)
+            if (match) {
+                const minutes = Math.ceil(parseInt(match[1], 10) / 60)
+                return `Faucet limit reached. Try again in ${minutes} minute${minutes === 1 ? "" : "s"}.`
+            }
+            return "Faucet limit reached. Try again later."
+        }
+        if (postError instanceof Error) return postError.message
+        return claimStatus?.failureReason ?? null
+    })()
     const successTxHash = !errorMessage && claimStatus?.txHash ? claimStatus.txHash : null
     const txLink = network && successTxHash
         ? getExplorerUrl(network.explorerUrlTemplate?.transaction, successTxHash)
         : undefined
-
-    useEffect(() => {
-        if (!successTxHash) return
-        const t = setTimeout(() => setCorrelationId(null), 4000)
-        return () => clearTimeout(t)
-    }, [successTxHash])
 
     const handleConnect = async () => {
         if (!provider) return
@@ -150,7 +151,13 @@ const FaucetView: FC = () => {
                             status="success"
                             header="Tokens sent"
                             details={txLink ? (
-                                <a href={txLink} target="_blank" rel="noopener noreferrer" className="underline">
+                                <a
+                                    href={txLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="underline"
+                                    onClick={() => setCorrelationId(null)}
+                                >
                                     View transaction
                                 </a>
                             ) : null}
