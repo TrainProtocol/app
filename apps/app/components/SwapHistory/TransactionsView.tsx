@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import clsx from "clsx"
 import { RotateCcw } from "lucide-react"
 import { Widget } from "@/components/Widget/Index"
 import MobilePageHeader from "@/components/MobilePageHeader"
@@ -9,6 +10,18 @@ import RecoverSwapDialog from "./RecoverSwapDialog"
 
 export default function TransactionsView() {
     const [recoverOpen, setRecoverOpen] = useState(false)
+    const [isScrolling, setIsScrolling] = useState(false)
+    const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    const handleScroll = useCallback(() => {
+        if (!isScrolling) setIsScrolling(true)
+        if (scrollTimeout.current) clearTimeout(scrollTimeout.current)
+        scrollTimeout.current = setTimeout(() => setIsScrolling(false), 1000)
+    }, [isScrolling])
+
+    useEffect(() => () => {
+        if (scrollTimeout.current) clearTimeout(scrollTimeout.current)
+    }, [])
 
     return (
         <div className="relative w-full">
@@ -24,7 +37,12 @@ export default function TransactionsView() {
             </div>
             <MobilePageHeader />
             <Widget hideMenu>
-                <div className="openpicker pt-4 h-[79svh] overflow-y-scroll overflow-x-hidden -mr-4 pr-2 scrollbar:w-1.5! scrollbar:h-1.5! scrollbar-thumb:bg-transparent styled-scroll">
+                <div
+                    onScroll={handleScroll}
+                    className={clsx('openpicker pt-4 h-[79svh] overflow-y-scroll overflow-x-hidden -mr-4 pr-2 scrollbar:w-1.5! scrollbar:h-1.5! scrollbar-thumb:bg-transparent', {
+                        'styled-scroll': isScrolling,
+                    })}
+                >
                     <SwapHistory />
                 </div>
             </Widget>
