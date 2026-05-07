@@ -7,7 +7,6 @@ import { useSwapActions } from '../internal/useSwapActions'
 import { useUserLockPolling } from '../internal/useUserLockPolling'
 import { useSolverLockPolling } from '../internal/useSolverLockPolling'
 import { useOrderStream } from '../internal/useOrderStream'
-import { useOrderPolling } from '../internal/useOrderPolling'
 import { useDerivedSwapState, type DerivedSwapState } from '../internal/useDerivedSwapState'
 import { parseCaip2Id, caip2Id } from '../internal/branded'
 import { TrainError, TrainErrorCode } from '../types'
@@ -165,8 +164,8 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         config.onError?.(error)
     }, [actions, hl, config])
 
-    // TEMP: SSE stream unreliable — using polling fallback. Swap back to useOrderStream when stable.
-    useOrderPolling({
+    useOrderStream({
+        baseUrl: config.baseUrl,
         solverAddress: swap?.destinationSolverAddress ?? undefined,
         hashlock: hl ?? undefined,
         enabled: !!swap?.hashlock && !destRedeemTx,
