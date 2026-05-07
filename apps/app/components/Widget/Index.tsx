@@ -4,7 +4,7 @@ import HeaderWithMenu from "../HeaderWithMenu"
 import { usePathname, useRouter } from "next/navigation"
 import { default as Content } from './Content';
 import { default as Footer } from './Footer';
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { buildHrefWithPersistantParams } from "@/helpers/querryHelper";
 import AppSettings from "@/lib/AppSettings";
 
@@ -27,10 +27,6 @@ const Widget = ({ children, className, hideMenu }: Props) => {
       const sp = new URLSearchParams(window.location.search)
       router.push(buildHrefWithPersistantParams("/", sp))
    }, [router])
-
-   useEffect(() => {
-      if (pathname !== "/") router.prefetch("/")
-   }, [pathname, router])
 
    const handleBack = pathname === "/" ? null : goBack
 
