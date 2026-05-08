@@ -34,6 +34,7 @@ const SubmitButton: FC<SubmitButtonProps> = ({ isDisabled, isSubmitting, icon, c
                 className,
                 'text-primary-buttonTextColor bg-actionButtonColor hover:brightness-125 disabled:bg-actionButtonColor/50 disabled:text-primary-buttonTextColor/50': buttonStyle === 'filled',
                 'text-primary-text bg-secondary-300 hover:bg-secondary-200 disabled:bg-secondary-300/50 disabled:text-primary-text/50': buttonStyle === 'secondary',
+                'text-primary-text bg-transparent border border-secondary-300 hover:bg-secondary-500 disabled:bg-transparent disabled:border-secondary-300/50 disabled:text-primary-text/50': buttonStyle === 'outline',
                 'py-4 px-4': size === 'large',
                 'py-3 px-2 md:px-3': size === 'medium',
                 'py-2.5 px-2.5 text-sm': size === 'small',

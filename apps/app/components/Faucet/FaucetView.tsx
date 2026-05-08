@@ -33,11 +33,15 @@ const FaucetView: FC = () => {
     const [posting, setPosting] = useState(false)
     const [postError, setPostError] = useState<Error | null>(null)
     const [addTokenError, setAddTokenError] = useState<string | null>(null)
-    const [correlationId, setCorrelationId] = useState<string | null>(null)
-    const [mintedToken, setMintedToken] = useState<{ token: FaucetToken; network: ExtendedNetwork; recipient: string } | null>(null)
+    const [claim, setClaim] = useState<{
+        correlationId: string
+        token: FaucetToken
+        network: ExtendedNetwork
+        recipient: string
+    } | null>(null)
 
     const { data: claimStatus } = useSWR(
-        correlationId ? ["faucet-claim-status", correlationId] : null,
+        claim ? ["faucet-claim-status", claim.correlationId] : null,
         ([, id]) => getClaimStatus(id),
         { refreshInterval: (data) => (data?.txHash || data?.failureReason) ? 0 : 2000 },
     )
@@ -65,19 +69,11 @@ const FaucetView: FC = () => {
     useEffect(() => {
         setPostError(null)
         setAddTokenError(null)
-        setCorrelationId(null)
-        setMintedToken(null)
+        setClaim(null)
     }, [network?.caip2Id, recipient])
 
-    const successTxHashFromStatus = claimStatus?.txHash ?? null
-    useEffect(() => {
-        if (successTxHashFromStatus && network && token && recipient) {
-            setMintedToken({ token, network, recipient })
-        }
-    }, [successTxHashFromStatus, network, token, recipient])
-
     const claimDone = !!(claimStatus?.txHash || claimStatus?.failureReason)
-    const submitting = posting || (correlationId !== null && !claimDone)
+    const submitting = posting || (claim !== null && !claimDone)
     const errorMessage = (() => {
         if (postError instanceof FaucetApiError && postError.status === 429) {
             const match = postError.message.match(/Try again in (\d+) seconds/i)
@@ -90,9 +86,12 @@ const FaucetView: FC = () => {
         if (postError instanceof Error) return postError.message
         return claimStatus?.failureReason ?? null
     })()
-    const successTxHash = !errorMessage && claimStatus?.txHash ? claimStatus.txHash : null
-    const txLink = network && successTxHash
-        ? getExplorerUrl(network.explorerUrlTemplate?.transaction, successTxHash) ?? null
+    const successTxHash = !errorMessage && claim && claimStatus?.txHash ? claimStatus.txHash : null
+    const txLink = claim && successTxHash
+        ? getExplorerUrl(claim.network.explorerUrlTemplate?.transaction, successTxHash) ?? null
+        : null
+    const mintedToken = successTxHash && claim
+        ? { token: claim.token, network: claim.network, recipient: claim.recipient }
         : null
 
     const onMint = async () => {
@@ -101,15 +100,15 @@ const FaucetView: FC = () => {
         if (!token) return
         setPosting(true)
         setPostError(null)
-        setCorrelationId(null)
-        setMintedToken(null)
+        setAddTokenError(null)
+        setClaim(null)
         try {
             const { correlationId: id } = await claimFaucet({
                 caip2Id: network.caip2Id,
                 tokenContract: token.contract,
                 recipientAddress: recipient,
             })
-            setCorrelationId(id)
+            setClaim({ correlationId: id, token, network, recipient })
         } catch (err) {
             setPostError(err instanceof Error ? err : new Error(String(err)))
         } finally {
@@ -130,7 +129,7 @@ const FaucetView: FC = () => {
                     <h1 className="text-primary-text text-xl font-semibold">Faucet</h1>
                     <p className="text-secondary-text text-sm">Mint test tokens to your wallet on a supported testnet.</p>
                 </div>
-                <div className="space-y-3 mt-4">
+                <div className="space-y-2 mt-4">
                     <FaucetNetworkSelector
                         networks={availableNetworks}
                         value={network}
@@ -148,7 +147,7 @@ const FaucetView: FC = () => {
                         mintError={errorMessage}
                         addTokenError={addTokenError}
                         txLink={txLink}
-                        onDismiss={() => setCorrelationId(null)}
+                        onDismiss={() => setClaim(null)}
                     />
                 </div>
                 <div className="mt-auto pt-6 space-y-3">

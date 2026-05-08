@@ -8,6 +8,7 @@ import FilledX from "@/components/Icons/FilledX"
 import AddressWithIcon from "./AddressWithIcon"
 import { AddressGroup, AddressItem } from "."
 import { Address } from "@/lib/address"
+import { cn } from "@/lib/utils"
 
 type AddressInput = {
     manualAddress: string,
@@ -81,6 +82,8 @@ type AddressInputFieldProps = {
     name?: string
     inputRef?: Ref<HTMLInputElement>
     disabled?: boolean
+    inputClassName?: string
+    wrapperClassName?: string
 }
 
 export const AddressInputField: FC<AddressInputFieldProps> = ({
@@ -91,10 +94,12 @@ export const AddressInputField: FC<AddressInputFieldProps> = ({
     name,
     inputRef,
     disabled,
+    inputClassName,
+    wrapperClassName,
 }) => {
     const [isFocused, setIsFocused] = useState(false)
     return (
-        <div className="relative flex grow rounded-lg shadow-xs w-full">
+        <div className={cn("relative flex grow rounded-lg shadow-xs w-full", wrapperClassName)}>
             <Input
                 value={value}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
@@ -110,7 +115,7 @@ export const AddressInputField: FC<AddressInputFieldProps> = ({
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
                 onKeyDown={onKeyDown}
-                className="pr-12 h-12 rounded-lg font-semibold truncate hover:overflow-x-scroll placeholder:text-secondary-text placeholder:font-normal placeholder:pl-8 focus:placeholder:pl-0 focus:placeholder:text-left disabled:opacity-50! disabled:cursor-not-allowed disabled:pointer-events-auto"
+                className={cn("pr-12 h-12 rounded-lg font-semibold truncate hover:overflow-x-scroll placeholder:text-secondary-text placeholder:font-normal placeholder:pl-8 focus:placeholder:pl-0 focus:placeholder:text-left disabled:opacity-50! disabled:cursor-not-allowed disabled:pointer-events-auto", inputClassName)}
             />
             {!isFocused && !value && (
                 <Pencil className="h-5 w-5 text-primary-text-tertiary absolute inset-y-0 top-[calc(50%-10px)] left-4 pointer-events-none" />

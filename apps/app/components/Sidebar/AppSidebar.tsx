@@ -35,7 +35,7 @@ const AppSidebar: FC = () => {
 
     return (
         <Sidebar side="left" collapsible="icon" className="hidden md:flex">
-            <SidebarHeader className="px-2 py-2 mb-2">
+            <SidebarHeader className="px-2 py-2 mb-2 group-data-[collapsible=icon]:px-1.5">
                 <Suspense fallback={<SidebarLogo href="/" />}>
                     <SidebarLogoWithParams />
                 </Suspense>
@@ -59,7 +59,7 @@ const AppSidebar: FC = () => {
 
             <SidebarFooter className="gap-0 p-0">
                 <div className="border-t border-sidebar-border" />
-                <div className="px-2 py-2">
+                <div className="px-2 py-2 group-data-[collapsible=icon]:px-1.5">
                     <SidebarLoginStatus />
                 </div>
                 {/* <div className="px-3 pt-1 pb-3">
@@ -97,8 +97,8 @@ const SidebarLoginStatus: FC = () => {
         return (
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" tooltip="Log in" onClick={() => { if (isReady) openAuthDialog() }}>
-                        <div className="flex aspect-square size-6 items-center justify-center rounded-full bg-secondary-400 text-primary-text shrink-0">
+                    <SidebarMenuButton size="lg" tooltip="Log in" className="group-data-[collapsible=icon]:h-9" onClick={() => { if (isReady) openAuthDialog() }}>
+                        <div className="flex aspect-square size-6 group-data-[collapsible=icon]:size-5 items-center justify-center rounded-full bg-secondary-400 text-primary-text shrink-0">
                             <Lock className="size-3.5" strokeWidth={2} />
                         </div>
                         <div className="grid flex-1 text-left leading-tight min-w-0 group-data-[collapsible=icon]:hidden">
@@ -133,8 +133,8 @@ const SidebarLoginStatus: FC = () => {
             <SidebarMenuItem>
                 <Popover>
                     <PopoverTrigger asChild>
-                        <SidebarMenuButton size="lg" tooltip={label ?? "Account"} className="data-[state=open]:bg-secondary-500">
-                            <div className="flex aspect-square size-6 items-center justify-center rounded-full bg-secondary-400 text-primary-text shrink-0">
+                        <SidebarMenuButton size="lg" tooltip={label ?? "Account"} className="data-[state=open]:bg-secondary-500 group-data-[collapsible=icon]:h-9">
+                            <div className="flex aspect-square size-6 group-data-[collapsible=icon]:size-5 items-center justify-center rounded-full bg-secondary-400 text-primary-text shrink-0">
                                 <Icon className="size-3.5" strokeWidth={2} />
                             </div>
                             <div className="grid flex-1 text-left leading-tight min-w-0 group-data-[collapsible=icon]:hidden">
@@ -182,10 +182,10 @@ const SidebarLogo: FC<{ href: string }> = ({ href }) => (
         href={href}
         prefetch={false}
         aria-label="Home"
-        className="relative flex h-9 w-fit items-center rounded-md px-2 hover:bg-sidebar-accent transition-[width,background-color] duration-300 ease-in-out cursor-pointer overflow-hidden group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:px-2"
+        className="relative flex h-9 w-fit items-center rounded-md px-2 transition-colors duration-300 ease-in-out cursor-pointer overflow-hidden group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:hover:bg-sidebar-accent"
     >
-        <TrainLogo className="h-7 -ml-1 w-auto text-primary-logoColor fill-primary-text shrink-0 transition-opacity duration-300 ease-in-out group-data-[collapsible=icon]:opacity-0" />
-        <TrainLogoSymbol className="absolute left-2 h-6 w-auto text-primary-logoColor fill-primary-text shrink-0 opacity-0 transition-opacity duration-300 ease-in-out group-data-[collapsible=icon]:opacity-100" />
+        <TrainLogo className="h-7 -ml-1 w-auto text-primary-logoColor fill-primary-text shrink-0 transition-opacity duration-0 group-data-[collapsible=icon]:delay-300 group-data-[collapsible=icon]:opacity-0" />
+        <TrainLogoSymbol className="absolute left-1/2 top-1/2 h-6 w-auto -translate-x-1/2 -translate-y-1/2 text-primary-logoColor fill-primary-text shrink-0 opacity-0 transition-opacity duration-0 group-data-[collapsible=icon]:delay-300 group-data-[collapsible=icon]:opacity-100" />
     </Link>
 )
 

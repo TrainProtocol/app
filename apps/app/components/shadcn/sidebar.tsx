@@ -212,7 +212,7 @@ function Sidebar({
       {...props}
     >
       <div className="sticky top-0 h-screen w-full text-sidebar-foreground">
-        <div className="w-full h-full bg-sidebar border-l border-sidebar-border flex flex-col overflow-hidden rounded-l-3xl">
+        <div className="w-full h-full bg-sidebar border-l border-sidebar-border flex flex-col overflow-hidden">
           {children}
         </div>
       </div>
