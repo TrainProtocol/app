@@ -1,20 +1,19 @@
 "use client"
 
-import { FC, useEffect, useMemo, useState } from "react"
+import { FC, useEffect, useMemo, useRef, useState } from "react"
 import useSWR from "swr"
 import { ExtendedNetwork } from "@/Models/Network"
 import { Address, getExplorerUrl } from "@/lib/address"
-import { getFaucetNetworks, claimFaucet, getClaimStatus, FaucetApiError } from "@/lib/faucet/api"
+import { getFaucetNetworks, claimFaucet, getClaimStatus, FaucetApiError, FaucetToken } from "@/lib/faucet/api"
 import useWallet from "@/hooks/useWallet"
 import { useSettingsState } from "@/context/settings"
 import { Widget } from "@/components/Widget/Index"
-import { useConnectModal } from "@/components/WalletModal"
 import HeaderWithMenu from "@/components/HeaderWithMenu"
 import SubmitButton from "@/components/buttons/submitButton"
-import WalletIcon from "@/components/Icons/WalletIcon"
 import WalletMessage from "@/components/Swap/messages/Message"
 import FaucetNetworkSelector from "./FaucetNetworkSelector"
 import FaucetWalletPicker from "./FaucetWalletPicker"
+import AddTokenToWalletButton from "./AddTokenToWalletButton"
 
 const FaucetView: FC = () => {
     const [network, setNetwork] = useState<ExtendedNetwork | null>(null)
@@ -33,7 +32,9 @@ const FaucetView: FC = () => {
 
     const [posting, setPosting] = useState(false)
     const [postError, setPostError] = useState<Error | null>(null)
+    const [addTokenError, setAddTokenError] = useState<string | null>(null)
     const [correlationId, setCorrelationId] = useState<string | null>(null)
+    const [mintedToken, setMintedToken] = useState<{ token: FaucetToken; network: ExtendedNetwork; recipient: string } | null>(null)
 
     const { data: claimStatus } = useSWR(
         correlationId ? ["faucet-claim-status", correlationId] : null,
@@ -41,25 +42,39 @@ const FaucetView: FC = () => {
         { refreshInterval: (data) => (data?.txHash || data?.failureReason) ? 0 : 2000 },
     )
 
-    const { provider, unAvailableWallets } = useWallet(network, "withdrawal")
-    const { connect } = useConnectModal()
+    const { provider } = useWallet(network, "withdrawal")
+
+    const token = useMemo(() => {
+        if (!network) return null
+        return faucetByCaip2Id.get(network.caip2Id)?.tokens[0] ?? null
+    }, [network, faucetByCaip2Id])
 
     const availableWallets = useMemo(
         () => provider?.connectedWallets?.filter(w => !w.isNotAvailable) ?? [],
         [provider?.connectedWallets],
     )
-    const hasWallet = availableWallets.length > 0
 
+    const prevWalletCountRef = useRef(0)
     useEffect(() => {
-        if (!recipient && availableWallets.length > 0) {
-            setRecipient(availableWallets[0].address)
-        }
+        const count = availableWallets.length
+        if (prevWalletCountRef.current > 0 && count === 0) setRecipient(null)
+        else if (prevWalletCountRef.current === 0 && count > 0 && !recipient) setRecipient(availableWallets[0].address)
+        prevWalletCountRef.current = count
     }, [availableWallets, recipient])
 
     useEffect(() => {
         setPostError(null)
+        setAddTokenError(null)
         setCorrelationId(null)
+        setMintedToken(null)
     }, [network?.caip2Id, recipient])
+
+    const successTxHashFromStatus = claimStatus?.txHash ?? null
+    useEffect(() => {
+        if (successTxHashFromStatus && network && token && recipient) {
+            setMintedToken({ token, network, recipient })
+        }
+    }, [successTxHashFromStatus, network, token, recipient])
 
     const claimDone = !!(claimStatus?.txHash || claimStatus?.failureReason)
     const submitting = posting || (correlationId !== null && !claimDone)
@@ -77,24 +92,17 @@ const FaucetView: FC = () => {
     })()
     const successTxHash = !errorMessage && claimStatus?.txHash ? claimStatus.txHash : null
     const txLink = network && successTxHash
-        ? getExplorerUrl(network.explorerUrlTemplate?.transaction, successTxHash)
-        : undefined
-
-    const handleConnect = async () => {
-        if (!provider) return
-        const wallet = await connect(provider)
-        if (wallet?.address) setRecipient(wallet.address)
-    }
+        ? getExplorerUrl(network.explorerUrlTemplate?.transaction, successTxHash) ?? null
+        : null
 
     const onMint = async () => {
         if (!network || !recipient) return
         if (!Address.isValid(recipient, network)) return
-        const faucet = faucetByCaip2Id.get(network.caip2Id)
-        const token = faucet?.tokens[0]
         if (!token) return
         setPosting(true)
         setPostError(null)
         setCorrelationId(null)
+        setMintedToken(null)
         try {
             const { correlationId: id } = await claimFaucet({
                 caip2Id: network.caip2Id,
@@ -109,11 +117,8 @@ const FaucetView: FC = () => {
         }
     }
 
-    const showConnect = !!network && !hasWallet
-    const buttonLabel = showConnect ? "Connect a wallet" : "Mint"
-    const buttonIcon = showConnect ? <WalletIcon className="h-6 w-6" strokeWidth={2} /> : undefined
-    const buttonAction = showConnect ? handleConnect : onMint
-    const buttonDisabled = showConnect ? !provider : !network || !recipient || submitting
+    const recipientValid = !!(network && recipient && Address.isValid(recipient, network))
+    const buttonDisabled = !recipientValid || submitting
 
     return (
         <Widget hideMenu>
@@ -135,42 +140,33 @@ const FaucetView: FC = () => {
                     <FaucetWalletPicker
                         network={network}
                         wallets={availableWallets}
-                        notCompatibleWallets={unAvailableWallets}
-                        provider={provider}
                         value={recipient}
                         onChange={setRecipient}
                         disabled={submitting}
                     />
+                    <FaucetMessage
+                        mintError={errorMessage}
+                        addTokenError={addTokenError}
+                        txLink={txLink}
+                        onDismiss={() => setCorrelationId(null)}
+                    />
                 </div>
                 <div className="mt-auto pt-6 space-y-3">
-                    {errorMessage && (
-                        <WalletMessage status="error" header="Mint failed" details={errorMessage} />
-                    )}
-                    {successTxHash && (
-                        <WalletMessage
-                            status="success"
-                            header="Tokens sent"
-                            details={txLink ? (
-                                <a
-                                    href={txLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="underline"
-                                    onClick={() => setCorrelationId(null)}
-                                >
-                                    View transaction
-                                </a>
-                            ) : null}
+                    {mintedToken && availableWallets.length > 0 && (
+                        <AddTokenToWalletButton
+                            token={mintedToken.token}
+                            network={mintedToken.network}
+                            recipient={mintedToken.recipient}
+                            onError={setAddTokenError}
                         />
                     )}
                     <SubmitButton
                         type="button"
-                        onClick={buttonAction}
+                        onClick={onMint}
                         isDisabled={buttonDisabled}
                         isSubmitting={submitting}
-                        icon={buttonIcon}
                     >
-                        {buttonLabel}
+                        Mint
                     </SubmitButton>
                 </div>
             </div>
@@ -179,3 +175,19 @@ const FaucetView: FC = () => {
 }
 
 export default FaucetView
+
+const FaucetMessage: FC<{
+    mintError: string | null
+    addTokenError: string | null
+    txLink: string | null
+    onDismiss: () => void
+}> = ({ mintError, addTokenError, txLink, onDismiss }) => {
+    if (mintError) return <WalletMessage status="error" header="Mint failed" details={mintError} />
+    if (addTokenError) return <WalletMessage status="error" header="Couldn't add token" details={addTokenError} />
+    if (!txLink) return null
+    return <WalletMessage status="success" header="Tokens sent" details={
+        <a href={txLink} target="_blank" rel="noopener noreferrer" className="underline" onClick={onDismiss}>
+            View transaction
+        </a>
+    } />
+}
