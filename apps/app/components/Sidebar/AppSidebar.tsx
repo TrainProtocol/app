@@ -11,6 +11,7 @@ import {
     SidebarMenu,
     SidebarMenuItem,
     SidebarMenuButton,
+    SidebarRail,
 } from "@/components/shadcn/sidebar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip"
@@ -24,6 +25,7 @@ import { buildHrefWithPersistantParams } from "@/helpers/querryHelper"
 import TwitterLogo from "@/components/Icons/TwitterLogo"
 import GitHubLogo from "@/components/Icons/GitHubLogo"
 import TrainLogo from "@/components/Icons/TrainLogo"
+import TrainLogoSymbol from "@/components/Icons/TrainLogoSymbol"
 import { useAuthDialog } from "@/stores/authDialogStore"
 import { getLoginIdentity } from "@/components/SecretDerivation/UserStatus"
 import TelegramLogo from "../Icons/TelegramLogo"
@@ -32,7 +34,7 @@ const AppSidebar: FC = () => {
     const currentPath = usePathname() ?? '/'
 
     return (
-        <Sidebar side="left" collapsible="none" className="hidden md:flex">
+        <Sidebar side="left" collapsible="icon" className="hidden md:flex">
             <SidebarHeader className="px-2 py-2 mb-2">
                 <Suspense fallback={<SidebarLogo href="/" />}>
                     <SidebarLogoWithParams />
@@ -64,6 +66,7 @@ const AppSidebar: FC = () => {
                     <HelpPillButton />
                 </div> */}
             </SidebarFooter>
+            <SidebarRail />
         </Sidebar>
     )
 }
@@ -94,11 +97,11 @@ const SidebarLoginStatus: FC = () => {
         return (
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" onClick={() => { if (isReady) openAuthDialog() }}>
+                    <SidebarMenuButton size="lg" tooltip="Log in" onClick={() => { if (isReady) openAuthDialog() }}>
                         <div className="flex aspect-square size-6 items-center justify-center rounded-full bg-secondary-400 text-primary-text shrink-0">
                             <Lock className="size-3.5" strokeWidth={2} />
                         </div>
-                        <div className="grid flex-1 text-left leading-tight min-w-0">
+                        <div className="grid flex-1 text-left leading-tight min-w-0 group-data-[collapsible=icon]:hidden">
                             <span className="truncate text-sm font-semibold">Log in</span>
                             <span className="truncate text-xs text-secondary-text">Not signed in</span>
                         </div>
@@ -130,15 +133,15 @@ const SidebarLoginStatus: FC = () => {
             <SidebarMenuItem>
                 <Popover>
                     <PopoverTrigger asChild>
-                        <SidebarMenuButton size="lg" className="data-[state=open]:bg-secondary-500">
+                        <SidebarMenuButton size="lg" tooltip={label ?? "Account"} className="data-[state=open]:bg-secondary-500">
                             <div className="flex aspect-square size-6 items-center justify-center rounded-full bg-secondary-400 text-primary-text shrink-0">
                                 <Icon className="size-3.5" strokeWidth={2} />
                             </div>
-                            <div className="grid flex-1 text-left leading-tight min-w-0">
+                            <div className="grid flex-1 text-left leading-tight min-w-0 group-data-[collapsible=icon]:hidden">
                                 {label && <span className="truncate text-sm font-semibold">{label}</span>}
                                 {idShortWithTooltip}
                             </div>
-                            <ChevronsUpDown className="ml-auto size-4 text-secondary-text shrink-0" />
+                            <ChevronsUpDown className="ml-auto size-4 text-secondary-text shrink-0 group-data-[collapsible=icon]:hidden" />
                         </SidebarMenuButton>
                     </PopoverTrigger>
                     <PopoverContent
@@ -179,9 +182,10 @@ const SidebarLogo: FC<{ href: string }> = ({ href }) => (
         href={href}
         prefetch={false}
         aria-label="Home"
-        className="flex h-9 w-fit items-center rounded-md px-2 hover:bg-sidebar-accent transition-colors cursor-pointer"
+        className="relative flex h-9 w-fit items-center rounded-md px-2 hover:bg-sidebar-accent transition-[width,background-color] duration-300 ease-in-out cursor-pointer overflow-hidden group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:px-2"
     >
-        <TrainLogo className="h-7 -ml-1 w-auto text-primary-logoColor fill-primary-text" />
+        <TrainLogo className="h-7 -ml-1 w-auto text-primary-logoColor fill-primary-text shrink-0 transition-opacity duration-300 ease-in-out group-data-[collapsible=icon]:opacity-0" />
+        <TrainLogoSymbol className="absolute left-2 h-6 w-auto text-primary-logoColor fill-primary-text shrink-0 opacity-0 transition-opacity duration-300 ease-in-out group-data-[collapsible=icon]:opacity-100" />
     </Link>
 )
 
@@ -195,7 +199,7 @@ type NavHrefs = { home: string; transactions: string; settings: string; faucet: 
 const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, hrefs }) => (
     <>
         <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={currentPath === "/"}>
+            <SidebarMenuButton asChild isActive={currentPath === "/"} tooltip="Home">
                 <Link href={hrefs.home}>
                     <Home />
                     <span>Home</span>
@@ -204,7 +208,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
         </SidebarMenuItem>
 
         <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={currentPath === "/transactions"}>
+            <SidebarMenuButton asChild isActive={currentPath === "/transactions"} tooltip="History">
                 <Link href={hrefs.transactions}>
                     <History />
                     <span>History</span>
@@ -214,7 +218,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
 
         {/* {AppSettings.ApiVersion === 'sandbox' && (
             <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={currentPath === "/faucet"}>
+                <SidebarMenuButton asChild isActive={currentPath === "/faucet"} tooltip="Faucet">
                     <Link href={hrefs.faucet}>
                         <HandCoins />
                         <span>Faucet</span>
@@ -224,7 +228,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
         )} */}
 
         <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={currentPath === "/settings"}>
+            <SidebarMenuButton asChild isActive={currentPath === "/settings"} tooltip="Settings">
                 <Link href={hrefs.settings}>
                     <Settings />
                     <span>Settings</span>
@@ -260,7 +264,7 @@ const MoreMenu: FC = () => {
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <SidebarMenuButton>
+                <SidebarMenuButton tooltip="More">
                     <MoreHorizontal />
                     <span className="truncate">More</span>
                 </SidebarMenuButton>
