@@ -182,11 +182,11 @@ const SidebarLogo: FC<{ href: string }> = ({ href }) => (
         href={href}
         prefetch={false}
         aria-label="Home"
-        className="group relative flex h-9 w-full items-center rounded-md px-2 cursor-pointer overflow-hidden"
+        className="group/logo relative flex h-9 w-full items-center rounded-md px-2 cursor-pointer overflow-hidden"
     >
         <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 left-0 w-[96px] rounded-md transition-colors duration-300 ease-in-out group-hover:bg-sidebar-accent group-data-[collapsible=icon]:w-full"
+            className="pointer-events-none absolute inset-y-0 left-0 w-[96px] rounded-md transition-colors duration-300 ease-in-out group-hover/logo:bg-sidebar-accent group-data-[collapsible=icon]:w-full"
         />
         <TrainLogo className="absolute left-1 top-1/2 z-10 h-7 w-auto -translate-y-1/2 text-primary-logoColor fill-primary-text transition-opacity duration-0 group-data-[collapsible=icon]:delay-300 group-data-[collapsible=icon]:opacity-0" />
         <TrainLogoSymbol className="absolute left-[18px] top-1/2 z-10 h-6 w-auto -translate-x-1/2 -translate-y-1/2 text-primary-logoColor fill-primary-text opacity-0 transition-opacity duration-0 group-data-[collapsible=icon]:delay-300 group-data-[collapsible=icon]:opacity-100" />
