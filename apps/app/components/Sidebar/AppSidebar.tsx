@@ -97,7 +97,12 @@ const SidebarLoginStatus: FC = () => {
         return (
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" tooltip="Log in" onClick={() => { if (isReady) openAuthDialog() }}>
+                    <SidebarMenuButton
+                        size="lg"
+                        tooltip="Log in"
+                        className="px-1"
+                        onClick={() => { if (isReady) openAuthDialog() }}
+                    >
                         <div className="flex aspect-square size-6 items-center justify-center rounded-full bg-secondary-400 text-primary-text shrink-0">
                             <Lock className="size-3.5" strokeWidth={2} />
                         </div>
@@ -133,7 +138,11 @@ const SidebarLoginStatus: FC = () => {
             <SidebarMenuItem>
                 <Popover>
                     <PopoverTrigger asChild>
-                        <SidebarMenuButton size="lg" tooltip={label ?? "Account"} className="data-[state=open]:bg-secondary-500">
+                        <SidebarMenuButton
+                            size="lg"
+                            tooltip={label ?? "Account"}
+                            className="px-1 data-[state=open]:bg-secondary-500"
+                        >
                             <div className="flex aspect-square size-6 items-center justify-center rounded-full bg-secondary-400 text-primary-text shrink-0">
                                 <Icon className="size-3.5" strokeWidth={2} />
                             </div>
@@ -188,8 +197,8 @@ const SidebarLogo: FC<{ href: string }> = ({ href }) => (
             aria-hidden="true"
             className="pointer-events-none absolute inset-y-0 left-0 w-[96px] rounded-md transition-colors duration-300 ease-in-out group-hover/logo:bg-sidebar-accent group-data-[collapsible=icon]:w-full"
         />
-        <TrainLogo className="absolute left-1 top-1/2 z-10 h-7 w-auto -translate-y-1/2 text-primary-logoColor fill-primary-text transition-opacity duration-0 group-data-[collapsible=icon]:delay-300 group-data-[collapsible=icon]:opacity-0" />
-        <TrainLogoSymbol className="absolute left-[18px] top-1/2 z-10 h-6 w-auto -translate-x-1/2 -translate-y-1/2 text-primary-logoColor fill-primary-text opacity-0 transition-opacity duration-0 group-data-[collapsible=icon]:delay-300 group-data-[collapsible=icon]:opacity-100" />
+        <TrainLogo className="absolute left-0.5 top-1/2 z-10 h-7 w-auto -translate-y-1/2 text-primary-logoColor fill-primary-text transition-opacity duration-0 group-data-[collapsible=icon]:delay-300 group-data-[collapsible=icon]:opacity-0" />
+        <TrainLogoSymbol className="absolute left-[16px] top-1/2 z-10 h-6 w-auto -translate-x-1/2 -translate-y-1/2 text-primary-logoColor fill-primary-text opacity-0 transition-opacity duration-0 group-data-[collapsible=icon]:delay-300 group-data-[collapsible=icon]:opacity-100" />
     </Link>
 )
 
