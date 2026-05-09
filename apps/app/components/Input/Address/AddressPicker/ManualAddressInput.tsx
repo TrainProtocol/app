@@ -79,6 +79,8 @@ type AddressInputFieldProps = {
     onChange: (v: string) => void
     onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void
     onClick?: () => void
+    onFocus?: () => void
+    onBlur?: () => void
     name?: string
     inputRef?: Ref<HTMLInputElement>
     disabled?: boolean
@@ -91,6 +93,8 @@ export const AddressInputField: FC<AddressInputFieldProps> = ({
     onChange,
     onKeyDown,
     onClick,
+    onFocus,
+    onBlur,
     name,
     inputRef,
     disabled,
@@ -112,8 +116,8 @@ export const AddressInputField: FC<AddressInputFieldProps> = ({
                 type="text"
                 disabled={disabled}
                 onClick={onClick}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
+                onFocus={() => { setIsFocused(true); onFocus?.() }}
+                onBlur={() => { setIsFocused(false); onBlur?.() }}
                 onKeyDown={onKeyDown}
                 className={cn("pr-12 h-12 rounded-lg font-semibold truncate hover:overflow-x-scroll placeholder:text-secondary-text placeholder:font-normal placeholder:pl-8 focus:placeholder:pl-0 focus:placeholder:text-left disabled:opacity-50! disabled:cursor-not-allowed disabled:pointer-events-auto", inputClassName)}
             />

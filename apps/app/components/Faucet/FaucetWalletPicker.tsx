@@ -34,12 +34,13 @@ const FaucetWalletPicker: FC<Props> = ({ network, wallets, value, onChange, disa
 
     return (
         <Popover open={open && canOpen} onOpenChange={setOpen}>
-            <div className="text-left pt-1">
+            <div className="text-left">
                 <PopoverAnchor>
                     <AddressInputField
                         value={value ?? ""}
                         onChange={onChange}
-                        onClick={() => canOpen && setOpen(true)}
+                        onFocus={() => canOpen && setOpen(true)}
+                        onBlur={() => setOpen(false)}
                         disabled={inputDisabled}
                         wrapperClassName="rounded-xl"
                         inputClassName="rounded-xl text-primary-text"
@@ -63,6 +64,7 @@ const FaucetWalletPicker: FC<Props> = ({ network, wallets, value, onChange, disa
                                 <button
                                     type="button"
                                     key={`${index}${wallet.providerName}`}
+                                    onMouseDown={(e) => e.preventDefault()}
                                     onClick={() => handleSelect(wallet.address)}
                                     className={clsx(
                                         "flex w-full items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-primary-text transition-colors",

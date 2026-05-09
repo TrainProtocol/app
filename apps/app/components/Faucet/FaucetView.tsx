@@ -129,7 +129,7 @@ const FaucetView: FC = () => {
                     <h1 className="text-primary-text text-xl font-semibold">Faucet</h1>
                     <p className="text-secondary-text text-sm">Mint test tokens to your wallet on a supported testnet.</p>
                 </div>
-                <div className="space-y-2 mt-4">
+                <div className="relative mt-4 flex w-full flex-col justify-between gap-1.5 leading-4">
                     <FaucetNetworkSelector
                         networks={availableNetworks}
                         value={network}
