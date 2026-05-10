@@ -29,7 +29,6 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
             <UserStatusMenu />
             <WalletsMenu />
 
-
             <Menu.Group>
                 <>
                     {
@@ -52,7 +51,7 @@ const MenuList: FC<{ goToStep: (step: MenuStep, path?: string) => void }> = ({ g
                     </Menu.Item>
 
                     {AppSettings.ApiVersion === 'sandbox' && (
-                        <Menu.Item pathname='/faucet' icon={<HandCoins className="h-5 w-5" />} >
+                        <Menu.Item onClick={() => goToStep(MenuStep.Faucet)} icon={<HandCoins className="h-5 w-5" />} >
                             Faucet
                         </Menu.Item>
                     )}

@@ -8,14 +8,24 @@ import { getFaucetNetworks, claimFaucet, getClaimStatus, FaucetApiError, FaucetT
 import useWallet from "@/hooks/useWallet"
 import { useSettingsState } from "@/context/settings"
 import { Widget } from "@/components/Widget/Index"
-import HeaderWithMenu from "@/components/HeaderWithMenu"
 import SubmitButton from "@/components/buttons/submitButton"
 import WalletMessage from "@/components/Swap/messages/Message"
 import FaucetNetworkSelector from "./FaucetNetworkSelector"
 import FaucetWalletPicker from "./FaucetWalletPicker"
 import AddTokenToWalletButton from "./AddTokenToWalletButton"
+import useWindowDimensions from "@/hooks/useWindowDimensions"
+import Link from "next/link"
 
-const FaucetView: FC = () => {
+const FaucetView: FC<{ hideMenu?: boolean }> = ({ hideMenu = false }) => {
+    const { isMobile } = useWindowDimensions()
+    return (
+        <Widget mode="fit-content" hideMenu={!isMobile || hideMenu}>
+            <FaucetContent fillHeight />
+        </Widget>
+    )
+}
+
+export const FaucetContent: FC<{ hideTitle?: boolean; fillHeight?: boolean }> = ({ hideTitle = false, fillHeight = false }) => {
     const [network, setNetwork] = useState<ExtendedNetwork | null>(null)
     const [recipient, setRecipient] = useState<string | null>(null)
     const { networks } = useSettingsState()
@@ -120,56 +130,58 @@ const FaucetView: FC = () => {
     const buttonDisabled = !recipientValid || submitting
 
     return (
-        <Widget hideMenu>
-            <div className="sm:hidden">
-                <HeaderWithMenu goBack={null} />
+        <div className="flex flex-col w-full space-y-3 sm:pt-4">
+            {!hideTitle && <h1 className="text-primary-text text-xl font-semibold">Faucet</h1>}
+            <p className="text-sm text-secondary-text leading-snug">
+                Mint test tokens to your wallet on a supported testnet.
+            </p>
+
+            <div className="flex flex-col space-y-2">
+                <label className="text-sm text-secondary-text">Network</label>
+                <FaucetNetworkSelector
+                    networks={availableNetworks}
+                    value={network}
+                    onChange={setNetwork}
+                    disabled={submitting}
+                />
             </div>
-            <div className="flex flex-col min-h-[400px] h-full">
-                <div className="space-y-1 pt-4">
-                    <h1 className="text-primary-text text-xl font-semibold">Faucet</h1>
-                    <p className="text-secondary-text text-sm">Mint test tokens to your wallet on a supported testnet.</p>
-                </div>
-                <div className="relative mt-4 flex w-full flex-col justify-between gap-1.5 leading-4">
-                    <FaucetNetworkSelector
-                        networks={availableNetworks}
-                        value={network}
-                        onChange={setNetwork}
-                        disabled={submitting}
-                    />
-                    <FaucetWalletPicker
-                        network={network}
-                        wallets={availableWallets}
-                        value={recipient}
-                        onChange={setRecipient}
-                        disabled={submitting}
-                    />
-                    <FaucetMessage
-                        mintError={errorMessage}
-                        addTokenError={addTokenError}
-                        txLink={txLink}
-                        onDismiss={() => setClaim(null)}
-                    />
-                </div>
-                <div className="mt-auto pt-6 space-y-3">
-                    {mintedToken && availableWallets.length > 0 && (
-                        <AddTokenToWalletButton
-                            token={mintedToken.token}
-                            network={mintedToken.network}
-                            recipient={mintedToken.recipient}
-                            onError={setAddTokenError}
-                        />
-                    )}
-                    <SubmitButton
-                        type="button"
-                        onClick={onMint}
-                        isDisabled={buttonDisabled}
-                        isSubmitting={submitting}
-                    >
-                        Mint
-                    </SubmitButton>
-                </div>
+
+            <div className="flex flex-col space-y-2">
+                <label className="text-sm text-secondary-text">Recipient</label>
+                <FaucetWalletPicker
+                    network={network}
+                    wallets={availableWallets}
+                    value={recipient}
+                    onChange={setRecipient}
+                    disabled={submitting}
+                />
             </div>
-        </Widget>
+
+            <SubmitButton
+                type="button"
+                onClick={onMint}
+                isDisabled={buttonDisabled}
+                isSubmitting={submitting}
+                size="medium"
+            >
+                Mint
+            </SubmitButton>
+
+            <FaucetMessage
+                mintError={errorMessage}
+                addTokenError={addTokenError}
+                txLink={txLink}
+            />
+
+            {mintedToken && availableWallets.length > 0 && (
+                <AddTokenToWalletButton
+                    token={mintedToken.token}
+                    network={mintedToken.network}
+                    recipient={mintedToken.recipient}
+                    onError={setAddTokenError}
+                />
+            )}
+        </div>
     )
 }
 
@@ -179,14 +191,13 @@ const FaucetMessage: FC<{
     mintError: string | null
     addTokenError: string | null
     txLink: string | null
-    onDismiss: () => void
-}> = ({ mintError, addTokenError, txLink, onDismiss }) => {
+}> = ({ mintError, addTokenError, txLink }) => {
     if (mintError) return <WalletMessage status="error" header="Mint failed" details={mintError} />
     if (addTokenError) return <WalletMessage status="error" header="Couldn't add token" details={addTokenError} />
     if (!txLink) return null
     return <WalletMessage status="success" header="Tokens sent" details={
-        <a href={txLink} target="_blank" rel="noopener noreferrer" className="underline" onClick={onDismiss}>
+        <Link href={txLink} target="_blank" className="underline">
             View transaction
-        </a>
+        </Link>
     } />
 }

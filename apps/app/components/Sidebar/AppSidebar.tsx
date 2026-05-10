@@ -191,14 +191,14 @@ const SidebarLogo: FC<{ href: string }> = ({ href }) => (
         href={href}
         prefetch={false}
         aria-label="Home"
-        className="group/logo relative flex h-9 w-full items-center rounded-md px-2 cursor-pointer overflow-hidden"
+        className="group/logo relative flex h-9 w-23 items-center rounded-md px-2 cursor-pointer overflow-hidden group-data-[collapsible=icon]:w-full"
     >
         <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 left-0 w-[96px] rounded-md transition-colors duration-300 ease-in-out group-hover/logo:bg-sidebar-accent group-data-[collapsible=icon]:w-full"
+            className="pointer-events-none absolute inset-0 rounded-md transition-colors duration-300 ease-in-out group-hover/logo:bg-sidebar-accent"
         />
         <TrainLogo className="absolute left-0.5 top-1/2 z-10 h-7 w-auto -translate-y-1/2 text-primary-logoColor fill-primary-text transition-opacity duration-0 group-data-[collapsible=icon]:delay-300 group-data-[collapsible=icon]:opacity-0" />
-        <TrainLogoSymbol className="absolute left-[16px] top-1/2 z-10 h-6 w-auto -translate-x-1/2 -translate-y-1/2 text-primary-logoColor fill-primary-text opacity-0 transition-opacity duration-0 group-data-[collapsible=icon]:delay-300 group-data-[collapsible=icon]:opacity-100" />
+        <TrainLogoSymbol className="absolute left-4 top-1/2 z-10 h-6 w-auto -translate-x-1/2 -translate-y-1/2 text-primary-logoColor fill-primary-text opacity-0 transition-opacity duration-0 group-data-[collapsible=icon]:delay-300 group-data-[collapsible=icon]:opacity-100" />
     </Link>
 )
 
@@ -229,7 +229,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
             </SidebarMenuButton>
         </SidebarMenuItem>
 
-        {/* {AppSettings.ApiVersion === 'sandbox' && (
+        {AppSettings.ApiVersion === 'sandbox' && (
             <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={currentPath === "/faucet"} tooltip="Faucet">
                     <Link href={hrefs.faucet}>
@@ -238,7 +238,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
-        )} */}
+        )}
 
         <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={currentPath === "/settings"} tooltip="Settings">

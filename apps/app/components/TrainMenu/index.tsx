@@ -15,6 +15,7 @@ import RpcNetworkListView from "@/components/Settings/RpcNetworkListView";
 import NetworkRpcEditView from "@/components/Settings/NetworkRpcEditView";
 import RecoverSwap from "@/components/Swap/Atomic/RecoverSwap";
 import SwapHistory from "@/components/SwapHistory";
+import { FaucetContent } from "@/components/Faucet/FaucetView";
 import { useMenuNavigation } from "@/hooks/useMenuNavigation";
 
 //TODO: move URI handling to wizard provider
@@ -69,14 +70,12 @@ const Comp = () => {
                 <ModalContent
                     className="pb-4"
                     header={
-                        <div className="inline-flex items-center w-full">
+                        <div className="inline-flex items-center w-full gap-1">
                             {
                                 goBack &&
-                                <div className="-ml-2">
-                                    <IconButton className="inline-flex" onClick={goBack} icon={
-                                        <ChevronLeft strokeWidth="2" />
-                                    } />
-                                </div>
+                                <IconButton className="inline-flex sm:-ml-2 pb-0" onClick={goBack} icon={
+                                    <ChevronLeft strokeWidth="2" />
+                                } />
                             }
                             <h2 className="flex-1">{currentStepName as string}</h2>
                         </div>
@@ -84,7 +83,7 @@ const Comp = () => {
                 >
                     {() => (
                         <div className="h-full openpicker" id="virtualListContainer">
-                            <Wizard wizardId='menuWizard' className="pb-4">
+                            <Wizard wizardId='menuWizard'>
                                 <WizardItem StepName={MenuStep.Menu} inModal>
                                     <MenuList goToStep={handleGoToStep} />
                                 </WizardItem>
@@ -106,6 +105,9 @@ const Comp = () => {
                                 </WizardItem>
                                 <WizardItem StepName={MenuStep.Transactions} GoBack={goBackToMenuStep} inModal>
                                     <SwapHistory />
+                                </WizardItem>
+                                <WizardItem StepName={MenuStep.Faucet} GoBack={goBackToMenuStep} inModal>
+                                    <FaucetContent hideTitle />
                                 </WizardItem>
                             </Wizard>
                         </div>
