@@ -1,4 +1,4 @@
-import { FC, useState } from "react"
+import { FC, useRef, useState } from "react"
 import { Check } from "lucide-react"
 import clsx from "clsx"
 import { ExtendedNetwork } from "@/Models/Network"
@@ -18,6 +18,7 @@ type Props = {
 
 const FaucetWalletPicker: FC<Props> = ({ network, wallets, value, onChange, disabled }) => {
     const [open, setOpen] = useState(false)
+    const anchorRef = useRef<HTMLDivElement>(null)
 
     const canOpen = !!network && !disabled && wallets.length > 0
     const inputDisabled = disabled || !network
@@ -34,13 +35,14 @@ const FaucetWalletPicker: FC<Props> = ({ network, wallets, value, onChange, disa
 
     return (
         <Popover open={open && canOpen} onOpenChange={setOpen}>
-            <div className="text-left">
+            <div ref={anchorRef} className="text-left">
                 <PopoverAnchor>
                     <AddressInputField
                         value={value ?? ""}
                         onChange={onChange}
                         onFocus={() => canOpen && setOpen(true)}
                         onBlur={() => setOpen(false)}
+                        onClick={() => canOpen && setOpen(true)}
                         disabled={inputDisabled}
                         wrapperClassName="rounded-xl"
                         inputClassName="rounded-xl text-primary-text"
@@ -54,6 +56,16 @@ const FaucetWalletPicker: FC<Props> = ({ network, wallets, value, onChange, disa
                 align="start"
                 sideOffset={6}
                 onOpenAutoFocus={(e) => e.preventDefault()}
+                onPointerDownOutside={(e) => {
+                    if (anchorRef.current?.contains(e.target as Node)) {
+                        e.preventDefault()
+                    }
+                }}
+                onFocusOutside={(e) => {
+                    if (anchorRef.current?.contains(e.target as Node)) {
+                        e.preventDefault()
+                    }
+                }}
                 className="w-(--radix-popover-trigger-width) max-w-(--radix-popover-trigger-width) p-2 rounded-2xl"
             >
                 {network && (
