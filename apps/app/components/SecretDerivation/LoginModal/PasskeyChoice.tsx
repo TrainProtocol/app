@@ -66,7 +66,7 @@ export function EntryStep({ credentials, onPick, onCreateNew, onLoginWithExistin
           onClick={onShowFaq}
           className="text-xs text-secondary-text hover:text-primary-text transition-colors underline hover:no-underline"
         >
-          What's a passkey?
+          Why log in?
         </button>
         {hasSaved && (
           <button
@@ -86,10 +86,9 @@ export function EntryStep({ credentials, onPick, onCreateNew, onLoginWithExistin
 
 interface CreateStepProps {
   onCreate: (label: string) => void;
-  onShowFaq: () => void;
 }
 
-export function CreateStep({ onCreate, onShowFaq }: CreateStepProps) {
+export function CreateStep({ onCreate }: CreateStepProps) {
   const [name, setName] = useState('');
   const [suggestedName] = useState(generateRandomPasskeyName);
 
@@ -122,7 +121,7 @@ export function CreateStep({ onCreate, onShowFaq }: CreateStepProps) {
           className="bg-secondary-500 border-secondary-400 py-3"
         />
         <p className="text-xs text-secondary-text">
-          Shown here and in your password manager. <button type="button" onClick={onShowFaq} className="text-secondary-text hover:text-primary-text transition-colors underline hover:no-underline">What's a passkey?</button>
+          Shown here and in your password manager.
         </p>
       </div>
     </>

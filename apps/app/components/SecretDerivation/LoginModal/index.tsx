@@ -101,7 +101,6 @@ function useLoginFlow({
         <Step name="create">
           <CreateStep
             onCreate={(label) => runLogin({ forceCreate: true, label: label || undefined })}
-            onShowFaq={() => setFaqOpen(true)}
           />
         </Step>
 
