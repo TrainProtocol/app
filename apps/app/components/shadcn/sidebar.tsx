@@ -198,7 +198,7 @@ function Sidebar({
       data-variant={variant}
       data-side={side}
       className={cn(
-        "group relative shrink-0 h-screen transition-[width] duration-300 ease-in-out z-50",
+        "group relative shrink-0 min-h-screen transition-[width] duration-300 ease-in-out z-50",
         open || collapsible === "icon" ? "overflow-visible" : "overflow-hidden",
         className
       )}
