@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronsRight, PanelLeftIcon } from "lucide-react"
+import { PanelLeftIcon } from "lucide-react"
 import { Slot } from "radix-ui"
 
 import useWindowDimensions from "@/hooks/useWindowDimensions"
@@ -147,7 +147,7 @@ function Sidebar({
   variant?: "sidebar" | "floating" | "inset"
   collapsible?: "offcanvas" | "icon" | "none"
 }) {
-  const { isMobile, state, open, openMobile, setOpenMobile, toggleSidebar } = useSidebar()
+  const { isMobile, state, open, openMobile, setOpenMobile } = useSidebar()
 
   if (collapsible === "none") {
     return (
@@ -198,28 +198,21 @@ function Sidebar({
       data-variant={variant}
       data-side={side}
       className={cn(
-        "relative shrink-0 h-screen transition-[width] duration-300 ease-in-out z-50",
-        open ? "overflow-visible" : "overflow-hidden",
+        "group relative shrink-0 h-screen transition-[width] duration-300 ease-in-out z-50",
+        open || collapsible === "icon" ? "overflow-visible" : "overflow-hidden",
         className
       )}
-      style={{ width: open ? `var(--sidebar-width)` : 0 }}
+      style={{
+        width: open
+          ? `var(--sidebar-width)`
+          : collapsible === "icon"
+            ? `var(--sidebar-width-icon)`
+            : 0,
+      }}
       {...props}
     >
-      <div
-        className="sticky top-0 h-screen text-sidebar-foreground"
-        style={{ width: `var(--sidebar-width)` }}
-      >
-        {/* Close button — absolute, sticks out left, full height */}
-        <button
-          type="button"
-          onClick={toggleSidebar}
-          aria-label="Close sidebar"
-          className="absolute inset-y-0 -left-8 -z-10 flex items-start justify-center w-14 pr-6 pt-6 rounded-l-3xl hover:bg-sidebar-accent text-muted-foreground hover:text-sidebar-accent-foreground transition-colors cursor-pointer"
-        >
-          <ChevronsRight className="h-6 w-6" strokeWidth={2} />
-        </button>
-
-        <div className="w-full h-full bg-sidebar border-l border-sidebar-border flex flex-col overflow-hidden rounded-l-3xl">
+      <div className="sticky top-0 h-screen w-full text-sidebar-foreground">
+        <div className="w-full h-full bg-sidebar border-l border-sidebar-border flex flex-col overflow-hidden">
           {children}
         </div>
       </div>
@@ -239,7 +232,7 @@ function SidebarTrigger({
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
       className={cn(
-        "inline-flex items-center justify-center h-7 w-7 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-muted-foreground transition-colors",
+        "inline-flex items-center justify-center h-9 w-9 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-muted-foreground transition-colors [&_svg]:size-5 [&_svg]:shrink-0",
         className
       )}
       onClick={(event) => {
@@ -443,7 +436,7 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
   )
 }
 
-const SIDEBAR_MENU_BUTTON_BASE = "peer/menu-button group/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:animate-press-down-weak active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate"
+const SIDEBAR_MENU_BUTTON_BASE = "peer/menu-button group/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden group-has-data-[sidebar=menu-action]/menu-item:pr-8 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:animate-press-down-weak active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate"
 
 const SIDEBAR_MENU_BUTTON_VARIANTS: Record<string, string> = {
   outline: "bg-sidebar ring-1 ring-sidebar-border hover:ring-1 hover:ring-sidebar-border",
@@ -452,7 +445,7 @@ const SIDEBAR_MENU_BUTTON_VARIANTS: Record<string, string> = {
 const SIDEBAR_MENU_BUTTON_SIZES: Record<string, string> = {
   default: "h-9 text-sm",
   sm: "h-7 text-xs",
-  lg: "h-12 text-sm group-data-[collapsible=icon]:p-0!",
+  lg: "h-12 text-sm",
 }
 
 function sidebarMenuButtonVariants({ variant = "default", size = "default" }: { variant?: string; size?: string }) {

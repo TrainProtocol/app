@@ -454,10 +454,9 @@ input:disabled,
 textarea:disabled,
 input:disabled::placeholder,
 textarea:disabled::placeholder {
-  -webkit-text-fill-color: rgb(var(--ls-colors-primary-text-tertiary, 118, 128, 147));
-  /* 1. sets text fill to 'primary-text': '#a4afc8' */
+  -webkit-text-fill-color: rgb(var(--ls-colors-text-tertiary, 113, 113, 113));
   opacity: 1;
-  /* 2. correct opacity on iOS */
+  /* correct opacity on iOS */
 }
 
 .space-x-reverse {

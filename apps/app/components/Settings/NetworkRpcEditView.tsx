@@ -6,7 +6,6 @@ import { useRpcConfigStore } from "../../stores/rpcConfigStore"
 import { validateRpcUrl } from "../../lib/validators/rpcValidator"
 import SecondaryButton from "../buttons/secondaryButton"
 import SubmitButton from "../buttons/submitButton"
-import { toast } from "react-hot-toast"
 import { supportsLightClient } from "../../lib/lightClient/supportsNetwork"
 import Image from 'next/image'
 
@@ -120,13 +119,9 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
         const nonEmptyUrls = customUrls.filter(url => url.trim() !== "")
 
         if (nonEmptyUrls.length > 0) {
-            // Check if all non-empty URLs are validated
-            const allValid = nonEmptyUrls.every((_, index) =>
-                !customUrls[index] || validatedUrls[index]
-            )
+            const allValid = customUrls.every((url, i) => !url.trim() || validatedUrls[i])
 
             if (!allValid) {
-                toast.error("Please fix validation errors before saving")
                 return
             }
 
@@ -135,11 +130,8 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
                 useCustomRpc: true,
                 isValidated: true
             })
-
-            toast.success(`Custom RPC URLs saved for ${network.displayName}`)
         } else {
             removeCustomRpc(network.caip2Id)
-            toast.success(`Reverted to default RPC for ${network.displayName}`)
         }
 
         onSave()
@@ -148,7 +140,6 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
     const handleReset = () => {
         removeCustomRpc(network.caip2Id)
         setCustomUrls([])
-        toast.success(`Reset to default RPC for ${network.displayName}`)
         onSave()
     }
 

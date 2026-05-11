@@ -30,14 +30,14 @@ const SubmitButton: FC<SubmitButtonProps> = ({ isDisabled, isSubmitting, icon, c
             type={type}
             onClick={onClick}
             style={style}
-            className={clsx('navigation-focus-ring-text-bold-lg enabled:active:animate-press-down focus:outline-none focus:ring-0 items-center space-x-1 disabled:bg-actionButtonColor/50 disabled:text-primary-buttonTextColor/50 disabled:cursor-not-allowed relative w-full flex justify-center font-medium rounded-xl transform transition duration-200 ease-in-out', {
-                className,
-                'text-primary-buttonTextColor bg-actionButtonColor hover:brightness-125': buttonStyle === 'filled',
-                'text-primary-text bg-secondary-300 hover:bg-secondary-200': buttonStyle === 'secondary',
+            className={clsx('navigation-focus-ring-text-bold-lg enabled:active:animate-press-down focus:outline-none focus:ring-0 items-center space-x-1 disabled:cursor-not-allowed relative w-full flex justify-center font-medium rounded-xl transform transition duration-200 ease-in-out', {
+                'text-primary-buttonTextColor bg-actionButtonColor hover:brightness-125 disabled:bg-actionButtonColor/50 disabled:text-primary-buttonTextColor/50': buttonStyle === 'filled',
+                'text-primary-text bg-secondary-300 hover:bg-secondary-200 disabled:bg-secondary-300/50 disabled:text-primary-text/50': buttonStyle === 'secondary',
+                'text-primary-text bg-transparent border border-secondary-300 hover:bg-secondary-500 disabled:bg-transparent disabled:border-secondary-300/50 disabled:text-primary-text/50': buttonStyle === 'outline',
                 'py-4 px-4': size === 'large',
                 'py-3 px-2 md:px-3': size === 'medium',
                 'py-2.5 px-2.5 text-sm': size === 'small',
-            })}
+            }, className)}
         >
             <span className={`${button_align === "right" ? 'order-last' : 'order-first'} ${text_align === 'center' ? "absolute left-0 inset-y-0 flex items-center pl-3" : "relative"}`}>
                 {(!isDisabled && !isSubmitting) && icon}
