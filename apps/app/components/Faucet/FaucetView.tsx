@@ -20,12 +20,12 @@ const FaucetView: FC<{ hideMenu?: boolean }> = ({ hideMenu = false }) => {
     const { isMobile } = useWindowDimensions()
     return (
         <Widget mode="fit-content" hideMenu={!isMobile || hideMenu}>
-            <FaucetContent fillHeight />
+            <FaucetContent />
         </Widget>
     )
 }
 
-export const FaucetContent: FC<{ hideTitle?: boolean; fillHeight?: boolean }> = ({ hideTitle = false, fillHeight = false }) => {
+export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }) => {
     const [network, setNetwork] = useState<ExtendedNetwork | null>(null)
     const [recipient, setRecipient] = useState<string | null>(null)
     const { networks } = useSettingsState()
