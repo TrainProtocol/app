@@ -119,10 +119,7 @@ const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) =>
         const nonEmptyUrls = customUrls.filter(url => url.trim() !== "")
 
         if (nonEmptyUrls.length > 0) {
-            // Check if all non-empty URLs are validated
-            const allValid = nonEmptyUrls.every((_, index) =>
-                !customUrls[index] || validatedUrls[index]
-            )
+            const allValid = customUrls.every((url, i) => !url.trim() || validatedUrls[i])
 
             if (!allValid) {
                 return

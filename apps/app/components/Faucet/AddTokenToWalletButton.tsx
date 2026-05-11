@@ -30,8 +30,8 @@ const AddTokenToWalletButton: FC<Props> = ({ token, network, recipient, onError 
         setPending(true)
         onError(null)
         try {
-            await provider.addToWallet({ network, token, recipient })
-            setPhase("added")
+            const added = await provider.addToWallet({ network, token, recipient })
+            if (added) setPhase("added")
         } catch (err) {
             onError(err instanceof Error ? err.message : "Couldn't add token to wallet")
         } finally {

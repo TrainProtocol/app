@@ -20,7 +20,7 @@ export class EVMFaucetTokenProvider implements FaucetTokenProvider {
         return network.networkType === NetworkTypes.EVM
     }
 
-    async addToWallet({ network, token, recipient }: AddToWalletArgs): Promise<void> {
+    async addToWallet({ network, token, recipient }: AddToWalletArgs): Promise<boolean> {
         const connections = getConnections(this.config)
         const recipientLower = recipient.toLowerCase()
         const matched = connections.find(c => c.accounts.some(a => a.toLowerCase() === recipientLower))
@@ -37,7 +37,7 @@ export class EVMFaucetTokenProvider implements FaucetTokenProvider {
 
         await switchChain(this.config, { chainId, connector })
 
-        await watchAsset(this.config, {
+        return await watchAsset(this.config, {
             type: "ERC20",
             options: {
                 address,

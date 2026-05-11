@@ -9,5 +9,5 @@ export type AddToWalletArgs = {
 
 export interface FaucetTokenProvider {
     supportsNetwork(network: Network): boolean
-    addToWallet(args: AddToWalletArgs): Promise<void>
+    addToWallet(args: AddToWalletArgs): Promise<boolean>
 }
