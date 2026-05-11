@@ -103,6 +103,9 @@ export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }
     const mintedToken = successTxHash && claim
         ? { token: claim.token, network: claim.network, recipient: claim.recipient }
         : null
+    const recipientIsConnectedWallet = !!mintedToken && availableWallets.some(
+        w => Address.equals(w.address, mintedToken.recipient, mintedToken.network),
+    )
 
     const onMint = async () => {
         if (!network || !recipient) return
@@ -173,7 +176,7 @@ export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }
                 txLink={txLink}
             />
 
-            {mintedToken && availableWallets.length > 0 && (
+            {mintedToken && recipientIsConnectedWallet && (
                 <AddTokenToWalletButton
                     token={mintedToken.token}
                     network={mintedToken.network}
