@@ -24,7 +24,7 @@ const AppShellDialog: FC<AppShellDialogProps> = ({ open, onOpenChange, title, on
                 className={clsx(
                     "p-0 gap-0 w-full sm:max-w-lg bg-secondary-700 border border-border rounded-3xl overflow-hidden",
                     contentClassName,
-                    { "sm:min-h-125": mode !== 'fit-content' }
+                    { "sm:min-h-120": mode !== 'fit-content' }
                 )}
             >
                 <DialogTitle className="sr-only">{title}</DialogTitle>

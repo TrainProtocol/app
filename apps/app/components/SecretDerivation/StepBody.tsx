@@ -19,7 +19,7 @@ export const StepBody: FC<StepBodyProps> = ({
         ? `flex-1 flex flex-col items-center justify-center ${gap} w-full`
         : `flex-1 flex flex-col ${gap}`
     return (
-        <div className="flex flex-col min-h-full gap-3">
+        <div className="flex flex-col min-h-full gap-5">
             <div className={infoClasses}>{info}</div>
             <div className={`w-full ${overlayActionMt}`.trim()}>{actions}</div>
         </div>
