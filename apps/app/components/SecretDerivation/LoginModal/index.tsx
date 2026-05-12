@@ -3,7 +3,7 @@ import { Loader2, ChevronLeft, AlertTriangle } from 'lucide-react';
 import { useSharedSecretDerivation } from '@train-protocol/react';
 import { mapPasskeyError } from '@train-protocol/auth';
 import { EntryStep, CreateStep, ErrorStep } from './PasskeyChoice';
-import { PasskeyFAQModal } from './PasskeyFAQ';
+import { PasskeyFAQModal } from './LoginFAQ';
 import { loginStepTitle, useLoginWizardState, wizardCanGoBack, type LoginWizard } from './wizard';
 import { Steps, Step } from '@/components/Step';
 import IconButton from '@/components/buttons/iconButton';
