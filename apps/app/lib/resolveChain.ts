@@ -8,11 +8,10 @@ import { getNetworkRpcUrl } from "./rpc/resolveNetworkRpcUrl";
 export default function resolveChain(network: ExtendedNetwork, customRpcUrl?: string) {
 
     const nativeToken = getNativeToken(network);
-    const fallbackNativeTokenInfo = NetworkSettings.KnownSettings[network.caip2Id]?.NativeTokenInfo;
 
     const nativeCurrency = nativeToken
         ? { name: nativeToken.symbol, symbol: nativeToken.symbol, decimals: nativeToken.decimals }
-        : fallbackNativeTokenInfo;
+        : undefined;
 
     const evm_multicall_contract = network.contracts?.find(c => c.type === "Multicall")?.address || undefined
 

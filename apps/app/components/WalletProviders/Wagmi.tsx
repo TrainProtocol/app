@@ -1,6 +1,5 @@
 import { useSettingsState } from "../../context/settings";
 import resolveChain from "../../lib/resolveChain";
-import NetworkSettings from "../../lib/NetworkSettings";
 import React, { useMemo } from "react";
 import { WagmiProvider, createConfig, Config } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -75,7 +74,7 @@ function WagmiComponent({ children }: Props) {
                 net.networkType === NetworkTypes.EVM
                 && !isNaN(Number(net.chainId))
                 && net.nodes?.[0]?.url
-                && (getNativeToken(net) || NetworkSettings.KnownSettings[net.caip2Id]?.NativeTokenInfo)
+                && !!getNativeToken(net)
             )
             .map(network => resolveChain(network, getEffectiveRpcUrl(network)))
             .filter((c): c is Chain => c != undefined) as Chain[]

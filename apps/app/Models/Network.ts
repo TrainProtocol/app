@@ -1,16 +1,15 @@
 // Re-exported from @train-protocol/sdk — single source of truth
-import {
-    Token,
-    Network
-} from '@train-protocol/sdk'
-export {
-    getNativeToken,
-    Network,
-    Token
-} from '@train-protocol/sdk'
-export type {
-    ExplorerUrlTemplate,
-} from '@train-protocol/sdk'
+import { Token, Network, getNativeToken as sdkGetNativeToken } from '@train-protocol/sdk'
+import NetworkSettings from '@/lib/NetworkSettings'
+export { Network, Token }
+export type { ExplorerUrlTemplate } from '@train-protocol/sdk'
+
+export const getNativeToken = (network: Network | undefined | null): Token | undefined => {
+    const native = sdkGetNativeToken(network)
+    if (native || !network) return native
+    const info = NetworkSettings.KnownSettings[network.caip2Id]?.NativeTokenInfo
+    return info && { symbol: info.symbol, contract: network.nativeTokenAddress, decimals: info.decimals }
+}
 
 export enum NetworkTypes {
     EVM = "eip155",
