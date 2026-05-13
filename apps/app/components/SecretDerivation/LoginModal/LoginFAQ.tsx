@@ -19,19 +19,19 @@ const FAQ_ITEMS: { id: string; question: string; answer: string }[] = [
     id: 'faq-2',
     question: 'What does logging in actually do?',
     answer:
-      "Your passkey is used to generate a unique secret for each swap, entirely on your device. Train only sees a hash of that secret — never the secret itself. The same passkey always produces the same secret, so swaps can be recovered later.",
+      "Logging in with your passkey creates one master key on your device. Train then uses that master key to generate a unique secret for each swap you make — automatically, without asking you to sign again. One login, as many swaps as you want.",
   },
   {
     id: 'faq-3',
-    question: 'Does Train store my passkey or swap secret?',
+    question: 'Does Train store my passkey or any secrets?',
     answer:
-      "No. Your passkey stays in your device's secure storage, and each swap secret is computed locally in your browser. Train only ever receives a public hash that funds are locked against — there's nothing on our servers that could reveal your keys.",
+      "No. Your passkey stays in your device's secure storage, and your master key and swap secrets are computed locally in your browser. Train only ever receives a public hash that funds are locked against — nothing on our servers could reveal your keys.",
   },
   {
     id: 'faq-4',
     question: 'What if I refresh the page or come back later mid-swap?',
     answer:
-      "Your swap stays safe. Train saves a timestamp for each swap in the URL and on-chain, so when you come back your passkey can re-create the exact same secret and pick up where you left off — even months later.",
+      "Your swap stays safe. Each swap's secret is derived from your master key plus a few public details that are saved in the URL and on-chain. When you log in again, the same passkey produces the same master key, which produces the same secret — so you can pick up any swap, even months later.",
   },
   {
     id: 'faq-5',
@@ -49,13 +49,13 @@ const FAQ_ITEMS: { id: string; question: string; answer: string }[] = [
     id: 'faq-7',
     question: 'Can I use the same passkey on multiple devices?',
     answer:
-      "Yes, if your passkey is synced through iCloud Keychain, Google Password Manager, 1Password, or similar — it'll show up on your other signed-in devices and produce the same swap secrets. Hardware keys like a YubiKey aren't synced; you'd plug the same key into each device.",
+      "Yes, if your passkey is synced through iCloud Keychain, Google Password Manager, 1Password, or similar — it shows up on your other signed-in devices and produces the same master key, so the same swap secrets work everywhere. Hardware keys like a YubiKey aren't synced; you'd plug the same key into each device.",
   },
   {
     id: 'faq-8',
     question: 'What happens if I lose my device?',
     answer:
-      "If your passkey is backed up by a service like iCloud or Google, just sign in on a new device once it syncs — your swaps are recoverable. If it's a hardware key with no backup, that login can't be recovered, so any in-flight swaps would need to wait for the HTLC timeout to refund. We recommend using a synced passkey so you always have a way back in.",
+      "If your passkey is backed up by a service like iCloud or Google, just sign in on a new device once it syncs — your master key comes back with it, and your swaps are recoverable. If it's a hardware key with no backup, that login can't be recovered, so any in-flight swaps would need to wait for the HTLC timeout to refund. We recommend a synced passkey so you always have a way back in.",
   },
 ];
 
