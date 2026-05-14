@@ -1,6 +1,6 @@
-import { Plus, Unplug } from "lucide-react";
+import { ChevronDown, Plus, Unplug } from "lucide-react";
 import AddressIcon from "../AddressIcon";
-import { FC, useCallback } from "react";
+import { FC, useCallback, useState } from "react";
 import { SelectAccountProps, Wallet, WalletProvider } from "../../Models/WalletProvider";
 import { ExtendedAddress } from "../Input/Address/AddressPicker/AddressWithIcon";
 import { clsx } from 'clsx';
@@ -112,32 +112,39 @@ export const WalletItem: FC<WalletItemProps> = ({ selectable, account: wallet, n
     const isSelected = selectable && (wallet.addresses.length == 1 && wallet.address == selectedAddress)
     const walletBalanceAmount = walletBalance?.amount !== undefined ? truncateDecimals(walletBalance.amount, token?.decimals) : ''
 
-    const isClickable = selectable && wallet.addresses.length == 1 && !!onWalletSelect
-    const handleSelect = () => {
-        if (!isClickable) return
-        onWalletSelect!({
-            providerName: wallet.providerName,
-            walletId: wallet.id,
-            address: wallet.address,
-        })
+    const isMulti = wallet.addresses.length > 1
+    const [isExpanded, setIsExpanded] = useState(true)
+
+    const isClickable = selectable && !isMulti && !!onWalletSelect
+    const isInteractive = isClickable || isMulti
+    const handleHeaderClick = () => {
+        if (isClickable) {
+            onWalletSelect!({
+                providerName: wallet.providerName,
+                walletId: wallet.id,
+                address: wallet.address,
+            })
+        } else if (isMulti) {
+            setIsExpanded(prev => !prev)
+        }
     }
 
     return (
         <div className="rounded-md outline-hidden text-primary-tex">
             <div
-                role={isClickable ? 'button' : undefined}
-                tabIndex={isClickable ? 0 : undefined}
-                onClick={handleSelect}
+                role={isInteractive ? 'button' : undefined}
+                tabIndex={isInteractive ? 0 : undefined}
+                onClick={handleHeaderClick}
                 onKeyDown={(e) => {
-                    if (!isClickable) return
+                    if (!isInteractive) return
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault()
-                        handleSelect()
+                        handleHeaderClick()
                     }
                 }}
                 className={clsx('w-full relative items-center justify-between gap-2 flex rounded-xl outline-hidden bg-secondary-500 text-primary-text p-3 group/addressItem', {
-                    'hover:bg-secondary-400 cursor-pointer': isClickable,
-                    'bg-secondary-400 py-2': wallet.addresses.length > 1
+                    'hover:bg-secondary-400 cursor-pointer': isInteractive,
+                    'bg-secondary-400': isMulti
                 })}>
 
                 <div className="flex space-x-2 items-center grow">
@@ -145,9 +152,7 @@ export const WalletItem: FC<WalletItemProps> = ({ selectable, account: wallet, n
                         wallet &&
                         <div className="inline-flex items-center relative">
                             <wallet.icon
-                                className={clsx('w-9 h-9 p-0.5 rounded-md bg-secondary-800', {
-                                    'w-6! h-6!': wallet.addresses.length > 1,
-                                })}
+                                className="w-9 h-9 p-0.5 rounded-md bg-secondary-800"
                             />
                             {
                                 hasNetworkIcon(wallet) && <div className="h-5 w-5 absolute -right-1 -bottom-1">
@@ -164,9 +169,14 @@ export const WalletItem: FC<WalletItemProps> = ({ selectable, account: wallet, n
                         </div>
                     }
                     {
-                        wallet.addresses.length > 1 ?
-                            <div className="text-sm">
-                                {wallet.displayName}
+                        isMulti ?
+                            <div className="grow">
+                                <p className="text-sm font-medium text-start">
+                                    {wallet.addresses.length} accounts
+                                </p>
+                                <p className="text-xs text-secondary-text text-start">
+                                    {wallet.displayName}
+                                </p>
                             </div>
                             :
                             <div className="w-full inline-flex items-center justify-between grow">
@@ -213,17 +223,14 @@ export const WalletItem: FC<WalletItemProps> = ({ selectable, account: wallet, n
                     }
                 </div>
                 {
-                    !selectable && hasDisconnect(wallet) &&
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <button type="button" onClick={wallet.disconnect} className="text-xs text-secondary-text hover:text-primary-text rounded-full p-1.5 bg-secondary-600 transition-colors duration-200 ">
-                                <Unplug className="h-3.5 w-3.5" />
-                            </button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Disconnect</p>
-                        </TooltipContent>
-                    </Tooltip>
+                    !selectable && !isMulti && hasDisconnect(wallet) &&
+                    <DisconnectButton onDisconnect={wallet.disconnect} />
+                }
+                {
+                    isMulti &&
+                    <ChevronDown className={clsx('h-4 w-4 text-secondary-text transition-all duration-200 opacity-0 group-hover/addressItem:opacity-100', {
+                        'rotate-180': isExpanded
+                    })} />
                 }
                 {
                     isSelected &&
@@ -233,8 +240,8 @@ export const WalletItem: FC<WalletItemProps> = ({ selectable, account: wallet, n
                 }
             </div>
             {
-                wallet.addresses.length > 1 &&
-                <div className='w-full grow py-1 mt-1 bg-secondary-500 rounded-lg' >
+                isMulti && isExpanded &&
+                <div className='w-full grow mt-1 bg-secondary-500 rounded-lg overflow-hidden' >
                     {
                         wallet.addresses.map((address, index) => <NestedWalletAddress
                             key={index}
@@ -279,9 +286,7 @@ const NestedWalletAddress: FC<NestedWalletAddressProps> = ({ selectable, address
     const nestedWalletBalanceAmount = nestedWalletBalance?.amount !== undefined ? truncateDecimals(nestedWalletBalance.amount, token?.decimals) : ''
 
     return (
-        <button
-            type="button"
-            disabled={!selectable}
+        <div
             onClick={() => (selectable && onWalletSelect) && onWalletSelect({
                 providerName: wallet.providerName,
                 walletId: wallet.id,
@@ -307,13 +312,17 @@ const NestedWalletAddress: FC<NestedWalletAddressProps> = ({ selectable, address
                             address={address}
                             network={network}
                             providerName={wallet.providerName}
+                            title={wallet.displayName?.split("-")[0]}
+                            description={wallet.providerName}
+                            logo={wallet.icon}
+                            showDetails
                             addressClassNames="font-normal text-sm"
                             onDisconnect={() => hasDisconnect(wallet) && wallet?.disconnect()}
                         />
                     }
                 </div>
             </div>
-            <div className="inline-flex gap-2">
+            <div className="inline-flex items-center gap-2">
                 {
                     nestedWalletBalanceAmount && token && (
                         <span className="text-sm flex space-x-2 justify-end">
@@ -332,16 +341,32 @@ const NestedWalletAddress: FC<NestedWalletAddressProps> = ({ selectable, address
                     )
                 }
                 {
+                    !selectable && hasDisconnect(wallet) &&
+                    <DisconnectButton onDisconnect={wallet.disconnect} />
+                }
+                {
                     isNestedSelected &&
                     <div className="flex h-6 items-center text-primary-text-tertiary">
                         <FilledCheck />
                     </div>
                 }
             </div>
-        </button>
+        </div>
     )
-
 }
+
+const DisconnectButton: FC<{ onDisconnect: () => void }> = ({ onDisconnect }) => (
+    <Tooltip>
+        <TooltipTrigger asChild>
+            <button type="button" onClick={(e) => { e.stopPropagation(); onDisconnect() }} className="text-xs text-secondary-text hover:text-primary-text rounded-full p-1.5 bg-secondary-600 transition-colors duration-200">
+                <Unplug className="h-3.5 w-3.5" />
+            </button>
+        </TooltipTrigger>
+        <TooltipContent>
+            <p>Disconnect</p>
+        </TooltipContent>
+    </Tooltip>
+)
 
 function hasNetworkIcon(w: AccountIdentity | Wallet): w is Wallet & { networkIcon: string } {
     return 'networkIcon' in w && typeof w.networkIcon === 'string' && w.networkIcon !== '';

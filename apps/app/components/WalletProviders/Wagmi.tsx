@@ -74,7 +74,7 @@ function WagmiComponent({ children }: Props) {
                 net.networkType === NetworkTypes.EVM
                 && !isNaN(Number(net.chainId))
                 && net.nodes?.[0]?.url
-                && getNativeToken(net)
+                && !!getNativeToken(net)
             )
             .map(network => resolveChain(network, getEffectiveRpcUrl(network)))
             .filter((c): c is Chain => c != undefined) as Chain[]

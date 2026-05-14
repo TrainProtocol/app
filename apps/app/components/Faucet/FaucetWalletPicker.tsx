@@ -70,38 +70,40 @@ const FaucetWalletPicker: FC<Props> = ({ network, wallets, value, onChange, disa
             >
                 {network && (
                     <div className="flex flex-col gap-0.5">
-                        {wallets.map((wallet, index) => {
-                            const isSelected = !!value && Address.equals(wallet.address, value, network)
+                        {wallets.flatMap((wallet, wIdx) => wallet.addresses.map((address, aIdx) => {
+                            const isSelected = !!value && Address.equals(address, value, network)
                             return (
                                 <button
                                     type="button"
-                                    key={`${index}${wallet.providerName}`}
+                                    key={`${wIdx}-${aIdx}-${wallet.providerName}`}
                                     onMouseDown={(e) => e.preventDefault()}
-                                    onClick={() => handleSelect(wallet.address)}
+                                    onClick={() => handleSelect(address)}
                                     className={clsx(
                                         "flex w-full items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-primary-text transition-colors",
                                         isSelected ? "bg-secondary-400 hover:bg-secondary-300" : "bg-secondary-500 hover:bg-secondary-400",
                                     )}
                                 >
-                                    <wallet.icon className="w-7 h-7 rounded-md bg-secondary-800 p-0.5 shrink-0" />
-                                    <MobileTooltip
-                                        trigger={
-                                            <span className="font-medium truncate">
-                                                {new Address(wallet.address, network).toShortString()}
+                                    <wallet.icon className="w-9 h-9 rounded-md bg-secondary-800 p-0.5 shrink-0" />
+                                    <div className="flex flex-col items-start min-w-0 grow text-left">
+                                        <MobileTooltip
+                                            trigger={
+                                                <span className="font-medium text-sm truncate">
+                                                    {new Address(address, network).toShortString()}
+                                                </span>
+                                            }
+                                        >
+                                            <span className="font-mono break-all">
+                                                {new Address(address, network).full}
                                             </span>
-                                        }
-                                    >
-                                        <span className="font-mono break-all">
-                                            {new Address(wallet.address, network).full}
+                                        </MobileTooltip>
+                                        <span className="text-xs text-secondary-text truncate">
+                                            {wallet.displayName}
                                         </span>
-                                    </MobileTooltip>
-                                    <span className="ml-auto text-xs text-secondary-text truncate">
-                                        {wallet.displayName}
-                                    </span>
+                                    </div>
                                     {isSelected && <Check className="w-4 h-4 text-primary-text shrink-0" />}
                                 </button>
                             )
-                        })}
+                        }))}
                     </div>
                 )}
             </PopoverContent>

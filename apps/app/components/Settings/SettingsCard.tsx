@@ -26,7 +26,7 @@ const SettingsCard: FC<Props> = ({
     showTestnetBanner,
     contentPadding = true,
 }) => {
-    const wrapperClassName = "relative bg-secondary-700 md:shadow-md border border-border rounded-3xl sm:overflow-hidden text-left w-full"
+    const wrapperClassName = "relative bg-secondary-700 md:shadow-md border border-border rounded-4xl sm:overflow-hidden text-left w-full"
     const interactiveClassName = onClick ? " hover:bg-secondary-600 transition-colors cursor-pointer active:animate-press-down-weak" : ""
 
     const body = (

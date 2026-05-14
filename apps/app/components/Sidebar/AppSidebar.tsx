@@ -29,16 +29,26 @@ import TrainLogoSymbol from "@/components/Icons/TrainLogoSymbol"
 import { useAuthDialog } from "@/stores/authDialogStore"
 import { getLoginIdentity } from "@/components/SecretDerivation/UserStatus"
 import TelegramLogo from "../Icons/TelegramLogo"
+import TestnetBadge from "@/components/TestnetBadge"
 
 const AppSidebar: FC = () => {
     const currentPath = usePathname() ?? '/'
 
     return (
         <Sidebar side="left" collapsible="icon" className="hidden md:flex">
-            <SidebarHeader className="px-2 py-2 mb-2">
+            <SidebarHeader className="px-2 py-2 mb-2 relative">
                 <Suspense fallback={<SidebarLogo href="/" />}>
                     <SidebarLogoWithParams />
                 </Suspense>
+                <TestnetBadge
+                    wrapperClassName="pointer-events-none absolute left-[6.75rem] top-1/2 -translate-y-1/2 overflow-hidden transition-[max-width,opacity] duration-300 ease-in-out max-w-32 group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0"
+                    className="py-0.5 px-3 rounded-full origin-left"
+                />
+                <TestnetBadge
+                    wrapperClassName="pointer-events-none absolute left-6 bottom-0 -translate-x-1/2 translate-y-1/2 opacity-0 transition-opacity duration-300 ease-in-out group-data-[collapsible=icon]:opacity-100"
+                    className="py-0 px-1.5 rounded-full"
+                    label="TEST"
+                />
             </SidebarHeader>
 
             <SidebarContent className="px-2">

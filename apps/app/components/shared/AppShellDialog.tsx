@@ -22,13 +22,13 @@ const AppShellDialog: FC<AppShellDialogProps> = ({ open, onOpenChange, title, on
             <DialogContent
                 showCloseButton={false}
                 className={clsx(
-                    "p-0 gap-0 w-full sm:max-w-lg bg-secondary-700 border border-border rounded-3xl overflow-hidden",
+                    "p-0 gap-0 w-full sm:max-w-lg bg-secondary-700 border border-border rounded-4xl overflow-hidden",
                     contentClassName,
                     { "sm:min-h-120": mode !== 'fit-content' }
                 )}
             >
                 <DialogTitle className="sr-only">{title}</DialogTitle>
-                <div className="relative h-full w-full bg-secondary-700 rounded-3xl flex flex-col overflow-hidden">
+                <div className="relative h-full w-full bg-secondary-700 rounded-4xl flex flex-col overflow-hidden">
                     <div className="flex items-center gap-2 p-4 pb-2">
                         {onBack && (
                             <div className="-ml-2">
