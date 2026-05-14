@@ -191,9 +191,9 @@ type SwapAccordionItemProps = {
 const SwapAccordionItem: FC<SwapAccordionItemProps> = ({ hashlock, swap, sourceNetwork, destNetwork, expanded, setExpanded }) => (
     <AccordionItem
         value={hashlock}
-        className="border-none bg-secondary-500 rounded-3xl"
+        className="border-none bg-secondary-500 rounded-4xl"
     >
-        <AccordionTrigger className={`rounded-3xl w-full transition-shadow ${expanded === hashlock ? 'shadow-accordion-open' : ''}`}>
+        <AccordionTrigger className={`rounded-4xl w-full transition-shadow ${expanded === hashlock ? 'shadow-accordion-open' : ''}`}>
             <div className="cursor-pointer">
                 <HistorySummaryCard
                     swap={swap}
