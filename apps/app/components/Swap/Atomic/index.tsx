@@ -13,11 +13,12 @@ import { type SwapQuote, useSharedSecretDerivation } from "@train-protocol/react
 import { Widget } from "../../Widget/Index";
 import { generateSwapInitialValues } from "@/lib/generateSwapInitialValues";
 import { useSettingsState } from "@/context/settings";
-import { getPersistantSearchParams, silentReplaceState } from "@/helpers/querryHelper";
+import { getPersistantSearchParams, replaceUrlWithoutRouting } from "@/helpers/querryHelper";
 import { buildSwapQuery } from "@/helpers/swapUrl";
 import { useSwapStore } from "@/stores/swapStore";
 import { useActiveSwap } from "@/hooks/useActiveSwap";
 import { useRecentNetworksStore } from "@/stores/recentRoutesStore";
+import { FaucetNudgePill } from "@/components/FaucetNudge";
 
 export default function Form() {
     const formikRef = useRef<FormikProps<SwapFormValues>>(null);
@@ -91,6 +92,7 @@ export default function Form() {
             onSubmit={handleSubmit}
         >
             <Widget>
+                <FaucetNudgePill />
                 <SwapForm polling={polling} onQuoteChange={(q, id) => { setQuote(q); setSolverId(id) }} />
             </Widget>
         </Formik>
@@ -100,7 +102,7 @@ export default function Form() {
 const removeSwapPath = (searchParams: ReadonlyURLSearchParams | null) => {
     const params = new URLSearchParams(getPersistantSearchParams(searchParams))
     const qs = params.toString()
-    silentReplaceState(qs ? `/?${qs}` : "/")
+    replaceUrlWithoutRouting(qs ? `/?${qs}` : "/")
 }
 
 const setSwapInUrl = (searchParams: ReadonlyURLSearchParams | null, sourceNetwork: string, txHash: string) => {
@@ -109,5 +111,5 @@ const setSwapInUrl = (searchParams: ReadonlyURLSearchParams | null, sourceNetwor
     for (const [key, value] of persistant.entries()) {
         atomicParams.set(key, value)
     }
-    silentReplaceState(`/swap?${atomicParams.toString()}`)
+    replaceUrlWithoutRouting(`/swap?${atomicParams.toString()}`)
 }

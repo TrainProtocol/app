@@ -15,7 +15,7 @@ import {
 } from "@/components/shadcn/sidebar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip"
-import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, Home, ChevronsUpDown, LogOut, Lock, MessageCircle, HandCoins } from "lucide-react"
+import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, Home, ChevronsUpDown, LogOut, Lock, MessageCircle, Droplet } from "lucide-react"
 import AppSettings from "@/lib/AppSettings"
 import { useIntercom } from "react-use-intercom"
 import { useOptionalSecretDerivation } from "@train-protocol/react"
@@ -243,7 +243,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
             <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={currentPath === "/faucet"} tooltip="Faucet">
                     <Link href={hrefs.faucet}>
-                        <HandCoins />
+                        <Droplet />
                         <span>Faucet</span>
                     </Link>
                 </SidebarMenuButton>

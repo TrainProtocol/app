@@ -9,7 +9,7 @@ import MenuList from "./MenuList";
 import Wizard from "@/components/Wizard/Wizard";
 import WizardItem from "../Wizard/WizardItem";
 import { usePathname, useSearchParams, type ReadonlyURLSearchParams } from "next/navigation";
-import { buildHrefWithPersistantParams, silentReplaceState } from "@/helpers/querryHelper";
+import { buildHrefWithPersistantParams, replaceUrlWithoutRouting } from "@/helpers/querryHelper";
 import { Modal, ModalContent } from "@/components/Modal/modalWithoutAnimation";
 import RpcNetworkListView from "@/components/Settings/RpcNetworkListView";
 import NetworkRpcEditView from "@/components/Settings/NetworkRpcEditView";
@@ -24,7 +24,7 @@ export const setMenuPath = (path: string, searchParams: ReadonlyURLSearchParams 
 }
 
 export const clearMenuPath = (pathname: string | null, searchParams: ReadonlyURLSearchParams | null) => {
-    silentReplaceState(buildHrefWithPersistantParams(pathname ?? "/", searchParams))
+    replaceUrlWithoutRouting(buildHrefWithPersistantParams(pathname ?? "/", searchParams))
 }
 
 const Comp = () => {

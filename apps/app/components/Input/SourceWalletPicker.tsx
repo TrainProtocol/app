@@ -96,7 +96,7 @@ const SourceWalletPicker: FC = () => {
     </>
 }
 
-export const FormSourceWalletButton: FC = () => {
+export const FormSourceWalletButton: FC<{ isDisabled?: boolean }> = ({ isDisabled }) => {
     const [openModal, setOpenModal] = useState<boolean>(false)
     const {
         values,
@@ -144,13 +144,13 @@ export const FormSourceWalletButton: FC = () => {
     const availableWallets = provider?.connectedWallets?.filter(w => !w.isNotAvailable) || []
 
     if (!availableWallets.length && walletNetwork) {
-        return <Connect connectFn={handleConnect} />
+        return <Connect connectFn={handleConnect} isDisabled={isDisabled} />
 
     }
     else if (availableWallets.length > 0 && walletNetwork && values.fromCurrency) {
         return <>
             <button type="button" className="w-full outline-hidden" onClick={handleWalletChange}>
-                <Connect />
+                <Connect isDisabled={isDisabled} />
             </button>
             <VaulDrawer
                 show={openModal}
@@ -171,10 +171,10 @@ export const FormSourceWalletButton: FC = () => {
             </VaulDrawer >
         </>
     }
-    return <Connect />
+    return <Connect isDisabled={isDisabled} />
 }
 
-const Connect: FC<{ connectFn?: () => Promise<Wallet | undefined | void> }> = ({ connectFn }) => {
+const Connect: FC<{ connectFn?: () => Promise<Wallet | undefined | void>; isDisabled?: boolean }> = ({ connectFn, isDisabled }) => {
     const { connect } = useConnectModal()
     const { providers } = useWallet()
 
@@ -189,7 +189,7 @@ const Connect: FC<{ connectFn?: () => Promise<Wallet | undefined | void> }> = ({
         type="button"
         data-attr="connect-wallet"
         icon={<WalletIcon className="h-6 w-6" strokeWidth={2} />}
-        isDisabled={!isProvidersReady}
+        isDisabled={!isProvidersReady || isDisabled}
     >
         Connect a wallet
     </SubmitButton>

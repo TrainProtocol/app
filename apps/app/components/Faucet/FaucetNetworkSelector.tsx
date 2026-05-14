@@ -21,7 +21,22 @@ const FaucetNetworkSelector: FC<Props> = ({ networks, value, onChange, disabled 
             }}
         >
             <SelectTrigger disabled={disabled || networks.length === 0} className="w-full rounded-xl text-primary-text text-base font-medium">
-                <SelectValue placeholder="Select network" />
+                <SelectValue placeholder="Select network">
+                    {value && (
+                        <>
+                            {value.logoUrl && (
+                                <ImageWithFallback
+                                    src={value.logoUrl}
+                                    alt={value.displayName}
+                                    width={20}
+                                    height={20}
+                                    className="rounded-md"
+                                />
+                            )}
+                            <span>{value.displayName}</span>
+                        </>
+                    )}
+                </SelectValue>
             </SelectTrigger>
             <SelectContent position="popper" className="rounded-xl" onCloseAutoFocus={e => e.preventDefault()}>
                 {networks.map(network => (

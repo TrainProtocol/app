@@ -60,7 +60,7 @@ const RoutePicker: FC<{ direction: SwapDirection, className?: string, quote?: Sw
                     )}
                 </SelectorContent>
             </Selector>
-            <Balance values={values} direction={direction} quote={quote} />
+            {selectedToken && <Balance values={values} direction={direction} quote={quote} />}
         </div>
     )
 };

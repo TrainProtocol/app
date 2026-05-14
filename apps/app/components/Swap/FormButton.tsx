@@ -52,18 +52,18 @@ const FormButton = ({
     }
 
     if (shouldConnectDestinationWallet) {
-        return <FormDestinationWalletButton />;
+        return <FormDestinationWalletButton isDisabled={isSubmitting} />;
     }
 
     if (shouldConnectWallet) {
-        return <FormSourceWalletButton />;
+        return <FormSourceWalletButton isDisabled={isSubmitting} />;
     }
 
     if (values?.to && !values?.destination_address) {
         return (
             <Address>
                 {() => (
-                    <SubmitButton type="button" className="w-full">
+                    <SubmitButton type="button" className="w-full" isDisabled={isSubmitting}>
                         <span className="grow text-center">Enter destination address</span>
                     </SubmitButton>
                 )}
@@ -92,7 +92,7 @@ function ActionText(errors: FormikErrors<SwapFormValues>, actionDisplayName: str
         || (actionDisplayName)
 }
 
-export const FormDestinationWalletButton: FC = () => {
+export const FormDestinationWalletButton: FC<{ isDisabled?: boolean }> = ({ isDisabled }) => {
     const {
         values
     } = useFormikContext<SwapFormValues>();
@@ -112,7 +112,7 @@ export const FormDestinationWalletButton: FC = () => {
 
     if (!availableWallets.length && destinationNetwork) {
         return (
-            <SubmitButton type="button" icon={<PlusIcon className="stroke-1" />} onClick={handleConnect}>
+            <SubmitButton type="button" icon={<PlusIcon className="stroke-1" />} onClick={handleConnect} isDisabled={isDisabled}>
                 Connect {destinationNetwork.displayName} wallet
             </SubmitButton>
         );

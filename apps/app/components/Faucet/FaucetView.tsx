@@ -8,6 +8,8 @@ import { getFaucetNetworks, claimFaucet, getClaimStatus, FaucetApiError, FaucetT
 import useWallet from "@/hooks/useWallet"
 import { useSettingsState } from "@/context/settings"
 import { Widget } from "@/components/Widget/Index"
+import { useQueryState } from "@/context/query"
+import { generateFaucetInitialNetwork } from "@/lib/generateFaucetInitialNetwork"
 import SubmitButton from "@/components/buttons/submitButton"
 import WalletMessage from "@/components/Swap/messages/Message"
 import FaucetNetworkSelector from "./FaucetNetworkSelector"
@@ -26,9 +28,10 @@ const FaucetView: FC<{ hideMenu?: boolean }> = ({ hideMenu = false }) => {
 }
 
 export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }) => {
-    const [network, setNetwork] = useState<ExtendedNetwork | null>(null)
-    const [recipient, setRecipient] = useState<string | null>(null)
     const { networks } = useSettingsState()
+    const query = useQueryState()
+    const [selectedNetwork, setSelectedNetwork] = useState<ExtendedNetwork | null>(null)
+    const [recipient, setRecipient] = useState<string | null>(null)
     const { data: faucetNetworks } = useSWR("faucet-networks", getFaucetNetworks)
 
     const faucetByCaip2Id = useMemo(
@@ -39,6 +42,7 @@ export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }
         () => networks.filter(n => faucetByCaip2Id.has(n.caip2Id)),
         [networks, faucetByCaip2Id],
     )
+    const network = selectedNetwork ?? generateFaucetInitialNetwork(availableNetworks, query)
 
     const [posting, setPosting] = useState(false)
     const [postError, setPostError] = useState<Error | null>(null)
@@ -144,7 +148,7 @@ export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }
                 <FaucetNetworkSelector
                     networks={availableNetworks}
                     value={network}
-                    onChange={setNetwork}
+                    onChange={setSelectedNetwork}
                     disabled={submitting}
                 />
             </div>
