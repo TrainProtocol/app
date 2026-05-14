@@ -13,25 +13,25 @@ const FAQ_ITEMS: { id: string; question: string; answer: string }[] = [
     id: 'faq-1',
     question: 'Why do I need to log in?',
     answer:
-      "Train doesn't hold your funds — every swap is unlocked by a secret only you can produce. Logging in is how Train gets that secret on your device, without ever sending or storing it.",
+      "Train doesn't hold your funds — every swap is unlocked by a secret only you can produce. Logging in with your passkey is how Train generates and caches that secret's initial key on your device, without ever managing your private keys on our servers.",
   },
   {
     id: 'faq-2',
     question: 'What does logging in actually do?',
     answer:
-      "Logging in with your passkey creates one master key on your device. Train then uses that master key to generate a unique secret for each swap you make — automatically, without asking you to sign again. One login, as many swaps as you want.",
+      "Logging in with your passkey derives an initial 'master key' securely in your browser's cache. Train then uses that master key to generate a unique secret for each swap you make — automatically, without asking you to authenticate again. This enables unlimited swaps from a single login.",
   },
   {
     id: 'faq-3',
     question: 'Does Train store my passkey or any secrets?',
     answer:
-      "No. Your passkey stays in your device's secure storage, and your master key and swap secrets are computed locally in your browser. Train only ever receives a public hash that funds are locked against — nothing on our servers could reveal your keys.",
+      "No. Your initial key and swap secrets are computed locally and kept in your browser cache. Your passkey stays securely in your device hardware. Train only ever receives the public hash that your funds are locked against — nothing on our servers could reveal your keys.",
   },
   {
     id: 'faq-4',
-    question: 'What if I refresh the page or come back later mid-swap?',
+    question: 'What if I refresh the page or clear my cache mid-swap?',
     answer:
-      "Your swap stays safe. Each swap's secret is derived from your master key plus a few public details that are saved in the URL and on-chain. When you log in again, the same passkey produces the same master key, which produces the same secret — so you can pick up any swap, even months later.",
+      "Your swap stays safe. Each swap's secret is derived from your initial key plus public details stored on the blockchain. If you clear your cache, simply logging in again with your passkey produces the exact same initial key, which recovers the same secret — so you can pick up any swap where you left off.",
   },
   {
     id: 'faq-5',
@@ -49,7 +49,7 @@ const FAQ_ITEMS: { id: string; question: string; answer: string }[] = [
     id: 'faq-7',
     question: 'Can I use the same passkey on multiple devices?',
     answer:
-      "Yes, if your passkey is synced through iCloud Keychain, Google Password Manager, 1Password, or similar — it shows up on your other signed-in devices and produces the same master key, so the same swap secrets work everywhere. Hardware keys like a YubiKey aren't synced; you'd plug the same key into each device.",
+      "Yes, if your passkey is synced through iCloud Keychain, Google Password Manager, 1Password, or similar. It shows up on your other signed-in devices and produces the same initial key, making your swap secrets recoverable everywhere. Hardware keys like a YubiKey aren't synced; you'd need to plug the same key into each device.",
   },
   {
     id: 'faq-8',
