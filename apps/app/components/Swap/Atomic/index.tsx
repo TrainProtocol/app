@@ -1,33 +1,27 @@
 "use client"
 
 import { Formik, FormikProps } from "formik";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import React from "react";
 import MainStepValidation from "@/lib/mainStepValidator";
 import SwapForm from "./Form";
-import { useSearchParams, type ReadonlyURLSearchParams } from "next/navigation";
 import { useQueryState } from "@/context/query";
 import useWallet from "@/hooks/useWallet";
 import { type SwapQuote, useSharedSecretDerivation } from "@train-protocol/react";
 import { Widget } from "../../Widget/Index";
 import { generateSwapInitialValues } from "@/lib/generateSwapInitialValues";
 import { useSettingsState } from "@/context/settings";
-import { getPersistantSearchParams, replaceUrlWithoutRouting } from "@/helpers/querryHelper";
-import { buildSwapQuery } from "@/helpers/swapUrl";
 import { useSwapStore } from "@/stores/swapStore";
-import { useActiveSwap } from "@/hooks/useActiveSwap";
 import { useRecentNetworksStore } from "@/stores/recentRoutesStore";
 import { FaucetNudgePill } from "@/components/FaucetNudge";
 
 export default function Form() {
     const formikRef = useRef<FormikProps<SwapFormValues>>(null);
-    const searchParams = useSearchParams();
     const query = useQueryState()
     const { isLoggedIn } = useSharedSecretDerivation()
     const [quote, setQuote] = useState<SwapQuote | undefined>()
     const [solverId, setSolverId] = useState<string | undefined>()
-    const [polling, setPolling] = useState(true)
     const { getProvider } = useWallet()
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
     const settings = useSettingsState()
@@ -35,19 +29,8 @@ export default function Form() {
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
     const setPendingFormValues = useSwapStore(s => s.setPendingFormValues)
     const updateRecentNetworks = useRecentNetworksStore(s => s.updateRecentNetworks);
-    const swap = useActiveSwap()
 
-    useEffect(() => {
-        if (swapModalOpen) {
-            setPolling(false);
-            if (swap.source && swap.txId) {
-                setSwapInUrl(searchParams, swap.source, swap.txId);
-            }
-        } else {
-            setPolling(true);
-            removeSwapPath(searchParams);
-        }
-    }, [swapModalOpen, swap.source, swap.txId, searchParams]);
+    const polling = !swapModalOpen
 
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
@@ -74,7 +57,6 @@ export default function Form() {
             setActiveHashlock(null)
             setPendingFormValues(values)
             setSwapModalOpen(true)
-            setPolling(false)
         }
         catch (error) {
             console.log(error)
@@ -97,19 +79,4 @@ export default function Form() {
             </Widget>
         </Formik>
     </>
-}
-
-const removeSwapPath = (searchParams: ReadonlyURLSearchParams | null) => {
-    const params = new URLSearchParams(getPersistantSearchParams(searchParams))
-    const qs = params.toString()
-    replaceUrlWithoutRouting(qs ? `/?${qs}` : "/")
-}
-
-const setSwapInUrl = (searchParams: ReadonlyURLSearchParams | null, sourceNetwork: string, txHash: string) => {
-    const atomicParams = new URLSearchParams(buildSwapQuery(sourceNetwork, txHash))
-    const persistant = new URLSearchParams(getPersistantSearchParams(searchParams))
-    for (const [key, value] of persistant.entries()) {
-        atomicParams.set(key, value)
-    }
-    replaceUrlWithoutRouting(`/swap?${atomicParams.toString()}`)
 }

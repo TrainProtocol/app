@@ -18,6 +18,7 @@ function useFaucetNudgeHref() {
     const swapAccounts = useSwapAccounts("from")
 
     if (AppSettings.ApiVersion !== "sandbox") return null
+    if (swapAccounts.length === 0) return null
 
     let anyLoading = false
     const hasTestUsdc = swapAccounts.some(account => {

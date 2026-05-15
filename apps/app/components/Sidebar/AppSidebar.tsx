@@ -30,6 +30,7 @@ import { useAuthDialog } from "@/stores/authDialogStore"
 import { getLoginIdentity } from "@/components/SecretDerivation/UserStatus"
 import TelegramLogo from "../Icons/TelegramLogo"
 import TestnetBadge from "@/components/TestnetBadge"
+import PendingSwap from "@/components/Swap/PendingSwap"
 
 const AppSidebar: FC = () => {
     const currentPath = usePathname() ?? '/'
@@ -61,6 +62,12 @@ const AppSidebar: FC = () => {
 
                             <SidebarMenuItem>
                                 <MoreMenu />
+                            </SidebarMenuItem>
+
+                            <SidebarMenuItem>
+                                <Suspense fallback={null}>
+                                    <PendingSwap variant="sidebar" />
+                                </Suspense>
                             </SidebarMenuItem>
                         </SidebarMenu>
                     </SidebarGroupContent>

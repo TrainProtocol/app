@@ -1,16 +1,18 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import React, { useCallback, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import AtmoicSteps from "@/components/Swap/AtomicChat";
 import { Widget } from "@/components/Widget/Index";
 import { SwapLoading } from "@/components/Swap/AtomicChat/AtomicContent";
-import { SearchX } from "lucide-react";
+import { ArrowLeft, SearchX } from "lucide-react";
+import { buildHrefWithPersistantParams } from "@/helpers/querryHelper";
 import { parseSwapQuery } from "@/helpers/swapUrl";
 import { useSwapStore } from "@/stores/swapStore";
 import { useSwapProgress, useRecoverSwap } from "@train-protocol/react";
 
 export default function SwapPage() {
+    const router = useRouter();
     const searchParams = useSearchParams();
     const activeHashlock = useSwapStore(s => s.activeHashlock);
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock);
@@ -32,18 +34,26 @@ export default function SwapPage() {
 
     useSwapProgress(activeHashlock);
 
+    const goBack = useCallback(() => {
+        if (window?.['navigation']?.['canGoBack']) {
+            router.back();
+            return;
+        }
+        const sp = new URLSearchParams(window.location.search);
+        router.push(buildHrefWithPersistantParams("/", sp));
+    }, [router]);
+
+    let body: React.ReactNode;
     if (pendingRecovery || isRecovering) {
-        return (
+        body = (
             <Widget className="space-y-2!">
                 <Widget.Content>
-                    <SwapLoading message="Recovering swap..." />
+                    <SwapLoading message="Loading..." />
                 </Widget.Content>
             </Widget>
         );
-    }
-
-    if (recoverError && !activeHashlock) {
-        return (
+    } else if (recoverError && !activeHashlock) {
+        body = (
             <Widget className="space-y-2!">
                 <Widget.Content>
                     <div className="flex flex-col items-center justify-center gap-2 w-full min-h-[374px]">
@@ -58,9 +68,24 @@ export default function SwapPage() {
                 </Widget.Content>
             </Widget>
         );
+    } else {
+        body = <AtmoicSteps type="widget" />;
     }
 
     return (
-        <AtmoicSteps type="widget" />
+        <div className="relative w-full">
+            <div className="hidden md:flex absolute -top-12 left-0 z-10">
+                <button
+                    type="button"
+                    onClick={goBack}
+                    aria-label="Go back"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-primary-text bg-secondary-700 hover:bg-secondary-500 transition-colors rounded-xl px-3 py-2 border border-border"
+                >
+                    <ArrowLeft className="h-4 w-4" />
+                    <span>Back</span>
+                </button>
+            </div>
+            {body}
+        </div>
     );
 }
