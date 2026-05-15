@@ -146,11 +146,11 @@ const UnsupportedBrowser = ({ onClose }: { onClose: () => void }) => {
       </div>
       <div className="text-center space-y-2">
         <p className="text-primary-text font-semibold">Passkey login is not supported</p>
-        <p className="text-sm text-secondary-text max-w-[280px]">
+        <p className="text-sm text-secondary-text max-w-70">
           Currently, only passkey login is available. Your browser does not support the required passkey features (PRF extension).
         </p>
-        <p className="text-sm text-secondary-text max-w-[280px]">
-          Please try opening this site in a supported browser such as <span className="text-primary-text font-medium">Google Chrome</span>, <span className="text-primary-text font-medium">Microsoft Edge</span>, or <span className="text-primary-text font-medium">Brave</span>.
+        <p className="text-sm text-secondary-text max-w-70">
+          Please try opening this site in a supported browser such as <span className="text-primary-text font-medium">Google Chrome</span>, <span className="text-primary-text font-medium">Safari</span>, <span className="text-primary-text font-medium">Microsoft Edge</span>, or <span className="text-primary-text font-medium">Brave</span>.
         </p>
       </div>
     </>
