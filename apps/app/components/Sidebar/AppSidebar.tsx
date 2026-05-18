@@ -239,7 +239,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
             </SidebarMenuButton>
         </SidebarMenuItem>
 
-        {/* {AppSettings.ApiVersion === 'sandbox' && (
+        {AppSettings.ApiVersion === 'sandbox' && (
             <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={currentPath === "/faucet"} tooltip="Faucet">
                     <Link href={hrefs.faucet}>
@@ -248,7 +248,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
-        )} */}
+        )}
 
         <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={currentPath === "/settings"} tooltip="Settings">
