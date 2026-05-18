@@ -17,19 +17,13 @@ type AtomicSummaryProps = {
     receiveAmount: string | undefined;
 }
 
-const RECEIVE_MAX_FRACTION_DIGITS_SMALL = 6;
 const RECEIVE_MAX_FRACTION_DIGITS_MOBILE = 8;
 const RECEIVE_MAX_FRACTION_DIGITS_DESKTOP = 12;
-const SMALL_PHONE_BREAKPOINT = 380;
 
 const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, source, destination, requestedAmount, receiveAmount, }) => {
 
-    const { windowSize, isMobile } = useWindowDimensions()
-    const receiveMaxFractionDigits = typeof windowSize.width === "number" && windowSize.width < SMALL_PHONE_BREAKPOINT
-        ? RECEIVE_MAX_FRACTION_DIGITS_SMALL
-        : isMobile
-            ? RECEIVE_MAX_FRACTION_DIGITS_MOBILE
-            : RECEIVE_MAX_FRACTION_DIGITS_DESKTOP
+    const { isMobile } = useWindowDimensions()
+    const receiveMaxFractionDigits = isMobile ? RECEIVE_MAX_FRACTION_DIGITS_MOBILE : RECEIVE_MAX_FRACTION_DIGITS_DESKTOP
 
     const requestedAmountInUsd = (requestedAmount && sourceCurrency?.priceInUsd) ? (sourceCurrency.priceInUsd * Number(requestedAmount)).toFixed(2) : undefined
     const receiveAmountInUsd = (receiveAmount && destinationCurrency?.priceInUsd) ? (destinationCurrency.priceInUsd * Number(receiveAmount)).toFixed(2) : undefined
