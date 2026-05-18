@@ -13,7 +13,7 @@ const FAQ_ITEMS: { id: string; question: string; answer: string }[] = [
     id: 'faq-1',
     question: 'Why do I need to log in?',
     answer:
-      "Train doesn't hold your funds — every swap is unlocked by a secret only you can produce. Logging in with your passkey is how Train generates and caches that secret's initial key on your device, without ever managing your private keys on our servers.",
+      "Logging in lets Train make swaps smoother and recoverable from your device. Your passkey helps the app create the unlock information needed for swaps, while Train never holds your funds or manages your private keys.",
   },
   {
     id: 'faq-2',
