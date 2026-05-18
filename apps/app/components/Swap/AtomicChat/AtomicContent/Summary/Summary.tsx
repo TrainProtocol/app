@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, ReactNode } from "react";
 import { truncateDecimals } from "@/components/utils/RoundDecimals";
 import { ExtendedNetwork, ExtendedToken } from "@/Models/Network";
 import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
@@ -6,6 +6,8 @@ import { ArrowDown } from "lucide-react";
 import NumberFlow from "@number-flow/react";
 import { resolveTokenLogoUrl } from "@/components/utils/resolveTokenLogoUrl";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
+import MobileTooltip from "@/components/Modal/mobileTooltip";
+import { useUsdModeStore } from "@/stores/usdModeStore";
 
 
 type AtomicSummaryProps = {
@@ -17,18 +19,61 @@ type AtomicSummaryProps = {
     receiveAmount: string | undefined;
 }
 
-const RECEIVE_MAX_FRACTION_DIGITS_MOBILE = 8;
-const RECEIVE_MAX_FRACTION_DIGITS_DESKTOP = 12;
+const TOKEN_MAX_FRACTION_DIGITS_MOBILE = 8;
+const TOKEN_MAX_FRACTION_DIGITS_DESKTOP = 12;
+
+const TokenAmount: FC<{ display: ReactNode; full: string; symbol: string; truncated: boolean }> = ({ display, full, symbol, truncated }) => {
+    const node = (
+        <span className="inline-flex items-center min-w-0 gap-1">
+            <span className="truncate min-w-0">{display}</span>
+            {truncated && <span className="shrink-0">...</span>}
+            <span className="shrink-0">{symbol}</span>
+        </span>
+    )
+    if (!truncated) return node
+    return (
+        <MobileTooltip trigger={<span>{node}</span>}>
+            {full} {symbol}
+        </MobileTooltip>
+    )
+}
+
+const UsdAmount: FC<{ value: number | string | undefined }> = ({ value }) => (
+    <NumberFlow value={Number(value) || 0} prefix="$" trend={0} />
+)
 
 const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, source, destination, requestedAmount, receiveAmount, }) => {
 
     const { isMobile } = useWindowDimensions()
-    const receiveMaxFractionDigits = isMobile ? RECEIVE_MAX_FRACTION_DIGITS_MOBILE : RECEIVE_MAX_FRACTION_DIGITS_DESKTOP
+    const maxFractionDigits = isMobile ? TOKEN_MAX_FRACTION_DIGITS_MOBILE : TOKEN_MAX_FRACTION_DIGITS_DESKTOP
+    const isUsdMode = useUsdModeStore(s => s.isUsdMode)
 
     const requestedAmountInUsd = (requestedAmount && sourceCurrency?.priceInUsd) ? (sourceCurrency.priceInUsd * Number(requestedAmount)).toFixed(2) : undefined
     const receiveAmountInUsd = (receiveAmount && destinationCurrency?.priceInUsd) ? (destinationCurrency.priceInUsd * Number(receiveAmount)).toFixed(2) : undefined
+
+    const requestedAmountNum = Number(requestedAmount)
+    const isSendTruncated = requestedAmountNum > 0 && isFinite(requestedAmountNum) && Number(requestedAmountNum.toFixed(maxFractionDigits)) !== requestedAmountNum
     const receiveAmountNum = Number(receiveAmount)
-    const isReceiveTruncated = receiveAmountNum > 0 && isFinite(receiveAmountNum) && Number(receiveAmountNum.toFixed(receiveMaxFractionDigits)) !== receiveAmountNum
+    const isReceiveTruncated = receiveAmountNum > 0 && isFinite(receiveAmountNum) && Number(receiveAmountNum.toFixed(maxFractionDigits)) !== receiveAmountNum
+
+    const sendToken = (
+        <TokenAmount
+            display={<NumberFlow value={requestedAmountNum} trend={0} format={{ maximumFractionDigits: maxFractionDigits }} />}
+            full={truncateDecimals(requestedAmountNum, sourceCurrency.decimals)}
+            symbol={sourceCurrency.symbol}
+            truncated={isSendTruncated}
+        />
+    )
+    const sendUsd = <UsdAmount value={requestedAmountInUsd} />
+    const recvToken = (
+        <TokenAmount
+            display={<NumberFlow value={receiveAmountNum} trend={0} format={{ maximumFractionDigits: maxFractionDigits }} />}
+            full={truncateDecimals(receiveAmountNum, destinationCurrency.decimals)}
+            symbol={destinationCurrency.symbol}
+            truncated={isReceiveTruncated}
+        />
+    )
+    const recvUsd = <UsdAmount value={receiveAmountInUsd} />
 
     return (
         <>
@@ -40,14 +85,16 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, 
                             token={sourceCurrency}
                         />
                         <div className="flex flex-col col-start-6 col-span-5 items-end min-w-0">
-                            {
-                                requestedAmount &&
-                                <p className="text-primary-text text-xl leading-6 font-normal flex items-center justify-end min-w-0 w-full space-x-1">
-                                    <span className="truncate min-w-0">{truncateDecimals(Number(requestedAmount), sourceCurrency.decimals)}</span>
-                                    <span className="shrink-0">{sourceCurrency.symbol}</span>
-                                </p>
-                            }
-                            <p className="text-secondary-text text-sm leading-5 flex font-medium justify-end"><NumberFlow value={Number(requestedAmountInUsd) || 0} prefix="$" trend={0} /></p>
+                            {requestedAmount && (
+                                <>
+                                    <p className="text-primary-text text-xl leading-6 font-normal flex items-center justify-end min-w-0 w-full">
+                                        {isUsdMode ? sendUsd : sendToken}
+                                    </p>
+                                    <p className="text-secondary-text text-sm leading-5 flex font-medium justify-end gap-1">
+                                        {isUsdMode ? sendToken : sendUsd}
+                                    </p>
+                                </>
+                            )}
                         </div>
                     </div>
                     <div className="relative text-secondary-text">
@@ -62,15 +109,11 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, 
                         {
                             receiveAmount && (
                                 <div className="flex flex-col items-end w-full col-start-6 col-span-5 min-w-0">
-                                    <p className="text-primary-text text-xl leading-6 h-6 font-normal flex items-center justify-end min-w-0 w-full space-x-1">
-                                        <span className="flex items-center min-w-0">
-                                            <NumberFlow value={receiveAmountNum} trend={0} format={{ maximumFractionDigits: receiveMaxFractionDigits }} />
-                                            {isReceiveTruncated && <span className="shrink-0">...</span>}
-                                        </span>
-                                        <span className="shrink-0">{destinationCurrency.symbol}</span>
+                                    <p className="text-primary-text text-xl leading-6 h-6 font-normal flex items-center justify-end min-w-0 w-full">
+                                        {isUsdMode ? recvUsd : recvToken}
                                     </p>
                                     <p className="text-secondary-text text-sm leading-5 flex items-center gap-1 font-medium">
-                                        <NumberFlow value={Number(receiveAmountInUsd) || 0} prefix="$" trend={0} />
+                                        {isUsdMode ? recvToken : recvUsd}
                                     </p>
                                 </div>
                             )
