@@ -45,24 +45,39 @@ export async function loginPasskeyWallet(
     options?: LoginPasskeyWalletOptions,
 ): Promise<void> {
     return sd.loginWithPasskeyDerived(async () => {
-        // forceCreate: register the passkey first (one assertion), then re-assert
-        // to obtain the PRF buffer that the wallet seed requires. Two prompts only
-        // on registration; normal logins use the single-assertion path below.
-        // Pin the follow-up assertion to the credential we just created — without
-        // allowCredentials, the user could select a different resident Train
-        // passkey and we'd derive that wallet instead.
-        let targetCredentialId = options?.credentialId
-        if (options?.forceCreate) {
-            const { credentialId: createdId } = await sdkRegisterPasskey(true, options.label)
-            targetCredentialId = createdId
-        }
+        let key: Uint8Array
+        let prfBuffer: ArrayBuffer
+        let credentialId: string
 
-        const { key, prfBuffer, credentialId } = await deriveKeyAndPrfWithPasskey({
-            // Explicit credentialId or crossDevice never auto-creates a passkey
-            // — that path is reserved for forceCreate above.
-            createIfMissing: !options?.forceCreate && !options?.crossDevice && !options?.credentialId,
-            credentialId: targetCredentialId,
-        })
+        if (options?.forceCreate) {
+            // Single-prompt registration on browsers that evaluate PRF during
+            // .create() (Chrome 132+, Safari 18+ platform authenticators). The
+            // returned `prfBuffer` is the same bytes a follow-up .get() would
+            // produce, so we hand it straight to the worker and skip the
+            // second prompt entirely.
+            const result = await sdkRegisterPasskey(true, options.label)
+            if (result.key && result.prfBuffer) {
+                key = result.key
+                prfBuffer = result.prfBuffer
+                credentialId = result.credentialId
+            } else {
+                // Fallback for browsers that don't support PRF eval at create
+                // time. Pin the follow-up assertion to the credential we just
+                // created — without allowCredentials, the user could pick a
+                // different resident Train passkey and we'd derive the wrong
+                // wallet.
+                ;({ key, prfBuffer, credentialId } = await deriveKeyAndPrfWithPasskey({
+                    createIfMissing: false,
+                    credentialId: result.credentialId,
+                }))
+            }
+        } else {
+            ;({ key, prfBuffer, credentialId } = await deriveKeyAndPrfWithPasskey({
+                // Explicit credentialId or crossDevice never auto-creates.
+                createIfMissing: !options?.crossDevice && !options?.credentialId,
+                credentialId: options?.credentialId,
+            }))
+        }
 
         // Transfer PRF to the worker FIRST, before any other awaits. After the
         // postMessage transfer the main-thread buffer view is detached. The
@@ -85,7 +100,11 @@ export async function loginPasskeyWallet(
         }
         setPasskeyWalletAccount(address, credentialId)
 
-        return { key, credentialId }
+        // Surface the user-chosen label to SD so it lands in passkey storage as
+        // the credential's display name. Only meaningful on the forceCreate
+        // path; for existing credentials SD's storage call is idempotent and
+        // preserves whatever label was stored at registration time.
+        return { key, credentialId, label: options?.forceCreate ? options.label : undefined }
     })
 }
 

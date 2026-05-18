@@ -60,7 +60,7 @@ export interface UseSecretDerivationResult {
      * deriver does with the assertion.
      */
     loginWithPasskeyDerived: (
-        deriver: () => Promise<{ key: Uint8Array; credentialId: string }>,
+        deriver: () => Promise<{ key: Uint8Array; credentialId: string; label?: string }>,
     ) => Promise<void>
     /**
      * Login with wallet. When used inside TrainProvider with an adapter that
@@ -129,16 +129,18 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
      * with their own seed-derivation path.
      */
     const loginWithPasskeyDerived = useCallback(async (
-        deriver: () => Promise<{ key: Uint8Array; credentialId: string }>,
+        deriver: () => Promise<{ key: Uint8Array; credentialId: string; label?: string }>,
     ) => {
         setError(null)
         store.getState().setDerivationStatus('signing')
         store.getState().setDerivationMessage('Confirm with passkey')
         try {
-            const { key, credentialId } = await deriver()
-            // storeCredentialId without a label is idempotent for existing entries (preserves label),
-            // and on a fresh cross-device credential falls back to DEFAULT_PASSKEY_DISPLAY_NAME.
-            await passkeyStorage?.storeCredentialId(credentialId)
+            const { key, credentialId, label } = await deriver()
+            // storeCredentialId is idempotent for existing entries (preserves the
+            // existing label). For new entries, a missing label falls back to
+            // DEFAULT_PASSKEY_DISPLAY_NAME — so the deriver must surface the
+            // user-chosen label when it just registered a credential.
+            await passkeyStorage?.storeCredentialId(credentialId, label)
             store.getState().setLogin('passkey', key)
             store.getState().bumpCredentialVersion()
         } catch (err) {

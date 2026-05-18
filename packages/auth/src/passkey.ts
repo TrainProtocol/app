@@ -78,6 +78,13 @@ export const checkPrfSupport = async (): Promise<PrfSupportResult> => {
 export interface RegisterPasskeyResult {
     credentialId: string;
     key?: Uint8Array;
+    /**
+     * Raw PRF output captured during `.create()` when the browser supports
+     * PRF eval at registration time (Chrome 132+, Safari 18+ for platform
+     * authenticators). Absent on browsers that only evaluate PRF during
+     * `.get()` — callers needing PRF must fall back to a follow-up assertion.
+     */
+    prfBuffer?: ArrayBuffer;
 }
 
 export const registerPasskey = async (
@@ -131,7 +138,7 @@ export const registerPasskey = async (
         const ikm = new Uint8Array(prfFirst);
         const identitySalt = new TextEncoder().encode(IDENTITY_SALT);
         const key = new Uint8Array(deriveKeyMaterial(ikm, identitySalt));
-        return { credentialId, key };
+        return { credentialId, key, prfBuffer: prfFirst };
     }
 
     return { credentialId };
@@ -191,7 +198,12 @@ async function assertPasskey(options?: {
         if (!options?.createIfMissing) {
             throw new Error('No passkey found for this site. Create one instead.')
         }
-        await registerPasskey(true, undefined, options.storage)
+        // If PRF evaluates during create() (modern browsers), reuse that buffer
+        // and skip a second prompt. Older browsers force the follow-up .get().
+        const registered = await registerPasskey(true, undefined, options.storage)
+        if (registered.prfBuffer) {
+            return { prfFirst: registered.prfBuffer, credentialId: registered.credentialId }
+        }
         cred = (await navigator.credentials.get({ publicKey })) as PublicKeyCredential | null
         if (!cred) throw new Error('Passkey authentication was cancelled or no passkey is available')
     }
