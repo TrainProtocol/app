@@ -1,6 +1,6 @@
 "use client"
 
-import React, { Suspense, useCallback } from "react"
+import React, { Suspense, useCallback, useMemo } from "react"
 import { IntercomProvider } from "react-use-intercom"
 import { SWRConfig } from "swr"
 import { PostHogProvider } from "posthog-js/react"
@@ -29,6 +29,7 @@ import { IsExtensionError } from "@/helpers/errorHelper"
 import AppSettings from "@/lib/AppSettings"
 import { useRpcConfigStore } from "@/stores/rpcConfigStore"
 import Loading from "@/components/Loading"
+import { PasskeyWalletBridge } from "@/components/WalletProviders/PasskeyWalletBridge"
 
 if (typeof window !== "undefined") {
     registerEvmSdk()
@@ -106,6 +107,11 @@ function AppShell({ children, settings }: { children: React.ReactNode; settings:
         ? <MaintananceContent />
         : children
 
+    // SD config is HTLC-only — the passkey wallet is wired in separately via
+    // PasskeyWalletBridge, which calls sd.loginWithPasskeyDerived() and
+    // owns its own worker/IDB bootstrap.
+    const secretDerivation = useMemo(() => ({ persist: true }), [])
+
     return (
         <SettingsProvider data={new TrainAppSettings(settings)}>
             <TooltipProvider delayDuration={500}>
@@ -113,7 +119,7 @@ function AppShell({ children, settings }: { children: React.ReactNode; settings:
                     baseUrl={AppSettings.TrainApiUri ?? ''}
                     resolveNodeUrls={resolveNodeUrls}
                     initialNetworks={settings.networks}
-                    secretDerivation={{ persist: true }}
+                    secretDerivation={secretDerivation}
                 >
                     <WalletsProviders>
                         <ThemeWrapper>
@@ -123,6 +129,7 @@ function AppShell({ children, settings }: { children: React.ReactNode; settings:
                                         <Suspense fallback={<Loading />}>
                                             <QueryProvider>
                                                 <AuthDialog />
+                                                <PasskeyWalletBridge />
                                                 <SwapModalRoot />
                                                 {pageContent}
                                             </QueryProvider>

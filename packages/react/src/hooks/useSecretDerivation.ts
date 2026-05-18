@@ -53,6 +53,16 @@ export interface UseSecretDerivationResult {
 
     loginWithPasskey: (options?: PasskeyLoginOptions) => Promise<void>
     /**
+     * Generic primitive for callers that derived the passkey login outside of SD
+     * (e.g. a wallet module that needs the PRF buffer in the same assertion). The
+     * deriver returns the HTLC key + credentialId; SD handles status, error,
+     * storage, and store updates around it. SD has no knowledge of what the
+     * deriver does with the assertion.
+     */
+    loginWithPasskeyDerived: (
+        deriver: () => Promise<{ key: Uint8Array; credentialId: string }>,
+    ) => Promise<void>
+    /**
      * Login with wallet. When used inside TrainProvider with an adapter that
      * implements getLoginConfig(), only chainNamespace is needed.
      * Falls back to explicit config if provided.
@@ -111,35 +121,21 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
     const isLoggedIn = !!method && !!derivedKey
     const [error, setError] = useState<Error | null>(null)
 
-    const loginWithPasskey = useCallback(async (options?: PasskeyLoginOptions) => {
+    /**
+     * Run a caller-provided derivation inside the SD lifecycle (status, error,
+     * credential storage, store update). The deriver is responsible for the
+     * passkey assertion itself. This is the primitive that `loginWithPasskey`
+     * builds on, and the one wallets call when they need to share an assertion
+     * with their own seed-derivation path.
+     */
+    const loginWithPasskeyDerived = useCallback(async (
+        deriver: () => Promise<{ key: Uint8Array; credentialId: string }>,
+    ) => {
         setError(null)
         store.getState().setDerivationStatus('signing')
         store.getState().setDerivationMessage('Confirm with passkey')
         try {
-            let key: Uint8Array
-            let credentialId: string
-
-            if (options?.forceCreate) {
-                const result = await sdkRegisterPasskey(true, options.label, passkeyStorage)
-                if (result.key) {
-                    key = result.key
-                    credentialId = result.credentialId
-                } else {
-                    ; ({ key, credentialId } = await deriveKeyWithPasskey(
-                        { createIfMissing: false },
-                        passkeyStorage,
-                    ))
-                }
-            } else {
-                ; ({ key, credentialId } = await deriveKeyWithPasskey(
-                    {
-                        createIfMissing: !options?.crossDevice && !options?.credentialId,
-                        credentialId: options?.credentialId,
-                    },
-                    passkeyStorage,
-                ))
-            }
-
+            const { key, credentialId } = await deriver()
             // storeCredentialId without a label is idempotent for existing entries (preserves label),
             // and on a fresh cross-device credential falls back to DEFAULT_PASSKEY_DISPLAY_NAME.
             await passkeyStorage?.storeCredentialId(credentialId)
@@ -154,6 +150,26 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
             store.getState().setDerivationMessage('')
         }
     }, [store, passkeyStorage])
+
+    const loginWithPasskey = useCallback(async (loginOpts?: PasskeyLoginOptions) => {
+        return loginWithPasskeyDerived(async () => {
+            if (loginOpts?.forceCreate) {
+                const result = await sdkRegisterPasskey(true, loginOpts.label, passkeyStorage)
+                if (result.key) {
+                    return { key: result.key, credentialId: result.credentialId }
+                }
+                // Registration produced a credential but no PRF — re-assert to obtain the key.
+                return await deriveKeyWithPasskey({ createIfMissing: false }, passkeyStorage)
+            }
+            return await deriveKeyWithPasskey(
+                {
+                    createIfMissing: !loginOpts?.crossDevice && !loginOpts?.credentialId,
+                    credentialId: loginOpts?.credentialId,
+                },
+                passkeyStorage,
+            )
+        })
+    }, [loginWithPasskeyDerived, passkeyStorage])
 
     const authInstance = options?.auth
     const loginWithWallet = useCallback(async (chainNs: string, config?: Record<string, unknown>) => {
@@ -258,6 +274,7 @@ export function useSecretDerivation(options?: UseSecretDerivationOptions): UseSe
         derivationMessage,
         error,
         loginWithPasskey,
+        loginWithPasskeyDerived,
         loginWithWallet,
         logout,
         deriveSecret,

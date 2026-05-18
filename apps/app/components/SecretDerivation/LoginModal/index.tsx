@@ -8,6 +8,7 @@ import { loginStepTitle, useLoginWizardState, wizardCanGoBack, type LoginWizard 
 import { Steps, Step } from '@/components/Step';
 import IconButton from '@/components/buttons/iconButton';
 import { StepBody } from '../StepBody';
+import { loginPasskeyWallet, type LoginPasskeyWalletOptions } from '@/lib/passkeyWallet/login';
 
 export { loginStepTitle, useLoginWizardState, wizardCanGoBack };
 export type { LoginStep, LoginWizard } from './wizard';
@@ -24,14 +25,14 @@ function useLoginFlow({
   header: ReactNode;
   content: ReactNode;
 } {
+  const sd = useSharedSecretDerivation();
   const {
-    loginWithPasskey,
     derivationMessage,
     passkeyCredentials,
     clearAllPasskeyCredentials,
     isReady,
     prfSupportDetails,
-  } = useSharedSecretDerivation();
+  } = sd;
   const { history, errorMessage, push, pop, replaceTop, resetTo, setErrorMessage } = wizard;
   const currentStep = history[history.length - 1];
   const [faqOpen, setFaqOpen] = useState(false);
@@ -50,11 +51,11 @@ function useLoginFlow({
 
   const canGoBack = wizardCanGoBack(history);
 
-  const runLogin = async (options: Parameters<typeof loginWithPasskey>[0]) => {
+  const runLogin = async (options?: LoginPasskeyWalletOptions) => {
     setErrorMessage(null);
     push('signing');
     try {
-      await loginWithPasskey(options);
+      await loginPasskeyWallet(sd, options);
       onClose();
     } catch (e) {
       const missingPasskey = e instanceof Error && /no passkey found/i.test(e.message);

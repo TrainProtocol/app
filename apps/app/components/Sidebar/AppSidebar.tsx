@@ -15,7 +15,7 @@ import {
 } from "@/components/shadcn/sidebar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip"
-import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, Home, ChevronsUpDown, LogOut, Lock, MessageCircle, HandCoins } from "lucide-react"
+import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, Home, ChevronsUpDown, LogOut, Lock, MessageCircle, HandCoins, Wallet } from "lucide-react"
 import AppSettings from "@/lib/AppSettings"
 import { useIntercom } from "react-use-intercom"
 import { useOptionalSecretDerivation } from "@train-protocol/react"
@@ -55,7 +55,7 @@ const AppSidebar: FC = () => {
                 <SidebarGroup className="px-0 py-0">
                     <SidebarGroupContent>
                         <SidebarMenu className="gap-0.5">
-                            <Suspense fallback={<NavItems currentPath={currentPath} hrefs={{ home: "/", transactions: "/transactions", settings: "/settings", faucet: "/faucet" }} />}>
+                            <Suspense fallback={<NavItems currentPath={currentPath} hrefs={{ home: "/", wallet: "/wallet", transactions: "/transactions", settings: "/settings", faucet: "/faucet" }} />}>
                                 <NavItemsWithParams currentPath={currentPath} />
                             </Suspense>
 
@@ -217,7 +217,7 @@ const SidebarLogoWithParams: FC = () => {
     return <SidebarLogo href={buildHrefWithPersistantParams("/", searchParams)} />
 }
 
-type NavHrefs = { home: string; transactions: string; settings: string; faucet: string }
+type NavHrefs = { home: string; wallet: string; transactions: string; settings: string; faucet: string }
 
 const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, hrefs }) => (
     <>
@@ -226,6 +226,15 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
                 <Link href={hrefs.home}>
                     <Home />
                     <span>Home</span>
+                </Link>
+            </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={currentPath === "/wallet"} tooltip="Wallet">
+                <Link href={hrefs.wallet}>
+                    <Wallet />
+                    <span>Wallet</span>
                 </Link>
             </SidebarMenuButton>
         </SidebarMenuItem>
@@ -268,6 +277,7 @@ const NavItemsWithParams: FC<{ currentPath: string }> = ({ currentPath }) => {
             currentPath={currentPath}
             hrefs={{
                 home: buildHrefWithPersistantParams("/", searchParams),
+                wallet: buildHrefWithPersistantParams("/wallet", searchParams),
                 transactions: buildHrefWithPersistantParams("/transactions", searchParams),
                 settings: buildHrefWithPersistantParams("/settings", searchParams),
                 faucet: buildHrefWithPersistantParams("/faucet", searchParams),

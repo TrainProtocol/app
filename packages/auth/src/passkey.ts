@@ -137,52 +137,145 @@ export const registerPasskey = async (
     return { credentialId };
 };
 
-export const deriveKeyWithPasskey = async (
-    options?: { createIfMissing?: boolean; credentialId?: string },
+export interface DeriveKeyAndPrfResult {
+    /** HTLC secret-derivation key (32 bytes), already HKDF'd on the main thread. */
+    key: Uint8Array
+    /**
+     * Raw PRF output as a transferable ArrayBuffer. Callers MUST transfer this
+     * into a worker via `postMessage(..., [prfBuffer])` so the wallet HKDF runs
+     * inside the worker and the seed never exists on the main thread.
+     */
+    prfBuffer: ArrayBuffer
+    credentialId: string
+}
+
+/**
+ * Run one WebAuthn assertion that evaluates the PRF extension, returning the
+ * raw PRF output and the asserted credentialId. Single source of truth for the
+ * browser-side passkey dance — the public derivation helpers below are thin
+ * wrappers around this.
+ *
+ * `createIfMissing` controls whether a `null` credential triggers an implicit
+ * `registerPasskey()` and a follow-up assertion. When the caller supplies a
+ * specific `credentialId`, callers should pass `createIfMissing: false` — see
+ * the wrappers for the policy.
+ */
+async function assertPasskey(options?: {
+    credentialId?: string
+    createIfMissing?: boolean
     storage?: PasskeyCredentialStorage
-): Promise<{ key: Uint8Array; credentialId: string }> => {
-    const createIfMissing = options?.createIfMissing !== false;
+}): Promise<{ prfFirst: ArrayBuffer; credentialId: string }> {
+    if (typeof window === 'undefined') throw new Error('Passkey auth must run in a browser')
+    if (!window.isSecureContext) throw new Error('Passkeys require HTTPS (secure context)')
 
-    if (typeof window === 'undefined') throw new Error('Passkey auth must run in a browser');
-    if (!window.isSecureContext) throw new Error('Passkeys require HTTPS (secure context)');
-
-    const prfSalt = getPasskeyPrfSalt();
-    const challengeBytes = new Uint8Array(32);
-    window.crypto.getRandomValues(challengeBytes);
+    const prfSalt = getPasskeyPrfSalt()
+    const challengeBytes = new Uint8Array(32)
+    window.crypto.getRandomValues(challengeBytes)
 
     const publicKey: PublicKeyCredentialRequestOptions = {
         rpId: window.location.hostname,
         challenge: challengeBytes,
         userVerification: 'required',
         extensions: { prf: { eval: { first: prfSalt } } } as any,
-    };
-
+    }
     if (options?.credentialId) {
         publicKey.allowCredentials = [{
             type: 'public-key',
             id: base64URLStringToBuffer(options.credentialId),
-        }];
+        }]
     }
 
-    let cred = (await navigator.credentials.get({ publicKey })) as PublicKeyCredential | null;
+    let cred = (await navigator.credentials.get({ publicKey })) as PublicKeyCredential | null
 
     if (!cred) {
-        if (!createIfMissing) throw new Error('No passkey found for this site. Create one instead.');
-        const result = await registerPasskey(true, undefined, storage);
-        if (result.key) return { key: result.key, credentialId: result.credentialId };
-        cred = (await navigator.credentials.get({ publicKey })) as PublicKeyCredential | null;
-        if (!cred) throw new Error('Passkey authentication was cancelled or no passkey is available');
+        if (!options?.createIfMissing) {
+            throw new Error('No passkey found for this site. Create one instead.')
+        }
+        await registerPasskey(true, undefined, options.storage)
+        cred = (await navigator.credentials.get({ publicKey })) as PublicKeyCredential | null
+        if (!cred) throw new Error('Passkey authentication was cancelled or no passkey is available')
     }
 
-    const credentialId = bufferToBase64URLString(cred.rawId);
-    const ext: any = cred.getClientExtensionResults?.() ?? {};
-    const prfFirst: ArrayBuffer | undefined = ext?.prf?.results?.first;
+    const credentialId = bufferToBase64URLString(cred.rawId)
+    const ext: any = cred.getClientExtensionResults?.() ?? {}
+    const prfFirst: ArrayBuffer | undefined = ext?.prf?.results?.first
+    if (!prfFirst) throw new Error('Passkey PRF extension not available in this browser/authenticator')
 
-    if (!prfFirst) throw new Error('Passkey PRF extension not available in this browser/authenticator');
+    return { prfFirst, credentialId }
+}
 
-    const ikm = new Uint8Array(prfFirst);
-    const identitySalt = new TextEncoder().encode(IDENTITY_SALT);
-    const key = new Uint8Array(deriveKeyMaterial(ikm, identitySalt));
+/**
+ * Single passkey assertion → HTLC key (main-thread) + raw PRF (for worker).
+ * One auth prompt; the PRF is HKDF-expanded for the HTLC key here, then the
+ * underlying ArrayBuffer is returned for transfer into a worker that will
+ * HKDF-expand it again with a different info string to derive the wallet seed.
+ *
+ * After the caller transfers `prfBuffer`, no main-thread reference to the PRF
+ * bytes remains.
+ */
+export const deriveKeyAndPrfWithPasskey = async (
+    options?: { createIfMissing?: boolean; credentialId?: string },
+    storage?: PasskeyCredentialStorage
+): Promise<DeriveKeyAndPrfResult> => {
+    // When a specific credentialId is requested, never silently register a new
+    // passkey on failure — that would derive a different wallet address and the
+    // caller would have no way to detect the substitution.
+    const createIfMissing = options?.credentialId
+        ? options.createIfMissing === true
+        : options?.createIfMissing !== false
 
-    return { key, credentialId };
-};
+    const { prfFirst, credentialId } = await assertPasskey({
+        credentialId: options?.credentialId,
+        createIfMissing,
+        storage,
+    })
+
+    // HTLC key is computed here on the main thread; the underlying ArrayBuffer
+    // (`prfFirst`) is returned for transfer into a worker that derives the
+    // wallet seed. Do NOT zero `ikm` — its buffer IS `prfFirst` and the worker
+    // needs those bytes; detachment happens via postMessage transfer.
+    const ikm = new Uint8Array(prfFirst)
+    const identitySalt = new TextEncoder().encode(IDENTITY_SALT)
+    const key = new Uint8Array(deriveKeyMaterial(ikm, identitySalt))
+
+    return { key, prfBuffer: prfFirst, credentialId }
+}
+
+/**
+ * Per-signature passkey assertion → raw PRF buffer for transfer.
+ * No HKDF on the main thread. The caller transfers the buffer into a worker;
+ * after transfer the main-thread view is detached.
+ */
+export const derivePasskeyWalletPrf = async (
+    options?: { credentialId?: string }
+): Promise<{ prfBuffer: ArrayBuffer; credentialId: string }> => {
+    // Per-signature path: no implicit registration ever — if no credential is
+    // available, surface the error to the caller rather than silently creating
+    // a new passkey (which would derive a different wallet address).
+    const { prfFirst, credentialId } = await assertPasskey({
+        credentialId: options?.credentialId,
+        createIfMissing: false,
+    })
+    return { prfBuffer: prfFirst, credentialId }
+}
+
+export const deriveKeyWithPasskey = async (
+    options?: { createIfMissing?: boolean; credentialId?: string },
+    storage?: PasskeyCredentialStorage
+): Promise<{ key: Uint8Array; credentialId: string }> => {
+    // See note in deriveKeyAndPrfWithPasskey: explicit credentialId implies no implicit register.
+    const createIfMissing = options?.credentialId
+        ? options.createIfMissing === true
+        : options?.createIfMissing !== false
+
+    const { prfFirst, credentialId } = await assertPasskey({
+        credentialId: options?.credentialId,
+        createIfMissing,
+        storage,
+    })
+
+    const ikm = new Uint8Array(prfFirst)
+    const identitySalt = new TextEncoder().encode(IDENTITY_SALT)
+    const key = new Uint8Array(deriveKeyMaterial(ikm, identitySalt))
+    return { key, credentialId }
+}

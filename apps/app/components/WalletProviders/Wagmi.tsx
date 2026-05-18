@@ -13,6 +13,7 @@ import { isMobile } from "../../lib/isMobile";
 import { WALLETCONNECT_PROJECT_ID } from "@/lib/walletConnect/config";
 import { HIDDEN_WALLETCONNECT_ID } from "@/lib/wallets/evm/constants";
 import { browserInjected } from "@/lib/wallets/evm/connectors/browserInjected";
+import { trainPasskeyConnector } from "@/lib/passkeyWallet/connector";
 
 type Props = {
     children: JSX.Element | JSX.Element[]
@@ -42,7 +43,9 @@ const coinbaseWalletConnector = coinbaseWallet({
     appLogoUrl: 'https://layerswap.io/app/symbol.png',
 })
 const browserInjectedConnector = browserInjected()
+const trainPasskey = trainPasskeyConnector()
 const defaultConnectors = [
+    trainPasskey,
     metaMaskConnector,
     coinbaseWalletConnector,
     walletConnectConnector,
