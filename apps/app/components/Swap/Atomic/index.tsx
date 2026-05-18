@@ -30,8 +30,6 @@ export default function Form() {
     const setPendingFormValues = useSwapStore(s => s.setPendingFormValues)
     const updateRecentNetworks = useRecentNetworksStore(s => s.updateRecentNetworks);
 
-    const polling = !swapModalOpen
-
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
             if (!isLoggedIn) {
@@ -75,7 +73,7 @@ export default function Form() {
         >
             <Widget>
                 <FaucetNudgePill />
-                <SwapForm polling={polling} onQuoteChange={(q, id) => { setQuote(q); setSolverId(id) }} />
+                <SwapForm polling={!swapModalOpen} onQuoteChange={(q, id) => { setQuote(q); setSolverId(id) }} />
             </Widget>
         </Formik>
     </>

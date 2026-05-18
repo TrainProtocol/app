@@ -54,8 +54,8 @@ export default function PendingSwap({ variant = 'header' }: PendingSwapProps) {
     ) : null
 
     if (variant === 'sidebar') {
-        const href = activeSwap.source
-            ? buildHrefWithPersistantParams('/swap', searchParams, buildSwapQuery(activeSwap.source, activeHashlock))
+        const href = activeSwap.source && activeSwap.txId
+            ? buildHrefWithPersistantParams('/swap', searchParams, buildSwapQuery(activeSwap.source, activeSwap.txId))
             : '/swap'
 
         const swapLabel = `${activeSwap.source_asset} → ${activeSwap.destination_asset}`
@@ -63,6 +63,7 @@ export default function PendingSwap({ variant = 'header' }: PendingSwapProps) {
         return (
             <SidebarMenuButton
                 asChild
+                isActive={pathname === '/swap'}
                 tooltip={swapLabel}
                 className="!overflow-visible"
             >
@@ -79,7 +80,7 @@ export default function PendingSwap({ variant = 'header' }: PendingSwapProps) {
 
                     <span className="truncate transition-[max-width,opacity] duration-300 ease-in-out max-w-32 opacity-100 group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0">{swapLabel}</span>
 
-                    <span aria-hidden="true" className="ml-auto relative flex h-2 w-2 shrink-0 origin-center !overflow-visible transition-[opacity,transform] duration-300 ease-in-out group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:scale-0">
+                    <span aria-hidden="true" className="ml-auto mr-2 relative flex h-2 w-2 shrink-0 origin-center !overflow-visible transition-[opacity,transform] duration-300 ease-in-out group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:scale-0">
                         <span className="absolute -inset-0.5 rounded-full bg-primary opacity-70 animate-ping" />
                         <span className="relative h-2 w-2 rounded-full bg-primary shrink-0" />
                     </span>
