@@ -27,8 +27,9 @@ const AuthDialog: FC = () => {
 
     if (!secretDerivation) return null
 
-    const { isLoggedIn, method, loginWallet, logout } = secretDerivation
-    const loginTitle = step === 'intro' ? '' : loginStepTitle(step)
+    const { isLoggedIn, method, loginWallet, logout, passkeyCredentials } = secretDerivation
+    const hideIntroTitle = step === 'intro' && passkeyCredentials.length === 0
+    const loginTitle = hideIntroTitle ? '' : loginStepTitle(step)
     const title = isLoggedIn ? "Login status" : loginTitle
     const onBack = !isLoggedIn && canGoBack ? wizard.pop : undefined
 

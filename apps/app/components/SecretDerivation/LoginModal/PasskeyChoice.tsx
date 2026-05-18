@@ -1,9 +1,30 @@
 import { useState } from 'react';
-import { AlertTriangle, Fingerprint, Lock } from 'lucide-react';
+import { AlertTriangle, Fingerprint } from 'lucide-react';
 import { type StoredPasskey } from '@train-protocol/auth';
 import SubmitButton from '../../buttons/submitButton';
 import { StepBody } from '../StepBody';
 import { Input } from '@/components/shadcn/input';
+
+function PasskeyHero({ title, description }: { title?: string, description?: string }) {
+  return (
+    <div className="flex flex-col items-center gap-8 text-center w-full">
+      <div className="flex justify-center w-full pt-16 pb-2">
+        <div className="relative w-16 h-16 bg-linear-to-br from-secondary-400 to-secondary-500 rounded-full flex items-center justify-center shadow-lg">
+          <Fingerprint className="w-9 h-9 text-primary-text" strokeWidth={2} />
+          <div className="absolute inset-0 -m-6 rounded-full border border-secondary-400/40" aria-hidden />
+          <div className="absolute inset-0 -m-3 rounded-full border border-secondary-400/60" aria-hidden />
+        </div>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        {title ? <p className="text-primary-text text-xl font-semibold">{title}</p> : null}
+        {description ? <p className="text-secondary-text text-sm max-w-70">
+          {description}
+        </p> : null}
+      </div>
+    </div>
+
+  );
+}
 
 const PASSKEY_NAME_ADJECTIVES = ['Swift', 'Brave', 'Quiet', 'Bright', 'Clever', 'Bold', 'Calm', 'Wild', 'Lucky', 'Mellow', 'Sunny', 'Crisp', 'Nimble', 'Gentle', 'Rapid'];
 const PASSKEY_NAME_ANIMALS = ['Fox', 'Otter', 'Heron', 'Lynx', 'Falcon', 'Badger', 'Marten', 'Wren', 'Hare', 'Stoat', 'Owl', 'Raven', 'Puma', 'Sable', 'Crane'];
@@ -14,15 +35,19 @@ const generateRandomPasskeyName = (): string => {
   return `${adj} ${animal}`;
 };
 
-interface SavedLoginsProps {
+interface EntryStepProps {
   credentials: StoredPasskey[];
   onPick: (credentialId: string) => void;
-  onUseAnotherMethod: () => void;
+  onCreateNew: () => void;
+  onLoginWithExisting: () => void;
   onForgetAll: () => void;
+  onShowFaq: () => void;
 }
 
-export function SavedLogins({ credentials, onPick, onUseAnotherMethod, onForgetAll }: SavedLoginsProps) {
-  const info = (
+export function EntryStep({ credentials, onPick, onCreateNew, onLoginWithExisting, onForgetAll, onShowFaq }: EntryStepProps) {
+  const hasSaved = credentials.length > 0;
+
+  const info = hasSaved ? (
     <div className="flex flex-col items-stretch gap-2 w-full">
       <p className="text-secondary-text text-xs font-medium uppercase tracking-wide">Saved logins</p>
       <div className="flex flex-col gap-2">
@@ -39,39 +64,8 @@ export function SavedLogins({ credentials, onPick, onUseAnotherMethod, onForgetA
         ))}
       </div>
     </div>
-  );
-
-  const actions = (
-    <div className="flex flex-col gap-2 w-full">
-      <SubmitButton type="button" buttonStyle="secondary" onClick={onUseAnotherMethod}>
-        Use another method
-      </SubmitButton>
-      <button
-        type="button"
-        onClick={onForgetAll}
-        className="text-xs text-secondary-text hover:text-primary-text transition-colors text-center underline hover:no-underline w-fit mx-auto"
-      >
-        Forget all logins
-      </button>
-    </div>
-  );
-
-  return <StepBody info={info} actions={actions} centerOverlay={false} />;
-}
-
-interface IntroStepProps {
-  onCreateNew: () => void;
-  onLoginWithExisting: () => void;
-}
-
-export function IntroStep({ onCreateNew, onLoginWithExisting }: IntroStepProps) {
-  const info = (
-    <div className="flex flex-col items-center gap-3 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-secondary-500 flex items-center justify-center">
-        <Lock className="w-8 h-8 text-primary-text" strokeWidth={2} />
-      </div>
-      <p className="text-primary-text text-xl font-medium">Log in</p>
-    </div>
+  ) : (
+    <PasskeyHero title="Log in to swap" description="Log in with your passkey to make swaps secure, smooth, and recoverable." />
   );
 
   const actions = (
@@ -82,10 +76,28 @@ export function IntroStep({ onCreateNew, onLoginWithExisting }: IntroStepProps) 
       <SubmitButton type="button" buttonStyle="secondary" onClick={onLoginWithExisting}>
         Log in with existing
       </SubmitButton>
+      <div className="flex items-center justify-center gap-3 mt-1">
+        <button
+          type="button"
+          onClick={onShowFaq}
+          className="text-xs text-secondary-text hover:text-primary-text transition-colors underline hover:no-underline"
+        >
+          Why log in?
+        </button>
+        {hasSaved && (
+          <button
+            type="button"
+            onClick={onForgetAll}
+            className="text-xs text-secondary-text hover:text-primary-text transition-colors underline hover:no-underline"
+          >
+            Forget all logins
+          </button>
+        )}
+      </div>
     </div>
   );
 
-  return <StepBody info={info} actions={actions} />;
+  return <StepBody info={info} actions={actions} centerOverlay={false} />;
 }
 
 interface CreateStepProps {
@@ -100,12 +112,8 @@ export function CreateStep({ onCreate }: CreateStepProps) {
 
   const info = (
     <>
-      <div className="flex-1 flex items-center justify-center w-full">
-        <div className="w-14 h-14 rounded-2xl bg-secondary-500 flex items-center justify-center">
-          <Fingerprint className="w-8 h-8 text-primary-text" strokeWidth={2} />
-        </div>
-      </div>
-      <div className="w-full flex flex-col gap-1.5">
+      <PasskeyHero title="Create a passkey" description="Name your new passkey to get started." />
+      <div className="w-full flex flex-col gap-1.5 mt-auto">
         <label htmlFor="passkey-label" className="text-xs text-secondary-text font-medium">
           Name this passkey
         </label>
@@ -137,7 +145,7 @@ export function CreateStep({ onCreate }: CreateStepProps) {
     </SubmitButton>
   );
 
-  return <StepBody info={info} actions={actions} centerOverlay={false} overlayActionMt="mt-6" />;
+  return <StepBody info={info} actions={actions} centerOverlay={false} />;
 }
 
 interface ErrorStepProps {
@@ -153,7 +161,7 @@ export function ErrorStep({ message, onBack }: ErrorStepProps) {
       </div>
       <div className="flex flex-col gap-1">
         <p className="text-primary-text text-xl font-medium">Login failed</p>
-        <p className="text-secondary-text text-sm max-w-[280px]">{message}</p>
+        <p className="text-secondary-text text-sm max-w-70">{message}</p>
       </div>
     </div>
   );

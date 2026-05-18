@@ -47,6 +47,7 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false, 
         to: destination_network,
         fromCurrency: source_asset,
         toCurrency: destination_asset,
+        destination_address: formValues?.destination_address,
     }
 
     if (swap.isLoading) return <SwapLoading />;
