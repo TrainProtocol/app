@@ -8,8 +8,6 @@ import { ExtendedAddress } from '@/components/Input/Address/AddressPicker/Addres
 import { DetailsButton } from '..'
 import type { SwapQuote } from '@train-protocol/react'
 import clsx from 'clsx'
-import { GasFee } from './DetailedEstimates'
-import NumberFlow from '@number-flow/react'
 import { Partner } from '@/Models/Partner'
 import { useQueryState } from '@/context/query'
 import { ImageWithFallback } from '@/components/Common/ImageWithFallback'
@@ -32,7 +30,7 @@ export const SummaryRow: FC<{
 
     return (
         <div className={clsx("flex flex-col w-full p-2", { "pb-0 -mb-1": isOpen })}>
-            {values.destination_address && sourceAddress?.toLowerCase() !== values.destination_address?.toLowerCase() && (
+            {(values.destination_address && sourceAddress) && !Address.equals(sourceAddress, values.destination_address, values.to) && (
                 <div className={`flex items-center w-full justify-between gap-1 text-sm px-2 py-3`}>
                     <div className="inline-flex items-center text-left text-secondary-text gap-1 pr-4">
                         <label>Send to</label>

@@ -32,7 +32,7 @@ export function useLoginWizardState(): LoginWizard {
 export const loginStepTitle = (step: LoginStep): string =>
   step === 'signing' ? 'Signing'
     : step === 'unsupported' ? ''
-    : step === 'create' ? 'Create passkey'
+    : step === 'create' ? ''
     : step === 'error' ? 'Login failed'
     : 'Log in';
 

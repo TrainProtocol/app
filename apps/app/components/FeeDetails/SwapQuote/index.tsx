@@ -5,6 +5,7 @@ import type { SwapQuote } from '@train-protocol/react'
 import { SwapFormValues } from '../../DTOs/SwapFormValues'
 import { SummaryRow } from './SummaryRow'
 import { DetailedEstimates } from './DetailedEstimates'
+import { useSelectedAccount } from '@/context/swapAccounts'
 
 interface QuoteComponentProps {
     quote: SwapQuote | undefined;
@@ -13,7 +14,8 @@ interface QuoteComponentProps {
 }
 
 const SwapQuoteComp: FC<QuoteComponentProps> = ({ values, quote, isQuoteLoading }) => {
-    const [isOpen, setIsOpen] = useState(false)
+    const [isOpen, setIsOpen] = useState(true)
+    const selectedSourceAccount = useSelectedAccount("from", values?.from?.caip2Id);
 
     if (!quote) return null
 
@@ -35,6 +37,7 @@ const SwapQuoteComp: FC<QuoteComponentProps> = ({ values, quote, isQuoteLoading 
                         values={values}
                         quoteData={quote}
                         onOpen={() => setIsOpen(true)}
+                        sourceAddress={selectedSourceAccount?.address}
                         isOpen={isOpen}
                     />
                 </AccordionTrigger>
