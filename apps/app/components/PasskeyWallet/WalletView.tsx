@@ -191,7 +191,7 @@ const NetworkPanel: FC<{
                 </Select>
             </div>
 
-            <BalanceRow address={address} network={selectedNetwork} symbol={nativeSymbol} />
+            <BalanceRow address={address} network={selectedNetwork} />
 
             <div className="flex flex-wrap gap-2">
                 {selectedNetwork.explorerUrlTemplate?.address && (
@@ -222,35 +222,76 @@ const NetworkPanel: FC<{
 const BalanceRow: FC<{
     address: Address
     network: ExtendedNetwork
-    symbol: string
-}> = ({ address, network, symbol }) => {
+}> = ({ address, network }) => {
     // useBalance routes through the existing BalanceResolver (chain-aware provider
     // selection, dedupe, retry, store caching). One source of truth for "what is
     // this address's balance on this network" across the app.
     const { balances, isLoading, error, mutate } = useBalance(address, network, { refreshInterval: 60_000 })
-    const native = useMemo(
-        () => balances?.find((b) => b.isNativeCurrency) ?? balances?.find((b) => b.token === symbol),
-        [balances, symbol],
-    )
 
-    const display = native?.amount !== undefined
-        ? `${native.amount} ${symbol}`
-        : isLoading ? '—' : '?'
+    // Order: native first, then by symbol. Fall back to the network's token list
+    // before any balances have loaded so the user sees the assets present on this
+    // network even while fetching.
+    const rows = useMemo(() => {
+        if (balances && balances.length > 0) {
+            return [...balances].sort((a, b) => {
+                if (a.isNativeCurrency !== b.isNativeCurrency) return a.isNativeCurrency ? -1 : 1
+                return a.token.localeCompare(b.token)
+            })
+        }
+        return network.tokens.map((t) => ({
+            network: network.caip2Id,
+            token: t.symbol,
+            amount: undefined,
+            decimals: t.decimals,
+            isNativeCurrency: t.contract === network.nativeTokenAddress,
+            request_time: '',
+        }))
+    }, [balances, network])
 
     return (
-        <div className="flex items-end justify-between gap-2">
-            <div>
-                <div className="text-xs text-secondary-text">Balance</div>
-                <div className="mt-1 font-mono text-2xl">{display}</div>
-                {error ? (
-                    <div className="mt-1 text-xs text-destructive">
-                        {error instanceof Error ? error.message : String(error)}
-                    </div>
-                ) : null}
+        <div className="space-y-2">
+            <div className="flex items-center justify-between gap-2">
+                <div className="text-xs text-secondary-text">Balances</div>
+                <Button size="icon-sm" variant="ghost" onClick={mutate} aria-label="Refresh balances" disabled={isLoading}>
+                    {isLoading ? <Loader2 className="animate-spin" /> : <RefreshCw />}
+                </Button>
             </div>
-            <Button size="icon-sm" variant="ghost" onClick={mutate} aria-label="Refresh balance" disabled={isLoading}>
-                {isLoading ? <Loader2 className="animate-spin" /> : <RefreshCw />}
-            </Button>
+            {rows.length === 0 ? (
+                <div className="text-sm text-secondary-text">No tokens configured.</div>
+            ) : (
+                <ul className="divide-y divide-border rounded-2xl border border-border bg-secondary-800">
+                    {rows.map((b) => {
+                        const token = network.tokens.find((t) => t.symbol === b.token)
+                        const display = b.amount !== undefined
+                            ? b.amount
+                            : isLoading ? '—' : '?'
+                        return (
+                            <li key={`${b.token}-${b.isNativeCurrency}`} className="flex items-center justify-between gap-3 px-3 py-2">
+                                <div className="flex min-w-0 items-center gap-2">
+                                    {token?.logoUrl ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img src={token.logoUrl} alt="" className="size-6 shrink-0 rounded-full" />
+                                    ) : (
+                                        <div className="size-6 shrink-0 rounded-full bg-secondary-500" />
+                                    )}
+                                    <span className="truncate text-sm font-medium">{b.token}</span>
+                                    {b.isNativeCurrency && (
+                                        <span className="rounded-full bg-secondary-500 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-secondary-text">
+                                            Native
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="font-mono text-sm">{display}</div>
+                            </li>
+                        )
+                    })}
+                </ul>
+            )}
+            {error ? (
+                <div className="text-xs text-destructive">
+                    {error instanceof Error ? error.message : String(error)}
+                </div>
+            ) : null}
         </div>
     )
 }
