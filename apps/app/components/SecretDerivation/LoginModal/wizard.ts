@@ -33,7 +33,7 @@ export const loginStepTitle = (step: LoginStep): string =>
   step === 'signing' ? 'Signing'
     : step === 'unsupported' ? ''
     : step === 'create' ? ''
-    : step === 'error' ? 'Login failed'
+    : step === 'error' ? ''
     : 'Log in';
 
 // Back is available when there's something in the stack behind us, except while
