@@ -8,17 +8,17 @@ import { Droplet, ArrowRight } from "lucide-react"
 import { buildHrefWithPersistantParams } from "@/helpers/querryHelper"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
 import { useNetworkBalance } from "@/context/swapAccounts"
+import { useFaucetNudgeStore } from "@/stores/faucetNudgeStore"
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues"
 import AppSettings from "@/lib/AppSettings"
 
 const FAUCET_TOKEN = "TESTUSDC"
 
-function useFaucetNudgeHref() {
-    const { values } = useFormikContext<SwapFormValues>()
-    const entry = useNetworkBalance("from", values.from?.caip2Id)
+function useFaucetNudgeHref(caip2Id: string | undefined, tokenSymbol: string | undefined,): string | null {
+    const entry = useNetworkBalance("from", caip2Id)
     const searchParams = useSearchParams()
 
-    if (AppSettings.ApiVersion !== "sandbox" || !values.from || !entry?.data) return null
+    if (AppSettings.ApiVersion !== "sandbox" || !caip2Id || tokenSymbol?.toUpperCase() !== FAUCET_TOKEN || !entry?.data) return null
 
     const hasTestUsdc = entry.data.balances?.some(b =>
         b.token?.toUpperCase() === FAUCET_TOKEN &&
@@ -31,9 +31,10 @@ function useFaucetNudgeHref() {
 }
 
 export const FaucetNudgePill: FC = () => {
-    const href = useFaucetNudgeHref()
+    const { values } = useFormikContext<SwapFormValues>()
     const { isMobile } = useWindowDimensions()
-    if (!href || !isMobile) return null
+    const href = useFaucetNudgeHref(values.from?.caip2Id, values.fromCurrency?.symbol)
+    if (!isMobile || !href) return null
     return (
         <div className="flex justify-center">
             <Link
@@ -49,9 +50,11 @@ export const FaucetNudgePill: FC = () => {
 }
 
 export const FaucetNudgeChip: FC = () => {
-    const href = useFaucetNudgeHref()
+    const caip2Id = useFaucetNudgeStore(s => s.caip2Id)
+    const tokenSymbol = useFaucetNudgeStore(s => s.tokenSymbol)
     const { isDesktop } = useWindowDimensions()
-    if (!href || !isDesktop) return null
+    const href = useFaucetNudgeHref(caip2Id, tokenSymbol)
+    if (!isDesktop || !href) return null
     return (
         <Link
             href={href}

@@ -13,6 +13,7 @@ import { hasRequiredDestinationWallet } from "@/lib/wallets/utils/destinationWal
 import type { SwapQuote } from "@train-protocol/react";
 import QuoteDetails from "@/components/FeeDetails";
 import ReverseRouteButton from "./ReverseRouteButton";
+import { useSyncFaucetNudgeSource } from "@/stores/faucetNudgeStore";
 
 type SwapFormProps = {
     polling?: boolean
@@ -29,6 +30,7 @@ const SwapForm: FC<SwapFormProps> = ({ polling = true, onQuoteChange }) => {
     } = values
     const { providers, wallets } = useWallet(values.from, 'withdrawal')
     const query = useQueryState()
+    useSyncFaucetNudgeSource(values.from?.caip2Id, values.fromCurrency?.symbol)
 
     const params = useMemo(() => transformFormValuesToQuoteArgs(values), [values])
     const { quote, solverId, isQuoteLoading, solverErrorMessage } = useQuoteData(params, polling ? 42000 : 0)

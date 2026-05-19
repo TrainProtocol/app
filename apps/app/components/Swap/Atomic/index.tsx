@@ -15,7 +15,7 @@ import { generateSwapInitialValues } from "@/lib/generateSwapInitialValues";
 import { useSettingsState } from "@/context/settings";
 import { useSwapStore } from "@/stores/swapStore";
 import { useRecentNetworksStore } from "@/stores/recentRoutesStore";
-import { FaucetNudgeChip, FaucetNudgePill } from "@/components/FaucetNudge";
+import { FaucetNudgePill } from "@/components/FaucetNudge";
 import { buildHrefWithPersistantParams, replaceUrlWithoutRouting } from "@/helpers/querryHelper";
 import { buildSwapQuery } from "@/helpers/swapUrl";
 import { useActiveSwap } from "@/hooks/useActiveSwap";
@@ -91,7 +91,6 @@ export default function Form() {
             <Widget>
                 <FaucetNudgePill />
                 <SwapForm polling={!swapModalOpen} onQuoteChange={(q, id) => { setQuote(q); setSolverId(id) }} />
-                <FaucetNudgeChip />
             </Widget>
         </Formik>
     </>
