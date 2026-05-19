@@ -6,6 +6,8 @@ import { ArrowDown } from "lucide-react";
 import NumberFlow from "@number-flow/react";
 import { resolveTokenLogoUrl } from "@/components/utils/resolveTokenLogoUrl";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
+import MobileTooltip from "@/components/Modal/mobileTooltip";
+import { useUsdModeStore } from "@/stores/usdModeStore";
 
 
 type AtomicSummaryProps = {
@@ -17,18 +19,45 @@ type AtomicSummaryProps = {
     receiveAmount: string | undefined;
 }
 
-const RECEIVE_MAX_FRACTION_DIGITS_MOBILE = 8;
-const RECEIVE_MAX_FRACTION_DIGITS_DESKTOP = 12;
+const TOKEN_MAX_FRACTION_DIGITS_MOBILE = 8;
+const TOKEN_MAX_FRACTION_DIGITS_DESKTOP = 12;
+
+const TokenAmount: FC<{ amount: number; decimals: number; maxFractionDigits: number; symbol: string }> = ({ amount, decimals, maxFractionDigits, symbol }) => {
+    const full = truncateDecimals(amount, decimals)
+    const truncated = amount > 0 && isFinite(amount) && Number(amount.toFixed(maxFractionDigits)) !== amount
+
+    const node = (
+        <span className="inline-flex items-center min-w-0 gap-1">
+            <span className="truncate min-w-0">
+                <NumberFlow value={amount} trend={0} format={{ maximumFractionDigits: maxFractionDigits }} />
+            </span>
+            {truncated && <span className="shrink-0">...</span>}
+            <span className="shrink-0">{symbol}</span>
+        </span>
+    )
+    if (!truncated) return node
+    return (
+        <MobileTooltip trigger={<span>{node}</span>}>
+            {full} {symbol}
+        </MobileTooltip>
+    )
+}
+
+const UsdAmount: FC<{ value: number | string | undefined }> = ({ value }) => (
+    <NumberFlow value={Number(value) || 0} prefix="$" trend={0} />
+)
 
 const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, source, destination, requestedAmount, receiveAmount, }) => {
 
     const { isMobile } = useWindowDimensions()
-    const receiveMaxFractionDigits = isMobile ? RECEIVE_MAX_FRACTION_DIGITS_MOBILE : RECEIVE_MAX_FRACTION_DIGITS_DESKTOP
+    const maxFractionDigits = isMobile ? TOKEN_MAX_FRACTION_DIGITS_MOBILE : TOKEN_MAX_FRACTION_DIGITS_DESKTOP
+    const isUsdMode = useUsdModeStore(s => s.isUsdMode)
 
     const requestedAmountInUsd = (requestedAmount && sourceCurrency?.priceInUsd) ? (sourceCurrency.priceInUsd * Number(requestedAmount)).toFixed(2) : undefined
     const receiveAmountInUsd = (receiveAmount && destinationCurrency?.priceInUsd) ? (destinationCurrency.priceInUsd * Number(receiveAmount)).toFixed(2) : undefined
+
+    const requestedAmountNum = Number(requestedAmount)
     const receiveAmountNum = Number(receiveAmount)
-    const isReceiveTruncated = receiveAmountNum > 0 && isFinite(receiveAmountNum) && Number(receiveAmountNum.toFixed(receiveMaxFractionDigits)) !== receiveAmountNum
 
     return (
         <>
@@ -40,14 +69,34 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, 
                             token={sourceCurrency}
                         />
                         <div className="flex flex-col col-start-6 col-span-5 items-end min-w-0">
-                            {
-                                requestedAmount &&
-                                <p className="text-primary-text text-xl leading-6 font-normal flex items-center justify-end min-w-0 w-full space-x-1">
-                                    <span className="truncate min-w-0">{truncateDecimals(Number(requestedAmount), sourceCurrency.decimals)}</span>
-                                    <span className="shrink-0">{sourceCurrency.symbol}</span>
-                                </p>
-                            }
-                            <p className="text-secondary-text text-sm leading-5 flex font-medium justify-end"><NumberFlow value={Number(requestedAmountInUsd) || 0} prefix="$" trend={0} /></p>
+                            {requestedAmount && (
+                                <>
+                                    <p className="text-primary-text text-xl leading-6 h-6 font-normal flex items-center justify-end min-w-0 w-full">
+                                        {isUsdMode ? (
+                                            <UsdAmount value={requestedAmountInUsd} />
+                                        ) : (
+                                            <TokenAmount
+                                                amount={requestedAmountNum}
+                                                decimals={sourceCurrency.decimals}
+                                                maxFractionDigits={maxFractionDigits}
+                                                symbol={sourceCurrency.symbol}
+                                            />
+                                        )}
+                                    </p>
+                                    <p className="text-secondary-text text-sm leading-5 flex items-center font-medium justify-end gap-1">
+                                        {isUsdMode ? (
+                                            <TokenAmount
+                                                amount={requestedAmountNum}
+                                                decimals={sourceCurrency.decimals}
+                                                maxFractionDigits={maxFractionDigits}
+                                                symbol={sourceCurrency.symbol}
+                                            />
+                                        ) : (
+                                            <UsdAmount value={requestedAmountInUsd} />
+                                        )}
+                                    </p>
+                                </>
+                            )}
                         </div>
                     </div>
                     <div className="relative text-secondary-text">
@@ -62,15 +111,29 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, 
                         {
                             receiveAmount && (
                                 <div className="flex flex-col items-end w-full col-start-6 col-span-5 min-w-0">
-                                    <p className="text-primary-text text-xl leading-6 h-6 font-normal flex items-center justify-end min-w-0 w-full space-x-1">
-                                        <span className="flex items-center min-w-0">
-                                            <NumberFlow value={receiveAmountNum} trend={0} format={{ maximumFractionDigits: receiveMaxFractionDigits }} />
-                                            {isReceiveTruncated && <span className="shrink-0">...</span>}
-                                        </span>
-                                        <span className="shrink-0">{destinationCurrency.symbol}</span>
+                                    <p className="text-primary-text text-xl leading-6 h-6 font-normal flex items-center justify-end min-w-0 w-full">
+                                        {isUsdMode ? (
+                                            <UsdAmount value={receiveAmountInUsd} />
+                                        ) : (
+                                            <TokenAmount
+                                                amount={receiveAmountNum}
+                                                decimals={destinationCurrency.decimals}
+                                                maxFractionDigits={maxFractionDigits}
+                                                symbol={destinationCurrency.symbol}
+                                            />
+                                        )}
                                     </p>
                                     <p className="text-secondary-text text-sm leading-5 flex items-center gap-1 font-medium">
-                                        <NumberFlow value={Number(receiveAmountInUsd) || 0} prefix="$" trend={0} />
+                                        {isUsdMode ? (
+                                            <TokenAmount
+                                                amount={receiveAmountNum}
+                                                decimals={destinationCurrency.decimals}
+                                                maxFractionDigits={maxFractionDigits}
+                                                symbol={destinationCurrency.symbol}
+                                            />
+                                        ) : (
+                                            <UsdAmount value={receiveAmountInUsd} />
+                                        )}
                                     </p>
                                 </div>
                             )
