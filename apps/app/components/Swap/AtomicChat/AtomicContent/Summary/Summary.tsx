@@ -1,4 +1,4 @@
-import { FC, ReactNode } from "react";
+import { FC, ReactNode, useMemo } from "react";
 import { truncateDecimals } from "@/components/utils/RoundDecimals";
 import { ExtendedNetwork, ExtendedToken } from "@/Models/Network";
 import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
@@ -55,25 +55,26 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, 
     const isSendTruncated = requestedAmountNum > 0 && isFinite(requestedAmountNum) && Number(requestedAmountNum.toFixed(maxFractionDigits)) !== requestedAmountNum
     const receiveAmountNum = Number(receiveAmount)
     const isReceiveTruncated = receiveAmountNum > 0 && isFinite(receiveAmountNum) && Number(receiveAmountNum.toFixed(maxFractionDigits)) !== receiveAmountNum
+    const tokenAmountFormat = useMemo(() => ({ maximumFractionDigits: maxFractionDigits }), [maxFractionDigits])
 
-    const sendToken = (
+    const sendToken = useMemo(() => (
         <TokenAmount
-            display={<NumberFlow value={requestedAmountNum} trend={0} format={{ maximumFractionDigits: maxFractionDigits }} />}
+            display={<NumberFlow value={requestedAmountNum} trend={0} format={tokenAmountFormat} />}
             full={truncateDecimals(requestedAmountNum, sourceCurrency.decimals)}
             symbol={sourceCurrency.symbol}
             truncated={isSendTruncated}
         />
-    )
-    const sendUsd = <UsdAmount value={requestedAmountInUsd} />
-    const recvToken = (
+    ), [requestedAmountNum, sourceCurrency.decimals, sourceCurrency.symbol, isSendTruncated, tokenAmountFormat])
+    const sendUsd = useMemo(() => <UsdAmount value={requestedAmountInUsd} />, [requestedAmountInUsd])
+    const recvToken = useMemo(() => (
         <TokenAmount
-            display={<NumberFlow value={receiveAmountNum} trend={0} format={{ maximumFractionDigits: maxFractionDigits }} />}
+            display={<NumberFlow value={receiveAmountNum} trend={0} format={tokenAmountFormat} />}
             full={truncateDecimals(receiveAmountNum, destinationCurrency.decimals)}
             symbol={destinationCurrency.symbol}
             truncated={isReceiveTruncated}
         />
-    )
-    const recvUsd = <UsdAmount value={receiveAmountInUsd} />
+    ), [receiveAmountNum, destinationCurrency.decimals, destinationCurrency.symbol, isReceiveTruncated, tokenAmountFormat])
+    const recvUsd = useMemo(() => <UsdAmount value={receiveAmountInUsd} />, [receiveAmountInUsd])
 
     return (
         <>
