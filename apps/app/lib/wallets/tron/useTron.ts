@@ -10,7 +10,7 @@ const id = 'tron'
 
 const commonSupportedNetworks = [
     KnownInternalNames.Networks.TronMainnet,
-    KnownInternalNames.Networks.TronTestnet
+    KnownInternalNames.Networks.TronNile
 ]
 
 export default function useTron(): WalletProvider {
