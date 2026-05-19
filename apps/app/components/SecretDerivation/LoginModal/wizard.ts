@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 
-export type LoginStep = 'unsupported' | 'saved' | 'intro' | 'create' | 'signing' | 'error';
+export type LoginStep = 'unsupported' | 'intro' | 'create' | 'signing' | 'error';
 
 export interface LoginWizard {
   history: LoginStep[];
@@ -31,8 +31,8 @@ export function useLoginWizardState(): LoginWizard {
 
 export const loginStepTitle = (step: LoginStep): string =>
   step === 'signing' ? 'Signing'
-    : step === 'unsupported' ? 'Browser not supported'
-    : step === 'create' ? 'Create passkey'
+    : step === 'unsupported' ? ''
+    : step === 'create' ? ''
     : step === 'error' ? 'Login failed'
     : 'Log in';
 

@@ -1,8 +1,9 @@
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Loader2, ChevronLeft, AlertTriangle } from 'lucide-react';
 import { useSharedSecretDerivation } from '@train-protocol/react';
 import { mapPasskeyError } from '@train-protocol/auth';
-import { SavedLogins, IntroStep, CreateStep, ErrorStep } from './PasskeyChoice';
+import { EntryStep, CreateStep, ErrorStep } from './PasskeyChoice';
+import { PasskeyFAQModal } from './LoginFAQ';
 import { loginStepTitle, useLoginWizardState, wizardCanGoBack, type LoginWizard } from './wizard';
 import { Steps, Step } from '@/components/Step';
 import IconButton from '@/components/buttons/iconButton';
@@ -33,6 +34,7 @@ function useLoginFlow({
   } = useSharedSecretDerivation();
   const { history, errorMessage, push, pop, replaceTop, resetTo, setErrorMessage } = wizard;
   const currentStep = history[history.length - 1];
+  const [faqOpen, setFaqOpen] = useState(false);
 
   const passkeyUnsupported = isReady && prfSupportDetails && !prfSupportDetails.supported;
 
@@ -41,7 +43,6 @@ function useLoginFlow({
     if (!isOpen || !isReady) return;
     setErrorMessage(null);
     if (passkeyUnsupported) resetTo('unsupported');
-    else if (passkeyCredentials.length > 0) resetTo('saved');
     else resetTo('intro');
     // intentionally only runs when the modal opens / readiness flips
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -66,7 +67,7 @@ function useLoginFlow({
   };
 
   const headerTitle = loginStepTitle(currentStep);
-  const showHeaderTitle = currentStep !== 'intro';
+  const showHeaderTitle = currentStep !== 'intro' || passkeyCredentials.length > 0;
 
   const header = (
     <div className="inline-flex items-center gap-1">
@@ -80,42 +81,39 @@ function useLoginFlow({
   );
 
   const content = (
-    <Steps currentStep={currentStep}>
-      <Step name="unsupported">
-        <UnsupportedBrowser onClose={onClose} />
-      </Step>
+    <>
+      <Steps currentStep={currentStep}>
+        <Step name="unsupported">
+          <UnsupportedBrowser onClose={onClose} />
+        </Step>
 
-      <Step name="saved">
-        <SavedLogins
-          credentials={passkeyCredentials}
-          onPick={(credentialId) => runLogin({ credentialId })}
-          onUseAnotherMethod={() => push('intro')}
-          onForgetAll={() => {
-            clearAllPasskeyCredentials();
-            resetTo('intro');
-          }}
-        />
-      </Step>
+        <Step name="intro">
+          <EntryStep
+            credentials={passkeyCredentials}
+            onPick={(credentialId) => runLogin({ credentialId })}
+            onCreateNew={() => push('create')}
+            onLoginWithExisting={() => runLogin({ crossDevice: true })}
+            onForgetAll={clearAllPasskeyCredentials}
+            onShowFaq={() => setFaqOpen(true)}
+          />
+        </Step>
 
-      <Step name="intro">
-        <IntroStep
-          onCreateNew={() => push('create')}
-          onLoginWithExisting={() => runLogin({ crossDevice: true })}
-        />
-      </Step>
+        <Step name="create">
+          <CreateStep
+            onCreate={(label) => runLogin({ forceCreate: true, label: label || undefined })}
+          />
+        </Step>
 
-      <Step name="create">
-        <CreateStep onCreate={(label) => runLogin({ forceCreate: true, label: label || undefined })} />
-      </Step>
+        <Step name="signing">
+          <Signing derivationMessage={derivationMessage} />
+        </Step>
 
-      <Step name="signing">
-        <Signing derivationMessage={derivationMessage} />
-      </Step>
-
-      <Step name="error">
-        <ErrorStep message={errorMessage || ''} onBack={pop} />
-      </Step>
-    </Steps>
+        <Step name="error">
+          <ErrorStep message={errorMessage || ''} onBack={pop} />
+        </Step>
+      </Steps>
+      <PasskeyFAQModal open={faqOpen} onClose={() => setFaqOpen(false)} />
+    </>
   );
 
   return { header, content };
@@ -148,11 +146,11 @@ const UnsupportedBrowser = ({ onClose }: { onClose: () => void }) => {
       </div>
       <div className="text-center space-y-2">
         <p className="text-primary-text font-semibold">Passkey login is not supported</p>
-        <p className="text-sm text-secondary-text max-w-[280px]">
+        <p className="text-sm text-secondary-text max-w-70">
           Currently, only passkey login is available. Your browser does not support the required passkey features (PRF extension).
         </p>
-        <p className="text-sm text-secondary-text max-w-[280px]">
-          Please try opening this site in a supported browser such as <span className="text-primary-text font-medium">Google Chrome</span>, <span className="text-primary-text font-medium">Microsoft Edge</span>, or <span className="text-primary-text font-medium">Brave</span>.
+        <p className="text-sm text-secondary-text max-w-70">
+          Please try opening this site in a supported browser such as <span className="text-primary-text font-medium">Google Chrome</span>, <span className="text-primary-text font-medium">Safari</span>, <span className="text-primary-text font-medium">Microsoft Edge</span>, or <span className="text-primary-text font-medium">Brave</span>.
         </p>
       </div>
     </>

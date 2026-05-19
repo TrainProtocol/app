@@ -9,7 +9,7 @@ import clsx from "clsx"
 interface AppShellDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
-    title: string
+    title?: string
     onBack?: () => void;
     mode?: "default" | "fit-content"
     contentClassName?: string
@@ -24,7 +24,7 @@ const AppShellDialog: FC<AppShellDialogProps> = ({ open, onOpenChange, title, on
                 className={clsx(
                     "p-0 gap-0 w-full sm:max-w-lg bg-secondary-700 border border-border rounded-4xl overflow-hidden",
                     contentClassName,
-                    { "sm:min-h-125": mode !== 'fit-content' }
+                    { "sm:min-h-120": mode !== 'fit-content' }
                 )}
             >
                 <DialogTitle className="sr-only">{title}</DialogTitle>
@@ -44,7 +44,7 @@ const AppShellDialog: FC<AppShellDialogProps> = ({ open, onOpenChange, title, on
                             type="button"
                             onClick={() => onOpenChange(false)}
                             aria-label="Close"
-                            className="inline-flex items-center justify-center w-10 h-10 shrink-0 text-secondary-text hover:bg-secondary-500 hover:text-primary-text rounded-lg transition-colors -mr-2"
+                            className="inline-flex items-center justify-center w-10 h-10 shrink-0 text-secondary-text hover:bg-secondary-500 hover:text-primary-text rounded-lg transition-colors"
                         >
                             <X className="w-7 h-7" strokeWidth={2} />
                         </button>
