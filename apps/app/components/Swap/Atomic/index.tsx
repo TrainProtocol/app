@@ -1,7 +1,8 @@
 "use client"
 
 import { Formik, FormikProps } from "formik";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { SwapFormValues } from "../../DTOs/SwapFormValues";
 import React from "react";
 import MainStepValidation from "@/lib/mainStepValidator";
@@ -14,7 +15,11 @@ import { generateSwapInitialValues } from "@/lib/generateSwapInitialValues";
 import { useSettingsState } from "@/context/settings";
 import { useSwapStore } from "@/stores/swapStore";
 import { useRecentNetworksStore } from "@/stores/recentRoutesStore";
-import { FaucetNudgePill } from "@/components/FaucetNudge";
+import { FaucetNudgeChip, FaucetNudgePill } from "@/components/FaucetNudge";
+import { buildHrefWithPersistantParams, replaceUrlWithoutRouting } from "@/helpers/querryHelper";
+import { buildSwapQuery } from "@/helpers/swapUrl";
+import { useActiveSwap } from "@/hooks/useActiveSwap";
+import useWindowDimensions from "@/hooks/useWindowDimensions";
 
 export default function Form() {
     const formikRef = useRef<FormikProps<SwapFormValues>>(null);
@@ -29,6 +34,18 @@ export default function Form() {
     const setSwapModalOpen = useSwapStore(s => s.setSwapModalOpen)
     const setPendingFormValues = useSwapStore(s => s.setPendingFormValues)
     const updateRecentNetworks = useRecentNetworksStore(s => s.updateRecentNetworks);
+    const searchParams = useSearchParams();
+    const { isMobile } = useWindowDimensions();
+    const swap = useActiveSwap();
+
+    useEffect(() => {
+        if (!isMobile) return;
+        if (swapModalOpen && swap.source && swap.txId) {
+            replaceUrlWithoutRouting(buildHrefWithPersistantParams("/swap", searchParams, buildSwapQuery(swap.source, swap.txId)));
+        } else if (!swapModalOpen) {
+            replaceUrlWithoutRouting(buildHrefWithPersistantParams("/", searchParams));
+        }
+    }, [isMobile, swapModalOpen, swap.source, swap.txId, searchParams]);
 
     const handleSubmit = useCallback(async (values: SwapFormValues) => {
         try {
@@ -74,6 +91,7 @@ export default function Form() {
             <Widget>
                 <FaucetNudgePill />
                 <SwapForm polling={!swapModalOpen} onQuoteChange={(q, id) => { setQuote(q); setSolverId(id) }} />
+                <FaucetNudgeChip />
             </Widget>
         </Formik>
     </>

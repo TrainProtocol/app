@@ -54,11 +54,10 @@ const Comp = () => {
     }
 
     useEffect(() => {
-        if (!isOpen) {
-            goToStep(MenuStep.Menu)
-            setSelectedNetwork(null)
-            clearMenuPath(pathname, searchParams)
-        }
+        if (isOpen || window.location.pathname === pathname) return
+        goToStep(MenuStep.Menu)
+        setSelectedNetwork(null)
+        clearMenuPath(pathname, searchParams)
     }, [isOpen])
 
     return <>

@@ -3,40 +3,29 @@
 import { FC } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
+import { useFormikContext } from "formik"
 import { Droplet, ArrowRight } from "lucide-react"
-import { getKey, useBalanceStore } from "@/stores/balanceStore"
 import { buildHrefWithPersistantParams } from "@/helpers/querryHelper"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
-import { useSwapAccounts } from "@/context/swapAccounts"
+import { useNetworkBalance } from "@/context/swapAccounts"
+import { SwapFormValues } from "@/components/DTOs/SwapFormValues"
 import AppSettings from "@/lib/AppSettings"
 
 const FAUCET_TOKEN = "TESTUSDC"
 
 function useFaucetNudgeHref() {
-    const balances = useBalanceStore(s => s.balances)
+    const { values } = useFormikContext<SwapFormValues>()
+    const entry = useNetworkBalance("from", values.from?.caip2Id)
     const searchParams = useSearchParams()
-    const swapAccounts = useSwapAccounts("from")
 
-    if (AppSettings.ApiVersion !== "sandbox") return null
-    if (swapAccounts.length === 0) return null
+    if (AppSettings.ApiVersion !== "sandbox" || !values.from || !entry?.data) return null
 
-    let anyLoading = false
-    const hasTestUsdc = swapAccounts.some(account => {
-        const networks = account.walletWithdrawalSupportedNetworks ?? []
-        return networks.some(caip2Id => {
-            const entry = balances[getKey(account.address, caip2Id)]
-            if (!entry || entry.status === "loading") {
-                anyLoading = true
-                return false
-            }
-            return entry.data?.balances?.some(b =>
-                b.token?.toUpperCase() === FAUCET_TOKEN &&
-                typeof b.amount === "number" &&
-                b.amount > 0
-            )
-        })
-    })
-    if (hasTestUsdc || anyLoading) return null
+    const hasTestUsdc = entry.data.balances?.some(b =>
+        b.token?.toUpperCase() === FAUCET_TOKEN &&
+        typeof b.amount === "number" &&
+        b.amount > 0
+    )
+    if (hasTestUsdc) return null
 
     return buildHrefWithPersistantParams("/faucet", searchParams)
 }
