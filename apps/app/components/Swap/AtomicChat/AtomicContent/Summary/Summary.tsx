@@ -39,7 +39,7 @@ const TokenAmount: FC<{ display: ReactNode; full: string; symbol: string; trunca
 }
 
 const UsdAmount: FC<{ value: number | string | undefined }> = ({ value }) => (
-    <NumberFlow value={Number(value) || 0} prefix="$" trend={0} />
+    <NumberFlow value={Number(value) || 0} prefix="$" trend={0} className="leading-[inherit]" />
 )
 
 const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, source, destination, requestedAmount, receiveAmount, }) => {
@@ -58,7 +58,7 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, 
 
     const sendToken = (
         <TokenAmount
-            display={<NumberFlow value={requestedAmountNum} trend={0} format={{ maximumFractionDigits: maxFractionDigits }} />}
+            display={<NumberFlow value={requestedAmountNum} trend={0} format={{ maximumFractionDigits: maxFractionDigits }} className="leading-[inherit]" />}
             full={truncateDecimals(requestedAmountNum, sourceCurrency.decimals)}
             symbol={sourceCurrency.symbol}
             truncated={isSendTruncated}
@@ -67,7 +67,7 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, 
     const sendUsd = <UsdAmount value={requestedAmountInUsd} />
     const recvToken = (
         <TokenAmount
-            display={<NumberFlow value={receiveAmountNum} trend={0} format={{ maximumFractionDigits: maxFractionDigits }} />}
+            display={<NumberFlow value={receiveAmountNum} trend={0} format={{ maximumFractionDigits: maxFractionDigits }} className="leading-[inherit]" />}
             full={truncateDecimals(receiveAmountNum, destinationCurrency.decimals)}
             symbol={destinationCurrency.symbol}
             truncated={isReceiveTruncated}
@@ -109,7 +109,7 @@ const Summary: FC<AtomicSummaryProps> = ({ sourceCurrency, destinationCurrency, 
                         {
                             receiveAmount && (
                                 <div className="flex flex-col items-end w-full col-start-6 col-span-5 min-w-0">
-                                    <p className="text-primary-text text-xl leading-6 h-6 font-normal flex items-center justify-end min-w-0 w-full">
+                                    <p className="text-primary-text text-xl leading-6 font-normal flex items-center justify-end min-w-0 w-full">
                                         {isUsdMode ? recvUsd : recvToken}
                                     </p>
                                     <p className="text-secondary-text text-sm leading-5 flex items-center gap-1 font-medium">
