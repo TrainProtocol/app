@@ -106,7 +106,7 @@ const userLockTransactionBuilder = async (params: UserLockParams): Promise<Trans
     const { connection, program, walletPublicKey } = params
 
     if (!walletPublicKey) throw new Error("Wallet not connected")
-    if (!params.srcSolverAddress) throw new Error("No LP address")
+    if (!params.srcSolverAddress) throw new Error("No Solver address")
     if (!params.nonce) throw new Error("No nonce")
     if (!params.solverData) throw new Error("No solver data")
 

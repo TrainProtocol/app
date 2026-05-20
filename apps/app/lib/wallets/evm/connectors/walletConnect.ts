@@ -259,6 +259,7 @@ export function walletConnect(parameters: Params) {
             return provider.accounts.map((x: string) => getAddress(x))
         },
         async getProvider({ chainId } = {}) {
+            if (typeof window === 'undefined') return undefined as unknown as Provider
             async function initProvider() {
                 const optionalChains = config.chains.map((x) => x.id) as [number]
                 if (!optionalChains.length) return

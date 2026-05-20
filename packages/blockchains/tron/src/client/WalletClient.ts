@@ -5,11 +5,15 @@ import type {
     RedeemSolverParams,
     AtomicResult,
 } from '@train-protocol/sdk'
-import type { TronHTLCWalletClientConfig, TronSigner } from '../types.js'
+import type { TronHTLCWalletClientConfig, TronSigner, TronTransactionRequest } from '../types.js'
 import { TronHTLCPublicClient } from './PublicClient.js'
 import { userLock } from './wallet/userLock.js'
 import { refund } from './wallet/refund.js'
 import { redeemSolver } from './wallet/redeemSolver.js'
+import { buildUserLockTx } from './wallet/buildUserLockTx.js'
+import { buildRefundTx } from './wallet/buildRefundTx.js'
+import { buildRedeemSolverTx } from './wallet/buildRedeemSolverTx.js'
+import { buildApproveTx, type BuildApproveTxParams } from './wallet/buildApproveTx.js'
 
 export class TronHTLCWalletClient extends TronHTLCPublicClient implements IHTLCWalletClient {
     private signer: TronSigner
@@ -29,5 +33,23 @@ export class TronHTLCWalletClient extends TronHTLCPublicClient implements IHTLCW
 
     async redeemSolver(params: RedeemSolverParams): Promise<string> {
         return redeemSolver(this.rpc, this.signer, params)
+    }
+
+    // ── Transaction Builders ──────────────────────────────────────────
+
+    buildUserLockTx(params: UserLockParams): TronTransactionRequest {
+        return buildUserLockTx(params)
+    }
+
+    buildRefundTx(params: RefundParams): TronTransactionRequest {
+        return buildRefundTx(params)
+    }
+
+    buildRedeemSolverTx(params: RedeemSolverParams): TronTransactionRequest {
+        return buildRedeemSolverTx(params)
+    }
+
+    buildApproveTx(params: BuildApproveTxParams): TronTransactionRequest {
+        return buildApproveTx(params)
     }
 }

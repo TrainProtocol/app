@@ -13,7 +13,7 @@
     "@train-protocol/react": "workspace:^",
     "@train-protocol/auth": "workspace:^",
     "@train-protocol/sdk": "workspace:^",
-    "next": "15.5.14",
+    "next": "15.5.18",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "viem": "catalog:",

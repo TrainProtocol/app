@@ -37,7 +37,7 @@ const Connector: FC<Connector> = ({ connector, connectingConnector, onClick, isR
 
                         <p className='text-base text-left truncate w-full'>{connectorName}</p>
                         {
-                            connector.type === 'injected' && !isRecent &&
+                            connector.type === 'injected' && !connector.isLoadable && !isRecent &&
                             <Badge variant="ghost" className="text-secondary-text hover:bg-transparent px-0">Installed</Badge>
                         }
                         {

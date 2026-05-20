@@ -46,7 +46,7 @@ export function useConnectors({
     const initialConnectors: InternalConnector[] = useMemo(() => {
         const recentNames = new Set(recentConnectors?.map(r => r.connectorName?.toLowerCase()).filter(Boolean))
         const isRecent = (c: InternalConnector) => recentNames.has(c.name.toLowerCase())
-        const isInstalled = (c: InternalConnector) => c.type === 'injected'
+        const isInstalled = (c: InternalConnector) => c.type === 'injected' && !c.isLoadable
 
         // Only the provider's initial connector set should be prioritized.
         const recent = featuredConnectors.filter(c => isRecent(c))

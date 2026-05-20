@@ -2,13 +2,13 @@ import { WagmiProvider, createConfig, http } from 'wagmi'
 import { sepolia, mainnet } from 'wagmi/chains'
 import { injected } from 'wagmi/connectors'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { TrainProvider, SwapProvider } from '@train-protocol/react'
+import { TrainProvider } from '@train-protocol/react'
 import { EvmWalletBridge } from '../components/EvmWalletBridge'
 import { SwapForm } from '../components/SwapForm'
 
 const queryClient = new QueryClient()
 
-const API_URL = process.env.NEXT_PUBLIC_TRAIN_API ?? 'https://station-api.train.tech'
+const API_URL = process.env.NEXT_PUBLIC_TRAIN_API ?? 'https://train-solver-station.dev.lb.layerswap.cloud'
 
 const wagmiConfig = createConfig({
     connectors: [injected()],
@@ -24,11 +24,13 @@ export default function Home() {
     return (
         <WagmiProvider config={wagmiConfig}>
             <QueryClientProvider client={queryClient}>
-                <TrainProvider baseUrl={API_URL}>
-                    <SwapProvider>
-                        <EvmWalletBridge />
-                        <SwapForm />
-                    </SwapProvider>
+                <TrainProvider
+                    baseUrl={API_URL}
+                    queryClient={queryClient}
+                    secretDerivation={{ persist: true }}
+                >
+                    <EvmWalletBridge />
+                    <SwapForm />
                 </TrainProvider>
             </QueryClientProvider>
         </WagmiProvider>

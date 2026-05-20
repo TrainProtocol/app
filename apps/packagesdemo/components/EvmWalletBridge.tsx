@@ -1,114 +1,125 @@
 import { useMemo } from 'react'
-import { useNetworks, useRegisterWallet, useSwapStoreRead, type TrainWalletAdapter } from '@train-protocol/react'
+import {
+    useRegisterWallet,
+    chainNamespace,
+    type TrainWalletAdapter,
+    type Caip2Id,
+} from '@train-protocol/react'
+import type { TrainSDK } from '@train-protocol/sdk'
 import { useAccount, useChainId, useConfig } from 'wagmi'
 import { getWalletClient, getConnections } from 'wagmi/actions'
+import { sepolia, mainnet } from 'wagmi/chains'
+import type { Chain } from 'viem'
+
+const CHAIN_BY_ID: Record<number, Chain> = {
+    [sepolia.id]: sepolia,
+    [mainnet.id]: mainnet,
+}
 
 /**
  * Bridges wagmi wallet to Train Protocol's wallet adapter system.
- * Renders nothing — just registers the EVM adapter (signing, RPC, and login).
+ * Renders nothing — just registers the EVM adapter (client factories + login).
  */
 export function EvmWalletBridge() {
     const config = useConfig()
-    const { getCurrentSwapData } = useSwapStoreRead()
-    const { networks } = useNetworks()
     const { address: connectedAddress } = useAccount()
     const currentChainId = useChainId()
 
-    const adapter = useMemo<TrainWalletAdapter>(() => ({
-        chainNamespace: 'eip155',
+    const adapter = useMemo<TrainWalletAdapter>(() => {
+        function getRpcUrl(caip2Id: Caip2Id): string {
+            const chainId = Number((caip2Id as string).split(':')[1])
+            const url = CHAIN_BY_ID[chainId]?.rpcUrls.default.http[0]
+            if (!url) throw new Error(`No RPC configured for ${caip2Id}`)
+            return url
+        }
 
-        getSigner: () => {
-            if (!connectedAddress) return null
+        function getSigner(caip2Id: Caip2Id, signerAddress?: string) {
+            const address = signerAddress ?? connectedAddress
+            if (!address) return null
 
-            const swap = getCurrentSwapData()
-            const sourceNetworkId = swap?.source
-            if (!sourceNetworkId?.startsWith('eip155:')) return null
-
-            const chainId = Number(sourceNetworkId.split(':')[1])
+            const chainId = Number((caip2Id as string).split(':')[1])
+            const chain = CHAIN_BY_ID[chainId]
+            const connection = getConnections(config)
+                .find(c => c.accounts.some(a => a.toLowerCase() === address.toLowerCase()))
 
             return {
-                address: connectedAddress,
+                address,
                 chainNamespace: 'eip155',
-                sendTransaction: async (tx) => {
-                    const connection = getConnections(config)
-                        .find(c => c.accounts.some(a => a.toLowerCase() === connectedAddress.toLowerCase()))
+                sendTransaction: async (tx: { to: string; data: string; value?: bigint }) => {
+                    if (!chain) throw new Error(`No chain configured for ${caip2Id}`)
+
+                    // Proactively switch the wallet to the target chain so viem doesn't
+                    // throw ChainMismatchError when the wallet sits on a different chain.
+                    if (connection?.connector?.switchChain) {
+                        const activeId = await connection.connector.getChainId?.()
+                        if (activeId !== chain.id) {
+                            await connection.connector.switchChain({ chainId: chain.id })
+                        }
+                    }
 
                     const walletClient = await getWalletClient(config, {
                         chainId,
-                        account: connectedAddress as `0x${string}`,
+                        account: address as `0x${string}`,
                         connector: connection?.connector,
                     })
 
-                    return await walletClient.sendTransaction({
+                    const send = () => walletClient.sendTransaction({
                         to: tx.to as `0x${string}`,
                         data: tx.data as `0x${string}`,
                         value: tx.value,
+                        chain,
                         account: walletClient.account,
                     })
+
+                    try {
+                        return await send()
+                    } catch (e) {
+                        // Some wallets race the switch — retry once after explicit switch.
+                        const isChainMismatch = e instanceof Error && (
+                            e.name === 'ChainMismatchError' ||
+                            (e.cause instanceof Error && e.cause.name === 'ChainMismatchError')
+                        )
+                        if (isChainMismatch && connection?.connector?.switchChain) {
+                            await connection.connector.switchChain({ chainId: chain.id })
+                            return await send()
+                        }
+                        throw e
+                    }
                 },
             }
-        },
+        }
 
-        getClientConfig: () => {
-            const network = networks.find(n => n.caip2Id.includes('eip155')) ///TODO maybe better filter
-            const rpcUrl = network?.nodes[0].url
-            if (!rpcUrl) {
-                throw new Error('No RPC url for eip155')
-            }
-            return { rpcUrl }
-        },
+        return {
+            chainNamespace: chainNamespace('eip155'),
 
-        getSignerForNetwork: (caip2Id: string) => {
-            if (!connectedAddress) return null
+            createClient(sdk: TrainSDK, networkId: Caip2Id) {
+                return sdk.createHTLCPublicClient('eip155', { rpcUrl: getRpcUrl(networkId) })
+            },
 
-            const chainId = Number(caip2Id.split(':')[1])
+            createWriteClient(sdk: TrainSDK, networkId: Caip2Id, address?: string) {
+                const signer = getSigner(networkId, address)
+                if (!signer) throw new Error('No EVM signer available')
+                return sdk.createHTLCWalletClient('eip155', { rpcUrl: getRpcUrl(networkId), signer })
+            },
 
-            return {
-                address: connectedAddress,
-                chainNamespace: 'eip155',
-                sendTransaction: async (tx) => {
-                    const connection = getConnections(config)
-                        .find(c => c.accounts.some(a => a.toLowerCase() === connectedAddress.toLowerCase()))
+            getLoginConfig: async (address?: string) => {
+                const targetAddress = address ?? connectedAddress
+                if (!targetAddress) return null
 
-                    const walletClient = await getWalletClient(config, {
-                        chainId,
-                        account: connectedAddress as `0x${string}`,
-                        connector: connection?.connector,
-                    })
+                const connection = getConnections(config)
+                    .find(c => c.accounts.some(a => a.toLowerCase() === targetAddress.toLowerCase()))
+                if (!connection?.connector) return null
 
-                    return await walletClient.sendTransaction({
-                        to: tx.to as `0x${string}`,
-                        data: tx.data as `0x${string}`,
-                        value: tx.value,
-                        account: walletClient.account,
-                    })
-                },
-            }
-        },
-
-        getClientConfigForNetwork: (caip2Id: string) => {
-            const network = networks.find(n => n.caip2Id === caip2Id)
-            const rpcUrl = network?.nodes[0].url
-            if (!rpcUrl) return {}
-            return { rpcUrl }
-        },
-
-        getLoginConfig: async () => {
-            if (!connectedAddress) return null
-            const connections = getConnections(config)
-            if (connections.length === 0) return null
-
-            const provider = await connections[0].connector.getProvider()
-            const sandbox = currentChainId !== 1
-            return {
-                provider,
-                address: connectedAddress,
-                options: { sandbox, currentChainId },
-            }
-        },
-
-        onSignerChange: () => () => { },
-    }), [config, getCurrentSwapData, networks, connectedAddress, currentChainId])
+                const provider = await connection.connector.getProvider()
+                const sandbox = currentChainId !== 1
+                return {
+                    provider,
+                    address: targetAddress,
+                    options: { sandbox, currentChainId },
+                }
+            },
+        }
+    }, [config, connectedAddress, currentChainId])
 
     useRegisterWallet(adapter)
     return null
