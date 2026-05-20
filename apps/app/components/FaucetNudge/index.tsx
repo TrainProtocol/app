@@ -27,7 +27,7 @@ function useFaucetNudgeHref(caip2Id: string | undefined, tokenSymbol: string | u
     )
     if (hasTestUsdc) return null
 
-    return buildHrefWithPersistantParams("/faucet", searchParams)
+    return buildHrefWithPersistantParams("/faucet", searchParams, { from: caip2Id })
 }
 
 export const FaucetNudgePill: FC = () => {
