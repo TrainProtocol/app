@@ -10,9 +10,9 @@ export function generateFaucetInitialValues(
     const network = fromParam ? networks.find(n => n.caip2Id?.toUpperCase() === fromParam.toUpperCase()) ?? null : null
 
     let recipient: string | null = null
-    const destAddress = queryParams?.destAddress?.trim()
-    if (destAddress && network && Address.isValid(destAddress, network)) {
-        recipient = destAddress
+    const sourceAddress = queryParams?.sourceAddress?.trim()
+    if (sourceAddress && network && Address.isValid(sourceAddress, network)) {
+        recipient = sourceAddress
     }
 
     return { network, recipient }

@@ -223,7 +223,7 @@ export const WalletItem: FC<WalletItemProps> = ({ selectable, account: wallet, n
                     }
                 </div>
                 {
-                    !selectable && !isMulti && hasDisconnect(wallet) &&
+                    !selectable && hasDisconnect(wallet) &&
                     <DisconnectButton onDisconnect={wallet.disconnect} />
                 }
                 {
@@ -339,10 +339,6 @@ const NestedWalletAddress: FC<NestedWalletAddressProps> = ({ selectable, address
                             </div>
                         </span>
                     )
-                }
-                {
-                    !selectable && hasDisconnect(wallet) &&
-                    <DisconnectButton onDisconnect={wallet.disconnect} />
                 }
                 {
                     isNestedSelected &&

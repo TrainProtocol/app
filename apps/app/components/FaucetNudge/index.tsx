@@ -30,7 +30,8 @@ function useFaucetNudgeHref(caip2Id: string | undefined, tokenSymbol: string | u
 
     return buildHrefWithPersistantParams("/faucet", searchParams, {
         from: caip2Id,
-        destAddress: selectedSource?.address,
+        fromAsset: tokenSymbol,
+        sourceAddress: selectedSource?.address,
     })
 }
 

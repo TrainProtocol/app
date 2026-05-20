@@ -42,8 +42,9 @@ export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }
     )
     const initial = generateFaucetInitialValues(availableNetworks, query)
     const [selectedNetwork, setSelectedNetwork] = useState<ExtendedNetwork | null>(null)
-    const [recipient, setRecipient] = useState<string | null>(initial.recipient)
+    const [selectedRecipient, setSelectedRecipient] = useState<string | null>(null)
     const network = selectedNetwork ?? initial.network
+    const recipient = selectedRecipient ?? initial.recipient
 
     const [posting, setPosting] = useState(false)
     const [postError, setPostError] = useState<Error | null>(null)
@@ -76,8 +77,8 @@ export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }
     const prevWalletCountRef = useRef(0)
     useEffect(() => {
         const count = availableWallets.length
-        if (prevWalletCountRef.current > 0 && count === 0) setRecipient(null)
-        else if (prevWalletCountRef.current === 0 && count > 0 && !recipient) setRecipient(availableWallets[0].address)
+        if (prevWalletCountRef.current > 0 && count === 0) setSelectedRecipient(null)
+        else if (prevWalletCountRef.current === 0 && count > 0 && !recipient) setSelectedRecipient(availableWallets[0].address)
         prevWalletCountRef.current = count
     }, [availableWallets, recipient])
 
@@ -160,7 +161,7 @@ export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }
                     network={network}
                     wallets={availableWallets}
                     value={recipient}
-                    onChange={setRecipient}
+                    onChange={setSelectedRecipient}
                     disabled={submitting}
                 />
             </div>
