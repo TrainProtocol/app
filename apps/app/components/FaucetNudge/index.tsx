@@ -7,7 +7,7 @@ import { useFormikContext } from "formik"
 import { Droplet, ArrowRight } from "lucide-react"
 import { buildHrefWithPersistantParams } from "@/helpers/querryHelper"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
-import { useNetworkBalance } from "@/context/swapAccounts"
+import { useNetworkBalance, useSelectedAccount } from "@/context/swapAccounts"
 import { useFaucetNudgeStore } from "@/stores/faucetNudgeStore"
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues"
 import AppSettings from "@/lib/AppSettings"
@@ -16,6 +16,7 @@ const FAUCET_TOKEN = "TESTUSDC"
 
 function useFaucetNudgeHref(caip2Id: string | undefined, tokenSymbol: string | undefined,): string | null {
     const entry = useNetworkBalance("from", caip2Id)
+    const selectedSource = useSelectedAccount("from", caip2Id)
     const searchParams = useSearchParams()
 
     if (AppSettings.ApiVersion !== "sandbox" || !caip2Id || tokenSymbol?.toUpperCase() !== FAUCET_TOKEN || !entry?.data) return null
@@ -27,7 +28,10 @@ function useFaucetNudgeHref(caip2Id: string | undefined, tokenSymbol: string | u
     )
     if (hasTestUsdc) return null
 
-    return buildHrefWithPersistantParams("/faucet", searchParams, { from: caip2Id })
+    return buildHrefWithPersistantParams("/faucet", searchParams, {
+        from: caip2Id,
+        destAddress: selectedSource?.address,
+    })
 }
 
 export const FaucetNudgePill: FC = () => {

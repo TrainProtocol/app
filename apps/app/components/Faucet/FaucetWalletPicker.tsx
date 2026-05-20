@@ -80,7 +80,7 @@ const FaucetWalletPicker: FC<Props> = ({ network, wallets, value, onChange, disa
                                     onClick={() => handleSelect(address)}
                                     className={clsx(
                                         "flex w-full items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-primary-text transition-colors",
-                                        isSelected ? "bg-secondary-400 hover:bg-secondary-300" : "bg-secondary-500 hover:bg-secondary-400",
+                                        isSelected ? "bg-secondary-300" : "bg-secondary-500 hover:bg-secondary-300",
                                     )}
                                 >
                                     <wallet.icon className="w-9 h-9 rounded-md bg-secondary-800 p-0.5 shrink-0" />
