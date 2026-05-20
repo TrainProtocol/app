@@ -4,7 +4,7 @@ import { AztecHTLCPublicClient, AztecHTLCWalletClient } from './client/index'
 import { deriveKeyFromAztecWallet } from './login/index'
 
 export { AztecHTLCPublicClient, AztecHTLCWalletClient } from './client/index'
-export type { AztecHTLCPublicClientConfig, AztecHTLCWalletClientConfig, AztecSigner } from './types'
+export type { AztecHTLCPublicClientConfig, AztecHTLCWalletClientConfig, AztecSigner, AztecTransactionRequest } from './types'
 export { deriveKeyFromAztecWallet } from './login/index'
 export type { AztecWalletLike } from './login/index'
 

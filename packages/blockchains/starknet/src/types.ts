@@ -1,5 +1,12 @@
-import type { AccountInterface } from 'starknet'
+import type { AccountInterface, Call } from 'starknet'
 import type { StarknetAccountLike } from './login/wallet-sign.js'
+
+/**
+ * A built Starknet contract call. Output of the builder methods —
+ * a single `Call` for `refund`/`redeemSolver`/`approve`, or an array
+ * for `userLock` (when chained with an approve in a multicall).
+ */
+export type StarknetTransactionRequest = Call
 
 declare module '@train-protocol/sdk' {
     interface HTLCPublicClientConfigMap {

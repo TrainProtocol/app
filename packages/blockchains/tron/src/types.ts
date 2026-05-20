@@ -20,6 +20,24 @@ export type TronWalletSignConfig = {
 }
 
 /**
+ * A built, unsigned Tron transaction request — the calldata payload that the
+ * SDK passes to TronGrid's `triggersmartcontract` endpoint to produce a
+ * `TronUnsignedTransaction`. Output of the builder methods.
+ */
+export interface TronTransactionRequest {
+    /** Contract address in Tron hex form (41-prefixed) */
+    contractAddress: string
+    /** Function signature, e.g. "userLock(...)" */
+    functionSelector: string
+    /** Hex-encoded ABI parameters (no 0x prefix) */
+    parameter: string
+    /** Native TRX value to send in sun (for native lock); defaults to 0 */
+    callValue?: number
+    /** Fee limit override; defaults to DEFAULT_FEE_LIMIT */
+    feeLimit?: number
+}
+
+/**
  * Minimal signer interface for Tron write operations.
  * The SDK builds unsigned transactions via TronGrid API,
  * then the signer signs and broadcasts them.

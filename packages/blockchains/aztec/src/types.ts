@@ -1,5 +1,14 @@
 import type { Wallet } from '@aztec/aztec.js/wallet'
+import type { ContractFunctionInteraction } from '@aztec/aztec.js/contracts'
 import type { AztecWalletLike } from './login/wallet-sign.js'
+
+/**
+ * A built Aztec contract function interaction. Output of the builder methods.
+ * `buildUserLockTx` returns an array `[authwit, userLock]` to be batched in
+ * a single transaction; `buildRefundTx` / `buildRedeemSolverTx` each return
+ * a single interaction.
+ */
+export type AztecTransactionRequest = ContractFunctionInteraction
 
 declare module '@train-protocol/sdk' {
     interface HTLCPublicClientConfigMap {

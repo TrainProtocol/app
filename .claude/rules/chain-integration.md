@@ -25,9 +25,13 @@ packages/blockchains/{chain}/
 │   │   │   ├── getTransaction.ts
 │   │   │   └── recoverSwap.ts
 │   │   └── wallet/
-│   │       ├── userLock.ts      # Full transaction building + sending (no separate builder file)
+│   │       ├── userLock.ts             # Executor — orchestrates build + simulate + send
+│   │       ├── buildUserLockTx.ts      # Pure builder — params → TransactionRequest
 │   │       ├── refund.ts
-│   │       └── redeemSolver.ts
+│   │       ├── buildRefundTx.ts
+│   │       ├── redeemSolver.ts
+│   │       ├── buildRedeemSolverTx.ts
+│   │       └── buildApproveTx.ts       # If the chain has an ERC20-like allowance flow
 │   ├── index.ts            # Registration + public exports
 │   ├── types.ts            # Signer interface + client config types
 │   ├── constants.ts        # Chain-specific constants (zero addresses, fee limits, etc.)
@@ -50,7 +54,10 @@ packages/blockchains/{chain}/
 - Each read/write method lives in its own file under `client/public/` or `client/wallet/`
 - `resolveUserLock()` is co-located in `getUserLockDetails.ts`, `resolveSolverLock()` in `getSolverLockDetails.ts` — exported for testing
 - `pickEventDerivedData()` is co-located in `getUserLockDetails.ts` (EVM/Tron) or `client/helpers.ts` (Starknet)
-- Transaction building logic lives directly in the wallet method files — no separate `transactionBuilder.ts`
+- Each write method has a **paired builder file** (`build{Method}Tx.ts`) and an **executor file** (`{method}.ts`):
+  - The **builder** is a pure synchronous function: takes params, returns a chain-specific `TransactionRequest` (e.g., `EvmTransactionRequest = { to, data, value?, chainId? }`). No RPC, no signer.
+  - The **executor** is a thin orchestrator that consumes the builder, performs simulation/preflight reads, and sends via the signer.
+  - Builders are exposed as public methods on the wallet client (`buildUserLockTx`, `buildRefundTx`, `buildRedeemSolverTx`, plus `buildApproveTx` if the chain uses ERC20-style allowances) so integrators can sign/submit via their own infra.
 - Shared utilities (`hexToUint8Array`, `encoder`, etc.) go in `src/utils.ts`
 
 ---
@@ -236,7 +243,13 @@ Chain implementations only need to implement the single-node abstract method `ge
 
 ## 5. Write Operation Patterns
 
-Each write method lives in its own file under `client/wallet/`. Transaction building and sending are in the **same file** — no separate `transactionBuilder.ts`.
+Each write method is split into two files under `client/wallet/`: a **pure builder** (`build{Method}Tx.ts`) that returns a chain-specific `TransactionRequest`, and an **executor** (`{method}.ts`) that consumes the builder, simulates, and sends via the signer.
+
+### Builder/executor split
+
+- **Builder**: synchronous, pure. Inputs are the method's params; output is `{ to, data, value?, chainId? }` (chain-specific shape). No RPC reads, no signer access. Exposed as a public method on the wallet client.
+- **Executor**: async. Calls the builder, performs any preflight (allowance check via a public-client read method, simulation via `eth_call` or equivalent), then submits via the signer. Returns the same shape as before (e.g. `AtomicResult` for `userLock`, tx hash for `refund`/`redeemSolver`).
+- **ERC20-style allowance** (if the chain has it): use a paired `buildApproveTx` builder plus a public-client read like `getErc20Allowance`. The executor decides whether to issue an approve before the lock — builders never do that themselves.
 
 ### userLock (`client/wallet/userLock.ts`)
 
@@ -442,6 +455,7 @@ The `{namespace}` is the chain identifier used in the registry (e.g., `'eip155'`
 - `{Chain}HTLCPublicClientConfig` — public client config type
 - `{Chain}HTLCWalletClientConfig` — wallet client config type
 - `{Chain}Signer` — signer type
+- `{Chain}TransactionRequest` — built/unsigned transaction request type returned by builders
 - `deriveKeyFrom{Chain}...` — key derivation function
 - Any chain-specific wallet interface types needed by consumers
 
@@ -590,10 +604,12 @@ export const ZERO_ADDRESS = '0x000...'     // Chain's empty/zero address represe
   - [ ] `getSolverLockDetails.ts` — includes exported `resolveSolverLock()`
   - [ ] `getTransaction.ts`
   - [ ] `recoverSwap.ts`
-- [ ] Each write method in its own file under `client/wallet/`:
-  - [ ] `userLock.ts` — full transaction building + sending (no separate builder file)
-  - [ ] `refund.ts`
-  - [ ] `redeemSolver.ts`
+- [ ] Each write method split into a paired builder + executor under `client/wallet/`:
+  - [ ] `userLock.ts` (executor) + `buildUserLockTx.ts` (pure builder)
+  - [ ] `refund.ts` (executor) + `buildRefundTx.ts` (pure builder)
+  - [ ] `redeemSolver.ts` (executor) + `buildRedeemSolverTx.ts` (pure builder)
+  - [ ] `buildApproveTx.ts` + `getErc20Allowance.ts` (under `client/public/`) if the chain has ERC20-like allowances
+  - [ ] Expose all builders as public methods on the wallet client
 - [ ] Count-then-loop pattern in `getSolverLockDetails` (1-indexed)
 - [ ] `getTransaction(txHash)` — non-blocking, try/catch returning `null`, all three statuses
 - [ ] Set `this.consensusOptions` in constructor if chain needs non-default quorum
