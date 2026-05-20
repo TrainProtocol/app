@@ -15,6 +15,9 @@ declare module '@train-protocol/sdk' {
     interface HTLCWalletClientConfigMap {
         starknet: StarknetHTLCWalletClientConfig
     }
+    interface HTLCTransactionRequestMap {
+        starknet: StarknetTransactionRequest
+    }
 }
 
 declare module '@train-protocol/auth' {

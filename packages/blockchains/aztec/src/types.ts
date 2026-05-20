@@ -17,6 +17,9 @@ declare module '@train-protocol/sdk' {
     interface HTLCWalletClientConfigMap {
         aztec: AztecHTLCWalletClientConfig
     }
+    interface HTLCTransactionRequestMap {
+        aztec: AztecTransactionRequest
+    }
 }
 
 declare module '@train-protocol/auth' {

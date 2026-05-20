@@ -7,6 +7,9 @@ declare module '@train-protocol/sdk' {
     interface HTLCWalletClientConfigMap {
         eip155: EvmHTLCWalletClientConfig
     }
+    interface HTLCTransactionRequestMap {
+        eip155: EvmTransactionRequest
+    }
 }
 
 declare module '@train-protocol/auth' {

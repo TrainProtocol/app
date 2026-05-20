@@ -9,6 +9,9 @@ declare module '@train-protocol/sdk' {
     interface HTLCWalletClientConfigMap {
         solana: SolanaHTLCWalletClientConfig
     }
+    interface HTLCTransactionRequestMap {
+        solana: Transaction
+    }
 }
 
 declare module '@train-protocol/auth' {

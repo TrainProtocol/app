@@ -7,6 +7,9 @@ declare module '@train-protocol/sdk' {
     interface HTLCWalletClientConfigMap {
         tron: TronHTLCWalletClientConfig
     }
+    interface HTLCTransactionRequestMap {
+        tron: TronTransactionRequest
+    }
 }
 
 declare module '@train-protocol/auth' {
