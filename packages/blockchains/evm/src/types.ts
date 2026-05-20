@@ -7,6 +7,9 @@ declare module '@train-protocol/sdk' {
     interface HTLCWalletClientConfigMap {
         eip155: EvmHTLCWalletClientConfig
     }
+    interface HTLCTransactionRequestMap {
+        eip155: EvmTransactionRequest
+    }
 }
 
 declare module '@train-protocol/auth' {
@@ -22,6 +25,18 @@ export type EvmWalletSignConfig = {
 }
 
 /**
+ * A built, unsigned EVM transaction request. Output of the builder methods
+ * (`buildUserLockTx`, `buildRefundTx`, `buildRedeemSolverTx`, `buildApproveTx`)
+ * and input shape accepted by `EvmSigner.sendTransaction`.
+ */
+export interface EvmTransactionRequest {
+    to: string
+    data: string
+    value?: bigint
+    chainId?: number
+}
+
+/**
  * Minimal signer interface for EVM write operations.
  * Integrators wrap their library's signer (viem WalletClient, ethers Signer,
  * raw EIP-1193 provider) into this interface.
@@ -34,12 +49,7 @@ export interface EvmSigner {
      * Sign and broadcast a transaction, returning the tx hash.
      * The SDK builds all calldata; the signer only needs to sign and send.
      */
-    sendTransaction(tx: {
-        to: string
-        data: string
-        value?: bigint
-        chainId?: number
-    }): Promise<string>
+    sendTransaction(tx: EvmTransactionRequest): Promise<string>
 }
 
 export type EvmHTLCPublicClientConfig = {

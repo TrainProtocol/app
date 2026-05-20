@@ -11,10 +11,51 @@ export interface IHTLCPublicClient {
     getTransaction(txHash: string): Promise<TransactionInfo | null>
 }
 
-export interface IHTLCWalletClient extends IHTLCPublicClient {
+/**
+ * Open registry of chain-specific unsigned transaction request types.
+ * Chain SDKs augment this via declaration merging:
+ *
+ *   declare module '@train-protocol/sdk' {
+ *       interface HTLCTransactionRequestMap {
+ *           eip155: EvmTransactionRequest
+ *       }
+ *   }
+ *
+ * Consumers can then reference the chain's request shape via
+ * `TransactionRequestFor<'eip155'>` without importing from the chain package.
+ */
+export interface HTLCTransactionRequestMap {}
+
+export type TransactionRequestFor<N extends string> = N extends keyof HTLCTransactionRequestMap
+    ? HTLCTransactionRequestMap[N]
+    : unknown
+
+/**
+ * Parameters accepted by `buildApproveTx` on chains with ERC20-style allowances
+ * (EVM, Tron, Starknet). Chains without an allowance model (Solana, Aztec) do
+ * not implement `buildApproveTx`.
+ */
+export interface BuildApproveTxParams {
+    token: string
+    spender: string
+    amount: bigint
+}
+
+export interface IHTLCWalletClient<TTx = unknown> extends IHTLCPublicClient {
     userLock(params: UserLockParams): Promise<AtomicResult>
     refund(params: RefundParams): Promise<string>
     redeemSolver(params: RedeemSolverParams): Promise<string>
+    /**
+     * Builders return the chain's natural unsigned-transaction shape. Some chains
+     * are sync (EVM/Tron/Starknet), some async (Solana/Aztec); Aztec's user-lock
+     * builder returns an array (authwit + lock batch). The interface accepts all
+     * shapes; concrete classes narrow.
+     */
+    buildUserLockTx(params: UserLockParams): TTx | TTx[] | Promise<TTx | TTx[]>
+    buildRefundTx(params: RefundParams): TTx | Promise<TTx>
+    buildRedeemSolverTx(params: RedeemSolverParams): TTx | Promise<TTx>
+    /** Present only on chains with ERC20-style allowances. */
+    buildApproveTx?(params: BuildApproveTxParams): TTx | Promise<TTx>
 }
 
 export abstract class HTLCPublicClient implements IHTLCPublicClient {

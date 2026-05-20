@@ -1,81 +1,45 @@
-import { AbiFunction } from 'ox'
-import { parseUnits, toHex32 } from '@train-protocol/sdk'
+import { parseUnits } from '@train-protocol/sdk'
 import type { UserLockParams, AtomicResult } from '@train-protocol/sdk'
-import { htlcFunctions, trc20Functions } from '../../abi.js'
 import type { TronRpcClient } from '../../rpc.js'
-import type { TronSigner } from '../../types.js'
-import { ZERO_ADDRESS, DEFAULT_FEE_LIMIT, FUNCTION_SIGNATURES } from '../../constants.js'
-import { toEvmHex, toTronHex } from '../../address.js'
-import { decodeContractError, encodeParams, hex } from '../../utils.js'
+import type { TronSigner, TronTransactionRequest } from '../../types.js'
+import { ZERO_ADDRESS } from '../../constants.js'
+import { toTronHex } from '../../address.js'
+import { decodeContractError } from '../../utils.js'
+import { buildUserLockTx } from './buildUserLockTx.js'
+import { buildApproveTx } from './buildApproveTx.js'
+import { getTrc20Allowance } from '../public/getTrc20Allowance.js'
 
 export async function userLock(
     rpc: TronRpcClient,
     signer: TronSigner,
     params: UserLockParams,
 ): Promise<AtomicResult> {
-    const { sourceAsset, sourceAddress } = params
-
-    const parsedAmount = parseUnits(params.amount.toString(), sourceAsset.decimals)
-    const tokenAddress = sourceAsset.contract || ZERO_ADDRESS
-    const isNativeToken = !sourceAsset.contract || sourceAsset.contract === ZERO_ADDRESS
-
-    const ownerHex = toTronHex(sourceAddress)
-    const contractHex = toTronHex(params.atomicContract)
+    const tokenAddress = params.sourceAsset.contract
+    const isNativeToken = !tokenAddress || tokenAddress === ZERO_ADDRESS
+    const parsedAmount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
 
     if (!isNativeToken) {
-        await ensureTRC20Allowance(
+        const allowance = await getTrc20Allowance(
             rpc,
-            signer,
-            tokenAddress,
-            sourceAddress,
+            tokenAddress!,
+            params.sourceAddress,
             params.atomicContract,
-            parsedAmount,
         )
+        if (allowance < parsedAmount) {
+            const approveTx = buildApproveTx({
+                token: tokenAddress!,
+                spender: params.atomicContract,
+                amount: parsedAmount,
+            })
+            const approveTxId = await sendRequest(rpc, signer, approveTx, params.sourceAddress)
+            await waitForConfirmation(rpc, approveTxId)
+        }
     }
 
-    const userData = toHex32(BigInt(params.nonce))
-    const calldata = AbiFunction.encodeData(htlcFunctions.userLock, [
-        {
-            hashlock: hex(params.hashlock),
-            amount: parsedAmount,
-            rewardAmount: params.rewardAmount || 0n,
-            timelockDelta: params.timelockDelta,
-            rewardTimelockDelta: params.rewardTimelockDelta ?? 0,
-            quoteExpiry: params.quoteExpiry,
-            sender: toEvmHex(params.sourceAddress),
-            recipient: toEvmHex(params.srcSolverAddress),
-            token: toEvmHex(tokenAddress),
-            rewardToken: params.rewardToken ? toEvmHex(params.rewardToken) : hex(ZERO_ADDRESS),
-            rewardRecipient: params.rewardRecipient ? toEvmHex(params.rewardRecipient) : hex(ZERO_ADDRESS),
-            srcChain: params.sourceChain || '',
-        },
-        {
-            dstChain: params.destinationChain,
-            dstAddress: params.destinationAddress,
-            dstAmount: params.destinationAmount,
-            dstToken: params.destinationAsset.contract,
-        },
-        hex(userData),
-        hex(params.solverData || '0x'),
-    ])
-
-    const parameter = encodeParams(calldata)
+    const lockTx = buildUserLockTx(params)
 
     try {
-        // Simulate first
-        await rpc.triggerConstantContract(contractHex, FUNCTION_SIGNATURES.userLock, parameter, ownerHex)
-
-        // Build and sign
-        const unsignedTx = await rpc.triggerSmartContract(
-            contractHex,
-            FUNCTION_SIGNATURES.userLock,
-            parameter,
-            ownerHex,
-            isNativeToken ? Number(parsedAmount) : 0,
-            DEFAULT_FEE_LIMIT,
-        )
-
-        const hash = await signer.signAndBroadcast(unsignedTx)
+        const hash = await sendRequest(rpc, signer, lockTx, params.sourceAddress)
         return { hash, hashlock: params.hashlock, nonce: params.nonce }
     } catch (error) {
         const errorName = decodeContractError(error)
@@ -85,37 +49,23 @@ export async function userLock(
     }
 }
 
-async function ensureTRC20Allowance(
+async function sendRequest(
     rpc: TronRpcClient,
     signer: TronSigner,
-    tokenAddress: string,
+    req: TronTransactionRequest,
     owner: string,
-    spender: string,
-    requiredAmount: bigint,
-): Promise<void> {
-    const tokenHex = toTronHex(tokenAddress)
+): Promise<string> {
     const ownerHex = toTronHex(owner)
-
-    const allowanceCalldata = AbiFunction.encodeData(trc20Functions.allowance, [
-        toEvmHex(owner),
-        toEvmHex(spender),
-    ])
-    const aParam = encodeParams(allowanceCalldata)
-    const allowanceRaw = await rpc.triggerConstantContract(tokenHex, FUNCTION_SIGNATURES.allowance, aParam, ownerHex)
-    const allowance = AbiFunction.decodeResult(trc20Functions.allowance, hex('0x' + allowanceRaw))
-
-    if (allowance >= requiredAmount) return
-
-    const approveCalldata = AbiFunction.encodeData(trc20Functions.approve, [
-        toEvmHex(spender),
-        requiredAmount,
-    ])
-    const apParam = encodeParams(approveCalldata)
+    await rpc.triggerConstantContract(req.contractAddress, req.functionSelector, req.parameter, ownerHex)
     const unsignedTx = await rpc.triggerSmartContract(
-        tokenHex, FUNCTION_SIGNATURES.approve, apParam, ownerHex, 0, DEFAULT_FEE_LIMIT,
+        req.contractAddress,
+        req.functionSelector,
+        req.parameter,
+        ownerHex,
+        req.callValue ?? 0,
+        req.feeLimit ?? 0,
     )
-    const txId = await signer.signAndBroadcast(unsignedTx)
-    await waitForConfirmation(rpc, txId)
+    return signer.signAndBroadcast(unsignedTx)
 }
 
 async function waitForConfirmation(

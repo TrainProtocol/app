@@ -1,4 +1,4 @@
-import type { IHTLCPublicClient, IHTLCWalletClient } from './types/htlc-client'
+import type { IHTLCPublicClient, IHTLCWalletClient, TransactionRequestFor } from './types/htlc-client'
 import { RegistrationError } from './errors'
 
 // --- HTLC Client Registry ---
@@ -51,7 +51,7 @@ export class TrainSDK {
 
     registerHTLCWalletClient<N extends string>(
         chainNamespace: N,
-        factory: (config: WalletConfigFor<N>) => IHTLCWalletClient,
+        factory: (config: WalletConfigFor<N>) => IHTLCWalletClient<TransactionRequestFor<N>>,
     ): void {
         this.walletRegistry.set(chainNamespace, factory)
     }
@@ -73,7 +73,7 @@ export class TrainSDK {
     createHTLCWalletClient<N extends string>(
         chainNamespace: N,
         config: WalletConfigFor<N>,
-    ): IHTLCWalletClient {
+    ): IHTLCWalletClient<TransactionRequestFor<N>> {
         const factory = this.walletRegistry.get(chainNamespace)
         if (!factory) {
             throw new RegistrationError(
@@ -81,7 +81,7 @@ export class TrainSDK {
                 `Did you forget to call the corresponding register function (e.g. registerEvmSdk())?`
             )
         }
-        return factory(config)
+        return factory(config) as IHTLCWalletClient<TransactionRequestFor<N>>
     }
 
     getRegisteredNamespaces(): string[] {
@@ -104,7 +104,7 @@ export function registerHTLCPublicClient<N extends string>(
 
 export function registerHTLCWalletClient<N extends string>(
     chainNamespace: N,
-    factory: (config: WalletConfigFor<N>) => IHTLCWalletClient,
+    factory: (config: WalletConfigFor<N>) => IHTLCWalletClient<TransactionRequestFor<N>>,
 ): void {
     return defaultTrainSDK.registerHTLCWalletClient(chainNamespace, factory)
 }
@@ -119,7 +119,7 @@ export function createHTLCPublicClient<N extends string>(
 export function createHTLCWalletClient<N extends string>(
     chainNamespace: N,
     config: WalletConfigFor<N>,
-): IHTLCWalletClient {
+): IHTLCWalletClient<TransactionRequestFor<N>> {
     return defaultTrainSDK.createHTLCWalletClient(chainNamespace, config)
 }
 
