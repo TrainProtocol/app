@@ -12,7 +12,7 @@ export function NetworkSelect({ label, value, onChange, exclude }: Props) {
 
     // Only show EVM networks for this demo
     const evmNetworks = networks.filter(
-        (n: Network) => n.type?.name === 'eip155' && n.caip2Id !== exclude
+        (n: Network) => n.caip2Id.startsWith('eip155:') && n.caip2Id !== exclude
     )
 
     return (

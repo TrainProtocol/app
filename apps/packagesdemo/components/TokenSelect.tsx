@@ -17,7 +17,7 @@ export function TokenSelect({ networkId, value, onChange }: Props) {
             <select value={value} onChange={e => onChange(e.target.value)}>
                 <option value="">Select token</option>
                 {tokens.map((t: Token) => (
-                    <option key={t.symbol} value={t.symbol}>
+                    <option key={t.contract} value={t.contract}>
                         {t.symbol}
                     </option>
                 ))}
