@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSwapStore } from "../../stores/swapStore";
-import { useSwap } from "@train-protocol/react";
+import { useSwap, isTerminalStatus } from "@train-protocol/react";
 import { useSettingsState } from "../../context/settings";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
@@ -27,6 +27,7 @@ export default function PendingSwap({ variant = 'header' }: PendingSwapProps) {
     const searchParams = useSearchParams()
 
     if (!mounted || !activeHashlock || !activeSwap || !settings) return null
+    if (isTerminalStatus(activeSwap.status)) return null
     if (variant === 'header' && (swapModalOpen || pathname !== '/')) return null
 
     const { networks } = settings
