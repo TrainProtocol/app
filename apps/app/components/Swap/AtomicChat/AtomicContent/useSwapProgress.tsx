@@ -202,6 +202,18 @@ export function useSwapProgress(): SwapProgress {
             };
         }
 
+        // Ordered above failureReason so solver-side post-redeem errors don't mask a swap the user can already see completed on-chain.
+        if (htlcStatus === HTLCStatus.RedeemCompleted) {
+            return {
+                gaugeValue: 100, gaugeIcon: "check",
+                title: "Swap complete",
+                subtitle: "Your assets have been sent to your address.",
+                steps: buildSteps(HAPPY_STEPS, -1, { redeem: redeemTxLink, source: sourceTxLink, dest: destTxLink }, {
+                    1: { description: <VerificationStatus /> },
+                }),
+            };
+        }
+
         // API error — overlay on current progress
         if (htlcFromApi?.failureReason) {
             const currentIndex = solverLockTx ? 2 : 1
@@ -295,18 +307,6 @@ export function useSwapProgress(): SwapProgress {
                 steps: buildSteps(HAPPY_STEPS, 2, { source: sourceTxLink, dest: destTxLink }, {
                     1: { description: <VerificationStatus /> },
                     2: { name: "Claim assets", status: !redeemTxLink ? StepStatus.Upcoming : StepStatus.Current, description: "The transfer didn't complete automatically. Claim manually to finish." },
-                }),
-            };
-        }
-
-        // Swap complete
-        if (htlcStatus === HTLCStatus.RedeemCompleted) {
-            return {
-                gaugeValue: 100, gaugeIcon: "check",
-                title: "Swap complete",
-                subtitle: "Your assets have been sent to your address.",
-                steps: buildSteps(HAPPY_STEPS, -1, { redeem: redeemTxLink, source: sourceTxLink, dest: destTxLink }, {
-                    1: { description: <VerificationStatus /> },
                 }),
             };
         }
