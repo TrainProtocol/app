@@ -38,7 +38,9 @@ if (typeof window !== "undefined") {
     sdkReady.set("solana",   import("@train-protocol/solana").then(m => m.registerSolanaSdk()))
     sdkReady.set("starknet", import("@train-protocol/starknet").then(m => m.registerStarknetSdk()))
     sdkReady.set("tron",     import("@train-protocol/tron").then(m => m.registerTronSdk()))
-    sdkReady.forEach(p => p.catch(() => {}))
+    sdkReady.forEach((p, ns) =>
+        p.catch(e => console.error(`SDK registration failed: ${ns}`, e))
+    )
 }
 
 export const waitForSdk = (namespace: string): Promise<void> =>
