@@ -52,7 +52,7 @@ export async function getUserLockDetails(
 
 export function resolveUserLock(result: any, id: string, decimals: number): BaseLockDetails | null {
     if (result.sender === ZERO_ADDRESS) return null
-    if (!result.timelock || result.timelock.length < 9) return null
+    if (!result.timelock || (result.timelock && (result.timelock.toString()).length < 9)) return null
 
     return {
         hashlock: id,
