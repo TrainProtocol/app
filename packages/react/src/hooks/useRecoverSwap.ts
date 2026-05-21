@@ -6,7 +6,7 @@ import { useStoreContext } from '../providers/TrainProvider'
 import { useNetworksContext } from '../providers/NetworksProvider'
 import { TrainError, TrainErrorCode } from '../types'
 import type { SwapData } from '../types'
-import { caip2Id } from '../internal/branded'
+import { caip2Id, parseCaip2Id } from '../internal/branded'
 
 export interface UseRecoverSwapResult {
     /** Recover a swap from a transaction hash. Returns the hashlock. */
@@ -55,6 +55,12 @@ export function useRecoverSwap(): UseRecoverSwapResult {
             // Not found locally — recover from chain
             const srcNetwork = networkMap.get(sourceNetwork)
             if (!srcNetwork) throw new Error(`Network not found: ${networkId}`)
+
+            // Wait for the chain SDK to be registered (handles apps that
+            // dynamically import chain packages — see TrainConfig.sdkReady).
+            if (config.sdkReady) {
+                await config.sdkReady(parseCaip2Id(sourceNetwork).namespace)
+            }
 
             const client = walletCtx.createClient(sourceNetwork)
             const details = await client.recoverSwap(txHash, srcNetwork)

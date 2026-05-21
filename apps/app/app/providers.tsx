@@ -30,13 +30,19 @@ import AppSettings from "@/lib/AppSettings"
 import { useRpcConfigStore } from "@/stores/rpcConfigStore"
 import Loading from "@/components/Loading"
 
+const sdkReady = new Map<string, Promise<void>>()
+
 if (typeof window !== "undefined") {
-    registerEvmSdk()
-    import("@train-protocol/aztec").then(m => m.registerAztecSdk())
-    import("@train-protocol/solana").then(m => m.registerSolanaSdk())
-    import("@train-protocol/starknet").then(m => m.registerStarknetSdk())
-    import("@train-protocol/tron").then(m => m.registerTronSdk())
+    sdkReady.set("eip155",   Promise.resolve(registerEvmSdk()))
+    sdkReady.set("aztec",    import("@train-protocol/aztec").then(m => m.registerAztecSdk()))
+    sdkReady.set("solana",   import("@train-protocol/solana").then(m => m.registerSolanaSdk()))
+    sdkReady.set("starknet", import("@train-protocol/starknet").then(m => m.registerStarknetSdk()))
+    sdkReady.set("tron",     import("@train-protocol/tron").then(m => m.registerTronSdk()))
+    sdkReady.forEach(p => p.catch(() => {}))
 }
+
+export const waitForSdk = (namespace: string): Promise<void> =>
+    sdkReady.get(namespace) ?? Promise.resolve()
 
 const INTERCOM_APP_ID = "h5zisg78"
 const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY
@@ -112,6 +118,7 @@ function AppShell({ children, settings }: { children: React.ReactNode; settings:
                 <TrainProvider
                     baseUrl={AppSettings.TrainApiUri ?? ''}
                     resolveNodeUrls={resolveNodeUrls}
+                    sdkReady={waitForSdk}
                     initialNetworks={settings.networks}
                     secretDerivation={{ persist: true }}
                 >

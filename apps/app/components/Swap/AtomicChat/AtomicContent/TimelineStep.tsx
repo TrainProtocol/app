@@ -56,7 +56,7 @@ const TxLink = ({ txLink }: { txLink: string }) => {
 function TimelineStep({ step, isLastStep }: { step: TimelineStepType, isLastStep: boolean }) {
     return (
         <li className={clsx(isLastStep ? '' : 'pb-5', 'relative')}>
-            <div className="flex items-center justify-between w-full">
+            <div className="flex items-center justify-between w-full gap-2">
                 {!isLastStep && (
                     <div className={clsx(`absolute top-1/2 left-4 -ml-px mt-2.5 h-[30%] w-0.5 `, {
                         "bg-primary/20": step.status !== StepStatus.Complete && step.status !== StepStatus.Failed,
@@ -64,7 +64,7 @@ function TimelineStep({ step, isLastStep }: { step: TimelineStepType, isLastStep
                     })}
                         aria-hidden="true" />
                 )}
-                <div className={clsx(`group relative flex `, {
+                <div className={clsx(`group relative flex min-w-0 flex-1`, {
                     "items-start": step?.description,
                     "items-center": !step?.description
                 })}>
@@ -81,7 +81,7 @@ function TimelineStep({ step, isLastStep }: { step: TimelineStepType, isLastStep
                         </span>
                         {
                             step?.description &&
-                            <span className="text-sm text-secondary-text">{step?.description}</span>
+                            <span className="text-sm text-secondary-text break-all">{step?.description}</span>
                         }
                     </span>
                 </div>

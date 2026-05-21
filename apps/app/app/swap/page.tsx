@@ -27,7 +27,10 @@ export default function SwapPage() {
         recoveryAttemptedRef.current = key;
         recover(txHash, sourceNetwork)
             .then(setActiveHashlock)
-            .catch(e => console.error("Auto-recovery failed:", e));
+            .catch(e => {
+                recoveryAttemptedRef.current = null;
+                console.error("Auto-recovery failed:", e);
+            });
     }, [sourceNetwork, txHash, activeHashlock, recover, setActiveHashlock]);
 
     useSwapProgress(activeHashlock);

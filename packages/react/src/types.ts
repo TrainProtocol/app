@@ -21,6 +21,15 @@ export interface TrainConfig {
     auth?: TrainAuth
     /** Resolve RPC node URLs for a CAIP-2 network ID (used for solver lock verification) */
     resolveNodeUrls?: (networkId: string) => string[]
+    /**
+     * Wait for a chain SDK to be registered for the given namespace.
+     * If your app registers chain SDKs via dynamic imports, return a promise
+     * that resolves once `registerXxxSdk()` has run. Hooks that need to create
+     * a client (e.g. `useRecoverSwap`) will await this before calling into the
+     * SDK, preventing races on first render. Return `Promise.resolve()` for
+     * already-registered namespaces.
+     */
+    sdkReady?: (namespace: string) => Promise<void>
     /** Optional TanStack Query client (for sharing with app-level QueryClientProvider) */
     queryClient?: QueryClient
     /** Pre-fetched networks (e.g. from SSR) to seed the cache and avoid a duplicate client-side fetch */
