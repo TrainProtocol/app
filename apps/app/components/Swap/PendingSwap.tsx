@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSwapStore } from "../../stores/swapStore";
-import { useSwap, isTerminalStatus } from "@train-protocol/react";
+import { useSwap, isTerminalStatus, HTLCStatus } from "@train-protocol/react";
 import { useSettingsState } from "../../context/settings";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
@@ -27,7 +27,8 @@ export default function PendingSwap({ variant = 'header' }: PendingSwapProps) {
     const searchParams = useSearchParams()
 
     if (!mounted || !activeHashlock || !activeSwap || !settings) return null
-    if (isTerminalStatus(activeSwap.status)) return null
+    const isTerminal = isTerminalStatus(activeSwap.status)
+    if (isTerminal && pathname !== '/swap') return null
     if (variant === 'header' && (swapModalOpen || pathname !== '/')) return null
 
     const { networks } = settings
@@ -81,10 +82,12 @@ export default function PendingSwap({ variant = 'header' }: PendingSwapProps) {
 
                     <span className="truncate transition-[max-width,opacity] duration-300 ease-in-out max-w-32 opacity-100 group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0">{swapLabel}</span>
 
-                    <span aria-hidden="true" className="ml-auto mr-2 relative flex h-2 w-2 shrink-0 origin-center !overflow-visible transition-[opacity,transform] duration-300 ease-in-out group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:scale-0">
-                        <span className="absolute -inset-0.5 rounded-full bg-primary opacity-70 animate-ping" />
-                        <span className="relative h-2 w-2 rounded-full bg-primary shrink-0" />
-                    </span>
+                    {!isTerminal && !(activeSwap.status === HTLCStatus.Initial && pathname === '/swap') && (
+                        <span aria-hidden="true" className="ml-auto mr-2 relative flex h-2 w-2 shrink-0 origin-center !overflow-visible transition-[opacity,transform] duration-300 ease-in-out group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:scale-0">
+                            <span className="absolute -inset-0.5 rounded-full bg-primary opacity-70 animate-ping" />
+                            <span className="relative h-2 w-2 rounded-full bg-primary shrink-0" />
+                        </span>
+                    )}
                 </Link>
             </SidebarMenuButton>
         )
