@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useCallback, useRef, useSyncExternalStore } from 'react'
-import { HTLCStatus, LockParams, TERMINAL_STATUSES } from '@train-protocol/sdk'
+import { HTLCStatus, LockParams, TERMINAL_STATUSES, formatUnits } from '@train-protocol/sdk'
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
 import { useStoreContext } from '../providers/TrainProvider'
@@ -197,10 +197,18 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
             updates.timelock = sourceDetails.timelock
             prev.timelock = sourceDetails.timelock
         }
+        const destinationAmount = derived.htlcFromApi?.destinationAmount
+        const destTokenDecimals = swap?.destination
+            ? networkMap.get(swap.destination)?.tokens.find(t => t.symbol == swap.destination_asset)?.decimals
+            : undefined
+        if (destinationAmount && destTokenDecimals !== undefined) {
+            const formatted = formatUnits(BigInt(destinationAmount), destTokenDecimals)
+            if (formatted !== swap.receiveAmount) updates.receiveAmount = formatted
+        }
         if (Object.keys(updates).length > 0) {
             actions.updateSwap(hl, updates)
         }
-    }, [hl, actions, swap?.hashlock, derived.status, derived.destRedeemTxId, sourceDetails?.blockTimestamp, sourceDetails?.timelock])
+    }, [hl, actions, swap?.hashlock, swap?.destination, swap?.destination_asset, swap?.receiveAmount, derived.status, derived.destRedeemTxId, derived.htlcFromApi?.destinationAmount, sourceDetails?.blockTimestamp, sourceDetails?.timelock, networkMap])
 
     return derived
 }

@@ -230,7 +230,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
     <>
         <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={currentPath === "/"} tooltip="Home">
-                <Link href={hrefs.home}>
+                <Link href={hrefs.home} prefetch={true}>
                     <Home />
                     <span>Home</span>
                 </Link>
@@ -239,7 +239,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
 
         <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={currentPath === "/transactions"} tooltip="History">
-                <Link href={hrefs.transactions}>
+                <Link href={hrefs.transactions} prefetch={true}>
                     <History />
                     <span>History</span>
                 </Link>
@@ -249,7 +249,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
         {AppSettings.ApiVersion === 'sandbox' && (
             <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={currentPath === "/faucet"} tooltip="Faucet">
-                    <Link href={hrefs.faucet}>
+                    <Link href={hrefs.faucet} prefetch={true}>
                         <Droplet />
                         <span>Faucet</span>
                     </Link>
@@ -259,7 +259,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
 
         <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={currentPath === "/settings"} tooltip="Settings">
-                <Link href={hrefs.settings}>
+                <Link href={hrefs.settings} prefetch={true}>
                     <Settings />
                     <span>Settings</span>
                 </Link>

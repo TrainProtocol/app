@@ -17,6 +17,7 @@ import FaucetWalletPicker from "./FaucetWalletPicker"
 import AddTokenToWalletButton from "./AddTokenToWalletButton"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
 import Link from "next/link"
+import { useFaucetNudgeStore } from "@/stores/faucetNudgeStore"
 
 const FaucetView: FC<{ hideMenu?: boolean }> = ({ hideMenu = false }) => {
     const { isMobile } = useWindowDimensions()
@@ -90,6 +91,13 @@ export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }
 
     const claimDone = !!(claimStatus?.txHash || claimStatus?.failureReason)
     const submitting = posting || (claim !== null && !claimDone)
+
+    const markMinted = useFaucetNudgeStore(s => s.markMinted)
+    useEffect(() => {
+        if (claim && claimStatus?.txHash && !claimStatus.failureReason) {
+            markMinted(claim.network.caip2Id, claim.token.symbol)
+        }
+    }, [claim, claimStatus?.txHash, claimStatus?.failureReason, markMinted])
     const errorMessage = (() => {
         if (postError instanceof FaucetApiError && postError.status === 429) {
             const match = postError.message.match(/Try again in (\d+) seconds/i)

@@ -29,7 +29,8 @@ export default function PendingSwap({ variant = 'header' }: PendingSwapProps) {
     if (!mounted || !activeHashlock || !activeSwap || !settings) return null
     const isTerminal = isTerminalStatus(activeSwap.status)
     if (isTerminal && pathname !== '/swap') return null
-    if (variant === 'header' && (swapModalOpen || pathname !== '/')) return null
+    if (swapModalOpen) return null
+    if (variant === 'header' && pathname !== '/') return null
 
     const { networks } = settings
     const source_network = networks.find(n => n.caip2Id.toUpperCase() === activeSwap.source?.toUpperCase())
@@ -69,7 +70,7 @@ export default function PendingSwap({ variant = 'header' }: PendingSwapProps) {
                 tooltip={swapLabel}
                 className="!overflow-visible"
             >
-                <Link href={href}>
+                <Link href={href} prefetch={true}>
                     <div className="relative shrink-0 h-7 w-14 transition-[width,margin] duration-300 ease-in-out group-data-[collapsible=icon]:w-6 group-data-[collapsible=icon]:-ml-1">
                         <ChevronRight aria-hidden="true" className="absolute z-0 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 !h-3.5 !w-3.5 text-secondary-text" />
                         <div className="absolute z-20 h-5 w-5 overflow-hidden rounded-full ring-1 ring-sidebar bg-sidebar transition-[top] duration-300 ease-in-out left-0 top-1 group-data-[collapsible=icon]:top-0">
