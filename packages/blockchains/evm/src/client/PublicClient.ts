@@ -14,6 +14,7 @@ import { getUserLockDetails } from './public/getUserLockDetails.js'
 import { getSolverLockDetails } from './public/getSolverLockDetails.js'
 import { recoverSwap } from './public/recoverSwap.js'
 import { getTransaction } from './public/getTransaction.js'
+import { getErc20Allowance } from './public/getErc20Allowance.js'
 
 export class EvmHTLCPublicClient extends HTLCPublicClient {
     protected rpc: JsonRpcClient
@@ -37,5 +38,9 @@ export class EvmHTLCPublicClient extends HTLCPublicClient {
 
     async getTransaction(txHash: string): Promise<TransactionInfo | null> {
         return getTransaction(this.rpc, txHash)
+    }
+
+    async getErc20Allowance(token: string, owner: string, spender: string): Promise<bigint> {
+        return getErc20Allowance(this.rpc, token, owner, spender)
     }
 }

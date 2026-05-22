@@ -8,9 +8,12 @@ import posthog from "posthog-js"
 import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "next-themes"
 import { ErrorBoundary } from "react-error-boundary"
-import { registerEvmSdk } from "@train-protocol/evm"
 import { TrainProvider } from "@train-protocol/react"
-
+import { registerEvmSdk } from "@train-protocol/evm"
+import { registerTronSdk } from "@train-protocol/tron"
+import { registerStarknetSdk } from "@train-protocol/starknet"
+import { registerSolanaSdk } from "@train-protocol/solana"
+import { registerAztecSdk } from "@train-protocol/aztec"
 import ThemeWrapper from "@/components/themeWrapper"
 import MaintananceContent from "@/components/Maintanance"
 import ErrorFallback from "@/components/ErrorFallback"
@@ -32,10 +35,10 @@ import Loading from "@/components/Loading"
 
 if (typeof window !== "undefined") {
     registerEvmSdk()
-    import("@train-protocol/aztec").then(m => m.registerAztecSdk())
-    import("@train-protocol/solana").then(m => m.registerSolanaSdk())
-    import("@train-protocol/starknet").then(m => m.registerStarknetSdk())
-    import("@train-protocol/tron").then(m => m.registerTronSdk())
+    registerAztecSdk()
+    registerSolanaSdk()
+    registerStarknetSdk()
+    registerTronSdk()
 }
 
 const INTERCOM_APP_ID = "h5zisg78"

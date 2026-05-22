@@ -1,23 +1,19 @@
-import { AbiFunction } from 'ox'
 import type { RefundParams } from '@train-protocol/sdk'
-import { htlcFunctions } from '../../abi.js'
 import type { JsonRpcClient } from '../../rpc.js'
 import type { EvmSigner } from '../../types.js'
-import { decodeContractError, hex } from '../../utils.js'
+import { decodeContractError } from '../../utils.js'
+import { buildRefundTx } from './buildRefundTx.js'
 
 export async function refund(
     rpc: JsonRpcClient,
     signer: EvmSigner,
     params: RefundParams,
 ): Promise<string> {
-    const { id, contractAddress } = params
-
-    const calldata = AbiFunction.encodeData(htlcFunctions.refundUser, [hex(id)])
+    const tx = buildRefundTx(params)
 
     try {
-        await rpc.ethCall(contractAddress, calldata, signer.address)
-
-        return signer.sendTransaction({ to: contractAddress, data: calldata })
+        await rpc.ethCall(tx.to, tx.data, signer.address)
+        return signer.sendTransaction(tx)
     } catch (error) {
         const errorName = decodeContractError(error)
         if (errorName) throw new Error(`Contract error: ${errorName}`)

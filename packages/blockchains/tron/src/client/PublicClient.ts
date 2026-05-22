@@ -14,6 +14,7 @@ import { getUserLockDetails } from './public/getUserLockDetails.js'
 import { getSolverLockDetails } from './public/getSolverLockDetails.js'
 import { recoverSwap } from './public/recoverSwap.js'
 import { getTransaction } from './public/getTransaction.js'
+import { getTrc20Allowance } from './public/getTrc20Allowance.js'
 
 export class TronHTLCPublicClient extends HTLCPublicClient {
     protected rpc: TronRpcClient
@@ -39,5 +40,9 @@ export class TronHTLCPublicClient extends HTLCPublicClient {
 
     async getTransaction(txHash: string): Promise<TransactionInfo | null> {
         return getTransaction(this.rpc, txHash)
+    }
+
+    async getTrc20Allowance(token: string, owner: string, spender: string): Promise<bigint> {
+        return getTrc20Allowance(this.rpc, token, owner, spender)
     }
 }

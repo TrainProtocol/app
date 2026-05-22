@@ -16,7 +16,7 @@ export default class KnownInternalNames {
 
         public static readonly TronMainnet: string = "TRON_MAINNET"
 
-        public static readonly TronTestnet: string = "tron:3448148188"
+        public static readonly TronNile: string = "tron:3448148188"
 
         public static readonly CronosMainnet: string = "CRONOS_MAINNET";
 

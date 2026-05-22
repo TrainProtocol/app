@@ -1,8 +1,7 @@
 import type { AztecNode } from '@aztec/aztec.js/node'
-import { hexToBytes } from '@train-protocol/sdk'
 import type { RefundParams } from '@train-protocol/sdk'
 import type { AztecSigner } from '../../types'
-import { getContractInstance } from '../helpers'
+import { buildRefundTx } from './buildRefundTx'
 
 export async function refund(
     signer: AztecSigner,
@@ -10,19 +9,14 @@ export async function refund(
     node: AztecNode,
 ): Promise<string> {
     try {
-        const { contract } = await getContractInstance(params.contractAddress, signer, node)
+        const interaction = await buildRefundTx(signer, params, node)
         const accounts = await signer.wallet.getAccounts()
         const senderAddress = accounts[0].item
 
-        const hashlockBytes = hexToBytes(params.id, 32)
-        const txTimeout = 120000
-
-        const tx = await contract.methods
-            .refund_user(hashlockBytes)
-            .send({
-                from: senderAddress,
-                wait: { timeout: txTimeout, dontThrowOnRevert: true },
-            })
+        const tx = await interaction.send({
+            from: senderAddress,
+            wait: { timeout: 120000, dontThrowOnRevert: true },
+        })
 
         if (tx.receipt.hasExecutionReverted()) {
             throw new Error(`refund_user reverted: ${tx.receipt.error ?? 'unknown error'}`)

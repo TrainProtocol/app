@@ -87,7 +87,7 @@ function WagmiComponent({ children }: Props) {
         }
 
         cachedConfig = createConfig({
-            connectors: [...defaultConnectors],
+            connectors: typeof window === 'undefined' ? [] : [...defaultConnectors],
             chains: chains as [Chain, ...Chain[]],
             transports,
             ssr: true

@@ -4,7 +4,8 @@ import { StarknetHTLCPublicClient, StarknetHTLCWalletClient } from './client/ind
 import { deriveKeyFromStarknetWallet } from './login/index.js'
 
 export { StarknetHTLCPublicClient, StarknetHTLCWalletClient } from './client/index.js'
-export type { StarknetHTLCPublicClientConfig, StarknetHTLCWalletClientConfig, StarknetSigner } from './types.js'
+export type { StarknetHTLCPublicClientConfig, StarknetHTLCWalletClientConfig, StarknetSigner, StarknetTransactionRequest } from './types.js'
+export type { BuildApproveTxParams } from './client/wallet/buildApproveTx.js'
 export { formatStarknetAddress } from './utils.js'
 export { deriveKeyFromStarknetWallet } from './login/index.js'
 export type { StarknetAccountLike } from './login/index.js'

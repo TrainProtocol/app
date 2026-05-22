@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useSwapStore } from "../../stores/swapStore";
+import { useSwapStore } from "@/stores/swapStore";
 import { useSwap, isTerminalStatus, HTLCStatus } from "@train-protocol/react";
-import { useSettingsState } from "../../context/settings";
+import { useSettingsState } from "@/context/settings";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { ImageWithFallback } from "../Common/ImageWithFallback";

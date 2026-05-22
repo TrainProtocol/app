@@ -9,15 +9,8 @@ import {
     EVMBalanceProvider,
     FuelBalanceProvider,
     SolanaBalanceProvider,
-    StarknetBalanceProvider
-    //BitcoinBalanceProvider,
-    //LoopringBalanceProvider,
-    //ParadexBalanceProvider,
-    //QueryBalanceProvider,
-    //TonBalanceProvider,
-    //TronBalanceProvider,
-    //ZkSyncBalanceProvider,
-    //HyperliquidBalanceProvider
+    StarknetBalanceProvider,
+    TronBalanceProvider,
 } from "./providers";
 
 function formatErrorBalances(errorBalances: TokenBalance[]) {
@@ -42,19 +35,12 @@ function formatErrorBalances(errorBalances: TokenBalance[]) {
 export class BalanceResolver {
 
     private providers: BalanceProvider[] = [
-        // new QueryBalanceProvider(),
         new AztecBalanceProvider(),
         new EVMBalanceProvider(),
         new FuelBalanceProvider(),
-        // new LoopringBalanceProvider(),
         new SolanaBalanceProvider(),
         new StarknetBalanceProvider(),
-        // new TonBalanceProvider(),
-        // new ZkSyncBalanceProvider(),
-        // new TronBalanceProvider(),
-        // // new ParadexBalanceProvider(),
-        // new BitcoinBalanceProvider(),
-        // new HyperliquidBalanceProvider()
+        new TronBalanceProvider(),
     ];
 
     async getBalance(network: ExtendedNetwork, address?: string, options?: { timeoutMs?: number, retryCount?: number }): Promise<NetworkBalance> {

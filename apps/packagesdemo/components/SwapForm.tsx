@@ -1,16 +1,17 @@
 import { useState, useCallback } from 'react'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { injected } from 'wagmi/connectors'
+import { parseUnits, formatUnits } from 'viem'
 import {
     useNetwork,
     useTokens,
     useQuote,
-    useSwap,
-    useSwapState,
-    useSwapActions,
-    useSecretDerivation,
+    useCreateSwap,
+    useSwapProgress,
+    useRevealSecret,
+    useRefund,
+    useSharedSecretDerivation,
     HTLCStatus,
-    type Network,
     type Token,
     type StartSwapParams,
 } from '@train-protocol/react'
@@ -22,40 +23,52 @@ export function SwapForm() {
     const { connect } = useConnect()
     const { disconnect } = useDisconnect()
 
-    // Swap form state
+    // Form state — token state holds the token *contract* (see TokenSelect)
     const [sourceNetworkId, setSourceNetworkId] = useState('')
     const [destNetworkId, setDestNetworkId] = useState('')
-    const [sourceToken, setSourceToken] = useState('')
-    const [destToken, setDestToken] = useState('')
+    const [sourceTokenContract, setSourceTokenContract] = useState('')
+    const [destTokenContract, setDestTokenContract] = useState('')
     const [amount, setAmount] = useState('')
     const [destAddress, setDestAddress] = useState('')
 
-    // Package hooks
+    // Active swap (drives the lifecycle UI). Set by createSwap on success.
+    const [activeHashlock, setActiveHashlock] = useState<string | null>(null)
+
     const sourceNetwork = useNetwork(sourceNetworkId)
     const destNetwork = useNetwork(destNetworkId)
     const sourceTokens = useTokens(sourceNetworkId)
     const destTokens = useTokens(destNetworkId)
 
+    const sourceAsset = sourceTokens.find((t: Token) => t.contract === sourceTokenContract)
+    const destAsset = destTokens.find((t: Token) => t.contract === destTokenContract)
 
-    const sourceAsset = sourceTokens.find((t: Token) => t.symbol === sourceToken)
-    const destAsset = destTokens.find((t: Token) => t.symbol === destToken)
+    // Quote API expects base units; userLock parses internally so it keeps the human-readable string.
+    let quoteAmount: string | undefined
+    if (amount && sourceAsset && Number(amount) > 0) {
+        try {
+            quoteAmount = parseUnits(amount, sourceAsset.decimals).toString()
+        } catch {
+            quoteAmount = undefined
+        }
+    }
 
-    // Quote
     const { bestQuote, bestSolver, isLoading: quoteLoading } = useQuote({
-        amount,
+        amount: quoteAmount,
         sourceNetwork: sourceNetworkId,
         destinationNetwork: destNetworkId,
-        sourceTokenContract: sourceToken || undefined,
-        destinationTokenContract: destToken || undefined,
-        enabled: !!amount && !!sourceNetworkId && !!destNetworkId && Number(amount) > 0,
+        sourceTokenContract: sourceTokenContract || undefined,
+        destinationTokenContract: destTokenContract || undefined,
+        enabled: !!quoteAmount && !!sourceNetworkId && !!destNetworkId,
     })
 
-    // Swap lifecycle
-    const { status, error: swapError, startSwap, revealSecret, refund, reset } = useSwap()
-    const swapState = useSwapState()
-    const { setCurrentSwap } = useSwapActions()
+    // Lifecycle hooks
+    const { createSwap, isCreating, error: createError } = useCreateSwap()
+    const { reveal, isRevealing, error: revealError } = useRevealSecret()
+    const { refund, isRefunding, error: refundError } = useRefund()
+    const progress = useSwapProgress(activeHashlock)
 
-    // Secret derivation (with persistence across page refresh)
+    // Secret derivation (passkey + wallet-sign) — shared with TrainProvider's internal store.
+    // Persistence + auto passkey-check are configured via TrainProvider's secretDerivation prop.
     const {
         isLoggedIn,
         derivationStatus,
@@ -64,60 +77,37 @@ export function SwapForm() {
         loginWithPasskey,
         registerPasskey,
         prfSupport,
-        checkPasskeySupport,
         logout: authLogout,
-    } = useSecretDerivation({ persist: true })
+    } = useSharedSecretDerivation()
 
-    // Check passkey support on mount
-    useState(() => { checkPasskeySupport() })
-
-    // Login with connected wallet — adapter provides the config
     const handleWalletLogin = useCallback(async () => {
         await loginWithWallet('eip155')
     }, [loginWithWallet])
 
-    // Login with passkey
     const handlePasskeyLogin = useCallback(async () => {
         await loginWithPasskey()
     }, [loginWithPasskey])
 
-    // Register new passkey
     const handlePasskeyRegister = useCallback(async () => {
         await registerPasskey('Train Demo')
     }, [registerPasskey])
 
-    // Start swap
     const handleSwap = useCallback(async () => {
-        if (!isLoggedIn || !bestQuote || !bestSolver || !sourceAsset || !sourceNetwork || !destNetwork || !address) return
+        if (!isLoggedIn || !bestQuote || !sourceAsset || !destAsset || !sourceNetwork || !destNetwork || !address) return
 
-        const srcContract = sourceNetwork.contracts?.find(c => c.type === 'Train')?.address
-        const dstContract = destNetwork.contracts?.find(c => c.type === 'Train')?.address
-
-
+        const srcContract = sourceNetwork.trainContract
+        const dstContract = destNetwork.trainContract
         if (!srcContract || !dstContract) {
             alert('No HTLC contract found for selected networks')
             return
         }
-
-        // Set current swap in store before starting
-        setCurrentSwap({
-            requestedAmount: amount,
-            address,
-            source: sourceNetworkId,
-            destination: destNetworkId,
-            source_asset: sourceToken,
-            destination_asset: destToken,
-            srcContract,
-            destContract: dstContract,
-            receiveAmount: bestQuote.receiveAmount,
-        })
 
         const params: StartSwapParams = {
             amount,
             sourceNetwork: sourceNetworkId,
             destinationNetwork: destNetworkId,
             sourceAsset,
-            destinationAsset: destToken,
+            destinationAsset: destAsset,
             sourceAddress: address,
             destinationAddress: destAddress || address,
             quote: bestQuote,
@@ -127,18 +117,35 @@ export function SwapForm() {
         }
 
         try {
-            await startSwap(params)
+            const hashlock = await createSwap(params)
+            setActiveHashlock(hashlock)
         } catch (err) {
             console.error('Swap failed:', err)
         }
     }, [
-        isLoggedIn, bestQuote, bestSolver, sourceAsset, sourceNetwork, destNetwork,
-        address, amount, sourceNetworkId, destNetworkId, sourceToken, destToken,
-        destAddress, setCurrentSwap, startSwap,
+        isLoggedIn, bestQuote, sourceAsset, destAsset, sourceNetwork, destNetwork,
+        address, amount, sourceNetworkId, destNetworkId, destAddress, createSwap,
     ])
 
+    const handleReveal = useCallback(() => {
+        if (activeHashlock) reveal(activeHashlock)
+    }, [activeHashlock, reveal])
+
+    const handleRefund = useCallback(() => {
+        if (activeHashlock) refund({ hashlock: activeHashlock, address })
+    }, [activeHashlock, refund, address])
+
+    const handleReset = useCallback(() => {
+        setActiveHashlock(null)
+    }, [])
+
+    const status = progress.status
+    const isSwapping = !!activeHashlock
+        && status !== HTLCStatus.RedeemCompleted
+        && status !== HTLCStatus.Refunded
+
     const statusLabel = getStatusLabel(status)
-    const isSwapping = status !== HTLCStatus.Initial && status !== HTLCStatus.RedeemCompleted && status !== HTLCStatus.Refunded
+    const swapError = progress.error ?? createError ?? revealError ?? refundError
 
     return (
         <div className="container">
@@ -206,6 +213,15 @@ export function SwapForm() {
                                             Use Passkey
                                         </button>
                                     )}
+                                    {prfSupport?.supported && (
+                                        <button
+                                            onClick={handlePasskeyRegister}
+                                            disabled={derivationStatus === 'signing'}
+                                            style={{ background: '#4338ca', color: 'white', padding: '6px 12px', fontSize: 12 }}
+                                        >
+                                            Register Passkey
+                                        </button>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -218,13 +234,13 @@ export function SwapForm() {
                         <NetworkSelect
                             label="Source Network"
                             value={sourceNetworkId}
-                            onChange={(id) => { setSourceNetworkId(id); setSourceToken('') }}
+                            onChange={(id) => { setSourceNetworkId(id); setSourceTokenContract('') }}
                             exclude={destNetworkId}
                         />
                         <TokenSelect
                             networkId={sourceNetworkId}
-                            value={sourceToken}
-                            onChange={setSourceToken}
+                            value={sourceTokenContract}
+                            onChange={setSourceTokenContract}
                         />
 
                         <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -234,13 +250,13 @@ export function SwapForm() {
                         <NetworkSelect
                             label="Destination Network"
                             value={destNetworkId}
-                            onChange={(id) => { setDestNetworkId(id); setDestToken('') }}
+                            onChange={(id) => { setDestNetworkId(id); setDestTokenContract('') }}
                             exclude={sourceNetworkId}
                         />
                         <TokenSelect
                             networkId={destNetworkId}
-                            value={destToken}
-                            onChange={setDestToken}
+                            value={destTokenContract}
+                            onChange={setDestTokenContract}
                         />
 
                         <div className="stack" style={{ gap: 4 }}>
@@ -265,12 +281,14 @@ export function SwapForm() {
                             />
                         </div>
 
-                        {/* Quote */}
                         {bestQuote && (
                             <div style={{ background: '#1c1c21', borderRadius: 8, padding: 12 }}>
                                 <div className="row">
                                     <span className="label">You receive</span>
-                                    <span>{bestQuote.receiveAmount} {destAsset?.symbol}</span>
+                                    <span>
+                                        {destAsset ? formatUnits(BigInt(bestQuote.receiveAmount), destAsset.decimals) : bestQuote.receiveAmount}
+                                        {' '}{destAsset?.symbol}
+                                    </span>
                                 </div>
                                 <div className="row">
                                     <span className="label">Solver</span>
@@ -286,7 +304,7 @@ export function SwapForm() {
 
                         <button
                             onClick={handleSwap}
-                            disabled={!isConnected || !isLoggedIn || !bestQuote || !amount}
+                            disabled={!isConnected || !isLoggedIn || !bestQuote || !amount || isCreating}
                             style={{
                                 background: '#6366f1',
                                 color: 'white',
@@ -295,13 +313,15 @@ export function SwapForm() {
                                 width: '100%',
                             }}
                         >
-                            {!isConnected
-                                ? 'Connect Wallet First'
-                                : !isLoggedIn
-                                    ? 'Derive Key First'
-                                    : !bestQuote
-                                        ? 'Enter Swap Details'
-                                        : 'Swap'}
+                            {isCreating
+                                ? 'Locking funds...'
+                                : !isConnected
+                                    ? 'Connect Wallet First'
+                                    : !isLoggedIn
+                                        ? 'Derive Key First'
+                                        : !bestQuote
+                                            ? 'Enter Swap Details'
+                                            : 'Swap'}
                         </button>
                     </div>
                 )}
@@ -315,49 +335,50 @@ export function SwapForm() {
                                 {statusLabel.text}
                             </span>
                         </div>
-                        {swapState.hashlock && (
+                        {progress.hashlock && (
                             <div className="row">
                                 <span className="label">Hashlock</span>
                                 <code style={{ fontSize: 11, wordBreak: 'break-all' }}>
-                                    {swapState.hashlock.slice(0, 10)}...{swapState.hashlock.slice(-8)}
+                                    {progress.hashlock.slice(0, 10)}...{progress.hashlock.slice(-8)}
                                 </code>
                             </div>
                         )}
-                        {swapState.sourceDetails && (
+                        {progress.sourceDetails && (
                             <div className="row">
                                 <span className="label">Source Lock</span>
                                 <span className="status-badge success">Confirmed</span>
                             </div>
                         )}
-                        {swapState.solverLockDetails && (
+                        {progress.solverLockDetails && (
                             <div className="row">
                                 <span className="label">Solver Lock</span>
                                 <span className="status-badge success">Detected</span>
                             </div>
                         )}
-                        {swapState.secretRevealed && (
+                        {progress.secretRevealed && (
                             <div className="row">
                                 <span className="label">Secret</span>
                                 <span className="status-badge success">Revealed</span>
                             </div>
                         )}
 
-                        {/* Auto-reveal secret when solver lock detected */}
-                        {status === HTLCStatus.SolverLockDetected && !swapState.secretRevealed && (
+                        {status === HTLCStatus.SolverLockDetected && !progress.secretRevealed && (
                             <button
-                                onClick={() => revealSecret()}
+                                onClick={handleReveal}
+                                disabled={isRevealing}
                                 style={{ background: '#6366f1', color: 'white', width: '100%' }}
                             >
-                                Reveal Secret
+                                {isRevealing ? 'Revealing...' : 'Reveal Secret'}
                             </button>
                         )}
 
-                        {swapState.isTimelockExpired && (
+                        {progress.isTimelockExpired && (
                             <button
-                                onClick={() => refund()}
+                                onClick={handleRefund}
+                                disabled={isRefunding}
                                 style={{ background: '#dc2626', color: 'white', width: '100%' }}
                             >
-                                Refund
+                                {isRefunding ? 'Refunding...' : 'Refund'}
                             </button>
                         )}
 
@@ -370,7 +391,7 @@ export function SwapForm() {
                 )}
 
                 {/* Reset after completion */}
-                {(status === HTLCStatus.RedeemCompleted || status === HTLCStatus.Refunded) && (
+                {activeHashlock && (status === HTLCStatus.RedeemCompleted || status === HTLCStatus.Refunded) && (
                     <div className="card stack">
                         <div className="row">
                             <span className="label">Result</span>
@@ -379,7 +400,7 @@ export function SwapForm() {
                             </span>
                         </div>
                         <button
-                            onClick={reset}
+                            onClick={handleReset}
                             style={{ background: '#27272a', color: '#e4e4e7', width: '100%' }}
                         >
                             New Swap
