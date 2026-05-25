@@ -27,10 +27,10 @@ export const mapPasskeyError = (error: unknown): string => {
     const msg = error instanceof Error ? error.message : String(error);
     const msgLower = msg.toLowerCase();
 
-    if (msgLower.includes('prf')) return "Your device doesn't support secure key derivation. Try using a wallet instead.";
+    if (msgLower.includes('prf')) return "Your password manager doesn't support secure key derivation. Try a different one (iCloud, Chrome, Windows Hello).";
     if (msgLower.includes('no passkey found') || msgLower.includes('no credentials')) return 'No passkey found for this site. Would you like to create one?';
     if (msgLower.includes('cancelled') || msgLower.includes('canceled') || msgLower.includes('not allowed') || msgLower.includes('abort')) return 'Authentication cancelled. Try again when ready.';
-    if (msgLower.includes('not supported') || msgLower.includes('security error')) return 'Passkeys are not supported in this browser. Try using a wallet instead.';
+    if (msgLower.includes('not supported') || msgLower.includes('security error')) return 'Passkeys are not supported here. Try a different browser or password manager (iCloud, Chrome, Windows Hello).';
     if (msgLower.includes('timeout')) return 'Authentication timed out. Please try again.';
     return msg;
 };
