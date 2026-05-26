@@ -1,5 +1,5 @@
 import { Context, createContext, useCallback, useContext, useMemo, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useQueryState } from '@/context/query'
 import { SwapDirection } from '@/components/DTOs/SwapFormValues';
 import useWallet from '@/hooks/useWallet';
 import { Wallet, WalletProvider } from '@/Models/WalletProvider';
@@ -47,8 +47,8 @@ export function SwapAccountsProvider({ children }: PickerAccountsProviderProps) 
 
     const [selectedDestAccounts, setSelectedDestinationAccounts] = useState<BaseAccountIdentity[]>([])
     const [selectedSourceAccounts, setSelectedSourceAccounts] = useState<BaseAccountIdentity[]>([])
-    const searchParams = useSearchParams()
-    const sourceAddressFromUrl = searchParams?.get('sourceAddress')?.trim() || null
+    const query = useQueryState()
+    const sourceAddressFromUrl = query?.sourceAddress?.trim() || null
     const { providers } = useWallet()
 
     const sourceAccounts: AccountIdentityWithSupportedNetworks[] = useMemo(() => {

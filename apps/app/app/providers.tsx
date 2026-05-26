@@ -121,17 +121,17 @@ function AppShell({ children, settings }: { children: React.ReactNode; settings:
                     <WalletsProviders>
                         <ThemeWrapper>
                             <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
-                                <Suspense fallback={<Loading />}>
-                                    <SwapAccountsProvider>
-                                        <AsyncModalProvider>
-                                            <QueryProvider>
+                                <AsyncModalProvider>
+                                    <Suspense fallback={<Loading />}>
+                                        <QueryProvider>
+                                            <SwapAccountsProvider>
                                                 <AuthDialog />
                                                 <SwapModalRoot />
                                                 {pageContent}
-                                            </QueryProvider>
-                                        </AsyncModalProvider>
-                                    </SwapAccountsProvider>
-                                </Suspense>
+                                            </SwapAccountsProvider>
+                                        </QueryProvider>
+                                    </Suspense>
+                                </AsyncModalProvider>
                             </ErrorBoundary>
                         </ThemeWrapper>
                     </WalletsProviders>

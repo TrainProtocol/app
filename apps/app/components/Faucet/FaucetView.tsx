@@ -93,11 +93,6 @@ export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }
     const submitting = posting || (claim !== null && !claimDone)
 
     const markMinted = useFaucetNudgeStore(s => s.markMinted)
-    useEffect(() => {
-        if (claim && claimStatus?.txHash && !claimStatus.failureReason) {
-            markMinted(claim.network.caip2Id, claim.token.symbol)
-        }
-    }, [claim, claimStatus?.txHash, claimStatus?.failureReason, markMinted])
     const errorMessage = (() => {
         if (postError instanceof FaucetApiError && postError.status === 429) {
             const match = postError.message.match(/Try again in (\d+) seconds/i)
@@ -136,6 +131,7 @@ export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }
                 recipientAddress: recipient,
             })
             setClaim({ correlationId: id, token, network, recipient })
+            markMinted(network.caip2Id, token.symbol)
         } catch (err) {
             setPostError(err instanceof Error ? err : new Error(String(err)))
         } finally {
