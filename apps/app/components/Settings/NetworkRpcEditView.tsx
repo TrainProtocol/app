@@ -1,0 +1,292 @@
+import { FC, useState, useEffect } from "react"
+import { Input } from "@/components/shadcn/input"
+import { CheckCircle, AlertCircle, Save, RotateCcw, Loader, Plus, Trash2, Zap } from "lucide-react"
+import { ExtendedNetwork } from "../../Models/Network"
+import { useRpcConfigStore } from "../../stores/rpcConfigStore"
+import { validateRpcUrl } from "../../lib/validators/rpcValidator"
+import SecondaryButton from "../buttons/secondaryButton"
+import SubmitButton from "../buttons/submitButton"
+import { supportsLightClient } from "../../lib/lightClient/supportsNetwork"
+import Image from 'next/image'
+
+interface NetworkRpcEditViewProps {
+    network: ExtendedNetwork
+    onSave: () => void
+}
+
+const NetworkRpcEditView: FC<NetworkRpcEditViewProps> = ({ network, onSave }) => {
+    const { rpcConfigs, setCustomRpc, removeCustomRpc } = useRpcConfigStore()
+    const [customUrls, setCustomUrls] = useState<string[]>([])
+    const [validatingIndex, setValidatingIndex] = useState<number | null>(null)
+    const [validationErrors, setValidationErrors] = useState<Record<number, string>>({})
+    const [validatedUrls, setValidatedUrls] = useState<Record<number, boolean>>({})
+    const [focusedIndex, setFocusedIndex] = useState<number | null>(null)
+
+    const hasLightClient = supportsLightClient(network)
+
+    useEffect(() => {
+        // Load existing URLs or start with one empty field
+        const existingConfig = rpcConfigs[network.caip2Id]
+        const urls = existingConfig?.customRpcUrls || []
+        setCustomUrls(urls.length > 0 ? urls : [""])
+        setValidationErrors({})
+        setValidatedUrls({})
+    }, [network.caip2Id, rpcConfigs])
+
+    const validateUrl = async (url: string, index: number) => {
+        if (!url) {
+            setValidationErrors(prev => {
+                const newErrors = { ...prev }
+                delete newErrors[index]
+                return newErrors
+            })
+            setValidatedUrls(prev => {
+                const newValidated = { ...prev }
+                delete newValidated[index]
+                return newValidated
+            })
+            return
+        }
+
+        setValidatingIndex(index)
+        setValidationErrors(prev => {
+            const newErrors = { ...prev }
+            delete newErrors[index]
+            return newErrors
+        })
+
+        try {
+            const validation = await validateRpcUrl(url)
+            if (validation.isValid) {
+                setValidatedUrls(prev => ({ ...prev, [index]: true }))
+            } else {
+                setValidationErrors(prev => ({
+                    ...prev,
+                    [index]: validation.error || "Invalid RPC URL"
+                }))
+                setValidatedUrls(prev => {
+                    const newValidated = { ...prev }
+                    delete newValidated[index]
+                    return newValidated
+                })
+            }
+        } catch (error) {
+            setValidationErrors(prev => ({
+                ...prev,
+                [index]: "Failed to validate URL"
+            }))
+            setValidatedUrls(prev => {
+                const newValidated = { ...prev }
+                delete newValidated[index]
+                return newValidated
+            })
+        } finally {
+            setValidatingIndex(null)
+        }
+    }
+
+    const handleAddUrl = () => {
+        setCustomUrls(prev => [...prev, ""])
+    }
+
+    const handleRemoveUrl = (index: number) => {
+        setCustomUrls(prev => prev.filter((_, i) => i !== index))
+        setValidationErrors(prev => {
+            const newErrors = { ...prev }
+            delete newErrors[index]
+            return newErrors
+        })
+        setValidatedUrls(prev => {
+            const newValidated = { ...prev }
+            delete newValidated[index]
+            return newValidated
+        })
+    }
+
+    const handleUrlChange = (index: number, value: string) => {
+        setCustomUrls(prev => {
+            const newUrls = [...prev]
+            newUrls[index] = value
+            return newUrls
+        })
+        if (value) {
+            validateUrl(value, index)
+        }
+    }
+
+    const handleSave = () => {
+        // Filter out empty URLs
+        const nonEmptyUrls = customUrls.filter(url => url.trim() !== "")
+
+        if (nonEmptyUrls.length > 0) {
+            const allValid = customUrls.every((url, i) => !url.trim() || validatedUrls[i])
+
+            if (!allValid) {
+                return
+            }
+
+            setCustomRpc(network.caip2Id, {
+                customRpcUrls: nonEmptyUrls,
+                useCustomRpc: true,
+                isValidated: true
+            })
+        } else {
+            removeCustomRpc(network.caip2Id)
+        }
+
+        onSave()
+    }
+
+    const handleReset = () => {
+        removeCustomRpc(network.caip2Id)
+        setCustomUrls([])
+        onSave()
+    }
+
+    return (
+        <div className="flex flex-col h-full gap-3">
+            <div className="flex flex-col gap-2">
+                {/* Network Info */}
+                <div className="flex items-center space-x-3">
+                    <Image
+                        src={network.logoUrl ?? ''}
+                        alt={network.displayName}
+                        height="40"
+                        width="40"
+                        loading="eager"
+                        fetchPriority='high'
+                        className="w-10 h-10 rounded-full"
+                    />
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                            <div className="font-semibold text-primary-text">{network.displayName}</div>
+                            {hasLightClient && (
+                                <span className="flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-primary/20 text-primary rounded">
+                                    <Zap className="w-3 h-3" />
+                                    Light Client
+                                </span>
+                            )}
+                        </div>
+                        <div className="text-xs text-secondary-text">Chain ID: {network.chainId}</div>
+                    </div>
+                </div>
+
+                {/* Default RPC Info */}
+                <div className="p-3 bg-secondary-700 rounded-lg">
+                    <div className="text-sm font-medium text-secondary-text mb-1">Default RPC URL</div>
+                    <div className="text-sm text-primary-text font-mono break-all">{network.nodes?.[0]?.url}</div>
+                </div>
+            </div>
+
+            {/* Custom RPC URLs */}
+            <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-primary-text">
+                        Custom RPC URLs
+                    </label>
+                    <button
+                        onClick={handleAddUrl}
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-primary-text hover:bg-secondary-500 rounded-md transition-colors"
+                    >
+                        <Plus className="w-3 h-3" />
+                        Add URL
+                    </button>
+                </div>
+
+                <p className="text-xs text-secondary-text">
+                    URLs are tried in order. First URL is primary, others are fallbacks.
+                </p>
+
+                {customUrls.map((url, index) => (
+                    <div key={index} className="space-y-1">
+                        <div className="flex items-start gap-2">
+                            <div className="flex items-center justify-center w-6 h-10 text-xs text-secondary-text">
+                                {index + 1}
+                            </div>
+                            <div className="flex-1 relative">
+                                <Input
+                                    type="text"
+                                    value={url}
+                                    onFocus={() => setFocusedIndex(index)}
+                                    onBlur={() => setFocusedIndex(null)}
+                                    onChange={(e) => handleUrlChange(index, e.target.value)}
+                                    placeholder="https://your-rpc-endpoint.com"
+                                    className={`py-2 rounded-xl text-ellipsis ${focusedIndex === index ? "pr-3" : "pr-10"} ${validationErrors[index]
+                                        ? "border-error-foreground focus-visible:ring-error-foreground/30 focus-visible:border-error-foreground"
+                                        : validatedUrls[index]
+                                            ? "border-success-foreground focus-visible:ring-success-foreground/30 focus-visible:border-success-foreground"
+                                            : ""
+                                        }`}
+                                />
+                                {focusedIndex !== index && (
+                                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                        {validatingIndex === index ? (
+                                            <Loader className="w-4 h-4 text-secondary-text animate-spin" />
+                                        ) : validatedUrls[index] ? (
+                                            <CheckCircle className="w-4 h-4 text-success-foreground" />
+                                        ) : validationErrors[index] ? (
+                                            <AlertCircle className="w-4 h-4 text-error-foreground" />
+                                        ) : null}
+                                    </div>
+                                )}
+                            </div>
+                            {customUrls.length > 1 && (
+                                <button
+                                    onClick={() => handleRemoveUrl(index)}
+                                    className="flex items-center justify-center w-10 h-10 text-error-foreground hover:bg-secondary-500 rounded transition-colors"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            )}
+                        </div>
+                        {validationErrors[index] && (
+                            <p className="text-xs text-error-foreground flex items-center gap-1 ml-8">
+                                <AlertCircle className="w-3 h-3" />
+                                {validationErrors[index]}
+                            </p>
+                        )}
+                        {validatedUrls[index] && url && (
+                            <p className="text-xs text-success-foreground flex items-center gap-1 ml-8">
+                                <CheckCircle className="w-3 h-3" />
+                                Valid RPC URL
+                            </p>
+                        )}
+                    </div>
+                ))}
+
+                {rpcConfigs[network.caip2Id]?.useCustomRpc && (
+                    <SecondaryButton
+                        onClick={handleReset}
+                        className="flex items-center gap-2"
+                    >
+                        <RotateCcw className="w-4 h-4" />
+                        Reset to Default
+                    </SecondaryButton>
+                )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="w-full space-y-2">
+                <SubmitButton
+                    onClick={handleSave}
+                    isDisabled={
+                        // Disable if all URLs are blank
+                        customUrls.every(url => url.trim() === "") ||
+                        // Disable if any non-empty URL is not validated
+                        customUrls.some((url, i) => url.trim() !== "" && !validatedUrls[i]) ||
+                        // Disable if any URL has validation errors
+                        Object.keys(validationErrors).length > 0 ||
+                        // Disable if currently validating
+                        validatingIndex !== null
+                    }
+                    className="flex items-center gap-2"
+                    icon={<Save className="w-4 h-4" />}
+                >
+                    Save
+                </SubmitButton>
+            </div>
+        </div>
+    )
+}
+
+export default NetworkRpcEditView

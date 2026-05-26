@@ -1,0 +1,73 @@
+name: Update chainlistRpcs.json
+
+on:
+  push:
+    branches:
+      - dev
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-chainlist-rpcs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Fetch new chainlistRpcs.json
+        id: fetch_rpcs
+        run: |
+          echo "Fetching chainlist RPCs from chainlist.org..."
+          curl --fail -s -o new_chainlistRpcs_raw.json https://chainlist.org/rpcs.json
+
+          if [ ! -s new_chainlistRpcs_raw.json ]; then
+            echo "❌ Downloaded chainlistRpcs.json is empty!"
+            exit 1
+          fi
+
+          if ! jq empty new_chainlistRpcs_raw.json > /dev/null 2>&1; then
+            echo "❌ Downloaded chainlistRpcs.json is not valid JSON!"
+            cat new_chainlistRpcs_raw.json
+            exit 1
+          fi
+
+          # Strip to minimal format: only chainId and rpc entries with url + tracking
+          jq '[.[] | {chainId, rpc: [.rpc[] | {url, tracking}]}]' new_chainlistRpcs_raw.json > new_chainlistRpcs.json
+
+          rm -f new_chainlistRpcs_raw.json
+
+      - name: Compare with existing chainlistRpcs.json
+        id: compare_rpcs
+        run: |
+          echo "Comparing new chainlistRpcs.json with existing one..."
+          jq --sort-keys . apps/app/lib/rpc/data/chainlistRpcs.json > old_normalized.json
+          jq --sort-keys . new_chainlistRpcs.json > new_normalized.json
+
+          if diff -q old_normalized.json new_normalized.json > /dev/null; then
+            echo "No changes detected in chainlistRpcs.json."
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected in chainlistRpcs.json."
+            jq --sort-keys . new_chainlistRpcs.json > apps/app/lib/rpc/data/chainlistRpcs.json
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+          # Clean up temporary files
+          rm -f old_normalized.json new_normalized.json new_chainlistRpcs.json
+
+      - name: Create Pull Request
+        if: steps.compare_rpcs.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: "chore: update chainlistRpcs.json"
+          title: "chore: update chainlistRpcs.json"
+          body: |
+            This PR updates chainlist RPC data with the latest endpoints from [chainlist.org](https://chainlist.org).
+          branch: update-chainlist-rpcs
+          base: dev
+          delete-branch: true

@@ -1,0 +1,86 @@
+import { createContext, useContext, useCallback, useMemo, type ReactNode } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import type { Network } from '@train-protocol/sdk'
+import { useTrainContext } from './TrainContext'
+import { trainQueryKeys } from '../internal/queryKeys'
+
+export interface NetworksContextValue {
+    networks: Network[]
+    /** O(1) network lookup by uppercased CAIP-2 ID */
+    networkMap: Map<string, Network>
+    prices: Record<string, number>
+    isLoading: boolean
+    error: Error | null
+    refetchNetworks: () => Promise<void>
+    refetchPrices: () => Promise<void>
+}
+
+export const NetworksContext = createContext<NetworksContextValue | null>(null)
+
+export function useNetworksContext(): NetworksContextValue {
+    const ctx = useContext(NetworksContext)
+    if (!ctx) {
+        throw new Error('useNetworksContext must be used within a <TrainProvider>')
+    }
+    return ctx
+}
+
+export interface NetworksProviderProps {
+    children: ReactNode
+    /** Pre-fetched networks (e.g. from SSR) to seed the cache and avoid a duplicate client-side fetch */
+    initialNetworks?: Network[]
+    /** Pre-fetched prices to seed the cache */
+    initialPrices?: Record<string, number>
+}
+
+export function NetworksProvider({ children, initialNetworks, initialPrices }: NetworksProviderProps) {
+    const { apiClient } = useTrainContext()
+
+    const networksQuery = useQuery({
+        queryKey: trainQueryKeys.networks(),
+        queryFn: () => apiClient.getNetworks(),
+        staleTime: 5 * 60_000,
+        initialData: initialNetworks,
+    })
+
+    const pricesQuery = useQuery({
+        queryKey: trainQueryKeys.prices(),
+        queryFn: () => apiClient.getPrices(),
+        staleTime: 60_000,
+        retry: false,
+        initialData: initialPrices,
+    })
+
+    const refetchNetworks = useCallback(async () => {
+        await networksQuery.refetch()
+    }, [networksQuery])
+
+    const refetchPrices = useCallback(async () => {
+        await pricesQuery.refetch()
+    }, [pricesQuery])
+
+    // Build O(1) lookup map keyed by uppercased CAIP-2 ID
+    const networkMap = useMemo(() => {
+        const map = new Map<string, Network>()
+        for (const n of networksQuery.data ?? []) {
+            map.set(n.caip2Id, n)
+        }
+        return map
+    }, [networksQuery.data])
+
+    const value = useMemo<NetworksContextValue>(() => ({
+        networks: networksQuery.data ?? [],
+        networkMap,
+        prices: pricesQuery.data ?? {},
+        isLoading: networksQuery.isLoading,
+        error: networksQuery.error instanceof Error ? networksQuery.error : networksQuery.error ? new Error(String(networksQuery.error)) : null,
+        refetchNetworks,
+        refetchPrices,
+    }), [networksQuery.data, networkMap, networksQuery.isLoading, networksQuery.error, pricesQuery.data, refetchNetworks, refetchPrices])
+
+    return (
+        <NetworksContext.Provider value={value}>
+            {children}
+        </NetworksContext.Provider>
+    )
+}

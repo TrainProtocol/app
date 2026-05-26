@@ -1,0 +1,132 @@
+import { useFormikContext } from "formik";
+import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
+import useSWRGas from "@/lib/gases/useSWRGas";
+import { ExtendedNetwork, ExtendedToken } from "@/Models/Network";
+import React, { useMemo } from "react";
+import { resolveMaxAllowedAmount } from "./helpers";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip";
+import { useSelectedAccount } from "@/context/swapAccounts";
+import { useBalance } from "@/lib/balances/useBalance";
+import { getNativeToken } from "@/Models/Network";
+
+type MinMaxProps = {
+    fromCurrency: ExtendedToken,
+    from: ExtendedNetwork,
+    limitsMaxAmount: number | undefined,
+    limitsMinAmount: number | undefined,
+    onActionHover: (value: number | undefined, usdValue?: string) => void,
+}
+
+const MinMax = (props: MinMaxProps) => {
+
+    const { setValues } = useFormikContext<SwapFormValues>();
+    const { fromCurrency, from, limitsMinAmount, limitsMaxAmount, onActionHover } = props;
+
+    const selectedSourceAccount = useSelectedAccount("from", from?.caip2Id);
+    const { gasData } = useSWRGas(selectedSourceAccount?.address, from, fromCurrency)
+    const { balances, mutate: mutateBalances } = useBalance(selectedSourceAccount?.address, from)
+
+    const walletBalance = useMemo(() => {
+        return selectedSourceAccount?.address ? balances?.find(b => b?.network === from?.caip2Id && b?.token === fromCurrency?.symbol) : undefined
+    }, [selectedSourceAccount?.address, balances, from?.caip2Id, fromCurrency?.symbol])
+
+    const gasAmount = gasData?.gas || 0;
+
+    const native_currency = gasData?.token || getNativeToken(from)
+
+    const shouldPayGasWithTheToken = (native_currency?.symbol === fromCurrency?.symbol) || !native_currency
+
+    const fallbackAmount = useMemo(() => {
+        return fromCurrency.priceInUsd && fromCurrency.priceInUsd > 0 ? 0.01 / fromCurrency.priceInUsd : 0.01;
+    }, [fromCurrency.priceInUsd]);
+
+    let maxAllowedAmount: number = useMemo(() => {
+        return resolveMaxAllowedAmount({ fromCurrency, limitsMaxAmount, walletBalance, gasAmount, native_currency, depositMethod: 'wallet', fallbackAmount }) || 0;
+    }, [fromCurrency, limitsMinAmount, limitsMaxAmount, walletBalance, gasAmount, native_currency, fallbackAmount])
+
+    const minAmount = useMemo(() => {
+        if (walletBalance && walletBalance.amount !== undefined && limitsMinAmount !== undefined) {
+            return Number(walletBalance.amount) < limitsMinAmount ? Number(walletBalance.amount) : limitsMinAmount;
+        }
+        return limitsMinAmount || fallbackAmount;
+    }, [walletBalance, limitsMinAmount, fallbackAmount]);
+
+    const halfOfBalance = (walletBalance?.amount || maxAllowedAmount) ? (walletBalance?.amount || maxAllowedAmount) / 2 : 0;
+
+    const computeUsdValue = (tokenAmount: number): string | undefined => {
+        if (!fromCurrency.priceInUsd || tokenAmount <= 0) return undefined;
+        return (tokenAmount * fromCurrency.priceInUsd).toFixed(2).replace(/\.?0+$/, '');
+    }
+
+    const handleSetValue = (value: string) => {
+        mutateBalances()
+        setValues(prev => ({ ...prev, amount: value, receiveAmount: '' }), true)
+        onActionHover(undefined)
+    }
+
+    const handleSetHalfAmount = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
+        handleSetValue(halfOfBalance.toString())
+    }
+
+    const handleSetMaxAmount = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
+        handleSetValue(maxAllowedAmount.toString())
+    }
+
+    const showMaxTooltip = !!(walletBalance?.amount && shouldPayGasWithTheToken)
+
+    if (!from || !fromCurrency || !balances?.length)
+        return null;
+
+    return (
+        <div className="flex gap-1.5 group text-xs leading-4" onMouseLeave={() => onActionHover(undefined)}>
+            <ActionButton
+                data-attr="half-amount"
+                label="50%"
+                onMouseEnter={() => onActionHover(halfOfBalance, computeUsdValue(halfOfBalance))}
+                onClick={handleSetHalfAmount}
+            />
+            <Tooltip disableHoverableContent={true}>
+                <TooltipTrigger asChild>
+                    <ActionButton
+                        data-attr="max-amount"
+                        label="Max"
+                        onMouseEnter={() => onActionHover(maxAllowedAmount, computeUsdValue(maxAllowedAmount))}
+                        onClick={handleSetMaxAmount}
+                    />
+                </TooltipTrigger>
+                {showMaxTooltip ? <TooltipContent className="pointer-events-none w-80" side="top" align="start" alignOffset={-10}>
+                    <p>Max is calculated based on your balance minus gas fee for the transaction</p>
+                </TooltipContent> : null}
+            </Tooltip>
+        </div>
+    )
+}
+
+export default MinMax
+
+type ActionButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    label: string;
+    onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+    onMouseEnter: () => void;
+    disabled?: boolean;
+}
+
+const ActionButton = React.forwardRef<HTMLButtonElement, ActionButtonProps>(({ label, onClick, onMouseEnter, disabled, ...rest }, ref) => {
+    return (
+        <button
+            {...rest}
+            ref={ref}
+            onMouseEnter={onMouseEnter}
+            onClick={onClick}
+            type="button"
+            disabled={disabled}
+            className="px-1.5 py-0.5 rounded-md duration-200 break-keep transition bg-secondary-300 hover:brightness-90 text-secondary-text hover:text-primary-text cursor-pointer enabled:active:animate-press-down"
+        >
+            {label}
+        </button>
+    );
+})

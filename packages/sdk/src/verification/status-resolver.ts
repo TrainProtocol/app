@@ -1,0 +1,29 @@
+import { UserLockDetails, SolverLockDetails, LockStatus } from '../types/lock'
+import { HTLCStatus } from '../types/htlc-status'
+
+export interface StatusResolverInput {
+    sourceDetails?: UserLockDetails
+    solverLockDetails?: SolverLockDetails
+    timelockExpired: boolean
+    secretRevealed?: boolean
+    manualClaimRequired?: boolean
+    destRedeemTxId?: string
+}
+
+export function resolveHTLCStatus(input: StatusResolverInput): HTLCStatus {
+    const { sourceDetails, solverLockDetails, timelockExpired, secretRevealed, manualClaimRequired, destRedeemTxId } = input
+
+    const userLocked = !!sourceDetails?.sender
+    const solverLocked = !!solverLockDetails?.sender
+    const redeemCompleted = solverLockDetails?.status === LockStatus.Redeemed || destRedeemTxId
+    const refunded = sourceDetails?.status === LockStatus.Refunded
+
+    if (redeemCompleted) return HTLCStatus.RedeemCompleted
+    else if (manualClaimRequired) return HTLCStatus.ManualClaimRequired
+    else if (refunded) return HTLCStatus.Refunded
+    else if (timelockExpired && userLocked && !redeemCompleted) return HTLCStatus.TimelockExpired
+    else if ((secretRevealed || sourceDetails?.secret) && sourceDetails) return HTLCStatus.SecretRevealed
+    else if (solverLocked && !sourceDetails?.secret && sourceDetails) return HTLCStatus.SolverLockDetected
+    else if (userLocked) return HTLCStatus.UserLocked
+    else return HTLCStatus.Initial
+}

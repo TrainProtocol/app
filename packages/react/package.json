@@ -1,0 +1,48 @@
+{
+  "name": "@train-protocol/react",
+  "version": "0.1.0",
+  "description": "Train Protocol React hooks and providers for cross-chain atomic swaps",
+  "type": "module",
+  "main": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/esm/index.js"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "pnpm clean && pnpm build:esm+types",
+    "build:esm+types": "tsc --project tsconfig.json --rootDir ./src --outDir ./dist/esm --declaration --declarationMap --declarationDir ./dist/types",
+    "clean": "rimraf dist tsconfig.tsbuildinfo",
+    "dev": "tsc --project tsconfig.json --rootDir ./src --outDir ./dist/esm --declaration --declarationMap --declarationDir ./dist/types --watch",
+    "check:types": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "catalog:",
+    "@train-protocol/sdk": "workspace:*",
+    "@train-protocol/auth": "workspace:*",
+    "@tanstack/react-query": ">=5.0.0"
+  },
+  "dependencies": {
+    "zustand": "catalog:"
+  },
+  "devDependencies": {
+    "react": "catalog:",
+    "@train-protocol/sdk": "workspace:*",
+    "@train-protocol/auth": "workspace:*",
+    "@tanstack/react-query": "^5.59.20",
+    "@types/react": "catalog:",
+    "@types/node": "^20",
+    "rimraf": "catalog:",
+    "typescript": "catalog:"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

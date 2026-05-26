@@ -1,0 +1,78 @@
+import SourceWalletPicker from "./SourceWalletPicker";
+import RoutePicker from "./RoutePicker";
+import AmountField from "./AmountField"
+import { useFormikContext } from "formik";
+import { SwapFormValues } from "../DTOs/SwapFormValues";
+import MinMax from "./Amount/MinMax";
+import clsx from "clsx";
+import { useClickOutside } from "@/hooks/useClickOutside";
+import { useState } from "react";
+import type { SwapQuote } from "@train-protocol/react";
+
+type Props = {
+    isQuoteLoading?: boolean;
+    quote?: SwapQuote;
+}
+
+const SourcePicker = ({ isQuoteLoading, quote }: Props) => {
+    const { values } = useFormikContext<SwapFormValues>()
+
+    const { fromCurrency, from } = values || {}
+    const { ref: parentRef, isActive: showQuickActions, activate: setShowQuickActions } = useClickOutside<HTMLDivElement>(false)
+    const [actionTempValue, setActionTempValue] = useState<number | undefined>(undefined)
+    const [actionTempValueUsd, setActionTempValueUsd] = useState<string | undefined>(undefined)
+
+    const handleActionHover = (value: number | undefined, usdValue?: string) => {
+        setActionTempValue(value)
+        setActionTempValueUsd(usdValue)
+    }
+
+    return <div className="flex flex-col w-full bg-secondary-500 rounded-2xl p-4 pb-[15px] space-y-[27px] group/source" onClick={setShowQuickActions} ref={parentRef}>
+        <div className="grid grid-cols-9 gap-2 items-center h-7">
+            <label htmlFor="From" className="block col-span-5 font-normal text-secondary-text text-base leading-5">
+                Send from
+            </label>
+            <div className="col-span-4 justify-self-end">
+                <SourceWalletPicker />
+            </div>
+        </div>
+        <div className="relative">
+            {
+                from && fromCurrency &&
+                <div className={clsx(
+                    "absolute z-10 -top-[26px] left-0",
+                    {
+                        "hidden": !showQuickActions,
+                        "block": showQuickActions
+                    },
+                    "group-hover/source:block"
+                )}>
+                    <MinMax
+                        from={from}
+                        fromCurrency={fromCurrency}
+                        limitsMinAmount={undefined}
+                        limitsMaxAmount={undefined}
+                        onActionHover={handleActionHover}
+                    />
+                </div>
+            }
+            <div className="grid grid-cols-[1fr_auto] gap-1 w-full max-w-full">
+                <div className="min-w-0 overflow-hidden">
+                    <AmountField
+                        side="source"
+                        actionValue={actionTempValue}
+                        actionValueUsd={actionTempValueUsd}
+                        isQuoteLoading={isQuoteLoading}
+                        quote={quote}
+                    />
+                </div>
+
+                <div className="justify-self-end self-start">
+                    <RoutePicker direction="from" quote={quote} />
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+export default SourcePicker

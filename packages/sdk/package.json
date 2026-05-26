@@ -1,0 +1,40 @@
+{
+  "name": "@train-protocol/sdk",
+  "version": "0.2.0-dev.2",
+  "description": "Train Protocol SDK — core HTLC protocol logic",
+  "type": "module",
+  "main": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/esm/index.js"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "pnpm clean && pnpm build:esm+types",
+    "build:esm+types": "tsc --project tsconfig.json --rootDir ./src --outDir ./dist/esm --declaration --declarationMap --declarationDir ./dist/types",
+    "clean": "rimraf dist tsconfig.tsbuildinfo",
+    "dev": "tsc --project tsconfig.json --rootDir ./src --outDir ./dist/esm --declaration --declarationMap --declarationDir ./dist/types --watch",
+    "check:types": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@noble/hashes": "catalog:"
+  },
+  "devDependencies": {
+    "@noble/hashes": "catalog:",
+    "@types/node": "^20",
+    "rimraf": "^6.0.1",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

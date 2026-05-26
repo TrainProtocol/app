@@ -1,0 +1,11 @@
+{
+    "installCommand": "pnpm install",
+    "buildCommand": "cd ../.. && pnpm build:packages && cd apps/app && pnpm build",
+    "framework": "nextjs",
+    "git": {
+      "deploymentEnabled": {
+        "main": true
+      }
+    },
+    "ignoreCommand": "bash -c 'if [ \"$VERCEL_GIT_COMMIT_REF\" = \"update-chainlist-rpcs\" ] || [ \"$VERCEL_GIT_COMMIT_REF\" = \"update-wallets-data\" ]; then exit 0; fi && cd ../.. && git diff --quiet HEAD^ HEAD -- apps/app packages || exit 1'"
+  }

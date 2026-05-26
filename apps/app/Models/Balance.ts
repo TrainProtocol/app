@@ -1,0 +1,38 @@
+import { ExtendedNetwork, ExtendedToken } from "./Network"
+import { Wallet } from "./WalletProvider"
+import { NodeErrorCategory } from "@/lib/balances/nodeErrorClassifier"
+
+export type GasProps = {
+    network: ExtendedNetwork,
+    token: ExtendedToken,
+    address?: string,
+    recipientAddress?: string,
+    wallet?: Wallet,
+    amount?: number,
+}
+
+export type TokenBalanceError = {
+    message: string;
+    name?: string;
+    stack?: string;
+    code?: string;
+    status?: number;
+    statusText?: string;
+    responseData?: unknown;
+    requestUrl?: string;
+    category?: NodeErrorCategory;
+}
+
+export type TokenBalance = {
+    network: string,
+    amount: number | undefined,
+    decimals: number,
+    isNativeCurrency: boolean,
+    token: string,
+    request_time: string,
+    error?: TokenBalanceError
+}
+
+export type NetworkBalance = {
+    balances?: TokenBalance[] | null,
+}
