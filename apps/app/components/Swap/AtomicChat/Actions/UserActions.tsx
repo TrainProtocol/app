@@ -4,7 +4,7 @@ import { useActiveSwap } from "@/hooks/useActiveSwap";
 import { useCreateSwap, useRefund, LockStatus, type SwapQuote, useSharedSecretDerivation, type StartSwapParams } from "@train-protocol/react"
 import { WalletActionButton } from "../../buttons";
 import posthog from "posthog-js";
-import { SwapViewType } from ".";
+import { ActionWrapper, SwapViewType } from ".";
 import { useSelectedAccount } from "@/context/swapAccounts";
 import { Address } from "@/lib/address";
 import { useSwapStore } from "@/stores/swapStore";
@@ -86,23 +86,24 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type, setErro
         }
     }
 
-    if (!source_network) return <></>
+    if (!source_network || hashlock) return null
 
-    return hashlock ?
-        <></>
-        :
-        <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
-            <WalletActionButton
-                activeChain={wallet?.chainId}
-                isConnected={!!wallet}
-                network={source_network}
-                networkChainId={source_network.chainId}
-                onClick={handleUserLock}
-                type={type}
-            >
-                Confirm in wallet
-            </WalletActionButton>
-        </div>
+    return (
+        <ActionWrapper type={type}>
+            <div className="font-normal flex flex-col w-full relative z-10 space-y-4 grow">
+                <WalletActionButton
+                    activeChain={wallet?.chainId}
+                    isConnected={!!wallet}
+                    network={source_network}
+                    networkChainId={source_network.chainId}
+                    onClick={handleUserLock}
+                    type={type}
+                >
+                    Confirm in wallet
+                </WalletActionButton>
+            </div>
+        </ActionWrapper>
+    )
 }
 
 export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
@@ -148,16 +149,20 @@ export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
     }
 
 
-    if ((requestedRefund || !!refundTxId) && sourceDetails?.status !== LockStatus.Refunded) return <></>
+    if ((requestedRefund || !!refundTxId) && sourceDetails?.status !== LockStatus.Refunded) return null
 
-    return <WalletActionButton
-        activeChain={wallet?.chainId}
-        isConnected={!!wallet}
-        network={sourceNetwork!}
-        networkChainId={Number(sourceNetwork?.chainId)}
-        onClick={handleRefundAssets}
-        type={type}
-    >
-        Cancel & Refund
-    </WalletActionButton>
+    return (
+        <ActionWrapper type={type}>
+            <WalletActionButton
+                activeChain={wallet?.chainId}
+                isConnected={!!wallet}
+                network={sourceNetwork!}
+                networkChainId={Number(sourceNetwork?.chainId)}
+                onClick={handleRefundAssets}
+                type={type}
+            >
+                Cancel & Refund
+            </WalletActionButton>
+        </ActionWrapper>
+    )
 }

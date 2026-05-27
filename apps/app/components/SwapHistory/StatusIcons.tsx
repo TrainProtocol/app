@@ -18,6 +18,7 @@ export default function StatusIcons({ status }: { status: HTLCStatus | undefined
                     Refund Completed
                 </Badge>
             )
+        case HTLCStatus.Initial:
         case HTLCStatus.UserLocked:
         case HTLCStatus.SolverLockDetected:
         case HTLCStatus.SecretRevealed:

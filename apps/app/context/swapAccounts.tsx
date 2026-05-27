@@ -1,8 +1,10 @@
 import { Context, createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { useQueryState } from '@/context/query'
 import { SwapDirection } from '@/components/DTOs/SwapFormValues';
 import useWallet from '@/hooks/useWallet';
 import { Wallet, WalletProvider } from '@/Models/WalletProvider';
 import AddressIcon from '@/components/AddressIcon';
+import { Address } from '@/lib/address';
 import { getKey, useBalanceStore } from '@/stores/balanceStore';
 
 const SwapAccountsStateContext = createContext<SwapAccountsContextType | null>(null);
@@ -45,6 +47,8 @@ export function SwapAccountsProvider({ children }: PickerAccountsProviderProps) 
 
     const [selectedDestAccounts, setSelectedDestinationAccounts] = useState<BaseAccountIdentity[]>([])
     const [selectedSourceAccounts, setSelectedSourceAccounts] = useState<BaseAccountIdentity[]>([])
+    const query = useQueryState()
+    const sourceAddressFromUrl = query?.sourceAddress?.trim() || null
     const { providers } = useWallet()
 
     const sourceAccounts: AccountIdentityWithSupportedNetworks[] = useMemo(() => {
@@ -52,11 +56,13 @@ export function SwapAccountsProvider({ children }: PickerAccountsProviderProps) 
             if (!hasWallet(provider)) return null;
 
             const selectedWallet = provider.connectedWallets?.find(wallet => wallet.id === selectedSourceAccounts.find(acc =>
-                acc.providerName === provider.name && wallet.addresses.some(a => a === acc.address))?.id && wallet.addresses)
+                acc.providerName === provider.name && wallet.addresses.some(a => Address.equals(a, acc.address, null, provider.name)))?.id && wallet.addresses)
 
-            const wallet = selectedWallet || provider.activeWallet;
+            const sourceAccountFromUrl = sourceAddressFromUrl ? provider.connectedWallets?.find(w => w.addresses?.some(a => Address.equals(a, sourceAddressFromUrl, null, provider.name))) : undefined
+
+            const wallet = selectedWallet || sourceAccountFromUrl || provider.activeWallet;
             const selectedAccountAddress = selectedWallet ? selectedSourceAccounts.find(acc => acc.providerName === provider.name && acc.id === selectedWallet.id)?.address : undefined
-            const address = selectedAccountAddress ? selectedAccountAddress : wallet.address;
+            const address = selectedAccountAddress ?? (sourceAccountFromUrl ? sourceAddressFromUrl! : wallet.address);
 
             const res = ResolveWalletSwapAccount(provider, wallet, address);
 
@@ -74,7 +80,7 @@ export function SwapAccountsProvider({ children }: PickerAccountsProviderProps) 
 
             return res
         }).filter(Boolean) as AccountIdentityWithSupportedNetworks[];
-    }, [providers, selectedSourceAccounts])
+    }, [providers, selectedSourceAccounts, sourceAddressFromUrl])
 
     const destinationAccounts: AccountIdentity[] = useMemo(() => {
         return providers.map(provider => {

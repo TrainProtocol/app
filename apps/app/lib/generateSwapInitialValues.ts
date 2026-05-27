@@ -7,22 +7,23 @@ export function generateSwapInitialValues(settings: TrainAppSettings, queryParam
     const { destAddress, transferAmount, receiveAmount, fromAsset, toAsset, from, to } = queryParams
     const { networks } = settings || {}
 
-    // Find networks by slug (case-insensitive)
-    const initialSource = from
-        ? networks?.find(n => n.caip2Id.toUpperCase() === from.toUpperCase())
+    const byCaip2 = new Map(networks?.map(n => [n.caip2Id.toLowerCase(), n]))
+    const initialSource = from ? byCaip2.get(from.toLowerCase().replace('-', ':')) : undefined
+    const initialDestination = to ? byCaip2.get(to.toLowerCase().replace('-', ':')) : undefined
+
+    const pickDefaultToken = (network: typeof initialSource) =>
+        network?.tokens.slice().sort((a, b) => a.symbol.localeCompare(b.symbol))[0]
+
+    const initialSourceCurrency = initialSource
+        ? (fromAsset
+            ? initialSource.tokens.find(t => t.symbol?.toUpperCase() === fromAsset.toUpperCase())
+            : pickDefaultToken(initialSource))
         : undefined
 
-    const initialDestination = to
-        ? networks?.find(n => n.caip2Id.toUpperCase() === to.toUpperCase())
-        : undefined
-
-    // Find tokens within the selected networks
-    const initialSourceCurrency = initialSource && fromAsset
-        ? initialSource.tokens.find(t => t.symbol?.toUpperCase() === fromAsset.toUpperCase())
-        : undefined
-
-    const initialDestinationCurrency = initialDestination && toAsset
-        ? initialDestination.tokens.find(t => t.symbol?.toUpperCase() === toAsset.toUpperCase())
+    const initialDestinationCurrency = initialDestination
+        ? (toAsset
+            ? initialDestination.tokens.find(t => t.symbol?.toUpperCase() === toAsset.toUpperCase())
+            : pickDefaultToken(initialDestination))
         : undefined
 
     // Validate destination address

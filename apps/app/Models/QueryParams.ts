@@ -22,6 +22,7 @@ export class QueryParams {
     theme?: string = "";
     appName?: string = "";
     hideLogo?: boolean = false
+    sourceAddress?: string = "";
 
     // Obsolate
     destNetwork?: string = "";

@@ -15,7 +15,7 @@ import {
 } from "@/components/shadcn/sidebar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip"
-import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, Home, ChevronsUpDown, LogOut, Lock, MessageCircle, HandCoins } from "lucide-react"
+import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, Home, ChevronsUpDown, LogOut, Lock, MessageCircle, Droplet } from "lucide-react"
 import AppSettings from "@/lib/AppSettings"
 import { useIntercom } from "react-use-intercom"
 import { useOptionalSecretDerivation } from "@train-protocol/react"
@@ -30,6 +30,7 @@ import { useAuthDialog } from "@/stores/authDialogStore"
 import { getLoginIdentity } from "@/components/SecretDerivation/UserStatus"
 import TelegramLogo from "../Icons/TelegramLogo"
 import TestnetBadge from "@/components/TestnetBadge"
+import PendingSwap from "@/components/Swap/PendingSwap"
 
 const AppSidebar: FC = () => {
     const currentPath = usePathname() ?? '/'
@@ -61,6 +62,12 @@ const AppSidebar: FC = () => {
 
                             <SidebarMenuItem>
                                 <MoreMenu />
+                            </SidebarMenuItem>
+
+                            <SidebarMenuItem>
+                                <Suspense fallback={null}>
+                                    <PendingSwap variant="sidebar" />
+                                </Suspense>
                             </SidebarMenuItem>
                         </SidebarMenu>
                     </SidebarGroupContent>
@@ -223,7 +230,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
     <>
         <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={currentPath === "/"} tooltip="Home">
-                <Link href={hrefs.home}>
+                <Link href={hrefs.home} prefetch={true}>
                     <Home />
                     <span>Home</span>
                 </Link>
@@ -232,7 +239,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
 
         <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={currentPath === "/transactions"} tooltip="History">
-                <Link href={hrefs.transactions}>
+                <Link href={hrefs.transactions} prefetch={true}>
                     <History />
                     <span>History</span>
                 </Link>
@@ -242,8 +249,8 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
         {AppSettings.ApiVersion === 'sandbox' && (
             <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={currentPath === "/faucet"} tooltip="Faucet">
-                    <Link href={hrefs.faucet}>
-                        <HandCoins />
+                    <Link href={hrefs.faucet} prefetch={true}>
+                        <Droplet />
                         <span>Faucet</span>
                     </Link>
                 </SidebarMenuButton>
@@ -252,7 +259,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
 
         <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={currentPath === "/settings"} tooltip="Settings">
-                <Link href={hrefs.settings}>
+                <Link href={hrefs.settings} prefetch={true}>
                     <Settings />
                     <span>Settings</span>
                 </Link>

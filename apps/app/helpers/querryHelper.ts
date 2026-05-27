@@ -30,7 +30,7 @@ export const buildHrefWithPersistantParams = (
     return qs ? `${pathname}?${qs}` : pathname
 }
 
-export const silentReplaceState = (url: string) => {
+export const replaceUrlWithoutRouting = (url: string) => {
     if (typeof window === "undefined") return
-    History.prototype.replaceState.call(window.history, null, "", url)
+    window.history.replaceState(window.history.state, "", url)
 }

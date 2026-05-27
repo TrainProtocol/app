@@ -13,7 +13,7 @@ import { getExplorerUrl } from "@/lib/address";
 import { Widget } from "@/components/Widget/Index";
 import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
-import { useLoginIdentityMismatch, useRecoveryIdentityCheck, HTLCStatus } from "@train-protocol/react";
+import { useLoginIdentityMismatch, useRecoveryIdentityCheck, HTLCStatus, type IdentityWarning } from "@train-protocol/react";
 import { useSwapStore } from "@/stores/swapStore";
 import { Drawer } from "@/components/Modal/vaul";
 import type { SwapFormValues } from "@/components/DTOs/SwapFormValues";
@@ -37,7 +37,7 @@ export const Actions: FC<ActionsProps> = ({ quote, solverId, type, formValues })
     return (
         <>
             {displayError && <TransactionMessage error={displayError} errorCode={displayErrorCode} />}
-            <DestinationWalletWrapper>
+            <DestinationWalletWrapper type={type}>
                 <ResolveAction
                     commitStatus={commitStatus}
                     error={error?.message}
@@ -75,20 +75,19 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode,
             setActionError(undefined)
             if (error) {
                 setActiveHashlock(null)
-                if (type === 'widget') {
-                    goHome()
-                }
+                if (type === 'widget') goHome()
             }
         }
-
         return (
-            <SubmitButton type="button" onClick={handleRetry}>
-                Try again
-            </SubmitButton>
+            <ActionWrapper type={type}>
+                <SubmitButton type="button" onClick={handleRetry}>Try again</SubmitButton>
+            </ActionWrapper>
         )
     }
 
     switch (commitStatus) {
+        case HTLCStatus.SolverLockDetected:
+            return <SolverLockDetectedAction type={type} />
         case HTLCStatus.RedeemCompleted:
             return <TerminalActions variant="success" type={type} />
         case HTLCStatus.Refunded:
@@ -97,18 +96,12 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode,
             return <UserRefundAction type={type} />
         case HTLCStatus.ManualClaimRequired:
             return <ManualRedeemAction type={type} />
-        case HTLCStatus.SecretRevealed:
-            return <></>
-        case HTLCStatus.SolverLockDetected:
-            return <SolverLockDetectedAction />
-        case HTLCStatus.UserLocked:
-            return <></>
         default:
             return <UserLockAction quote={quote} solverId={solverId} type={type} setError={setActionError} destinationAddress={formValues?.destination_address} />
     }
 }
 
-const SolverLockDetectedAction: FC = () => {
+const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const { revealSecret } = useRevealSecret()
     const attemptedRef = useRef(false)
     const { verified, skipped } = useSolverLockVerification()
@@ -149,48 +142,69 @@ const SolverLockDetectedAction: FC = () => {
         attemptReveal()
     }
 
+    if (warning || revealFailed || verificationFailed || skipped) {
+        return (
+            <ActionWrapper type={type}>
+                <SolverLockDetectedContent
+                    warning={warning}
+                    revealFailed={revealFailed}
+                    verificationFailed={verificationFailed}
+                    errorMessage={error?.message}
+                    onRetry={handleRetry}
+                    onVerifyManually={markVerifiedManually}
+                />
+            </ActionWrapper>
+        )
+    }
+    return null
+}
+
+type SolverLockDetectedContentProps = {
+    warning: IdentityWarning
+    revealFailed: boolean
+    verificationFailed: boolean
+    errorMessage: string | undefined
+    onRetry: () => void
+    onVerifyManually: () => void
+}
+
+
+const SolverLockDetectedContent: FC<SolverLockDetectedContentProps> = ({ warning, revealFailed, verificationFailed, errorMessage, onRetry, onVerifyManually }) => {
     if (warning) {
         return <WalletMessage status="warning" header={warning.header} details={warning.details} />
     }
-
     if (revealFailed) {
         return (
-            <SubmitButton type="button" onClick={handleRetry}>
+            <SubmitButton type="button" onClick={onRetry}>
                 Try again
             </SubmitButton>
         )
     }
-
     if (verificationFailed) {
         return (
             <div className="flex flex-col gap-2">
                 <WalletMessage
                     status="error"
                     header="We can't verify the solver's lock"
-                    details={error?.message ?? "Our RPC nodes aren't responding. You can review the solver's lock yourself and continue, or wait for the timelock to expire and refund."}
+                    details={errorMessage ?? "Our RPC nodes aren't responding. You can review the solver's lock yourself and continue, or wait for the timelock to expire and refund."}
                 />
-                <SubmitButton type="button" onClick={markVerifiedManually}>
+                <SubmitButton type="button" onClick={onVerifyManually}>
                     Verify and continue
                 </SubmitButton>
             </div>
         )
     }
-
-    if (skipped) {
-        return (
-            <WalletMessage
-                status="warning"
-                header="Verification skipped"
-                details="Could not verify solver lock against the original quote. Wait for refund."
-            />
-        )
-    }
-
-    return <></>
+    return (
+        <WalletMessage
+            status="warning"
+            header="Verification skipped"
+            details="Could not verify solver lock against the original quote. Wait for refund."
+        />
+    )
 }
 
 export const ActionWrapper: FC<{ children: React.ReactNode, type: SwapViewType }> = ({ children, type }) => {
-    return <Widget.Footer sticky={type === 'widget' ? true : false} >
+    return <Widget.Footer sticky={type === 'widget'} >
         {children}
     </Widget.Footer>
 }
@@ -219,30 +233,32 @@ const TerminalActions: FC<{ variant: 'success' | 'refund'; type: SwapViewType }>
     )
 
     return (
-        <div className="flex flex-row text-primary-text text-base space-x-2">
-            {txLink && (
-                <div className="grow">
-                    <SubmitButton
-                        type="button"
-                        buttonStyle={isSuccess ? "filled" : "secondary"}
-                        onClick={() => window.open(txLink, '_blank')}
-                        icon={<ExternalLink className="h-5 w-5" />}
-                        text_align="left"
-                    >
-                        {isSuccess ? 'View in Explorer' : 'View Refund'}
-                    </SubmitButton>
-                </div>
-            )}
-            <div className="grow">
-                {isModal ? (
-                    <Drawer.Close asChild>
-                        {swapMoreButton}
-                    </Drawer.Close>
-                ) : (
-                    swapMoreButton
+        <ActionWrapper type={type}>
+            <div className="flex flex-row text-primary-text text-base space-x-2">
+                {txLink && (
+                    <div className="grow">
+                        <SubmitButton
+                            type="button"
+                            buttonStyle={isSuccess ? "filled" : "secondary"}
+                            onClick={() => window.open(txLink, '_blank')}
+                            icon={<ExternalLink className="h-5 w-5" />}
+                            text_align="left"
+                        >
+                            {isSuccess ? 'View in Explorer' : 'View Refund'}
+                        </SubmitButton>
+                    </div>
                 )}
+                <div className="grow">
+                    {isModal ? (
+                        <Drawer.Close asChild>
+                            {swapMoreButton}
+                        </Drawer.Close>
+                    ) : (
+                        swapMoreButton
+                    )}
+                </div>
             </div>
-        </div>
+        </ActionWrapper>
     )
 }
 

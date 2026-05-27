@@ -8,7 +8,7 @@ import { SwapLoading } from "@/components/Swap/AtomicChat/AtomicContent";
 import { SearchX } from "lucide-react";
 import { parseSwapQuery } from "@/helpers/swapUrl";
 import { useSwapStore } from "@/stores/swapStore";
-import { useSwapProgress, useRecoverSwap } from "@train-protocol/react";
+import { useSwapProgress, useRecoverSwap, isTerminalStatus } from "@train-protocol/react";
 
 export default function SwapPage() {
     const searchParams = useSearchParams();
@@ -30,13 +30,19 @@ export default function SwapPage() {
             .catch(e => console.error("Auto-recovery failed:", e));
     }, [sourceNetwork, txHash, activeHashlock, recover, setActiveHashlock]);
 
-    useSwapProgress(activeHashlock);
+    const { status: htlcStatus } = useSwapProgress(activeHashlock);
+
+    const isTerminalRef = useRef(false);
+    isTerminalRef.current = isTerminalStatus(htlcStatus);
+    useEffect(() => () => {
+        if (isTerminalRef.current) setActiveHashlock(null);
+    }, [setActiveHashlock]);
 
     if (pendingRecovery || isRecovering) {
         return (
             <Widget className="space-y-2!">
                 <Widget.Content>
-                    <SwapLoading message="Recovering swap..." />
+                    <SwapLoading message="Loading..." />
                 </Widget.Content>
             </Widget>
         );
@@ -60,7 +66,5 @@ export default function SwapPage() {
         );
     }
 
-    return (
-        <AtmoicSteps type="widget" />
-    );
+    return <AtmoicSteps type="widget" />;
 }

@@ -54,8 +54,7 @@ const Balance = ({ values, direction, quote }: { values: SwapFormValues, directi
                     : (network && token && displayedBalance) ?
                         ((balanceAmount >= 0 && requiredSourceSpend > 0 && balanceAmount < requiredSourceSpend && direction === 'from') ?
                             <InsufficientBalance balance={displayedBalance} />
-                            :
-                            <span>{displayedBalance}</span>
+                            : <span>{displayedBalance}</span>
                         )
                         : null
         }

@@ -8,6 +8,8 @@ import { getFaucetNetworks, claimFaucet, getClaimStatus, FaucetApiError, FaucetT
 import useWallet from "@/hooks/useWallet"
 import { useSettingsState } from "@/context/settings"
 import { Widget } from "@/components/Widget/Index"
+import { useQueryState } from "@/context/query"
+import { generateFaucetInitialValues } from "@/lib/generateFaucetInitialValues"
 import SubmitButton from "@/components/buttons/submitButton"
 import WalletMessage from "@/components/Swap/messages/Message"
 import FaucetNetworkSelector from "./FaucetNetworkSelector"
@@ -15,6 +17,7 @@ import FaucetWalletPicker from "./FaucetWalletPicker"
 import AddTokenToWalletButton from "./AddTokenToWalletButton"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
 import Link from "next/link"
+import { useFaucetNudgeStore } from "@/stores/faucetNudgeStore"
 
 const FaucetView: FC<{ hideMenu?: boolean }> = ({ hideMenu = false }) => {
     const { isMobile } = useWindowDimensions()
@@ -26,9 +29,8 @@ const FaucetView: FC<{ hideMenu?: boolean }> = ({ hideMenu = false }) => {
 }
 
 export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }) => {
-    const [network, setNetwork] = useState<ExtendedNetwork | null>(null)
-    const [recipient, setRecipient] = useState<string | null>(null)
     const { networks } = useSettingsState()
+    const query = useQueryState()
     const { data: faucetNetworks } = useSWR("faucet-networks", getFaucetNetworks)
 
     const faucetByCaip2Id = useMemo(
@@ -39,6 +41,11 @@ export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }
         () => networks.filter(n => faucetByCaip2Id.has(n.caip2Id)),
         [networks, faucetByCaip2Id],
     )
+    const initial = generateFaucetInitialValues(availableNetworks, query)
+    const [selectedNetwork, setSelectedNetwork] = useState<ExtendedNetwork | null>(null)
+    const [selectedRecipient, setSelectedRecipient] = useState<string | null>(null)
+    const network = selectedNetwork ?? initial.network
+    const recipient = selectedRecipient ?? initial.recipient
 
     const [posting, setPosting] = useState(false)
     const [postError, setPostError] = useState<Error | null>(null)
@@ -71,8 +78,8 @@ export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }
     const prevWalletCountRef = useRef(0)
     useEffect(() => {
         const count = availableWallets.length
-        if (prevWalletCountRef.current > 0 && count === 0) setRecipient(null)
-        else if (prevWalletCountRef.current === 0 && count > 0 && !recipient) setRecipient(availableWallets[0].address)
+        if (prevWalletCountRef.current > 0 && count === 0) setSelectedRecipient(null)
+        else if (prevWalletCountRef.current === 0 && count > 0 && !recipient) setSelectedRecipient(availableWallets[0].address)
         prevWalletCountRef.current = count
     }, [availableWallets, recipient])
 
@@ -84,6 +91,8 @@ export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }
 
     const claimDone = !!(claimStatus?.txHash || claimStatus?.failureReason)
     const submitting = posting || (claim !== null && !claimDone)
+
+    const markMinted = useFaucetNudgeStore(s => s.markMinted)
     const errorMessage = (() => {
         if (postError instanceof FaucetApiError && postError.status === 429) {
             const match = postError.message.match(/Try again in (\d+) seconds/i)
@@ -122,6 +131,7 @@ export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }
                 recipientAddress: recipient,
             })
             setClaim({ correlationId: id, token, network, recipient })
+            markMinted(network.caip2Id, token.symbol)
         } catch (err) {
             setPostError(err instanceof Error ? err : new Error(String(err)))
         } finally {
@@ -144,7 +154,7 @@ export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }
                 <FaucetNetworkSelector
                     networks={availableNetworks}
                     value={network}
-                    onChange={setNetwork}
+                    onChange={setSelectedNetwork}
                     disabled={submitting}
                 />
             </div>
@@ -155,7 +165,7 @@ export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }
                     network={network}
                     wallets={availableWallets}
                     value={recipient}
-                    onChange={setRecipient}
+                    onChange={setSelectedRecipient}
                     disabled={submitting}
                 />
             </div>

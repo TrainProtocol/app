@@ -22,7 +22,7 @@ function HeaderWithMenu({ goBack }: { goBack: (() => void) | undefined | null })
                goBack &&
                <IconButton onClick={goBack}
                   aria-label="Go back"
-                  className="sm:-ml-2 inline-flex"
+                  className="sm:-ml-2 inline-flex md:hidden"
                   icon={
                      <ArrowLeft strokeWidth="2" />
                   } />
