@@ -38,7 +38,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type, setErro
     const wallet = provider?.activeWallet
     const { isLoggedIn } = useSharedSecretDerivation()
     const sourceAccount = useSelectedAccount('from', source_network?.caip2Id)
-    const sourceWallet = (sourceAccount?.address && source_network) ? provider?.connectedWallets?.find(w => Address.equals(w.address, sourceAccount?.address, source_network)) : undefined
+    const sourceWallet = (sourceAccount?.address && source_network) ? provider?.connectedWallets?.find(w => w.addresses.find(a => Address.equals(a, sourceAccount?.address, source_network))) : undefined
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
 
     const atomicContract = source_network?.trainContract
@@ -48,7 +48,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type, setErro
 
     const handleUserLock = async () => {
         try {
-            if (!quote || !source_network || !sourceWallet || !provider?.activeWallet || !amount || !address || !destination_network || !destination_asset || !source_asset || !atomicContract || !destLpAddress || !srcLpAddress || !destContract) throw new Error("Missing params")
+            if (!quote || !source_network || !sourceWallet || !sourceAccount || !provider?.activeWallet || !amount || !address || !destination_network || !destination_asset || !source_asset || !atomicContract || !destLpAddress || !srcLpAddress || !destContract) throw new Error("Missing params")
 
             if (provider && sourceWallet && (sourceWallet.chainId != source_network.chainId) && provider.switchChain) await provider.switchChain(sourceWallet, source_network.chainId)
 
@@ -60,7 +60,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type, setErro
                 amount: amount.toString(),
                 sourceAsset: source_asset,
                 destinationAsset: destination_asset,
-                sourceAddress: sourceWallet.address,
+                sourceAddress: sourceAccount?.address,
                 destinationAddress: address,
                 srcContract: atomicContract,
                 destContract: destContract,
