@@ -17,6 +17,7 @@ import { useLoginIdentityMismatch, useRecoveryIdentityCheck, HTLCStatus } from "
 import { useSwapStore } from "@/stores/swapStore";
 import { Drawer } from "@/components/Modal/vaul";
 import type { SwapFormValues } from "@/components/DTOs/SwapFormValues";
+import useWindowDimensions from "@/hooks/useWindowDimensions";
 
 export type SwapViewType = "widget" | "contained"
 
@@ -37,8 +38,8 @@ export const Actions: FC<ActionsProps> = ({ quote, solverId, type, formValues })
     return (
         <>
             {displayError && <TransactionMessage error={displayError} errorCode={displayErrorCode} />}
-            <ActionWrapper type={type}>
-                <DestinationWalletWrapper type={type}>
+            <DestinationWalletWrapper type={type}>
+                <ActionWrapper type={type} mobileOnly>
                     <ResolveAction
                         commitStatus={commitStatus}
                         error={error?.message}
@@ -50,8 +51,8 @@ export const Actions: FC<ActionsProps> = ({ quote, solverId, type, formValues })
                         type={type}
                         formValues={formValues}
                     />
-                </DestinationWalletWrapper>
-            </ActionWrapper>
+                </ActionWrapper>
+            </DestinationWalletWrapper>
         </>
     )
 }
@@ -191,8 +192,10 @@ const SolverLockDetectedAction: FC = () => {
     return <></>
 }
 
-export const ActionWrapper: FC<{ children: React.ReactNode, type: SwapViewType }> = ({ children, type }) => {
-    return <Widget.Footer sticky={type === 'widget' ? true : false} >
+export const ActionWrapper: FC<{ children: React.ReactNode, type: SwapViewType, mobileOnly?: boolean }> = ({ children, type, mobileOnly }) => {
+    const { isMobile } = useWindowDimensions()
+    if (mobileOnly && !isMobile) return children
+    return <Widget.Footer sticky={type === 'widget'} >
         {children}
     </Widget.Footer>
 }
