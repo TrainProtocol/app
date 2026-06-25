@@ -1,21 +1,11 @@
 "use client"
 
 import { FC, Suspense } from "react"
-import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarHeader,
-    SidebarMenu,
-    SidebarMenuItem,
-    SidebarMenuButton,
-    SidebarRail,
-} from "@/components/shadcn/sidebar"
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarRail } from "@/components/shadcn/sidebar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip"
-import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, Home, ChevronsUpDown, LogOut, Lock, MessageCircle, Droplet } from "lucide-react"
+import { BookOpen, ArrowUpRight, ChevronsUpDown, LogOut, Lock, MessageCircle } from "lucide-react"
+import { HomeIcon, HistoryIcon, FaucetIcon, SettingsIcon, DotsIcon } from "@/components/Sidebar/SidebarIcons"
 import AppSettings from "@/lib/AppSettings"
 import { useIntercom } from "react-use-intercom"
 import { useOptionalSecretDerivation } from "@train-protocol/react"
@@ -51,7 +41,6 @@ const AppSidebar: FC = () => {
                     label="TEST"
                 />
             </SidebarHeader>
-
             <SidebarContent className="px-2">
                 <SidebarGroup className="px-0 py-0">
                     <SidebarGroupContent>
@@ -73,7 +62,6 @@ const AppSidebar: FC = () => {
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
-
             <SidebarFooter className="gap-0 p-0">
                 <div className="border-t border-sidebar-border" />
                 <div className="px-2 py-2">
@@ -88,19 +76,19 @@ const AppSidebar: FC = () => {
     )
 }
 
-const HelpPillButton: FC = () => {
-    const { boot, show, update } = useIntercom()
-    return (
-        <button
-            type="button"
-            onClick={() => { boot(); show(); update() }}
-            className="flex w-full items-center justify-center gap-1.5 rounded-full border border-sidebar-border bg-sidebar px-3 py-2 text-xs font-medium text-primary-text hover:bg-sidebar-accent transition-colors"
-        >
-            <MessageCircle className="size-4" strokeWidth={2} />
-            <span>Get help</span>
-        </button>
-    )
-}
+// const HelpPillButton: FC = () => {
+//     const { boot, show, update } = useIntercom()
+//     return (
+//         <button
+//             type="button"
+//             onClick={() => { boot(); show(); update() }}
+//             className="flex w-full items-center justify-center gap-1.5 rounded-full border border-sidebar-border bg-sidebar px-3 py-2 text-xs font-medium text-primary-text hover:bg-sidebar-accent transition-colors"
+//         >
+//             <MessageCircle className="size-4" strokeWidth={2} />
+//             <span>Get help</span>
+//         </button>
+//     )
+// }
 
 const SidebarLoginStatus: FC = () => {
     const secretDerivation = useOptionalSecretDerivation()
@@ -231,7 +219,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
         <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={currentPath === "/"} tooltip="Home">
                 <Link href={hrefs.home} prefetch={true}>
-                    <Home />
+                    <HomeIcon />
                     <span>Home</span>
                 </Link>
             </SidebarMenuButton>
@@ -240,7 +228,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
         <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={currentPath === "/transactions"} tooltip="History">
                 <Link href={hrefs.transactions} prefetch={true}>
-                    <History />
+                    <HistoryIcon />
                     <span>History</span>
                 </Link>
             </SidebarMenuButton>
@@ -250,7 +238,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
             <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={currentPath === "/faucet"} tooltip="Faucet">
                     <Link href={hrefs.faucet} prefetch={true}>
-                        <Droplet />
+                        <FaucetIcon />
                         <span>Faucet</span>
                     </Link>
                 </SidebarMenuButton>
@@ -260,7 +248,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
         <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={currentPath === "/settings"} tooltip="Settings">
                 <Link href={hrefs.settings} prefetch={true}>
-                    <Settings />
+                    <SettingsIcon />
                     <span>Settings</span>
                 </Link>
             </SidebarMenuButton>
@@ -295,7 +283,7 @@ const MoreMenu: FC = () => {
         <Popover>
             <PopoverTrigger asChild>
                 <SidebarMenuButton tooltip="More">
-                    <MoreHorizontal />
+                    <DotsIcon />
                     <span className="truncate">More</span>
                 </SidebarMenuButton>
             </PopoverTrigger>
@@ -311,11 +299,11 @@ const MoreMenu: FC = () => {
                             key={item.name}
                             href={item.href}
                             target="_blank"
-                            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-text hover:bg-secondary-500 transition-colors"
+                            className="group flex items-center gap-2 rounded-md px-3 py-2 text-sm text-secondary-text hover:text-primary-text hover:bg-secondary-500 transition-colors"
                         >
                             <item.icon className="h-4 w-4" />
                             <span className="truncate">{item.name}</span>
-                            <ArrowUpRight className="ml-auto h-4 w-4 opacity-70" />
+                            <ArrowUpRight className="ml-auto h-4 w-4 opacity-60 transition-[opacity,transform] duration-200 ease-out group-hover:opacity-100 group-hover:scale-110" />
                         </Link>
                     ))}
                 </div>

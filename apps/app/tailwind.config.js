@@ -23,6 +23,9 @@ export default {
         'height': 'height'
       },
       animation: {
+        'icon-drop': 'icon-drop 0.65s ease-out',
+        'icon-drop-out': 'icon-drop-out 0.4s ease-out',
+        'icon-wave': 'icon-wave 0.5s ease-in-out',
         'reverse-spin': 'reverse-spin 1s linear infinite',
         'spin-slow': 'spin 3s linear infinite',
         'spin-fast': 'spin 1s linear infinite',
@@ -59,6 +62,23 @@ export default {
         shine: {
           '0%': { backgroundPosition: '100% 0' },
           '100%': { backgroundPosition: '-100% 0' },
+        },
+        'icon-drop': {
+          '0%': { transform: 'translateY(-2px) scaleX(0.93) scaleY(1.07)' },
+          '40%': { transform: 'translateY(0) scaleX(1) scaleY(1)' },
+          '55%': { transform: 'translateY(0) scaleX(1.25) scaleY(0.78)' },
+          '72%': { transform: 'translateY(0) scaleX(0.92) scaleY(1.08)' },
+          '100%': { transform: 'translateY(0) scaleX(1) scaleY(1)' },
+        },
+        'icon-drop-out': {
+          '0%': { transform: 'translateY(0) scaleY(1)' },
+          '40%': { transform: 'translateY(-1px) scaleY(1.05)' },
+          '70%': { transform: 'translateY(0.5px) scaleY(0.98)' },
+          '100%': { transform: 'translateY(0) scaleY(1)' },
+        },
+        'icon-wave': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-4px)' },
         },
         'shake': {
           '10%, 90%': {
