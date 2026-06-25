@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from "react"
+import { FC } from "react"
 
 const svgProps = {
     viewBox: "0 0 24 24",
@@ -10,29 +10,6 @@ const svgProps = {
     "aria-hidden": true,
 } as const
 
-function useRowHoverPhase() {
-    const ref = useRef<SVGSVGElement>(null)
-    const [state, set] = useState<{ phase: "in" | "out" | null; animKey: number }>({ phase: null, animKey: 0 })
-    useEffect(() => {
-        const row = ref.current?.closest('[data-sidebar="menu-button"]')
-        if (!row) return
-        let timer: ReturnType<typeof setTimeout> | undefined
-        const enter = () => { timer = setTimeout(() => set(s => ({ phase: "in", animKey: s.animKey + 1 })), 150) }
-        const leave = () => {
-            clearTimeout(timer)
-            set(s => (s.phase === "in" ? { phase: "out", animKey: s.animKey + 1 } : s))
-        }
-        row.addEventListener("mouseenter", enter)
-        row.addEventListener("mouseleave", leave)
-        return () => {
-            clearTimeout(timer)
-            row.removeEventListener("mouseenter", enter)
-            row.removeEventListener("mouseleave", leave)
-        }
-    }, [])
-    return { ref, ...state }
-}
-
 export const HomeIcon: FC = () => (
     <svg {...svgProps}>
         <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -40,7 +17,7 @@ export const HomeIcon: FC = () => (
     </svg>
 )
 export const SettingsIcon: FC = () => (
-    <svg {...svgProps} className="transition-transform duration-500 ease-out group-hover/menu-button:delay-150 group-hover/menu-button:rotate-90">
+    <svg {...svgProps} className="transition-transform duration-500 ease-out group-hover/menu-button:delay-150 group-hover/menu-button:rotate-[45deg]">
         <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
         <circle cx="12" cy="12" r="3" />
     </svg>
@@ -54,29 +31,21 @@ export const HistoryIcon: FC = () => (
     </svg>
 )
 
-const WAVE_LEAD = "animate-icon-wave"
-const WAVE_MID = "[animation:icon-wave_0.5s_ease-in-out_0.1s]"
-const WAVE_TAIL = "[animation:icon-wave_0.5s_ease-in-out_0.2s]"
-
-export const DotsIcon: FC = () => {
-    const { ref, phase, animKey } = useRowHoverPhase()
-    const left = phase === "in" ? WAVE_LEAD : phase === "out" ? WAVE_TAIL : undefined
-    const center = phase ? WAVE_MID : undefined
-    const right = phase === "in" ? WAVE_TAIL : phase === "out" ? WAVE_LEAD : undefined
-    return (
-        <svg key={animKey} ref={ref} {...svgProps}>
-            <circle className={left} cx="5" cy="12" r="1" />
-            <circle className={center} cx="12" cy="12" r="1" />
-            <circle className={right} cx="19" cy="12" r="1" />
-        </svg>
-    )
-}
-export const FaucetIcon: FC = () => {
-    const { ref, phase } = useRowHoverPhase()
-    const drop = phase === "in" ? "animate-icon-drop" : phase === "out" ? "animate-icon-drop-out" : ""
-    return (
-        <svg ref={ref} {...svgProps} className={`origin-bottom ${drop}`}>
-            <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
-        </svg>
-    )
-}
+export const DotsIcon: FC = () => (
+    <svg {...svgProps}>
+        <circle cx="5" cy="12" r="1" className="transition-transform duration-300 ease-out group-hover/menu-button:delay-150 group-hover/menu-button:-translate-x-[2px]" />
+        <circle cx="12" cy="12" r="1" />
+        <circle cx="19" cy="12" r="1" className="transition-transform duration-300 ease-out group-hover/menu-button:delay-150 group-hover/menu-button:translate-x-[2px]" />
+    </svg>
+)
+export const FaucetIcon: FC = () => (
+    <svg {...svgProps} className="overflow-visible">
+        <g style={{ transformBox: "view-box", transformOrigin: "5px 19px" }} className="transition-transform duration-300 ease-out group-hover/menu-button:delay-150 group-hover/menu-button:-rotate-[4deg]">
+            <path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17" />
+            <path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9" />
+            <path d="m2 16 6 6" />
+        </g>
+        <circle cx="16" cy="9" r="2.9" style={{ transformBox: "fill-box", transformOrigin: "center" }} className="transition-transform duration-300 ease-[cubic-bezier(.34,1.56,.64,1)] group-hover/menu-button:delay-150 group-hover/menu-button:-translate-y-[3px] group-hover/menu-button:scale-110" />
+        <circle cx="6" cy="5" r="3" className="transition-transform duration-500 ease-[cubic-bezier(.34,1.56,.64,1)] group-hover/menu-button:delay-200 group-hover/menu-button:-translate-y-[2.5px]" />
+    </svg>
+)
