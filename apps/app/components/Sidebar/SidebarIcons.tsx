@@ -1,4 +1,5 @@
 import { FC } from "react"
+import { Fingerprint } from "lucide-react"
 
 const svgProps = {
     viewBox: "0 0 24 24",
@@ -48,4 +49,18 @@ export const FaucetIcon: FC = () => (
         <circle cx="16" cy="9" r="2.9" style={{ transformBox: "fill-box", transformOrigin: "center" }} className="transition-transform duration-300 ease-[cubic-bezier(.34,1.56,.64,1)] group-hover/menu-button:-translate-y-[3px] group-hover/menu-button:scale-110" />
         <circle cx="6" cy="5" r="3" className="transition-transform duration-500 ease-[cubic-bezier(.34,1.56,.64,1)] group-hover/menu-button:delay-200 group-hover/menu-button:-translate-y-[2.5px]" />
     </svg>
+)
+
+export const LockIcon: FC<{ className?: string }> = ({ className }) => (
+    <svg {...svgProps} className={className}>
+        <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" className="transition-transform duration-300 ease-[cubic-bezier(.34,1.56,.64,1)] group-hover/menu-button:-translate-y-px" />
+    </svg>
+)
+
+export const ScanFingerprintIcon: FC<{ className?: string }> = ({ className }) => (
+    <span className="relative inline-flex">
+        <Fingerprint strokeWidth={2} className={`${className ?? ""} text-secondary-text`} />
+        <Fingerprint strokeWidth={2} aria-hidden className={`${className ?? ""} absolute left-0 top-0 text-primary-text [clip-path:inset(100%_0_0_0)] transition-[clip-path] duration-[600ms] ease-out group-hover/menu-button:[clip-path:inset(0%_0_0_0)]`} />
+    </span>
 )

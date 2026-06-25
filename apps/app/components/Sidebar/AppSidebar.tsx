@@ -4,8 +4,8 @@ import { FC, Suspense } from "react"
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarRail } from "@/components/shadcn/sidebar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip"
-import { BookOpen, ArrowUpRight, ChevronsUpDown, LogOut, Lock, MessageCircle } from "lucide-react"
-import { HomeIcon, HistoryIcon, FaucetIcon, SettingsIcon, DotsIcon } from "@/components/Sidebar/SidebarIcons"
+import { BookOpen, ArrowUpRight, ChevronsUpDown, LogOut, MessageCircle } from "lucide-react"
+import { HomeIcon, HistoryIcon, FaucetIcon, SettingsIcon, DotsIcon, LockIcon, ScanFingerprintIcon } from "@/components/Sidebar/SidebarIcons"
 import AppSettings from "@/lib/AppSettings"
 import { useIntercom } from "react-use-intercom"
 import { useOptionalSecretDerivation } from "@train-protocol/react"
@@ -108,12 +108,12 @@ const SidebarLoginStatus: FC = () => {
                         className="px-1"
                         onClick={() => { if (isReady) openAuthDialog() }}
                     >
-                        <div className="flex aspect-square size-6 items-center justify-center rounded-full bg-secondary-400 text-primary-text shrink-0">
-                            <Lock className="size-3.5" strokeWidth={2} />
+                        <div className="flex aspect-square size-6 items-center justify-center rounded-full bg-secondary-400 shrink-0">
+                            <LockIcon className="size-3.5 text-secondary-text transition-colors group-hover/menu-button:text-primary-text" />
                         </div>
                         <div className="grid flex-1 text-left leading-tight min-w-0 group-data-[collapsible=icon]:hidden">
-                            <span className="truncate text-sm font-semibold">Log in</span>
-                            <span className="truncate text-xs text-secondary-text">Not signed in</span>
+                            <span className="truncate text-sm font-semibold text-secondary-text transition-colors group-hover/menu-button:text-primary-text">Log in</span>
+                            <span className="truncate text-xs text-primary-text-tertiary transition-colors group-hover/menu-button:text-secondary-text">Not signed in</span>
                         </div>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -128,14 +128,14 @@ const SidebarLoginStatus: FC = () => {
     const idShortWithTooltip = idShort && (idFull ? (
         <Tooltip>
             <TooltipTrigger asChild>
-                <span className="truncate text-xs text-secondary-text cursor-default">{idShort}</span>
+                <span className="truncate text-xs text-primary-text-tertiary transition-colors group-hover/menu-button:text-secondary-text cursor-default">{idShort}</span>
             </TooltipTrigger>
             <TooltipContent side="top">
                 <p className="font-mono break-all max-w-[280px]">{idFull}</p>
             </TooltipContent>
         </Tooltip>
     ) : (
-        <span className="truncate text-xs text-secondary-text">{idShort}</span>
+        <span className="truncate text-xs text-primary-text-tertiary transition-colors group-hover/menu-button:text-secondary-text">{idShort}</span>
     ))
 
     return (
@@ -149,13 +149,13 @@ const SidebarLoginStatus: FC = () => {
                             className="px-1 data-[state=open]:bg-secondary-500"
                         >
                             <div className="flex aspect-square size-6 items-center justify-center rounded-full bg-secondary-400 text-primary-text shrink-0">
-                                <Icon className="size-3.5" strokeWidth={2} />
+                                {isPasskey ? <ScanFingerprintIcon className="size-3.5" /> : <Icon className="size-3.5" strokeWidth={2} />}
                             </div>
                             <div className="grid flex-1 text-left leading-tight min-w-0 group-data-[collapsible=icon]:hidden">
-                                {label && <span className="truncate text-sm font-semibold">{label}</span>}
+                                {label && <span className="truncate text-sm font-semibold text-secondary-text transition-colors group-hover/menu-button:text-primary-text">{label}</span>}
                                 {idShortWithTooltip}
                             </div>
-                            <ChevronsUpDown className="ml-auto size-4 text-secondary-text shrink-0 group-data-[collapsible=icon]:hidden" />
+                            <ChevronsUpDown className="ml-auto size-4 text-secondary-text shrink-0 transition-colors group-hover/menu-button:text-primary-text group-data-[collapsible=icon]:hidden" />
                         </SidebarMenuButton>
                     </PopoverTrigger>
                     <PopoverContent
@@ -164,26 +164,14 @@ const SidebarLoginStatus: FC = () => {
                         sideOffset={8}
                         className="w-56 p-1 bg-secondary-700 border border-border rounded-xl"
                     >
-                        <div className="flex flex-col gap-0.5">
-                            <div className="flex h-12 items-center gap-2 overflow-hidden p-2">
-                                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-secondary-400 text-primary-text shrink-0">
-                                    <Icon className="size-4" strokeWidth={2} />
-                                </div>
-                                <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
-                                    {label && <span className="truncate font-semibold">{label}</span>}
-                                    {idShortWithTooltip}
-                                </div>
-                            </div>
-                            <div className="my-1 h-px bg-border" />
-                            <button
-                                type="button"
-                                onClick={() => logout()}
-                                className="flex h-9 w-full items-center gap-2 rounded-md p-2 text-sm text-error-foreground hover:bg-error-background transition-colors text-left [&_svg]:size-4"
-                            >
-                                <LogOut />
-                                <span>Log out</span>
-                            </button>
-                        </div>
+                        <button
+                            type="button"
+                            onClick={() => logout()}
+                            className="flex h-9 w-full items-center gap-2 rounded-md p-2 text-sm text-error-foreground hover:bg-error-background transition-colors text-left [&_svg]:size-4"
+                        >
+                            <LogOut />
+                            <span>Log out</span>
+                        </button>
                     </PopoverContent>
                 </Popover>
             </SidebarMenuItem>
