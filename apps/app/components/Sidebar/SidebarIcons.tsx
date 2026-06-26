@@ -60,7 +60,7 @@ export const LockIcon: FC<{ className?: string }> = ({ className }) => (
 
 export const ScanFingerprintIcon: FC<{ className?: string }> = ({ className }) => (
     <span className="relative inline-flex">
-        <Fingerprint strokeWidth={2} className={`${className ?? ""} text-secondary-text`} />
-        <Fingerprint strokeWidth={2} aria-hidden className={`${className ?? ""} absolute left-0 top-0 text-primary-text [clip-path:inset(100%_0_0_0)] transition-[clip-path] duration-[600ms] ease-out group-hover/menu-button:[clip-path:inset(0%_0_0_0)]`} />
+        <Fingerprint strokeWidth={2} className={className} />
+        <Fingerprint strokeWidth={2} aria-hidden className={`${className ?? ""} absolute left-0 top-0 text-primary-400! [clip-path:inset(100%_0_0_0)] transition-[clip-path] duration-[600ms] ease-out group-hover/menu-button:[clip-path:inset(0%_0_0_0)]`} />
     </span>
 )
