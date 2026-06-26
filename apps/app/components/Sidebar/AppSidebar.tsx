@@ -1,21 +1,11 @@
 "use client"
 
 import { FC, Suspense } from "react"
-import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarHeader,
-    SidebarMenu,
-    SidebarMenuItem,
-    SidebarMenuButton,
-    SidebarRail,
-} from "@/components/shadcn/sidebar"
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarRail } from "@/components/shadcn/sidebar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip"
-import { History, Settings, BookOpen, ArrowUpRight, MoreHorizontal, Home, ChevronsUpDown, LogOut, Lock, MessageCircle, Droplet } from "lucide-react"
+import { BookOpen, ArrowUpRight, ChevronsUpDown, LogOut, MessageCircle } from "lucide-react"
+import { HomeIcon, HistoryIcon, FaucetIcon, SettingsIcon, DotsIcon, LockIcon, ScanFingerprintIcon } from "@/components/Sidebar/SidebarIcons"
 import AppSettings from "@/lib/AppSettings"
 import { useIntercom } from "react-use-intercom"
 import { useOptionalSecretDerivation } from "@train-protocol/react"
@@ -51,7 +41,6 @@ const AppSidebar: FC = () => {
                     label="TEST"
                 />
             </SidebarHeader>
-
             <SidebarContent className="px-2">
                 <SidebarGroup className="px-0 py-0">
                     <SidebarGroupContent>
@@ -73,7 +62,6 @@ const AppSidebar: FC = () => {
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
-
             <SidebarFooter className="gap-0 p-0">
                 <div className="border-t border-sidebar-border" />
                 <div className="px-2 py-2">
@@ -88,19 +76,19 @@ const AppSidebar: FC = () => {
     )
 }
 
-const HelpPillButton: FC = () => {
-    const { boot, show, update } = useIntercom()
-    return (
-        <button
-            type="button"
-            onClick={() => { boot(); show(); update() }}
-            className="flex w-full items-center justify-center gap-1.5 rounded-full border border-sidebar-border bg-sidebar px-3 py-2 text-xs font-medium text-primary-text hover:bg-sidebar-accent transition-colors"
-        >
-            <MessageCircle className="size-4" strokeWidth={2} />
-            <span>Get help</span>
-        </button>
-    )
-}
+// const HelpPillButton: FC = () => {
+//     const { boot, show, update } = useIntercom()
+//     return (
+//         <button
+//             type="button"
+//             onClick={() => { boot(); show(); update() }}
+//             className="flex w-full items-center justify-center gap-1.5 rounded-full border border-sidebar-border bg-sidebar px-3 py-2 text-xs font-medium text-primary-text hover:bg-sidebar-accent transition-colors"
+//         >
+//             <MessageCircle className="size-4" strokeWidth={2} />
+//             <span>Get help</span>
+//         </button>
+//     )
+// }
 
 const SidebarLoginStatus: FC = () => {
     const secretDerivation = useOptionalSecretDerivation()
@@ -120,12 +108,12 @@ const SidebarLoginStatus: FC = () => {
                         className="px-1"
                         onClick={() => { if (isReady) openAuthDialog() }}
                     >
-                        <div className="flex aspect-square size-6 items-center justify-center rounded-full bg-secondary-400 text-primary-text shrink-0">
-                            <Lock className="size-3.5" strokeWidth={2} />
+                        <div className="flex aspect-square size-6 items-center justify-center rounded-full bg-secondary-400 shrink-0">
+                            <LockIcon className="size-3.5 text-secondary-text transition-colors group-hover/menu-button:text-primary-text" />
                         </div>
                         <div className="grid flex-1 text-left leading-tight min-w-0 group-data-[collapsible=icon]:hidden">
-                            <span className="truncate text-sm font-semibold">Log in</span>
-                            <span className="truncate text-xs text-secondary-text">Not signed in</span>
+                            <span className="truncate text-sm font-semibold text-secondary-text transition-colors group-hover/menu-button:text-primary-text">Log in</span>
+                            <span className="truncate text-xs text-primary-text-tertiary transition-colors group-hover/menu-button:text-secondary-text">Not signed in</span>
                         </div>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -140,14 +128,14 @@ const SidebarLoginStatus: FC = () => {
     const idShortWithTooltip = idShort && (idFull ? (
         <Tooltip>
             <TooltipTrigger asChild>
-                <span className="truncate text-xs text-secondary-text cursor-default">{idShort}</span>
+                <span className="truncate text-xs text-primary-text-tertiary transition-colors group-hover/menu-button:text-secondary-text cursor-default">{idShort}</span>
             </TooltipTrigger>
             <TooltipContent side="top">
                 <p className="font-mono break-all max-w-[280px]">{idFull}</p>
             </TooltipContent>
         </Tooltip>
     ) : (
-        <span className="truncate text-xs text-secondary-text">{idShort}</span>
+        <span className="truncate text-xs text-primary-text-tertiary transition-colors group-hover/menu-button:text-secondary-text">{idShort}</span>
     ))
 
     return (
@@ -161,13 +149,13 @@ const SidebarLoginStatus: FC = () => {
                             className="px-1 data-[state=open]:bg-secondary-500"
                         >
                             <div className="flex aspect-square size-6 items-center justify-center rounded-full bg-secondary-400 text-primary-text shrink-0">
-                                <Icon className="size-3.5" strokeWidth={2} />
+                                {isPasskey ? <ScanFingerprintIcon className="size-3.5" /> : <Icon className="size-3.5" strokeWidth={2} />}
                             </div>
                             <div className="grid flex-1 text-left leading-tight min-w-0 group-data-[collapsible=icon]:hidden">
-                                {label && <span className="truncate text-sm font-semibold">{label}</span>}
+                                {label && <span className="truncate text-sm font-semibold text-secondary-text transition-colors group-hover/menu-button:text-primary-text">{label}</span>}
                                 {idShortWithTooltip}
                             </div>
-                            <ChevronsUpDown className="ml-auto size-4 text-secondary-text shrink-0 group-data-[collapsible=icon]:hidden" />
+                            <ChevronsUpDown className="ml-auto size-4 text-secondary-text shrink-0 transition-colors group-hover/menu-button:text-primary-text group-data-[collapsible=icon]:hidden" />
                         </SidebarMenuButton>
                     </PopoverTrigger>
                     <PopoverContent
@@ -176,26 +164,14 @@ const SidebarLoginStatus: FC = () => {
                         sideOffset={8}
                         className="w-56 p-1 bg-secondary-700 border border-border rounded-xl"
                     >
-                        <div className="flex flex-col gap-0.5">
-                            <div className="flex h-12 items-center gap-2 overflow-hidden p-2">
-                                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-secondary-400 text-primary-text shrink-0">
-                                    <Icon className="size-4" strokeWidth={2} />
-                                </div>
-                                <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
-                                    {label && <span className="truncate font-semibold">{label}</span>}
-                                    {idShortWithTooltip}
-                                </div>
-                            </div>
-                            <div className="my-1 h-px bg-border" />
-                            <button
-                                type="button"
-                                onClick={() => logout()}
-                                className="flex h-9 w-full items-center gap-2 rounded-md p-2 text-sm text-error-foreground hover:bg-error-background transition-colors text-left [&_svg]:size-4"
-                            >
-                                <LogOut />
-                                <span>Log out</span>
-                            </button>
-                        </div>
+                        <button
+                            type="button"
+                            onClick={() => logout()}
+                            className="flex h-9 w-full items-center gap-2 rounded-md p-2 text-sm text-error-foreground hover:bg-error-background transition-colors text-left [&_svg]:size-4"
+                        >
+                            <LogOut />
+                            <span>Log out</span>
+                        </button>
                     </PopoverContent>
                 </Popover>
             </SidebarMenuItem>
@@ -231,7 +207,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
         <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={currentPath === "/"} tooltip="Home">
                 <Link href={hrefs.home} prefetch={true}>
-                    <Home />
+                    <HomeIcon />
                     <span>Home</span>
                 </Link>
             </SidebarMenuButton>
@@ -240,7 +216,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
         <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={currentPath === "/transactions"} tooltip="History">
                 <Link href={hrefs.transactions} prefetch={true}>
-                    <History />
+                    <HistoryIcon />
                     <span>History</span>
                 </Link>
             </SidebarMenuButton>
@@ -250,7 +226,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
             <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={currentPath === "/faucet"} tooltip="Faucet">
                     <Link href={hrefs.faucet} prefetch={true}>
-                        <Droplet />
+                        <FaucetIcon />
                         <span>Faucet</span>
                     </Link>
                 </SidebarMenuButton>
@@ -260,7 +236,7 @@ const NavItems: FC<{ currentPath: string; hrefs: NavHrefs }> = ({ currentPath, h
         <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={currentPath === "/settings"} tooltip="Settings">
                 <Link href={hrefs.settings} prefetch={true}>
-                    <Settings />
+                    <SettingsIcon />
                     <span>Settings</span>
                 </Link>
             </SidebarMenuButton>
@@ -295,7 +271,7 @@ const MoreMenu: FC = () => {
         <Popover>
             <PopoverTrigger asChild>
                 <SidebarMenuButton tooltip="More">
-                    <MoreHorizontal />
+                    <DotsIcon />
                     <span className="truncate">More</span>
                 </SidebarMenuButton>
             </PopoverTrigger>
@@ -311,11 +287,11 @@ const MoreMenu: FC = () => {
                             key={item.name}
                             href={item.href}
                             target="_blank"
-                            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-primary-text hover:bg-secondary-500 transition-colors"
+                            className="group flex items-center gap-2 rounded-md px-3 py-2 text-sm text-secondary-text hover:text-primary-text hover:bg-secondary-500 transition-colors"
                         >
                             <item.icon className="h-4 w-4" />
                             <span className="truncate">{item.name}</span>
-                            <ArrowUpRight className="ml-auto h-4 w-4 opacity-70" />
+                            <ArrowUpRight className="ml-auto h-4 w-4 opacity-60 transition-[opacity,transform] duration-200 ease-out group-hover:opacity-100 group-hover:scale-110" />
                         </Link>
                     ))}
                 </div>
