@@ -228,7 +228,7 @@ export const WalletItem: FC<WalletItemProps> = ({ selectable, account: wallet, n
                 }
                 {
                     isMulti &&
-                    <ChevronDown className={clsx('h-4 w-4 text-secondary-text transition-all duration-200 opacity-0 group-hover/addressItem:opacity-100', {
+                    <ChevronDown className={clsx('h-4 w-4 text-secondary-text transition-all duration-200', {
                         'rotate-180': isExpanded
                     })} />
                 }
