@@ -109,7 +109,7 @@ const SidebarLoginStatus: FC = () => {
                         onClick={() => { if (isReady) openAuthDialog() }}
                     >
                         <div className="flex aspect-square size-6 items-center justify-center rounded-full bg-secondary-400 shrink-0">
-                            <LockIcon className="size-3.5 text-secondary-text transition-colors group-hover/menu-button:text-primary-text" />
+                            <LockIcon className="size-3.5" />
                         </div>
                         <div className="grid flex-1 text-left leading-tight min-w-0 group-data-[collapsible=icon]:hidden">
                             <span className="truncate text-sm font-semibold text-secondary-text transition-colors group-hover/menu-button:text-primary-text">Log in</span>
@@ -155,7 +155,7 @@ const SidebarLoginStatus: FC = () => {
                                 {label && <span className="truncate text-sm font-semibold text-secondary-text transition-colors group-hover/menu-button:text-primary-text">{label}</span>}
                                 {idShortWithTooltip}
                             </div>
-                            <ChevronsUpDown className="ml-auto size-4 text-secondary-text shrink-0 transition-colors group-hover/menu-button:text-primary-text group-data-[collapsible=icon]:hidden" />
+                            <ChevronsUpDown className="ml-auto size-4 shrink-0 group-data-[collapsible=icon]:hidden" />
                         </SidebarMenuButton>
                     </PopoverTrigger>
                     <PopoverContent
@@ -289,7 +289,7 @@ const MoreMenu: FC = () => {
                             target="_blank"
                             className="group flex items-center gap-2 rounded-md px-3 py-2 text-sm text-secondary-text hover:text-primary-text hover:bg-secondary-500 transition-colors"
                         >
-                            <item.icon className="h-4 w-4" />
+                            <item.icon className="h-4 w-4 text-primary-text" />
                             <span className="truncate">{item.name}</span>
                             <ArrowUpRight className="ml-auto h-4 w-4 opacity-60 transition-[opacity,transform] duration-200 ease-out group-hover:opacity-100 group-hover:scale-110" />
                         </Link>
