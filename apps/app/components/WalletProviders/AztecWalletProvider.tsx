@@ -4,26 +4,34 @@ import type { WalletProvider as AztecSDKWalletProvider, PendingConnection } from
 import { AZTEC_APP_ID, useAztecCapabilityManifest, useAztecChainInfo } from "@/lib/wallets/aztec/configs";
 import { useAztecWalletStore } from "@/stores/aztecWalletStore";
 import { ActiveAztecAccountProvider } from "./ActiveAztecAccount";
-import SubmitButton from "../buttons/submitButton";
+
+/**
+ * Emoji verification handed to the connection UI. The wallet-sdk secure channel
+ * produces a verification hash the user must confirm matches their wallet before
+ * the connection completes. Rather than rendering this as a separate top-level
+ * overlay (which gets covered by the connect drawer's own portal), we expose it
+ * here so the connect flow can render it inline as one of its steps.
+ */
+export interface AztecPendingVerification {
+    emojis: string;
+    confirm: () => Promise<void>;
+    cancel: () => void;
+}
 
 interface AztecWalletContextType {
     connect: (providerId: string) => Promise<AztecWallet>;
     disconnect: () => Promise<void>;
+    pendingVerification: AztecPendingVerification | null;
 }
 
 const AztecWalletContext = createContext<AztecWalletContextType | undefined>(undefined);
 
 export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { setWallet } = useAztecWalletStore();
-    const [pendingConnection, setPendingConnection] = useState<PendingConnection | null>(null);
-    const [verificationEmojis, setVerificationEmojis] = useState<string | null>(null);
+    const [pendingVerification, setPendingVerification] = useState<AztecPendingVerification | null>(null);
 
     const activeProviderRef = useRef<AztecSDKWalletProvider | null>(null);
-
-    const pendingResolveRef = useRef<((wallet: AztecWallet) => void) | null>(null);
-    const pendingRejectRef = useRef<((error: Error) => void) | null>(null);
     const disconnectUnsubRef = useRef<(() => void) | null>(null);
-    const isConfirmingRef = useRef(false);
 
     const chainInfo = useAztecChainInfo();
     const buildCapabilityManifest = useAztecCapabilityManifest();
@@ -65,82 +73,79 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
             throw new Error(`Wallet provider "${providerId}" not found`);
         }
 
+        const activeProvider = provider;
         const { hashToEmoji } = await import("@aztec/wallet-sdk/crypto");
 
         let pending: PendingConnection;
         try {
-            pending = await provider.establishSecureChannel(AZTEC_APP_ID);
+            pending = await activeProvider.establishSecureChannel(AZTEC_APP_ID);
         } catch {
             throw new Error("Connection declined by wallet");
         }
 
         const emojis = hashToEmoji(pending.verificationHash);
-        setPendingConnection(pending);
-        setVerificationEmojis(emojis);
-        activeProviderRef.current = provider;
+        activeProviderRef.current = activeProvider;
 
+        // Hand the verification to the connect UI and resolve once the user
+        // confirms (or reject if they cancel). confirm/cancel close over this
+        // connection so there are no stale-closure races between attempts.
         return new Promise<AztecWallet>((resolve, reject) => {
-            pendingResolveRef.current = resolve;
-            pendingRejectRef.current = reject;
+            let settled = false;
+            let confirming = false;
+
+            const confirm = async () => {
+                if (settled || confirming) return;
+                confirming = true;
+                try {
+                    const connectedWallet = await pending.confirm();
+                    setWallet(connectedWallet);
+
+                    // Request capabilities (accounts, contract registration, scoped simulation/transaction)
+                    try {
+                        const manifest = await buildCapabilityManifest();
+                        await connectedWallet.requestCapabilities(manifest);
+                    } catch (err) {
+                        console.warn('requestCapabilities not supported:', err);
+                    }
+
+                    disconnectUnsubRef.current = activeProvider.onDisconnect(() => {
+                        // Grace period to avoid false disconnects from HMR/Fast Refresh
+                        setTimeout(() => {
+                            const p = activeProviderRef.current;
+                            if (!p || p.isDisconnected?.() !== false) {
+                                resetConnection();
+                            }
+                        }, 1000);
+                    });
+
+                    settled = true;
+                    setPendingVerification(null);
+                    resolve(connectedWallet);
+                } catch (error) {
+                    console.error("Error confirming connection:", error);
+                    settled = true;
+                    setPendingVerification(null);
+                    reject(error instanceof Error ? error : new Error(String(error)));
+                } finally {
+                    confirming = false;
+                }
+            };
+
+            const cancel = () => {
+                if (settled || confirming) return;
+                settled = true;
+                try {
+                    pending.cancel();
+                } catch {
+                    /* channel may already be torn down */
+                }
+                setPendingVerification(null);
+                reject(new Error("Connection cancelled by user"));
+            };
+
+            setPendingVerification({ emojis, confirm, cancel });
         });
-    }, [chainInfo]);
-
-    const confirmConnection = useCallback(async () => {
-        if (!pendingConnection || isConfirmingRef.current) return;
-        isConfirmingRef.current = true;
-
-        try {
-            const connectedWallet = await pendingConnection.confirm();
-            setWallet(connectedWallet);
-
-            // Request capabilities (accounts, contract registration, scoped simulation/transaction)
-            try {
-                const manifest = await buildCapabilityManifest();
-                await connectedWallet.requestCapabilities(manifest);
-            } catch (err) {
-                console.warn('requestCapabilities not supported:', err);
-            }
-
-            if (activeProviderRef.current) {
-                disconnectUnsubRef.current = activeProviderRef.current.onDisconnect(() => {
-                    // Grace period to avoid false disconnects from HMR/Fast Refresh
-                    setTimeout(() => {
-                        const provider = activeProviderRef.current;
-                        if (!provider || provider.isDisconnected?.() !== false) {
-                            resetConnection();
-                        }
-                    }, 1000);
-                });
-            }
-
-            setPendingConnection(null);
-            setVerificationEmojis(null);
-
-            pendingResolveRef.current?.(connectedWallet);
-            pendingResolveRef.current = null;
-            pendingRejectRef.current = null;
-        } catch (error) {
-            console.error("Error confirming connection:", error);
-            setPendingConnection(null);
-            setVerificationEmojis(null);
-            pendingRejectRef.current?.(error instanceof Error ? error : new Error(String(error)));
-            pendingResolveRef.current = null;
-            pendingRejectRef.current = null;
-        } finally {
-            isConfirmingRef.current = false;
-        }
-    }, [pendingConnection, resetConnection, buildCapabilityManifest]);
-
-    const cancelConnection = useCallback(() => {
-        if (pendingConnection) {
-            pendingConnection.cancel();
-        }
-        setPendingConnection(null);
-        setVerificationEmojis(null);
-        pendingRejectRef.current?.(new Error("Connection cancelled by user"));
-        pendingResolveRef.current = null;
-        pendingRejectRef.current = null;
-    }, [pendingConnection]);
+    }, [chainInfo, setWallet, buildCapabilityManifest, resetConnection]);
 
     const disconnect = useCallback(async () => {
         try {
@@ -158,17 +163,11 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
         <AztecWalletContext.Provider value={{
             connect,
             disconnect,
+            pendingVerification,
         }}>
             <ActiveAztecAccountProvider>
                 {children}
             </ActiveAztecAccountProvider>
-            {pendingConnection && verificationEmojis && (
-                <EmojiVerificationOverlay
-                    emojis={verificationEmojis}
-                    onConfirm={confirmConnection}
-                    onCancel={cancelConnection}
-                />
-            )}
         </AztecWalletContext.Provider>
     );
 };
@@ -179,60 +178,4 @@ export const useAztecWalletContext = () => {
         throw new Error("useAztecWalletContext must be used within an AztecWalletProvider");
     }
     return context;
-};
-
-
-const EmojiVerificationOverlay: React.FC<{
-    emojis: string;
-    onConfirm: () => void;
-    onCancel: () => void;
-}> = ({ emojis, onConfirm, onCancel }) => {
-    const emojiChars = [...emojis];
-    const rows = [
-        emojiChars.slice(0, 3),
-        emojiChars.slice(3, 6),
-        emojiChars.slice(6, 9),
-    ];
-
-    return (
-        <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-            <div className="bg-secondary-700 border border-secondary-500 rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl">
-                <h3 className="text-lg font-semibold text-primary-text text-center mb-2">
-                    Verify Connection
-                </h3>
-                <p className="text-sm text-secondary-text text-center mb-5">
-                    Confirm these emojis match what your wallet displays
-                </p>
-                <div className="flex flex-col items-center gap-1 mb-6">
-                    {rows.map((row, i) => (
-                        <div key={i} className="flex gap-1">
-                            {row.map((emoji, j) => (
-                                <div
-                                    key={j}
-                                    className="w-14 h-14 flex items-center justify-center bg-secondary-700 rounded-lg text-3xl"
-                                >
-                                    {emoji}
-                                </div>
-                            ))}
-                        </div>
-                    ))}
-                </div>
-                <div className="flex gap-3">
-                    <button
-                        type="button"
-                        onClick={onCancel}
-                        className="flex-1 py-3 px-4 rounded-lg border border-secondary-500 text-secondary-text text-sm font-medium cursor-pointer bg-transparent hover:bg-secondary-500 transition-colors"
-                    >
-                        Cancel
-                    </button>
-                    <SubmitButton
-                        type="button"
-                        onClick={onConfirm}
-                    >
-                        Emojis Match
-                    </SubmitButton>
-                </div>
-            </div>
-        </div>
-    );
 };
