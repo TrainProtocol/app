@@ -6,6 +6,16 @@
   },
   {
     "inputs": [],
+    "name": "InvalidPayout",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidPayoutCurve",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidRewardTimelock",
     "type": "error"
   },
@@ -21,6 +31,11 @@
   },
   {
     "inputs": [],
+    "name": "InvalidUser",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "LockNotFound",
     "type": "error"
   },
@@ -32,6 +47,11 @@
   {
     "inputs": [],
     "name": "MsgValueMismatch",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NativeNotSupported",
     "type": "error"
   },
   {
@@ -68,6 +88,11 @@
   {
     "inputs": [],
     "name": "TransferFailed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ZeroAddress",
     "type": "error"
   },
   {
@@ -152,6 +177,12 @@
       },
       {
         "indexed": false,
+        "internalType": "address",
+        "name": "payoutCurve",
+        "type": "address"
+      },
+      {
+        "indexed": false,
         "internalType": "string",
         "name": "dstChain",
         "type": "string"
@@ -210,6 +241,30 @@
         "internalType": "uint256",
         "name": "secret",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "payout",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "excess",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "rewardTo",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "reward",
+        "type": "uint256"
       }
     ],
     "name": "SolverRedeemed",
@@ -228,6 +283,24 @@
         "indexed": true,
         "internalType": "uint256",
         "name": "index",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "refundTo",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "reward",
         "type": "uint256"
       }
     ],
@@ -278,6 +351,12 @@
         "internalType": "uint48",
         "name": "timelock",
         "type": "uint48"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "payoutCurve",
+        "type": "address"
       },
       {
         "indexed": false,
@@ -369,6 +448,18 @@
         "internalType": "uint256",
         "name": "secret",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "payout",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "excess",
+        "type": "uint256"
       }
     ],
     "name": "UserRedeemed",
@@ -382,6 +473,18 @@
         "internalType": "bytes32",
         "name": "hashlock",
         "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "refundTo",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
       }
     ],
     "name": "UserRefunded",
@@ -435,6 +538,11 @@
             "type": "uint48"
           },
           {
+            "internalType": "uint48",
+            "name": "startTime",
+            "type": "uint48"
+          },
+          {
             "internalType": "address",
             "name": "recipient",
             "type": "address"
@@ -451,6 +559,11 @@
           },
           {
             "internalType": "address",
+            "name": "refundTo",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
             "name": "token",
             "type": "address"
           },
@@ -458,6 +571,16 @@
             "internalType": "address",
             "name": "rewardToken",
             "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "payoutCurve",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "payoutCurveData",
+            "type": "bytes"
           }
         ],
         "internalType": "struct Train.SolverLock",
@@ -520,6 +643,11 @@
             "type": "uint48"
           },
           {
+            "internalType": "uint48",
+            "name": "startTime",
+            "type": "uint48"
+          },
+          {
             "internalType": "enum Train.LockStatus",
             "name": "status",
             "type": "uint8"
@@ -531,8 +659,23 @@
           },
           {
             "internalType": "address",
+            "name": "refundTo",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
             "name": "token",
             "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "payoutCurve",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "payoutCurveData",
+            "type": "bytes"
           }
         ],
         "internalType": "struct Train.UserLock",
@@ -549,11 +692,6 @@
         "internalType": "address",
         "name": "user",
         "type": "address"
-      },
-      {
-        "internalType": "enum Train.LockStatus",
-        "name": "status",
-        "type": "uint8"
       },
       {
         "internalType": "uint256",
@@ -588,11 +726,6 @@
         "internalType": "address",
         "name": "user",
         "type": "address"
-      },
-      {
-        "internalType": "enum Train.LockStatus",
-        "name": "status",
-        "type": "uint8"
       },
       {
         "internalType": "uint256",
@@ -630,6 +763,11 @@
             "type": "uint48"
           },
           {
+            "internalType": "uint48",
+            "name": "startTime",
+            "type": "uint48"
+          },
+          {
             "internalType": "enum Train.LockStatus",
             "name": "status",
             "type": "uint8"
@@ -641,8 +779,23 @@
           },
           {
             "internalType": "address",
+            "name": "refundTo",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
             "name": "token",
             "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "payoutCurve",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "payoutCurveData",
+            "type": "bytes"
           }
         ],
         "internalType": "struct Train.UserLock[]",
@@ -761,17 +914,17 @@
           },
           {
             "internalType": "address",
-            "name": "sender",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
             "name": "recipient",
             "type": "address"
           },
           {
             "internalType": "address",
             "name": "rewardRecipient",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "refundTo",
             "type": "address"
           },
           {
@@ -783,6 +936,16 @@
             "internalType": "address",
             "name": "rewardToken",
             "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "payoutCurve",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "payoutCurveData",
+            "type": "bytes"
           },
           {
             "internalType": "string",
@@ -874,18 +1037,28 @@
           },
           {
             "internalType": "address",
-            "name": "sender",
+            "name": "recipient",
             "type": "address"
           },
           {
             "internalType": "address",
-            "name": "recipient",
+            "name": "refundTo",
             "type": "address"
           },
           {
             "internalType": "address",
             "name": "token",
             "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "payoutCurve",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "payoutCurveData",
+            "type": "bytes"
           },
           {
             "internalType": "string",
@@ -948,6 +1121,133 @@
     "name": "userLock",
     "outputs": [],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "hashlock",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "rewardAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint48",
+            "name": "timelockDelta",
+            "type": "uint48"
+          },
+          {
+            "internalType": "uint48",
+            "name": "rewardTimelockDelta",
+            "type": "uint48"
+          },
+          {
+            "internalType": "uint48",
+            "name": "quoteExpiry",
+            "type": "uint48"
+          },
+          {
+            "internalType": "address",
+            "name": "recipient",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "refundTo",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "payoutCurve",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "payoutCurveData",
+            "type": "bytes"
+          },
+          {
+            "internalType": "string",
+            "name": "rewardToken",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "rewardRecipient",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "srcChain",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct Train.UserLockParams",
+        "name": "params",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "dstChain",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "dstAddress",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "dstAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "dstToken",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct Train.DestinationInfo",
+        "name": "dst",
+        "type": "tuple"
+      },
+      {
+        "internalType": "bytes",
+        "name": "userData",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "solverData",
+        "type": "bytes"
+      }
+    ],
+    "name": "userLockFor",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   }
 ]

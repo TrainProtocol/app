@@ -17,16 +17,15 @@ export async function recoverSwap(
     if (!/^0x[a-fA-F0-9]{1,64}$/.test(txHash))
         throw new Error('Invalid transaction hash format')
 
-    const { logs } = await node.getPublicLogs({
-        txHash: TxHash.fromString(txHash),
-    })
+    const txEffect = await node.getTxEffect(TxHash.fromString(txHash))
+    const logs = txEffect?.data.publicLogs ?? []
 
     if (!logs.length) throw new Error('Transaction not found')
 
     const eventDef = TrainContract.events.UserLocked
 
     for (const log of logs) {
-        const emittedFields = log.log.getEmittedFields()
+        const emittedFields = log.getEmittedFields()
         if (emittedFields.length === 0) continue
 
         const selectorField = emittedFields[emittedFields.length - 1]
@@ -35,7 +34,7 @@ export async function recoverSwap(
 
         const decoded = decodeFromAbi(
             [eventDef.abiType],
-            log.log.fields,
+            log.fields,
         ) as Record<string, any>
 
         const eventHashlock = bytesToHex(Array.from(decoded.hashlock).map(Number))

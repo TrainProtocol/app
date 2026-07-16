@@ -31,12 +31,12 @@ export class AztecBalanceProvider extends BalanceProvider {
 
         const tokenPublicBalancesSlot = new Fr(TOKEN_PUBLIC_BALANCES_SLOT_INDEX)
         const client = createAztecNodeClient(nodeUrl)
-        const owner = AztecAddress.fromString(address)
+        const owner = AztecAddress.fromStringUnsafe(address)
         const balances: TokenBalance[] = []
 
         for (const token of network.tokens) {
             try {
-                const tokenAddr = AztecAddress.fromString(token.contract)
+                const tokenAddr = AztecAddress.fromStringUnsafe(token.contract)
                 // Type assertions needed: @aztec/aztec.js and @aztec/stdlib resolve to different @aztec/foundation versions
                 const slot = await deriveStorageSlotInMap(tokenPublicBalancesSlot as any, owner as any)
                 const balanceField = await client.getPublicStorageAt('latest', tokenAddr, slot as any)

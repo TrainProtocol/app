@@ -22,9 +22,13 @@ export function buildUserLockTx(params: UserLockParams): EvmTransactionRequest {
             timelockDelta: params.timelockDelta,
             rewardTimelockDelta: params.rewardTimelockDelta ?? 0,
             quoteExpiry: params.quoteExpiry,
-            sender: hex(params.sourceAddress),
             recipient: hex(params.srcSolverAddress),
+            refundTo: hex(params.sourceAddress),
             token: hex(tokenAddress),
+            // No dynamic payout curve for standard swaps — zero address means the
+            // recipient receives the full locked amount on redeem (see Train.sol).
+            payoutCurve: hex(ZERO_ADDRESS),
+            payoutCurveData: hex('0x'),
             rewardToken: params.rewardToken ?? '',
             rewardRecipient: params.rewardRecipient ?? '',
             srcChain: params.sourceChain || '',

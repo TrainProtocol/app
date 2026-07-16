@@ -27,8 +27,8 @@ export async function buildUserLockTx(
     const accounts = await signer.wallet.getAccounts()
     const senderAddress = accounts[0].item
 
-    const trainAddress = AztecAddress.fromString(params.atomicContract)
-    const tokenAddress = AztecAddress.fromString(params.sourceAsset.contract!)
+    const trainAddress = AztecAddress.fromStringUnsafe(params.atomicContract)
+    const tokenAddress = AztecAddress.fromStringUnsafe(params.sourceAsset.contract!)
 
     const trainInstance = await node.getContract(trainAddress)
     if (!trainInstance) throw new Error('Train contract not found')
@@ -70,8 +70,12 @@ export async function buildUserLockTx(
         params.rewardTimelockDelta ?? 0,
         params.quoteExpiry,
         senderAddress,
-        AztecAddress.fromString(params.srcSolverAddress),
+        AztecAddress.fromStringUnsafe(params.srcSolverAddress),
         tokenAddress,
+        // No dynamic payout curve for standard swaps — zero address means the
+        // recipient receives the full locked amount on redeem.
+        AztecAddress.ZERO,
+        strToBytes('', 128),
         strToBytes(params.rewardToken || '', 90),
         strToBytes(params.rewardRecipient || '', 90),
         strToBytes(params.sourceChain, 30),

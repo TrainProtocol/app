@@ -26,7 +26,7 @@ export async function getContractInstance(
     signer: AztecSigner,
     nodeOrUrl: AztecNode | string,
 ) {
-    const aztecAtomicContract = AztecAddress.fromString(contractAddress)
+    const aztecAtomicContract = AztecAddress.fromStringUnsafe(contractAddress)
     const node = typeof nodeOrUrl === 'string' ? createAztecNodeClient(nodeOrUrl) : nodeOrUrl
     const trainInstance = await node.getContract(aztecAtomicContract)
 
@@ -34,7 +34,7 @@ export async function getContractInstance(
 
     await signer.wallet.registerContract(trainInstance, TrainContract.artifact)
     const contract = TrainContract.at(aztecAtomicContract, signer.wallet)
-    const userAztecAddress = AztecAddress.fromString(signer.address)
+    const userAztecAddress = AztecAddress.fromStringUnsafe(signer.address)
 
     return { contract, userAztecAddress, node }
 }
@@ -60,9 +60,8 @@ export async function findEventDataFromLogs(
     hashlock: string,
 ): Promise<Partial<EventDerivedData>> {
     try {
-        const { logs } = await node.getPublicLogs({
-            txHash: TxHash.fromString(txHash),
-        })
+        const txEffect = await node.getTxEffect(TxHash.fromString(txHash))
+        const logs = txEffect?.data.publicLogs ?? []
 
         const eventDef = TrainContract.events.UserLocked
 
@@ -70,7 +69,7 @@ export async function findEventDataFromLogs(
             new TextDecoder().decode(new Uint8Array(bytes.map(Number))).replace(/\0/g, '').trim()
 
         for (const log of logs) {
-            const emittedFields = log.log.getEmittedFields()
+            const emittedFields = log.getEmittedFields()
             if (emittedFields.length === 0) continue
 
             // First field is the event tag; skip non-UserLocked logs

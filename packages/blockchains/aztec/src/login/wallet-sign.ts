@@ -31,7 +31,7 @@ export const deriveKeyFromAztecWallet = async (
     const hashBuffer = await crypto.subtle.digest('SHA-256', messageBytes)
     const innerHash = Fr.fromBuffer(new Uint8Array(hashBuffer) as any)
 
-    const accountAddress = AztecAddress.fromString(address)
+    const accountAddress = AztecAddress.fromStringUnsafe(address)
 
     // createAuthWit produces a signature (the "witness") over the message
     const authWitness = await wallet.createAuthWit(
