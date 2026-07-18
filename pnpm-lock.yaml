@@ -504,6 +504,9 @@ importers:
       '@aztec/noir-contracts.js':
         specifier: ^5.0.0
         version: 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/stdlib':
+        specifier: ^5.0.0
+        version: 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@defi-wonderland/aztec-standards':
         specifier: ^5.0.0-rc.2
         version: 5.0.0-rc.2

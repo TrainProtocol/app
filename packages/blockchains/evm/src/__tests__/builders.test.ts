@@ -13,6 +13,7 @@ const atomicContract = '0x1111111111111111111111111111111111111111'
 const sourceAddress = '0x2222222222222222222222222222222222222222'
 const srcSolverAddress = '0x3333333333333333333333333333333333333333'
 const erc20Token = '0x4444444444444444444444444444444444444444'
+const payoutCurve = '0xa46966484b1eb2c650333db72de07f667df76765'
 
 const nativeAsset = { symbol: 'ETH', contract: ZERO_ADDRESS, decimals: 18 } as unknown as Token
 const erc20Asset = { symbol: 'USDC', contract: erc20Token, decimals: 6 } as unknown as Token
@@ -35,6 +36,7 @@ function makeUserLockParams(overrides: Partial<UserLockParams> = {}): UserLockPa
         atomicContract,
         sourceAddress,
         destinationAddress: sourceAddress,
+        payoutCurve,
         quoteExpiry: 1700000000,
         timelockDelta: 3600,
         hashlock,
@@ -49,10 +51,15 @@ describe('buildUserLockTx', () => {
 
         expect(tx.to).toBe(atomicContract)
         expect(tx.value).toBe(1500000000000000000n) // 1.5 ETH in wei
-        // Round-trips through the matching ABI without throwing
-        expect(() =>
-            AbiFunction.decodeData(htlcFunctions.userLock, tx.data as `0x${string}`),
-        ).not.toThrow()
+        const [lockParams] = AbiFunction.decodeData(
+            htlcFunctions.userLock,
+            tx.data as `0x${string}`,
+        ) as readonly [{
+            readonly payoutCurve: `0x${string}`
+            readonly payoutCurveData: `0x${string}`
+        }]
+        expect(lockParams.payoutCurve).toBe(payoutCurve)
+        expect(lockParams.payoutCurveData).toBe('0x')
     })
 
     it('omits value for ERC20 source asset', () => {
@@ -68,6 +75,16 @@ describe('buildUserLockTx', () => {
         const a = buildUserLockTx(makeUserLockParams())
         const b = buildUserLockTx(makeUserLockParams())
         expect(a).toEqual(b)
+    })
+
+    it('uses the zero address when the quote has no payout curve', () => {
+        const tx = buildUserLockTx(makeUserLockParams({ payoutCurve: '' }))
+        const [lockParams] = AbiFunction.decodeData(
+            htlcFunctions.userLock,
+            tx.data as `0x${string}`,
+        ) as readonly [{ readonly payoutCurve: `0x${string}` }]
+
+        expect(lockParams.payoutCurve).toBe(ZERO_ADDRESS)
     })
 })
 

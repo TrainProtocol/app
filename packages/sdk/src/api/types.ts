@@ -79,6 +79,7 @@ export type QuoteDetails = {
     rate: string;
     sourceSolverAddress: string;
     destinationSolverAddress: string;
+    payoutCurve: string;
     quoteExpirationTimestampInSeconds: number;
     route: QuoteRoute;
     timelockTimeSpanInSeconds: number;

@@ -40,7 +40,7 @@ export interface AztecSigner {
 
 export type AztecHTLCPublicClientConfig = {
     rpcUrl: string
-    /** Aztec requires a signer even for read operations (simulate needs wallet context) */
+    /** Only wallet operations require a signer; public reads use the Aztec node. */
     signer?: AztecSigner
 }
 

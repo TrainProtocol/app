@@ -21,6 +21,64 @@ export function getNode(rpcUrl: string, cachedNode?: AztecNode): AztecNode {
     return createAztecNodeClient(rpcUrl)
 }
 
+type RegisterContractArgs = Parameters<AztecSigner['wallet']['registerContract']>
+const contractRegistrations = new WeakMap<
+    AztecSigner['wallet'],
+    Map<string, Promise<void>>
+>()
+
+function isLegacyRegisterContractReturn(error: unknown): boolean {
+    if (typeof error !== 'object' || error === null ||
+        (error as { name?: unknown }).name !== 'ZodError') return false
+
+    const issues = (error as {
+        issues?: Array<{ code?: unknown; expected?: unknown; path?: unknown }>
+    }).issues
+
+    return Array.isArray(issues) && issues.length > 0 && issues.every(issue =>
+        issue.code === 'invalid_type' &&
+        issue.expected === 'void' &&
+        Array.isArray(issue.path) &&
+        issue.path.length === 0,
+    )
+}
+
+/**
+ * Aztec v5 changed registerContract's return type from the registered instance
+ * to void. Older extension wallets still return the instance after successfully
+ * registering it, which the v5 wallet client rejects during response validation.
+ */
+export async function registerContractCompat(
+    wallet: AztecSigner['wallet'],
+    ...args: RegisterContractArgs
+): Promise<void> {
+    const address = (args[0] as { address?: { toString(): string } }).address?.toString()
+    const registrations = contractRegistrations.get(wallet) ?? new Map<string, Promise<void>>()
+    if (!contractRegistrations.has(wallet)) contractRegistrations.set(wallet, registrations)
+
+    if (address) {
+        const existing = registrations.get(address)
+        if (existing) return existing
+    }
+
+    const registration = (async () => {
+        try {
+            await wallet.registerContract(...args)
+        } catch (error) {
+            if (!isLegacyRegisterContractReturn(error)) throw error
+        }
+    })()
+
+    if (address) registrations.set(address, registration)
+
+    try {
+        await registration
+    } catch (error) {
+        if (address) registrations.delete(address)
+        throw error
+    }
+}
+
 export async function getContractInstance(
     contractAddress: string,
     signer: AztecSigner,
@@ -32,7 +90,7 @@ export async function getContractInstance(
 
     if (!trainInstance) throw new Error('Train contract not found')
 
-    await signer.wallet.registerContract(trainInstance, TrainContract.artifact)
+    await registerContractCompat(signer.wallet, trainInstance, TrainContract.artifact)
     const contract = TrainContract.at(aztecAtomicContract, signer.wallet)
     const userAztecAddress = AztecAddress.fromStringUnsafe(signer.address)
 

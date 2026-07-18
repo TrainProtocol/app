@@ -25,9 +25,7 @@ export function buildUserLockTx(params: UserLockParams): EvmTransactionRequest {
             recipient: hex(params.srcSolverAddress),
             refundTo: hex(params.sourceAddress),
             token: hex(tokenAddress),
-            // No dynamic payout curve for standard swaps — zero address means the
-            // recipient receives the full locked amount on redeem (see Train.sol).
-            payoutCurve: hex(ZERO_ADDRESS),
+            payoutCurve: hex(params.payoutCurve || ZERO_ADDRESS),
             payoutCurveData: hex('0x'),
             rewardToken: params.rewardToken ?? '',
             rewardRecipient: params.rewardRecipient ?? '',

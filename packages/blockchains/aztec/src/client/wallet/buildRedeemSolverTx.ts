@@ -4,7 +4,7 @@ import { hexToBytes } from '@train-protocol/sdk'
 import type { RedeemSolverParams } from '@train-protocol/sdk'
 import { TokenContract } from '../../artifacts/Token'
 import type { AztecSigner, AztecTransactionRequest } from '../../types'
-import { getContractInstance } from '../helpers'
+import { getContractInstance, registerContractCompat } from '../helpers'
 
 export async function buildRedeemSolverTx(
     signer: AztecSigner,
@@ -22,7 +22,7 @@ export async function buildRedeemSolverTx(
                 `Token contract not found at ${tokenAddress.toString()} on node ${rpcUrl}`,
             )
         }
-        await signer.wallet.registerContract(tokenInstance, TokenContract.artifact)
+        await registerContractCompat(signer.wallet, tokenInstance, TokenContract.artifact)
         await signer.wallet.registerSender(AztecAddress.fromStringUnsafe(params.contractAddress))
     }
 

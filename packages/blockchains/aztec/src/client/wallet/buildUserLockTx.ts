@@ -7,7 +7,7 @@ import type { UserLockParams } from '@train-protocol/sdk'
 import { TokenContract } from '../../artifacts/Token'
 import { TrainContract } from '../../artifacts/Train'
 import type { AztecSigner, AztecTransactionRequest } from '../../types'
-import { strToBytes } from '../helpers'
+import { registerContractCompat, strToBytes } from '../helpers'
 
 /**
  * Build the pair of `ContractFunctionInteraction`s required for a user lock:
@@ -32,7 +32,7 @@ export async function buildUserLockTx(
 
     const trainInstance = await node.getContract(trainAddress)
     if (!trainInstance) throw new Error('Train contract not found')
-    await signer.wallet.registerContract(trainInstance, TrainContract.artifact)
+    await registerContractCompat(signer.wallet, trainInstance, TrainContract.artifact)
     const train = TrainContract.at(trainAddress, signer.wallet)
 
     const tokenInstance = await node.getContract(tokenAddress)
@@ -41,7 +41,7 @@ export async function buildUserLockTx(
             `Token contract not found at ${tokenAddress.toString()} on node ${rpcUrl}`,
         )
     }
-    await signer.wallet.registerContract(tokenInstance, TokenContract.artifact)
+    await registerContractCompat(signer.wallet, tokenInstance, TokenContract.artifact)
     const token = TokenContract.at(tokenAddress, signer.wallet)
 
     const amount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
@@ -72,9 +72,9 @@ export async function buildUserLockTx(
         senderAddress,
         AztecAddress.fromStringUnsafe(params.srcSolverAddress),
         tokenAddress,
-        // No dynamic payout curve for standard swaps — zero address means the
-        // recipient receives the full locked amount on redeem.
-        AztecAddress.ZERO,
+        params.payoutCurve
+            ? AztecAddress.fromStringUnsafe(params.payoutCurve)
+            : AztecAddress.ZERO,
         strToBytes('', 128),
         strToBytes(params.rewardToken || '', 90),
         strToBytes(params.rewardRecipient || '', 90),
