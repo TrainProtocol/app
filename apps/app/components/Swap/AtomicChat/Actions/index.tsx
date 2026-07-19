@@ -4,7 +4,6 @@ import { ManualRedeemAction } from "./ManualClaim";
 import { UserRefundAction, UserLockAction } from "./UserActions";
 import TransactionMessages from "@/components/Swap/messages/TransactionMessages";
 import WalletMessage from "@/components/Swap/messages/Message";
-import DestinationWalletWrapper from "./DestinationWalletWrapper";
 import { SwapQuote, TrainErrorCode } from "@train-protocol/react";
 import SubmitButton from "@/components/buttons/submitButton";
 import { ExternalLink, Home } from "lucide-react";
@@ -37,19 +36,17 @@ export const Actions: FC<ActionsProps> = ({ quote, solverId, type, formValues })
     return (
         <>
             {displayError && <TransactionMessage error={displayError} errorCode={displayErrorCode} />}
-            <DestinationWalletWrapper type={type}>
-                <ResolveAction
-                    commitStatus={commitStatus}
-                    error={error?.message}
-                    errorCode={error?.code}
-                    actionError={actionError}
-                    setActionError={setActionError}
-                    quote={quote}
-                    solverId={solverId}
-                    type={type}
-                    formValues={formValues}
-                />
-            </DestinationWalletWrapper>
+            <ResolveAction
+                commitStatus={commitStatus}
+                error={error?.message}
+                errorCode={error?.code}
+                actionError={actionError}
+                setActionError={setActionError}
+                quote={quote}
+                solverId={solverId}
+                type={type}
+                formValues={formValues}
+            />
         </>
     )
 }

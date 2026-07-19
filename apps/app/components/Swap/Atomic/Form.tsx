@@ -9,7 +9,6 @@ import { useQueryState } from "@/context/query";
 import { transformFormValuesToQuoteArgs, useQuoteData } from "@/hooks/useFee";
 import useWallet from "@/hooks/useWallet";
 import FormButton from "../FormButton";
-import { hasRequiredDestinationWallet } from "@/lib/wallets/utils/destinationWalletUtils";
 import type { SwapQuote } from "@train-protocol/react";
 import QuoteDetails from "@/components/FeeDetails";
 import ReverseRouteButton from "./ReverseRouteButton";
@@ -25,10 +24,7 @@ const SwapForm: FC<SwapFormProps> = ({ polling = true, onQuoteChange }) => {
         values,
         errors, isValid, isSubmitting,
     } = useFormikContext<SwapFormValues>();
-    const {
-        to: destination,
-    } = values
-    const { providers, wallets } = useWallet(values.from, 'withdrawal')
+    const { wallets } = useWallet(values.from, 'withdrawal')
     const query = useQueryState()
     useSyncFaucetNudgeSource(values.from?.caip2Id, values.fromCurrency?.symbol)
 
@@ -41,7 +37,6 @@ const SwapForm: FC<SwapFormProps> = ({ polling = true, onQuoteChange }) => {
 
     const actionDisplayName = query?.buttonTextColor || "Swap now"
     const shouldConnectWallet = values.from && !wallets.length;
-    const shouldConnectDestinationWallet = values.to && !hasRequiredDestinationWallet(destination, providers);
 
     return <Form className={`h-full space-y-2 ${(isSubmitting) ? 'pointer-events-none' : 'pointer-events-auto'}`} >
         <Widget.Content>
@@ -61,7 +56,6 @@ const SwapForm: FC<SwapFormProps> = ({ polling = true, onQuoteChange }) => {
                 quote={quote}
                 isQuoteLoading={isQuoteLoading}
                 shouldConnectWallet={shouldConnectWallet}
-                shouldConnectDestinationWallet={shouldConnectDestinationWallet}
                 values={values}
                 isValid={isValid && quote !== undefined}
                 errors={errors}
