@@ -66,6 +66,7 @@ export function resolveSolverLock(result: any, id: string, decimals: number, ind
     return {
         hashlock: id,
         amount: Number(formatUnits(BigInt(result.amount), decimals)),
+        amountInBaseUnits: BigInt(result.amount),
         secret: parseSecret(result.secret),
         timelock: Number(result.timelock),
         status,

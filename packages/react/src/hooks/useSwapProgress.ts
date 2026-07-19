@@ -100,12 +100,12 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         } catch { return null }
     }, [swap?.destination, walletCtx])
 
-    const onConsensusFailed = useCallback((error: Error) => {
+    const onConsensusFailed = useCallback((error: Error, overridable: boolean) => {
         if (!hl) return
         const trainError = error instanceof TrainError
             ? error
             : new TrainError(error.message, TrainErrorCode.VerificationFailed, error)
-        actions.updateSwapFlags(hl, { error: trainError })
+        actions.updateSwapFlags(hl, { error: trainError, manualConsensusOverrideAllowed: overridable })
         config.onError?.(trainError)
     }, [hl, actions, config])
 

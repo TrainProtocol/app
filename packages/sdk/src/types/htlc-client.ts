@@ -114,7 +114,9 @@ export abstract class HTLCPublicClient implements IHTLCPublicClient {
             if (allValidResults.length >= effectiveQuorum) {
                 const [first, ...rest] = allValidResults
                 if (rest.length > 0 && !rest.every(r =>
-                    String(r.amount) === String(first.amount) &&
+                    amountsMatch(r, first) &&
+                    r.hashlock.toLowerCase() === first.hashlock.toLowerCase() &&
+                    r.index === first.index &&
                     r.sender === first.sender &&
                     r.recipient === first.recipient &&
                     r.token === first.token &&
@@ -152,4 +154,13 @@ export interface ConsensusOptions {
 export interface ConsensusResult {
     details: SolverLockDetails
     agreedCount: number
+}
+
+function amountsMatch(left: SolverLockDetails, right: SolverLockDetails): boolean {
+    if (left.amountInBaseUnits !== undefined || right.amountInBaseUnits !== undefined) {
+        return left.amountInBaseUnits !== undefined &&
+            right.amountInBaseUnits !== undefined &&
+            left.amountInBaseUnits === right.amountInBaseUnits
+    }
+    return String(left.amount) === String(right.amount)
 }

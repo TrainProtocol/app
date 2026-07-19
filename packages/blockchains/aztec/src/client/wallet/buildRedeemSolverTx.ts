@@ -15,15 +15,23 @@ export async function buildRedeemSolverTx(
     const { contract, node: contractNode } = await getContractInstance(params.contractAddress, signer, node)
 
     if (params.destinationAsset?.contract) {
-        const tokenAddress = AztecAddress.fromStringUnsafe(params.destinationAsset.contract)
-        const tokenInstance = await contractNode.getContract(tokenAddress)
-        if (!tokenInstance) {
-            throw new Error(
-                `Token contract not found at ${tokenAddress.toString()} on node ${rpcUrl}`,
-            )
+        // Best-effort: redeem_solver is a public function, so the wallet doesn't need
+        // the token artifact to build or execute the redeem — registration only helps
+        // the wallet recognize the incoming token. A bundled artifact that lags the
+        // deployed token (class id mismatch) must not block the claim.
+        try {
+            const tokenAddress = AztecAddress.fromStringUnsafe(params.destinationAsset.contract)
+            const tokenInstance = await contractNode.getContract(tokenAddress)
+            if (!tokenInstance) {
+                throw new Error(
+                    `Token contract not found at ${tokenAddress.toString()} on node ${rpcUrl}`,
+                )
+            }
+            await registerContractCompat(signer.wallet, tokenInstance, TokenContract.artifact)
+            await signer.wallet.registerSender(AztecAddress.fromStringUnsafe(params.contractAddress))
+        } catch (error) {
+            console.warn('[Aztec redeemSolver] token registration skipped:', error)
         }
-        await registerContractCompat(signer.wallet, tokenInstance, TokenContract.artifact)
-        await signer.wallet.registerSender(AztecAddress.fromStringUnsafe(params.contractAddress))
     }
 
     const hashlockBytes = hexToBytes(params.id, 32)

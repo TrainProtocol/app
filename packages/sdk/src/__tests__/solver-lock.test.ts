@@ -8,6 +8,7 @@ const baseLock: SolverLockDetails = {
     recipient: '0xUserAddress',
     token: '0xTokenAddress',
     amount: 100,
+    amountInBaseUnits: 100n,
     timelock: 9999999,
     hashlock: '0xabc',
     secret: 0n,
@@ -40,6 +41,30 @@ describe('verifySolverLock', () => {
         expect(result.mismatches[0]).toContain('Amount')
     })
 
+    it('detects an exact base-unit mismatch hidden by the formatted amount', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            expectedReceiveAmountInBaseUnits: 100_000_000_000_000_001n,
+            solverLockDetails: {
+                ...baseLock,
+                amount: 0.1,
+                amountInBaseUnits: 100_000_000_000_000_000n,
+            },
+        })
+        expect(result.verified).toBe(false)
+        expect(result.mismatches[0]).toContain('base units')
+    })
+
+    it('rejects exact verification when raw on-chain amount is unavailable', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            expectedReceiveAmountInBaseUnits: 100n,
+            solverLockDetails: { ...baseLock, amountInBaseUnits: undefined },
+        })
+        expect(result.verified).toBe(false)
+        expect(result.mismatches[0]).toContain('unavailable')
+    })
+
     it('detects when solver amount exceeds expected (exact match)', () => {
         const result = verifySolverLock({
             ...baseParams,
@@ -51,8 +76,8 @@ describe('verifySolverLock', () => {
     it('compares recipient case-insensitively', () => {
         const result = verifySolverLock({
             ...baseParams,
-            expectedRecipient: '0xUSERADDRESS',
-            solverLockDetails: { ...baseLock, recipient: '0xuseraddress' },
+            expectedRecipient: '0xAABBCC',
+            solverLockDetails: { ...baseLock, recipient: '0xaabbcc' },
         })
         expect(result.verified).toBe(true)
     })
@@ -77,8 +102,8 @@ describe('verifySolverLock', () => {
     it('compares token case-insensitively', () => {
         const result = verifySolverLock({
             ...baseParams,
-            expectedToken: '0xTOKENADDRESS',
-            solverLockDetails: { ...baseLock, token: '0xtokenaddress' },
+            expectedToken: '0xDDEEFF',
+            solverLockDetails: { ...baseLock, token: '0xddeeff' },
         })
         expect(result.verified).toBe(true)
     })
@@ -116,5 +141,77 @@ describe('verifySolverLock', () => {
         })
         expect(result.verified).toBe(false)
         expect(result.mismatches).toHaveLength(3)
+    })
+
+    it('treats non-hex addresses as case-sensitive', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            expectedRecipient: 'AbC123',
+            solverLockDetails: { ...baseLock, recipient: 'abc123' },
+        })
+        expect(result.verified).toBe(false)
+        expect(result.mismatches[0]).toContain('Recipient')
+    })
+
+    it('rejects a non-pending lock', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            solverLockDetails: { ...baseLock, status: LockStatus.Redeemed },
+        })
+        expect(result.verified).toBe(false)
+        expect(result.mismatches[0]).toContain('Status')
+    })
+
+    it('rejects a non-positive solver lock index', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            solverLockDetails: { ...baseLock, index: 0 },
+        })
+        expect(result.verified).toBe(false)
+        expect(result.mismatches[0]).toContain('Index')
+    })
+
+    it('verifies the expected solver sender', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            expectedSender: '0x112233',
+            solverLockDetails: { ...baseLock, sender: '0x445566' },
+        })
+        expect(result.verified).toBe(false)
+        expect(result.mismatches[0]).toContain('Sender')
+    })
+
+    it('rejects an expired destination lock', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            expectedSourceTimelock: 10_000,
+            nowInSeconds: 9_000,
+            solverLockDetails: { ...baseLock, timelock: 8_999 },
+        })
+        expect(result.verified).toBe(false)
+        expect(result.mismatches.some(m => m.includes('expired'))).toBe(true)
+    })
+
+    it('rejects a destination timelock without the source safety margin', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            expectedSourceTimelock: 10_000,
+            minimumTimelockSafetyMarginSeconds: 600,
+            nowInSeconds: 1_000,
+            solverLockDetails: { ...baseLock, timelock: 9_500 },
+        })
+        expect(result.verified).toBe(false)
+        expect(result.mismatches.some(m => m.includes('safety margin'))).toBe(true)
+    })
+
+    it('accepts a live destination timelock with the required safety margin', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            expectedSourceTimelock: 10_000,
+            minimumTimelockSafetyMarginSeconds: 600,
+            nowInSeconds: 1_000,
+            solverLockDetails: { ...baseLock, timelock: 9_400 },
+        })
+        expect(result.verified).toBe(true)
     })
 })

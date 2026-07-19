@@ -8,7 +8,7 @@ import { SwapViewType } from ".";
 import { useSwapStore } from "@/stores/swapStore";
 
 export const ManualRedeemAction: FC<{ type: SwapViewType }> = ({ type }) => {
-    const { destinationNetwork, hashlock, sourceDetails, destRedeemTxId, error } = useActiveSwap();
+    const { destinationNetwork, hashlock, destRedeemTxId, error } = useActiveSwap();
     const activeHashlock = useSwapStore(s => s.activeHashlock)
     const { claim } = useManualClaim();
     const clearError = useClearSwapError(activeHashlock);
@@ -20,13 +20,14 @@ export const ManualRedeemAction: FC<{ type: SwapViewType }> = ({ type }) => {
         clearError();
         try {
             if (!activeHashlock) throw new Error("No hashlock");
-            if (!sourceDetails?.secret) throw new Error("Secret not available");
             if (!destinationNetwork) throw new Error("No destination network");
 
             if (provider?.activeWallet && (provider.activeWallet.chainId != destinationNetwork.chainId) && provider.switchChain)
                 await provider.switchChain(provider.activeWallet, destinationNetwork.chainId);
 
-            await claim({ hashlock: activeHashlock, secret: '0x' + sourceDetails.secret.toString(16).padStart(64, '0') });
+            // Secret is resolved inside the hook: on-chain source lock if the solver
+            // already redeemed it, otherwise re-derived from the logged-in identity.
+            await claim({ hashlock: activeHashlock });
 
             posthog.capture("ManualClaim", {
                 hashlock,

@@ -12,9 +12,12 @@ export interface UseSolverLockVerificationResult extends VerificationResult {}
  * Read-only hook that verifies the solver's on-chain lock matches the expected swap parameters.
  *
  * Checks:
- * - Amount: solver locked amount matches the expected receive amount
+ * - Exact base-unit amount: solver lock matches the quoted receive amount
+ * - Sender: lock belongs to the quoted destination solver
  * - Recipient: lock recipient matches the user's destination address
  * - Token: locked token matches the expected destination token
+ * - State/index: lock is pending and has a positive solver-lock index
+ * - Timelocks: destination remains live and preserves the source safety margin
  *
  * @param hashlock - The hashlock of the swap to verify
  * @returns Verification result with `verified`, `skipped`, and `mismatches` fields
@@ -25,28 +28,49 @@ export function useSolverLockVerification(hashlock: string | null | undefined): 
     const derived = useDerivedSwapState(store, hl)
 
     return useMemo(() => {
-        const { solverLockDetails, sourceDetails, destinationAddress, destinationToken } = derived
+        const {
+            solverLockDetails,
+            sourceDetails,
+            destinationAddress,
+            destinationSolverAddress,
+            destinationToken,
+        } = derived
 
         if (!solverLockDetails?.sender) {
             return { verified: false, skipped: false, mismatches: [] }
         }
 
-        // No on-chain dstAmount available — skip verification
-        if (!sourceDetails?.dstAmount) {
+        // Every field below binds the observed lock to the accepted quote. If recovery
+        // metadata is incomplete, blocking reveal is safer than guessing.
+        if (
+            !sourceDetails?.dstAmount ||
+            !sourceDetails.timelock ||
+            !destinationAddress ||
+            !destinationSolverAddress ||
+            !destinationToken?.contract
+        ) {
             return { verified: false, skipped: true, mismatches: [] }
         }
 
-        // dstAmount from the UserLocked event is in raw units (wei).
-        // solverLockDetails.amount from the chain client is formatted (human-readable).
-        // Convert to the same unit for comparison.
+        // Keep the formatted value for backwards-compatible SDK callers, while the
+        // irreversible check below uses exact base units.
         const decimals = destinationToken?.decimals ?? 18
         const formattedExpected = Number(formatUnits(BigInt(sourceDetails.dstAmount), decimals))
 
         return verifySolverLock({
             solverLockDetails,
             expectedReceiveAmount: formattedExpected,
-            expectedRecipient: destinationAddress ?? '',
-            expectedToken: destinationToken?.contract ?? null,
+            expectedReceiveAmountInBaseUnits: BigInt(sourceDetails.dstAmount),
+            expectedRecipient: destinationAddress,
+            expectedToken: destinationToken.contract,
+            expectedSender: destinationSolverAddress,
+            expectedSourceTimelock: sourceDetails.timelock,
         })
-    }, [derived.solverLockDetails, derived.sourceDetails, derived.destinationAddress, derived.destinationToken])
+    }, [
+        derived.solverLockDetails,
+        derived.sourceDetails,
+        derived.destinationAddress,
+        derived.destinationSolverAddress,
+        derived.destinationToken,
+    ])
 }

@@ -274,7 +274,7 @@ export function useSwapProgress(): SwapProgress {
 
         // Solver lock detected — verifying and auto-revealing under the hood
         if (htlcStatus === HTLCStatus.SolverLockDetected) {
-            const reservationVerified = consensusVerified && (verified || skipped);
+            const reservationVerified = consensusVerified && verified;
             return {
                 gaugeValue: 50, gaugeIcon: null,
                 title: "Transfer in progress",

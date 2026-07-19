@@ -13,7 +13,7 @@ export interface UseSolverLockPollingOptions {
     /** When true, skip consensus and treat the primary node's response as verified.
      * Used when the user has manually overridden a previous consensus failure. */
     manuallyOverridden?: boolean
-    onConsensusFailed?: (error: Error) => void
+    onConsensusFailed?: (error: Error, overridable: boolean) => void
 }
 
 export interface SolverLockPollingResult {
@@ -150,7 +150,7 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
                 setConsensusPhase('failed')
                 const error = new Error(VERIFICATION_ERROR_MESSAGES[kind])
                 if (cause !== undefined) (error as Error & { cause?: unknown }).cause = cause
-                onConsensusFailedRef.current?.(error)
+                onConsensusFailedRef.current?.(error, kind !== 'mismatch')
             }
 
             // Bumps the transient-failure counter; returns true once we've crossed the threshold.

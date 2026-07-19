@@ -11,6 +11,7 @@ export type ConsensusPhase = 'none' | 'detecting' | 'verifying' | 'verified' | '
 export interface SwapFlags {
     secretRevealedToApi: boolean
     consensusPhase: ConsensusPhase
+    manualConsensusOverrideAllowed: boolean
     verifiedNodeCount: number
     error: TrainError | null
     manualClaimStartedAt: number | null
@@ -19,6 +20,7 @@ export interface SwapFlags {
 const DEFAULT_FLAGS: SwapFlags = {
     secretRevealedToApi: false,
     consensusPhase: 'none',
+    manualConsensusOverrideAllowed: false,
     verifiedNodeCount: 0,
     error: null,
     manualClaimStartedAt: null,
@@ -178,12 +180,16 @@ function createActions(set: SetFn, get: GetFn) {
             })),
 
         markVerifiedManually: (hashlock: string) =>
-            set((state) => updateFlags(state, hashlock, (flags) => ({
-                ...flags,
-                consensusPhase: 'verified',
-                verifiedNodeCount: 0,
-                error: null,
-            }))),
+            set((state) => updateFlags(state, hashlock, (flags) => {
+                if (!flags.manualConsensusOverrideAllowed) return flags
+                return {
+                    ...flags,
+                    consensusPhase: 'verified',
+                    manualConsensusOverrideAllowed: false,
+                    verifiedNodeCount: 0,
+                    error: null,
+                }
+            })),
 
         // --- Order data ---
         setOrderData: (hashlock: string, data: HTLCFromApi) =>
