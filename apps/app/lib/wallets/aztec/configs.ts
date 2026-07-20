@@ -43,6 +43,8 @@ export const useAztecCapabilityManifest = () => {
 
     return useCallback(async () => {
         const { AztecAddress } = await import("@aztec/aztec.js/addresses");
+        // Address-only leaf export — avoids pulling the AuthRegistry artifact into the bundle.
+        const { STANDARD_AUTH_REGISTRY_ADDRESS } = await import("@aztec/standard-contracts/auth-registry/constants");
 
         const aztecNetworks = (networks ?? []).filter(
             n => n.networkType === NetworkTypes.Aztec || n.caip2Id?.toLowerCase().startsWith('aztec:')
@@ -60,9 +62,10 @@ export const useAztecCapabilityManifest = () => {
                 .map(addr => AztecAddress.fromStringUnsafe(addr))
         );
 
-        // Canonical AuthRegistry — userLock's SetPublicAuthwitContractInteraction
+        // Canonical AuthRegistry (a standard contract since aztec 5.0, no longer
+        // protocol address 0x01) — userLock's SetPublicAuthwitContractInteraction
         // calls set_authorized here as part of the batched transaction.
-        const authRegistryAddress = AztecAddress.fromBigIntUnsafe(1n);
+        const authRegistryAddress = AztecAddress.fromStringUnsafe(STANDARD_AUTH_REGISTRY_ADDRESS.toString());
 
         return {
             version: '1.0' as const,

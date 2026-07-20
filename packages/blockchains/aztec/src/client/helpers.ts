@@ -47,12 +47,19 @@ function isLegacyRegisterContractReturn(error: unknown): boolean {
  * Aztec v5 changed registerContract's return type from the registered instance
  * to void. Older extension wallets still return the instance after successfully
  * registering it, which the v5 wallet client rejects during response validation.
+ *
+ * Some extension wallets also validate the provided artifact against the
+ * instance's current class id ("Contract artifact doesn't match instance's
+ * current class id"). The artifact parameter is optional in the wallet RPC —
+ * the wallet resolves the class from its own storage or the chain — so on any
+ * other registration failure we retry with the instance alone before giving up.
  */
 export async function registerContractCompat(
     wallet: AztecSigner['wallet'],
     ...args: RegisterContractArgs
 ): Promise<void> {
-    const address = (args[0] as { address?: { toString(): string } }).address?.toString()
+    const [instance, artifact] = args
+    const address = (instance as { address?: { toString(): string } }).address?.toString()
     const registrations = contractRegistrations.get(wallet) ?? new Map<string, Promise<void>>()
     if (!contractRegistrations.has(wallet)) contractRegistrations.set(wallet, registrations)
 
@@ -65,7 +72,18 @@ export async function registerContractCompat(
         try {
             await wallet.registerContract(...args)
         } catch (error) {
-            if (!isLegacyRegisterContractReturn(error)) throw error
+            if (isLegacyRegisterContractReturn(error)) return
+            if (!artifact) throw error
+            console.warn(
+                `[registerContractCompat] artifact registration failed for ${address}; ` +
+                'retrying instance-only (wallet will lack the artifact for this class):',
+                error,
+            )
+            try {
+                await wallet.registerContract(instance)
+            } catch (retryError) {
+                if (!isLegacyRegisterContractReturn(retryError)) throw error
+            }
         }
     })()
 
