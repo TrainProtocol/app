@@ -3,34 +3,47 @@ import chainlistRpcs from './data/chainlistRpcs.json'
 
 type ChainlistEntry = { chainId: number; rpc: { url: string; tracking: string | null }[] }
 
-const ALLOWED_TRACKING = new Set(['none', 'limited'])
+/**
+ * Exclude only providers that explicitly track user data ('yes'). We allow
+ * 'none', 'limited', and untagged (null) entries — many of the most reliable
+ * public nodes (publicnode, official chain RPCs like arbitrum.io) are simply
+ * untagged in chainlist, and the old `none|limited`-only allowlist was dropping
+ * them. That left chains like Arbitrum Sepolia resolving to only the slow/broken
+ * tail (zan, onfinality). RPC calls here read public block data, so provider
+ * privacy is a minor concern relative to reliability.
+ */
+const BLOCKED_TRACKING = new Set(['yes'])
 
 /**
  * Providers ranked by reliability and latency from live testing.
  * Lower index = higher priority. Providers not in this list are appended after.
- * Tested against Ethereum Sepolia, Arbitrum Sepolia, and Base Sepolia (2026-03-18).
+ * Tested against Ethereum Sepolia, Arbitrum Sepolia, and Base Sepolia (2026-07-21).
  */
 const PRIORITY_PROVIDERS = [
-    'publicnode',   // 100% success, ~180-210ms avg across all chains
-    'nodies',       // 100% success, ~165-189ms avg (Eth Sepolia, Base Sepolia)
-    '0xrpc',        // 100% success, ~334ms avg (Eth Sepolia)
-    '1rpc',         // 100% success, ~379ms avg (Eth Sepolia)
-    'sentio',       // 100% success, ~340-435ms avg (Eth Sepolia, Base Sepolia)
-    'pocket',       // 100% success, ~280-580ms avg, slower but reliable
-    'zan',          // 100% success, ~650-690ms avg, slow but reliable
-    'onfinality',   // Partially reliable, rate-limited on some chains
+    'publicnode',   // 3/3 on all chains, 81-130ms — fastest reliable, in-sync
+    'ethpandaops',  // 3/3 Eth Sepolia, ~90ms
+    '0xrpc',        // 3/3 Eth Sepolia, ~145ms
+    'nodies',       // 3/3 Base + Eth Sepolia, ~175ms
+    '1rpc',         // 3/3 Eth Sepolia, ~167ms
+    'sentio',       // 3/3 Base + Eth Sepolia, ~230ms
+    'pocket',       // 3/3 Arb + Eth (~130ms), but slow on Base Sepolia (~2.8s)
+    'zan',          // 3/3 Arb + Eth Sepolia, reliable but slow (~375-530ms)
+    'onfinality',   // unreliable: Eth ok, Base ~1.7s, Arb Sepolia failing (0/3)
 ]
 
-/** Providers known to be dead or broken — excluded from results. */
+/** Providers known to be dead, broken, or unsafe — excluded from results. */
 const BLOCKED_PROVIDERS = new Set([
     'stackup',      // connection failures on all chains
-    'therpc',       // timeouts on all chains
-    'omniatech',    // HTTP 521 errors
+    'therpc',       // connection failures / timeouts on all chains
+    'omniatech',    // HTTP 521 on all chains
     'blastapi',     // HTTP 403
     'unifra',       // connection failures
-    '4everland',    // HTTP 403
-    'owlracle',     // HTTP 401
-    'drpc',         
+    '4everland',    // HTTP 401/403
+    'owlracle',     // HTTP 502
+    'notadegen',    // connection failures
+    'shardeum',     // connection failures
+    'alchemy',      // HTTP 429 without API key (keyed ${...} URLs are filtered earlier)
+    'drpc',         // fast but serves STALE blocks on Arb Sepolia (~1.4M behind) — consensus hazard
 ])
 
 function extractProviderName(url: string): string {
@@ -53,7 +66,7 @@ export async function resolveEvmNodes(chainId: string): Promise<NetworkNode[]> {
     if (!chain) return []
 
     const rpcs = chain.rpc.filter(
-        (entry) => entry.tracking != null && ALLOWED_TRACKING.has(entry.tracking),
+        (entry) => !BLOCKED_TRACKING.has(entry.tracking ?? ''),
     )
 
     const seen = new Set<string>()
