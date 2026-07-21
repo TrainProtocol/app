@@ -82,6 +82,18 @@ describe('verifySolverLock', () => {
         expect(result.verified).toBe(true)
     })
 
+    it('treats hex addresses with different leading-zero padding as equal', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            expectedRecipient: '0x04e4787821c95f1d4d00314b6bb1ad60b413e537403fac20e218865f1e4ca1cc',
+            solverLockDetails: {
+                ...baseLock,
+                recipient: '0x4e4787821c95f1d4d00314b6bb1ad60b413e537403fac20e218865f1e4ca1cc',
+            },
+        })
+        expect(result.verified).toBe(true)
+    })
+
     it('detects recipient mismatch', () => {
         const result = verifySolverLock({
             ...baseParams,

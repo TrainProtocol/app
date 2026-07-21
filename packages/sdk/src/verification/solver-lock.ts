@@ -99,8 +99,11 @@ function addressEquals(addr1: string | undefined | null, addr2: string | undefin
     if (!addr1 || !addr2) return false
     if (addr1 === addr2) return true
 
-    // Hex addresses are case-insensitive. Base58 and other chain-specific address
-    // formats are case-sensitive and must never be lowercased for comparison.
+    // Hex addresses (EVM, Starknet, …) are case-insensitive and may be written with
+    // different leading-zero padding (e.g. 0x4e47… vs 0x04e47… on Starknet). Compare
+    // them by numeric value so neither casing nor padding causes a false mismatch.
+    // Base58 and other chain-specific formats are case- and padding-sensitive, so they
+    // only match when byte-identical (handled by the === check above).
     const isHexAddress = (value: string) => /^0x[0-9a-f]+$/i.test(value)
-    return isHexAddress(addr1) && isHexAddress(addr2) && addr1.toLowerCase() === addr2.toLowerCase()
+    return isHexAddress(addr1) && isHexAddress(addr2) && BigInt(addr1) === BigInt(addr2)
 }

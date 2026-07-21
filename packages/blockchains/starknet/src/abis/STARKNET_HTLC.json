@@ -1,801 +1,945 @@
 [
-    {
-      "type": "impl",
-      "name": "TrainImpl",
-      "interface_name": "train_protocol::Train::ITrain"
-    },
-    {
-      "type": "struct",
-      "name": "core::integer::u256",
-      "members": [
-        {
-          "name": "low",
-          "type": "core::integer::u128"
-        },
-        {
-          "name": "high",
-          "type": "core::integer::u128"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "core::byte_array::ByteArray",
-      "members": [
-        {
-          "name": "data",
-          "type": "core::array::Array::<core::bytes_31::bytes31>"
-        },
-        {
-          "name": "pending_word",
-          "type": "core::felt252"
-        },
-        {
-          "name": "pending_word_len",
-          "type": "core::internal::bounded_int::BoundedInt::<0, 30>"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "train_protocol::Train::UserLockParams",
-      "members": [
-        {
-          "name": "hashlock",
-          "type": "core::integer::u256"
-        },
-        {
-          "name": "amount",
-          "type": "core::integer::u256"
-        },
-        {
-          "name": "reward_amount",
-          "type": "core::integer::u256"
-        },
-        {
-          "name": "timelock_delta",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "reward_timelock_delta",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "quote_expiry",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "sender",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "recipient",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "token",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "reward_token",
-          "type": "core::byte_array::ByteArray"
-        },
-        {
-          "name": "reward_recipient",
-          "type": "core::byte_array::ByteArray"
-        },
-        {
-          "name": "src_chain",
-          "type": "core::byte_array::ByteArray"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "train_protocol::Train::DestinationInfo",
-      "members": [
-        {
-          "name": "dst_chain",
-          "type": "core::byte_array::ByteArray"
-        },
-        {
-          "name": "dst_address",
-          "type": "core::byte_array::ByteArray"
-        },
-        {
-          "name": "dst_amount",
-          "type": "core::integer::u256"
-        },
-        {
-          "name": "dst_token",
-          "type": "core::byte_array::ByteArray"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "train_protocol::Train::SolverLockParams",
-      "members": [
-        {
-          "name": "hashlock",
-          "type": "core::integer::u256"
-        },
-        {
-          "name": "amount",
-          "type": "core::integer::u256"
-        },
-        {
-          "name": "reward",
-          "type": "core::integer::u256"
-        },
-        {
-          "name": "timelock_delta",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "reward_timelock_delta",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "sender",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "recipient",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "reward_recipient",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "token",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "reward_token",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "src_chain",
-          "type": "core::byte_array::ByteArray"
-        }
-      ]
-    },
-    {
-      "type": "enum",
-      "name": "train_protocol::Train::LockStatus",
-      "variants": [
-        {
-          "name": "Empty",
-          "type": "()"
-        },
-        {
-          "name": "Pending",
-          "type": "()"
-        },
-        {
-          "name": "Refunded",
-          "type": "()"
-        },
-        {
-          "name": "Redeemed",
-          "type": "()"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "train_protocol::Train::Train::UserLock",
-      "members": [
-        {
-          "name": "secret",
-          "type": "core::integer::u256"
-        },
-        {
-          "name": "amount",
-          "type": "core::integer::u256"
-        },
-        {
-          "name": "sender",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "timelock",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "status",
-          "type": "train_protocol::Train::LockStatus"
-        },
-        {
-          "name": "recipient",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "token",
-          "type": "core::starknet::contract_address::ContractAddress"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "train_protocol::Train::Train::SolverLock",
-      "members": [
-        {
-          "name": "secret",
-          "type": "core::integer::u256"
-        },
-        {
-          "name": "amount",
-          "type": "core::integer::u256"
-        },
-        {
-          "name": "reward",
-          "type": "core::integer::u256"
-        },
-        {
-          "name": "sender",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "timelock",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "reward_timelock",
-          "type": "core::integer::u64"
-        },
-        {
-          "name": "recipient",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "status",
-          "type": "train_protocol::Train::LockStatus"
-        },
-        {
-          "name": "reward_recipient",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "token",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "reward_token",
-          "type": "core::starknet::contract_address::ContractAddress"
-        }
-      ]
-    },
-    {
-      "type": "interface",
-      "name": "train_protocol::Train::ITrain",
-      "items": [
-        {
-          "type": "function",
-          "name": "user_lock",
-          "inputs": [
-            {
-              "name": "params",
-              "type": "train_protocol::Train::UserLockParams"
-            },
-            {
-              "name": "dst",
-              "type": "train_protocol::Train::DestinationInfo"
-            },
-            {
-              "name": "user_data",
-              "type": "core::byte_array::ByteArray"
-            },
-            {
-              "name": "solver_data",
-              "type": "core::byte_array::ByteArray"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "solver_lock",
-          "inputs": [
-            {
-              "name": "params",
-              "type": "train_protocol::Train::SolverLockParams"
-            },
-            {
-              "name": "dst",
-              "type": "train_protocol::Train::DestinationInfo"
-            },
-            {
-              "name": "data",
-              "type": "core::byte_array::ByteArray"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "core::integer::u256"
-            }
-          ],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "refund_user",
-          "inputs": [
-            {
-              "name": "hashlock",
-              "type": "core::integer::u256"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "refund_solver",
-          "inputs": [
-            {
-              "name": "hashlock",
-              "type": "core::integer::u256"
-            },
-            {
-              "name": "index",
-              "type": "core::integer::u256"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "redeem_user",
-          "inputs": [
-            {
-              "name": "hashlock",
-              "type": "core::integer::u256"
-            },
-            {
-              "name": "secret",
-              "type": "core::integer::u256"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "redeem_solver",
-          "inputs": [
-            {
-              "name": "hashlock",
-              "type": "core::integer::u256"
-            },
-            {
-              "name": "index",
-              "type": "core::integer::u256"
-            },
-            {
-              "name": "secret",
-              "type": "core::integer::u256"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "get_user_lock",
-          "inputs": [
-            {
-              "name": "hashlock",
-              "type": "core::integer::u256"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "train_protocol::Train::Train::UserLock"
-            }
-          ],
-          "state_mutability": "view"
-        },
-        {
-          "type": "function",
-          "name": "get_solver_lock",
-          "inputs": [
-            {
-              "name": "hashlock",
-              "type": "core::integer::u256"
-            },
-            {
-              "name": "index",
-              "type": "core::integer::u256"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "train_protocol::Train::Train::SolverLock"
-            }
-          ],
-          "state_mutability": "view"
-        },
-        {
-          "type": "function",
-          "name": "get_solver_lock_count",
-          "inputs": [
-            {
-              "name": "hashlock",
-              "type": "core::integer::u256"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "core::integer::u256"
-            }
-          ],
-          "state_mutability": "view"
-        },
-        {
-          "type": "function",
-          "name": "get_user_lock_hashes",
-          "inputs": [
-            {
-              "name": "user",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "status",
-              "type": "train_protocol::Train::LockStatus"
-            },
-            {
-              "name": "offset",
-              "type": "core::integer::u256"
-            },
-            {
-              "name": "limit",
-              "type": "core::integer::u256"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "(core::array::Array::<core::integer::u256>, core::integer::u256)"
-            }
-          ],
-          "state_mutability": "view"
-        },
-        {
-          "type": "function",
-          "name": "get_user_locks",
-          "inputs": [
-            {
-              "name": "user",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "status",
-              "type": "train_protocol::Train::LockStatus"
-            },
-            {
-              "name": "offset",
-              "type": "core::integer::u256"
-            },
-            {
-              "name": "limit",
-              "type": "core::integer::u256"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "(core::array::Array::<train_protocol::Train::Train::UserLock>, core::integer::u256)"
-            }
-          ],
-          "state_mutability": "view"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "train_protocol::Train::Train::UserLocked",
-      "kind": "struct",
-      "members": [
-        {
-          "name": "hashlock",
-          "type": "core::integer::u256",
-          "kind": "key"
-        },
-        {
-          "name": "sender",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "key"
-        },
-        {
-          "name": "recipient",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "key"
-        },
-        {
-          "name": "src_chain",
-          "type": "core::byte_array::ByteArray",
-          "kind": "data"
-        },
-        {
-          "name": "token",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "data"
-        },
-        {
-          "name": "amount",
-          "type": "core::integer::u256",
-          "kind": "data"
-        },
-        {
-          "name": "timelock",
-          "type": "core::integer::u64",
-          "kind": "data"
-        },
-        {
-          "name": "dst_chain",
-          "type": "core::byte_array::ByteArray",
-          "kind": "data"
-        },
-        {
-          "name": "dst_address",
-          "type": "core::byte_array::ByteArray",
-          "kind": "data"
-        },
-        {
-          "name": "dst_amount",
-          "type": "core::integer::u256",
-          "kind": "data"
-        },
-        {
-          "name": "dst_token",
-          "type": "core::byte_array::ByteArray",
-          "kind": "data"
-        },
-        {
-          "name": "reward_amount",
-          "type": "core::integer::u256",
-          "kind": "data"
-        },
-        {
-          "name": "reward_token",
-          "type": "core::byte_array::ByteArray",
-          "kind": "data"
-        },
-        {
-          "name": "reward_recipient",
-          "type": "core::byte_array::ByteArray",
-          "kind": "data"
-        },
-        {
-          "name": "reward_timelock_delta",
-          "type": "core::integer::u64",
-          "kind": "data"
-        },
-        {
-          "name": "quote_expiry",
-          "type": "core::integer::u64",
-          "kind": "data"
-        },
-        {
-          "name": "user_data",
-          "type": "core::byte_array::ByteArray",
-          "kind": "data"
-        },
-        {
-          "name": "solver_data",
-          "type": "core::byte_array::ByteArray",
-          "kind": "data"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "train_protocol::Train::Train::SolverLocked",
-      "kind": "struct",
-      "members": [
-        {
-          "name": "hashlock",
-          "type": "core::integer::u256",
-          "kind": "key"
-        },
-        {
-          "name": "sender",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "key"
-        },
-        {
-          "name": "recipient",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "key"
-        },
-        {
-          "name": "index",
-          "type": "core::integer::u256",
-          "kind": "data"
-        },
-        {
-          "name": "src_chain",
-          "type": "core::byte_array::ByteArray",
-          "kind": "data"
-        },
-        {
-          "name": "token",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "data"
-        },
-        {
-          "name": "amount",
-          "type": "core::integer::u256",
-          "kind": "data"
-        },
-        {
-          "name": "reward",
-          "type": "core::integer::u256",
-          "kind": "data"
-        },
-        {
-          "name": "reward_token",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "data"
-        },
-        {
-          "name": "reward_recipient",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "data"
-        },
-        {
-          "name": "timelock",
-          "type": "core::integer::u64",
-          "kind": "data"
-        },
-        {
-          "name": "reward_timelock",
-          "type": "core::integer::u64",
-          "kind": "data"
-        },
-        {
-          "name": "dst_chain",
-          "type": "core::byte_array::ByteArray",
-          "kind": "data"
-        },
-        {
-          "name": "dst_address",
-          "type": "core::byte_array::ByteArray",
-          "kind": "data"
-        },
-        {
-          "name": "dst_amount",
-          "type": "core::integer::u256",
-          "kind": "data"
-        },
-        {
-          "name": "dst_token",
-          "type": "core::byte_array::ByteArray",
-          "kind": "data"
-        },
-        {
-          "name": "data",
-          "type": "core::byte_array::ByteArray",
-          "kind": "data"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "train_protocol::Train::Train::UserRefunded",
-      "kind": "struct",
-      "members": [
-        {
-          "name": "hashlock",
-          "type": "core::integer::u256",
-          "kind": "key"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "train_protocol::Train::Train::SolverRefunded",
-      "kind": "struct",
-      "members": [
-        {
-          "name": "hashlock",
-          "type": "core::integer::u256",
-          "kind": "key"
-        },
-        {
-          "name": "index",
-          "type": "core::integer::u256",
-          "kind": "key"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "train_protocol::Train::Train::UserRedeemed",
-      "kind": "struct",
-      "members": [
-        {
-          "name": "hashlock",
-          "type": "core::integer::u256",
-          "kind": "key"
-        },
-        {
-          "name": "redeemer",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "data"
-        },
-        {
-          "name": "secret",
-          "type": "core::integer::u256",
-          "kind": "data"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "train_protocol::Train::Train::SolverRedeemed",
-      "kind": "struct",
-      "members": [
-        {
-          "name": "hashlock",
-          "type": "core::integer::u256",
-          "kind": "key"
-        },
-        {
-          "name": "index",
-          "type": "core::integer::u256",
-          "kind": "key"
-        },
-        {
-          "name": "redeemer",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "data"
-        },
-        {
-          "name": "secret",
-          "type": "core::integer::u256",
-          "kind": "data"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "train_protocol::Train::Train::Event",
-      "kind": "enum",
-      "variants": [
-        {
-          "name": "UserLocked",
-          "type": "train_protocol::Train::Train::UserLocked",
-          "kind": "nested"
-        },
-        {
-          "name": "SolverLocked",
-          "type": "train_protocol::Train::Train::SolverLocked",
-          "kind": "nested"
-        },
-        {
-          "name": "UserRefunded",
-          "type": "train_protocol::Train::Train::UserRefunded",
-          "kind": "nested"
-        },
-        {
-          "name": "SolverRefunded",
-          "type": "train_protocol::Train::Train::SolverRefunded",
-          "kind": "nested"
-        },
-        {
-          "name": "UserRedeemed",
-          "type": "train_protocol::Train::Train::UserRedeemed",
-          "kind": "nested"
-        },
-        {
-          "name": "SolverRedeemed",
-          "type": "train_protocol::Train::Train::SolverRedeemed",
-          "kind": "nested"
-        }
-      ]
-    }
-  ]
+  {
+    "type": "impl",
+    "name": "TrainImpl",
+    "interface_name": "train_protocol::Train::ITrain"
+  },
+  {
+    "type": "struct",
+    "name": "core::integer::u256",
+    "members": [
+      {
+        "name": "low",
+        "type": "core::integer::u128"
+      },
+      {
+        "name": "high",
+        "type": "core::integer::u128"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "core::byte_array::ByteArray",
+    "members": [
+      {
+        "name": "data",
+        "type": "core::array::Array::<core::bytes_31::bytes31>"
+      },
+      {
+        "name": "pending_word",
+        "type": "core::felt252"
+      },
+      {
+        "name": "pending_word_len",
+        "type": "core::internal::bounded_int::BoundedInt::<0, 30>"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "train_protocol::Train::UserLockParams",
+    "members": [
+      {
+        "name": "hashlock",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "amount",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "reward_amount",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "timelock_delta",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "reward_timelock_delta",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "quote_expiry",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "recipient",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "token",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "reward_token",
+        "type": "core::byte_array::ByteArray"
+      },
+      {
+        "name": "reward_recipient",
+        "type": "core::byte_array::ByteArray"
+      },
+      {
+        "name": "src_chain",
+        "type": "core::byte_array::ByteArray"
+      },
+      {
+        "name": "refund_to",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "payout_curve",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "payout_curve_data",
+        "type": "core::byte_array::ByteArray"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "train_protocol::Train::DestinationInfo",
+    "members": [
+      {
+        "name": "dst_chain",
+        "type": "core::byte_array::ByteArray"
+      },
+      {
+        "name": "dst_address",
+        "type": "core::byte_array::ByteArray"
+      },
+      {
+        "name": "dst_amount",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "dst_token",
+        "type": "core::byte_array::ByteArray"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "train_protocol::Train::SolverLockParams",
+    "members": [
+      {
+        "name": "hashlock",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "amount",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "reward",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "timelock_delta",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "reward_timelock_delta",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "recipient",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "reward_recipient",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "token",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "reward_token",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "src_chain",
+        "type": "core::byte_array::ByteArray"
+      },
+      {
+        "name": "refund_to",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "payout_curve",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "payout_curve_data",
+        "type": "core::byte_array::ByteArray"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "name": "train_protocol::Train::LockStatus",
+    "variants": [
+      {
+        "name": "Empty",
+        "type": "()"
+      },
+      {
+        "name": "Pending",
+        "type": "()"
+      },
+      {
+        "name": "Refunded",
+        "type": "()"
+      },
+      {
+        "name": "Redeemed",
+        "type": "()"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "train_protocol::Train::Train::UserLock",
+    "members": [
+      {
+        "name": "secret",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "amount",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "sender",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "timelock",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "status",
+        "type": "train_protocol::Train::LockStatus"
+      },
+      {
+        "name": "recipient",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "token",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "refund_to",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "start_time",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "payout_curve",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "payout_curve_data",
+        "type": "core::byte_array::ByteArray"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "train_protocol::Train::Train::SolverLock",
+    "members": [
+      {
+        "name": "secret",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "amount",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "reward",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "sender",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "timelock",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "reward_timelock",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "recipient",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "status",
+        "type": "train_protocol::Train::LockStatus"
+      },
+      {
+        "name": "reward_recipient",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "token",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "reward_token",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "refund_to",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "start_time",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "payout_curve",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "payout_curve_data",
+        "type": "core::byte_array::ByteArray"
+      }
+    ]
+  },
+  {
+    "type": "interface",
+    "name": "train_protocol::Train::ITrain",
+    "items": [
+      {
+        "type": "function",
+        "name": "user_lock",
+        "inputs": [
+          {
+            "name": "params",
+            "type": "train_protocol::Train::UserLockParams"
+          },
+          {
+            "name": "dst",
+            "type": "train_protocol::Train::DestinationInfo"
+          },
+          {
+            "name": "user_data",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "solver_data",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "user_lock_for",
+        "inputs": [
+          {
+            "name": "user",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "params",
+            "type": "train_protocol::Train::UserLockParams"
+          },
+          {
+            "name": "dst",
+            "type": "train_protocol::Train::DestinationInfo"
+          },
+          {
+            "name": "user_data",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "solver_data",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "solver_lock",
+        "inputs": [
+          {
+            "name": "params",
+            "type": "train_protocol::Train::SolverLockParams"
+          },
+          {
+            "name": "dst",
+            "type": "train_protocol::Train::DestinationInfo"
+          },
+          {
+            "name": "data",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "refund_user",
+        "inputs": [
+          {
+            "name": "hashlock",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "refund_solver",
+        "inputs": [
+          {
+            "name": "hashlock",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "index",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "redeem_user",
+        "inputs": [
+          {
+            "name": "hashlock",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "secret",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "redeem_solver",
+        "inputs": [
+          {
+            "name": "hashlock",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "index",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "secret",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "get_user_lock",
+        "inputs": [
+          {
+            "name": "hashlock",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "train_protocol::Train::Train::UserLock"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_solver_lock",
+        "inputs": [
+          {
+            "name": "hashlock",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "index",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "train_protocol::Train::Train::SolverLock"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_solver_lock_count",
+        "inputs": [
+          {
+            "name": "hashlock",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_user_lock_hashes",
+        "inputs": [
+          {
+            "name": "user",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "offset",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "limit",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "(core::array::Array::<core::integer::u256>, core::integer::u256)"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_user_locks",
+        "inputs": [
+          {
+            "name": "user",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "offset",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "limit",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "(core::array::Array::<train_protocol::Train::Train::UserLock>, core::integer::u256)"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_security::reentrancyguard::ReentrancyGuardComponent::Event",
+    "kind": "enum",
+    "variants": []
+  },
+  {
+    "type": "event",
+    "name": "train_protocol::Train::Train::UserLocked",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "hashlock",
+        "type": "core::integer::u256",
+        "kind": "key"
+      },
+      {
+        "name": "sender",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      },
+      {
+        "name": "recipient",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      },
+      {
+        "name": "src_chain",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "token",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "amount",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "timelock",
+        "type": "core::integer::u64",
+        "kind": "data"
+      },
+      {
+        "name": "dst_chain",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "dst_address",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "dst_amount",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "dst_token",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "reward_amount",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "reward_token",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "reward_recipient",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "reward_timelock_delta",
+        "type": "core::integer::u64",
+        "kind": "data"
+      },
+      {
+        "name": "quote_expiry",
+        "type": "core::integer::u64",
+        "kind": "data"
+      },
+      {
+        "name": "payout_curve",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "user_data",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "solver_data",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "train_protocol::Train::Train::SolverLocked",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "hashlock",
+        "type": "core::integer::u256",
+        "kind": "key"
+      },
+      {
+        "name": "sender",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      },
+      {
+        "name": "recipient",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      },
+      {
+        "name": "index",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "src_chain",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "token",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "amount",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "reward",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "reward_token",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "reward_recipient",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "timelock",
+        "type": "core::integer::u64",
+        "kind": "data"
+      },
+      {
+        "name": "reward_timelock",
+        "type": "core::integer::u64",
+        "kind": "data"
+      },
+      {
+        "name": "payout_curve",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "dst_chain",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "dst_address",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "dst_amount",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "dst_token",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "data",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "train_protocol::Train::Train::UserRefunded",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "hashlock",
+        "type": "core::integer::u256",
+        "kind": "key"
+      },
+      {
+        "name": "refund_to",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "amount",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "train_protocol::Train::Train::SolverRefunded",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "hashlock",
+        "type": "core::integer::u256",
+        "kind": "key"
+      },
+      {
+        "name": "index",
+        "type": "core::integer::u256",
+        "kind": "key"
+      },
+      {
+        "name": "refund_to",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "amount",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "reward",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "train_protocol::Train::Train::UserRedeemed",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "hashlock",
+        "type": "core::integer::u256",
+        "kind": "key"
+      },
+      {
+        "name": "redeemer",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "secret",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "payout",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "excess",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "train_protocol::Train::Train::SolverRedeemed",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "hashlock",
+        "type": "core::integer::u256",
+        "kind": "key"
+      },
+      {
+        "name": "index",
+        "type": "core::integer::u256",
+        "kind": "key"
+      },
+      {
+        "name": "redeemer",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "secret",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "payout",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "excess",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "reward_to",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "reward",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "train_protocol::Train::Train::Event",
+    "kind": "enum",
+    "variants": [
+      {
+        "name": "ReentrancyGuardEvent",
+        "type": "openzeppelin_security::reentrancyguard::ReentrancyGuardComponent::Event",
+        "kind": "flat"
+      },
+      {
+        "name": "UserLocked",
+        "type": "train_protocol::Train::Train::UserLocked",
+        "kind": "nested"
+      },
+      {
+        "name": "SolverLocked",
+        "type": "train_protocol::Train::Train::SolverLocked",
+        "kind": "nested"
+      },
+      {
+        "name": "UserRefunded",
+        "type": "train_protocol::Train::Train::UserRefunded",
+        "kind": "nested"
+      },
+      {
+        "name": "SolverRefunded",
+        "type": "train_protocol::Train::Train::SolverRefunded",
+        "kind": "nested"
+      },
+      {
+        "name": "UserRedeemed",
+        "type": "train_protocol::Train::Train::UserRedeemed",
+        "kind": "nested"
+      },
+      {
+        "name": "SolverRedeemed",
+        "type": "train_protocol::Train::Train::SolverRedeemed",
+        "kind": "nested"
+      }
+    ]
+  }
+]
