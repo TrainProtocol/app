@@ -45,27 +45,37 @@ export type SolanaHTLCWalletClientConfig = SolanaHTLCPublicClientConfig & {
 
 // --- Internal Types ---
 export interface UserLockData {
-    amount: BN
-    timelock: BN
-    sender: PublicKey
-    recipient: PublicKey
     secret: number[]
-    tokenMint: PublicKey
+    amount: BN
+    sender: PublicKey
+    timelock: BN
+    startTime: BN
     status: number
+    recipient: PublicKey
+    refundTo: PublicKey
+    tokenMint: PublicKey
+    rentPayer: PublicKey
+    payoutCurve: PublicKey
+    payoutCurveData: number[]
 }
 
 export interface SolverLockData {
+    secret: number[]
     amount: BN
     reward: BN
+    sender: PublicKey
     timelock: BN
     rewardTimelock: BN
-    sender: PublicKey
+    startTime: BN
     recipient: PublicKey
+    status: number
     rewardRecipient: PublicKey
-    secret: number[]
+    refundTo: PublicKey
     tokenMint: PublicKey
     rewardTokenMint: PublicKey
-    status: number
+    rentPayer: PublicKey
+    payoutCurve: PublicKey
+    payoutCurveData: number[]
 }
 
 export type TypedProgramAccounts = {

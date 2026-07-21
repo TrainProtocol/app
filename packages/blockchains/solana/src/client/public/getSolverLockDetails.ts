@@ -91,6 +91,8 @@ export function resolveSolverLock(result: any, id: string, decimals: number, ind
         rewardTimelock: Number(result.rewardTimelock),
         rewardRecipient: new PublicKey(result.rewardRecipient).toString(),
         rewardToken: result.rewardTokenMint ? result.rewardTokenMint.toString() : '',
+        refundTo: result.refundTo ? new PublicKey(result.refundTo).toString() : undefined,
+        payoutCurve: result.payoutCurve ? new PublicKey(result.payoutCurve).toString() : undefined,
         index,
     }
 }

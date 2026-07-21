@@ -27,6 +27,7 @@ const lock: SolverLockDetails = {
     timelock: 10_000,
     status: LockStatus.Pending,
     index: 1,
+    payoutCurve: 'curve',
 }
 
 class ConsensusClient extends HTLCPublicClient {
@@ -66,6 +67,16 @@ describe('solver lock consensus', () => {
         const client = new ConsensusClient({
             a: lock,
             b: { ...lock, amountInBaseUnits: lock.amountInBaseUnits! + 1n },
+        })
+
+        await expect(client.getSolverLockDetailsWithConsensus(params, ['a', 'b']))
+            .rejects.toThrow('do not match')
+    })
+
+    it('rejects payout-curve disagreement', async () => {
+        const client = new ConsensusClient({
+            a: lock,
+            b: { ...lock, payoutCurve: 'other-curve' },
         })
 
         await expect(client.getSolverLockDetailsWithConsensus(params, ['a', 'b']))

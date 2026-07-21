@@ -120,6 +120,8 @@ export abstract class HTLCPublicClient implements IHTLCPublicClient {
                     r.sender === first.sender &&
                     r.recipient === first.recipient &&
                     r.token === first.token &&
+                    r.refundTo === first.refundTo &&
+                    r.payoutCurve === first.payoutCurve &&
                     r.timelock === first.timelock &&
                     r.status === first.status
                 )) {

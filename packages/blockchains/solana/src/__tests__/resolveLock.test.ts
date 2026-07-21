@@ -12,9 +12,14 @@ function mockUserLock(overrides: Record<string, any> = {}) {
     return {
         sender: overrides.sender ?? PublicKey.unique(),
         recipient: overrides.recipient ?? PublicKey.unique(),
+        refundTo: overrides.refundTo ?? PublicKey.unique(),
         tokenMint: overrides.tokenMint ?? PublicKey.unique(),
+        rentPayer: overrides.rentPayer ?? PublicKey.unique(),
+        payoutCurve: overrides.payoutCurve ?? PublicKey.unique(),
+        payoutCurveData: overrides.payoutCurveData ?? [],
         amount: overrides.amount ?? new BN('1000000000'),
         timelock: overrides.timelock ?? new BN('1700000000'),
+        startTime: overrides.startTime ?? new BN('1699990000'),
         secret: overrides.secret ?? new Array(32).fill(0),
         status: overrides.status ?? 1,
         ...overrides,
@@ -29,6 +34,8 @@ describe('Solana resolveUserLock', () => {
         expect(result!.amount).toBe(1)
         expect(result!.timelock).toBe(1700000000)
         expect(result!.sender).toBe(data.sender.toString())
+        expect(result!.refundTo).toBe(data.refundTo.toString())
+        expect(result!.payoutCurve).toBe(data.payoutCurve.toString())
     })
 
     it('returns null when sender is NATIVE_SOL_ADDRESS', () => {
@@ -69,6 +76,8 @@ describe('Solana resolveSolverLock', () => {
         expect(result!.amount).toBe(2)
         expect(result!.index).toBe(2)
         expect(result!.rewardRecipient).toBe(data.rewardRecipient.toString())
+        expect(result!.refundTo).toBe(data.refundTo.toString())
+        expect(result!.payoutCurve).toBe(data.payoutCurve.toString())
     })
 
     it('returns null when sender is NATIVE_SOL_ADDRESS', () => {

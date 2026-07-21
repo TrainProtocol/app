@@ -54,7 +54,8 @@ export async function recoverSwap(
     }
 
     const hashlock = '0x' + uint8ArrayToHex(new Uint8Array(userLocked.hashlock as number[]))
-    const eventToken = (userLocked.token_mint as PublicKey).toBase58()
+    const eventTokenMint = (userLocked.tokenMint ?? userLocked.token_mint) as PublicKey
+    const eventToken = eventTokenMint.toBase58()
 
     const token = network.tokens.find(t => t.contract?.toLowerCase() === eventToken.toLowerCase())
     const decimals = token?.decimals ?? 9

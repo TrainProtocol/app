@@ -9,6 +9,8 @@ export type BaseLockDetails = {
     status: LockStatus;
     recipient: string;
     token: string;
+    refundTo?: string;
+    payoutCurve?: string;
 }
 
 export type Reward = {

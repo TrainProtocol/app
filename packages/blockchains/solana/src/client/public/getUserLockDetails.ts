@@ -160,11 +160,14 @@ export function resolveUserLock(result: any, id: string, decimals: number): Base
     return {
         hashlock: `0x${id.replace('0x', '')}`,
         amount: Number(formatUnits(BigInt(result.amount.toString()), decimals)),
+        amountInBaseUnits: BigInt(result.amount.toString()),
         secret: parseSecret(result.secret),
         timelock: Number(result.timelock),
         status: Number(result.status) as LockStatus,
         sender,
         recipient: new PublicKey(result.recipient).toString(),
         token: result.tokenMint ? result.tokenMint.toString() : '',
+        refundTo: result.refundTo ? new PublicKey(result.refundTo).toString() : undefined,
+        payoutCurve: result.payoutCurve ? new PublicKey(result.payoutCurve).toString() : undefined,
     }
 }

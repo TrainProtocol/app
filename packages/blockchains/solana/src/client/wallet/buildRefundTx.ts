@@ -1,8 +1,17 @@
 import { Program } from '@coral-xyz/anchor'
-import { Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js'
+import {
+    Connection,
+    PublicKey,
+    SYSVAR_RENT_PUBKEY,
+    SystemProgram,
+    Transaction,
+    TransactionInstruction,
+} from '@solana/web3.js'
 import type { RefundParams } from '@train-protocol/sdk'
 import { NATIVE_SOL_ADDRESS } from '../../constants.js'
 import { encoder, hexToUint8Array } from '../../utils.js'
+import type { TypedProgramAccounts } from '../../types.js'
+import { resolveTokenProgramId } from '../helpers.js'
 
 export async function buildRefundTx(
     connection: Connection,
@@ -19,12 +28,16 @@ export async function buildRefundTx(
         [encoder.encode('user_lock'), hashlockBytes],
         program.programId,
     )
+    const userLock = await (program.account as TypedProgramAccounts).userLock.fetch(userLockPda)
+    const rentPayer = new PublicKey(userLock.rentPayer)
+    const refundTo = new PublicKey(userLock.refundTo)
+    const tokenMint = new PublicKey(userLock.tokenMint)
 
     let refundIx: TransactionInstruction
-    if (params.sourceAsset.contract && params.sourceAsset.contract !== NATIVE_SOL_ADDRESS) {
-        const { getAssociatedTokenAddress, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
-        const tokenMint = new PublicKey(params.sourceAsset.contract)
-        const senderTokenAccount = await getAssociatedTokenAddress(tokenMint, walletPublicKey)
+    if (!tokenMint.equals(new PublicKey(NATIVE_SOL_ADDRESS))) {
+        const { getAssociatedTokenAddress, ASSOCIATED_TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
+        const tokenProgram = await resolveTokenProgramId(connection, tokenMint)
+        const refundToTokenAccount = await getAssociatedTokenAddress(tokenMint, refundTo, true, tokenProgram)
         const [vault] = PublicKey.findProgramAddressSync(
             [encoder.encode('user_vault'), hashlockBytes],
             program.programId,
@@ -35,12 +48,15 @@ export async function buildRefundTx(
             .accounts({
                 caller: walletPublicKey,
                 userLock: userLockPda,
-                sender: walletPublicKey,
+                rentPayer,
+                refundTo,
                 tokenMint,
                 vault,
-                senderTokenAccount,
-                tokenProgram: TOKEN_PROGRAM_ID,
+                refundToTokenAccount,
+                tokenProgram,
                 associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+                systemProgram: SystemProgram.programId,
+                rent: SYSVAR_RENT_PUBKEY,
             })
             .instruction()
     } else {
@@ -49,7 +65,9 @@ export async function buildRefundTx(
             .accounts({
                 caller: walletPublicKey,
                 userLock: userLockPda,
-                sender: walletPublicKey,
+                rentPayer,
+                refundTo,
+                systemProgram: SystemProgram.programId,
             })
             .instruction()
     }

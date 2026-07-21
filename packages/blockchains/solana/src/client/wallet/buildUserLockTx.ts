@@ -1,9 +1,18 @@
 import { BN, Program } from '@coral-xyz/anchor'
-import { Connection, PublicKey, Transaction } from '@solana/web3.js'
+import { Connection, PublicKey, SYSVAR_RENT_PUBKEY, SystemProgram, Transaction } from '@solana/web3.js'
 import type { UserLockParams } from '@train-protocol/sdk'
 import { parseUnits } from '@train-protocol/sdk'
 import { NATIVE_SOL_ADDRESS } from '../../constants.js'
 import { encoder, hexToUint8Array } from '../../utils.js'
+import { resolvePayoutCurve, resolveTokenProgramId } from '../helpers.js'
+
+function dataBytes(value: string | undefined): Buffer {
+    if (!value) return Buffer.alloc(0)
+    if (/^0x[0-9a-f]*$/i.test(value)) {
+        return Buffer.from(value.slice(2), 'hex')
+    }
+    return Buffer.from(value)
+}
 
 export async function buildUserLockTx(
     connection: Connection,
@@ -13,7 +22,7 @@ export async function buildUserLockTx(
 ): Promise<Transaction> {
     if (!params.atomicContract) throw new Error('No contract address')
     if (!params.srcSolverAddress) throw new Error('No Solver address')
-    if (!params.nonce) throw new Error('No nonce')
+    if (params.nonce == null) throw new Error('No nonce')
     if (!params.solverData) throw new Error('No solver data')
 
     const hashlock = hexToUint8Array(params.hashlock.replace('0x', ''))
@@ -26,7 +35,27 @@ export async function buildUserLockTx(
     const lpPublicKey = new PublicKey(params.srcSolverAddress)
     const hashlockArray = Array.from(hashlock)
     const userData = Buffer.from(params.nonce.toString())
-    const solverDataBytes = Buffer.from(params.solverData ?? '')
+    const solverDataBytes = dataBytes(params.solverData)
+    const payoutCurve = resolvePayoutCurve(params.payoutCurve)
+    const lockParams = {
+        hashlock: hashlockArray,
+        amount: bnAmount,
+        timelockDelta: bnTimelockDelta,
+        quoteExpiry: bnQuoteExpiry,
+        recipient: lpPublicKey,
+        refundTo: new PublicKey(params.sourceAddress),
+        payoutCurve: payoutCurve.address,
+        payoutCurveData: Buffer.alloc(0),
+        srcChain: params.sourceChain,
+        dstChain: params.destinationChain,
+        dstAddress: params.destinationAddress,
+        dstAmount: bnDstAmount,
+        dstToken: params.destinationAsset.contract ?? '',
+        rewardAmount: bnRewardAmount,
+        rewardToken: params.rewardToken ?? '',
+        rewardRecipient: params.rewardRecipient ?? '',
+        rewardTimelockDelta: bnRewardTimelockDelta,
+    }
 
     const [userLockPda] = PublicKey.findProgramAddressSync(
         [encoder.encode('user_lock'), hashlock],
@@ -36,9 +65,10 @@ export async function buildUserLockTx(
     const tx = new Transaction()
 
     if (params.sourceAsset.contract && params.sourceAsset.contract !== NATIVE_SOL_ADDRESS) {
-        const { getAssociatedTokenAddress, TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
+        const { getAssociatedTokenAddress } = await import('@solana/spl-token')
         const tokenMint = new PublicKey(params.sourceAsset.contract)
-        const senderTokenAccount = await getAssociatedTokenAddress(tokenMint, walletPublicKey)
+        const tokenProgram = await resolveTokenProgramId(connection, tokenMint)
+        const senderTokenAccount = await getAssociatedTokenAddress(tokenMint, walletPublicKey, false, tokenProgram)
         const [vault] = PublicKey.findProgramAddressSync(
             [encoder.encode('user_vault'), hashlock],
             program.programId,
@@ -46,21 +76,20 @@ export async function buildUserLockTx(
 
         const lockTx = await program.methods
             .userLockToken(
-                hashlockArray,
-                bnAmount, bnTimelockDelta, bnQuoteExpiry,
-                walletPublicKey, lpPublicKey,
-                params.sourceChain, params.destinationChain, params.destinationAddress,
-                bnDstAmount, params.destinationAsset.contract,
-                bnRewardAmount, params.rewardToken ?? '', params.rewardRecipient ?? '', bnRewardTimelockDelta,
+                lockParams,
                 userData, solverDataBytes,
             )
             .accounts({
-                signer: walletPublicKey,
+                payer: walletPublicKey,
+                sender: walletPublicKey,
                 userLock: userLockPda,
                 tokenMint,
                 senderTokenAccount,
                 vault,
-                tokenProgram: TOKEN_PROGRAM_ID,
+                payoutCurveProgram: payoutCurve.account ?? program.programId,
+                tokenProgram,
+                systemProgram: SystemProgram.programId,
+                rent: SYSVAR_RENT_PUBKEY,
             })
             .transaction()
 
@@ -68,17 +97,15 @@ export async function buildUserLockTx(
     } else {
         const lockTx = await program.methods
             .userLockSol(
-                hashlockArray,
-                bnAmount, bnTimelockDelta, bnQuoteExpiry,
-                walletPublicKey, lpPublicKey,
-                params.sourceChain, params.destinationChain, params.destinationAddress,
-                bnDstAmount, params.destinationAsset.contract,
-                bnRewardAmount, params.rewardToken ?? '', params.rewardRecipient ?? '', bnRewardTimelockDelta,
+                lockParams,
                 userData, solverDataBytes,
             )
             .accounts({
-                signer: walletPublicKey,
+                payer: walletPublicKey,
+                sender: walletPublicKey,
                 userLock: userLockPda,
+                payoutCurveProgram: payoutCurve.account ?? program.programId,
+                systemProgram: SystemProgram.programId,
             })
             .transaction()
 
