@@ -80,6 +80,7 @@ export function resolveSolverLock(result: any, id: string, decimals: number, ind
     return {
         hashlock: `0x${id.replace('0x', '')}`,
         amount: Number(formatUnits(BigInt(result.amount.toString()), decimals)),
+        amountInBaseUnits: BigInt(result.amount.toString()),
         secret: parseSecret(result.secret),
         timelock: Number(result.timelock),
         status: Number(result.status) as LockStatus,

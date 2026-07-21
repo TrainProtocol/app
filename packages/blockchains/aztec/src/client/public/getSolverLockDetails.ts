@@ -1,29 +1,28 @@
-import { formatUnits, hexToBytes } from '@train-protocol/sdk'
+import type { AztecNode } from '@aztec/aztec.js/node'
+import { formatUnits } from '@train-protocol/sdk'
 import type { LockParams, LockStatus, SolverLockDetails } from '@train-protocol/sdk'
-import type { AztecSigner } from '../../types'
-import { requireSigner, getContractInstance, parseSecret } from '../helpers'
+import { getNode, parseSecret } from '../helpers'
+import type { ReferenceBlock } from './storage'
+import { readSolverLock, readSolverLockCount } from './storage'
 
 export async function getSolverLockDetails(
-    rpcUrl: string,
-    signer: AztecSigner | undefined,
     params: LockParams,
     nodeUrl: string,
 ): Promise<SolverLockDetails | null> {
-    const validSigner = requireSigner(signer)
-    const { id, contractAddress } = params
-    const { contract, userAztecAddress } = await getContractInstance(contractAddress, validSigner, nodeUrl)
+    const node = getNode(nodeUrl)
+    const referenceBlock = await node.getBlockNumber()
+    const count = await readSolverLockCount(
+        node,
+        params.contractAddress,
+        params.id,
+        referenceBlock,
+    )
+    if (count === 0) return null
 
-    const hashlockBytes = hexToBytes(id, 32)
-
-    const count = await contract.methods
-        .get_solver_lock_count(hashlockBytes)
-        .simulate({ from: userAztecAddress })
-    if (Number(count.result) === 0) return null
-
-    for (let i = 1; i <= Number(count.result); i++) {
-        const result = await getSolverLockByIndex(rpcUrl, signer, params, i, nodeUrl)
+    for (let i = 1; i <= count; i++) {
+        const result = await getSolverLockByIndexFromNode(node, params, i, referenceBlock)
         if (!result) continue
-        // if (params.solverAddress && result.sender?.toLowerCase() !== params.solverAddress.toLowerCase()) continue
+        if (params.solverAddress && result.sender?.toLowerCase() !== params.solverAddress.toLowerCase()) continue
         return result
     }
 
@@ -31,23 +30,28 @@ export async function getSolverLockDetails(
 }
 
 export async function getSolverLockByIndex(
-    rpcUrl: string,
-    signer: AztecSigner | undefined,
     params: LockParams,
     index: number,
     nodeUrl: string,
 ): Promise<SolverLockDetails | null> {
-    const validSigner = requireSigner(signer)
-    const { id, contractAddress } = params
-    const { contract, userAztecAddress } = await getContractInstance(contractAddress, validSigner, nodeUrl)
+    const node = getNode(nodeUrl)
+    return getSolverLockByIndexFromNode(node, params, index, await node.getBlockNumber())
+}
 
-    const hashlockBytes = hexToBytes(id, 32)
-
-    const result: any = await contract.methods
-        .get_solver_lock(hashlockBytes, BigInt(index))
-        .simulate({ from: userAztecAddress })
-
-    return resolveSolverLock(result.result, id, params.decimals, index)
+async function getSolverLockByIndexFromNode(
+    node: AztecNode,
+    params: LockParams,
+    index: number,
+    referenceBlock: ReferenceBlock,
+): Promise<SolverLockDetails | null> {
+    const result = await readSolverLock(
+        node,
+        params.contractAddress,
+        params.id,
+        index,
+        referenceBlock,
+    )
+    return resolveSolverLock(result, params.id, params.decimals, index)
 }
 
 export function resolveSolverLock(result: any, id: string, decimals: number, index: number): SolverLockDetails | null {
@@ -57,10 +61,11 @@ export function resolveSolverLock(result: any, id: string, decimals: number, ind
     return {
         hashlock: id,
         amount: Number(formatUnits(BigInt(result.amount), decimals)),
+        amountInBaseUnits: BigInt(result.amount),
         secret: parseSecret(result.secret),
         timelock: Number(result.timelock),
         status,
-        sender: result.refund_to?.toString() ?? '',
+        sender: result.sender?.toString() ?? result.refund_to?.toString() ?? '',
         recipient: result.recipient?.toString() ?? '',
         token: result.token?.toString() ?? '',
         reward: Number(formatUnits(BigInt(result.reward), decimals)),

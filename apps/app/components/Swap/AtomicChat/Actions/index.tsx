@@ -4,7 +4,6 @@ import { ManualRedeemAction } from "./ManualClaim";
 import { UserRefundAction, UserLockAction } from "./UserActions";
 import TransactionMessages from "@/components/Swap/messages/TransactionMessages";
 import WalletMessage from "@/components/Swap/messages/Message";
-import DestinationWalletWrapper from "./DestinationWalletWrapper";
 import { SwapQuote, TrainErrorCode } from "@train-protocol/react";
 import SubmitButton from "@/components/buttons/submitButton";
 import { ExternalLink, Home } from "lucide-react";
@@ -13,7 +12,7 @@ import { getExplorerUrl } from "@/lib/address";
 import { Widget } from "@/components/Widget/Index";
 import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
-import { useLoginIdentityMismatch, useRecoveryIdentityCheck, HTLCStatus, type IdentityWarning } from "@train-protocol/react";
+import { useLoginIdentityMismatch, useRecoveryIdentityCheck, HTLCStatus, isOrderReadyForSecretReveal, type IdentityWarning } from "@train-protocol/react";
 import { useSwapStore } from "@/stores/swapStore";
 import { Drawer } from "@/components/Modal/vaul";
 import type { SwapFormValues } from "@/components/DTOs/SwapFormValues";
@@ -37,19 +36,17 @@ export const Actions: FC<ActionsProps> = ({ quote, solverId, type, formValues })
     return (
         <>
             {displayError && <TransactionMessage error={displayError} errorCode={displayErrorCode} />}
-            <DestinationWalletWrapper type={type}>
-                <ResolveAction
-                    commitStatus={commitStatus}
-                    error={error?.message}
-                    errorCode={error?.code}
-                    actionError={actionError}
-                    setActionError={setActionError}
-                    quote={quote}
-                    solverId={solverId}
-                    type={type}
-                    formValues={formValues}
-                />
-            </DestinationWalletWrapper>
+            <ResolveAction
+                commitStatus={commitStatus}
+                error={error?.message}
+                errorCode={error?.code}
+                actionError={actionError}
+                setActionError={setActionError}
+                quote={quote}
+                solverId={solverId}
+                type={type}
+                formValues={formValues}
+            />
         </>
     )
 }
@@ -104,8 +101,17 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode,
 const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const { revealSecret } = useRevealSecret()
     const attemptedRef = useRef(false)
-    const { verified, skipped } = useSolverLockVerification()
-    const { consensusVerified, consensusFailed, loginIdentity, hashlock, sourceDetails, error } = useActiveSwap()
+    const { verified, skipped, mismatches } = useSolverLockVerification()
+    const {
+        consensusVerified,
+        consensusFailed,
+        manualConsensusOverrideAllowed,
+        loginIdentity,
+        hashlock,
+        sourceDetails,
+        htlcFromApi,
+        error,
+    } = useActiveSwap()
     const clearSwapError = useClearSwapError()
     const markVerifiedManually = useMarkVerifiedManually()
     const { warning: metadataWarning } = useLoginIdentityMismatch(loginIdentity ?? undefined)
@@ -116,12 +122,13 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     })
     const warning = metadataWarning ?? recoveryWarning
 
-    // Auto-reveal once multi-RPC consensus passes AND quote verification either passed or
-    // was skipped (skipped means we couldn't compare against the original quote — surface a
-    // warning but proceed, mirroring the previous "proceed with caution" manual flow).
-    const ready = (verified || skipped) && consensusVerified && !warning
+    // Secret submission is irreversible. Wait for an economically valid on-chain lock,
+    // RPC consensus, and Station's persisted solver-lock index before handing it to the solver.
+    const orderReady = isOrderReadyForSecretReveal(htlcFromApi?.status)
+    const ready = verified && consensusVerified && orderReady && !warning
     const revealFailed = error?.code === TrainErrorCode.RevealFailed
     const verificationFailed = error?.code === TrainErrorCode.VerificationFailed || consensusFailed
+    const verificationMismatch = mismatches.length > 0
 
     const attemptReveal = useCallback(() => {
         attemptedRef.current = true
@@ -142,13 +149,15 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
         attemptReveal()
     }
 
-    if (warning || revealFailed || verificationFailed || skipped) {
+    if (warning || revealFailed || verificationFailed || verificationMismatch || skipped) {
         return (
             <ActionWrapper type={type}>
                 <SolverLockDetectedContent
                     warning={warning}
                     revealFailed={revealFailed}
                     verificationFailed={verificationFailed}
+                    verificationMismatch={verificationMismatch}
+                    canVerifyManually={verificationFailed && manualConsensusOverrideAllowed}
                     errorMessage={error?.message}
                     onRetry={handleRetry}
                     onVerifyManually={markVerifiedManually}
@@ -163,13 +172,15 @@ type SolverLockDetectedContentProps = {
     warning: IdentityWarning
     revealFailed: boolean
     verificationFailed: boolean
+    verificationMismatch: boolean
+    canVerifyManually: boolean
     errorMessage: string | undefined
     onRetry: () => void
     onVerifyManually: () => void
 }
 
 
-const SolverLockDetectedContent: FC<SolverLockDetectedContentProps> = ({ warning, revealFailed, verificationFailed, errorMessage, onRetry, onVerifyManually }) => {
+const SolverLockDetectedContent: FC<SolverLockDetectedContentProps> = ({ warning, revealFailed, verificationFailed, verificationMismatch, canVerifyManually, errorMessage, onRetry, onVerifyManually }) => {
     if (warning) {
         return <WalletMessage status="warning" header={warning.header} details={warning.details} />
     }
@@ -180,6 +191,15 @@ const SolverLockDetectedContent: FC<SolverLockDetectedContentProps> = ({ warning
             </SubmitButton>
         )
     }
+    if (verificationMismatch) {
+        return (
+            <WalletMessage
+                status="error"
+                header="Solver reservation does not match"
+                details="The destination lock is not safe for this swap. The secret was not sent. Wait for the source timelock to expire, then refund."
+            />
+        )
+    }
     if (verificationFailed) {
         return (
             <div className="flex flex-col gap-2">
@@ -188,9 +208,11 @@ const SolverLockDetectedContent: FC<SolverLockDetectedContentProps> = ({ warning
                     header="We can't verify the solver's lock"
                     details={errorMessage ?? "Our RPC nodes aren't responding. You can review the solver's lock yourself and continue, or wait for the timelock to expire and refund."}
                 />
-                <SubmitButton type="button" onClick={onVerifyManually}>
-                    Verify and continue
-                </SubmitButton>
+                {canVerifyManually && (
+                    <SubmitButton type="button" onClick={onVerifyManually}>
+                        Verify and continue
+                    </SubmitButton>
+                )}
             </div>
         )
     }

@@ -21,20 +21,96 @@ export function getNode(rpcUrl: string, cachedNode?: AztecNode): AztecNode {
     return createAztecNodeClient(rpcUrl)
 }
 
+type RegisterContractArgs = Parameters<AztecSigner['wallet']['registerContract']>
+const contractRegistrations = new WeakMap<
+    AztecSigner['wallet'],
+    Map<string, Promise<void>>
+>()
+
+function isLegacyRegisterContractReturn(error: unknown): boolean {
+    if (typeof error !== 'object' || error === null ||
+        (error as { name?: unknown }).name !== 'ZodError') return false
+
+    const issues = (error as {
+        issues?: Array<{ code?: unknown; expected?: unknown; path?: unknown }>
+    }).issues
+
+    return Array.isArray(issues) && issues.length > 0 && issues.every(issue =>
+        issue.code === 'invalid_type' &&
+        issue.expected === 'void' &&
+        Array.isArray(issue.path) &&
+        issue.path.length === 0,
+    )
+}
+
+/**
+ * Aztec v5 changed registerContract's return type from the registered instance
+ * to void. Older extension wallets still return the instance after successfully
+ * registering it, which the v5 wallet client rejects during response validation.
+ *
+ * Some extension wallets also validate the provided artifact against the
+ * instance's current class id ("Contract artifact doesn't match instance's
+ * current class id"). The artifact parameter is optional in the wallet RPC —
+ * the wallet resolves the class from its own storage or the chain — so on any
+ * other registration failure we retry with the instance alone before giving up.
+ */
+export async function registerContractCompat(
+    wallet: AztecSigner['wallet'],
+    ...args: RegisterContractArgs
+): Promise<void> {
+    const [instance, artifact] = args
+    const address = (instance as { address?: { toString(): string } }).address?.toString()
+    const registrations = contractRegistrations.get(wallet) ?? new Map<string, Promise<void>>()
+    if (!contractRegistrations.has(wallet)) contractRegistrations.set(wallet, registrations)
+
+    if (address) {
+        const existing = registrations.get(address)
+        if (existing) return existing
+    }
+
+    const registration = (async () => {
+        try {
+            await wallet.registerContract(...args)
+        } catch (error) {
+            if (isLegacyRegisterContractReturn(error)) return
+            if (!artifact) throw error
+            console.warn(
+                `[registerContractCompat] artifact registration failed for ${address}; ` +
+                'retrying instance-only (wallet will lack the artifact for this class):',
+                error,
+            )
+            try {
+                await wallet.registerContract(instance)
+            } catch (retryError) {
+                if (!isLegacyRegisterContractReturn(retryError)) throw error
+            }
+        }
+    })()
+
+    if (address) registrations.set(address, registration)
+
+    try {
+        await registration
+    } catch (error) {
+        if (address) registrations.delete(address)
+        throw error
+    }
+}
+
 export async function getContractInstance(
     contractAddress: string,
     signer: AztecSigner,
     nodeOrUrl: AztecNode | string,
 ) {
-    const aztecAtomicContract = AztecAddress.fromString(contractAddress)
+    const aztecAtomicContract = AztecAddress.fromStringUnsafe(contractAddress)
     const node = typeof nodeOrUrl === 'string' ? createAztecNodeClient(nodeOrUrl) : nodeOrUrl
     const trainInstance = await node.getContract(aztecAtomicContract)
 
     if (!trainInstance) throw new Error('Train contract not found')
 
-    await signer.wallet.registerContract(trainInstance, TrainContract.artifact)
+    await registerContractCompat(signer.wallet, trainInstance, TrainContract.artifact)
     const contract = TrainContract.at(aztecAtomicContract, signer.wallet)
-    const userAztecAddress = AztecAddress.fromString(signer.address)
+    const userAztecAddress = AztecAddress.fromStringUnsafe(signer.address)
 
     return { contract, userAztecAddress, node }
 }
@@ -60,9 +136,8 @@ export async function findEventDataFromLogs(
     hashlock: string,
 ): Promise<Partial<EventDerivedData>> {
     try {
-        const { logs } = await node.getPublicLogs({
-            txHash: TxHash.fromString(txHash),
-        })
+        const txEffect = await node.getTxEffect(TxHash.fromString(txHash))
+        const logs = txEffect?.data.publicLogs ?? []
 
         const eventDef = TrainContract.events.UserLocked
 
@@ -70,7 +145,7 @@ export async function findEventDataFromLogs(
             new TextDecoder().decode(new Uint8Array(bytes.map(Number))).replace(/\0/g, '').trim()
 
         for (const log of logs) {
-            const emittedFields = log.log.getEmittedFields()
+            const emittedFields = log.getEmittedFields()
             if (emittedFields.length === 0) continue
 
             // First field is the event tag; skip non-UserLocked logs

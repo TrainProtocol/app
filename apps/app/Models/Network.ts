@@ -34,6 +34,7 @@ export type NetworkNode = {
 export enum NetworkContractType {
     Train = "Train",
     Multicall = "Multicall",
+    ConstantPayoutCurve = "ConstantPayoutCurve",
 }
 
 export type NetworkContract = {

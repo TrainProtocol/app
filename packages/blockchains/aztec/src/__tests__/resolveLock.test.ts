@@ -8,13 +8,14 @@ const hashlock = '0x' + 'ab'.repeat(32)
 describe('Aztec resolveUserLock', () => {
     it('resolves a basic user lock', () => {
         const result = resolveUserLock({
+            sender: { toString: () => '0xSender' },
             refund_to: { toString: () =>'0x1234' }, recipient: { toString: () => '0x5678' },
             token: { toString: () => '0x9abc' },
             amount: 1000000000000000000n, timelock: 1700000000n, status: 1,
             secret: new Array(32).fill(0),
         }, hashlock, 18)
         expect(result).not.toBeNull()
-        expect(result!.sender).toBe('0x1234')
+        expect(result!.sender).toBe('0xSender')
         expect(result!.amount).toBe(1)
         expect(result!.status).toBe(LockStatus.Pending)
     })
@@ -51,6 +52,7 @@ describe('Aztec resolveUserLock', () => {
 describe('Aztec resolveSolverLock', () => {
     it('resolves solver lock with reward fields and index', () => {
         const result = resolveSolverLock({
+            sender: { toString: () =>'0xSolver' },
             refund_to: { toString: () =>'0xSolver' }, recipient: { toString: () => '0xUser' },
             token: { toString: () => '0xToken' },
             amount: 2000000000000000000n, timelock: 1700000000n, status: 1,

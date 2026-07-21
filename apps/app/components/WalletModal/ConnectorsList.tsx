@@ -13,6 +13,8 @@ import { ProviderPicker } from "./ProviderPicker";
 import { InstalledExtensionNotFound } from "./InstalledExtensionNotFound";
 import { WalletQrCode } from "./WalletQrCode";
 import { LoadingConnect } from "./LoadingConnect";
+import AztecEmojiVerification from "./AztecEmojiVerification";
+import { useAztecWalletContext } from "../WalletProviders/AztecWalletProvider";
 import { isMobile } from "@/lib/wallets/utils/isMobile";
 
 type ProviderPaginationState = {
@@ -69,6 +71,7 @@ const canRequestAdditionalConnectors = (provider: WalletProvider): provider is R
 const ConnectorsList: FC<{ onFinish: (result: Wallet | undefined) => void }> = ({ onFinish }) => {
     const { providers } = useWallet();
     const { setSelectedConnector, selectedProvider, setSelectedProvider, selectedConnector, selectedMultiChainConnector, setSelectedMultiChainConnector } = useConnectModal()
+    const { pendingVerification } = useAztecWalletContext()
     let [recentConnectors, setRecentConnectors] = usePersistedState<({ providerName?: string, connectorName?: string }[])>([], 'recentConnectors', 'localStorage');
     const [connectionError, setConnectionError] = useState<string | undefined>(undefined);
     const [searchValue, setSearchValue] = useState<string | undefined>(undefined)
@@ -121,6 +124,14 @@ const ConnectorsList: FC<{ onFinish: (result: Wallet | undefined) => void }> = (
     useEffect(() => {
         return () => clearTimeout(scrollTimeout.current as any);
     }, []);
+
+    // If the user leaves the connecting step (back button clears selectedConnector)
+    // while an Aztec emoji verification is still open, tear down the secure channel.
+    useEffect(() => {
+        if (!selectedConnector && pendingVerification) {
+            pendingVerification.cancel()
+        }
+    }, [selectedConnector, pendingVerification]);
 
     const connect = async (connector: WalletModalConnector, provider: WalletProvider) => {
         try {
@@ -433,6 +444,15 @@ const ConnectorsList: FC<{ onFinish: (result: Wallet | undefined) => void }> = (
 
     if (selectedConnector) {
         const provider = featuredProviders.find(p => p.name === selectedConnector?.providerName)
+        // Aztec (Azguard) surfaces an emoji-verification step mid-connection —
+        // render it inline here instead of as a separate overlay.
+        if (pendingVerification) {
+            return <AztecEmojiVerification
+                emojis={pendingVerification.emojis}
+                onConfirm={pendingVerification.confirm}
+                onCancel={() => { pendingVerification.cancel(); setSelectedConnector(undefined) }}
+            />
+        }
         return <LoadingConnect
             onRetry={() => { (selectedConnector && provider) && connect(selectedConnector, provider) }}
             selectedConnector={selectedConnector}

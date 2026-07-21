@@ -10,7 +10,7 @@ export default class KnownInternalNames {
 
         public static readonly AztecDevnet: string = "aztec:aztec-devnet"
 
-        public static readonly AztecTestnet: string = "aztec:4138294185"
+        public static readonly AztecTestnet: string = "aztec:1821665230"
 
         public static readonly SolanaDevnet: string = "solana:devnet";
 

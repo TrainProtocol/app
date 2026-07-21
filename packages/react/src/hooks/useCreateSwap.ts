@@ -80,6 +80,7 @@ export function useCreateSwap(): UseCreateSwapResult {
                 sourceAddress: params.sourceAddress,
                 destinationAddress: params.destinationAddress,
                 chainId: params.chainId ?? sourceChainRef,
+                payoutCurve: params.quote.payoutCurve,
                 quoteExpiry: params.quote.quoteExpirationTimestampInSeconds,
                 rewardToken: params.quote.reward?.rewardToken,
                 rewardRecipient: params.quote.reward?.rewardRecipientAddress,

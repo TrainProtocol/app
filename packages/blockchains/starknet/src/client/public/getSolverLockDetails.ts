@@ -45,6 +45,7 @@ export function resolveSolverLock(result: any, id: string, decimals: number, ind
     return {
         hashlock: id,
         amount: Number(formatUnits(BigInt(result.amount), decimals)),
+        amountInBaseUnits: BigInt(result.amount),
         secret: BigInt(result.secret),
         sender: formatStarknetAddress(result.sender).toString(),
         recipient: formatStarknetAddress(result.recipient).toString(),

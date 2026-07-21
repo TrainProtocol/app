@@ -4,16 +4,9 @@ import { useSettingsState } from "../../../context/settings";
 import KnownInternalNames from "../../knownIds";
 import { NetworkTypes } from "@/Models/Network";
 
-// Default Aztec node URL
-const DEFAULT_AZTEC_NODE_URL = "https://rpc.testnet.aztec-labs.com";
-
-// Application ID for wallet SDK discovery
 export const AZTEC_APP_ID = "Train Protocol";
 
 export const useAztecNodeUrl = () => {
-    if (typeof window === 'undefined') {
-        return DEFAULT_AZTEC_NODE_URL;
-    }
     const { networks } = useSettingsState();
     const { getEffectiveRpcUrl } = useRpcConfigStore();
     const aztecNetwork = networks?.find(
@@ -25,8 +18,6 @@ export const useAztecNodeUrl = () => {
     if (aztecNetwork) {
         return getEffectiveRpcUrl(aztecNetwork);
     }
-
-    return DEFAULT_AZTEC_NODE_URL;
 }
 
 // Sponsored fee payment contract address
@@ -52,6 +43,8 @@ export const useAztecCapabilityManifest = () => {
 
     return useCallback(async () => {
         const { AztecAddress } = await import("@aztec/aztec.js/addresses");
+        // Address-only leaf export — avoids pulling the AuthRegistry artifact into the bundle.
+        const { STANDARD_AUTH_REGISTRY_ADDRESS } = await import("@aztec/standard-contracts/auth-registry/constants");
 
         const aztecNetworks = (networks ?? []).filter(
             n => n.networkType === NetworkTypes.Aztec || n.caip2Id?.toLowerCase().startsWith('aztec:')
@@ -60,18 +53,19 @@ export const useAztecCapabilityManifest = () => {
         const trainContracts = aztecNetworks
             .map(n => n.trainContract)
             .filter((addr): addr is string => !!addr)
-            .map(addr => AztecAddress.fromString(addr));
+            .map(addr => AztecAddress.fromStringUnsafe(addr));
 
         const tokenContracts = aztecNetworks.flatMap(n =>
             (n.tokens ?? [])
                 .map(t => t.contract)
                 .filter((addr): addr is string => !!addr && addr !== n.nativeTokenAddress)
-                .map(addr => AztecAddress.fromString(addr))
+                .map(addr => AztecAddress.fromStringUnsafe(addr))
         );
 
-        // Canonical AuthRegistry — userLock's SetPublicAuthwitContractInteraction
+        // Canonical AuthRegistry (a standard contract since aztec 5.0, no longer
+        // protocol address 0x01) — userLock's SetPublicAuthwitContractInteraction
         // calls set_authorized here as part of the batched transaction.
-        const authRegistryAddress = AztecAddress.fromBigInt(1n);
+        const authRegistryAddress = AztecAddress.fromStringUnsafe(STANDARD_AUTH_REGISTRY_ADDRESS.toString());
 
         return {
             version: '1.0' as const,
@@ -125,23 +119,23 @@ export const useAztecChainInfo = () => {
     const aztecNodeUrl = useAztecNodeUrl();
 
     return useCallback(async () => {
+        if(!aztecNodeUrl) {
+            throw new Error("Aztec node URL is not available");
+        }
         const { createAztecNodeClient } = await import("@aztec/aztec.js/node");
         const { Fr } = await import("@aztec/aztec.js/fields");
 
         const node = createAztecNodeClient(aztecNodeUrl);
-        const header = await node.getBlockHeader('latest');
+        // aztec.js 5.0 removed `getBlockHeader`; chain id + rollup version are now
+        // exposed directly and don't depend on a block existing (works on fresh devnets).
+        const [chainId, version] = await Promise.all([
+            node.getChainId(),
+            node.getVersion(),
+        ]);
 
-        if (header) {
-            return {
-                chainId: header.globalVariables.chainId as any,
-                version: header.globalVariables.version as any,
-            };
-        }
-
-        // Fallback for devnet
         return {
-            chainId: Fr.fromHexString('0x1') as any,
-            version: Fr.fromHexString('0x1') as any,
+            chainId: new Fr(chainId) as any,
+            version: new Fr(version) as any,
         };
     }, [aztecNodeUrl]);
 }

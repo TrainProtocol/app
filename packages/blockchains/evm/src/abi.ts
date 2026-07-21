@@ -19,17 +19,22 @@ export const htlcEvents = {
 // Pre-computed keccak256 selectors for HTLC custom errors (no ox AbiError needed)
 export const htlcErrorsBySelector: Record<string, string> = {
     '0x7a5cb6ca': 'HashlockMismatch',
+    '0xe3813bd4': 'InvalidPayout',
+    '0x9dc6f8ae': 'InvalidPayoutCurve',
     '0xaf16754b': 'InvalidRewardTimelock',
     '0xf8d10e82': 'InvalidTimelock',
     '0xc1ab6dc1': 'InvalidToken',
+    '0xfd684c3b': 'InvalidUser',
     '0xc10ddcde': 'LockNotFound',
     '0x3560269b': 'LockNotPending',
     '0xbc6f88c5': 'MsgValueMismatch',
+    '0x0a7287b5': 'NativeNotSupported',
     '0x8727a7f9': 'QuoteExpired',
     '0x3ee5aeb5': 'ReentrancyGuardReentrantCall',
     '0x089c9987': 'RefundNotAllowed',
     '0x734530ce': 'SwapAlreadyExists',
     '0x90b8ec18': 'TransferFailed',
+    '0xd92e233d': 'ZeroAddress',
     '0x1f2a2005': 'ZeroAmount',
 }
 

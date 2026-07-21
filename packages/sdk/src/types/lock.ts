@@ -2,6 +2,8 @@ export type BaseLockDetails = {
     hashlock: string
     secret: bigint;
     amount: number;
+    /** Exact on-chain amount in base units. Required for irreversible safety checks. */
+    amountInBaseUnits?: bigint;
     sender: string;
     timelock: number;
     status: LockStatus;

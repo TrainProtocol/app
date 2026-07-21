@@ -26,8 +26,9 @@
   },
   "dependencies": {
     "@aztec/aztec.js": "catalog:",
-    "@aztec/noir-contracts.js": "^4.2.0",
-    "@defi-wonderland/aztec-standards": "4.2.0-aztecnr-rc.2"
+    "@aztec/noir-contracts.js": "^5.0.0",
+    "@aztec/stdlib": "^5.0.0",
+    "@aztec-foundation/aztec-standards": "^5.0.1"
   },
   "peerDependencies": {
     "@train-protocol/sdk": "workspace:^",

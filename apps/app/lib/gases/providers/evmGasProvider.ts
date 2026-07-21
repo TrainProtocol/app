@@ -98,6 +98,10 @@ class EthereumGasCalculator {
     }
 
     protected encodeUserLockCallData() {
+        const payoutCurve = this.network.contracts?.find(
+            contract => contract.type === NetworkContractType.ConstantPayoutCurve,
+        )?.address ?? zeroAddress
+
         return encodeFunctionData({
             abi: HTLCAbi,
             functionName: 'userLock',
@@ -109,9 +113,11 @@ class EthereumGasCalculator {
                     timelockDelta: 1200,
                     rewardTimelockDelta: 0,
                     quoteExpiry: Math.floor(Date.now() / 1000) + 3600,
-                    sender: this.account,
                     recipient: this.account,
+                    refundTo: this.account,
                     token: zeroAddress,
+                    payoutCurve,
+                    payoutCurveData: '0x',
                     rewardToken: '',
                     rewardRecipient: '',
                     srcChain: this.network.caip2Id || 'eip155:1',

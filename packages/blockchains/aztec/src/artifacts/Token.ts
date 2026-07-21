@@ -1,1 +1,1 @@
-export { TokenContract, TokenContractArtifact } from '@defi-wonderland/aztec-standards/artifacts/src/artifacts/Token'
+export { TokenContract, TokenContractArtifact } from '@aztec-foundation/aztec-standards/artifacts/src/artifacts/Token'

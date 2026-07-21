@@ -1,4 +1,4 @@
-import { SolverLockDetails } from '../types/lock'
+import { LockStatus, SolverLockDetails } from '../types/lock'
 
 export interface VerificationResult {
     verified: boolean
@@ -9,12 +9,27 @@ export interface VerificationResult {
 export interface VerifySolverLockParams {
     solverLockDetails: SolverLockDetails
     expectedReceiveAmount: number
+    expectedReceiveAmountInBaseUnits?: bigint
     expectedRecipient: string
     expectedToken: string | undefined | null
+    expectedSender?: string | undefined | null
+    expectedSourceTimelock?: number | undefined | null
+    minimumTimelockSafetyMarginSeconds?: number
+    nowInSeconds?: number
 }
 
 export function verifySolverLock(params: VerifySolverLockParams): VerificationResult {
-    const { solverLockDetails, expectedReceiveAmount, expectedRecipient, expectedToken } = params
+    const {
+        solverLockDetails,
+        expectedReceiveAmount,
+        expectedReceiveAmountInBaseUnits,
+        expectedRecipient,
+        expectedToken,
+        expectedSender,
+        expectedSourceTimelock,
+        minimumTimelockSafetyMarginSeconds = 600,
+        nowInSeconds = Math.floor(Date.now() / 1000),
+    } = params
 
     if (!solverLockDetails?.sender) {
         return { verified: false, skipped: false, mismatches: [] }
@@ -22,23 +37,55 @@ export function verifySolverLock(params: VerifySolverLockParams): VerificationRe
 
     const mismatches: string[] = []
 
-    // 1. Amount: solver must lock >= expected receive amount
+    // Only a positive, pending solver-lock index can be redeemed safely.
+    if (solverLockDetails.status !== LockStatus.Pending) {
+        mismatches.push(`Status: expected pending, got ${LockStatus[solverLockDetails.status] ?? solverLockDetails.status}`)
+    }
+    if (!Number.isInteger(solverLockDetails.index) || solverLockDetails.index <= 0) {
+        mismatches.push(`Index: expected a positive solver lock index, got ${solverLockDetails.index}`)
+    }
+
+    if (expectedSender && !addressEquals(solverLockDetails.sender, expectedSender)) {
+        mismatches.push(`Sender: expected ${expectedSender}, got ${solverLockDetails.sender}`)
+    }
+
+    // 1. Amount: compare exact base units whenever the caller supplies them. A
+    // formatted JS number cannot distinguish small differences for large values.
     const actualAmount = solverLockDetails.amount
-    if (actualAmount !== expectedReceiveAmount) {
+    if (expectedReceiveAmountInBaseUnits !== undefined) {
+        if (solverLockDetails.amountInBaseUnits === undefined) {
+            mismatches.push('Amount: exact on-chain amount is unavailable')
+        } else if (solverLockDetails.amountInBaseUnits !== expectedReceiveAmountInBaseUnits) {
+            mismatches.push(
+                `Amount: expected ${expectedReceiveAmountInBaseUnits} base units, got ${solverLockDetails.amountInBaseUnits}`,
+            )
+        }
+    } else if (actualAmount !== expectedReceiveAmount) {
         mismatches.push(`Amount: expected ${expectedReceiveAmount}, got ${actualAmount}`)
     }
 
-    // // 2. Recipient: must match expected destination address
-    if (expectedRecipient && solverLockDetails.recipient) {
-        if (!addressEquals(solverLockDetails.recipient, expectedRecipient)) {
-            mismatches.push(`Recipient: expected ${expectedRecipient}, got ${solverLockDetails.recipient}`)
-        }
+    // 2. Recipient: must match expected destination address
+    if (expectedRecipient && !addressEquals(solverLockDetails.recipient, expectedRecipient)) {
+        mismatches.push(`Recipient: expected ${expectedRecipient}, got ${solverLockDetails.recipient || 'missing'}`)
     }
 
     // 3. Token: must match destination asset contract
     const actualToken = solverLockDetails.token
-    if (actualToken && expectedToken && !addressEquals(actualToken, expectedToken)) {
-        mismatches.push(`Token: expected ${expectedToken}, got ${actualToken}`)
+    if (expectedToken && !addressEquals(actualToken, expectedToken)) {
+        mismatches.push(`Token: expected ${expectedToken}, got ${actualToken || 'missing'}`)
+    }
+
+    // 4. The destination lock must still be live and leave the solver enough time to
+    // redeem the source lock after paying the user on the destination chain.
+    if (expectedSourceTimelock) {
+        if (solverLockDetails.timelock <= nowInSeconds) {
+            mismatches.push(`Timelock: destination lock expired at ${solverLockDetails.timelock}`)
+        }
+        if (solverLockDetails.timelock + minimumTimelockSafetyMarginSeconds > expectedSourceTimelock) {
+            mismatches.push(
+                `Timelock: destination expiry ${solverLockDetails.timelock} does not leave the required ${minimumTimelockSafetyMarginSeconds}s source-chain safety margin`,
+            )
+        }
     }
 
     return {
@@ -50,5 +97,10 @@ export function verifySolverLock(params: VerifySolverLockParams): VerificationRe
 
 function addressEquals(addr1: string | undefined | null, addr2: string | undefined | null): boolean {
     if (!addr1 || !addr2) return false
-    return addr1.toLowerCase() === addr2.toLowerCase()
+    if (addr1 === addr2) return true
+
+    // Hex addresses are case-insensitive. Base58 and other chain-specific address
+    // formats are case-sensitive and must never be lowercased for comparison.
+    const isHexAddress = (value: string) => /^0x[0-9a-f]+$/i.test(value)
+    return isHexAddress(addr1) && isHexAddress(addr2) && addr1.toLowerCase() === addr2.toLowerCase()
 }

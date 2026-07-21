@@ -91,6 +91,7 @@ export {
     HTLCTransaction,
     isTerminalStatus,
     TERMINAL_STATUSES,
+    isOrderReadyForSecretReveal,
 } from '@train-protocol/sdk'
 
 // --- Re-exported Auth types ---

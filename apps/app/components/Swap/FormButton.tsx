@@ -1,13 +1,8 @@
 import dynamic from "next/dynamic";
 import { FormSourceWalletButton } from "../Input/SourceWalletPicker";
-import { PlusIcon } from "lucide-react";
 import SwapButton from "../buttons/swapButton";
 import { FormikErrors } from "formik";
 import { SwapFormValues } from "../DTOs/SwapFormValues";
-import { FC } from "react";
-import { useFormikContext } from "formik";
-import useWallet from "../../hooks/useWallet";
-import { useConnectModal } from "../WalletModal";
 import { useSharedSecretDerivation } from "@train-protocol/react";
 import { useAuthDialog } from "@/stores/authDialogStore";
 import SubmitButton from "../buttons/submitButton";
@@ -26,7 +21,6 @@ const FormButton = ({
     errors,
     isSubmitting,
     actionDisplayName,
-    shouldConnectDestinationWallet,
     solverErrorMessage,
 }) => {
     const { isLoggedIn } = useSharedSecretDerivation();
@@ -49,10 +43,6 @@ const FormButton = ({
                 Log in to continue
             </SubmitButton>
         );
-    }
-
-    if (shouldConnectDestinationWallet) {
-        return <FormDestinationWalletButton isDisabled={isSubmitting} />;
     }
 
     if (shouldConnectWallet) {
@@ -90,36 +80,6 @@ function ActionText(errors: FormikErrors<SwapFormValues>, actionDisplayName: str
         || errors.amount as string
         || errors.receiveAmount as string
         || (actionDisplayName)
-}
-
-export const FormDestinationWalletButton: FC<{ isDisabled?: boolean }> = ({ isDisabled }) => {
-    const {
-        values
-    } = useFormikContext<SwapFormValues>();
-
-    const destinationNetwork = values.to;
-    const { provider } = useWallet(destinationNetwork, 'withdrawal');
-    const { connect } = useConnectModal();
-
-    const handleConnect = async () => {
-        const result = await connect(provider);
-        // For destination wallet, we don't need to set selectedSourceAccount
-        // The wallet connection is just to enable contract interactions
-        return result;
-    };
-
-    const availableWallets = provider?.connectedWallets?.filter(w => !w.isNotAvailable) || [];
-
-    if (!availableWallets.length && destinationNetwork) {
-        return (
-            <SubmitButton type="button" icon={<PlusIcon className="stroke-1" />} onClick={handleConnect} isDisabled={isDisabled}>
-                Connect {destinationNetwork.displayName} wallet
-            </SubmitButton>
-        );
-    }
-
-    // If wallet is already connected, proceed with normal flow
-    return null;
 }
 
 export default FormButton;

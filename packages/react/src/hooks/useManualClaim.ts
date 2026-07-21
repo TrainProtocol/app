@@ -1,18 +1,29 @@
 import { useState, useCallback, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import {
+    deriveSecretFromTimelock,
+    secretToHashlock,
+    bytesToHex,
+    toHex32,
+} from '@train-protocol/sdk'
 import { useTrainContext } from '../providers/TrainContext'
 import { useWalletContext } from '../wallet/WalletContext'
 import { useNetworksContext } from '../providers/NetworksProvider'
 import { useSwapActions } from '../internal/useSwapActions'
+import { useSDStoreContext } from '../providers/SecretDerivationProvider'
 import { caip2Id, parseCaip2Id } from '../internal/branded'
+import { normalizeHex } from '../internal/normalizeHex'
 import { resolveSwapTokens } from '../internal/resolveSwapTokens'
 import { trainQueryKeys } from '../internal/queryKeys'
 import { TrainError, TrainErrorCode } from '../types'
-import type { SolverLockDetails } from '@train-protocol/sdk'
+import type { SolverLockDetails, UserLockDetails } from '@train-protocol/sdk'
 
 export interface ManualClaimParams {
     hashlock: string
-    secret: string
+    /** Secret as 0x-hex. Optional — when omitted, it's resolved from the on-chain
+     *  source lock (present once the solver redeemed it) or re-derived from the
+     *  logged-in identity key and the lock's nonce. */
+    secret?: string
     /** Optional signer address. Manual claim is permissionless — any account
      *  can execute it. When provided, the bridge resolves the matching connector.
      *  When omitted, falls back to the framework's active account. */
@@ -33,6 +44,7 @@ export function useManualClaim(): UseManualClaimResult {
     const { config } = useTrainContext()
     const walletCtx = useWalletContext()
     const actions = useSwapActions()
+    const sdStore = useSDStoreContext()
     const { networkMap } = useNetworksContext()
     const queryClient = useQueryClient()
     const [isClaiming, setIsClaiming] = useState(false)
@@ -45,12 +57,41 @@ export function useManualClaim(): UseManualClaimResult {
         setIsClaiming(true)
         setError(null)
 
-        const { hashlock, secret, address } = params
+        const { hashlock, address } = params
         const swap = actions.getSwap(hashlock)
 
         if (!swap?.hashlock || !swap?.destination || !swap?.destContract || !swap?.destinationAddress) {
             const err = new TrainError('Cannot claim: missing required params', TrainErrorCode.ClaimFailed)
             setError(err)
+            inFlight.current = false
+            setIsClaiming(false)
+            throw err
+        }
+
+        let secret = params.secret
+        if (!secret) {
+            const sourceDetails = queryClient.getQueryData<UserLockDetails | null>(trainQueryKeys.userLock(hashlock))
+            if (sourceDetails?.secret) {
+                secret = toHex32(sourceDetails.secret)
+            } else {
+                const derivedKey = sdStore?.getState().derivedKey
+                const nonce = sourceDetails?.userData ? Number(sourceDetails.userData) : null
+                if (derivedKey && nonce && !isNaN(nonce)) {
+                    const candidate = bytesToHex(Array.from(deriveSecretFromTimelock(derivedKey, nonce)))
+                    if (normalizeHex(secretToHashlock(candidate)) === normalizeHex(swap.hashlock)) {
+                        secret = candidate
+                    }
+                }
+            }
+        }
+        if (!secret) {
+            const err = new TrainError(
+                'Cannot claim: secret unavailable — log in with the identity that created this swap',
+                TrainErrorCode.ClaimFailed,
+            )
+            setError(err)
+            actions.updateSwapFlags(hashlock, { error: err })
+            config.onError?.(err)
             inFlight.current = false
             setIsClaiming(false)
             throw err
@@ -104,7 +145,7 @@ export function useManualClaim(): UseManualClaimResult {
             inFlight.current = false
             setIsClaiming(false)
         }
-    }, [walletCtx, actions, config, networkMap, queryClient])
+    }, [walletCtx, actions, sdStore, config, networkMap, queryClient])
 
     return { claim, isClaiming, error }
 }

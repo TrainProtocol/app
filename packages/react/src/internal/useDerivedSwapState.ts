@@ -53,6 +53,7 @@ export interface DerivedSwapState {
     consensusVerifying: boolean
     consensusVerified: boolean
     consensusFailed: boolean
+    manualConsensusOverrideAllowed: boolean
     verifiedNodeCount: number
 
     // Persisted swap metadata
@@ -60,6 +61,7 @@ export interface DerivedSwapState {
     destination: string | null
     sourceAddress: string | null
     destinationAddress: string | null
+    destinationSolverAddress: string | null
     requestedAmount: string | null
     receiveAmount: string | null
     txId: string | null
@@ -91,11 +93,13 @@ const EMPTY_STATE: DerivedSwapState = {
     consensusVerifying: false,
     consensusVerified: false,
     consensusFailed: false,
+    manualConsensusOverrideAllowed: false,
     verifiedNodeCount: 0,
     source: null,
     destination: null,
     sourceAddress: null,
     destinationAddress: null,
+    destinationSolverAddress: null,
     requestedAmount: null,
     receiveAmount: null,
     txId: null,
@@ -185,7 +189,10 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
 
     const isTimelockExpired = useTimelockExpiry(sourceDetails?.timelock)
 
-    // Manual claim timer: fires after MANUAL_CLAIM_DELAY_MS from when source was redeemed
+    // Secret is out once it's been handed to the API or is visible on-chain (source redeem)
+    const secretRevealed = !!flags?.secretRevealedToApi || !!sourceDetails?.secret
+
+    // Manual claim timer: fires after MANUAL_CLAIM_DELAY_MS from when the secret was revealed
     const [manualClaimRequired, setManualClaimRequired] = useState(false)
 
     useEffect(() => {
@@ -205,19 +212,22 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
         return () => clearTimeout(timer)
     }, [flags?.manualClaimStartedAt])
 
-    // Track manual claim start: when source is redeemed but solver is not
+    // Track manual claim start: once the secret is revealed the user can always redeem the
+    // destination lock themselves, so start the countdown as soon as a solver lock exists
+    // and hasn't been redeemed (covers both a silent solver and a solver that redeemed
+    // the source but not the destination).
     useEffect(() => {
         if (
             hashlock &&
             flags &&
-            sourceDetails?.status === LockStatus.Redeemed &&
+            secretRevealed &&
             solverLockDetails &&
             solverLockDetails.status !== LockStatus.Redeemed &&
             !flags.manualClaimStartedAt
         ) {
             store?.getState().updateSwapFlags(hashlock, { manualClaimStartedAt: Date.now() })
         }
-    }, [store, hashlock, sourceDetails?.status, solverLockDetails?.status, flags?.manualClaimStartedAt])
+    }, [store, hashlock, secretRevealed, solverLockDetails?.status, flags?.manualClaimStartedAt])
 
     // Memoize the return value to prevent unnecessary re-renders (fixes issue #5)
     return useMemo<DerivedSwapState>(() => {
@@ -227,7 +237,6 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
         }
         if (!swapData || !flags) return EMPTY_STATE
 
-        const secretRevealed = flags.secretRevealedToApi || !!sourceDetails?.secret
         const destRedeemTxId = deriveDestRedeemTxId(htlcFromApi, swapData.destination)
 
         const status = resolveHTLCStatus({
@@ -253,12 +262,14 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
             consensusVerifying: flags.consensusPhase === 'verifying',
             consensusVerified: flags.consensusPhase === 'verified',
             consensusFailed: flags.consensusPhase === 'failed',
+            manualConsensusOverrideAllowed: flags.manualConsensusOverrideAllowed,
             verifiedNodeCount: flags.verifiedNodeCount,
 
             source: swapData?.source ?? null,
             destination: swapData?.destination ?? null,
             sourceAddress: swapData?.sourceAddress ?? null,
             destinationAddress: swapData?.destinationAddress ?? swapData?.address ?? null,
+            destinationSolverAddress: swapData?.destinationSolverAddress ?? null,
             requestedAmount: swapData?.requestedAmount ?? null,
             receiveAmount: swapData?.receiveAmount ?? null,
             txId: swapData?.txId ?? null,
@@ -276,7 +287,7 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
     }, [
         hashlock, networksLoading,
         flags, sourceDetails, solverLockDetails, htlcFromApi,
-        isTimelockExpired, manualClaimRequired, swapData,
+        isTimelockExpired, manualClaimRequired, secretRevealed, swapData,
         sourceNetwork, destinationNetwork, sourceToken, destinationToken,
     ])
 }

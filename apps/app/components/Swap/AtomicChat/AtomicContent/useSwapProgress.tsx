@@ -151,6 +151,7 @@ export function useSwapProgress(): SwapProgress {
         sourceDetails,
         destRedeemTxId: destRedeemTx,
         htlcFromApi,
+        consensusVerified,
         error
     } = useActiveSwap();
 
@@ -273,13 +274,18 @@ export function useSwapProgress(): SwapProgress {
 
         // Solver lock detected — verifying and auto-revealing under the hood
         if (htlcStatus === HTLCStatus.SolverLockDetected) {
+            const reservationVerified = consensusVerified && verified;
             return {
                 gaugeValue: 50, gaugeIcon: null,
                 title: "Transfer in progress",
-                subtitle: "Verifying transfer…",
+                subtitle: reservationVerified ? "Reservation verified. Preparing asset release…" : "Verifying transfer…",
                 steps: buildSteps(HAPPY_STEPS, 1, { source: sourceTxLink, dest: destTxLink }, {
                     0: { timelock: sourceDetails?.timelock },
-                    1: { description: <VerificationStatus /> },
+                    1: {
+                        name: reservationVerified ? "Assets reserved" : "Verifying reservation",
+                        status: reservationVerified ? StepStatus.Complete : StepStatus.Current,
+                        description: <VerificationStatus />,
+                    },
                 }),
             };
         }
@@ -321,6 +327,7 @@ export function useSwapProgress(): SwapProgress {
         sourceNetwork,
         destinationNetwork,
         htlcFromApi,
+        consensusVerified,
         verified,
         skipped,
         mismatches,

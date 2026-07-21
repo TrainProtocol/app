@@ -14,6 +14,7 @@ export type UserLockParams = {
     destinationAddress: string
     chainId?: string | null
     solverData?: string
+    payoutCurve: string
     quoteExpiry: number
     rewardToken?: string
     rewardRecipient?: string

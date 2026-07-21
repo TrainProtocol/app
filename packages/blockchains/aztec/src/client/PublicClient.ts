@@ -31,15 +31,15 @@ export class AztecHTLCPublicClient extends HTLCPublicClient {
     // ── Read Operations ────────────────────────────────────────────────
 
     async getUserLockDetails(params: LockParams): Promise<UserLockDetails | null> {
-        return getUserLockDetails(this.rpcUrl, this.getNode(), this.signer, params)
+        return getUserLockDetails(this.getNode(), params)
     }
 
     async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> {
-        return getSolverLockDetails(this.rpcUrl, this.signer, params, nodeUrl)
+        return getSolverLockDetails(params, nodeUrl)
     }
 
     async recoverSwap(txHash: string, network: Network): Promise<UserLockDetails> {
-        return recoverSwap(this.rpcUrl, this.getNode(), this.signer, txHash, network)
+        return recoverSwap(this.getNode(), txHash, network)
     }
 
     // ── Public Helpers ─────────────────────────────────────────────────
