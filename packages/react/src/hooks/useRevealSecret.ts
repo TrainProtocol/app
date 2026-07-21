@@ -12,6 +12,7 @@ import { useSDStoreContext } from '../providers/SecretDerivationProvider'
 import { useWalletContext } from '../wallet/WalletContext'
 import { trainQueryKeys } from '../internal/queryKeys'
 import { caip2Id, parseCaip2Id } from '../internal/branded'
+import { normalizeHex } from '../internal/normalizeHex'
 import { TrainError, TrainErrorCode } from '../types'
 import { useNetworksContext } from '../providers/NetworksProvider'
 
@@ -109,8 +110,7 @@ export function useRevealSecret(): UseRevealSecretResult {
             const secretBytes = deriveSecretFromTimelock(derivedKey, nonce)
             const secret = bytesToHex(Array.from(secretBytes))
 
-            const normalize = (h: string) => (h.startsWith('0x') ? h : '0x' + h).toLowerCase()
-            if (normalize(secretToHashlock(secret)) !== normalize(swap.hashlock)) {
+            if (normalizeHex(secretToHashlock(secret)) !== normalizeHex(swap.hashlock)) {
                 throw new TrainError(
                     'Cannot reveal: current login does not match the identity that created this swap',
                     TrainErrorCode.RevealFailed,

@@ -1,7 +1,6 @@
 import type { AztecNode } from '@aztec/aztec.js/node'
 import { formatUnits } from '@train-protocol/sdk'
 import type { LockParams, LockStatus, UserLockDetails, EventDerivedData, BaseLockDetails } from '@train-protocol/sdk'
-import type { AztecSigner } from '../../types'
 import {
     findEventDataFromLogs,
     parseSecret,
@@ -9,9 +8,7 @@ import {
 import { readUserLock } from './storage'
 
 export async function getUserLockDetails(
-    _rpcUrl: string,
     node: AztecNode,
-    _signer: AztecSigner | undefined,
     params: LockParams,
 ): Promise<UserLockDetails | null> {
     const { id, contractAddress, txId } = params

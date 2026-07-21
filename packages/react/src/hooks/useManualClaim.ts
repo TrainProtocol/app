@@ -12,6 +12,7 @@ import { useNetworksContext } from '../providers/NetworksProvider'
 import { useSwapActions } from '../internal/useSwapActions'
 import { useSDStoreContext } from '../providers/SecretDerivationProvider'
 import { caip2Id, parseCaip2Id } from '../internal/branded'
+import { normalizeHex } from '../internal/normalizeHex'
 import { resolveSwapTokens } from '../internal/resolveSwapTokens'
 import { trainQueryKeys } from '../internal/queryKeys'
 import { TrainError, TrainErrorCode } from '../types'
@@ -67,9 +68,6 @@ export function useManualClaim(): UseManualClaimResult {
             throw err
         }
 
-        // Resolve the secret: explicit param → on-chain source lock (present once the
-        // solver redeemed it) → re-derived from the identity key + the lock's nonce
-        // (covers a solver that went silent after the secret was revealed to the API).
         let secret = params.secret
         if (!secret) {
             const sourceDetails = queryClient.getQueryData<UserLockDetails | null>(trainQueryKeys.userLock(hashlock))
@@ -80,8 +78,7 @@ export function useManualClaim(): UseManualClaimResult {
                 const nonce = sourceDetails?.userData ? Number(sourceDetails.userData) : null
                 if (derivedKey && nonce && !isNaN(nonce)) {
                     const candidate = bytesToHex(Array.from(deriveSecretFromTimelock(derivedKey, nonce)))
-                    const normalize = (h: string) => (h.startsWith('0x') ? h : '0x' + h).toLowerCase()
-                    if (normalize(secretToHashlock(candidate)) === normalize(swap.hashlock)) {
+                    if (normalizeHex(secretToHashlock(candidate)) === normalizeHex(swap.hashlock)) {
                         secret = candidate
                     }
                 }

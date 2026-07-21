@@ -4,13 +4,10 @@ import { TxHash } from '@aztec/aztec.js/tx'
 import { bytesToHex } from '@train-protocol/sdk'
 import type { Network, UserLockDetails } from '@train-protocol/sdk'
 import { TrainContract } from '../../artifacts/Train'
-import type { AztecSigner } from '../../types'
 import { getUserLockDetails } from './getUserLockDetails'
 
 export async function recoverSwap(
-    rpcUrl: string,
     node: AztecNode,
-    signer: AztecSigner | undefined,
     txHash: string,
     network: Network,
 ): Promise<UserLockDetails> {
@@ -43,7 +40,7 @@ export async function recoverSwap(
         const token = network.tokens.find(t => t.contract?.toLowerCase() === eventToken.toLowerCase())
         const decimals = token?.decimals ?? 18
 
-        const result = await getUserLockDetails(rpcUrl, node, signer, {
+        const result = await getUserLockDetails(node, {
             id: eventHashlock,
             contractAddress: network.trainContract,
             decimals,

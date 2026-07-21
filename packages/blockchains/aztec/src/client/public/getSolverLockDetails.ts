@@ -1,14 +1,11 @@
 import type { AztecNode } from '@aztec/aztec.js/node'
 import { formatUnits } from '@train-protocol/sdk'
 import type { LockParams, LockStatus, SolverLockDetails } from '@train-protocol/sdk'
-import type { AztecSigner } from '../../types'
 import { getNode, parseSecret } from '../helpers'
 import type { ReferenceBlock } from './storage'
 import { readSolverLock, readSolverLockCount } from './storage'
 
 export async function getSolverLockDetails(
-    _rpcUrl: string,
-    _signer: AztecSigner | undefined,
     params: LockParams,
     nodeUrl: string,
 ): Promise<SolverLockDetails | null> {
@@ -33,8 +30,6 @@ export async function getSolverLockDetails(
 }
 
 export async function getSolverLockByIndex(
-    _rpcUrl: string,
-    _signer: AztecSigner | undefined,
     params: LockParams,
     index: number,
     nodeUrl: string,
