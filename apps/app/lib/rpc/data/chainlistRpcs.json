@@ -1837,6 +1837,47 @@
     ]
   },
   {
+    "chainId": 1329,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://evm-rpc.sei-apis.com"
+      },
+      {
+        "tracking": "none",
+        "url": "https://sei.drpc.org"
+      },
+      {
+        "tracking": "none",
+        "url": "wss://sei.drpc.org"
+      },
+      {
+        "tracking": "none",
+        "url": "https://sei-evm-rpc.stakeme.pro"
+      },
+      {
+        "tracking": "limited",
+        "url": "https://sei-public.nodies.app"
+      },
+      {
+        "tracking": "limited",
+        "url": "https://sei.therpc.io"
+      },
+      {
+        "tracking": "none",
+        "url": "https://sei.api.pocket.network"
+      },
+      {
+        "tracking": "limited",
+        "url": "https://rpc.swiftnodes.io/rpc/sei"
+      },
+      {
+        "tracking": null,
+        "url": "wss://evm-ws.sei-apis.com"
+      }
+    ]
+  },
+  {
     "chainId": 196,
     "rpc": [
       {
@@ -1899,47 +1940,6 @@
       {
         "tracking": "yes",
         "url": "https://rsk-mainnet.gateway.tatum.io"
-      }
-    ]
-  },
-  {
-    "chainId": 1329,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://evm-rpc.sei-apis.com"
-      },
-      {
-        "tracking": "none",
-        "url": "https://sei.drpc.org"
-      },
-      {
-        "tracking": "none",
-        "url": "wss://sei.drpc.org"
-      },
-      {
-        "tracking": "none",
-        "url": "https://sei-evm-rpc.stakeme.pro"
-      },
-      {
-        "tracking": "limited",
-        "url": "https://sei-public.nodies.app"
-      },
-      {
-        "tracking": "limited",
-        "url": "https://sei.therpc.io"
-      },
-      {
-        "tracking": "none",
-        "url": "https://sei.api.pocket.network"
-      },
-      {
-        "tracking": "limited",
-        "url": "https://rpc.swiftnodes.io/rpc/sei"
-      },
-      {
-        "tracking": null,
-        "url": "wss://evm-ws.sei-apis.com"
       }
     ]
   },
@@ -2133,6 +2133,71 @@
     ]
   },
   {
+    "chainId": 369,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://rpc.pulsechain.com"
+      },
+      {
+        "tracking": null,
+        "url": "https://rpc.gigatheminter.com"
+      },
+      {
+        "tracking": null,
+        "url": "https://rpc-pulsechain.g4mm4.io"
+      },
+      {
+        "tracking": null,
+        "url": "https://evex.cloud/pulserpc"
+      },
+      {
+        "tracking": null,
+        "url": "wss://evex.cloud/pulsews"
+      },
+      {
+        "tracking": null,
+        "url": "https://rpc.degenprotocol.io"
+      },
+      {
+        "tracking": "none",
+        "url": "https://pulsechain-rpc.publicnode.com"
+      },
+      {
+        "tracking": "none",
+        "url": "wss://pulsechain-rpc.publicnode.com"
+      },
+      {
+        "tracking": "limited",
+        "url": "https://rpc.owlracle.info/pulse/70d38ce1826c4a60bb2a8e05a6c8b20f"
+      },
+      {
+        "tracking": "none",
+        "url": "https://rpc.pulsechainrpc.com"
+      },
+      {
+        "tracking": "none",
+        "url": "wss://ws.pulsechainrpc.com"
+      },
+      {
+        "tracking": "limited",
+        "url": "https://rpc.pulsechainstats.com"
+      },
+      {
+        "tracking": "none",
+        "url": "https://rpc.hairylabs.io"
+      },
+      {
+        "tracking": "none",
+        "url": "wss://rpc.hairylabs.io/ws"
+      },
+      {
+        "tracking": "limited",
+        "url": "https://rpc.swiftnodes.io/rpc/pulsechain"
+      }
+    ]
+  },
+  {
     "chainId": 59144,
     "rpc": [
       {
@@ -2211,71 +2276,6 @@
       {
         "tracking": null,
         "url": "https://mainnet.megaeth.com/rpc"
-      }
-    ]
-  },
-  {
-    "chainId": 369,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://rpc.pulsechain.com"
-      },
-      {
-        "tracking": null,
-        "url": "https://rpc.gigatheminter.com"
-      },
-      {
-        "tracking": null,
-        "url": "https://rpc-pulsechain.g4mm4.io"
-      },
-      {
-        "tracking": null,
-        "url": "https://evex.cloud/pulserpc"
-      },
-      {
-        "tracking": null,
-        "url": "wss://evex.cloud/pulsews"
-      },
-      {
-        "tracking": null,
-        "url": "https://rpc.degenprotocol.io"
-      },
-      {
-        "tracking": "none",
-        "url": "https://pulsechain-rpc.publicnode.com"
-      },
-      {
-        "tracking": "none",
-        "url": "wss://pulsechain-rpc.publicnode.com"
-      },
-      {
-        "tracking": "limited",
-        "url": "https://rpc.owlracle.info/pulse/70d38ce1826c4a60bb2a8e05a6c8b20f"
-      },
-      {
-        "tracking": "none",
-        "url": "https://rpc.pulsechainrpc.com"
-      },
-      {
-        "tracking": "none",
-        "url": "wss://ws.pulsechainrpc.com"
-      },
-      {
-        "tracking": "limited",
-        "url": "https://rpc.pulsechainstats.com"
-      },
-      {
-        "tracking": "none",
-        "url": "https://rpc.hairylabs.io"
-      },
-      {
-        "tracking": "none",
-        "url": "wss://rpc.hairylabs.io/ws"
-      },
-      {
-        "tracking": "limited",
-        "url": "https://rpc.swiftnodes.io/rpc/pulsechain"
       }
     ]
   },
@@ -2553,6 +2553,59 @@
     ]
   },
   {
+    "chainId": 8217,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://public-en.node.kaia.io"
+      },
+      {
+        "tracking": "yes",
+        "url": "https://alpha-hardworking-orb.kaia-mainnet.quiknode.pro"
+      },
+      {
+        "tracking": "none",
+        "url": "https://kaia.api.pocket.network"
+      },
+      {
+        "tracking": "limited",
+        "url": "https://kaia-public.nodies.app"
+      },
+      {
+        "tracking": "none",
+        "url": "https://go.getblock.io/d7094dbd80ab474ba7042603fe912332"
+      },
+      {
+        "tracking": "limited",
+        "url": "https://klaytn.api.onfinality.io/public"
+      },
+      {
+        "tracking": "none",
+        "url": "https://1rpc.io/klay"
+      },
+      {
+        "tracking": "none",
+        "url": "https://klaytn.drpc.org"
+      },
+      {
+        "tracking": "limited",
+        "url": "https://rpc.ankr.com/kaia"
+      },
+      {
+        "tracking": "limited",
+        "url": "https://kaia.therpc.io"
+      },
+      {
+        "tracking": "limited",
+        "url": "https://kaia-mainnet.gateway.tatum.io"
+      },
+      {
+        "tracking": "none",
+        "url": "wss://klaytn.drpc.org"
+      }
+    ]
+  },
+  {
     "chainId": 2222,
     "rpc": [
       {
@@ -2630,59 +2683,6 @@
       {
         "tracking": null,
         "url": "wss://wevm.kava-rpc.com"
-      }
-    ]
-  },
-  {
-    "chainId": 8217,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://public-en.node.kaia.io"
-      },
-      {
-        "tracking": "yes",
-        "url": "https://alpha-hardworking-orb.kaia-mainnet.quiknode.pro"
-      },
-      {
-        "tracking": "none",
-        "url": "https://kaia.api.pocket.network"
-      },
-      {
-        "tracking": "limited",
-        "url": "https://kaia-public.nodies.app"
-      },
-      {
-        "tracking": "none",
-        "url": "https://go.getblock.io/d7094dbd80ab474ba7042603fe912332"
-      },
-      {
-        "tracking": "limited",
-        "url": "https://klaytn.api.onfinality.io/public"
-      },
-      {
-        "tracking": "none",
-        "url": "https://1rpc.io/klay"
-      },
-      {
-        "tracking": "none",
-        "url": "https://klaytn.drpc.org"
-      },
-      {
-        "tracking": "limited",
-        "url": "https://rpc.ankr.com/kaia"
-      },
-      {
-        "tracking": "limited",
-        "url": "https://kaia.therpc.io"
-      },
-      {
-        "tracking": "limited",
-        "url": "https://kaia-mainnet.gateway.tatum.io"
-      },
-      {
-        "tracking": "none",
-        "url": "wss://klaytn.drpc.org"
       }
     ]
   },
@@ -2836,71 +2836,6 @@
     ]
   },
   {
-    "chainId": 324,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://mainnet.era.zksync.io"
-      },
-      {
-        "tracking": null,
-        "url": "https://li-fi-redirect.intustechno.workers.dev/rpc"
-      },
-      {
-        "tracking": "limited",
-        "url": "https://go.getblock.io/f76c09905def4618a34946bf71851542"
-      },
-      {
-        "tracking": "none",
-        "url": "https://zksync.meowrpc.com"
-      },
-      {
-        "tracking": "none",
-        "url": "https://zksync.drpc.org"
-      },
-      {
-        "tracking": "none",
-        "url": "https://1rpc.io/zksync2-era"
-      },
-      {
-        "tracking": "none",
-        "url": "https://endpoints.omniatech.io/v1/zksync-era/mainnet/public"
-      },
-      {
-        "tracking": "limited",
-        "url": "https://api.zan.top/zksync-mainnet"
-      },
-      {
-        "tracking": "limited",
-        "url": "https://zksync.api.onfinality.io/public"
-      },
-      {
-        "tracking": "none",
-        "url": "https://rpc.ankr.com/zksync_era"
-      },
-      {
-        "tracking": "none",
-        "url": "https://zksync-era.api.pocket.network"
-      },
-      {
-        "tracking": "limited",
-        "url": "https://api-zksync-era-mainnet-full.n.dwellir.com/2ccf18bf-2916-4198-8856-42172854353c"
-      },
-      {
-        "tracking": "limited",
-        "url": "https://zksync-era.rpc.sentio.xyz"
-      },
-      {
-        "tracking": "yes",
-        "url": "https://zksync-mainnet.gateway.tatum.io"
-      },
-      {
-        "tracking": null,
-        "url": "wss://zksync.drpc.org"
-      }
-    ]
-  },
-  {
     "chainId": 50,
     "rpc": [
       {
@@ -2962,6 +2897,71 @@
       {
         "tracking": null,
         "url": "https://rpc.xinfin.network"
+      }
+    ]
+  },
+  {
+    "chainId": 324,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://mainnet.era.zksync.io"
+      },
+      {
+        "tracking": null,
+        "url": "https://li-fi-redirect.intustechno.workers.dev/rpc"
+      },
+      {
+        "tracking": "limited",
+        "url": "https://go.getblock.io/f76c09905def4618a34946bf71851542"
+      },
+      {
+        "tracking": "none",
+        "url": "https://zksync.meowrpc.com"
+      },
+      {
+        "tracking": "none",
+        "url": "https://zksync.drpc.org"
+      },
+      {
+        "tracking": "none",
+        "url": "https://1rpc.io/zksync2-era"
+      },
+      {
+        "tracking": "none",
+        "url": "https://endpoints.omniatech.io/v1/zksync-era/mainnet/public"
+      },
+      {
+        "tracking": "limited",
+        "url": "https://api.zan.top/zksync-mainnet"
+      },
+      {
+        "tracking": "limited",
+        "url": "https://zksync.api.onfinality.io/public"
+      },
+      {
+        "tracking": "none",
+        "url": "https://rpc.ankr.com/zksync_era"
+      },
+      {
+        "tracking": "none",
+        "url": "https://zksync-era.api.pocket.network"
+      },
+      {
+        "tracking": "limited",
+        "url": "https://api-zksync-era-mainnet-full.n.dwellir.com/2ccf18bf-2916-4198-8856-42172854353c"
+      },
+      {
+        "tracking": "limited",
+        "url": "https://zksync-era.rpc.sentio.xyz"
+      },
+      {
+        "tracking": "yes",
+        "url": "https://zksync-mainnet.gateway.tatum.io"
+      },
+      {
+        "tracking": null,
+        "url": "wss://zksync.drpc.org"
       }
     ]
   },
@@ -3177,23 +3177,6 @@
     ]
   },
   {
-    "chainId": 1030,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://evm.confluxrpc.com"
-      },
-      {
-        "tracking": null,
-        "url": "https://conflux-espace-public.unifra.io"
-      },
-      {
-        "tracking": "limited",
-        "url": "https://conflux-espace.blockpi.network/v1/rpc/public"
-      }
-    ]
-  },
-  {
     "chainId": 2818,
     "rpc": [
       {
@@ -3215,6 +3198,23 @@
       {
         "tracking": "none",
         "url": "https://morph.drpc.org"
+      }
+    ]
+  },
+  {
+    "chainId": 1030,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://evm.confluxrpc.com"
+      },
+      {
+        "tracking": null,
+        "url": "https://conflux-espace-public.unifra.io"
+      },
+      {
+        "tracking": "limited",
+        "url": "https://conflux-espace.blockpi.network/v1/rpc/public"
       }
     ]
   },
@@ -3457,23 +3457,6 @@
       {
         "tracking": "none",
         "url": "https://endpoints.omniatech.io/v1/manta-pacific/mainnet/public"
-      }
-    ]
-  },
-  {
-    "chainId": 50104,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://rpc.sophon.xyz"
-      },
-      {
-        "tracking": "yes",
-        "url": "https://rpc-quicknode.sophon.xyz"
-      },
-      {
-        "tracking": null,
-        "url": "wss://rpc.sophon.xyz/ws"
       }
     ]
   },
@@ -3819,19 +3802,6 @@
     ]
   },
   {
-    "chainId": 888,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://gwan-ssl.wandevs.org:56891"
-      },
-      {
-        "tracking": null,
-        "url": "https://gwan2-ssl.wandevs.org"
-      }
-    ]
-  },
-  {
     "chainId": 88888,
     "rpc": [
       {
@@ -3857,6 +3827,19 @@
       {
         "tracking": null,
         "url": "https://chiliz.publicnode.com"
+      }
+    ]
+  },
+  {
+    "chainId": 888,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://gwan-ssl.wandevs.org:56891"
+      },
+      {
+        "tracking": null,
+        "url": "https://gwan2-ssl.wandevs.org"
       }
     ]
   },
@@ -3895,6 +3878,23 @@
       {
         "tracking": "limited",
         "url": "https://rpc.poolz.finance/telos"
+      }
+    ]
+  },
+  {
+    "chainId": 50104,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://rpc.sophon.xyz"
+      },
+      {
+        "tracking": "yes",
+        "url": "https://rpc-quicknode.sophon.xyz"
+      },
+      {
+        "tracking": null,
+        "url": "wss://rpc.sophon.xyz/ws"
       }
     ]
   },
@@ -3953,6 +3953,15 @@
     ]
   },
   {
+    "chainId": 105105,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://rpc.xertra.com"
+      }
+    ]
+  },
+  {
     "chainId": 288,
     "rpc": [
       {
@@ -3998,15 +4007,6 @@
       {
         "tracking": null,
         "url": "wss://gateway.tenderly.co/public/boba-ethereum"
-      }
-    ]
-  },
-  {
-    "chainId": 105105,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://rpc.xertra.com"
       }
     ]
   },
@@ -4113,15 +4113,6 @@
     ]
   },
   {
-    "chainId": 432204,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://subnets.avax.network/dexalot/mainnet/rpc"
-      }
-    ]
-  },
-  {
     "chainId": 239,
     "rpc": [
       {
@@ -4143,6 +4134,15 @@
       {
         "tracking": null,
         "url": "https://ws.rpc.tac.build"
+      }
+    ]
+  },
+  {
+    "chainId": 432204,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://subnets.avax.network/dexalot/mainnet/rpc"
       }
     ]
   },
@@ -4350,27 +4350,6 @@
     ]
   },
   {
-    "chainId": 2345,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://rpc.goat.network"
-      },
-      {
-        "tracking": "none",
-        "url": "https://goat-mainnet-alpha.drpc.org"
-      },
-      {
-        "tracking": "none",
-        "url": "wss://goat-mainnet-alpha.drpc.org"
-      },
-      {
-        "tracking": "none",
-        "url": "https://rpc.ankr.com/goat_mainnet"
-      }
-    ]
-  },
-  {
     "chainId": 1284,
     "rpc": [
       {
@@ -4472,6 +4451,27 @@
     ]
   },
   {
+    "chainId": 2345,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://rpc.goat.network"
+      },
+      {
+        "tracking": "none",
+        "url": "https://goat-mainnet-alpha.drpc.org"
+      },
+      {
+        "tracking": "none",
+        "url": "wss://goat-mainnet-alpha.drpc.org"
+      },
+      {
+        "tracking": "none",
+        "url": "https://rpc.ankr.com/goat_mainnet"
+      }
+    ]
+  },
+  {
     "chainId": 321,
     "rpc": [
       {
@@ -4501,6 +4501,15 @@
     ]
   },
   {
+    "chainId": 8668,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://mainnet-rpc.helachain.com"
+      }
+    ]
+  },
+  {
     "chainId": 88,
     "rpc": [
       {
@@ -4518,15 +4527,6 @@
       {
         "tracking": null,
         "url": "https://rpc.viction.xyz"
-      }
-    ]
-  },
-  {
-    "chainId": 8668,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://mainnet-rpc.helachain.com"
       }
     ]
   },
@@ -4611,6 +4611,58 @@
     ]
   },
   {
+    "chainId": 3338,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://quicknode1.peaq.xyz"
+      },
+      {
+        "tracking": null,
+        "url": "https://quicknode2.peaq.xyz"
+      },
+      {
+        "tracking": null,
+        "url": "https://quicknode3.peaq.xyz"
+      }
+    ]
+  },
+  {
+    "chainId": 32769,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://api.zilliqa.com"
+      }
+    ]
+  },
+  {
+    "chainId": 6001,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://fullnode-mainnet.bouncebitapi.com"
+      }
+    ]
+  },
+  {
+    "chainId": 23294,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://sapphire.oasis.io"
+      },
+      {
+        "tracking": "none",
+        "url": "https://1rpc.io/oasis/sapphire"
+      },
+      {
+        "tracking": null,
+        "url": "wss://sapphire.oasis.io/ws"
+      }
+    ]
+  },
+  {
     "chainId": 122,
     "rpc": [
       {
@@ -4648,58 +4700,6 @@
       {
         "tracking": "none",
         "url": "https://fuse.api.pocket.network"
-      }
-    ]
-  },
-  {
-    "chainId": 3338,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://quicknode1.peaq.xyz"
-      },
-      {
-        "tracking": null,
-        "url": "https://quicknode2.peaq.xyz"
-      },
-      {
-        "tracking": null,
-        "url": "https://quicknode3.peaq.xyz"
-      }
-    ]
-  },
-  {
-    "chainId": 6001,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://fullnode-mainnet.bouncebitapi.com"
-      }
-    ]
-  },
-  {
-    "chainId": 32769,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://api.zilliqa.com"
-      }
-    ]
-  },
-  {
-    "chainId": 23294,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://sapphire.oasis.io"
-      },
-      {
-        "tracking": "none",
-        "url": "https://1rpc.io/oasis/sapphire"
-      },
-      {
-        "tracking": null,
-        "url": "wss://sapphire.oasis.io/ws"
       }
     ]
   },
@@ -4750,15 +4750,6 @@
       {
         "tracking": "none",
         "url": "https://oasys.api.pocket.network"
-      }
-    ]
-  },
-  {
-    "chainId": 16661,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://evmrpc.0g.ai"
       }
     ]
   },
@@ -4817,6 +4808,15 @@
     ]
   },
   {
+    "chainId": 16661,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://evmrpc.0g.ai"
+      }
+    ]
+  },
+  {
     "chainId": 42170,
     "rpc": [
       {
@@ -4866,41 +4866,11 @@
     ]
   },
   {
-    "chainId": 199,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://rpc.bittorrentchain.io"
-      },
-      {
-        "tracking": null,
-        "url": "https://rpc.bt.io"
-      },
-      {
-        "tracking": null,
-        "url": "https://bittorrent.drpc.org"
-      },
-      {
-        "tracking": null,
-        "url": "wss://bittorrent.drpc.org"
-      }
-    ]
-  },
-  {
     "chainId": 9790,
     "rpc": [
       {
         "tracking": null,
         "url": "https://evm-api.carbon.network"
-      }
-    ]
-  },
-  {
-    "chainId": 361,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://eth-rpc-api.thetatoken.org/rpc"
       }
     ]
   },
@@ -4926,6 +4896,15 @@
       {
         "tracking": null,
         "url": "https://rpc4.coinex.net"
+      }
+    ]
+  },
+  {
+    "chainId": 361,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://eth-rpc-api.thetatoken.org/rpc"
       }
     ]
   },
@@ -5025,43 +5004,6 @@
     ]
   },
   {
-    "chainId": 20,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://api.elastos.io/esc"
-      },
-      {
-        "tracking": null,
-        "url": "https://api.trinity-tech.io/esc"
-      },
-      {
-        "tracking": null,
-        "url": "https://api2.elastos.io/esc"
-      },
-      {
-        "tracking": null,
-        "url": "https://api2.elastos.net/esc"
-      },
-      {
-        "tracking": null,
-        "url": "https://api2.elastos.io/eth"
-      },
-      {
-        "tracking": null,
-        "url": "https://api2.elastos.net/eth"
-      },
-      {
-        "tracking": null,
-        "url": "https://rpc.glidefinance.io"
-      },
-      {
-        "tracking": null,
-        "url": "https://api.elastos.io/eth"
-      }
-    ]
-  },
-  {
     "chainId": 19,
     "rpc": [
       {
@@ -5151,6 +5093,19 @@
     ]
   },
   {
+    "chainId": 39797,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://nodeapi.energi.network"
+      },
+      {
+        "tracking": null,
+        "url": "https://explorer.energi.network/api/eth-rpc"
+      }
+    ]
+  },
+  {
     "chainId": 1100,
     "rpc": [
       {
@@ -5212,44 +5167,43 @@
     ]
   },
   {
-    "chainId": 39797,
+    "chainId": 61,
     "rpc": [
       {
         "tracking": null,
-        "url": "https://nodeapi.energi.network"
+        "url": "https://etc.etcdesktop.com"
+      },
+      {
+        "tracking": "none",
+        "url": "https://etc.rivet.link"
+      },
+      {
+        "tracking": "none",
+        "url": "https://0xrpc.io/etc"
+      },
+      {
+        "tracking": "none",
+        "url": "wss://0xrpc.io/etc"
+      },
+      {
+        "tracking": "none",
+        "url": "https://ethereum-classic-mainnet.gateway.tatum.io"
+      },
+      {
+        "tracking": "limited",
+        "url": "https://rpc.swiftnodes.io/rpc/etc"
       },
       {
         "tracking": null,
-        "url": "https://explorer.energi.network/api/eth-rpc"
-      }
-    ]
-  },
-  {
-    "chainId": 232,
-    "rpc": [
+        "url": "https://besu-at.etc-network.info"
+      },
       {
         "tracking": null,
-        "url": "https://rpc.lens.xyz"
+        "url": "https://geth-at.etc-network.info"
       },
       {
-        "tracking": "yes",
-        "url": "https://light-icy-dinghy.lens-mainnet.quiknode.pro"
-      },
-      {
-        "tracking": "yes",
-        "url": "https://lens-mainnet.g.alchemy.com/public"
-      },
-      {
-        "tracking": "none",
-        "url": "https://lens.drpc.org"
-      },
-      {
-        "tracking": "none",
-        "url": "https://lens.drpc.org"
-      },
-      {
-        "tracking": "none",
-        "url": "wss://lens.drpc.org"
+        "tracking": null,
+        "url": "https://etc.mytokenpocket.vip"
       }
     ]
   },
@@ -5279,6 +5233,35 @@
       {
         "tracking": null,
         "url": "wss://ws-mainnet.hecochain.com"
+      }
+    ]
+  },
+  {
+    "chainId": 232,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://rpc.lens.xyz"
+      },
+      {
+        "tracking": "yes",
+        "url": "https://light-icy-dinghy.lens-mainnet.quiknode.pro"
+      },
+      {
+        "tracking": "yes",
+        "url": "https://lens-mainnet.g.alchemy.com/public"
+      },
+      {
+        "tracking": "none",
+        "url": "https://lens.drpc.org"
+      },
+      {
+        "tracking": "none",
+        "url": "https://lens.drpc.org"
+      },
+      {
+        "tracking": "none",
+        "url": "wss://lens.drpc.org"
       }
     ]
   },
@@ -5352,61 +5335,32 @@
     ]
   },
   {
+    "chainId": 199,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://rpc.bittorrentchain.io"
+      },
+      {
+        "tracking": null,
+        "url": "https://rpc.bt.io"
+      },
+      {
+        "tracking": null,
+        "url": "https://bittorrent.drpc.org"
+      },
+      {
+        "tracking": null,
+        "url": "wss://bittorrent.drpc.org"
+      }
+    ]
+  },
+  {
     "chainId": 1231,
     "rpc": [
       {
         "tracking": null,
         "url": "https://ultron-rpc.net"
-      }
-    ]
-  },
-  {
-    "chainId": 61,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://etc.etcdesktop.com"
-      },
-      {
-        "tracking": "none",
-        "url": "https://etc.rivet.link"
-      },
-      {
-        "tracking": "none",
-        "url": "https://0xrpc.io/etc"
-      },
-      {
-        "tracking": "none",
-        "url": "wss://0xrpc.io/etc"
-      },
-      {
-        "tracking": "none",
-        "url": "https://ethereum-classic-mainnet.gateway.tatum.io"
-      },
-      {
-        "tracking": "limited",
-        "url": "https://rpc.swiftnodes.io/rpc/etc"
-      },
-      {
-        "tracking": null,
-        "url": "https://besu-at.etc-network.info"
-      },
-      {
-        "tracking": null,
-        "url": "https://geth-at.etc-network.info"
-      },
-      {
-        "tracking": null,
-        "url": "https://etc.mytokenpocket.vip"
-      }
-    ]
-  },
-  {
-    "chainId": 97741,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://rpc-pepu-v2-mainnet-0.t.conduit.xyz"
       }
     ]
   },
@@ -5433,23 +5387,11 @@
     ]
   },
   {
-    "chainId": 5330,
+    "chainId": 97741,
     "rpc": [
       {
-        "tracking": "none",
-        "url": "https://superseed.drpc.org"
-      },
-      {
-        "tracking": "none",
-        "url": "wss://superseed.drpc.org"
-      },
-      {
         "tracking": null,
-        "url": "https://mainnet.superseed.xyz"
-      },
-      {
-        "tracking": null,
-        "url": "wss://mainnet.superseed.xyz"
+        "url": "https://rpc-pepu-v2-mainnet-0.t.conduit.xyz"
       }
     ]
   },
@@ -5505,6 +5447,27 @@
     ]
   },
   {
+    "chainId": 5330,
+    "rpc": [
+      {
+        "tracking": "none",
+        "url": "https://superseed.drpc.org"
+      },
+      {
+        "tracking": "none",
+        "url": "wss://superseed.drpc.org"
+      },
+      {
+        "tracking": null,
+        "url": "https://mainnet.superseed.xyz"
+      },
+      {
+        "tracking": null,
+        "url": "wss://mainnet.superseed.xyz"
+      }
+    ]
+  },
+  {
     "chainId": 7777777,
     "rpc": [
       {
@@ -5535,15 +5498,11 @@
     ]
   },
   {
-    "chainId": 1990,
+    "chainId": 1234,
     "rpc": [
       {
         "tracking": null,
-        "url": "https://rpc1mainnet.qie.digital"
-      },
-      {
-        "tracking": null,
-        "url": "https://rpc5mainnet.qie.digital"
+        "url": "https://rpc.step.network"
       }
     ]
   },
@@ -5570,20 +5529,20 @@
     ]
   },
   {
-    "chainId": 6969,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://rpc.tombchain.com"
-      }
-    ]
-  },
-  {
     "chainId": 225,
     "rpc": [
       {
         "tracking": null,
         "url": "https://rpc-mainnet.lachain.io"
+      }
+    ]
+  },
+  {
+    "chainId": 6969,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://rpc.tombchain.com"
       }
     ]
   },
@@ -5628,11 +5587,15 @@
     ]
   },
   {
-    "chainId": 1234,
+    "chainId": 1990,
     "rpc": [
       {
         "tracking": null,
-        "url": "https://rpc.step.network"
+        "url": "https://rpc1mainnet.qie.digital"
+      },
+      {
+        "tracking": null,
+        "url": "https://rpc5mainnet.qie.digital"
       }
     ]
   },
@@ -6026,6 +5989,43 @@
       {
         "tracking": null,
         "url": "wss://polygon-zkevm.drpc.org"
+      }
+    ]
+  },
+  {
+    "chainId": 20,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://api.elastos.io/esc"
+      },
+      {
+        "tracking": null,
+        "url": "https://api.trinity-tech.io/esc"
+      },
+      {
+        "tracking": null,
+        "url": "https://api2.elastos.io/esc"
+      },
+      {
+        "tracking": null,
+        "url": "https://api2.elastos.net/esc"
+      },
+      {
+        "tracking": null,
+        "url": "https://api2.elastos.io/eth"
+      },
+      {
+        "tracking": null,
+        "url": "https://api2.elastos.net/eth"
+      },
+      {
+        "tracking": null,
+        "url": "https://rpc.glidefinance.io"
+      },
+      {
+        "tracking": null,
+        "url": "https://api.elastos.io/eth"
       }
     ]
   },
@@ -24093,6 +24093,35 @@
     ]
   },
   {
+    "chainId": 943,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://rpc.v4.testnet.pulsechain.com"
+      },
+      {
+        "tracking": "none",
+        "url": "https://pulsechain-testnet-rpc.publicnode.com"
+      },
+      {
+        "tracking": "none",
+        "url": "wss://pulsechain-testnet-rpc.publicnode.com"
+      },
+      {
+        "tracking": null,
+        "url": "https://rpc-testnet-pulsechain.g4mm4.io"
+      },
+      {
+        "tracking": null,
+        "url": "wss://rpc.v4.testnet.pulsechain.com"
+      },
+      {
+        "tracking": null,
+        "url": "wss://rpc-testnet-pulsechain.g4mm4.io"
+      }
+    ]
+  },
+  {
     "chainId": 59140,
     "rpc": [
       {
@@ -24148,35 +24177,6 @@
       {
         "tracking": null,
         "url": "https://carrot.megaeth.com/rpc"
-      }
-    ]
-  },
-  {
-    "chainId": 943,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://rpc.v4.testnet.pulsechain.com"
-      },
-      {
-        "tracking": "none",
-        "url": "https://pulsechain-testnet-rpc.publicnode.com"
-      },
-      {
-        "tracking": "none",
-        "url": "wss://pulsechain-testnet-rpc.publicnode.com"
-      },
-      {
-        "tracking": null,
-        "url": "https://rpc-testnet-pulsechain.g4mm4.io"
-      },
-      {
-        "tracking": null,
-        "url": "wss://rpc.v4.testnet.pulsechain.com"
-      },
-      {
-        "tracking": null,
-        "url": "wss://rpc-testnet-pulsechain.g4mm4.io"
       }
     ]
   },
@@ -24647,23 +24647,6 @@
     ]
   },
   {
-    "chainId": 531050104,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://rpc.testnet.sophon.xyz"
-      },
-      {
-        "tracking": "yes",
-        "url": "https://rpc-quicknode.testnet.sophon.xyz"
-      },
-      {
-        "tracking": null,
-        "url": "wss://rpc.testnet.sophon.xyz/ws"
-      }
-    ]
-  },
-  {
     "chainId": 240,
     "rpc": [
       {
@@ -24749,6 +24732,23 @@
     ]
   },
   {
+    "chainId": 531050104,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://rpc.testnet.sophon.xyz"
+      },
+      {
+        "tracking": "yes",
+        "url": "https://rpc-quicknode.testnet.sophon.xyz"
+      },
+      {
+        "tracking": null,
+        "url": "wss://rpc.testnet.sophon.xyz/ws"
+      }
+    ]
+  },
+  {
     "chainId": 4690,
     "rpc": [
       {
@@ -24767,6 +24767,10 @@
       {
         "tracking": null,
         "url": "https://rpc.ankr.com/somnia_testnet/6e3fd81558cf77b928b06b38e9409b4677b637118114e83364486294d5ff4811"
+      },
+      {
+        "tracking": null,
+        "url": "https://api.infra.testnet.somnia.network"
       }
     ]
   },
@@ -24924,6 +24928,15 @@
     ]
   },
   {
+    "chainId": 666888,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://testnet-rpc.helachain.com"
+      }
+    ]
+  },
+  {
     "chainId": 89,
     "rpc": [
       {
@@ -24937,15 +24950,6 @@
       {
         "tracking": "none",
         "url": "wss://viction-testnet.drpc.org"
-      }
-    ]
-  },
-  {
-    "chainId": 666888,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://testnet-rpc.helachain.com"
       }
     ]
   },
@@ -25001,11 +25005,11 @@
     ]
   },
   {
-    "chainId": 12001,
+    "chainId": 33101,
     "rpc": [
       {
         "tracking": null,
-        "url": "https://rpc.flash.fuse.io"
+        "url": "https://api.testnet.zilliqa.com"
       }
     ]
   },
@@ -25019,15 +25023,6 @@
     ]
   },
   {
-    "chainId": 33101,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://api.testnet.zilliqa.com"
-      }
-    ]
-  },
-  {
     "chainId": 23295,
     "rpc": [
       {
@@ -25037,6 +25032,15 @@
       {
         "tracking": null,
         "url": "wss://testnet.sapphire.oasis.io/ws"
+      }
+    ]
+  },
+  {
+    "chainId": 12001,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://rpc.flash.fuse.io"
       }
     ]
   },
@@ -25141,15 +25145,6 @@
     ]
   },
   {
-    "chainId": 21,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://api-testnet.elastos.io/eth"
-      }
-    ]
-  },
-  {
     "chainId": 656476,
     "rpc": [
       {
@@ -25189,23 +25184,6 @@
     ]
   },
   {
-    "chainId": 37111,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://rpc.testnet.lens.dev"
-      },
-      {
-        "tracking": "none",
-        "url": "https://lens-testnet.drpc.org"
-      },
-      {
-        "tracking": "none",
-        "url": "wss://lens-testnet.drpc.org"
-      }
-    ]
-  },
-  {
     "chainId": 256,
     "rpc": [
       {
@@ -25219,6 +25197,23 @@
       {
         "tracking": null,
         "url": "wss://ws-testnet.hecochain.com"
+      }
+    ]
+  },
+  {
+    "chainId": 37111,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://rpc.testnet.lens.dev"
+      },
+      {
+        "tracking": "none",
+        "url": "https://lens-testnet.drpc.org"
+      },
+      {
+        "tracking": "none",
+        "url": "wss://lens-testnet.drpc.org"
       }
     ]
   },
@@ -25271,6 +25266,15 @@
     ]
   },
   {
+    "chainId": 2153,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://prod-testnet.prod.findora.org:8545"
+      }
+    ]
+  },
+  {
     "chainId": 53302,
     "rpc": [
       {
@@ -25280,15 +25284,6 @@
       {
         "tracking": null,
         "url": "wss://sepolia.superseed.xyz"
-      }
-    ]
-  },
-  {
-    "chainId": 2153,
-    "rpc": [
-      {
-        "tracking": null,
-        "url": "https://prod-testnet.prod.findora.org:8545"
       }
     ]
   },
@@ -25565,6 +25560,15 @@
       {
         "tracking": null,
         "url": "wss://polygon-zkevm-testnet.drpc.org"
+      }
+    ]
+  },
+  {
+    "chainId": 21,
+    "rpc": [
+      {
+        "tracking": null,
+        "url": "https://api-testnet.elastos.io/eth"
       }
     ]
   },
