@@ -88,30 +88,12 @@ importers:
 
   apps/app:
     dependencies:
-      '@aztec/accounts':
-        specifier: ^5.0.0
-        version: 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@aztec/aztec.js':
-        specifier: ^5.0.0
-        version: 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/constants':
-        specifier: ^5.0.0
-        version: 5.0.0
-      '@aztec/entrypoints':
         specifier: ^5.0.0
         version: 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@aztec/foundation':
         specifier: ^5.0.0
         version: 5.0.0
-      '@aztec/noir-contracts.js':
-        specifier: ^5.0.0
-        version: 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/noir-protocol-circuits-types':
-        specifier: ^5.0.0
-        version: 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/protocol-contracts':
-        specifier: ^5.0.0
-        version: 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@aztec/standard-contracts':
         specifier: ^5.0.0
         version: 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
@@ -127,9 +109,6 @@ importers:
       '@coral-xyz/anchor':
         specifier: 'catalog:'
         version: 0.30.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@defi-wonderland/aztec-standards':
-        specifier: ^5.0.0-rc.2
-        version: 5.0.0-rc.2
       '@eth-optimism/contracts-ts':
         specifier: ^0.17.2
         version: 0.17.2(@types/react@18.3.28)(@wagmi/core@2.16.4(@tanstack/query-core@5.90.20)(@types/react@18.3.28)(react@18.3.1)(typescript@5.9.3)(use-sync-external-store@1.6.0(react@18.3.1))(viem@2.44.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)))(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(wagmi@2.14.11(@react-native-async-storage/async-storage@1.24.0)(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@18.3.1))(@types/react@18.3.28)(bufferutil@4.1.0)(react@18.3.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)))
@@ -501,6 +480,9 @@ importers:
 
   packages/blockchains/aztec:
     dependencies:
+      '@aztec-foundation/aztec-standards':
+        specifier: ^5.0.1
+        version: 5.0.1
       '@aztec/aztec.js':
         specifier: ^5.0.0
         version: 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
@@ -510,9 +492,6 @@ importers:
       '@aztec/stdlib':
         specifier: ^5.0.0
         version: 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@defi-wonderland/aztec-standards':
-        specifier: ^5.0.0-rc.2
-        version: 5.0.0-rc.2
     devDependencies:
       '@train-protocol/auth':
         specifier: workspace:^
@@ -906,9 +885,8 @@ packages:
     resolution: {integrity: sha512-oLvsaPMTBejkkmHhjf09xTgk71mOqyr/409NKhRIL08If7AhVfUsJhVsx386uJaqNd42v9kWamQ9lFbkoC2dYw==}
     engines: {node: '>=18.0.0'}
 
-  '@aztec/accounts@5.0.0':
-    resolution: {integrity: sha512-T50GX20Ekw45+OT/LeQya+TFTBZ5Bda20dnRAyEjQSiuBcKeaxncKVW4CTCPPo3kHbklND547cRCloCEk9b6fw==}
-    engines: {node: '>=20.10'}
+  '@aztec-foundation/aztec-standards@5.0.1':
+    resolution: {integrity: sha512-i+O7v7Qqu2O9haFFducx7+42DIpxOUj+JNWUqIaE+laZJ2x+le/XEXuTLr60gCDQfo2m3b97ywH/QLk5engwAA==}
 
   '@aztec/aztec.js@5.0.0':
     resolution: {integrity: sha512-oYcDlBo8Bpm0dD60RLa7e9qEqiSoe7YjGGREpkOAW/bPcRaA0/96pvSCO3VqFJ99e/nbLCJLUy+cy8fG/rK9HA==}
@@ -1265,9 +1243,6 @@ packages:
   '@crate-crypto/node-eth-kzg@0.10.0':
     resolution: {integrity: sha512-sGDPH1nW2EhJzjzHyINvTQwDNGRzdq/2vVzFwwrmFOHtIBaRjXGqo7wKj/JoJoNjuRSGeXz/EmaahRq0pgxzqw==}
     engines: {node: '>= 10'}
-
-  '@defi-wonderland/aztec-standards@5.0.0-rc.2':
-    resolution: {integrity: sha512-zQ7lO7rehKDccU7Gw9kwydomQnL2vnyT9RHauP7IJlEJTTKY2hQHFWMTGB0R9Y89mDW9Lh5w8sfam+mrAm87nA==}
 
   '@discoveryjs/json-ext@0.5.7':
     resolution: {integrity: sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==}
@@ -10066,22 +10041,7 @@ snapshots:
 
   '@aws/lambda-invoke-store@0.2.3': {}
 
-  '@aztec/accounts@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@aztec/aztec.js': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/entrypoints': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/ethereum': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/foundation': 5.0.0
-      '@aztec/stdlib': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      tslib: 2.8.1
-    transitivePeerDependencies:
-      - aws-crt
-      - bufferutil
-      - debug
-      - encoding
-      - supports-color
-      - typescript
-      - utf-8-validate
+  '@aztec-foundation/aztec-standards@5.0.1': {}
 
   '@aztec/aztec.js@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
@@ -10925,8 +10885,6 @@ snapshots:
       '@crate-crypto/node-eth-kzg-linux-x64-gnu': 0.10.0
       '@crate-crypto/node-eth-kzg-win32-arm64-msvc': 0.10.0
       '@crate-crypto/node-eth-kzg-win32-x64-msvc': 0.10.0
-
-  '@defi-wonderland/aztec-standards@5.0.0-rc.2': {}
 
   '@discoveryjs/json-ext@0.5.7': {}
 
