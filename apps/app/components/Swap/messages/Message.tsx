@@ -67,7 +67,6 @@ export const WalletUnknownError: FC = () => {
                                 <li>Restart the browser and the wallet app</li>
                             </ul>
                             <br />
-                            <p>If the error persists try the manual transfer options</p>
                         </p>
                     </div>
                 </AccordionContent>
