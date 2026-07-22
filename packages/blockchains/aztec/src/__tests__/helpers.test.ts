@@ -1,6 +1,17 @@
 import { describe, expect, it, vi } from 'vitest'
+import { AztecAddress } from '@aztec/aztec.js/addresses'
+import type { AztecNode } from '@aztec/aztec.js/node'
 import type { Wallet } from '@aztec/aztec.js/wallet'
-import { registerContractCompat } from '../client/helpers'
+
+const { getPublicEventsMock } = vi.hoisted(() => ({
+    getPublicEventsMock: vi.fn(),
+}))
+
+vi.mock('@aztec/aztec.js/events', () => ({
+    getPublicEvents: getPublicEventsMock,
+}))
+
+import { findEventDataFromLogs, registerContractCompat } from '../client/helpers'
 
 function legacyReturnError() {
     return Object.assign(new Error('Invalid input'), {
@@ -69,5 +80,55 @@ describe('registerContractCompat', () => {
 
         await expect(registerContractCompat(wallet, instance, { name: 'Token' } as never)).rejects.toBe(failure)
         expect(registerContract).toHaveBeenCalledTimes(2)
+    })
+})
+
+describe('findEventDataFromLogs', () => {
+    it('queries and maps the domain-tagged UserLocked event', async () => {
+        const node = {} as AztecNode
+        const txHash = `0x${'11'.repeat(32)}`
+        const contractAddress = AztecAddress.ZERO.toString()
+        const hashlockBytes = Array.from({ length: 32 }, (_, index) => index)
+        const hashlock = `0x${hashlockBytes
+            .map(byte => byte.toString(16).padStart(2, '0'))
+            .join('')}`
+        const toFixedBytes = (value: string, length: number) => {
+            const bytes = Array.from(new TextEncoder().encode(value))
+            return [...bytes, ...new Array(length - bytes.length).fill(0)]
+        }
+
+        getPublicEventsMock.mockResolvedValueOnce({
+            events: [{
+                event: {
+                    hashlock: hashlockBytes,
+                    dst_chain: toFixedBytes('eip155:1', 30),
+                    dst_address: toFixedBytes('0xrecipient', 90),
+                    dst_amount: 123n,
+                    dst_token: toFixedBytes('0xtoken', 90),
+                    user_data: toFixedBytes('user-data', 256),
+                    solver_data: toFixedBytes('solver-data', 256),
+                },
+            }],
+        })
+
+        await expect(findEventDataFromLogs(
+            node,
+            txHash,
+            contractAddress,
+            hashlock,
+        )).resolves.toEqual({
+            dstChain: 'eip155:1',
+            dstAddress: '0xrecipient',
+            dstAmount: 123n,
+            dstToken: '0xtoken',
+            userData: 'user-data',
+            solverData: 'solver-data',
+        })
+
+        expect(getPublicEventsMock).toHaveBeenCalledOnce()
+        const [queriedNode, , filter] = getPublicEventsMock.mock.calls[0]
+        expect(queriedNode).toBe(node)
+        expect(filter.contractAddress.toString()).toBe(contractAddress)
+        expect(filter.txHash.toString()).toBe(txHash)
     })
 })

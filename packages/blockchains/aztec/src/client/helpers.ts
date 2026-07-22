@@ -1,15 +1,11 @@
-import { decodeFromAbi } from '@aztec/aztec.js/abi'
 import { AztecAddress } from '@aztec/aztec.js/addresses'
+import { getPublicEvents } from '@aztec/aztec.js/events'
 import { type AztecNode, createAztecNodeClient } from '@aztec/aztec.js/node'
 import { TxHash } from '@aztec/aztec.js/tx'
 import type { EventDerivedData } from '@train-protocol/sdk'
 import { bytesToHex } from '@train-protocol/sdk'
-import { TrainContract } from '../artifacts/Train'
+import { TrainContract, type UserLocked } from '../artifacts/Train'
 import type { AztecSigner } from '../types'
-
-// Train contract emits via `emit_public_log_unsafe(tag, struct)`, so the first
-// emitted field is the event tag and there is no selector at the end.
-const EVENT_USER_LOCKED_TAG = 1n
 
 export function requireSigner(signer?: AztecSigner): AztecSigner {
     if (!signer) throw new Error('Signer required')
@@ -133,29 +129,23 @@ export function strToBytes(str: string, length: number): number[] {
 export async function findEventDataFromLogs(
     node: AztecNode,
     txHash: string,
+    contractAddress: string,
     hashlock: string,
 ): Promise<Partial<EventDerivedData>> {
     try {
-        const txEffect = await node.getTxEffect(TxHash.fromString(txHash))
-        const logs = txEffect?.data.publicLogs ?? []
-
-        const eventDef = TrainContract.events.UserLocked
+        const { events } = await getPublicEvents<UserLocked>(
+            node,
+            TrainContract.events.UserLocked,
+            {
+                contractAddress: AztecAddress.fromStringUnsafe(contractAddress),
+                txHash: TxHash.fromString(txHash),
+            },
+        )
 
         const aztecBytesToString = (bytes: (bigint | number)[]) =>
             new TextDecoder().decode(new Uint8Array(bytes.map(Number))).replace(/\0/g, '').trim()
 
-        for (const log of logs) {
-            const emittedFields = log.getEmittedFields()
-            if (emittedFields.length === 0) continue
-
-            // First field is the event tag; skip non-UserLocked logs
-            if (emittedFields[0].toBigInt() !== EVENT_USER_LOCKED_TAG) continue
-
-            const decoded = decodeFromAbi(
-                [eventDef.abiType],
-                emittedFields.slice(1),
-            ) as Record<string, any>
-
+        for (const { event: decoded } of events) {
             const decodedHashlock = bytesToHex(Array.from(decoded.hashlock).map(Number))
             if (decodedHashlock.toLowerCase() !== hashlock.toLowerCase()) continue
 
@@ -165,11 +155,11 @@ export async function findEventDataFromLogs(
             if (decoded.dst_address) data.dstAddress = aztecBytesToString(decoded.dst_address)
             if (decoded.dst_amount != null) data.dstAmount = BigInt(decoded.dst_amount)
             if (decoded.dst_token) data.dstToken = aztecBytesToString(decoded.dst_token)
-            if (decoded.userData) {
-                data.userData = aztecBytesToString(decoded.userData) || undefined
+            if (decoded.user_data) {
+                data.userData = aztecBytesToString(decoded.user_data) || undefined
             }
-            if (decoded.solverData) {
-                data.solverData = aztecBytesToString(decoded.solverData) || undefined
+            if (decoded.solver_data) {
+                data.solverData = aztecBytesToString(decoded.solver_data) || undefined
             }
 
             return data

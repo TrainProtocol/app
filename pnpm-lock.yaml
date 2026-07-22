@@ -50,7 +50,7 @@ overrides:
   '@radix-ui/react-dismissable-layer': 1.1.1
   '@walletconnect/universal-provider': 2.21.8
   '@walletconnect/ethereum-provider': 2.21.8
-  '@aztec/aztec.js': ^5.0.0
+  '@aztec/aztec.js': ^5.1.0
   elliptic: '>=6.6.1'
   ws: '>=8.20.1'
   undici: '>=6.24.0'
@@ -89,20 +89,20 @@ importers:
   apps/app:
     dependencies:
       '@aztec/aztec.js':
-        specifier: ^5.0.0
-        version: 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+        specifier: ^5.1.0
+        version: 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@aztec/foundation':
-        specifier: ^5.0.0
-        version: 5.0.0
+        specifier: ^5.1.0
+        version: 5.1.0
       '@aztec/standard-contracts':
-        specifier: ^5.0.0
-        version: 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+        specifier: ^5.1.0
+        version: 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@aztec/stdlib':
-        specifier: ^5.0.0
-        version: 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+        specifier: ^5.1.0
+        version: 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@aztec/wallet-sdk':
-        specifier: ^5.0.0
-        version: 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+        specifier: ^5.1.0
+        version: 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@cartridge/controller':
         specifier: ^0.10.7
         version: 0.10.7(@react-native-async-storage/async-storage@1.24.0)(@types/react@18.3.28)(bufferutil@4.1.0)(react@18.3.1)(typescript@5.9.3)(utf-8-validate@5.0.10)
@@ -484,14 +484,14 @@ importers:
         specifier: ^5.0.1
         version: 5.0.1
       '@aztec/aztec.js':
-        specifier: ^5.0.0
-        version: 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+        specifier: ^5.1.0
+        version: 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@aztec/noir-contracts.js':
-        specifier: ^5.0.0
-        version: 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+        specifier: ^5.1.0
+        version: 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@aztec/stdlib':
-        specifier: ^5.0.0
-        version: 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+        specifier: ^5.1.0
+        version: 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
     devDependencies:
       '@train-protocol/auth':
         specifier: workspace:^
@@ -888,106 +888,106 @@ packages:
   '@aztec-foundation/aztec-standards@5.0.1':
     resolution: {integrity: sha512-i+O7v7Qqu2O9haFFducx7+42DIpxOUj+JNWUqIaE+laZJ2x+le/XEXuTLr60gCDQfo2m3b97ywH/QLk5engwAA==}
 
-  '@aztec/aztec.js@5.0.0':
-    resolution: {integrity: sha512-oYcDlBo8Bpm0dD60RLa7e9qEqiSoe7YjGGREpkOAW/bPcRaA0/96pvSCO3VqFJ99e/nbLCJLUy+cy8fG/rK9HA==}
+  '@aztec/aztec.js@5.1.0':
+    resolution: {integrity: sha512-yu3Ejjp9jeHp+m9A9tlitwEKMzNPMzf8iAUGBrXQSuWZJuqAVPamJLxQXtMrVxl0IVEkxOKBW62RO50VHp7Qwg==}
     engines: {node: '>=20.10'}
 
-  '@aztec/bb-prover@5.0.0':
-    resolution: {integrity: sha512-6qIWmkyShJi+wa1AUAOWb4g31UNadQRry+/N/7CglPdmtvIMP0i5RN8ktif5zzM721a3P4jxIltqX+/PGCOm2g==}
-    engines: {node: '>=20.10'}
-    hasBin: true
-
-  '@aztec/bb.js@5.0.0':
-    resolution: {integrity: sha512-O4HDjzrjXMvM44+VbgDG1GaDUztWGEVujbBmwZAEVJh6BHpmJfMxBB2/69h1oi4kX2adgaowlJNFhpzcz1MHSA==}
-    hasBin: true
-
-  '@aztec/blob-lib@5.0.0':
-    resolution: {integrity: sha512-TE31hl9c7In1+95pnDT9YISxV+d7q8bXx6wxwuT7RZZWgF01mPmpOp5ReM4IEpU9OycgI3L5qTeW2xTcmIGNFw==}
-    engines: {node: '>=20.10'}
-
-  '@aztec/builder@5.0.0':
-    resolution: {integrity: sha512-shZSSaKroneo7dO3bItnk7B8Rxkk36c+vwX8gpkJSckQAd8VWteiy2qpVMfoq+QNTiocmx15Nz2hXZW/LB2prQ==}
-    engines: {node: '>=20.10'}
-
-  '@aztec/constants@5.0.0':
-    resolution: {integrity: sha512-vfnA9qFcgLKXNdnmvAekpvIf6fdCQjghh9/h/rm4Nip3QdJ0tFS5drUPIx7DhIiWYF7QuoPmzhHHLD0ikb8lNA==}
-    engines: {node: '>=20.10'}
-
-  '@aztec/entrypoints@5.0.0':
-    resolution: {integrity: sha512-r6yAcLzImCDbHUBg95oY34J0WfBXoSnQ9MBztF0AmE2JUb7FoH9IFLYGX7kPsRFavhj2kb3OmPZ05kp5orgzZg==}
-    engines: {node: '>=20.10'}
-
-  '@aztec/ethereum@5.0.0':
-    resolution: {integrity: sha512-W1R+Wp/lgXuAZ7ZycK8s7dxRoUdODwF9U7l37XM2UK2sJSjQb3WiaBYJg01EpvEqlhHBvBhubC1NFSnKSYkgvw==}
-    engines: {node: '>=20.10'}
-
-  '@aztec/foundation@5.0.0':
-    resolution: {integrity: sha512-M/+bgYg753kl0BcQsZMSUzUdtE32SD0rGwhk8iJJ/JGFrV5Q8o09EqOu1T+ikf8m9MWlhFPp48CfO07yyxzOkw==}
-    engines: {node: '>=20.10'}
-
-  '@aztec/key-store@5.0.0':
-    resolution: {integrity: sha512-pTiKmsmT+zMh5SKhqhxQu5GO0D0gZTP7o6NuUwIQm7xCrljPx82V+FPKeNvPFb57YmEPLTJmRS4PvYGy7ZkjVw==}
-    engines: {node: '>=20.10'}
-
-  '@aztec/kv-store@5.0.0':
-    resolution: {integrity: sha512-h5+ARoijqY2d/NSg3tArS0l6GFaV3jizQppFJ5OpeEb/Qd0jvC/PpAj+lbpKO7aFoEcvNEVJWBKgCH+EeqLh/Q==}
-    engines: {node: '>=20.10'}
-
-  '@aztec/l1-artifacts@5.0.0':
-    resolution: {integrity: sha512-7yfQl6J4jn9+lKFGSsPfuoBR+h5kjOfivfjmcoxPVw7gwx214/BE8WKqf12uali7+i2S2l5gFQfCxdlcKYXeAg==}
-
-  '@aztec/native@5.0.0':
-    resolution: {integrity: sha512-/CrNaXa3XK9Fw8bH7v4xZ/tRFc0dbBYt1ivbTMDsKWLks/M9ms5r7Cg2U8GNExRBjL6mbM6WqJHXWn7MMCymUw==}
-    engines: {node: '>=20.10'}
-
-  '@aztec/noir-acvm_js@5.0.0':
-    resolution: {integrity: sha512-vNmtASkLH15OeN+amoc7r7TTiV7N9sNZhFaCAKCid6vhSGgqKsoUrI37ekReU3w3TcgaBuOOm96jHrYLaXJA8Q==}
-
-  '@aztec/noir-contracts.js@5.0.0':
-    resolution: {integrity: sha512-HMw1NlIAFTV6d8M27qRzS6vLmFD/k8mgCWwpbKfgeoPkQ3mIJIBkMCg7QgJFl3ULFNn1swqB75FWtfQjRAWS2A==}
-    engines: {node: '>=20.10'}
-
-  '@aztec/noir-noir_codegen@5.0.0':
-    resolution: {integrity: sha512-Qn/UTvKRnNuuy0M+qE2UGXT2vg+MU8BpWpBThDpCDz/SHDotydXMR07aP9SpZYZ/9Bh4S7a3cM85Uldhp38PSw==}
-    hasBin: true
-
-  '@aztec/noir-noirc_abi@5.0.0':
-    resolution: {integrity: sha512-WBXEt2FQIRKOySD6wuYMJU0FvuzWwXouRmnldDtOcwz4X9RccfnHmjhR5umVm3pzdYh7coDoB+foRyxhpQ3DOA==}
-
-  '@aztec/noir-protocol-circuits-types@5.0.0':
-    resolution: {integrity: sha512-K7aH84m85JjKjcQjmyAJVMfsgDGFlnFj+7R5uDg8SeNKiKDFEbOLy/LP8NHg0TCrXgSkBIRVxw+9tdm1huPCLA==}
-    engines: {node: '>=20.10'}
-
-  '@aztec/noir-types@5.0.0':
-    resolution: {integrity: sha512-JhbP2dj9WJFy0xn5uIhfqkmoF6LbJhsnAPHpKo674Nf4IxRgVuMzMkl1/fiS+KwzenDrsHz3XUHRaRw8oo0whw==}
-
-  '@aztec/protocol-contracts@5.0.0':
-    resolution: {integrity: sha512-CwVWSydECC/akpo/TaWMbyZcq9N1rib/vpIfjf+X6foP9uV5J709Ga8jDeAr1/8sVG3lF/60d/qfCKRO2xyCtA==}
-    engines: {node: '>=20.10'}
-
-  '@aztec/pxe@5.0.0':
-    resolution: {integrity: sha512-jRbK/ttGYsPkXfagJZ4kcB4BAs9s8zpewHMYLqWAu18esthj1X2AYv9xL/p2OJsqJ1mAbLYFwlpig7LTOOq/9g==}
+  '@aztec/bb-prover@5.1.0':
+    resolution: {integrity: sha512-QNbaL4+wtW3Jqr9yupGjpU1IuaMpvDWpjgSHBi2bD6RioUQuBozX+PyRxWS8EFvQFEc+sLtMhACi/HXzH2bnzA==}
     engines: {node: '>=20.10'}
     hasBin: true
 
-  '@aztec/simulator@5.0.0':
-    resolution: {integrity: sha512-SCCAcCj4R4aadj302egsFHBhe28buuPB57tel6BPsWYa3ox6t0IUkJFe2+gFVKkHT/GHK7sLImIkXB4AKPG8tA==}
+  '@aztec/bb.js@5.1.0':
+    resolution: {integrity: sha512-bNpeyTz7baK2jZ9gN5gEn6GsOU8ueuGWbgUML/6kHhvwAgx/SsN9XY4tRS202dZM+8aOadwJ4crn6PIq20J4tw==}
+    hasBin: true
+
+  '@aztec/blob-lib@5.1.0':
+    resolution: {integrity: sha512-weoLOAlhSNFM8x1dSenrSMkJpG8a6t+EJ8irUunCePV0zjWyJ32hfutpXVflm5iWc1R32lWCW2zGvm4xNU/Uyw==}
     engines: {node: '>=20.10'}
 
-  '@aztec/sqlite3mc-wasm@5.0.0':
-    resolution: {integrity: sha512-PWfhyYml6QWLrrEhUGzeTZjJsU9Ooz0F9kh4xOyqt7v42bqj5OA2dUKPdXEIbQxHoRS6EyZ+zX2VCD1PwfB9qw==}
+  '@aztec/builder@5.1.0':
+    resolution: {integrity: sha512-Omhysw8wTGr5g7c0wP9VAjGv9uYkfCdkHsQKZXLuxhfaXwqJgOhf6Zt9oGqKSjyGYXWnAB1d/J+q8+Zo/Aah2w==}
     engines: {node: '>=20.10'}
 
-  '@aztec/standard-contracts@5.0.0':
-    resolution: {integrity: sha512-4U6AjjiEEuxnCswfthEdetZJdfu1FDeCnBajhLaMC/zkscNmUuiz153fXI9hM3aDtIKpUNUo90jk+cq+FO4qaA==}
+  '@aztec/constants@5.1.0':
+    resolution: {integrity: sha512-E+mgxEgblFzJOo388rJ/0jlfBScn/WCSNRjwidptveSebUk/zrMvimZKUTODXTP/YnUvPxC8EU9FLbdraAm91A==}
     engines: {node: '>=20.10'}
 
-  '@aztec/stdlib@5.0.0':
-    resolution: {integrity: sha512-bFS6bzxYP1INlSEDJrSkRKRBCZ7iUrBq/ygEnrga/EhD4ECShWuSidYHsGwEkc8u6Mtp3neT7Xcvb02M7tTJng==}
+  '@aztec/entrypoints@5.1.0':
+    resolution: {integrity: sha512-N5KFN1dpA8Hvf+jYkXcFj82JiOIXo+KYS980e5iq3Xd5X377QS0JzgfwmfCTrYFct+28ow06o+4DggZzIAHrQQ==}
     engines: {node: '>=20.10'}
 
-  '@aztec/telemetry-client@5.0.0':
-    resolution: {integrity: sha512-C6l7ll2801yqf5Po2c+Ii/SYvOVVPEQPFcu8UNuw1V9HGm1UKpHLB/6eZkHs9CmLHg2FmGBDAxrUf/NFcCQCAA==}
+  '@aztec/ethereum@5.1.0':
+    resolution: {integrity: sha512-8bsGnNXpYuViKt88imJc1JiVzIljwjty5vuukEjy9P2W3SQkz+kUfhg3V7IfnahYCaC8E46i/P6NuOSh+MDriw==}
+    engines: {node: '>=20.10'}
+
+  '@aztec/foundation@5.1.0':
+    resolution: {integrity: sha512-86M383v8NkXRNovQx0Ks6xslYXPzz2tWSDkpB4qwwMENIjTiqNihPtMiCy/+Sh9ik2BsLUJQ4kjcLUgyuJQRTw==}
+    engines: {node: '>=20.10'}
+
+  '@aztec/key-store@5.1.0':
+    resolution: {integrity: sha512-bfMRcnVCbV9kKrk4IxQW7QVEz6rG7YHvT5+N2CUyk6wnuCYgn6GDBTxamA2XjJZ+ueD2Aj+Z3yPc+1/jdaBVRw==}
+    engines: {node: '>=20.10'}
+
+  '@aztec/kv-store@5.1.0':
+    resolution: {integrity: sha512-wRXyUsn9H0qSHIFCqPkktgx7vJuv7mWy9Q3FF0lFucpyNcrgbe8JC7G9gVf0klWJOUCpq9hJ/h0MdJL3LgzhGw==}
+    engines: {node: '>=20.10'}
+
+  '@aztec/l1-artifacts@5.1.0':
+    resolution: {integrity: sha512-izmhjc0GMNAknjRChN81qlqqSHTA9+C4z3/ao1Tsn9N21du4NLj/yhdZ824T+ZsTlBxQvYAWfURK9t6eBqOGfQ==}
+
+  '@aztec/native@5.1.0':
+    resolution: {integrity: sha512-PmjZa+gnDqWRzTYaFkuX7o+en9RwVNl6VXre/QFJBx0qUc6yS8tpYjCQK1WcLME15Lb7yi3i14xtW2DQ/CdHcQ==}
+    engines: {node: '>=20.10'}
+
+  '@aztec/noir-acvm_js@5.1.0':
+    resolution: {integrity: sha512-1tfJ2tYq5HukvmPTVtV63rUEdBcnB1B2GOpGsZhVLn0G3q02T+lMIjwNXsbATNT9+NNDNjkIc2dsvTnhamL1Yw==}
+
+  '@aztec/noir-contracts.js@5.1.0':
+    resolution: {integrity: sha512-0s+FJMAvk36z+7+wUAdDDN77doimC9LPatTD2ZRNUkQrdlF6SDkGmjvjVQ4maYGTRSQO2atWTdbi4v8JcJr6cQ==}
+    engines: {node: '>=20.10'}
+
+  '@aztec/noir-noir_codegen@5.1.0':
+    resolution: {integrity: sha512-WZJkCqajUBNaQ4vgG6OZxVeytsEVhAZy11Rma33IOaR+qBk2akQjIFQmF438zUb86dIFzxCt4vOtJfYm2QajAA==}
+    hasBin: true
+
+  '@aztec/noir-noirc_abi@5.1.0':
+    resolution: {integrity: sha512-Somj3sl2vhPzNFIvy/GSFyseGfqcUbvj3az2ayT9gv1WooHaYsCeINI/eijRaSlYNfVnJMqnTWAc/OXXfm1o7g==}
+
+  '@aztec/noir-protocol-circuits-types@5.1.0':
+    resolution: {integrity: sha512-rGQQMg2JyCshNmj7HBFvqoFPFK/UhucDDV2JcOwZBnhY2cGSUk2iZxAmoWP/7Ul6kFERtgONR6bKkJF5ZgDFBQ==}
+    engines: {node: '>=20.10'}
+
+  '@aztec/noir-types@5.1.0':
+    resolution: {integrity: sha512-hTpjC5+TkW74CkzcoEaJDKAspcwcfRS2E3j+K4Ifc+Z1D50X3z5nmeCznbtD/H/PC1eIDahZiB5FkSlyn9H8cg==}
+
+  '@aztec/protocol-contracts@5.1.0':
+    resolution: {integrity: sha512-Kju0RiSUErZLsDRFK0o5MvgpMvJd2OQd+3WIJcR/ka8ABOAjhteGBu76RU0/gBwXBPyI41+cXFEAYsPFtdRLmA==}
+    engines: {node: '>=20.10'}
+
+  '@aztec/pxe@5.1.0':
+    resolution: {integrity: sha512-noxon1S/1jx0To8L9fsCEMBTJHPiOhm9/j3EWChBmUyKyTuVy873Y/t8RA8Ia55IhouWLHIbqgii72Y0oUlZiw==}
+    engines: {node: '>=20.10'}
+    hasBin: true
+
+  '@aztec/simulator@5.1.0':
+    resolution: {integrity: sha512-AWBIjDzdVRTXG2+6APwHG/a5GXUUyYuXx0alCklcnRb/wDRK3OAdOWXsn/eedpesPjv4hFQzSpvm41LFmWI4aA==}
+    engines: {node: '>=20.10'}
+
+  '@aztec/sqlite3mc-wasm@5.1.0':
+    resolution: {integrity: sha512-eaKewbxba3yybZjJuQPoXFBaPZ415j+VPYRQ3azWgSvj07UYwCE3LysxnxrdFySYvskNwabbEIxny1feD8TqtA==}
+    engines: {node: '>=20.10'}
+
+  '@aztec/standard-contracts@5.1.0':
+    resolution: {integrity: sha512-Xi3uJnL94lszbDMZgDiLHWAjnc/GjlWizsMmsv/AaluWnGqUo0NcF6KJq3ylPhZY9Eiw9knc/rOaobBOZOcc0g==}
+    engines: {node: '>=20.10'}
+
+  '@aztec/stdlib@5.1.0':
+    resolution: {integrity: sha512-RRduHoyOQB6k0cA5ctonzSpj5TaY25q55WHbEOzjhoANiCKtntcd5ohz6JnIB3/ITIMg3lz4thD3SbOLiOCZ/g==}
+    engines: {node: '>=20.10'}
+
+  '@aztec/telemetry-client@5.1.0':
+    resolution: {integrity: sha512-K0vpjtl658BtMti2ofj+kN7r9hVyOcFuKWvXphl0QqOaWS8112tJXUE3q5XxHkHIILPZ80Wc8odzC080SLyQSw==}
     engines: {node: '>=20.10'}
 
   '@aztec/viem@2.38.2':
@@ -998,12 +998,12 @@ packages:
       typescript:
         optional: true
 
-  '@aztec/wallet-sdk@5.0.0':
-    resolution: {integrity: sha512-r9hHPe5KWuxH4jasikTOB1YM3uWJUAH2JkOkT/nRIesAHGH0fLMZ0pwC4XkzfZe/k0CFEEPomthVGZxEVMJ0Ng==}
+  '@aztec/wallet-sdk@5.1.0':
+    resolution: {integrity: sha512-uPIYN+JCY9S3zBV3aTxrABybiGbu8RqFOmqtMzvy5Go8duhk1HUTBvQM1JcS+4g2dj2AVHucAy3CdG0/OhY/jQ==}
     engines: {node: '>=20.10'}
 
-  '@aztec/world-state@5.0.0':
-    resolution: {integrity: sha512-nEwbBppobQgfIeCbebX0+YkvLAWTOYAzhlK7QQh5RfXFMGJ4z83nokAZ2dVeDAonu82iu6NdeBh1WPwdgHjoew==}
+  '@aztec/world-state@5.1.0':
+    resolution: {integrity: sha512-jJb6fYoUBdX5dkae2ybxBGcodInH06b1DO0DB4z7B7UIeXQyRo/qX7oueT4m+cSAMjcc9xE9XQjCsVwqGDfg5g==}
     engines: {node: '>=20.10'}
 
   '@babel/code-frame@7.29.0':
@@ -1219,14 +1219,12 @@ packages:
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@crate-crypto/node-eth-kzg-linux-x64-gnu@0.10.0':
     resolution: {integrity: sha512-b4klE/jp98PBZ7PWuFE1OscWBILSS8jP+JMbIJ+qE7y42s/6ImWH5bWmVdFOfh6u0o95cb9hCS0xIECM80SqBg==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@crate-crypto/node-eth-kzg-win32-arm64-msvc@0.10.0':
     resolution: {integrity: sha512-tFKv02TG/JYsD4gvV0gTvjLqd09/4g/B37fCPXIuEFzq5LgIuWHu37hhQ6K8eIfoXZOTY3wqqkY1jTXYhs2sTA==}
@@ -1456,105 +1454,89 @@ packages:
     resolution: {integrity: sha512-excjX8DfsIcJ10x1Kzr4RcWe1edC9PquDRRPx3YVCvQv+U5p7Yin2s32ftzikXojb1PIFc/9Mt28/y+iRklkrw==}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-libvips-linux-arm@1.2.4':
     resolution: {integrity: sha512-bFI7xcKFELdiNCVov8e44Ia4u2byA+l3XtsAj+Q8tfCwO6BQ8iDojYdvoPMqsKDkuoOo+X6HZA0s0q11ANMQ8A==}
     cpu: [arm]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-libvips-linux-ppc64@1.2.4':
     resolution: {integrity: sha512-FMuvGijLDYG6lW+b/UvyilUWu5Ayu+3r2d1S8notiGCIyYU/76eig1UfMmkZ7vwgOrzKzlQbFSuQfgm7GYUPpA==}
     cpu: [ppc64]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-libvips-linux-riscv64@1.2.4':
     resolution: {integrity: sha512-oVDbcR4zUC0ce82teubSm+x6ETixtKZBh/qbREIOcI3cULzDyb18Sr/Wcyx7NRQeQzOiHTNbZFF1UwPS2scyGA==}
     cpu: [riscv64]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-libvips-linux-s390x@1.2.4':
     resolution: {integrity: sha512-qmp9VrzgPgMoGZyPvrQHqk02uyjA0/QrTO26Tqk6l4ZV0MPWIW6LTkqOIov+J1yEu7MbFQaDpwdwJKhbJvuRxQ==}
     cpu: [s390x]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-libvips-linux-x64@1.2.4':
     resolution: {integrity: sha512-tJxiiLsmHc9Ax1bz3oaOYBURTXGIRDODBqhveVHonrHJ9/+k89qbLl0bcJns+e4t4rvaNBxaEZsFtSfAdquPrw==}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-libvips-linuxmusl-arm64@1.2.4':
     resolution: {integrity: sha512-FVQHuwx1IIuNow9QAbYUzJ+En8KcVm9Lk5+uGUQJHaZmMECZmOlix9HnH7n1TRkXMS0pGxIJokIVB9SuqZGGXw==}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   '@img/sharp-libvips-linuxmusl-x64@1.2.4':
     resolution: {integrity: sha512-+LpyBk7L44ZIXwz/VYfglaX/okxezESc6UxDSoyo2Ks6Jxc4Y7sGjpgU9s4PMgqgjj1gZCylTieNamqA1MF7Dg==}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   '@img/sharp-linux-arm64@0.34.5':
     resolution: {integrity: sha512-bKQzaJRY/bkPOXyKx5EVup7qkaojECG6NLYswgktOZjaXecSAeCWiZwwiFf3/Y+O1HrauiE3FVsGxFg8c24rZg==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-linux-arm@0.34.5':
     resolution: {integrity: sha512-9dLqsvwtg1uuXBGZKsxem9595+ujv0sJ6Vi8wcTANSFpwV/GONat5eCkzQo/1O6zRIkh0m/8+5BjrRr7jDUSZw==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [arm]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-linux-ppc64@0.34.5':
     resolution: {integrity: sha512-7zznwNaqW6YtsfrGGDA6BRkISKAAE1Jo0QdpNYXNMHu2+0dTrPflTLNkpc8l7MUP5M16ZJcUvysVWWrMefZquA==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [ppc64]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-linux-riscv64@0.34.5':
     resolution: {integrity: sha512-51gJuLPTKa7piYPaVs8GmByo7/U7/7TZOq+cnXJIHZKavIRHAP77e3N2HEl3dgiqdD/w0yUfiJnII77PuDDFdw==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [riscv64]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-linux-s390x@0.34.5':
     resolution: {integrity: sha512-nQtCk0PdKfho3eC5MrbQoigJ2gd1CgddUMkabUj+rBevs8tZ2cULOx46E7oyX+04WGfABgIwmMC0VqieTiR4jg==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [s390x]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-linux-x64@0.34.5':
     resolution: {integrity: sha512-MEzd8HPKxVxVenwAa+JRPwEC7QFjoPWuS5NZnBt6B3pu7EG2Ge0id1oLHZpPJdn3OQK+BQDiw9zStiHBTJQQQQ==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@img/sharp-linuxmusl-arm64@0.34.5':
     resolution: {integrity: sha512-fprJR6GtRsMt6Kyfq44IsChVZeGN97gTD331weR1ex1c1rypDEABN6Tm2xa1wE6lYb5DdEnk03NZPqA7Id21yg==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   '@img/sharp-linuxmusl-x64@0.34.5':
     resolution: {integrity: sha512-Jg8wNT1MUzIvhBFxViqrEhWDGzqymo3sV7z7ZsaWbZNDLXRJZoRGrjulp60YYtV4wfY8VIKcWidjojlLcWrd8Q==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   '@img/sharp-wasm32@0.34.5':
     resolution: {integrity: sha512-OdWTEiVkY2PHwqkbBI8frFxQQFekHaSSkUIJkwzclWZe64O1X4UlUjqqqLaPbUpMOQk6FBu/HtlGXNblIs0huw==}
@@ -1917,28 +1899,24 @@ packages:
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@next/swc-linux-arm64-musl@15.5.18':
     resolution: {integrity: sha512-glaCczEWIrHsokFZ3pP08U4BpKxwIdnT+txdOM32OBgpL9Yw4aqx8NejmgtZQZOdstQ5f0L3CasIZudzCuD+nw==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   '@next/swc-linux-x64-gnu@15.5.18':
     resolution: {integrity: sha512-oUfg2EgJmU3R0OCOWiokGFUTvZiPfXtriXiuF3YNxRoROCdgvTedHIzYoeKH34gsZxS/V7mHbfq2hpAHwhH1/A==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@next/swc-linux-x64-musl@15.5.18':
     resolution: {integrity: sha512-JLxSP3KTd9iu/bvUMQxH7RJo9xKSHf55/6RPE4a6FTSZygGn7uvZbCej0AHXydwkggQGSD9UddSjwv6Xz5ESfA==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   '@next/swc-win32-arm64-msvc@15.5.18':
     resolution: {integrity: sha512-ir1v7enP52K2HNz3tQQvwF+x7VNxBk1ciiZ18WBPvxf4C59IqdfmHPJYK3vH7rSxpuCVw/8C712wTXNAtEp+NA==}
@@ -3537,42 +3515,36 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@rolldown/binding-linux-arm64-musl@1.0.0-rc.13':
     resolution: {integrity: sha512-bmRg3O6Z0gq9yodKKWCIpnlH051sEfdVwt+6m5UDffAQMUUqU0xjnQqqAUm+Gu7ofAAly9DqiQDtKu2nPDEABA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   '@rolldown/binding-linux-ppc64-gnu@1.0.0-rc.13':
     resolution: {integrity: sha512-8Wtnbw4k7pMYN9B/mOEAsQ8HOiq7AZ31Ig4M9BKn2So4xRaFEhtCSa4ZJaOutOWq50zpgR4N5+L/opnlaCx8wQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [ppc64]
     os: [linux]
-    libc: [glibc]
 
   '@rolldown/binding-linux-s390x-gnu@1.0.0-rc.13':
     resolution: {integrity: sha512-D/0Nlo8mQuxSMohNJUF2lDXWRsFDsHldfRRgD9bRgktj+EndGPj4DOV37LqDKPYS+osdyhZEH7fTakTAEcW7qg==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [s390x]
     os: [linux]
-    libc: [glibc]
 
   '@rolldown/binding-linux-x64-gnu@1.0.0-rc.13':
     resolution: {integrity: sha512-eRrPvat2YaVQcwwKi/JzOP6MKf1WRnOCr+VaI3cTWz3ZoLcP/654z90lVCJ4dAuMEpPdke0n+qyAqXDZdIC4rA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@rolldown/binding-linux-x64-musl@1.0.0-rc.13':
     resolution: {integrity: sha512-PsdONiFRp8hR8KgVjTWjZ9s7uA3uueWL0t74/cKHfM4dR5zXYv4AjB8BvA+QDToqxAFg4ZkcVEqeu5F7inoz5w==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   '@rolldown/binding-openharmony-arm64@1.0.0-rc.13':
     resolution: {integrity: sha512-hCNXgC5dI3TVOLrPT++PKFNZ+1EtS0mLQwfXXXSUD/+rGlB65gZDwN/IDuxLpQP4x8RYYHqGomlUXzpO8aVI2w==}
@@ -4608,28 +4580,24 @@ packages:
     engines: {node: '>= 20'}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@tailwindcss/oxide-linux-arm64-musl@4.2.1':
     resolution: {integrity: sha512-WZA0CHRL/SP1TRbA5mp9htsppSEkWuQ4KsSUumYQnyl8ZdT39ntwqmz4IUHGN6p4XdSlYfJwM4rRzZLShHsGAQ==}
     engines: {node: '>= 20'}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   '@tailwindcss/oxide-linux-x64-gnu@4.2.1':
     resolution: {integrity: sha512-qMFzxI2YlBOLW5PhblzuSWlWfwLHaneBE0xHzLrBgNtqN6mWfs+qYbhryGSXQjFYB1Dzf5w+LN5qbUTPhW7Y5g==}
     engines: {node: '>= 20'}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@tailwindcss/oxide-linux-x64-musl@4.2.1':
     resolution: {integrity: sha512-5r1X2FKnCMUPlXTWRYpHdPYUY6a1Ar/t7P24OuiEdEOmms5lyqjDRvVY1yy9Rmioh+AunQ0rWiOTPE8F9A3v5g==}
     engines: {node: '>= 20'}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   '@tailwindcss/oxide-wasm32-wasi@4.2.1':
     resolution: {integrity: sha512-MGFB5cVPvshR85MTJkEvqDUnuNoysrsRxd6vnk1Lf2tbiqNlXpHYZqkqOQalydienEWOHHFyyuTSYRsLfxFJ2Q==}
@@ -7338,56 +7306,48 @@ packages:
     engines: {node: '>= 12.0.0'}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   lightningcss-linux-arm64-gnu@1.32.0:
     resolution: {integrity: sha512-0nnMyoyOLRJXfbMOilaSRcLH3Jw5z9HDNGfT/gwCPgaDjnx0i8w7vBzFLFR1f6CMLKF8gVbebmkUN3fa/kQJpQ==}
     engines: {node: '>= 12.0.0'}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   lightningcss-linux-arm64-musl@1.31.1:
     resolution: {integrity: sha512-mVZ7Pg2zIbe3XlNbZJdjs86YViQFoJSpc41CbVmKBPiGmC4YrfeOyz65ms2qpAobVd7WQsbW4PdsSJEMymyIMg==}
     engines: {node: '>= 12.0.0'}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   lightningcss-linux-arm64-musl@1.32.0:
     resolution: {integrity: sha512-UpQkoenr4UJEzgVIYpI80lDFvRmPVg6oqboNHfoH4CQIfNA+HOrZ7Mo7KZP02dC6LjghPQJeBsvXhJod/wnIBg==}
     engines: {node: '>= 12.0.0'}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   lightningcss-linux-x64-gnu@1.31.1:
     resolution: {integrity: sha512-xGlFWRMl+0KvUhgySdIaReQdB4FNudfUTARn7q0hh/V67PVGCs3ADFjw+6++kG1RNd0zdGRlEKa+T13/tQjPMA==}
     engines: {node: '>= 12.0.0'}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   lightningcss-linux-x64-gnu@1.32.0:
     resolution: {integrity: sha512-V7Qr52IhZmdKPVr+Vtw8o+WLsQJYCTd8loIfpDaMRWGUZfBOYEJeyJIkqGIDMZPwPx24pUMfwSxxI8phr/MbOA==}
     engines: {node: '>= 12.0.0'}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   lightningcss-linux-x64-musl@1.31.1:
     resolution: {integrity: sha512-eowF8PrKHw9LpoZii5tdZwnBcYDxRw2rRCyvAXLi34iyeYfqCQNA9rmUM0ce62NlPhCvof1+9ivRaTY6pSKDaA==}
     engines: {node: '>= 12.0.0'}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   lightningcss-linux-x64-musl@1.32.0:
     resolution: {integrity: sha512-bYcLp+Vb0awsiXg/80uCRezCYHNg1/l3mt0gzHnWV9XP1W5sKa5/TCdGWaR/zBM2PeF/HbsQv/j2URNOiVuxWg==}
     engines: {node: '>= 12.0.0'}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   lightningcss-win32-arm64-msvc@1.31.1:
     resolution: {integrity: sha512-aJReEbSEQzx1uBlQizAOBSjcmr9dCdL3XuC/6HLXAxmtErsj2ICo5yYggg1qOODQMtnjNQv2UHb9NpOuFtYe4w==}
@@ -10043,16 +10003,16 @@ snapshots:
 
   '@aztec-foundation/aztec-standards@5.0.1': {}
 
-  '@aztec/aztec.js@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@aztec/aztec.js@5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
-      '@aztec/constants': 5.0.0
-      '@aztec/entrypoints': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/ethereum': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/foundation': 5.0.0
-      '@aztec/l1-artifacts': 5.0.0
-      '@aztec/protocol-contracts': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/standard-contracts': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/stdlib': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/constants': 5.1.0
+      '@aztec/entrypoints': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/ethereum': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/foundation': 5.1.0
+      '@aztec/l1-artifacts': 5.1.0
+      '@aztec/protocol-contracts': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/standard-contracts': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/stdlib': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       axios: 1.16.0
       tslib: 2.8.1
       viem: '@aztec/viem@2.38.2(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.4.3)'
@@ -10066,18 +10026,18 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@aztec/bb-prover@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@aztec/bb-prover@5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
-      '@aztec/bb.js': 5.0.0
-      '@aztec/constants': 5.0.0
-      '@aztec/foundation': 5.0.0
-      '@aztec/noir-noirc_abi': 5.0.0
-      '@aztec/noir-protocol-circuits-types': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/noir-types': 5.0.0
-      '@aztec/simulator': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/stdlib': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/telemetry-client': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/world-state': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/bb.js': 5.1.0
+      '@aztec/constants': 5.1.0
+      '@aztec/foundation': 5.1.0
+      '@aztec/noir-noirc_abi': 5.1.0
+      '@aztec/noir-protocol-circuits-types': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/noir-types': 5.1.0
+      '@aztec/simulator': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/stdlib': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/telemetry-client': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/world-state': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       commander: 12.1.0
       msgpackr: 1.11.8
       pako: 2.1.0
@@ -10093,7 +10053,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@aztec/bb.js@5.0.0':
+  '@aztec/bb.js@5.1.0':
     dependencies:
       comlink: 4.4.2
       commander: 12.1.0
@@ -10102,19 +10062,19 @@ snapshots:
       pako: 2.1.0
       tslib: 2.8.1
 
-  '@aztec/blob-lib@5.0.0':
+  '@aztec/blob-lib@5.1.0':
     dependencies:
-      '@aztec/constants': 5.0.0
-      '@aztec/foundation': 5.0.0
+      '@aztec/constants': 5.1.0
+      '@aztec/foundation': 5.1.0
       '@crate-crypto/node-eth-kzg': 0.10.0
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
 
-  '@aztec/builder@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@aztec/builder@5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
-      '@aztec/foundation': 5.0.0
-      '@aztec/stdlib': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/foundation': 5.1.0
+      '@aztec/stdlib': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       commander: 12.1.0
     transitivePeerDependencies:
       - aws-crt
@@ -10125,20 +10085,20 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@aztec/constants@5.0.0':
+  '@aztec/constants@5.1.0':
     dependencies:
-      '@aztec/foundation': 5.0.0
+      '@aztec/foundation': 5.1.0
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
 
-  '@aztec/entrypoints@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@aztec/entrypoints@5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
-      '@aztec/constants': 5.0.0
-      '@aztec/foundation': 5.0.0
-      '@aztec/protocol-contracts': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/standard-contracts': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/stdlib': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/constants': 5.1.0
+      '@aztec/foundation': 5.1.0
+      '@aztec/protocol-contracts': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/standard-contracts': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/stdlib': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       tslib: 2.8.1
       zod: 4.4.3
     transitivePeerDependencies:
@@ -10150,12 +10110,12 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@aztec/ethereum@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@aztec/ethereum@5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
-      '@aztec/blob-lib': 5.0.0
-      '@aztec/constants': 5.0.0
-      '@aztec/foundation': 5.0.0
-      '@aztec/l1-artifacts': 5.0.0
+      '@aztec/blob-lib': 5.1.0
+      '@aztec/constants': 5.1.0
+      '@aztec/foundation': 5.1.0
+      '@aztec/l1-artifacts': 5.1.0
       dotenv: 16.6.1
       lodash.chunk: 4.2.0
       lodash.pickby: 4.6.0
@@ -10168,9 +10128,9 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@aztec/foundation@5.0.0':
+  '@aztec/foundation@5.1.0':
     dependencies:
-      '@aztec/bb.js': 5.0.0
+      '@aztec/bb.js': 5.1.0
       '@koa/cors': 5.0.0
       '@noble/curves': 1.7.0
       '@noble/hashes': 1.8.0
@@ -10195,12 +10155,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@aztec/key-store@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@aztec/key-store@5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
-      '@aztec/constants': 5.0.0
-      '@aztec/foundation': 5.0.0
-      '@aztec/kv-store': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/stdlib': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/constants': 5.1.0
+      '@aztec/foundation': 5.1.0
+      '@aztec/kv-store': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/stdlib': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       tslib: 2.8.1
     transitivePeerDependencies:
       - aws-crt
@@ -10211,14 +10171,14 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@aztec/kv-store@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@aztec/kv-store@5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
-      '@aztec/constants': 5.0.0
-      '@aztec/ethereum': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/foundation': 5.0.0
-      '@aztec/native': 5.0.0
-      '@aztec/sqlite3mc-wasm': 5.0.0
-      '@aztec/stdlib': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/constants': 5.1.0
+      '@aztec/ethereum': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/foundation': 5.1.0
+      '@aztec/native': 5.1.0
+      '@aztec/sqlite3mc-wasm': 5.1.0
+      '@aztec/stdlib': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       idb: 8.0.3
       lmdb: 3.5.1
       msgpackr: 1.11.8
@@ -10233,23 +10193,23 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@aztec/l1-artifacts@5.0.0':
+  '@aztec/l1-artifacts@5.1.0':
     dependencies:
       tslib: 2.8.1
 
-  '@aztec/native@5.0.0':
+  '@aztec/native@5.1.0':
     dependencies:
-      '@aztec/bb.js': 5.0.0
-      '@aztec/foundation': 5.0.0
+      '@aztec/bb.js': 5.1.0
+      '@aztec/foundation': 5.1.0
       msgpackr: 1.11.8
     transitivePeerDependencies:
       - supports-color
 
-  '@aztec/noir-acvm_js@5.0.0': {}
+  '@aztec/noir-acvm_js@5.1.0': {}
 
-  '@aztec/noir-contracts.js@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@aztec/noir-contracts.js@5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
-      '@aztec/aztec.js': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/aztec.js': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       tslib: 2.8.1
     transitivePeerDependencies:
       - aws-crt
@@ -10260,26 +10220,26 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@aztec/noir-noir_codegen@5.0.0':
+  '@aztec/noir-noir_codegen@5.1.0':
     dependencies:
-      '@aztec/noir-types': 5.0.0
+      '@aztec/noir-types': 5.1.0
       glob: 13.0.6
       ts-command-line-args: 2.5.1
 
-  '@aztec/noir-noirc_abi@5.0.0':
+  '@aztec/noir-noirc_abi@5.1.0':
     dependencies:
-      '@aztec/noir-types': 5.0.0
+      '@aztec/noir-types': 5.1.0
 
-  '@aztec/noir-protocol-circuits-types@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@aztec/noir-protocol-circuits-types@5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
-      '@aztec/blob-lib': 5.0.0
-      '@aztec/constants': 5.0.0
-      '@aztec/foundation': 5.0.0
-      '@aztec/noir-acvm_js': 5.0.0
-      '@aztec/noir-noir_codegen': 5.0.0
-      '@aztec/noir-noirc_abi': 5.0.0
-      '@aztec/noir-types': 5.0.0
-      '@aztec/stdlib': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/blob-lib': 5.1.0
+      '@aztec/constants': 5.1.0
+      '@aztec/foundation': 5.1.0
+      '@aztec/noir-acvm_js': 5.1.0
+      '@aztec/noir-noir_codegen': 5.1.0
+      '@aztec/noir-noirc_abi': 5.1.0
+      '@aztec/noir-types': 5.1.0
+      '@aztec/stdlib': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       change-case: 5.4.4
       tslib: 2.8.1
     transitivePeerDependencies:
@@ -10291,13 +10251,13 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@aztec/noir-types@5.0.0': {}
+  '@aztec/noir-types@5.1.0': {}
 
-  '@aztec/protocol-contracts@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@aztec/protocol-contracts@5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
-      '@aztec/constants': 5.0.0
-      '@aztec/foundation': 5.0.0
-      '@aztec/stdlib': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/constants': 5.1.0
+      '@aztec/foundation': 5.1.0
+      '@aztec/stdlib': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       lodash.chunk: 4.2.0
       lodash.omit: 4.5.0
       tslib: 2.8.1
@@ -10310,22 +10270,22 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@aztec/pxe@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@aztec/pxe@5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
-      '@aztec/bb-prover': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/bb.js': 5.0.0
-      '@aztec/builder': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/constants': 5.0.0
-      '@aztec/ethereum': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/foundation': 5.0.0
-      '@aztec/key-store': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/kv-store': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/noir-protocol-circuits-types': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/noir-types': 5.0.0
-      '@aztec/protocol-contracts': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/simulator': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/standard-contracts': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/stdlib': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/bb-prover': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/bb.js': 5.1.0
+      '@aztec/builder': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/constants': 5.1.0
+      '@aztec/ethereum': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/foundation': 5.1.0
+      '@aztec/key-store': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/kv-store': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/noir-protocol-circuits-types': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/noir-types': 5.1.0
+      '@aztec/protocol-contracts': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/simulator': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/standard-contracts': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/stdlib': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       koa: 2.16.4
       koa-router: 13.1.1
       lodash.omit: 4.5.0
@@ -10342,20 +10302,20 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@aztec/simulator@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@aztec/simulator@5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
-      '@aztec/constants': 5.0.0
-      '@aztec/foundation': 5.0.0
-      '@aztec/native': 5.0.0
-      '@aztec/noir-acvm_js': 5.0.0
-      '@aztec/noir-noirc_abi': 5.0.0
-      '@aztec/noir-protocol-circuits-types': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/noir-types': 5.0.0
-      '@aztec/protocol-contracts': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/standard-contracts': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/stdlib': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/telemetry-client': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/world-state': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/constants': 5.1.0
+      '@aztec/foundation': 5.1.0
+      '@aztec/native': 5.1.0
+      '@aztec/noir-acvm_js': 5.1.0
+      '@aztec/noir-noirc_abi': 5.1.0
+      '@aztec/noir-protocol-circuits-types': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/noir-types': 5.1.0
+      '@aztec/protocol-contracts': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/standard-contracts': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/stdlib': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/telemetry-client': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/world-state': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       lodash.clonedeep: 4.5.0
       lodash.merge: 4.6.2
       tslib: 2.8.1
@@ -10369,12 +10329,12 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@aztec/sqlite3mc-wasm@5.0.0': {}
+  '@aztec/sqlite3mc-wasm@5.1.0': {}
 
-  '@aztec/standard-contracts@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@aztec/standard-contracts@5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
-      '@aztec/foundation': 5.0.0
-      '@aztec/stdlib': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/foundation': 5.1.0
+      '@aztec/stdlib': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       tslib: 2.8.1
     transitivePeerDependencies:
       - aws-crt
@@ -10385,16 +10345,16 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@aztec/stdlib@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@aztec/stdlib@5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
       '@aws-sdk/client-s3': 3.998.0
-      '@aztec/bb.js': 5.0.0
-      '@aztec/blob-lib': 5.0.0
-      '@aztec/constants': 5.0.0
-      '@aztec/ethereum': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/foundation': 5.0.0
-      '@aztec/l1-artifacts': 5.0.0
-      '@aztec/noir-noirc_abi': 5.0.0
+      '@aztec/bb.js': 5.1.0
+      '@aztec/blob-lib': 5.1.0
+      '@aztec/constants': 5.1.0
+      '@aztec/ethereum': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/foundation': 5.1.0
+      '@aztec/l1-artifacts': 5.1.0
+      '@aztec/noir-noirc_abi': 5.1.0
       '@google-cloud/storage': 7.19.0
       axios: 1.16.0
       json-stringify-deterministic: 1.0.12
@@ -10416,10 +10376,10 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@aztec/telemetry-client@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@aztec/telemetry-client@5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
-      '@aztec/foundation': 5.0.0
-      '@aztec/stdlib': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/foundation': 5.1.0
+      '@aztec/stdlib': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/api-logs': 0.55.0
       '@opentelemetry/core': 1.30.1(@opentelemetry/api@1.9.0)
@@ -10446,10 +10406,10 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@aztec/telemetry-client@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.4.3)':
+  '@aztec/telemetry-client@5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.4.3)':
     dependencies:
-      '@aztec/foundation': 5.0.0
-      '@aztec/stdlib': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/foundation': 5.1.0
+      '@aztec/stdlib': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/api-logs': 0.55.0
       '@opentelemetry/core': 1.30.1(@opentelemetry/api@1.9.0)
@@ -10510,14 +10470,14 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@aztec/wallet-sdk@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@aztec/wallet-sdk@5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
-      '@aztec/aztec.js': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/constants': 5.0.0
-      '@aztec/entrypoints': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/foundation': 5.0.0
-      '@aztec/pxe': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/stdlib': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/aztec.js': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/constants': 5.1.0
+      '@aztec/entrypoints': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/foundation': 5.1.0
+      '@aztec/pxe': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/stdlib': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - aws-crt
       - bufferutil
@@ -10528,16 +10488,16 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@aztec/world-state@5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@aztec/world-state@5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
-      '@aztec/bb.js': 5.0.0
-      '@aztec/constants': 5.0.0
-      '@aztec/foundation': 5.0.0
-      '@aztec/kv-store': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/native': 5.0.0
-      '@aztec/protocol-contracts': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/stdlib': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
-      '@aztec/telemetry-client': 5.0.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.4.3)
+      '@aztec/bb.js': 5.1.0
+      '@aztec/constants': 5.1.0
+      '@aztec/foundation': 5.1.0
+      '@aztec/kv-store': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/native': 5.1.0
+      '@aztec/protocol-contracts': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/stdlib': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@aztec/telemetry-client': 5.1.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.4.3)
       msgpackr: 1.11.8
       tslib: 2.8.1
       zod: 4.4.3

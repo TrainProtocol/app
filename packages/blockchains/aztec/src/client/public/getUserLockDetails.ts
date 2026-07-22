@@ -23,7 +23,7 @@ export async function getUserLockDetails(
 
     let eventDerivedData = {} as Partial<EventDerivedData>
     if (txId) {
-        eventDerivedData = await findEventDataFromLogs(node, txId, id)
+        eventDerivedData = await findEventDataFromLogs(node, txId, contractAddress, id)
     }
 
     return { ...parsedResult, ...eventDerivedData }
