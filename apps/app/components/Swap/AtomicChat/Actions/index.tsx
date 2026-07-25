@@ -12,7 +12,7 @@ import { getExplorerUrl } from "@/lib/address";
 import { Widget } from "@/components/Widget/Index";
 import { useRevealSecret } from "@/hooks/htlc/useRevealSecret";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
-import { useLoginIdentityMismatch, useRecoveryIdentityCheck, HTLCStatus, isOrderReadyForSecretReveal, type IdentityWarning } from "@train-protocol/react";
+import { useLoginIdentityMismatch, useRecoveryIdentityCheck, HTLCStatus, type IdentityWarning } from "@train-protocol/react";
 import { useSwapStore } from "@/stores/swapStore";
 import { Drawer } from "@/components/Modal/vaul";
 import type { SwapFormValues } from "@/components/DTOs/SwapFormValues";
@@ -109,7 +109,6 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
         loginIdentity,
         hashlock,
         sourceDetails,
-        htlcFromApi,
         error,
     } = useActiveSwap()
     const clearSwapError = useClearSwapError()
@@ -122,10 +121,9 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     })
     const warning = metadataWarning ?? recoveryWarning
 
-    // Secret submission is irreversible. Wait for an economically valid on-chain lock,
-    // RPC consensus, and Station's persisted solver-lock index before handing it to the solver.
-    const orderReady = isOrderReadyForSecretReveal(htlcFromApi?.status)
-    const ready = verified && consensusVerified && orderReady && !warning
+    // Secret submission is irreversible. Hand it to the solver as soon as the
+    // economically valid on-chain lock and RPC consensus have been verified.
+    const ready = verified && consensusVerified && !warning
     const revealFailed = error?.code === TrainErrorCode.RevealFailed
     const verificationFailed = error?.code === TrainErrorCode.VerificationFailed || consensusFailed
     const verificationMismatch = mismatches.length > 0
