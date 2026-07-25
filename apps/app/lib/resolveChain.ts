@@ -1,9 +1,12 @@
-import { Chain, defineChain, parseGwei } from "viem";
-import { ExtendedNetwork, getNativeToken } from "../Models/Network";
+import { Chain, defineChain, parseGwei, zeroAddress } from "viem";
+import { ExtendedNetwork, getNativeToken, Network } from "../Models/Network";
 import NetworkSettings from "./NetworkSettings";
 import { SendErrorMessage } from "./telegram";
 import { chainConfig } from 'viem/op-stack'
 import { getNetworkRpcUrl } from "./rpc/resolveNetworkRpcUrl";
+
+export const isContractNativeToken = (network: Network | undefined | null): boolean =>
+    !!network?.nativeTokenAddress && network.nativeTokenAddress.toLowerCase() !== zeroAddress
 
 export default function resolveChain(network: ExtendedNetwork, customRpcUrl?: string) {
 

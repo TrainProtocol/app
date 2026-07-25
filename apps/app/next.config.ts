@@ -19,7 +19,12 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'prodlslayerswapbridgesa.blob.core.windows.net',}
+        hostname: 'prodlslayerswapbridgesa.blob.core.windows.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'tempo.xyz',
+      }
     ]
   },
   async rewrites() {

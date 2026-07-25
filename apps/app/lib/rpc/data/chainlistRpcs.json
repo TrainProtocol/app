@@ -35978,6 +35978,10 @@
     "rpc": [
       {
         "tracking": null,
+        "url": "https://rpc.moderato.tempo.xyz"
+      },
+      {
+        "tracking": null,
         "url": "https://rpc.testnet.tempo.xyz"
       },
       {

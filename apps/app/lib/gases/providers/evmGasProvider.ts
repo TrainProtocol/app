@@ -3,7 +3,7 @@ import { ExtendedNetwork, getNativeToken, NetworkContractType } from "../../../M
 import { GasProvider } from "./types"
 import { PublicClient, TransactionSerializedEIP1559, encodeFunctionData, serializeTransaction, zeroAddress, getContract, formatUnits } from "viem"
 import HTLCAbi from "../../abis/atomic/EVM_HTLC.json"
-import resolveChain from "../../resolveChain"
+import resolveChain, { isContractNativeToken } from "../../resolveChain"
 import {
     gasPriceOracleABI,
     gasPriceOracleAddress
@@ -11,6 +11,13 @@ import {
 import { buildNetworkTransport } from "../../rpc/resolveNetworkRpcUrl"
 
 const ERC20_TRANSFER_FROM_GAS_BUFFER = 65_000n
+const CONTRACT_NATIVE_USERLOCK_GAS_FALLBACK = 350_000n
+
+const feeInNativeTokenUnits = (weiAmount: bigint, nativeTokenDecimals: number): number => {
+    if (nativeTokenDecimals >= 18) return Number(formatUnits(weiAmount, nativeTokenDecimals))
+    const divisor = 10n ** BigInt(18 - nativeTokenDecimals)
+    return Number(formatUnits((weiAmount + divisor - 1n) / divisor, nativeTokenDecimals))
+}
 
 export class EVMGasProvider implements GasProvider {
     supportsNetwork(network: ExtendedNetwork): boolean {
@@ -40,7 +47,9 @@ export class EVMGasProvider implements GasProvider {
             const nativeToken = getNativeToken(network)
             if (!nativeToken) return
 
-            const isERC20 = !!token?.contract && token.contract !== zeroAddress && token.contract !== network.nativeTokenAddress
+            // A non-zero contract is always ERC-20 — including contract-native tokens
+            // (e.g. pathUSD on Tempo), which lock via approve/transferFrom too.
+            const isERC20 = !!token?.contract && token.contract !== zeroAddress
 
             const isOpStack = network.contracts?.some(c => c.type === ("GasPriceOracle" as any))
             const calculator = isOpStack
@@ -94,7 +103,7 @@ class EthereumGasCalculator {
         if (!multiplier) return undefined
 
         const totalGas = multiplier * totalGasLimit
-        return Number(formatUnits(totalGas, this.nativeTokenDecimals))
+        return feeInNativeTokenUnits(totalGas, this.nativeTokenDecimals)
     }
 
     protected encodeUserLockCallData() {
@@ -135,6 +144,8 @@ class EthereumGasCalculator {
     }
 
     protected async estimateUserLockGas(): Promise<bigint | undefined> {
+        if (isContractNativeToken(this.network)) return CONTRACT_NATIVE_USERLOCK_GAS_FALLBACK
+
         try {
             const callData = this.encodeUserLockCallData()
 
@@ -192,7 +203,7 @@ class OptimismGasCalculator extends EthereumGasCalculator {
         const l1Fee = await this.getL1Fee()
         const totalGas = (multiplier * totalGasLimit) + l1Fee
 
-        return Number(formatUnits(totalGas, this.nativeTokenDecimals))
+        return feeInNativeTokenUnits(totalGas, this.nativeTokenDecimals)
     }
 
     private async getL1Fee(): Promise<bigint> {

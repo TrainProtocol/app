@@ -6,7 +6,7 @@ import { createConfig } from '@wagmi/core'
 import { erc20Abi } from 'viem'
 import { multicall } from '@wagmi/core'
 import { getBalance, GetBalanceReturnType } from '@wagmi/core'
-import resolveChain from "@/lib/resolveChain"
+import resolveChain, { isContractNativeToken } from "@/lib/resolveChain"
 import BalanceGetterAbi from "@/lib/abis/BALANCEGETTERABI.json"
 import KnownInternalNames from "@/lib/knownIds"
 import { BalanceProvider } from "@/Models/BalanceProvider"
@@ -56,8 +56,13 @@ export class EVMBalanceProvider extends BalanceProvider {
             })
 
             const nativeToken = getNativeToken(network)
+            // On contract-native networks (e.g. Tempo) eth_getBalance returns garbage —
+            // read the native token via ERC-20 balanceOf instead.
+            const nativeContract = isContractNativeToken(network)
+                ? (network.nativeTokenAddress as `0x${string}`)
+                : undefined
             const nativePromise = nativeToken
-                ? getTokenBalance(address as `0x${string}`, network, undefined, options?.timeoutMs, options?.retryCount)
+                ? getTokenBalance(address as `0x${string}`, network, nativeContract, options?.timeoutMs, options?.retryCount)
                 : Promise.resolve(null)
 
             const [erc20BalancesContractRes, nativeBalanceData] = await Promise.all([

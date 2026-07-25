@@ -78,6 +78,15 @@ const Contracts = {
                     "address": "0xcA11bde05977b3631167028862bE2a173976CA11"
                 }
             ],
+        },
+        {
+            "caip2Id": "eip155:42431",
+            "contracts": [
+                {
+                    "type": "Multicall",
+                    "address": "0xcA11bde05977b3631167028862bE2a173976CA11"
+                }
+            ],
         }
     ]
 }
