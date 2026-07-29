@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import { parseUnits, formatUnits } from 'viem'
 import { SwapFormValues } from '../components/DTOs/SwapFormValues'
 import type { SwapQuote } from '@train-protocol/react'
@@ -14,6 +14,7 @@ type UseQuoteData = {
     isQuoteLoading: boolean
     isDebouncing: boolean
     mutateFee: () => void
+    refreshQuote: () => Promise<SwapQuote | undefined>
 }
 
 export type QuoteError = {
@@ -104,6 +105,7 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
     const solverErrorMessage = rawSolverError
         ? resolveErrorMessage(rawSolverError, limitToken, isUsdMode)
         : undefined
+    const refreshQuote = useCallback(() => refetch(), [refetch])
 
     return {
         quote: (error || !hasQuoteParams || !hasValidAmount) ? undefined : bestQuote as SwapQuote | undefined,
@@ -113,6 +115,7 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
         quoteError: error as unknown as QuoteError | undefined,
         solverErrorMessage,
         mutateFee: refetch,
+        refreshQuote,
     }
 }
 

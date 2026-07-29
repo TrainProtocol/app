@@ -33,14 +33,20 @@ const Swap: FC<ContainerProps> = ({ type, formValues }) => {
         });
     }, [hashlock, sourceNetwork?.caip2Id, destinationNetwork?.caip2Id, sourceAsset, destinationAsset, formValues?.amount, formValues?.receiveAmount]);
 
-    const { quote, solverId, isQuoteLoading } = useQuoteData(quoteParams, 42000);
+    const { quote, solverId, isQuoteLoading, refreshQuote } = useQuoteData(quoteParams, 42000);
 
     return (
         <>
             <Widget.Content>
                 <AtomicContent quote={quote} isQuoteLoading={isQuoteLoading} formValues={formValues} />
             </Widget.Content>
-            <Actions quote={quote} solverId={solverId} type={type} formValues={formValues} />
+            <Actions
+                quote={quote}
+                solverId={solverId}
+                type={type}
+                formValues={formValues}
+                refreshQuote={refreshQuote}
+            />
         </>
     )
 }

@@ -15,7 +15,7 @@ export interface UseQuoteResult {
     quoteErrors: SolverQuoteError[]
     isLoading: boolean
     error: Error | null
-    refetch: () => Promise<void>
+    refetch: () => Promise<QuoteDetails | undefined>
 }
 
 function useDebouncedValue<T>(value: T, delayMs: number): T {
@@ -90,10 +90,17 @@ export function useQuote(params: QuoteParams): UseQuoteResult {
     const quoteErrors = query.data?.errors ?? []
     const bestSolver = quotes.find(q => q.isBest)
     const bestQuote = bestSolver?.quote
+    const queryRefetch = query.refetch
 
     const refetch = useCallback(async () => {
-        await query.refetch()
-    }, [query])
+        const result = await queryRefetch()
+        if (result.error) {
+            throw normalizeQueryError(result.error) ?? new Error('Failed to refresh quote')
+        }
+
+        const refreshedQuotes = result.data?.quotes ?? []
+        return refreshedQuotes.find(q => q.isBest)?.quote
+    }, [queryRefetch])
 
     return {
         quotes,
