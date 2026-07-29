@@ -35,12 +35,6 @@ export function isValidAddress(address?: string, network?: AddressNetwork | null
     //         return false
     //     }
     // }
-    else if (id === KnownInternalNames.Networks.OsmosisMainnet) {
-        if (/^(osmo1)?[a-z0-9]{38}$/.test(address)) {
-            return true
-        }
-        return false
-    }
     else if (id.toLowerCase().startsWith("solana") || id.toLowerCase().startsWith("eclipse")) {
         try {
             let pubkey = new PublicKey(address)
@@ -49,12 +43,6 @@ export function isValidAddress(address?: string, network?: AddressNetwork | null
         } catch (error) {
             return false
         }
-    }
-    else if (id === KnownInternalNames.Networks.SorareStage) {
-        if (/^(0x)?[0-9a-f]{64}$/.test(address) || /^(0x)?[0-9A-F]{64}$/.test(address) || /^(0x)?[0-9a-f]{66}$/.test(address) || /^(0x)?[0-9A-F]{66}$/.test(address)) {
-            return true;
-        }
-        return false
     }
     else if (id.toLowerCase().startsWith("tron")) {
         const decodedAddress = decodeBase58(address).toUpperCase();

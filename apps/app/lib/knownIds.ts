@@ -20,6 +20,10 @@ export default class KnownInternalNames {
 
         public static readonly SolanaDevnet: string = "solana:devnet";
 
+        public static readonly SolanaMainnet: string = "solana:mainnet";
+
+        public static readonly SolanaTestnet: string = "solana:testnet";
+
         public static readonly TronMainnet: string = "TRON_MAINNET"
 
         public static readonly TronNile: string = "tron:3448148188"
@@ -35,6 +39,8 @@ export default class KnownInternalNames {
         public static readonly StarkNetMainnet: string = "STARKNET_MAINNET";
 
         public static readonly StarkNetSepolia: string = "starknet:SN_SEPOLIA";
+
+        public static readonly TONMainnet: string = "ton:mainnet";
 
     }
 
