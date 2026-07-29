@@ -3,6 +3,7 @@ import { SolanaWalletBridge } from './SolanaWalletBridge'
 import { StarknetWalletBridge } from './StarknetWalletBridge'
 import { AztecWalletBridge } from './AztecWalletBridge'
 import { TronWalletBridge } from './TronWalletBridge'
+import { FuelWalletBridge } from './FuelWalletBridge'
 
 export function WalletBridges() {
     return (
@@ -12,6 +13,7 @@ export function WalletBridges() {
             <StarknetWalletBridge />
             <AztecWalletBridge />
             <TronWalletBridge />
+            <FuelWalletBridge />
         </>
     )
 }

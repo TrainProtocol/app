@@ -2,12 +2,13 @@ import { BalanceProvider } from "@/Models/BalanceProvider";
 import { TokenBalance } from "@/Models/Balance";
 import { getNativeToken } from "@/Models/Network";
 import { formatUnits } from "viem";
-import KnownInternalNames from "@/lib/knownIds";
 import { retryWithExponentialBackoff } from "@/lib/retry";
+import { NetworkTypes } from "@/Models/Network";
+import { Provider } from "fuels";
 
 export class FuelBalanceProvider extends BalanceProvider {
     supportsNetwork: BalanceProvider['supportsNetwork'] = (network) => {
-        return network.caip2Id === KnownInternalNames.Networks.FuelMainnet || network.caip2Id === KnownInternalNames.Networks.FuelTestnet
+        return network.networkType === NetworkTypes.Fuel
     }
 
     fetchBalance: BalanceProvider['fetchBalance'] = async (address, network, options) => {
@@ -15,54 +16,29 @@ export class FuelBalanceProvider extends BalanceProvider {
 
         if (!network?.tokens) return
 
-        const BALANCES_QUERY = `query Balances($filter: BalanceFilterInput) {
-            balances(filter: $filter, first: 5) {
-              nodes {
-                amount
-                assetId
-              }
-            }
-          }`;
-
-        const BALANCES_ARGS = {
-            filter: {
-                owner: address,
-            },
-        };
-
         try {
-            const response = await retryWithExponentialBackoff(async () => await fetch(network.nodes?.[0]?.url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                },
-                body: JSON.stringify({
-                    query: BALANCES_QUERY,
-                    variables: BALANCES_ARGS,
-                }),
-            }), options?.retryCount ?? 3);
+            const rpcUrl = network.nodes?.[0]?.url
+            if (!rpcUrl) throw new Error(`No Fuel RPC configured for ${network.caip2Id}`)
 
-            const json: {
-                data: {
-                    balances: {
-                        nodes: {
-                            amount: string,
-                            assetId: string
-                        }[]
-                    }
-                }
-            } = await response.json();
+            const provider = new Provider(rpcUrl)
+            const { balances: fuelBalances } = await retryWithExponentialBackoff(
+                () => provider.getBalances(address),
+                options?.retryCount ?? 3,
+            )
 
             const nativeToken = getNativeToken(network)
 
             for (let i = 0; i < network.tokens.length; i++) {
                 const token = network.tokens[i]
-                const balance = json.data.balances.nodes.find(b => b?.assetId === token.contract) || null
+                const balance = fuelBalances.find(b =>
+                    b.assetId.toLowerCase() === token.contract.toLowerCase()
+                )
 
                 const balanceObj: TokenBalance = {
                     network: network.caip2Id,
-                    amount: balance?.amount ? Number(formatUnits(BigInt(Number(balance?.amount)), token.decimals)) : undefined,
+                    amount: balance?.amount
+                        ? Number(formatUnits(BigInt(balance.amount.toString()), token.decimals))
+                        : undefined,
                     decimals: token.decimals,
                     isNativeCurrency: nativeToken?.symbol === token.symbol,
                     token: token.symbol,

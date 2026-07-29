@@ -24,9 +24,10 @@ type ActionsProps = {
     solverId?: string
     type: SwapViewType
     formValues?: SwapFormValues
+    refreshQuote: () => Promise<SwapQuote | undefined>
 }
 
-export const Actions: FC<ActionsProps> = ({ quote, solverId, type, formValues }) => {
+export const Actions: FC<ActionsProps> = ({ quote, solverId, type, formValues, refreshQuote }) => {
     const { status: commitStatus, error } = useActiveSwap()
     const [actionError, setActionError] = useState<Error | undefined>(undefined)
 
@@ -46,6 +47,7 @@ export const Actions: FC<ActionsProps> = ({ quote, solverId, type, formValues })
                 solverId={solverId}
                 type={type}
                 formValues={formValues}
+                refreshQuote={refreshQuote}
             />
         </>
     )
@@ -61,9 +63,10 @@ type ResolveActionProps = {
     solverId?: string
     type: SwapViewType
     formValues?: SwapFormValues
+    refreshQuote: ActionsProps['refreshQuote']
 }
 
-const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode, actionError, setActionError, quote, solverId, type, formValues }) => {
+const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode, actionError, setActionError, quote, solverId, type, formValues, refreshQuote }) => {
     const setActiveHashlock = useSwapStore(s => s.setActiveHashlock)
     const goHome = useGoHome()
 
@@ -94,7 +97,16 @@ const ResolveAction: FC<ResolveActionProps> = ({ commitStatus, error, errorCode,
         case HTLCStatus.ManualClaimRequired:
             return <ManualRedeemAction type={type} />
         default:
-            return <UserLockAction quote={quote} solverId={solverId} type={type} setError={setActionError} destinationAddress={formValues?.destination_address} />
+            return (
+                <UserLockAction
+                    quote={quote}
+                    solverId={solverId}
+                    type={type}
+                    setError={setActionError}
+                    destinationAddress={formValues?.destination_address}
+                    refreshQuote={refreshQuote}
+                />
+            )
     }
 }
 

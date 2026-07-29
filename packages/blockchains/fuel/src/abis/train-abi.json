@@ -1,0 +1,1535 @@
+{
+  "programType": "contract",
+  "specVersion": "1",
+  "encodingVersion": "1",
+  "concreteTypes": [
+    {
+      "type": "(struct std::vec::Vec<b256>, u64)",
+      "concreteTypeId": "ca6b2520e464c296855a205f76d460e05a0d284be6045a28521b3e398739fe6c",
+      "metadataTypeId": 1
+    },
+    {
+      "type": "(struct std::vec::Vec<struct UserLock>, u64)",
+      "concreteTypeId": "b215587e084173f274e312b96a88abf2a550564f4c8c5d281d75e03dc41199e6",
+      "metadataTypeId": 2
+    },
+    {
+      "type": "b256",
+      "concreteTypeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+    },
+    {
+      "type": "bool",
+      "concreteTypeId": "b760f44fa5965c2474a3b471467a22c43185152129295af588b022ae50b50903"
+    },
+    {
+      "type": "enum TrainError",
+      "concreteTypeId": "4e5129e448e85a7dc9833ce4fa9e8b45f17faf739d2b214a383b7f2431f301db",
+      "metadataTypeId": 4
+    },
+    {
+      "type": "enum reentrancy::ReentrancyError",
+      "concreteTypeId": "5f54edde6f496cb672796f5848247329729820c32ef4f2152a49521d4d41bbf4",
+      "metadataTypeId": 5
+    },
+    {
+      "type": "enum std::identity::Identity",
+      "concreteTypeId": "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335",
+      "metadataTypeId": 6
+    },
+    {
+      "type": "enum std::option::Option<struct SolverLock>",
+      "concreteTypeId": "7f6d0f3836b02fbe200e59731abd565c31d1782f5c3290bdc05ee623a47b0d5c",
+      "metadataTypeId": 7,
+      "typeArguments": [
+        "4c777616f8f11288da5d17fba7c490b8bc705aabf22eb5d44a61d9f4ee0de85e"
+      ]
+    },
+    {
+      "type": "enum std::option::Option<struct UserLock>",
+      "concreteTypeId": "22ceee12c12c45fab2354dca0037e6a9d54e655cbecc35ce79ac69c3ffd5f689",
+      "metadataTypeId": 7,
+      "typeArguments": [
+        "02a49253199b44aa7a472557ccd59feb576880eda5864c14cf63cc5731b0c4b9"
+      ]
+    },
+    {
+      "type": "struct SolverLock",
+      "concreteTypeId": "4c777616f8f11288da5d17fba7c490b8bc705aabf22eb5d44a61d9f4ee0de85e",
+      "metadataTypeId": 10
+    },
+    {
+      "type": "struct SolverLockParams",
+      "concreteTypeId": "90aacd8bfa253d4f752e8c23fa2cfaf5fe842d453159a2b40f9671a4a471e005",
+      "metadataTypeId": 11
+    },
+    {
+      "type": "struct SolverLocked",
+      "concreteTypeId": "fd7cbbfb0130bcf0c45211d828179940191b21aa7761f29a8defb1a4d1d587c3",
+      "metadataTypeId": 12
+    },
+    {
+      "type": "struct SolverRedeemed",
+      "concreteTypeId": "bc1dd96b297862f41b237144a5f2e75b773d5f44a41aea736e5ed1748b905f7c",
+      "metadataTypeId": 13
+    },
+    {
+      "type": "struct SolverRefunded",
+      "concreteTypeId": "d0ed6be06f4fb97fee1788b19962da51292e4b35b6154afe8774904f9f14f8f1",
+      "metadataTypeId": 14
+    },
+    {
+      "type": "struct SolverRewardAttached",
+      "concreteTypeId": "7a11a59743f5e1590d38d6def9e4459e2f9af51d3e7f4a290fb39eb916e8f08d",
+      "metadataTypeId": 15
+    },
+    {
+      "type": "struct UserLock",
+      "concreteTypeId": "02a49253199b44aa7a472557ccd59feb576880eda5864c14cf63cc5731b0c4b9",
+      "metadataTypeId": 16
+    },
+    {
+      "type": "struct UserLocked",
+      "concreteTypeId": "f45bcf669433323f84c875dd7d015f59cde1c6c6dcbeb4010cf025927c486364",
+      "metadataTypeId": 17
+    },
+    {
+      "type": "struct UserRedeemed",
+      "concreteTypeId": "3d86f3174bae35686f80c0d4d0ee606e104cf448982dc355d36112263e825e6d",
+      "metadataTypeId": 18
+    },
+    {
+      "type": "struct UserRefunded",
+      "concreteTypeId": "036d7812cb82468a1276c4c8745acaa328dea27b605169e442bee30318e2b5a2",
+      "metadataTypeId": 19
+    },
+    {
+      "type": "struct interfaces::DestinationInfo",
+      "concreteTypeId": "19d8b2c9be8894f16c4a9ec91b6a53823bc948bff5e26607e12ff7b919a0fd6b",
+      "metadataTypeId": 20
+    },
+    {
+      "type": "struct interfaces::UserLockParams",
+      "concreteTypeId": "f9e02227a156156711245710f686c0034f6744ba75a6ccd2f8b6d6ee8fff56ba",
+      "metadataTypeId": 21
+    },
+    {
+      "type": "struct std::bytes::Bytes",
+      "concreteTypeId": "cdd87b7d12fe505416570c294c884bca819364863efe3bf539245fa18515fbbb",
+      "metadataTypeId": 24
+    },
+    {
+      "type": "u256",
+      "concreteTypeId": "1b5759d94094368cfd443019e7ca5ec4074300e544e5ea993a979f5da627261e"
+    },
+    {
+      "type": "u64",
+      "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+    }
+  ],
+  "metadataTypes": [
+    {
+      "type": "()",
+      "metadataTypeId": 0
+    },
+    {
+      "type": "(_, _)",
+      "metadataTypeId": 1,
+      "components": [
+        {
+          "name": "__tuple_element",
+          "typeId": 29,
+          "typeArguments": [
+            {
+              "name": "",
+              "typeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+            }
+          ]
+        },
+        {
+          "name": "__tuple_element",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ]
+    },
+    {
+      "type": "(_, _)",
+      "metadataTypeId": 2,
+      "components": [
+        {
+          "name": "__tuple_element",
+          "typeId": 29,
+          "typeArguments": [
+            {
+              "name": "",
+              "typeId": 16
+            }
+          ]
+        },
+        {
+          "name": "__tuple_element",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ]
+    },
+    {
+      "type": "enum LockStatus",
+      "metadataTypeId": 3,
+      "components": [
+        {
+          "name": "Empty",
+          "typeId": 0
+        },
+        {
+          "name": "Pending",
+          "typeId": 0
+        },
+        {
+          "name": "Refunded",
+          "typeId": 0
+        },
+        {
+          "name": "Redeemed",
+          "typeId": 0
+        }
+      ]
+    },
+    {
+      "type": "enum TrainError",
+      "metadataTypeId": 4,
+      "components": [
+        {
+          "name": "ZeroAmount",
+          "typeId": 0
+        },
+        {
+          "name": "LockNotFound",
+          "typeId": 0
+        },
+        {
+          "name": "HashlockMismatch",
+          "typeId": 0
+        },
+        {
+          "name": "LockNotPending",
+          "typeId": 0
+        },
+        {
+          "name": "InvalidTimelock",
+          "typeId": 0
+        },
+        {
+          "name": "TimelockOverflow",
+          "typeId": 0
+        },
+        {
+          "name": "InvalidRewardTimelock",
+          "typeId": 0
+        },
+        {
+          "name": "SwapAlreadyExists",
+          "typeId": 0
+        },
+        {
+          "name": "RefundNotAllowed",
+          "typeId": 0
+        },
+        {
+          "name": "QuoteExpired",
+          "typeId": 0
+        },
+        {
+          "name": "InvalidPayout",
+          "typeId": 0
+        },
+        {
+          "name": "InvalidUser",
+          "typeId": 0
+        },
+        {
+          "name": "ZeroAddress",
+          "typeId": 0
+        },
+        {
+          "name": "RewardAlreadyFunded",
+          "typeId": 0
+        },
+        {
+          "name": "RewardAssetMismatch",
+          "typeId": 0
+        }
+      ]
+    },
+    {
+      "type": "enum reentrancy::ReentrancyError",
+      "metadataTypeId": 5,
+      "components": [
+        {
+          "name": "NonReentrant",
+          "typeId": 0
+        }
+      ]
+    },
+    {
+      "type": "enum std::identity::Identity",
+      "metadataTypeId": 6,
+      "components": [
+        {
+          "name": "Address",
+          "typeId": 22
+        },
+        {
+          "name": "ContractId",
+          "typeId": 26
+        }
+      ]
+    },
+    {
+      "type": "enum std::option::Option",
+      "metadataTypeId": 7,
+      "components": [
+        {
+          "name": "None",
+          "typeId": 0
+        },
+        {
+          "name": "Some",
+          "typeId": 8
+        }
+      ],
+      "typeParameters": [
+        8
+      ]
+    },
+    {
+      "type": "generic T",
+      "metadataTypeId": 8
+    },
+    {
+      "type": "raw untyped ptr",
+      "metadataTypeId": 9
+    },
+    {
+      "type": "struct SolverLock",
+      "metadataTypeId": 10,
+      "components": [
+        {
+          "name": "secret",
+          "typeId": "1b5759d94094368cfd443019e7ca5ec4074300e544e5ea993a979f5da627261e"
+        },
+        {
+          "name": "amount",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "reward",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "sender",
+          "typeId": 6
+        },
+        {
+          "name": "timelock",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "reward_timelock",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "start_time",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "recipient",
+          "typeId": 6
+        },
+        {
+          "name": "status",
+          "typeId": 3
+        },
+        {
+          "name": "reward_recipient",
+          "typeId": 6
+        },
+        {
+          "name": "refund_to",
+          "typeId": 6
+        },
+        {
+          "name": "asset_id",
+          "typeId": 23
+        },
+        {
+          "name": "reward_asset_id",
+          "typeId": 23
+        },
+        {
+          "name": "reward_funded",
+          "typeId": "b760f44fa5965c2474a3b471467a22c43185152129295af588b022ae50b50903"
+        },
+        {
+          "name": "payout_curve",
+          "typeId": 7,
+          "typeArguments": [
+            {
+              "name": "",
+              "typeId": 26
+            }
+          ]
+        },
+        {
+          "name": "payout_curve_data",
+          "typeId": 7,
+          "typeArguments": [
+            {
+              "name": "",
+              "typeId": 24
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "struct SolverLockParams",
+      "metadataTypeId": 11,
+      "components": [
+        {
+          "name": "hashlock",
+          "typeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        },
+        {
+          "name": "reward",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "timelock_delta",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "reward_timelock_delta",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "recipient",
+          "typeId": 6
+        },
+        {
+          "name": "reward_recipient",
+          "typeId": 6
+        },
+        {
+          "name": "refund_to",
+          "typeId": 6
+        },
+        {
+          "name": "reward_asset_id",
+          "typeId": 23
+        },
+        {
+          "name": "payout_curve",
+          "typeId": 7,
+          "typeArguments": [
+            {
+              "name": "",
+              "typeId": 26
+            }
+          ]
+        },
+        {
+          "name": "payout_curve_data",
+          "typeId": 7,
+          "typeArguments": [
+            {
+              "name": "",
+              "typeId": 24
+            }
+          ]
+        },
+        {
+          "name": "src_chain",
+          "typeId": 27
+        }
+      ]
+    },
+    {
+      "type": "struct SolverLocked",
+      "metadataTypeId": 12,
+      "components": [
+        {
+          "name": "hashlock",
+          "typeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        },
+        {
+          "name": "sender",
+          "typeId": 6
+        },
+        {
+          "name": "recipient",
+          "typeId": 6
+        },
+        {
+          "name": "index",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "src_chain",
+          "typeId": 27
+        },
+        {
+          "name": "asset_id",
+          "typeId": 23
+        },
+        {
+          "name": "amount",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "reward",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "reward_asset_id",
+          "typeId": 23
+        },
+        {
+          "name": "reward_recipient",
+          "typeId": 6
+        },
+        {
+          "name": "timelock",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "reward_timelock",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "payout_curve",
+          "typeId": 7,
+          "typeArguments": [
+            {
+              "name": "",
+              "typeId": 26
+            }
+          ]
+        },
+        {
+          "name": "dst_chain",
+          "typeId": 27
+        },
+        {
+          "name": "dst_address",
+          "typeId": 27
+        },
+        {
+          "name": "dst_amount",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "dst_token",
+          "typeId": 27
+        },
+        {
+          "name": "data",
+          "typeId": 24
+        }
+      ]
+    },
+    {
+      "type": "struct SolverRedeemed",
+      "metadataTypeId": 13,
+      "components": [
+        {
+          "name": "hashlock",
+          "typeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        },
+        {
+          "name": "index",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "redeemer",
+          "typeId": 6
+        },
+        {
+          "name": "secret",
+          "typeId": "1b5759d94094368cfd443019e7ca5ec4074300e544e5ea993a979f5da627261e"
+        },
+        {
+          "name": "payout",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "excess",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "reward_to",
+          "typeId": 6
+        },
+        {
+          "name": "reward",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ]
+    },
+    {
+      "type": "struct SolverRefunded",
+      "metadataTypeId": 14,
+      "components": [
+        {
+          "name": "hashlock",
+          "typeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        },
+        {
+          "name": "index",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "refund_to",
+          "typeId": 6
+        },
+        {
+          "name": "amount",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "reward",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ]
+    },
+    {
+      "type": "struct SolverRewardAttached",
+      "metadataTypeId": 15,
+      "components": [
+        {
+          "name": "hashlock",
+          "typeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        },
+        {
+          "name": "index",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "reward_asset_id",
+          "typeId": 23
+        },
+        {
+          "name": "reward",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ]
+    },
+    {
+      "type": "struct UserLock",
+      "metadataTypeId": 16,
+      "components": [
+        {
+          "name": "secret",
+          "typeId": "1b5759d94094368cfd443019e7ca5ec4074300e544e5ea993a979f5da627261e"
+        },
+        {
+          "name": "amount",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "sender",
+          "typeId": 6
+        },
+        {
+          "name": "timelock",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "start_time",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "status",
+          "typeId": 3
+        },
+        {
+          "name": "recipient",
+          "typeId": 6
+        },
+        {
+          "name": "refund_to",
+          "typeId": 6
+        },
+        {
+          "name": "asset_id",
+          "typeId": 23
+        },
+        {
+          "name": "payout_curve",
+          "typeId": 7,
+          "typeArguments": [
+            {
+              "name": "",
+              "typeId": 26
+            }
+          ]
+        },
+        {
+          "name": "payout_curve_data",
+          "typeId": 7,
+          "typeArguments": [
+            {
+              "name": "",
+              "typeId": 24
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "struct UserLocked",
+      "metadataTypeId": 17,
+      "components": [
+        {
+          "name": "hashlock",
+          "typeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        },
+        {
+          "name": "sender",
+          "typeId": 6
+        },
+        {
+          "name": "recipient",
+          "typeId": 6
+        },
+        {
+          "name": "src_chain",
+          "typeId": 27
+        },
+        {
+          "name": "asset_id",
+          "typeId": 23
+        },
+        {
+          "name": "amount",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "timelock",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "start_time",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "payout_curve",
+          "typeId": 7,
+          "typeArguments": [
+            {
+              "name": "",
+              "typeId": 26
+            }
+          ]
+        },
+        {
+          "name": "dst_chain",
+          "typeId": 27
+        },
+        {
+          "name": "dst_address",
+          "typeId": 27
+        },
+        {
+          "name": "dst_amount",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "dst_token",
+          "typeId": 27
+        },
+        {
+          "name": "reward_amount",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "reward_token",
+          "typeId": 27
+        },
+        {
+          "name": "reward_recipient",
+          "typeId": 27
+        },
+        {
+          "name": "reward_timelock_delta",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "quote_expiry",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "user_data",
+          "typeId": 24
+        },
+        {
+          "name": "solver_data",
+          "typeId": 24
+        }
+      ]
+    },
+    {
+      "type": "struct UserRedeemed",
+      "metadataTypeId": 18,
+      "components": [
+        {
+          "name": "hashlock",
+          "typeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        },
+        {
+          "name": "redeemer",
+          "typeId": 6
+        },
+        {
+          "name": "secret",
+          "typeId": "1b5759d94094368cfd443019e7ca5ec4074300e544e5ea993a979f5da627261e"
+        },
+        {
+          "name": "payout",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "excess",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ]
+    },
+    {
+      "type": "struct UserRefunded",
+      "metadataTypeId": 19,
+      "components": [
+        {
+          "name": "hashlock",
+          "typeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        },
+        {
+          "name": "refund_to",
+          "typeId": 6
+        },
+        {
+          "name": "amount",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ]
+    },
+    {
+      "type": "struct interfaces::DestinationInfo",
+      "metadataTypeId": 20,
+      "components": [
+        {
+          "name": "dst_chain",
+          "typeId": 27
+        },
+        {
+          "name": "dst_address",
+          "typeId": 27
+        },
+        {
+          "name": "dst_amount",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "dst_token",
+          "typeId": 27
+        }
+      ]
+    },
+    {
+      "type": "struct interfaces::UserLockParams",
+      "metadataTypeId": 21,
+      "components": [
+        {
+          "name": "hashlock",
+          "typeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        },
+        {
+          "name": "timelock_delta",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "quote_expiry",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "recipient",
+          "typeId": 6
+        },
+        {
+          "name": "refund_to",
+          "typeId": 6
+        },
+        {
+          "name": "payout_curve",
+          "typeId": 7,
+          "typeArguments": [
+            {
+              "name": "",
+              "typeId": 26
+            }
+          ]
+        },
+        {
+          "name": "payout_curve_data",
+          "typeId": 7,
+          "typeArguments": [
+            {
+              "name": "",
+              "typeId": 24
+            }
+          ]
+        },
+        {
+          "name": "reward_amount",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "reward_timelock_delta",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "reward_token",
+          "typeId": 27
+        },
+        {
+          "name": "reward_recipient",
+          "typeId": 27
+        },
+        {
+          "name": "src_chain",
+          "typeId": 27
+        }
+      ]
+    },
+    {
+      "type": "struct std::address::Address",
+      "metadataTypeId": 22,
+      "components": [
+        {
+          "name": "bits",
+          "typeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        }
+      ]
+    },
+    {
+      "type": "struct std::asset_id::AssetId",
+      "metadataTypeId": 23,
+      "components": [
+        {
+          "name": "bits",
+          "typeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        }
+      ]
+    },
+    {
+      "type": "struct std::bytes::Bytes",
+      "metadataTypeId": 24,
+      "components": [
+        {
+          "name": "buf",
+          "typeId": 25
+        },
+        {
+          "name": "len",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ]
+    },
+    {
+      "type": "struct std::bytes::RawBytes",
+      "metadataTypeId": 25,
+      "components": [
+        {
+          "name": "ptr",
+          "typeId": 9
+        },
+        {
+          "name": "cap",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ]
+    },
+    {
+      "type": "struct std::contract_id::ContractId",
+      "metadataTypeId": 26,
+      "components": [
+        {
+          "name": "bits",
+          "typeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        }
+      ]
+    },
+    {
+      "type": "struct std::string::String",
+      "metadataTypeId": 27,
+      "components": [
+        {
+          "name": "bytes",
+          "typeId": 24
+        }
+      ]
+    },
+    {
+      "type": "struct std::vec::RawVec",
+      "metadataTypeId": 28,
+      "components": [
+        {
+          "name": "ptr",
+          "typeId": 9
+        },
+        {
+          "name": "cap",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ],
+      "typeParameters": [
+        8
+      ]
+    },
+    {
+      "type": "struct std::vec::Vec",
+      "metadataTypeId": 29,
+      "components": [
+        {
+          "name": "buf",
+          "typeId": 28,
+          "typeArguments": [
+            {
+              "name": "",
+              "typeId": 8
+            }
+          ]
+        },
+        {
+          "name": "len",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ],
+      "typeParameters": [
+        8
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "name": "attach_solver_reward",
+      "inputs": [
+        {
+          "name": "hashlock",
+          "concreteTypeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        },
+        {
+          "name": "index",
+          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ],
+      "output": "b760f44fa5965c2474a3b471467a22c43185152129295af588b022ae50b50903",
+      "attributes": [
+        {
+          "name": "payable",
+          "arguments": []
+        },
+        {
+          "name": "storage",
+          "arguments": [
+            "read",
+            "write"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "get_solver_lock",
+      "inputs": [
+        {
+          "name": "hashlock",
+          "concreteTypeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        },
+        {
+          "name": "index",
+          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ],
+      "output": "7f6d0f3836b02fbe200e59731abd565c31d1782f5c3290bdc05ee623a47b0d5c",
+      "attributes": [
+        {
+          "name": "storage",
+          "arguments": [
+            "read"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "get_solver_lock_count",
+      "inputs": [
+        {
+          "name": "hashlock",
+          "concreteTypeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        }
+      ],
+      "output": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
+      "attributes": [
+        {
+          "name": "storage",
+          "arguments": [
+            "read"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "get_user_lock",
+      "inputs": [
+        {
+          "name": "hashlock",
+          "concreteTypeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        }
+      ],
+      "output": "22ceee12c12c45fab2354dca0037e6a9d54e655cbecc35ce79ac69c3ffd5f689",
+      "attributes": [
+        {
+          "name": "storage",
+          "arguments": [
+            "read"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "get_user_lock_hashes",
+      "inputs": [
+        {
+          "name": "user",
+          "concreteTypeId": "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335"
+        },
+        {
+          "name": "offset",
+          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "limit",
+          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ],
+      "output": "ca6b2520e464c296855a205f76d460e05a0d284be6045a28521b3e398739fe6c",
+      "attributes": [
+        {
+          "name": "storage",
+          "arguments": [
+            "read"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "get_user_locks",
+      "inputs": [
+        {
+          "name": "user",
+          "concreteTypeId": "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335"
+        },
+        {
+          "name": "offset",
+          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "limit",
+          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ],
+      "output": "b215587e084173f274e312b96a88abf2a550564f4c8c5d281d75e03dc41199e6",
+      "attributes": [
+        {
+          "name": "storage",
+          "arguments": [
+            "read"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "redeem_solver",
+      "inputs": [
+        {
+          "name": "hashlock",
+          "concreteTypeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        },
+        {
+          "name": "index",
+          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "secret",
+          "concreteTypeId": "1b5759d94094368cfd443019e7ca5ec4074300e544e5ea993a979f5da627261e"
+        }
+      ],
+      "output": "b760f44fa5965c2474a3b471467a22c43185152129295af588b022ae50b50903",
+      "attributes": [
+        {
+          "name": "storage",
+          "arguments": [
+            "read",
+            "write"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "redeem_user",
+      "inputs": [
+        {
+          "name": "hashlock",
+          "concreteTypeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        },
+        {
+          "name": "secret",
+          "concreteTypeId": "1b5759d94094368cfd443019e7ca5ec4074300e544e5ea993a979f5da627261e"
+        }
+      ],
+      "output": "b760f44fa5965c2474a3b471467a22c43185152129295af588b022ae50b50903",
+      "attributes": [
+        {
+          "name": "storage",
+          "arguments": [
+            "read",
+            "write"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "refund_solver",
+      "inputs": [
+        {
+          "name": "hashlock",
+          "concreteTypeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        },
+        {
+          "name": "index",
+          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ],
+      "output": "b760f44fa5965c2474a3b471467a22c43185152129295af588b022ae50b50903",
+      "attributes": [
+        {
+          "name": "storage",
+          "arguments": [
+            "read",
+            "write"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "refund_user",
+      "inputs": [
+        {
+          "name": "hashlock",
+          "concreteTypeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
+        }
+      ],
+      "output": "b760f44fa5965c2474a3b471467a22c43185152129295af588b022ae50b50903",
+      "attributes": [
+        {
+          "name": "storage",
+          "arguments": [
+            "read",
+            "write"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "solver_lock",
+      "inputs": [
+        {
+          "name": "params",
+          "concreteTypeId": "90aacd8bfa253d4f752e8c23fa2cfaf5fe842d453159a2b40f9671a4a471e005"
+        },
+        {
+          "name": "dst",
+          "concreteTypeId": "19d8b2c9be8894f16c4a9ec91b6a53823bc948bff5e26607e12ff7b919a0fd6b"
+        },
+        {
+          "name": "data",
+          "concreteTypeId": "cdd87b7d12fe505416570c294c884bca819364863efe3bf539245fa18515fbbb"
+        }
+      ],
+      "output": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
+      "attributes": [
+        {
+          "name": "doc-comment",
+          "arguments": [
+            " REWARD-ASSET FUNDING: a single FuelVM `CALL` forwards exactly one `(AssetId, u64)` coin"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            " pair (`msg_asset_id()`/`msg_amount()`) -- a VM calling-convention limit, not a Sway/SDK"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            " gap (see the Fuel VM spec's receipts page, \"a call may additionally forward one native"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            " asset\": https://specs.fuel.network/master/abi/receipts.html). So a reward in a"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            " *different* asset than the principal cannot ride the same call. Two cases:"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            "   - same asset (`reward_asset_id == msg_asset_id()`, incl. `reward == 0`): the reward is"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            "     bundled into the forwarded coin (`msg_amount() == principal + reward`), so it is"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            "     escrowed immediately -- `reward_funded = true` at creation."
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            "   - different asset: only the principal is forwarded here (`msg_amount() == principal`);"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            "     the reward is declared but unfunded (`reward_funded = false`) until a follow-up"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            "     `attach_solver_reward` call forwards it. Bundling both into one atomic transaction is a"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            "     caller/SDK concern (a multi-call transaction), never required for fund safety -- see"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            "     the `reward_funded` gate in `redeem_solver`/`refund_solver`."
+          ]
+        },
+        {
+          "name": "payable",
+          "arguments": []
+        },
+        {
+          "name": "storage",
+          "arguments": [
+            "read",
+            "write"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "user_lock",
+      "inputs": [
+        {
+          "name": "params",
+          "concreteTypeId": "f9e02227a156156711245710f686c0034f6744ba75a6ccd2f8b6d6ee8fff56ba"
+        },
+        {
+          "name": "dst",
+          "concreteTypeId": "19d8b2c9be8894f16c4a9ec91b6a53823bc948bff5e26607e12ff7b919a0fd6b"
+        },
+        {
+          "name": "user_data",
+          "concreteTypeId": "cdd87b7d12fe505416570c294c884bca819364863efe3bf539245fa18515fbbb"
+        },
+        {
+          "name": "solver_data",
+          "concreteTypeId": "cdd87b7d12fe505416570c294c884bca819364863efe3bf539245fa18515fbbb"
+        }
+      ],
+      "output": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b",
+      "attributes": [
+        {
+          "name": "payable",
+          "arguments": []
+        },
+        {
+          "name": "storage",
+          "arguments": [
+            "read",
+            "write"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "user_lock_for",
+      "inputs": [
+        {
+          "name": "user",
+          "concreteTypeId": "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335"
+        },
+        {
+          "name": "params",
+          "concreteTypeId": "f9e02227a156156711245710f686c0034f6744ba75a6ccd2f8b6d6ee8fff56ba"
+        },
+        {
+          "name": "dst",
+          "concreteTypeId": "19d8b2c9be8894f16c4a9ec91b6a53823bc948bff5e26607e12ff7b919a0fd6b"
+        },
+        {
+          "name": "user_data",
+          "concreteTypeId": "cdd87b7d12fe505416570c294c884bca819364863efe3bf539245fa18515fbbb"
+        },
+        {
+          "name": "solver_data",
+          "concreteTypeId": "cdd87b7d12fe505416570c294c884bca819364863efe3bf539245fa18515fbbb"
+        }
+      ],
+      "output": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b",
+      "attributes": [
+        {
+          "name": "doc-comment",
+          "arguments": [
+            " ATTRIBUTION NOTE: `user` is purely attributive -- it sets `UserLockData.sender`, the"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            " `user_lock_hashes` enumeration key, and `UserLocked.sender`. It does NOT govern"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            " custody: `refund_to`/`recipient` come from `params`, and refund authorization keys off"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            " `recipient`, never off `sender`/`user`. Consequently, ANY caller may attribute a lock to"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            " ANY `user` at gas-only cost (the funds are still the caller's own, forwarded via"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            " `msg_amount()`/`msg_asset_id()` on this very call -- there is no way to spend someone"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            " else's coin without their transaction signature on Fuel), and the attributed entry is"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            " never pruned. This is a griefing vector only against the off-chain enumeration getters"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            " (`get_user_lock_hashes`/`get_user_locks`), which is exactly why those read a bounded"
+          ]
+        },
+        {
+          "name": "doc-comment",
+          "arguments": [
+            " window rather than the whole list. No funds are ever at risk from this attribution."
+          ]
+        },
+        {
+          "name": "payable",
+          "arguments": []
+        },
+        {
+          "name": "storage",
+          "arguments": [
+            "read",
+            "write"
+          ]
+        }
+      ]
+    }
+  ],
+  "loggedTypes": [
+    {
+      "logId": "6869376871252454582",
+      "concreteTypeId": "5f54edde6f496cb672796f5848247329729820c32ef4f2152a49521d4d41bbf4"
+    },
+    {
+      "logId": "5643337868524411517",
+      "concreteTypeId": "4e5129e448e85a7dc9833ce4fa9e8b45f17faf739d2b214a383b7f2431f301db"
+    },
+    {
+      "logId": "8795993616330121561",
+      "concreteTypeId": "7a11a59743f5e1590d38d6def9e4459e2f9af51d3e7f4a290fb39eb916e8f08d"
+    },
+    {
+      "logId": "13555229507735544564",
+      "concreteTypeId": "bc1dd96b297862f41b237144a5f2e75b773d5f44a41aea736e5ed1748b905f7c"
+    },
+    {
+      "logId": "4433498164572337512",
+      "concreteTypeId": "3d86f3174bae35686f80c0d4d0ee606e104cf448982dc355d36112263e825e6d"
+    },
+    {
+      "logId": "15054807741053778303",
+      "concreteTypeId": "d0ed6be06f4fb97fee1788b19962da51292e4b35b6154afe8774904f9f14f8f1"
+    },
+    {
+      "logId": "246985576694302346",
+      "concreteTypeId": "036d7812cb82468a1276c4c8745acaa328dea27b605169e442bee30318e2b5a2"
+    },
+    {
+      "logId": "18265680875439045872",
+      "concreteTypeId": "fd7cbbfb0130bcf0c45211d828179940191b21aa7761f29a8defb1a4d1d587c3"
+    },
+    {
+      "logId": "17607895207615083071",
+      "concreteTypeId": "f45bcf669433323f84c875dd7d015f59cde1c6c6dcbeb4010cf025927c486364"
+    }
+  ],
+  "messagesTypes": [],
+  "configurables": [],
+  "errorCodes": {}
+}

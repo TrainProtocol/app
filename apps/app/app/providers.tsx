@@ -14,6 +14,7 @@ import { registerTronSdk } from "@train-protocol/tron"
 import { registerStarknetSdk } from "@train-protocol/starknet"
 import { registerSolanaSdk } from "@train-protocol/solana"
 import { registerAztecSdk } from "@train-protocol/aztec"
+import { registerFuelSdk } from "@train-protocol/fuel"
 import ThemeWrapper from "@/components/themeWrapper"
 import MaintananceContent from "@/components/Maintanance"
 import ErrorFallback from "@/components/ErrorFallback"
@@ -39,6 +40,7 @@ if (typeof window !== "undefined") {
     registerSolanaSdk()
     registerStarknetSdk()
     registerTronSdk()
+    registerFuelSdk()
 }
 
 const INTERCOM_APP_ID = "h5zisg78"

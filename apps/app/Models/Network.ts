@@ -17,6 +17,7 @@ export enum NetworkTypes {
     Starknet = "starknet",
     Aztec = "aztec",
     TON = "ton",
+    Fuel = "fuel",
 }
 
 export class ExtendedNetwork extends Network {

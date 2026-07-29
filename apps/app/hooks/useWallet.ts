@@ -46,7 +46,7 @@ export default function useWallet(network?: Network | undefined | null, purpose?
 }
 
 const resolveProvider = (network: Network | undefined, walletProviders: WalletProvider[], purpose?: WalletPurpose) => {
-    if (!purpose || !network) return
+    if (!purpose || !network?.caip2Id) return
 
     let provider: WalletProvider | undefined = undefined
     switch (purpose) {
@@ -111,17 +111,17 @@ const resolveWallet = (wallet: Wallet, network: Network | undefined | null, prov
     if (purpose === "autofill") {
         return {
             ...wallet,
-            isNotAvailable: !wallet.autofillSupportedNetworks?.some(n => n.toLowerCase() === network?.caip2Id.toLowerCase()),
+            isNotAvailable: !supportsNetwork(wallet.autofillSupportedNetworks, network),
         }
     } else if (purpose === "withdrawal") {
         return {
             ...wallet,
-            isNotAvailable: !wallet.withdrawalSupportedNetworks?.some(n => n.toLowerCase() === network?.caip2Id.toLowerCase()),
+            isNotAvailable: !supportsNetwork(wallet.withdrawalSupportedNetworks, network),
         }
     } else if (purpose === "asSource") {
         return {
             ...wallet,
-            isNotAvailable: !wallet.asSourceSupportedNetworks?.some(n => n.toLowerCase() === network?.caip2Id.toLowerCase()),
+            isNotAvailable: !supportsNetwork(wallet.asSourceSupportedNetworks, network),
         }
     }
 
@@ -129,4 +129,18 @@ const resolveWallet = (wallet: Wallet, network: Network | undefined | null, prov
         ...wallet,
         isNotAvailable: false,
     }
+}
+
+const supportsNetwork = (
+    supportedNetworks: string[] | undefined,
+    network: Network | undefined | null,
+): boolean => {
+    const caip2Id = network?.caip2Id
+    if (!caip2Id) return false
+
+    const normalizedCaip2Id = caip2Id.toLowerCase()
+    return supportedNetworks?.some(candidate =>
+        typeof candidate === "string" &&
+        candidate.toLowerCase() === normalizedCaip2Id
+    ) ?? false
 }

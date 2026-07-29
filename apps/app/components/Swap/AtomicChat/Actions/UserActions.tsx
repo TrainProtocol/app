@@ -17,9 +17,10 @@ type UserCommitActionProps = {
     type: SwapViewType
     setError: (error: Error | undefined) => void
     destinationAddress?: string
+    refreshQuote: () => Promise<SwapQuote | undefined>
 }
 
-export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type, setError, destinationAddress }) => {
+export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type, setError, destinationAddress, refreshQuote }) => {
     // Pre-lock only — route info comes from the quote; caller supplies the user's destination address.
     const { hashlock } = useActiveSwap()
     const { createSwap } = useCreateSwap()
@@ -29,9 +30,6 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type, setErro
     const source_asset = quote?.route.source.tokenContract && source_network?.tokens.find(t => Address.equals(t.contract, quote?.route.source.tokenContract, source_network))
     const destination_asset = quote?.route.destination.tokenContract && destination_network?.tokens.find(t => Address.equals(t.contract, quote?.route.destination.tokenContract, destination_network))
 
-    const amount = (quote?.amount && source_asset && source_asset?.decimals != null)
-        ? Number(formatAmount(BigInt(quote.amount), source_asset.decimals))
-        : undefined
     const address = destinationAddress
 
     const { provider } = useWallet(source_network, 'withdrawal')
@@ -43,21 +41,33 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type, setErro
 
     const atomicContract = source_network?.trainContract
     const destContract = destination_network?.trainContract
-    const destLpAddress = quote?.destinationSolverAddress
-    const srcLpAddress = quote?.sourceSolverAddress
 
     const handleUserLock = async () => {
         try {
-            if (!quote || !source_network || !sourceWallet || !sourceAccount || !provider?.activeWallet || !amount || !address || !destination_network || !destination_asset || !source_asset || !atomicContract || !destLpAddress || !srcLpAddress || !destContract) throw new Error("Missing params")
+            if (!quote || !source_network || !sourceWallet || !sourceAccount || !provider?.activeWallet || !address || !destination_network || !destination_asset || !source_asset || !atomicContract || !destContract) throw new Error("Missing params")
 
             if (provider && sourceWallet && (sourceWallet.chainId != source_network.chainId) && provider.switchChain) await provider.switchChain(sourceWallet, source_network.chainId)
 
             if (!isLoggedIn) throw new Error('Please log in first')
 
+            // Reward and solver data are market-sensitive. Fetch a new signed
+            // quote at the final action boundary instead of submitting a quote
+            // that may have aged for a full polling interval in the modal.
+            const freshQuote = await refreshQuote()
+            if (!freshQuote) throw new Error('The quote is no longer available. Please try again.')
+            if (!freshQuote.amount) throw new Error('The refreshed quote has no source amount')
+            if (freshQuote.quoteExpirationTimestampInSeconds <= Math.floor(Date.now() / 1000)) {
+                throw new Error('The refreshed quote has expired. Please try again.')
+            }
+
+            const amountInBaseUnits = BigInt(freshQuote.amount)
+            if (amountInBaseUnits <= 0n) throw new Error('The refreshed quote has an invalid source amount')
+            const amount = formatAmount(amountInBaseUnits, source_asset.decimals)
+
             const params: StartSwapParams = {
                 sourceNetwork: source_network.caip2Id,
                 destinationNetwork: destination_network.caip2Id,
-                amount: amount.toString(),
+                amount,
                 sourceAsset: source_asset,
                 destinationAsset: destination_asset,
                 sourceAddress: sourceAccount?.address,
@@ -65,7 +75,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type, setErro
                 srcContract: atomicContract,
                 destContract: destContract,
                 chainId: source_network.chainId,
-                quote
+                quote: freshQuote
             }
 
             const hl = await createSwap(params)
