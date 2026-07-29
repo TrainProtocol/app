@@ -1,5 +1,5 @@
 import { useConfig, useConnect, useConnectors, useDisconnect, useSwitchAccount, Connector } from "wagmi"
-import {  Network, NetworkTypes } from "@/Models/Network"
+import { Network, NetworkTypes } from "@/Models/Network"
 import { useSettingsState } from "@/context/settings"
 import KnownInternalNames from "../../knownIds"
 import { resolveWalletConnectorIcon, resolveWalletConnectorIndex } from "../utils/resolveWalletIcon"
@@ -43,7 +43,6 @@ const name = 'EVM'
 const id = 'eip155'
 
 const ethereumNames = [KnownInternalNames.Networks.EthereumMainnet, KnownInternalNames.Networks.EthereumSepolia]
-const immutableZKEvm = [KnownInternalNames.Networks.ImmutableZkEVM]
 
 export default function useEVM(): WalletProvider {
     const { networks } = useSettingsState()
@@ -51,10 +50,6 @@ export default function useEVM(): WalletProvider {
 
     const asSourceSupportedNetworks = useMemo(() => [
         ...networks.filter(network => network.networkType === NetworkTypes.EVM).map(l => l.caip2Id),
-        KnownInternalNames.Networks.ZksyncMainnet,
-        KnownInternalNames.Networks.LoopringGoerli,
-        KnownInternalNames.Networks.LoopringMainnet,
-        KnownInternalNames.Networks.LoopringSepolia
     ], [networks])
 
     const withdrawalSupportedNetworks = useMemo(() => [
@@ -63,9 +58,6 @@ export default function useEVM(): WalletProvider {
 
     const autofillSupportedNetworks = useMemo(() => [
         ...asSourceSupportedNetworks,
-        KnownInternalNames.Networks.BrineMainnet,
-        KnownInternalNames.Networks.HyperliquidMainnet,
-        KnownInternalNames.Networks.HyperliquidTestnet,
     ], [asSourceSupportedNetworks])
 
     const isNotAvailableCondition = useCallback((connectorId: string | undefined, network: string | undefined, purpose?: "withdrawal" | "autofill" | "asSource") => {
@@ -441,7 +433,7 @@ const ResolveWallet = (props: ResolveWalletProps): Wallet | undefined => {
         asSourceSupportedNetworks: resolveSupportedNetworks(supportedNetworks.asSource, walletId),
         autofillSupportedNetworks: resolveSupportedNetworks(supportedNetworks.autofill, walletId),
         withdrawalSupportedNetworks: resolveSupportedNetworks(supportedNetworks.withdrawal, walletId),
-        networkIcon: networks.find(n => walletId === "com.immutable.passport" ? immutableZKEvm.some(name => name === n.caip2Id) : ethereumNames.some(name => name === n.caip2Id))?.logoUrl,
+        networkIcon: networks.find(n => ethereumNames.some(name => name === n.caip2Id))?.logoUrl,
         metadata: {
             deepLink: (connector as LSConnector).deepLink
         }
@@ -456,18 +448,13 @@ const resolveSupportedNetworks = (supportedNetworks: string[], connectorId: stri
         {
             id: "com.immutable.passport",
             supportedNetworks: [
-                KnownInternalNames.Networks.ImmutableZkEVM,
-                KnownInternalNames.Networks.ImmutableZkTestnet
             ]
         },
         {
             id: "com.roninchain.wallet",
             supportedNetworks: [
-                KnownInternalNames.Networks.RoninMainnet,
                 KnownInternalNames.Networks.EthereumMainnet,
-                KnownInternalNames.Networks.PolygonMainnet,
                 KnownInternalNames.Networks.BaseMainnet,
-                KnownInternalNames.Networks.BNBChainMainnet,
                 KnownInternalNames.Networks.ArbitrumMainnet
             ]
         },
@@ -476,8 +463,6 @@ const resolveSupportedNetworks = (supportedNetworks: string[], connectorId: stri
             supportedNetworks: [
                 KnownInternalNames.Networks.EthereumMainnet,
                 KnownInternalNames.Networks.BaseMainnet,
-                KnownInternalNames.Networks.PolygonMainnet,
-                KnownInternalNames.Networks.MonadMainnet
             ]
         }
     ]

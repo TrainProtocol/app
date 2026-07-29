@@ -8,6 +8,7 @@ import { AztecWalletProvider } from "./AztecWalletProvider";
 import { WalletBridges } from "../WalletBridges";
 import TronProvider from "./TronProvider";
 import ConnectWalletDrawer from "../WalletModal/ConnectWalletDrawer";
+import FuelProvider from "./FuelProvider";
 
 const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[] }> = ({ children }) => {
     return (
@@ -15,15 +16,17 @@ const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[] }> = ({ child
             <TronProvider>
                 <StarknetProvider>
                     <Wagmi>
-                        <WalletModalProvider>
-                            <AztecWalletProvider>
-                                <WalletProvidersProvider>
-                                    <WalletBridges />
-                                    <ConnectWalletDrawer />
-                                    {children}
-                                </WalletProvidersProvider>
-                            </AztecWalletProvider>
-                        </WalletModalProvider>
+                        <FuelProvider>
+                            <WalletModalProvider>
+                                <AztecWalletProvider>
+                                    <WalletProvidersProvider>
+                                        <WalletBridges />
+                                        <ConnectWalletDrawer />
+                                        {children}
+                                    </WalletProvidersProvider>
+                                </AztecWalletProvider>
+                            </WalletModalProvider>
+                        </FuelProvider>
                     </Wagmi>
                 </StarknetProvider>
             </TronProvider>

@@ -20,29 +20,32 @@ packages/blockchains/{chain}/
 │   │   ├── WalletClient.ts      # Write client class (delegates to wallet/*.ts)
 │   │   ├── helpers.ts           # Event parsing helpers (chain-specific)
 │   │   ├── public/
-│   │   │   ├── getUserLockDetails.ts   # Includes resolveUserLock + pickEventDerivedData
+│   │   │   ├── getUserLockDetails.ts   # Includes resolveUserLock + chain-specific event extraction
 │   │   │   ├── getSolverLockDetails.ts # Includes resolveSolverLock
 │   │   │   ├── getTransaction.ts
-│   │   │   └── recoverSwap.ts
+│   │   │   ├── recoverSwap.ts
+│   │   │   └── get{Standard}Allowance.ts # If the chain has an allowance flow (e.g. ERC20/TRC20)
 │   │   └── wallet/
 │   │       ├── userLock.ts             # Executor — orchestrates build + simulate + send
-│   │       ├── buildUserLockTx.ts      # Pure builder — params → TransactionRequest
+│   │       ├── buildUserLockTx.ts      # Builder — params → TransactionRequest
 │   │       ├── refund.ts
 │   │       ├── buildRefundTx.ts
 │   │       ├── redeemSolver.ts
 │   │       ├── buildRedeemSolverTx.ts
-│   │       └── buildApproveTx.ts       # If the chain has an ERC20-like allowance flow
+│   │       └── buildApproveTx.ts       # If the chain has a token approval flow
 │   ├── index.ts            # Registration + public exports
-│   ├── types.ts            # Signer interface + client config types
-│   ├── constants.ts        # Chain-specific constants (zero addresses, fee limits, etc.)
+│   ├── types.ts            # Signer interface + client config types + TransactionRequest
+│   ├── constants.ts        # Chain-specific constants (zero addresses, fee limits) — omit if none
 │   ├── utils.ts            # Chain-specific utilities (hex helpers, address normalization)
-│   ├── rpc.ts              # Custom RPC client (if needed)
+│   ├── abi.ts              # ABI/function definitions when applicable (EVM/Tron use ox AbiFunction defs)
+│   ├── rpc.ts              # Custom RPC client (if needed — EVM/Tron)
 │   ├── login/
 │   │   ├── index.ts
 │   │   └── wallet-sign.ts
-│   ├── abis/ or artifacts/
+│   ├── abis/ or artifacts/ or idl/
 │   └── __tests__/
 │       ├── resolveLock.test.ts  # Tests for resolveUserLock + resolveSolverLock
+│       ├── builders.test.ts     # Tests for build*Tx outputs
 │       ├── helpers.test.ts      # Tests for helper pure functions
 │       └── register{Chain}Sdk.test.ts
 ├── package.json
@@ -53,12 +56,13 @@ packages/blockchains/{chain}/
 **Key structural rules:**
 - Each read/write method lives in its own file under `client/public/` or `client/wallet/`
 - `resolveUserLock()` is co-located in `getUserLockDetails.ts`, `resolveSolverLock()` in `getSolverLockDetails.ts` — exported for testing
-- `pickEventDerivedData()` is co-located in `getUserLockDetails.ts` (EVM/Tron) or `client/helpers.ts` (Starknet)
-- Each write method has a **paired builder file** (`build{Method}Tx.ts`) and an **executor file** (`{method}.ts`):
-  - The **builder** is a pure synchronous function: takes params, returns a chain-specific `TransactionRequest` (e.g., `EvmTransactionRequest = { to, data, value?, chainId? }`). No RPC, no signer.
-  - The **executor** is a thin orchestrator that consumes the builder, performs simulation/preflight reads, and sends via the signer.
-  - Builders are exposed as public methods on the wallet client (`buildUserLockTx`, `buildRefundTx`, `buildRedeemSolverTx`, plus `buildApproveTx` if the chain uses ERC20-style allowances) so integrators can sign/submit via their own infra.
-- Shared utilities (`hexToUint8Array`, `encoder`, etc.) go in `src/utils.ts`
+- Event-data extraction is co-located in `getUserLockDetails.ts` (EVM/Tron/Solana) or `client/helpers.ts` (Starknet/Aztec)
+- Each protocol write operation (`userLock`, `refund`, `redeemSolver`) has a **paired builder file** (`build{Method}Tx.ts`) and an **executor file** (`{method}.ts`):
+  - The **builder** takes params and returns the chain's natural prepared transaction/call shape (`{Chain}TransactionRequest`). It never broadcasts or executes an on-chain state change. Builders are sync and pure on EVM/Tron/Starknet; Solana and Aztec builders are async because preparation requires chain dependencies. Aztec preparation also registers contracts locally on the wallet, and `buildUserLockTx` returns an **array** `[authwit, userLock]` to be batched.
+  - The **executor** is a standalone async function taking `(rpc, signer, params)` (chain-specific equivalents) — it consumes the builder, performs simulation/preflight reads, and sends via the signer. Client methods adapt their stored dependencies and delegate to these functions.
+  - Builders are exposed as public methods on the wallet client (`buildUserLockTx`, `buildRefundTx`, `buildRedeemSolverTx`, plus the standalone `buildApproveTx` if the chain uses ERC20-style allowances) so integrators can inspect, compose, batch, or submit them with chain-specific infrastructure.
+- Shared utilities (`hex`, address normalization, error decoding, etc.) go in `src/utils.ts`
+- Chain-specific extras are fine where warranted: Tron has `address.ts` (hex↔base58), Aztec has `client/public/storage.ts` and contract `artifacts/`, Solana has `idl/`
 
 ---
 
@@ -99,25 +103,23 @@ packages/blockchains/{chain}/
     "@train-protocol/sdk": "workspace:^",
     "@train-protocol/auth": "workspace:^",
     "@types/node": "^20",
-    "rimraf": "^6.0.1",
+    "rimraf": "catalog:",
     "typescript": "catalog:",
-    "vitest": "^4.0.18"
+    "vitest": "catalog:"
   },
   "engines": { "node": ">=18" }
 }
 ```
 
-Chain-specific libraries go in `dependencies`. The base SDK and auth package are always `peerDependencies`.
+Chain-specific libraries go in `dependencies`. The base SDK and auth package are always `peerDependencies` (and mirrored in `devDependencies`). Tooling (`rimraf`, `typescript`, `vitest`) is pinned via `catalog:`.
 
 ---
 
-## 3. types.ts — Signer, Config & Registry Augmentation
+## 3. types.ts — Signer, Config, TransactionRequest & Registry Augmentation
 
-Every SDK defines a **Signer** interface, two **Config** types (public + wallet), a **WalletSignConfig** type, and augments the SDK registry maps via declaration merging:
+Every new SDK should define a **Signer** interface, expose a named **TransactionRequest** type, define two **Config** types (public + wallet) plus a **WalletSignConfig** type, and augment the SDK + auth registry maps via declaration merging:
 
 ```ts
-import type { {Chain}WalletLike } from './login/index.js'
-
 // Augment the SDK registries so the factory callbacks are fully typed.
 declare module '@train-protocol/sdk' {
     interface HTLCPublicClientConfigMap {
@@ -125,6 +127,9 @@ declare module '@train-protocol/sdk' {
     }
     interface HTLCWalletClientConfigMap {
         {namespace}: {Chain}HTLCWalletClientConfig
+    }
+    interface HTLCTransactionRequestMap {
+        {namespace}: {Chain}TransactionRequest
     }
 }
 
@@ -136,19 +141,28 @@ declare module '@train-protocol/auth' {
 }
 
 // Config passed to deriveKeyFromWallet('{namespace}', config).
+// Shape varies per chain: { wallet } (Solana/Tron), { provider, address, options? }
+// (EVM/Starknet), { wallet, address } (Aztec).
 export type {Chain}WalletSignConfig = {
-    wallet: {Chain}WalletLike
-    // Add address / options if the chain's key derivation needs them.
+    // Chain-specific wallet/provider plus address/options when required
 }
 
-// Signer wraps the chain's wallet/signing mechanism.
-// Must expose the address and a way to send transactions.
+// The built, unsubmitted transaction/call shape returned by the builders.
+// May be a local interface (EVM `{ to, data, value?, chainId? }`, Tron TronGrid
+// payload) or an alias of a chain-library type (Starknet `Call`,
+// Solana `Transaction`, Aztec `ContractFunctionInteraction`).
+export interface {Chain}TransactionRequest { ... }
+
+// Minimal signer interface — wraps the chain's wallet/signing mechanism.
+// Examples: EVM { address, sendTransaction(tx) }, Tron { address, signAndBroadcast(tx) },
+// Starknet { address, account }, Solana { publicKey, sendTransaction(tx) },
+// Aztec { wallet, address }.
 export interface {Chain}Signer {
-    address: string
-    // Chain-specific signing method(s)
+    // Chain-specific identity and signing method(s)
 }
 
 // Public client config — read-only operations, no signer.
+// May carry chain-specific extras (EVM: chainId?, Tron: apiKey?).
 export type {Chain}HTLCPublicClientConfig = {
     rpcUrl: string
 }
@@ -159,37 +173,43 @@ export type {Chain}HTLCWalletClientConfig = {Chain}HTLCPublicClientConfig & {
 }
 ```
 
+Existing exception: Aztec's *public* config accepts an optional `signer?` so the wallet config can refine the same shape to a required signer; its public read methods still use the node. Keep new public configs signer-free unless a read operation genuinely requires wallet access.
+
+Existing exception: Solana maps `HTLCTransactionRequestMap.solana` directly to `@solana/web3.js`'s `Transaction` rather than defining and re-exporting a `SolanaTransactionRequest` alias. New integrations should still expose a named alias so consumers do not need to know the registry's underlying library type.
+
 ---
 
-## 4. client.ts — Class Structure & Function Ordering
+## 4. Client Classes — Thin Facades
 
 ### Two-class pattern
 
-Each chain implements two classes: a **public client** (read-only) and a **wallet client** (write, extends public). The wallet client inherits all read methods — no code duplication.
+Each chain implements two classes: a **public client** (read-only) and a **wallet client** (write, extends public). The wallet client inherits all read methods — no code duplication. Both classes are **thin facades**: they own long-lived chain dependencies (RPC/provider/node, signer, program factories) and adapt those dependencies into the corresponding `client/public/*.ts` or `client/wallet/*.ts` function. Protocol mapping, transaction construction, and submission logic stay in those standalone functions. Simple chains use one-line delegations; chains such as Solana may construct a program or other chain-specific dependency before delegating.
 
 ```ts
 import { HTLCPublicClient } from '@train-protocol/sdk'
 import type { IHTLCWalletClient } from '@train-protocol/sdk'
 
-// Public client — read-only operations, no signer required
+// PublicClient.ts — read-only operations, no signer required
 export class {Chain}HTLCPublicClient extends HTLCPublicClient {
     protected rpc: ...
 
     constructor(config: {Chain}HTLCPublicClientConfig) {
         super()
         this.rpc = ...
-        // Override consensus options if needed: this.consensusOptions = { minQuorum: 1 }
+        // Override consensus options if needed: this.consensusOptions = { minQuorum: 1, batchSize: 1 }
     }
 
-    // ── Read Operations ────────────────────────────────────────────────
-    async getUserLockDetails(params: LockParams): Promise<UserLockDetails | null> { ... }
-    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> { ... }
-    async recoverSwap(txHash: string, network: Network): Promise<UserLockDetails> { ... }
-    async getTransaction(txHash: string): Promise<TransactionInfo | null> { ... }
+    async getUserLockDetails(params: LockParams): Promise<UserLockDetails | null> { return getUserLockDetails(this.rpc, params) }
+    async getSolverLockDetails(params: LockParams, nodeUrl: string): Promise<SolverLockDetails | null> { return getSolverLockDetails(params, nodeUrl) }
+    async recoverSwap(txHash: string, network: Network): Promise<UserLockDetails> { return recoverSwap(this.rpc, txHash, network) }
+    async getTransaction(txHash: string): Promise<TransactionInfo | null> { return getTransaction(this.rpc, txHash) }
+    // If the chain has allowances, the standard-specific read lives here
+    // (EVM example):
+    async getErc20Allowance(token: string, owner: string, spender: string): Promise<bigint> { ... }
 }
 
-// Wallet client — write operations, signer REQUIRED at construction
-export class {Chain}HTLCWalletClient extends {Chain}HTLCPublicClient implements IHTLCWalletClient {
+// WalletClient.ts — write operations, signer REQUIRED at construction
+export class {Chain}HTLCWalletClient extends {Chain}HTLCPublicClient implements IHTLCWalletClient<{Chain}TransactionRequest> {
     private signer: {Chain}Signer
 
     constructor(config: {Chain}HTLCWalletClientConfig) {
@@ -198,20 +218,25 @@ export class {Chain}HTLCWalletClient extends {Chain}HTLCPublicClient implements 
     }
 
     // ── Write Operations ───────────────────────────────────────────────
-    async userLock(params: UserLockParams): Promise<AtomicResult> { ... }
+    async userLock(params: UserLockParams): Promise<AtomicResult> { return userLock(this.rpc, this.signer, params) }
     async refund(params: RefundParams): Promise<string> { ... }
     async redeemSolver(params: RedeemSolverParams): Promise<string> { ... }
-    // ... chain-specific write helpers
+
+    // ── Transaction Builders ──────────────────────────────────────────
+    buildUserLockTx(params: UserLockParams): {Chain}TransactionRequest { ... }
+    buildRefundTx(params: RefundParams): {Chain}TransactionRequest { ... }
+    buildRedeemSolverTx(params: RedeemSolverParams): {Chain}TransactionRequest { ... }
+    buildApproveTx(params: BuildApproveTxParams): {Chain}TransactionRequest { ... }  // allowance chains only
 }
 ```
+
+`IHTLCWalletClient<TTx>` is generic over the transaction-request type and includes the builder methods; builders may be sync or async and `buildUserLockTx` may return an array. New clients should supply the chain transaction type to `implements` so the shared interface checks the builder boundary; the five existing clients currently use bare `IHTLCWalletClient` (whose `TTx` defaults to `unknown`) and rely on their concrete method signatures for narrower return types.
 
 ### Ordering rules
 
 1. **Write operations first** — `userLock` → `refund` → `redeemSolver`
-2. **Read operations second** — `getUserLockDetails` → `getSolverLockDetails` → `recoverSwap`
-3. **Public helpers third** — `getTransaction`
-4. **Private helpers last** — `requireSigner()` first, then chain-specific utilities
-5. **Use section comments** — `// ── Write Operations ───...` / `// ── Public Helpers ───...` separator style between groups
+2. **Transaction builders second** — under a `// ── Transaction Builders ──` section comment
+3. **Reads live on the public client** — `getUserLockDetails` → `getSolverLockDetails` → `recoverSwap` → `getTransaction` (+ allowance read)
 
 ### Base class methods (do NOT override)
 
@@ -221,21 +246,22 @@ The base `HTLCPublicClient` class provides this method — subclasses should **n
 
 ### Cross-node consensus
 
-The base class provides `getSolverLockDetailsWithConsensus()` which fans out `getSolverLockDetails()` to multiple RPC nodes and validates that all successful responses agree on critical fields (`amount`, `sender`, `recipient`, `token`, `timelock`).
+The base class provides `getSolverLockDetailsWithConsensus()` which fans out `getSolverLockDetails()` to multiple RPC nodes and validates a defined set of lock fields across the non-null results queried before quorum is reached. It does not compare every `SolverLockDetails` field: notably `secret` and reward fields are not part of consensus.
 
 **Consensus options:**
 - The `HTLCPublicClient` base class sets `protected consensusOptions: Required<ConsensusOptions> = { minQuorum: 2, batchSize: 3 }` by default
-- Subclasses can override this in their constructor (e.g., Aztec sets `minQuorum: 1` since it typically has fewer public nodes)
+- Subclasses can override this in their constructor (currently Starknet and Aztec both set `{ minQuorum: 1, batchSize: 1 }`)
 - Per-call `options` passed to `getSolverLockDetailsWithConsensus()` take priority over the instance default
+- `minQuorum` and `batchSize` are not runtime-validated; callers must provide positive integers (`batchSize: 0` would prevent batching from advancing)
 
 **How it works:**
 1. Partitions `nodeUrls` into batches of `batchSize`
 2. Queries each batch in parallel via `Promise.allSettled`
 3. Filters for non-null results
-4. Requires at least `minQuorum` agreeing results (capped to `nodeUrls.length`)
-5. Compares critical fields (`amount`, `sender`, `recipient`, `token`, `timelock`, `status`) across all valid results — throws if they disagree
-6. Returns the first valid result if consensus passes
-7. Supports `prefetchedResult` option to skip re-querying the first node
+4. Accumulates non-null results until their count reaches `minQuorum` (capped to `nodeUrls.length`); it then requires **all accumulated results** to match rather than searching for an agreeing quorum subset
+5. Compares `hashlock` (case-insensitive), `index`, `sender`, `recipient`, `token`, `refundTo`, `payoutCurve`, `timelock`, `status`, and amount (via `amountInBaseUnits` if either side provides it, otherwise stringified `amount`) — throws if any accumulated result disagrees
+6. Returns `ConsensusResult { details, agreedCount }` (first valid result + number of matching accumulated results). Returns `null` when there are no nodes/prefetch or when every queried node fulfills with `null`; if there are no valid results and at least one request rejects, it rethrows the last rejection
+7. Supports `prefetchedResult` option — counts as `nodeUrls[0]`'s result and can satisfy quorum alone (e.g. Aztec `minQuorum: 1`)
 
 Chain implementations only need to implement the single-node abstract method `getSolverLockDetails(params, nodeUrl)`.
 
@@ -243,47 +269,40 @@ Chain implementations only need to implement the single-node abstract method `ge
 
 ## 5. Write Operation Patterns
 
-Each write method is split into two files under `client/wallet/`: a **pure builder** (`build{Method}Tx.ts`) that returns a chain-specific `TransactionRequest`, and an **executor** (`{method}.ts`) that consumes the builder, simulates, and sends via the signer.
+Each protocol write operation is split into two files under `client/wallet/`: a **builder** (`build{Method}Tx.ts`) that returns a `{Chain}TransactionRequest`, and an **executor** (`{method}.ts`) that consumes the builder, performs chain-specific preflight work, and sends via the signer. Token approval is a supporting builder used by `userLock`, not a separate protocol executor.
 
 ### Builder/executor split
 
-- **Builder**: synchronous, pure. Inputs are the method's params; output is `{ to, data, value?, chainId? }` (chain-specific shape). No RPC reads, no signer access. Exposed as a public method on the wallet client.
-- **Executor**: async. Calls the builder, performs any preflight (allowance check via a public-client read method, simulation via `eth_call` or equivalent), then submits via the signer. Returns the same shape as before (e.g. `AtomicResult` for `userLock`, tx hash for `refund`/`redeemSolver`).
-- **ERC20-style allowance** (if the chain has it): use a paired `buildApproveTx` builder plus a public-client read like `getErc20Allowance`. The executor decides whether to issue an approve before the lock — builders never do that themselves.
+- **Builder**: never broadcasts or executes an on-chain state change. Inputs are the method's params; output is the chain's prepared transaction/call shape. Sync and pure on EVM/Tron/Starknet. Async on Solana/Aztec where preparation requires the wallet/node; Aztec builders also register Train/Token contract metadata locally on the wallet. Exposed as a public method on the wallet client.
+- **Executor**: standalone async function taking `(rpc, signer, params)` or chain-specific equivalents. Calls the builder, performs any preflight (allowance check via the public-client read, simulation via `eth_call` or equivalent), then submits via the signer. Returns `AtomicResult` for `userLock`, tx hash string for `refund`/`redeemSolver`.
+- **Token approval/allowance**: the SDK exports the canonical `BuildApproveTxParams = { token, spender, amount }` shape. EVM, Tron, and Starknet currently define and re-export identical package-local interfaces. EVM and Tron pair `buildApproveTx` with `getErc20Allowance` / `getTrc20Allowance`; Starknet has no allowance read and batches an unconditional approve call with the lock.
 
 ### userLock (`client/wallet/userLock.ts`)
 
-1. Validate required params (contract, signer, nonce, solverData)
-2. Parse amount with `parseUnits(amount.toString(), decimals)`
-3. Handle token approval/authorization if needed (ERC20 allowance, authwit, etc.)
-4. Handle native vs token branching (e.g., Solana `userLockSol` vs `userLockToken`)
-5. Build transaction, set blockhash/fee payer
-6. Send via signer, confirm
-7. Return `{ hash, hashlock, nonce: timestamp }`
+1. Determine native vs token using the chain's actual representation. EVM/Tron treat an empty contract or `ZERO_ADDRESS` as native; Solana treats an empty contract or `NATIVE_SOL_ADDRESS` as native. Starknet models assets as token contracts and Aztec's current lock builder requires a token contract, so neither follows that native-token branch.
+2. Parse amount with `parseUnits(params.amount.toString(), params.sourceAsset.decimals)`
+3. Apply the chain's authorization flow: EVM/Tron check allowance and, if insufficient, send a separate approval and wait for confirmation; Starknet batches `[approveCall, lockCall]` in one `account.execute`; Solana needs no allowance; Aztec batches a public authwit with the lock
+4. Build the lock tx via `buildUserLockTx(params)`
+5. Simulate if the chain supports it (`eth_call` with the built calldata)
+6. Send via signer
+7. Return `{ hash, hashlock: params.hashlock, nonce: params.nonce }`
+
+**Submission/confirmation semantics:**
+- EVM/Tron approval and lock are separate transactions. A lock failure can leave a successful approval behind. Their lock/refund/redeem executors simulate before submission but return after broadcast without waiting for the operation receipt.
+- Starknet sends approve + lock as one multicall and waits for the transaction; refund/redeem also wait.
+- Solana sends one transaction and calls `confirmTransaction`, rejecting confirmation errors.
+- Aztec sends the authwit + lock as one `BatchCall`; all write executors wait and explicitly reject reverted receipts.
 
 ### refund
 
-1. Call `this.requireSigner()`
-2. Encode and send `refundUser` / `refund_user` with the hashlock
-3. Return tx hash string
+1. Build via `buildRefundTx` (encodes `refundUser` / `refund_user` with the hashlock)
+2. Send via signer, return tx hash string
 
 ### redeemSolver
 
-1. Call `this.requireSigner()`
-2. Convert secret to chain-native format
-3. Encode and send `redeemSolver` / `redeem_solver` with hashlock, index, secret
-4. Return tx hash string
-
-### Error handling for all write operations
-
-```ts
-try {
-    // simulate (if chain supports it) + send
-} catch (error) {
-    console.error('Error in {methodName}:', error)
-    throw error
-}
-```
+1. Convert secret to chain-native format
+2. Build via `buildRedeemSolverTx` (encodes `redeemSolver` / `redeem_solver` with hashlock, index, secret). New integrations should use `params.index ?? 1`; current EVM and Tron builders hard-code index `1`, while Starknet, Solana, and Aztec honor `params.index ?? 1`.
+3. Send via signer, return tx hash string
 
 ---
 
@@ -296,8 +315,9 @@ Each chain's `getUserLockDetails.ts` file contains both the async function and a
 1. Query contract for user lock by hashlock
 2. Call `resolveUserLock(result, id, params.decimals)` — returns `BaseLockDetails | null`
 3. If null, return null early
-4. If `txId` is provided, extract `EventDerivedData` via `pickEventDerivedData(event)` (also co-located in same file for EVM/Tron, or in `client/helpers.ts` for Starknet)
-5. Return `{ ...parsedResult, ...eventDerivedData, blockTimestamp }` as `UserLockDetails`
+4. If `txId` is provided, best-effort event extraction is chain-specific: EVM/Tron use co-located `pickEventDerivedData`, Starknet uses `pickStarknetEventData`, Solana parses Anchor logs in the same file, and Aztec uses `findEventDataFromLogs`
+5. Populate `blockTimestamp` in milliseconds where implemented: EVM fetches the receipt block, Tron uses `blockTimeStamp`, and Solana uses `blockTime`. Starknet and Aztec currently omit it.
+6. Solana additionally attempts to recover a closed user-lock account from the PDA's latest transaction, returning terminal `Refunded`/`Redeemed` details with unavailable fields zeroed/empty
 
 **`resolveUserLock` must be an exported pure function** in the same file — this enables direct unit testing:
 ```ts
@@ -315,9 +335,10 @@ export function resolveUserLock(result: any, id: string, decimals: number): Base
 ```
 
 **Key rules for field mapping:**
-- All `BaseLockDetails` fields are **required** — always populate `sender`, `recipient`, `token` (use empty string `''` if absent, never `undefined`)
+- Populate every required `BaseLockDetails` field. `hashlock`, `secret`, `amount`, `sender`, `timelock`, `status`, `recipient`, and `token` are required; `amountInBaseUnits`, `refundTo`, and `payoutCurve` are optional. Use `''` for unavailable required strings, never `undefined`.
 - `secret` is always `bigint` — use `BigInt(result.secret)`, no conditional check for zero
 - `amount` uses `params.decimals` directly — no fallback like `?? 18`
+- `LockStatus` values: `Empty(0)`, `Pending(1)`, `Refunded(2)`, `Redeemed(3)`
 
 ### getSolverLockDetails — Count-Then-Loop Pattern
 
@@ -349,6 +370,7 @@ export function resolveSolverLock(result: any, id: string, decimals: number, ind
     return {
         hashlock: id,
         amount: Number(formatUnits(BigInt(result.amount), decimals)),
+        amountInBaseUnits: BigInt(result.amount),
         secret: BigInt(result.secret),
         sender: ..., recipient: ..., token: ...,
         timelock: Number(result.timelock),
@@ -363,19 +385,22 @@ export function resolveSolverLock(result: any, id: string, decimals: number, ind
 
 Key points:
 - **1-indexed** — contract indices start at 1
-- **All `BaseLockDetails` + `Reward` fields are required** — `secret` is always `bigint`, strings never `undefined`
+- **All required `BaseLockDetails` fields must be populated** — `secret` is always `bigint`, and required strings are never `undefined`. `Reward` fields and `refundTo` / `payoutCurve` are optional in the shared types, although the current solver resolvers populate all reward fields.
+- **Always include `amountInBaseUnits: BigInt(result.amount)`** — the exact on-chain amount is required for irreversible safety checks and cross-node amount comparison
 - **Include `index`** in the returned `SolverLockDetails`
 - **Use `params.decimals` directly** — no `?? 18` fallback
+- Normalize `reward` according to the chain ABI's units. Current Starknet/Solana/Aztec resolvers call `formatUnits(..., decimals)`; EVM/Tron currently return `Number(result.reward)` directly.
 
 ### recoverSwap
 
-**Must validate the `txHash` format at the top of the function before making any RPC calls.** Throw `'Invalid transaction hash format'` if it doesn't match. Each chain has its own expected format:
+**Validate the `txHash` format at the top of the function before making any RPC calls.** New integrations should throw `new InvalidTxHashError()` (from `@train-protocol/sdk`). Existing EVM and Tron do so; Starknet, Solana, and Aztec currently throw a plain `Error('Invalid transaction hash format')`. Each chain's current format is:
 
 - EVM: `/^0x[a-fA-F0-9]{64}$/`
+- Tron: `/^[a-fA-F0-9]{64}$/` (no `0x` prefix)
 - Starknet / Aztec: `/^0x[a-fA-F0-9]{1,64}$/`
 - Solana: `/^[1-9A-HJ-NP-Za-km-z]{43,88}$/`
 
-Then fetch transaction + receipt, parse the `UserLocked` event from logs to extract the hashlock and token address. Use the `Network` parameter to look up token decimals, then delegate to `this.getUserLockDetails()` with `txId: txHash`. Return `UserLockDetails`. If the event is not found or `getUserLockDetails` returns null, throw.
+Then fetch the chain's receipt/transaction events, extract the hashlock and token address, and delegate to `getUserLockDetails` with `txId: txHash`. EVM, Tron, and Starknet require the event token to exist in `network.tokens`; current Solana and Aztec fall back to 9 and 18 decimals respectively when it does not. Do not copy those fallbacks into a new integration: a missing token match should fail recovery rather than risk scaling the amount with incorrect decimals. If the event is absent or `getUserLockDetails` returns null, throw.
 
 ### getTransaction
 
@@ -406,7 +431,7 @@ async getTransaction(txHash: string): Promise<TransactionInfo | null> {
 ```
 
 Rules:
-- **Always wrap in try/catch returning `null`** — this runs in a polling loop; thrown errors cause noisy console output
+- **New integrations should wrap RPC failures in try/catch returning `null`** — this runs in a polling loop. EVM, Starknet, Tron, and Aztec do this; Solana currently lets `getTransaction` / `getSignatureStatuses` errors propagate.
 - **Must distinguish all three statuses** — `Pending`, `Confirmed`, `Failed`. Binary mappings (e.g., only Failed/Confirmed) cause incorrect early signals
 - **Must be non-blocking** — do not use methods that wait for finalization (e.g., Fuel's `waitForResult`). If the chain SDK has no non-blocking alternative, document the limitation
 - **Avoid unnecessary RPC calls** — do not fetch block data for `blockTimestamp` if the polling consumer only needs `status`. Keep it minimal
@@ -416,36 +441,38 @@ Rules:
 
 ## 7. index.ts — Registration & Exports
 
-Because `types.ts` augments `HTLCPublicClientConfigMap`, `HTLCWalletClientConfigMap`, and `WalletSignConfigMap`, the factory callbacks receive fully-typed configs — no `as` casts needed.
+Registration goes through the `TrainSDK` / `TrainAuth` **instances** (not free functions). `register{Chain}Sdk` accepts optional instances for testing isolation and defaults to the shared singletons. Idempotency comes from `Map.set` — no boolean guard needed. Because `types.ts` augments `HTLCPublicClientConfigMap`, `HTLCWalletClientConfigMap`, `HTLCTransactionRequestMap`, and `WalletSignConfigMap`, the factory callbacks receive fully-typed configs — no `as` casts needed.
 
 ```ts
-import { registerHTLCPublicClient, registerHTLCWalletClient } from '@train-protocol/sdk'
-import { registerWalletSign } from '@train-protocol/auth'
-import { {Chain}HTLCPublicClient, {Chain}HTLCWalletClient } from './client.js'
+import { type TrainSDK, defaultTrainSDK } from '@train-protocol/sdk'
+import { type TrainAuth, defaultTrainAuth } from '@train-protocol/auth'
+import { {Chain}HTLCPublicClient, {Chain}HTLCWalletClient } from './client/index.js'
 import { deriveKeyFrom{Chain}Wallet } from './login/index.js'
 
-let registered = false
+/**
+ * Explicitly register the {Chain} HTLC client and wallet-sign factories.
+ * Call once at app startup. Safe to call multiple times (idempotent via Map.set).
+ */
+export function register{Chain}Sdk(sdk?: TrainSDK, auth?: TrainAuth): void {
+    const s = sdk ?? defaultTrainSDK
+    const a = auth ?? defaultTrainAuth
 
-export function register{Chain}Sdk(): void {
-    if (registered) return   // Idempotent guard
-    registered = true
+    s.registerHTLCPublicClient('{namespace}', (config) => new {Chain}HTLCPublicClient(config))
+    s.registerHTLCWalletClient('{namespace}', (config) => new {Chain}HTLCWalletClient(config))
 
-    registerHTLCPublicClient('{namespace}', (config) => new {Chain}HTLCPublicClient(config))
-    registerHTLCWalletClient('{namespace}', (config) => new {Chain}HTLCWalletClient(config))
-
-    registerWalletSign('{namespace}', async (config) => {
-        return deriveKeyFrom{Chain}Wallet(config.wallet)
+    a.registerWalletSign('{namespace}', async (config) => {
+        return deriveKeyFrom{Chain}Wallet(config.wallet /* or config.provider, config.address, config.options */)
     })
 }
 
 // Public exports
-export { {Chain}HTLCPublicClient, {Chain}HTLCWalletClient } from './client.js'
-export type { {Chain}HTLCPublicClientConfig, {Chain}HTLCWalletClientConfig, {Chain}Signer, {Chain}WalletSignConfig } from './types.js'
+export { {Chain}HTLCPublicClient, {Chain}HTLCWalletClient } from './client/index.js'
+export type { {Chain}HTLCPublicClientConfig, {Chain}HTLCWalletClientConfig, {Chain}Signer, {Chain}TransactionRequest } from './types.js'
 export { deriveKeyFrom{Chain}Wallet } from './login/index.js'
 export type { {Chain}WalletLike } from './login/index.js'
 ```
 
-The `{namespace}` is the chain identifier used in the registry (e.g., `'eip155'` for EVM, `'aztec'` for Aztec).
+The `{namespace}` is the chain identifier used in the registry (e.g., `'eip155'` for EVM, `'aztec'` for Aztec). Unregistered namespaces throw `RegistrationError` at `create*` time.
 
 ### What to export
 
@@ -455,43 +482,55 @@ The `{namespace}` is the chain identifier used in the registry (e.g., `'eip155'`
 - `{Chain}HTLCPublicClientConfig` — public client config type
 - `{Chain}HTLCWalletClientConfig` — wallet client config type
 - `{Chain}Signer` — signer type
-- `{Chain}TransactionRequest` — built/unsigned transaction request type returned by builders
+- `{Chain}TransactionRequest` — built, unsubmitted transaction/call type returned by builders
+- `BuildApproveTxParams` — use the SDK's canonical type for new code; EVM, Starknet, and Tron currently re-export identical package-local types
 - `deriveKeyFrom{Chain}...` — key derivation function
-- Any chain-specific wallet interface types needed by consumers
+- Any chain-specific wallet interface types or utilities needed by consumers (e.g. `formatStarknetAddress`, `getEvmTypedData`)
 
 ---
 
 ## 8. Login / Key Derivation
 
-Each chain needs a `login/wallet-sign.ts` that derives a deterministic login key:
+Each chain needs a `login/wallet-sign.ts` that derives a deterministic login key. `deriveKeyMaterial` and `IDENTITY_SALT` come from **`@train-protocol/auth`** (not the SDK). Return `Uint8Array` (no Node `Buffer` — must work in the browser):
 
 ```ts
-import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/sdk'
+import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/auth'
 
 export const deriveKeyFrom{Chain}Wallet = async (
-    /* chain-specific wallet/provider */
-): Promise<Buffer> => {
-    // 1. Sign a fixed message: "I am using TRAIN"
-    //    Use the chain's native signing mechanism
+    /* chain-specific wallet/provider (+ address/options if needed) */
+): Promise<Uint8Array> => {
+    // 1. Bind the fixed content "I am using TRAIN" using the chain's
+    //    deterministic native signing mechanism.
     const signature = /* sign the message */
 
     // 2. Derive key material from signature
-    const inputMaterial = Buffer.from(/* signature bytes */)
-    const identitySalt = Buffer.from(IDENTITY_SALT, 'utf8')
-    return Buffer.from(deriveKeyMaterial(inputMaterial, identitySalt))
+    const inputMaterial = /* signature bytes as Uint8Array */
+    const identitySalt = new TextEncoder().encode(IDENTITY_SALT)
+    return new Uint8Array(deriveKeyMaterial(inputMaterial, identitySalt))
 }
 ```
 
 Rules:
 - Always use `"I am using TRAIN"` as the message content
-- Always use `IDENTITY_SALT` and `deriveKeyMaterial` from the base SDK
+- Always use `IDENTITY_SALT` and `deriveKeyMaterial` from `@train-protocol/auth`
+- Return `Uint8Array`, build the salt with `TextEncoder`
 - Define a minimal wallet/provider interface (don't import the full chain SDK for the type)
+
+Current signing modes are not all plain-message signatures:
+
+| Chain | Signed input |
+|-------|--------------|
+| EVM | EIP-712 typed data (`eth_signTypedData_v4`), after optionally switching to Mainnet/Sepolia |
+| Starknet | SNIP-12-style typed data via `account.signMessage` |
+| Solana | UTF-8 message bytes via `wallet.signMessage` |
+| Tron | Plain message string via `wallet.signMessage` |
+| Aztec | SHA-256 of the fixed message converted to `Fr`, then an auth witness created with the account as both signer and consumer |
 
 ---
 
 ## 9. Shared SDK Imports
 
-Always import these utilities from `@train-protocol/sdk` instead of reimplementing:
+Always import these utilities from `@train-protocol/sdk` / `@train-protocol/auth` instead of reimplementing:
 
 ```ts
 // Unit conversion
@@ -513,27 +552,36 @@ import {
     TransactionInfo,
     TransactionStatus,
     ConsensusOptions,
+    ConsensusResult,
 } from '@train-protocol/sdk'
 import type {
     UserLockDetails,
     SolverLockDetails,
     BaseLockDetails,
     EventDerivedData,
+    IHTLCWalletClient,
+    BuildApproveTxParams,
 } from '@train-protocol/sdk'
 
-// Key derivation
-import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/sdk'
+// Typed error used by recoverSwap
+import { InvalidTxHashError } from '@train-protocol/sdk'
+
+// Key derivation — from AUTH, not the SDK
+import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/auth'
 ```
 
 ---
 
 ## 10. Error Handling
 
+The SDK's typed errors extend `TrainSDKError` and carry a `code`. Use the error that matches the boundary instead of introducing a new string-only error.
+
 | Context | Pattern |
 |---------|---------|
-| Write operations | `try { ... } catch (error) { console.error('Error in {method}:', error); throw error }` |
-| Signer guard | `private requireSigner(): Signer { if (!this.signer) throw new Error('Signer required'); return this.signer }` |
-| Lock not found | Return `null` (never throw for missing locks) |
+| Write operations | `try { ... } catch (error) { console.error('Error in {method}:', error); throw error }` — decode chain revert data into a readable message first when possible |
+| Signer presence | Guaranteed by each wallet config type; wallet clients do not need a runtime guard |
+| Invalid tx hash | New integrations: `throw new InvalidTxHashError()` at the top of `recoverSwap`; current Starknet/Solana/Aztec still throw plain `Error` |
+| Lock not found | `getUserLockDetails` / `getSolverLockDetails` return `null`; `recoverSwap` throws when the event or recovered lock is missing |
 | Event decoding | Wrap in try-catch, skip non-matching events silently |
 | Transaction revert | Check chain-specific revert indicator, throw with method name + error |
 
@@ -541,12 +589,12 @@ import { deriveKeyMaterial, IDENTITY_SALT } from '@train-protocol/sdk'
 
 ## 11. Testing
 
-Each blockchain package must alias `@train-protocol/sdk` to source in `vitest.config.ts`:
+Each blockchain package should alias `@train-protocol/sdk` to source in `vitest.config.ts` (all packages do except Aztec, which resolves the built workspace package):
 ```ts
 resolve: { alias: { '@train-protocol/sdk': path.resolve(__dirname, '../../sdk/src/index.ts') } }
 ```
 
-### resolveLock.test.ts — lock resolution tests (most critical)
+### resolveLock.test.ts — lock resolution tests (most critical, all chains)
 
 Tests `resolveUserLock` and `resolveSolverLock` directly — imported from `../client/public/getUserLockDetails` and `../client/public/getSolverLockDetails`:
 
@@ -556,71 +604,94 @@ import { resolveSolverLock } from '../client/public/getSolverLockDetails'
 
 describe('{Chain} resolveUserLock', () => {
     // 1. resolves a basic user lock — check all BaseLockDetails fields
-    // 2. returns null for empty/zero sender (or status=0 for Aztec)
+    // 2. returns null for empty/zero sender (or status=Empty for Aztec)
     // 3. formats amount with correct decimals
     // 4. maps status values correctly
 })
 
 describe('{Chain} resolveSolverLock', () => {
-    // 1. resolves solver lock with reward fields and index
+    // 1. resolves solver lock with reward fields, amountInBaseUnits, and index
     // 2. returns null for empty/zero sender
     // 3. includes correct index in result
 })
 ```
 
+### builders.test.ts — builder tests
+
+Test `buildUserLockTx` / `buildRefundTx` / `buildRedeemSolverTx` outputs, plus `buildApproveTx` when present: encoded calldata round-trips, native vs token `value` handling, default fields, and chain-specific prepared objects. EVM/Tron/Starknet builders can be tested as pure functions; Solana/Aztec builders require controlled chain-dependency fakes.
+
 ### helpers.test.ts — pure helper functions
 
-Test chain-specific helpers: `pickEventDerivedData`, `mapLockStatus` (Starknet), `parseSecret` (Solana/Aztec), `pickStarknetEventData`, etc.
+Test chain-specific helpers: `pickEventDerivedData`, `mapLockStatus` (Starknet), `parseSecret` (Solana/Aztec), event decoding, etc.
 
 ### register{Chain}Sdk.test.ts — registration smoke test
 
-Verify `register{Chain}Sdk()` registers the namespace and creates clients with expected methods.
+Verify `register{Chain}Sdk()` registers the namespace and creates clients with expected methods. Pass fresh `TrainSDK` / `TrainAuth` instances for isolation.
+
+### Chain-specific suites where warranted
+
+E.g. Tron `address.test.ts` (hex↔base58), Solana `idl.test.ts`, Aztec `storage.test.ts` + `recoverSwap.test.ts`.
+
+Current suite coverage (the template above is prescriptive, not a claim that every package already has every suite):
+
+| Chain | Existing suites |
+|-------|-----------------|
+| EVM | `builders`, `resolveLock` |
+| Starknet | `builders`, `helpers`, `registerStarknetSdk`, `resolveLock` |
+| Solana | `builders`, `helpers`, `idl`, `resolveLock` |
+| Tron | `address`, `resolveLock` |
+| Aztec | `helpers`, `recoverSwap`, `registerAztecSdk`, `resolveLock`, `storage` |
 
 ---
 
 ## 12. Constants
 
-Define chain-specific constants in `constants.ts` (preferred) or at the top of `client.ts`:
+Define chain-specific constants in `constants.ts` (omit the file if the chain has none, like Aztec):
 
 ```ts
-export const TX_TIMEOUT = 120000           // Transaction confirmation timeout (ms)
-export const ZERO_ADDRESS = '0x000...'     // Chain's empty/zero address representation
+export const ZERO_ADDRESS = '0x000...' as const   // Chain's empty/zero address representation
+// Chain-specific extras as needed, e.g.:
+// Solana: NATIVE_SOL_ADDRESS
+// Tron:   DEFAULT_FEE_LIMIT, TRON_ADDRESS_PREFIX, FUNCTION_SIGNATURES (TronGrid selector strings)
 ```
 
 ---
 
 ## Summary Checklist for New Chain SDK
 
-- [ ] Create `packages/{chain}/` with the modular directory structure above
+- [ ] Create `packages/blockchains/{chain}/` with the modular directory structure above
 - [ ] In `types.ts`:
-  - [ ] Define `{Chain}Signer` interface
-  - [ ] Define `{Chain}HTLCPublicClientConfig` (rpcUrl only) and `{Chain}HTLCWalletClientConfig` (extends public + required signer)
+  - [ ] Define `{Chain}Signer` interface (minimal — wraps the chain's signing mechanism)
+  - [ ] Define `{Chain}TransactionRequest` (local interface or alias of a chain-library type)
+  - [ ] Define `{Chain}HTLCPublicClientConfig` (rpcUrl + chain-specific extras) and `{Chain}HTLCWalletClientConfig` (extends public + required signer)
   - [ ] Define `{Chain}WalletSignConfig` type
-  - [ ] Add `declare module` augmentations for SDK and auth registries
-- [ ] Implement `client/PublicClient.ts` — delegates to `client/public/*.ts` files
-- [ ] Implement `client/WalletClient.ts` — delegates to `client/wallet/*.ts` files
+  - [ ] Add `declare module` augmentations for `HTLCPublicClientConfigMap`, `HTLCWalletClientConfigMap`, `HTLCTransactionRequestMap` (SDK) and `WalletSignConfigMap` (auth)
+- [ ] Implement `client/PublicClient.ts` — thin facade over `client/public/*.ts` functions
+- [ ] Implement `client/WalletClient.ts` — thin facade over `client/wallet/*.ts` functions, implementing `IHTLCWalletClient<{Chain}TransactionRequest>`
 - [ ] Each read method in its own file under `client/public/`:
-  - [ ] `getUserLockDetails.ts` — includes exported `resolveUserLock()` + `pickEventDerivedData()`
-  - [ ] `getSolverLockDetails.ts` — includes exported `resolveSolverLock()`
+  - [ ] `getUserLockDetails.ts` — includes exported `resolveUserLock()` plus chain-specific event extraction
+  - [ ] `getSolverLockDetails.ts` — includes exported `resolveSolverLock()` (with `amountInBaseUnits`)
   - [ ] `getTransaction.ts`
   - [ ] `recoverSwap.ts`
-- [ ] Each write method split into a paired builder + executor under `client/wallet/`:
-  - [ ] `userLock.ts` (executor) + `buildUserLockTx.ts` (pure builder)
-  - [ ] `refund.ts` (executor) + `buildRefundTx.ts` (pure builder)
-  - [ ] `redeemSolver.ts` (executor) + `buildRedeemSolverTx.ts` (pure builder)
-  - [ ] `buildApproveTx.ts` + `getErc20Allowance.ts` (under `client/public/`) if the chain has ERC20-like allowances
+  - [ ] `get{Standard}Allowance.ts` if the chain has token allowances (e.g. `getErc20Allowance.ts`, `getTrc20Allowance.ts`)
+- [ ] Each protocol write operation split into a paired builder + executor under `client/wallet/`:
+  - [ ] `userLock.ts` (executor) + `buildUserLockTx.ts` (builder)
+  - [ ] `refund.ts` (executor) + `buildRefundTx.ts` (builder)
+  - [ ] `redeemSolver.ts` (executor) + `buildRedeemSolverTx.ts` (builder)
+  - [ ] `buildApproveTx.ts` (prefer the SDK `BuildApproveTxParams`; existing allowance packages currently duplicate the same shape locally) if the chain has token approvals
   - [ ] Expose all builders as public methods on the wallet client
 - [ ] Count-then-loop pattern in `getSolverLockDetails` (1-indexed)
 - [ ] `getTransaction(txHash)` — non-blocking, try/catch returning `null`, all three statuses
 - [ ] Set `this.consensusOptions` in constructor if chain needs non-default quorum
-- [ ] Validate `txHash` format at the top of `recoverSwap` before any RPC calls
-- [ ] Shared utilities in `src/utils.ts`, constants in `src/constants.ts`
-- [ ] Login: `login/wallet-sign.ts` using `deriveKeyMaterial` + `IDENTITY_SALT`
-- [ ] Registration: idempotent `register{Chain}Sdk()` in `index.ts`
-- [ ] Exports: registration fn, both client classes, both config types, signer type, key derivation fn
+- [ ] Validate `txHash` format at the top of `recoverSwap` — throw `new InvalidTxHashError()` before any RPC calls
+- [ ] Shared utilities in `src/utils.ts`; constants and ABI/function definitions in `src/constants.ts` / `src/abi.ts` when applicable
+- [ ] Login: `login/wallet-sign.ts` using `deriveKeyMaterial` + `IDENTITY_SALT` from `@train-protocol/auth`, returning `Uint8Array`
+- [ ] Registration: `register{Chain}Sdk(sdk?: TrainSDK, auth?: TrainAuth)` in `index.ts` using `defaultTrainSDK` / `defaultTrainAuth`
+- [ ] Exports: registration fn, both client classes, both config types, signer type, transaction-request type, key derivation fn
 - [ ] Tests:
   - [ ] `resolveLock.test.ts` — test `resolveUserLock` + `resolveSolverLock` (imported from public files)
-  - [ ] `helpers.test.ts` — test chain-specific pure helpers
-  - [ ] `register{Chain}Sdk.test.ts` — registration smoke test
+  - [ ] `builders.test.ts` — test builder outputs with controlled dependencies where required
+  - [ ] `helpers.test.ts` — test chain-specific pure helpers when present
+  - [ ] `register{Chain}Sdk.test.ts` — registration smoke test (fresh SDK/auth instances)
   - [ ] `vitest.config.ts` with SDK source alias
-- [ ] Add contract ABI/artifacts in `abis/` or `artifacts/`
+- [ ] Add contract ABI/artifacts in `abis/`, `artifacts/`, or `idl/` when applicable

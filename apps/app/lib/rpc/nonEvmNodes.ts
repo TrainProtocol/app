@@ -48,4 +48,9 @@ export const NON_EVM_NODES: Record<string, NetworkNode[]> = {
     'tron:3448148188': [
         { url: 'https://nile.trongrid.io', providerName: 'tron-grid' },
     ],
+
+    // ── Fuel ──
+    'fuel:0': [
+        { url: 'https://testnet.fuel.network/v1/graphql', providerName: 'fuel-official' },
+    ],
 }

@@ -3,25 +3,25 @@ packages:
   - packages/**
 
 catalog:
-  viem: 2.44.1
-  wagmi: 2.14.11
-  swr: ^2.2.5
+  '@aztec/aztec.js': ^5.1.0
+  '@coral-xyz/anchor': ^0.30.1
+  '@noble/hashes': ^2.0.1
+  '@solana/spl-token': ^0.4.14
+  '@solana/web3.js': ^1.98.4
+  '@ton/core': ^0.53.0
+  '@ton/crypto': ^3.2.0
+  '@ton/ton': ^13.11.1
+  '@types/react': 18.x
+  fuels: ^0.101.3
   react: ^18.2.0
   react-dom: ^18.2.0
-  "@types/react": 18.x
-  "@noble/hashes": ^2.0.1
-  zustand: ^4.5.7
-  typescript: ^5.9.2
-  vitest: ^4.0.18
   rimraf: ^6.0.1
-  "@aztec/aztec.js": ^5.1.0
   starknet: ^8.0.0
-  "@coral-xyz/anchor": ^0.30.1
-  "@solana/spl-token": ^0.4.14
-  "@solana/web3.js": ^1.98.4
-  "@ton/ton": ^13.11.1
-  "@ton/core": ^0.53.0
-  "@ton/crypto": ^3.2.0
-  fuels: ^0.101.3
+  swr: ^2.2.5
+  typescript: ^5.9.2
+  viem: 2.44.1
+  vitest: ^4.0.18
+  wagmi: 2.14.11
+  zustand: ^4.5.7
 
 minimumReleaseAge: 4320

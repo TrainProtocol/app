@@ -7,6 +7,7 @@ import useSVM from "../lib/wallets/solana/useSVM";
 import useAztec from "../lib/wallets/aztec/useAztec";
 import { isMobile } from "@/lib/wallets/utils/isMobile";
 import useTron from "@/lib/wallets/tron/useTron";
+import useFuel from "@/lib/wallets/fuel/useFuel";
 
 const WalletProvidersContext = createContext<WalletProvider[]>([]);
 
@@ -19,10 +20,11 @@ export const WalletProvidersProvider: React.FC<React.PropsWithChildren> = ({ chi
     const svm = useSVM();
     const aztec = useAztec()
     const tron = useTron()
+    const fuel = useFuel()
 
     const providers = useMemo(() => {
         const allProviders: WalletProvider[] = [
-            evm, starknet, svm, aztec, tron
+            evm, starknet, svm, aztec, tron, fuel
         ];
         const filteredProviders = allProviders.filter(provider => isMobilePlatform ? !provider.unsupportedPlatforms?.includes('mobile') : !provider.unsupportedPlatforms?.includes('desktop'));
 
@@ -34,7 +36,7 @@ export const WalletProvidersProvider: React.FC<React.PropsWithChildren> = ({ chi
                     provider.asSourceSupportedNetworks?.includes(net.caip2Id)
                 )
             );
-    }, [networks, evm, starknet, svm, aztec, tron, isMobilePlatform]);
+    }, [networks, evm, starknet, svm, aztec, tron, fuel, isMobilePlatform]);
 
     return (
         <WalletProvidersContext.Provider value={providers}>

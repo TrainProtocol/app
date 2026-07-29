@@ -2,13 +2,19 @@ import { keccak256 } from "js-sha3";
 import KnownInternalNames from "../../knownIds";
 import { validateAndParseAddress } from "./starkNetAddressValidator";
 import { PublicKey } from '@solana/web3.js'
+import { NetworkTypes } from "@/Models/Network";
 // import { Address } from "@ton/core";
 
-function getNetworkId(network: { displayName?: string} | null | undefined): string | undefined {
+type AddressNetwork = {
+    displayName?: string
+    networkType?: string
+}
+
+function getNetworkId(network: AddressNetwork | null | undefined): string | undefined {
     return network ? (network.displayName) : undefined;
 }
 
-export function isValidAddress(address?: string, network?: { displayName?: string } | null): boolean {
+export function isValidAddress(address?: string, network?: AddressNetwork | null): boolean {
     if (!address || isBlacklistedAddress(address)) {
         return false
     }
@@ -54,16 +60,8 @@ export function isValidAddress(address?: string, network?: { displayName?: strin
         const decodedAddress = decodeBase58(address).toUpperCase();
         return decodedAddress.startsWith('41') && decodedAddress.length == 42
     }
-    else if (id === KnownInternalNames.Networks.FuelTestnet || id === KnownInternalNames.Networks.FuelMainnet) {
-        const hexRegex = /^[0-9a-fA-F]+$/;
-
-        if (address.startsWith("0x")) {
-            address = address.slice(2); // Remove the "0x" prefix
-        } else {
-            return false;
-        }
-
-        return address.length === 64 && hexRegex.test(address);
+    else if (network?.networkType === NetworkTypes.Fuel || id.toLowerCase().startsWith("fuel")) {
+        return /^0x[0-9a-fA-F]{64}$/.test(address);
     }
     else if (id.toLowerCase().includes("aztec")) {
         return true
