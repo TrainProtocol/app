@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   productionBrowserSourceMaps: true,
   experimental: {
     staleTimes: { dynamic: 30, static: 180 },
+    // TypeScript 7 (the native port) doesn't expose the programmatic compiler
+    // API Next uses for its build-time type check, so run the tsc CLI instead.
+    useTypeScriptCli: true,
   },
   images: {
     remotePatterns: [
@@ -59,8 +62,19 @@ const nextConfig: NextConfig = {
       },
     ]
   },
+  // Turbopack is the default bundler as of Next 16 and supports WASM natively,
+  // so no equivalent of the old webpack `asyncWebAssembly` experiment is needed.
+  turbopack: {
+    resolveAlias: {
+      // Next's compiled Buffer is v5 and lacks the BigInt APIs Aztec 5 uses.
+      "next/dist/compiled/buffer": {
+        browser: "buffer/index.js",
+      },
+    },
+  },
   webpack(config, { isServer }) {
-    // Enable WASM support for @aztec/bb.js in the browser
+    // Enable WASM support for @aztec/bb.js in the browser.
+    // Only applies when building with `--webpack`; Turbopack ignores this.
     if (!isServer) {
       config.experiments = {
         ...config.experiments,

@@ -13,15 +13,16 @@
     "@train-protocol/react": "workspace:^",
     "@train-protocol/auth": "workspace:^",
     "@train-protocol/sdk": "workspace:^",
-    "next": "15.5.18",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "next": "16.2.12",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "viem": "catalog:",
     "wagmi": "catalog:"
   },
   "devDependencies": {
     "@types/node": "^20",
-    "@types/react": "18.x",
-    "typescript": "catalog:"
+    "@types/react": "catalog:",
+    "typescript": "catalog:",
+    "@types/react-dom": "^19.2.3"
   }
 }

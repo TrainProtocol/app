@@ -24,7 +24,9 @@ export interface LeafletProps {
 export const Leaflet = forwardRef<HTMLDivElement, PropsWithChildren<LeafletProps>>(function Leaflet({ show, setShow, children, title, className, height, position, onClose }, topmostRef) {
     const mobileModalRef = useRef<HTMLDivElement>(null);
     const controls = useAnimation();
-    const transitionProps = { type: "spring", stiffness: 500, damping: 40 };
+    // `as const` keeps `type` as the literal "spring" — framer-motion v12 types
+    // require AnimationGeneratorType here, not a widened string.
+    const transitionProps = { type: "spring", stiffness: 500, damping: 40 } as const;
     const { isMobile } = useWindowDimensions()
 
     const handleDragEnd = useCallback(async (_, info) => {

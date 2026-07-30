@@ -14,6 +14,11 @@
     "rimraf": "^6.0.1"
   },
   "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "@starknet-react/core>react": "19"
+      }
+    },
     "overrides": {
       "@radix-ui/react-dismissable-layer": "1.1.1",
       "@walletconnect/universal-provider": "2.21.8",
