@@ -17,7 +17,7 @@ type Props = {
     onSelect: (network: Network, token: Token) => void;
     openValues: string[];
     index: number;
-    scrollContainerRef?: React.RefObject<HTMLDivElement>;
+    scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
 };
 
 export default function Row({

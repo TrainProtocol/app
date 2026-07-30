@@ -131,7 +131,7 @@ function NavigatableListRoot({
     keyboardNavigatingClass = 'keyboard-navigating',
     navigateToFirstChild
 }: NavigatableListProps) {
-    const storeRef = useRef<ReturnType<typeof createAutoDetectionStore>>();
+    const storeRef = useRef<ReturnType<typeof createAutoDetectionStore> | undefined>(undefined);
     if (!storeRef.current) {
         storeRef.current = createAutoDetectionStore();
     }

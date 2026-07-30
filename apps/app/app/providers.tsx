@@ -1,5 +1,8 @@
 "use client"
 
+// Must run before anything touches localStorage.
+import "@/lib/storageGuard"
+
 import React, { Suspense, useCallback } from "react"
 import { IntercomProvider } from "react-use-intercom"
 import { SWRConfig } from "swr"

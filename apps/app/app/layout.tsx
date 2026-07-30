@@ -8,8 +8,6 @@ import { Providers } from "./providers";
 const title = "TRAIN I The First Scalable Cross-Chain Bridge";
 const description = "The trustless and permissionless way of cross-chain asset bridging & swapping. Move assets across blockchains without third parties, secured by a battle-tested system.";
 
-const cookieCheckScript = `if(typeof window !== "undefined" && !window.location.pathname.includes("nocookies")){try { localStorage.getItem("ls-ls-test"); }catch (e) { window.location.href = "/nocookies"; }}`;
-
 export const metadata: Metadata = {
     metadataBase: new URL("https://app.train.tech"),
     title,
@@ -53,9 +51,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     const settings = await getSettings();
     return (
         <html lang="en" suppressHydrationWarning>
-            <head>
-                <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: cookieCheckScript }} />
-            </head>
             <body>
                 <Providers settings={settings}>
                     {children}

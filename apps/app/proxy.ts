@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server"
 
-export function middleware(_req: NextRequest) {
+export function proxy(_req: NextRequest) {
     const res = NextResponse.next()
     res.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate")
     // Key the shared cache by Cookie so any future per-user SSR (auth, A/B, analytics id)

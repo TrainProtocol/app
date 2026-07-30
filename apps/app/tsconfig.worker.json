@@ -2,6 +2,9 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./public/workers",
+    // Pin the output layout to public/workers/<worker>/ — TS 6 no longer infers
+    // rootDir from the common source directory, which would flatten helios/ away.
+    "rootDir": "./workers",
     "module": "ES6",
     "noEmit": false
   },

@@ -17,7 +17,7 @@ type GenericAccordionRowProps = {
   selectedToken: string | undefined;
   toggleContent: (itemName: string) => void;
   openValues?: string[];
-  scrollContainerRef?: React.RefObject<HTMLDivElement>;
+  scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
 };
 
 type ChildWrapper = {
