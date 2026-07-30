@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   productionBrowserSourceMaps: true,
   experimental: {
     staleTimes: { dynamic: 30, static: 180 },
+    // TypeScript 7 (the native port) doesn't expose the programmatic compiler
+    // API Next uses for its build-time type check, so run the tsc CLI instead.
+    useTypeScriptCli: true,
   },
   images: {
     remotePatterns: [
