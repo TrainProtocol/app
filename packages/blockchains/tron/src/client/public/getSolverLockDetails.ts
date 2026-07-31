@@ -1,5 +1,5 @@
 import { AbiFunction } from 'ox'
-import { LockStatus, formatUnits } from '@train-protocol/sdk'
+import { LockStatus, formatUnits, normalizePayoutCurveData } from '@train-protocol/sdk'
 import type { LockParams, SolverLockDetails } from '@train-protocol/sdk'
 import { htlcFunctions } from '../../abi.js'
 import { TronRpcClient } from '../../rpc.js'
@@ -55,6 +55,12 @@ async function getSolverLockByIndex(
 export function resolveSolverLock(result: any, id: string, decimals: number, index: number): SolverLockDetails | null {
     if (result.sender === ZERO_ADDRESS) return null
 
+    // Tron's ABI predates the payout fields: '' = unavailable, null = no curve (pays in full).
+    const decodedPayoutCurve = result.payoutCurve == null ? null : normalizeAddress(result.payoutCurve)
+    const payoutCurve = decodedPayoutCurve === null
+        ? ''
+        : decodedPayoutCurve.toLowerCase() === ZERO_ADDRESS ? null : decodedPayoutCurve
+
     return {
         hashlock: id,
         amount: Number(formatUnits(BigInt(result.amount), decimals)),
@@ -69,6 +75,8 @@ export function resolveSolverLock(result: any, id: string, decimals: number, ind
         rewardTimelock: Number(result.rewardTimelock),
         rewardRecipient: normalizeAddress(result.rewardRecipient),
         rewardToken: normalizeAddress(result.rewardToken),
+        payoutCurve,
+        payoutCurveData: result.payoutCurveData == null ? '0x' : normalizePayoutCurveData(result.payoutCurveData),
         index,
     }
 }

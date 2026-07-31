@@ -11,6 +11,8 @@ export class Network {
     networkType: string;
     tokens: Token[];
     trainContract: string;
+    /** This chain's ConstantPayoutCurve deployment. Per-network — never compare across chains. */
+    constantPayoutCurveContract?: string;
     explorerUrlTemplate?: ExplorerUrlTemplate;
     logoUrl?: string;
 }

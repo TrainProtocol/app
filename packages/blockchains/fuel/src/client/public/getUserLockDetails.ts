@@ -2,6 +2,7 @@ import type { Provider } from 'fuels'
 import {
     formatUnits,
     LockStatus,
+    normalizePayoutCurveData,
 } from '@train-protocol/sdk'
 import type {
     BaseLockDetails,
@@ -86,6 +87,7 @@ export function resolveUserLock(
         recipient: identityToAddress(result.recipient),
         token: result.asset_id.bits,
         refundTo: identityToAddress(result.refund_to),
-        payoutCurve: optionalContractIdToString(result.payout_curve),
+        payoutCurve: optionalContractIdToString(result.payout_curve) ?? null,
+        payoutCurveData: normalizePayoutCurveData(result.payout_curve_data ?? new Uint8Array()),
     }
 }

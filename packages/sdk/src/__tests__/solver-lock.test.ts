@@ -14,6 +14,8 @@ const baseLock: SolverLockDetails = {
     secret: 0n,
     status: LockStatus.Pending,
     index: 1,
+    payoutCurve: '0xCurve',
+    payoutCurveData: '0x1234',
 }
 
 const baseParams: VerifySolverLockParams = {
@@ -21,6 +23,8 @@ const baseParams: VerifySolverLockParams = {
     expectedReceiveAmount: 100,
     expectedRecipient: '0xUserAddress',
     expectedToken: '0xTokenAddress',
+    expectedPayoutCurve: '0xCurve',
+    nowInSeconds: 1_000,
 }
 
 describe('verifySolverLock', () => {
@@ -193,6 +197,71 @@ describe('verifySolverLock', () => {
         expect(result.mismatches[0]).toContain('Sender')
     })
 
+    it('accepts the destination chain’s recognized payout curve', () => {
+        expect(verifySolverLock(baseParams).verified).toBe(true)
+    })
+
+    it('accepts a lock with no payout curve at all', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            solverLockDetails: { ...baseLock, payoutCurve: null },
+        })
+        expect(result.verified).toBe(true)
+    })
+
+    it('accepts a lock with no payout curve even when the chain has no known curve', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            expectedPayoutCurve: undefined,
+            solverLockDetails: { ...baseLock, payoutCurve: null },
+        })
+        expect(result.verified).toBe(true)
+    })
+
+    it('rejects an unrecognized payout curve', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            solverLockDetails: { ...baseLock, payoutCurve: '0xOtherCurve' },
+        })
+        expect(result.verified).toBe(false)
+        expect(result.mismatches.some(m => m.includes('Payout curve'))).toBe(true)
+    })
+
+    it('ignores the curve config, which both accepted shapes leave unused', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            solverLockDetails: { ...baseLock, payoutCurveData: '0x5678' },
+        })
+        expect(result.verified).toBe(true)
+    })
+
+    it('fails closed when the solver payout policy is unavailable', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            solverLockDetails: { ...baseLock, payoutCurve: undefined as never },
+        })
+        expect(result.verified).toBe(false)
+        expect(result.mismatches.some(m => m.includes('Payout curve'))).toBe(true)
+    })
+
+    it('fails closed on a curve the destination chain cannot vouch for', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            expectedPayoutCurve: undefined,
+        })
+        expect(result.verified).toBe(false)
+        expect(result.mismatches.some(m => m.includes('no recognized full-payout curve'))).toBe(true)
+    })
+
+    it('matches a recognized curve across hex casing and zero padding', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            expectedPayoutCurve: '0xFF9d783c6cB8294a4fa4d1556752c3EAF3E20DEE',
+            solverLockDetails: { ...baseLock, payoutCurve: '0xff9d783c6cb8294a4fa4d1556752c3eaf3e20dee' },
+        })
+        expect(result.verified).toBe(true)
+    })
+
     it('rejects an expired destination lock', () => {
         const result = verifySolverLock({
             ...baseParams,
@@ -202,6 +271,15 @@ describe('verifySolverLock', () => {
         })
         expect(result.verified).toBe(false)
         expect(result.mismatches.some(m => m.includes('expired'))).toBe(true)
+    })
+
+    it('fails closed when the destination timelock is invalid', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            solverLockDetails: { ...baseLock, timelock: Number.NaN },
+        })
+        expect(result.verified).toBe(false)
+        expect(result.mismatches.some(m => m.includes('expiry is invalid'))).toBe(true)
     })
 
     it('rejects a destination timelock without the source safety margin', () => {
@@ -214,6 +292,29 @@ describe('verifySolverLock', () => {
         })
         expect(result.verified).toBe(false)
         expect(result.mismatches.some(m => m.includes('safety margin'))).toBe(true)
+    })
+
+    it('rejects a destination lock with too little lifetime remaining', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            expectedSourceTimelock: 2_000,
+            minimumDestinationLockLifetimeSeconds: 300,
+            nowInSeconds: 1_000,
+            solverLockDetails: { ...baseLock, timelock: 1_299 },
+        })
+        expect(result.verified).toBe(false)
+        expect(result.mismatches.some(m => m.includes('300s remaining'))).toBe(true)
+    })
+
+    it('accepts a destination lock at the minimum remaining lifetime', () => {
+        const result = verifySolverLock({
+            ...baseParams,
+            expectedSourceTimelock: 2_000,
+            minimumDestinationLockLifetimeSeconds: 300,
+            nowInSeconds: 1_000,
+            solverLockDetails: { ...baseLock, timelock: 1_300 },
+        })
+        expect(result.verified).toBe(true)
     })
 
     it('accepts a live destination timelock with the required safety margin', () => {

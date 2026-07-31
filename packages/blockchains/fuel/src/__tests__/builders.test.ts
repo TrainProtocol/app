@@ -30,6 +30,7 @@ describe('Fuel transaction builders', () => {
             destinationAddress: '0x0000000000000000000000000000000000000003',
             solverData: '0xabcd',
             payoutCurve: PAYOUT_CURVE,
+            payoutCurveData: '0x1234',
             quoteExpiry: 2_000_000_000,
             rewardAmount: '10',
             rewardToken: 'USDC',
@@ -56,6 +57,7 @@ describe('Fuel transaction builders', () => {
         expect(result.lock.recipient).toEqual({ Address: { bits: SOLVER } })
         expect(result.lock.refund_to).toEqual({ Address: { bits: USER } })
         expect(result.lock.payout_curve).toEqual({ bits: PAYOUT_CURVE })
+        expect([...result.lock.payout_curve_data!]).toEqual([0x12, 0x34])
         expect(result.lock.quote_expiry).toBe(DateTime.fromUnixSeconds(2_000_000_000).toTai64())
         expect(result.destination.dst_amount).toBe('5000000')
         expect([...result.solverData]).toEqual([0xab, 0xcd])

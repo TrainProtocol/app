@@ -34,7 +34,7 @@ export async function buildUserLockArguments(
         recipient: identityFromAddress(params.srcSolverAddress),
         refund_to: identityFromAddress(params.sourceAddress),
         payout_curve: optionalContractId(params.payoutCurve),
-        payout_curve_data: undefined,
+        payout_curve_data: dataBytes(params.payoutCurveData),
         reward_amount: params.rewardAmount ?? '0',
         reward_timelock_delta: params.rewardTimelockDelta ?? 0,
         reward_token: params.rewardToken ?? '',

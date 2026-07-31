@@ -3,7 +3,7 @@ import type { LockParams, SolverLockDetails } from '@train-protocol/sdk'
 import { htlcFunctions } from '../../abi.js'
 import { JsonRpcClient } from '../../rpc.js'
 import { hex } from '../../utils.js'
-import { LockStatus, formatUnits } from '@train-protocol/sdk'
+import { LockStatus, formatUnits, normalizePayoutCurveData } from '@train-protocol/sdk'
 import { ZERO_ADDRESS } from '../../constants.js'
 
 export async function getSolverLockDetails(
@@ -46,6 +46,11 @@ export async function getSolverLockByIndex(
 
 export function resolveSolverLock(result: any, id: string, decimals: number, index: number): SolverLockDetails | null {
     if (result.sender === ZERO_ADDRESS) return null
+    if (result.payoutCurve == null || result.payoutCurveData == null) {
+        throw new Error('Solver lock payout policy is unavailable')
+    }
+
+    const payoutCurve = String(result.payoutCurve)
 
     return {
         hashlock: id,
@@ -61,6 +66,8 @@ export function resolveSolverLock(result: any, id: string, decimals: number, ind
         rewardTimelock: Number(result.rewardTimelock),
         rewardRecipient: result.rewardRecipient,
         rewardToken: result.rewardToken,
+        payoutCurve: payoutCurve.toLowerCase() === ZERO_ADDRESS ? null : payoutCurve,
+        payoutCurveData: normalizePayoutCurveData(result.payoutCurveData),
         index,
     }
 }

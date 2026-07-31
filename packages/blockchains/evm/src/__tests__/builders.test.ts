@@ -37,6 +37,7 @@ function makeUserLockParams(overrides: Partial<UserLockParams> = {}): UserLockPa
         sourceAddress,
         destinationAddress: sourceAddress,
         payoutCurve,
+        payoutCurveData: '0x1234',
         quoteExpiry: 1700000000,
         timelockDelta: 3600,
         hashlock,
@@ -59,7 +60,7 @@ describe('buildUserLockTx', () => {
             readonly payoutCurveData: `0x${string}`
         }]
         expect(lockParams.payoutCurve).toBe(payoutCurve)
-        expect(lockParams.payoutCurveData).toBe('0x')
+        expect(lockParams.payoutCurveData).toBe('0x1234')
     })
 
     it('omits value for ERC20 source asset', () => {
@@ -85,6 +86,16 @@ describe('buildUserLockTx', () => {
         ) as readonly [{ readonly payoutCurve: `0x${string}` }]
 
         expect(lockParams.payoutCurve).toBe(ZERO_ADDRESS)
+    })
+
+    it('encodes empty config when the quote omits payoutCurveData', () => {
+        const tx = buildUserLockTx(makeUserLockParams({ payoutCurveData: undefined }))
+        const [lockParams] = AbiFunction.decodeData(
+            htlcFunctions.userLock,
+            tx.data as `0x${string}`,
+        ) as readonly [{ readonly payoutCurveData: `0x${string}` }]
+
+        expect(lockParams.payoutCurveData).toBe('0x')
     })
 })
 

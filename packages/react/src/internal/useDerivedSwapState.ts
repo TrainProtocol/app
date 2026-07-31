@@ -10,10 +10,9 @@ import type { LoginIdentity } from '../hooks/useLoginIdentityMismatch'
 import type { SwapStore, SwapFlags, SwapStoreState } from './store'
 import { useNetworksContext } from '../providers/NetworksProvider'
 import { resolveSwapTokens } from './resolveSwapTokens'
+import { MANUAL_CLAIM_DELAY_MS } from './timing'
 import { useTimelockExpiry } from './useTimelockExpiry'
 import { trainQueryKeys } from './queryKeys'
-
-const MANUAL_CLAIM_DELAY_MS = 3 * 60 * 1000
 
 /** Empty store used as a stable fallback so useStore is never called conditionally */
 const EMPTY_STORE = createStore<SwapStoreState>()(() => ({

@@ -40,7 +40,8 @@ describe('Fuel resolveUserLock', () => {
             recipient: RECIPIENT,
             token: ASSET_ID,
             refundTo: ADDRESS,
-            payoutCurve: undefined,
+            payoutCurve: null,
+            payoutCurveData: '0x',
         })
     })
 
@@ -74,6 +75,8 @@ describe('Fuel resolveSolverLock', () => {
             rewardToken: REWARD_ASSET_ID,
             rewardRecipient: RECIPIENT,
             rewardTimelock: 2_000_000_000,
+            payoutCurve: null,
+            payoutCurveData: '0x',
             index: 2,
         })
     })

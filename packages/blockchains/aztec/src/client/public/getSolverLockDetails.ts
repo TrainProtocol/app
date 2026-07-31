@@ -1,5 +1,5 @@
 import type { AztecNode } from '@aztec/aztec.js/node'
-import { formatUnits } from '@train-protocol/sdk'
+import { formatUnits, normalizePayoutCurveData } from '@train-protocol/sdk'
 import type { LockParams, LockStatus, SolverLockDetails } from '@train-protocol/sdk'
 import { getNode, parseSecret } from '../helpers'
 import type { ReferenceBlock } from './storage'
@@ -57,6 +57,12 @@ async function getSolverLockByIndexFromNode(
 export function resolveSolverLock(result: any, id: string, decimals: number, index: number): SolverLockDetails | null {
     const status = Number(result.status) as LockStatus
     if (status === 0) return null
+    if (result.payout_curve == null || result.payout_curve_data == null) {
+        throw new Error('Solver lock payout policy is unavailable')
+    }
+
+    const rawPayoutCurve = result.payout_curve.toString()
+    const payoutCurve = BigInt(rawPayoutCurve) === 0n ? null : rawPayoutCurve
 
     return {
         hashlock: id,
@@ -72,6 +78,8 @@ export function resolveSolverLock(result: any, id: string, decimals: number, ind
         rewardTimelock: Number(result.reward_timelock),
         rewardRecipient: result.reward_recipient?.toString() ?? '',
         rewardToken: result.reward_token?.toString() ?? '',
+        payoutCurve,
+        payoutCurveData: normalizePayoutCurveData(result.payout_curve_data),
         index,
     }
 }

@@ -24,7 +24,7 @@ const baseUserLockParams: any = {
     destinationAsset: { contract: '0x0000000000000000000000000000000000000000' },
     srcSolverAddress: SOLVER, atomicContract: CONTRACT, sourceAddress: USER,
     destinationAddress: '0x0000000000000000000000000000000000000001',
-    payoutCurve: '', quoteExpiry: 1899999999,
+    payoutCurve: '', payoutCurveData: '0x', quoteExpiry: 1899999999,
     rewardToken: '', rewardRecipient: '', rewardTimelockDelta: 0,
     timelockDelta: 3600, hashlock: '0x1234abcd', nonce: 1721600000000,
 }

@@ -51,6 +51,7 @@ describe('Solana transaction builders', () => {
             destinationAddress: '0x0000000000000000000000000000000000000003',
             solverData: '0xabcd',
             payoutCurve: PAYOUT_CURVE,
+            payoutCurveData: '0x1234',
             quoteExpiry: 2_000_000_000,
             rewardAmount: '10',
             rewardToken: 'USDC',
@@ -69,6 +70,7 @@ describe('Solana transaction builders', () => {
         expect(decoded?.data.params.recipient.toBase58()).toBe(solver.toBase58())
         expect(decoded?.data.params.refundTo.toBase58()).toBe(wallet.toBase58())
         expect(decoded?.data.params.payoutCurve.toBase58()).toBe(PAYOUT_CURVE)
+        expect([...decoded?.data.params.payoutCurveData]).toEqual([0x12, 0x34])
         expect(decoded?.data.params.dstAmount.toString()).toBe('5000000')
         expect([...decoded?.data.solverData]).toEqual([0xab, 0xcd])
         expect(Buffer.from(decoded?.data.userData).toString()).toBe('123456')

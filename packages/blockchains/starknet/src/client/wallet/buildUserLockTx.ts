@@ -1,8 +1,23 @@
 import { cairo, CallData, byteArray } from 'starknet'
-import { parseUnits } from '@train-protocol/sdk'
+import { normalizePayoutCurveData, parseUnits } from '@train-protocol/sdk'
 import type { UserLockParams } from '@train-protocol/sdk'
 import type { StarknetTransactionRequest } from '../../types.js'
 import { ZERO_ADDRESS } from '../../constants.js'
+
+function payoutCurveByteArray(value: string | undefined) {
+    const normalized = normalizePayoutCurveData(value ?? '0x').slice(2)
+    const bytes = normalized.match(/.{2}/g) ?? []
+    const completeChunks = Math.floor(bytes.length / 31)
+    const data = Array.from({ length: completeChunks }, (_, index) =>
+        `0x${bytes.slice(index * 31, (index + 1) * 31).join('')}`,
+    )
+    const remainder = bytes.slice(completeChunks * 31)
+    return {
+        data,
+        pending_word: remainder.length ? `0x${remainder.join('')}` : '0x0',
+        pending_word_len: remainder.length,
+    }
+}
 
 export function buildUserLockTx(params: UserLockParams): StarknetTransactionRequest {
     const parsedAmount = parseUnits(params.amount.toString(), params.sourceAsset.decimals)
@@ -26,7 +41,7 @@ export function buildUserLockTx(params: UserLockParams): StarknetTransactionRequ
                 src_chain: byteArray.byteArrayFromString(params.sourceChain || ''),
                 refund_to: params.sourceAddress,
                 payout_curve: params.payoutCurve || ZERO_ADDRESS,
-                payout_curve_data: byteArray.byteArrayFromString(''),
+                payout_curve_data: payoutCurveByteArray(params.payoutCurveData),
             },
             {
                 dst_chain: byteArray.byteArrayFromString(params.destinationChain),

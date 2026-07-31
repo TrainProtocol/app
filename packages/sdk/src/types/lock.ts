@@ -10,7 +10,13 @@ export type BaseLockDetails = {
     recipient: string;
     token: string;
     refundTo?: string;
-    payoutCurve?: string;
+    /**
+     * Redeem-time payout curve, or null when the lock carries none and pays in full.
+     * An unavailable field stays '' so an incomplete decoder cannot read as "no curve".
+     */
+    payoutCurve: string | null;
+    /** Curve config as canonical 0x-prefixed bytes. */
+    payoutCurveData: string;
 }
 
 export type Reward = {

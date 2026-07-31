@@ -8,6 +8,13 @@ import { toEvmHex, toTronHex } from '../../address.js'
 import { encodeParams, hex } from '../../utils.js'
 
 export function buildUserLockTx(params: UserLockParams): TronTransactionRequest {
+    // The checked-in Tron contract ABI predates payout-policy fields. Never lock
+    // user funds under a quote whose curve commitment this contract cannot encode.
+    const payoutCurveData = params.payoutCurveData ?? '0x'
+    if (params.payoutCurve || payoutCurveData !== '0x') {
+        throw new Error('The configured Tron HTLC contract does not support payout-curve commitments')
+    }
+
     const { sourceAsset } = params
 
     const parsedAmount = parseUnits(params.amount.toString(), sourceAsset.decimals)

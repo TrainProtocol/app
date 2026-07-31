@@ -107,9 +107,12 @@ class EthereumGasCalculator {
     }
 
     protected encodeUserLockCallData() {
-        const payoutCurve = this.network.contracts?.find(
-            contract => contract.type === NetworkContractType.ConstantPayoutCurve,
-        )?.address ?? zeroAddress
+        // The API sends the curve as a flat field; contracts[] only carries Train + Multicall.
+        const payoutCurve = this.network.constantPayoutCurveContract
+            ?? this.network.contracts?.find(
+                contract => contract.type === NetworkContractType.ConstantPayoutCurve,
+            )?.address
+            ?? zeroAddress
 
         return encodeFunctionData({
             abi: HTLCAbi,

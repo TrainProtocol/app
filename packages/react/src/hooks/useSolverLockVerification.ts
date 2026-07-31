@@ -3,6 +3,7 @@ import { verifySolverLock, formatUnits } from '@train-protocol/sdk'
 import type { VerificationResult } from '@train-protocol/sdk'
 import { useStoreContext } from '../providers/TrainProvider'
 import { useDerivedSwapState } from '../internal/useDerivedSwapState'
+import { MINIMUM_DESTINATION_LOCK_LIFETIME_SECONDS } from '../internal/timing'
 
 export type { VerificationResult }
 
@@ -17,7 +18,8 @@ export interface UseSolverLockVerificationResult extends VerificationResult {}
  * - Recipient: lock recipient matches the user's destination address
  * - Token: locked token matches the expected destination token
  * - State/index: lock is pending and has a positive solver-lock index
- * - Timelocks: destination remains live and preserves the source safety margin
+ * - Payout policy: lock carries no curve, or the destination chain's recognized full-payout curve
+ * - Timelocks: destination retains the claim fallback window and source safety margin
  *
  * @param hashlock - The hashlock of the swap to verify
  * @returns Verification result with `verified`, `skipped`, and `mismatches` fields
@@ -33,6 +35,7 @@ export function useSolverLockVerification(hashlock: string | null | undefined): 
             sourceDetails,
             destinationAddress,
             destinationSolverAddress,
+            destinationNetwork,
             destinationToken,
         } = derived
 
@@ -64,13 +67,16 @@ export function useSolverLockVerification(hashlock: string | null | undefined): 
             expectedRecipient: destinationAddress,
             expectedToken: destinationToken.contract,
             expectedSender: destinationSolverAddress,
+            expectedPayoutCurve: destinationNetwork?.constantPayoutCurveContract,
             expectedSourceTimelock: sourceDetails.timelock,
+            minimumDestinationLockLifetimeSeconds: MINIMUM_DESTINATION_LOCK_LIFETIME_SECONDS,
         })
     }, [
         derived.solverLockDetails,
         derived.sourceDetails,
         derived.destinationAddress,
         derived.destinationSolverAddress,
+        derived.destinationNetwork,
         derived.destinationToken,
     ])
 }

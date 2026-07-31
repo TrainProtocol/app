@@ -80,6 +80,13 @@ describe('Aztec public storage layout', () => {
         expect(result.refund_to.toBigInt()).toBe(6n)
         expect(result.status).toBe(11n)
         expect(result.reward_token.toBigInt()).toBe(14n)
+        expect([
+            result.payout_curve_data[30],
+            result.payout_curve_data[61],
+            result.payout_curve_data[92],
+            result.payout_curve_data[123],
+            result.payout_curve_data[127],
+        ]).toEqual([16, 17, 18, 19, 20])
     })
 
     it('rejects truncated packed lock data', () => {

@@ -1,5 +1,5 @@
 import { cairo, RpcProvider } from 'starknet'
-import { formatUnits } from '@train-protocol/sdk'
+import { formatUnits, normalizePayoutCurveData } from '@train-protocol/sdk'
 import type { LockParams, SolverLockDetails } from '@train-protocol/sdk'
 import { formatStarknetAddress } from '../../utils.js'
 import { createContract, mapLockStatus } from '../helpers.js'
@@ -41,6 +41,13 @@ export async function getSolverLockByIndex(
 
 export function resolveSolverLock(result: any, id: string, decimals: number, index: number): SolverLockDetails | null {
     if (BigInt(result.sender) === 0n) return null
+    if (result.payout_curve == null || result.payout_curve_data == null) {
+        throw new Error('Solver lock payout policy is unavailable')
+    }
+
+    const payoutCurve = BigInt(result.payout_curve) === 0n
+        ? null
+        : formatStarknetAddress(result.payout_curve).toString()
 
     return {
         hashlock: id,
@@ -56,6 +63,8 @@ export function resolveSolverLock(result: any, id: string, decimals: number, ind
         rewardTimelock: Number(result.reward_timelock),
         rewardRecipient: formatStarknetAddress(result.reward_recipient).toString(),
         rewardToken: formatStarknetAddress(result.reward_token).toString(),
+        payoutCurve,
+        payoutCurveData: normalizePayoutCurveData(result.payout_curve_data),
         index,
     }
 }

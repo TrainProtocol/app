@@ -75,7 +75,7 @@ export async function buildUserLockTx(
         params.payoutCurve
             ? AztecAddress.fromStringUnsafe(params.payoutCurve)
             : AztecAddress.ZERO,
-        strToBytes('', 128),
+        hexToBytes(params.payoutCurveData ?? '0x', 128),
         strToBytes(params.rewardToken || '', 90),
         strToBytes(params.rewardRecipient || '', 90),
         strToBytes(params.sourceChain, 30),

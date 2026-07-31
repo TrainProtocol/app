@@ -88,4 +88,13 @@ describe('Solana resolveSolverLock', () => {
         }
         expect(resolveSolverLock(data, hashlock, 9, 1)).toBeNull()
     })
+
+    it('normalizes the native-address sentinel to null so it reads as "no curve"', () => {
+        const data = {
+            ...mockUserLock({ payoutCurve: new PublicKey(NATIVE_SOL_ADDRESS) }),
+            reward: new BN('0'), rewardTimelock: new BN('0'),
+            rewardRecipient: PublicKey.unique(), rewardTokenMint: PublicKey.unique(),
+        }
+        expect(resolveSolverLock(data, hashlock, 9, 1)!.payoutCurve).toBeNull()
+    })
 })

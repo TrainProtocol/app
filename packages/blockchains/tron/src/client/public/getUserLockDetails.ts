@@ -1,5 +1,5 @@
 import { AbiFunction } from 'ox'
-import { LockStatus, formatUnits } from '@train-protocol/sdk'
+import { LockStatus, formatUnits, normalizePayoutCurveData } from '@train-protocol/sdk'
 import type { LockParams, UserLockDetails, EventDerivedData, BaseLockDetails } from '@train-protocol/sdk'
 import { htlcFunctions } from '../../abi.js'
 import type { TronRpcClient } from '../../rpc.js'
@@ -53,14 +53,22 @@ export async function getUserLockDetails(
 export function resolveUserLock(result: any, id: string, decimals: number): BaseLockDetails | null {
     if (result.sender === ZERO_ADDRESS) return null
     if (!result.timelock || (result.timelock && (result.timelock.toString()).length < 9)) return null
+    // Tron's ABI predates the payout fields: '' = unavailable, null = no curve (pays in full).
+    const decodedPayoutCurve = result.payoutCurve == null ? null : normalizeAddress(result.payoutCurve)
+    const payoutCurve = decodedPayoutCurve === null
+        ? ''
+        : decodedPayoutCurve.toLowerCase() === ZERO_ADDRESS ? null : decodedPayoutCurve
 
     return {
         hashlock: id,
         amount: Number(formatUnits(BigInt(result.amount), decimals)),
+        amountInBaseUnits: BigInt(result.amount),
         secret: BigInt(result.secret),
         sender: normalizeAddress(result.sender),
         recipient: normalizeAddress(result.recipient),
         token: normalizeAddress(result.token),
+        payoutCurve,
+        payoutCurveData: result.payoutCurveData == null ? '0x' : normalizePayoutCurveData(result.payoutCurveData),
         timelock: Number(result.timelock),
         status: Number(result.status) as LockStatus,
     }
