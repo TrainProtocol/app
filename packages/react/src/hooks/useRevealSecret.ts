@@ -4,7 +4,7 @@ import {
     secretToHashlock,
     bytesToHex,
 } from '@train-protocol/sdk'
-import type { UserLockDetails } from '@train-protocol/sdk'
+import type { SolverLockDetails, UserLockDetails } from '@train-protocol/sdk'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTrainContext } from '../providers/TrainContext'
 import { useSwapActions } from '../internal/useSwapActions'
@@ -15,6 +15,8 @@ import { caip2Id, parseCaip2Id } from '../internal/branded'
 import { normalizeHex } from '../internal/normalizeHex'
 import { TrainError, TrainErrorCode } from '../types'
 import { useNetworksContext } from '../providers/NetworksProvider'
+import { resolveSolverLockVerification } from '../internal/resolveSolverLockVerification'
+import { resolveSwapTokens } from '../internal/resolveSwapTokens'
 
 export interface UseRevealSecretResult {
     /** Reveal the swap secret to the solver API. */
@@ -27,6 +29,9 @@ export interface UseRevealSecretResult {
  * Action hook to reveal the swap secret to the solver API.
  * Derives the secret on-demand from the internal key store + nonce
  * (from sourceDetails.userData in React Query cache).
+ *
+ * Refuses to send unless RPC consensus is verified and the solver lock still matches the
+ * original quote, re-checked at call time. Callers may gate for UX, but need not for safety.
  */
 export function useRevealSecret(): UseRevealSecretResult {
     const { apiClient, config } = useTrainContext()
@@ -45,8 +50,8 @@ export function useRevealSecret(): UseRevealSecretResult {
         setIsRevealing(true)
         setError(null)
 
-        const reportError = (message: string): TrainError => {
-            const err = new TrainError(message, TrainErrorCode.RevealFailed)
+        const reportError = (message: string, code = TrainErrorCode.RevealFailed): TrainError => {
+            const err = new TrainError(message, code)
             setError(err)
             actions.updateSwapFlags(hashlock, { error: err })
             config.onError?.(err)
@@ -66,11 +71,12 @@ export function useRevealSecret(): UseRevealSecretResult {
             throw reportError('Cannot reveal: not logged in (derivedKey unavailable)')
         }
 
-        // Resolve nonce: try cache first, fall back to on-chain read
+        // Resolve the source lock: the nonce derives the secret, and the same details feed
+        // the verification gate below.
         let nonce: number | null = null
 
         // Tier 1: React Query cache (fast path — works when polling is active)
-        const sourceDetails = queryClient.getQueryData<UserLockDetails | null>(trainQueryKeys.userLock(hashlock))
+        let sourceDetails = queryClient.getQueryData<UserLockDetails | null>(trainQueryKeys.userLock(hashlock)) ?? null
         const cachedNonce = sourceDetails?.userData ? Number(sourceDetails.userData) : null
         if (cachedNonce && !isNaN(cachedNonce)) {
             nonce = cachedNonce
@@ -96,6 +102,7 @@ export function useRevealSecret(): UseRevealSecretResult {
                 const onChainNonce = details?.userData ? Number(details.userData) : null
                 if (onChainNonce && !isNaN(onChainNonce)) {
                     nonce = onChainNonce
+                    sourceDetails = details
                 }
             } catch {
                 // RPC failure — fall through to the nonce-unavailable error below
@@ -104,6 +111,34 @@ export function useRevealSecret(): UseRevealSecretResult {
 
         if (!nonce) {
             throw reportError('Cannot reveal: nonce unavailable from cache or on-chain data')
+        }
+
+        // Handing over the secret is irreversible, so the preconditions live here rather than
+        // in the callers: the lock can go stale (expire, be refunded, be replaced) between the
+        // verdict a caller saw and this call — a retry after a failed reveal most of all.
+        const flags = actions.getSwapFlags(hashlock)
+        if (flags?.consensusPhase !== 'verified') {
+            throw reportError(
+                'Cannot reveal: the solver lock has not passed RPC consensus verification',
+                TrainErrorCode.VerificationFailed,
+            )
+        }
+
+        const { verified, skipped, mismatches } = resolveSolverLockVerification({
+            solverLockDetails: queryClient.getQueryData<SolverLockDetails | null>(trainQueryKeys.solverLock(hashlock)),
+            sourceDetails,
+            destinationAddress: swap.destinationAddress ?? swap.address,
+            destinationSolverAddress: swap.destinationSolverAddress,
+            destinationNetwork: swap.destination ? networkMap.get(swap.destination) : null,
+            destinationToken: resolveSwapTokens(swap, networkMap).destinationAsset,
+        })
+        if (!verified) {
+            const reason = mismatches.length
+                ? `does not match the original quote (${mismatches.join('; ')})`
+                : skipped
+                    ? 'cannot be checked against the original quote'
+                    : 'is unavailable'
+            throw reportError(`Cannot reveal: the solver lock ${reason}`, TrainErrorCode.VerificationFailed)
         }
 
         try {

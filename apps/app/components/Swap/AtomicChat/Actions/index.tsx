@@ -154,7 +154,10 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
         attemptReveal()
     }, [ready, revealFailed, attemptReveal])
 
+    // A retry runs the same gate as the initial attempt: the lock may have expired or been
+    // refunded while the failed reveal sat on screen.
     const handleRetry = () => {
+        if (!ready) return
         clearSwapError()
         attemptReveal()
     }
@@ -194,13 +197,8 @@ const SolverLockDetectedContent: FC<SolverLockDetectedContentProps> = ({ warning
     if (warning) {
         return <WalletMessage status="warning" header={warning.header} details={warning.details} />
     }
-    if (revealFailed) {
-        return (
-            <SubmitButton type="button" onClick={onRetry}>
-                Try again
-            </SubmitButton>
-        )
-    }
+    // Verification outranks a reveal failure: once the lock stops matching, retrying is unsafe
+    // and the button must not be offered, however the previous attempt ended.
     if (verificationMismatch) {
         return (
             <WalletMessage
@@ -224,6 +222,13 @@ const SolverLockDetectedContent: FC<SolverLockDetectedContentProps> = ({ warning
                     </SubmitButton>
                 )}
             </div>
+        )
+    }
+    if (revealFailed) {
+        return (
+            <SubmitButton type="button" onClick={onRetry}>
+                Try again
+            </SubmitButton>
         )
     }
     return (
