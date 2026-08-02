@@ -75,5 +75,10 @@ export function pickStarknetEventData(event: Record<string, any>): Partial<Event
     }
     if (event.userData != null || event.user_data != null) data.userData = (event.userData ?? event.user_data) as string
     if (event.solverData != null || event.solver_data != null) data.solverData = (event.solverData ?? event.solver_data) as string
+    // The reward recipient is the solver's address on the *destination* chain — it is a
+    // cross-chain identifier (ByteArray, not ContractAddress) for that reason. It is the
+    // only place a swap recovered from a source tx can learn which solver to read the
+    // destination lock from, since the quote that carried it is gone.
+    if (event.reward_recipient != null) data.rewardRecipient = event.reward_recipient as string
     return data
 }

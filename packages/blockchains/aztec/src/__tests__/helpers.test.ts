@@ -11,7 +11,7 @@ vi.mock('@aztec/aztec.js/events', () => ({
     getPublicEvents: getPublicEventsMock,
 }))
 
-import { findEventDataFromLogs, registerContractCompat } from '../client/helpers'
+import { findEventDataFromLogs, payoutCurveDataToBytes, registerContractCompat } from '../client/helpers'
 
 function legacyReturnError() {
     return Object.assign(new Error('Invalid input'), {
@@ -24,6 +24,46 @@ function legacyReturnError() {
         }],
     })
 }
+
+describe('payoutCurveDataToBytes', () => {
+    // The quote omits payoutCurveData whenever the curve takes no config, which is every
+    // swap today. Zero-padding this case is the whole point of the helper: the previous
+    // length-validating conversion threw, so no Aztec user lock could be built at all.
+    it('zero-fills an absent config', () => {
+        for (const value of [undefined, '0x']) {
+            const bytes = payoutCurveDataToBytes(value, 128)
+            expect(bytes).toHaveLength(128)
+            expect(bytes.every(byte => byte === 0)).toBe(true)
+        }
+    })
+
+    it('right-pads a short config to the fixed width', () => {
+        const bytes = payoutCurveDataToBytes('0x1234', 128)
+        expect(bytes).toHaveLength(128)
+        expect(bytes.slice(0, 2)).toEqual([0x12, 0x34])
+        expect(bytes.slice(2).every(byte => byte === 0)).toBe(true)
+    })
+
+    it('accepts a config that exactly fills the field', () => {
+        const bytes = payoutCurveDataToBytes(`0x${'ab'.repeat(128)}`, 128)
+        expect(bytes).toHaveLength(128)
+        expect(bytes.every(byte => byte === 0xab)).toBe(true)
+    })
+
+    it('throws rather than truncating an oversized config', () => {
+        expect(() => payoutCurveDataToBytes(`0x${'ab'.repeat(129)}`, 128))
+            .toThrow('Payout curve data must be at most 128 bytes, got 129')
+    })
+
+    it('rejects malformed hex instead of reinterpreting it', () => {
+        expect(() => payoutCurveDataToBytes('0xabc', 128)).toThrow('Invalid payout curve data hex')
+        expect(() => payoutCurveDataToBytes('0xzz', 128)).toThrow('Invalid payout curve data hex')
+    })
+
+    it('normalizes casing so equal configs encode identically', () => {
+        expect(payoutCurveDataToBytes('0xAB', 128)).toEqual(payoutCurveDataToBytes('0xab', 128))
+    })
+})
 
 describe('registerContractCompat', () => {
     it('accepts the legacy wallet return-value mismatch', async () => {
@@ -107,6 +147,9 @@ describe('findEventDataFromLogs', () => {
                     dst_token: toFixedBytes('0xtoken', 90),
                     user_data: toFixedBytes('user-data', 256),
                     solver_data: toFixedBytes('solver-data', 256),
+                    // The solver's destination-chain address — the only way a swap recovered
+                    // from a source tx hash can locate the solver lock.
+                    reward_recipient: toFixedBytes('0xsolver', 90),
                 },
             }],
         })
@@ -123,6 +166,7 @@ describe('findEventDataFromLogs', () => {
             dstToken: '0xtoken',
             userData: 'user-data',
             solverData: 'solver-data',
+            rewardRecipient: '0xsolver',
         })
 
         expect(getPublicEventsMock).toHaveBeenCalledOnce()

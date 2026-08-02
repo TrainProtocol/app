@@ -143,6 +143,17 @@ async function findUserDataFromLogs(
             const dstAmountRaw = data.dstAmount ?? data.dst_amount
             if (dstAmountRaw != null) eventData.dstAmount = BigInt(dstAmountRaw.toString())
 
+            // The reward recipient is the solver's address on the *destination* chain — it is a
+            // cross-chain identifier (byte string, not Pubkey) for that reason. It is the only
+            // place a swap recovered from a source tx can learn which solver to read the
+            // destination lock from, since the quote that carried it is gone.
+            const rewardRecipient = data.rewardRecipient ?? data.reward_recipient
+            if (rewardRecipient != null) {
+                eventData.rewardRecipient = typeof rewardRecipient === 'string'
+                    ? rewardRecipient
+                    : decodeBytes(rewardRecipient)
+            }
+
             return { eventData, blockTimestamp }
         }
 

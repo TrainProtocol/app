@@ -3,7 +3,7 @@ import { LockStatus } from '@train-protocol/sdk'
 import { PublicKey } from '@solana/web3.js'
 import { BN } from '@coral-xyz/anchor'
 import { resolveUserLock } from '../client/public/getUserLockDetails'
-import { resolveSolverLock } from '../client/public/getSolverLockDetails'
+import { getSolverLockDetails, resolveSolverLock } from '../client/public/getSolverLockDetails'
 import { NATIVE_SOL_ADDRESS } from '../constants'
 
 const hashlock = '0x' + 'ab'.repeat(32)
@@ -95,5 +95,63 @@ describe('Solana resolveSolverLock', () => {
             rewardRecipient: PublicKey.unique(), rewardTokenMint: PublicKey.unique(),
         }
         expect(resolveSolverLock(data, hashlock, 9)!.payoutCurve).toBeNull()
+    })
+
+    it('fails closed when the payout policy is unavailable', () => {
+        const base = {
+            reward: new BN('0'), rewardTimelock: new BN('0'),
+            rewardRecipient: PublicKey.unique(), rewardTokenMint: PublicKey.unique(),
+        }
+        expect(() => resolveSolverLock(
+            { ...mockUserLock({ payoutCurve: null }), ...base }, hashlock, 9,
+        )).toThrow('Solver lock payout policy is unavailable')
+        expect(() => resolveSolverLock(
+            { ...mockUserLock({ payoutCurveData: null }), ...base }, hashlock, 9,
+        )).toThrow('Solver lock payout policy is unavailable')
+    })
+})
+
+/**
+ * The poller treats a rejection as an unhealthy node (tripping its consecutive-failure
+ * breaker) and `null` as "the solver has not locked yet". Conflating the two makes an
+ * unreadable lock poll forever with no chance of succeeding, so only a genuinely absent
+ * account may resolve to null.
+ */
+describe('Solana getSolverLockDetails failure signalling', () => {
+    const solverAddress = PublicKey.unique().toString()
+    const programId = new PublicKey('11111111111111111111111111111111')
+
+    const params = { id: hashlock, chainId: null, contractAddress: programId.toString(), decimals: 9, solverAddress }
+
+    const programWith = (fetchNullable: () => Promise<unknown>) =>
+        (() => ({ programId, account: { solverLock: { fetchNullable } } })) as any
+
+    it('returns null when the solver lock account does not exist yet', async () => {
+        await expect(getSolverLockDetails(
+            params, 'http://localhost:8899', programWith(async () => null),
+        )).resolves.toBeNull()
+    })
+
+    it('propagates node failures instead of reporting "no lock yet"', async () => {
+        await expect(getSolverLockDetails(
+            params, 'http://localhost:8899', programWith(async () => { throw new Error('failed to get info about account') }),
+        )).rejects.toThrow('failed to get info about account')
+    })
+
+    it('propagates the fail-closed payout policy check', async () => {
+        const lock = {
+            ...mockUserLock({ payoutCurve: null }),
+            reward: new BN('0'), rewardTimelock: new BN('0'),
+            rewardRecipient: PublicKey.unique(), rewardTokenMint: PublicKey.unique(),
+        }
+        await expect(getSolverLockDetails(
+            params, 'http://localhost:8899', programWith(async () => lock),
+        )).rejects.toThrow('Solver lock payout policy is unavailable')
+    })
+
+    it('requires a solver address — the lock cannot be addressed without one', async () => {
+        await expect(getSolverLockDetails(
+            { ...params, solverAddress: undefined }, 'http://localhost:8899', programWith(async () => null),
+        )).rejects.toThrow('solverAddress is required to read a solver lock')
     })
 })

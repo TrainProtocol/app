@@ -26,16 +26,16 @@ export async function getSolverLockDetails(
         program.programId
     )
 
-    try {
-        const result = await (program.account as TypedProgramAccounts).solverLock.fetch(solverLockPda)
+    // `fetchNullable` returns null only for an absent account — the solver has not locked
+    // yet. Everything else (node failure, account-layout drift, and the fail-closed payout
+    // policy check below) must propagate: the poller treats a rejection as an unhealthy node
+    // and trips its consecutive-failure breaker, while a swallowed `null` reads as "no lock
+    // yet" and polls forever with no chance of succeeding.
+    const result = await (program.account as TypedProgramAccounts).solverLock.fetchNullable(solverLockPda)
 
-        if (!result) return null
+    if (!result) return null
 
-        return resolveSolverLock(result, id, params.decimals)
-    } catch (e) {
-        console.error('Error fetching Solana solver lock details:', e)
-        return null
-    }
+    return resolveSolverLock(result, id, params.decimals)
 }
 
 export function resolveSolverLock(result: any, id: string, decimals: number): SolverLockDetails | null {
