@@ -53,14 +53,13 @@ describe('Starknet resolveSolverLock', () => {
             reward: 100000000000000000n, reward_timelock: 1700001000n,
             reward_recipient: 0xaaan, reward_token: 0xbbbn,
             payout_curve: 0n, payout_curve_data: '0x1234',
-        }, hashlock, 18, 1)
+        }, hashlock, 18)
         expect(result).not.toBeNull()
         expect(result!.amount).toBe(2)
         expect(result!.reward).toBe(0.1)
         expect(result!.rewardTimelock).toBe(1700001000)
         expect(result!.payoutCurve).toBeNull()
         expect(result!.payoutCurveData).toBe('0x1234')
-        expect(result!.index).toBe(1)
     })
 
     it('returns null when sender is zero', () => {
@@ -68,7 +67,7 @@ describe('Starknet resolveSolverLock', () => {
             sender: 0n, recipient: 0x456n, token: 0x789n,
             amount: 0n, timelock: 0n, status: 0, secret: 0n,
             reward: 0n, reward_timelock: 0n, reward_recipient: 0n, reward_token: 0n,
-        }, hashlock, 18, 1)).toBeNull()
+        }, hashlock, 18)).toBeNull()
     })
 
     it('preserves an active payout curve for verification', () => {
@@ -77,7 +76,7 @@ describe('Starknet resolveSolverLock', () => {
             amount: 0n, timelock: 0n, status: 1, secret: 0n,
             reward: 0n, reward_timelock: 0n, reward_recipient: 0n, reward_token: 0n,
             payout_curve: 0xabcn, payout_curve_data: '0xabcd',
-        }, hashlock, 18, 1)
+        }, hashlock, 18)
         expect(result!.payoutCurve).toMatch(/abc$/)
         expect(result!.payoutCurveData).toBe('0xabcd')
     })

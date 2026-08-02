@@ -15,12 +15,12 @@ import {
     decodeSolverLockFields,
     hashlockToFields,
     readSolverLock,
-    readSolverLockCount,
     TRAIN_STORAGE_SLOTS,
 } from '../client/public/storage'
 
 const contractAddress = `0x${'01'.padStart(64, '0')}`
 const hashlock = `0x${'11'.repeat(16)}${'22'.repeat(16)}`
+const solverAddress = `0x${'02'.padStart(64, '0')}`
 
 describe('Aztec public storage layout', () => {
     it('matches the generated Train artifact root slots', () => {
@@ -38,7 +38,6 @@ describe('Aztec public storage layout', () => {
         expect(TRAIN_STORAGE_SLOTS).toEqual({
             userLocks: slot('user_locks'),
             solverLocks: slot('solver_locks'),
-            solverLockCount: slot('solver_lock_count'),
         })
     })
 
@@ -48,15 +47,6 @@ describe('Aztec public storage layout', () => {
         expect(high.toBigInt()).toBe(BigInt(`0x${'11'.repeat(16)}`))
         expect(low.toBigInt()).toBe(BigInt(`0x${'22'.repeat(16)}`))
         expect(() => hashlockToFields('0x1234')).toThrow('Invalid hashlock format')
-    })
-
-    it('reads the solver count directly from the node', async () => {
-        const getPublicStorageAt = vi.fn().mockResolvedValue(new Fr(2))
-        const node = { getPublicStorageAt } as unknown as AztecNode
-
-        await expect(readSolverLockCount(node, contractAddress, hashlock)).resolves.toBe(2)
-        expect(getPublicStorageAt).toHaveBeenCalledOnce()
-        expect(getPublicStorageAt.mock.calls[0][0]).toBe('latest')
     })
 
     it('reads and decodes all 20 packed solver-lock fields', async () => {
@@ -71,7 +61,7 @@ describe('Aztec public storage layout', () => {
         })
         const node = { getPublicStorageAt } as unknown as AztecNode
 
-        const result = await readSolverLock(node, contractAddress, hashlock, 1)
+        const result = await readSolverLock(node, contractAddress, hashlock, solverAddress)
 
         expect(getPublicStorageAt).toHaveBeenCalledTimes(20)
         expect(result.sender.toBigInt()).toBe(3n)

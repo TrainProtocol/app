@@ -65,9 +65,12 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         }
     }, [swap?.hashlock, swap?.srcContract, swap?.source, swap?.txId, networkMap.size])
 
-    // Destination chain polling params — requires destContract and solver
+    // Destination chain polling params — requires destContract and solver. The solver
+    // address is half of the lock's on-chain key, so without it there is nothing to read
+    // and polling must stay off rather than fail every node.
     const solverLockParams: LockParams | null = useMemo(() => {
         if (!swap?.hashlock || !swap?.destContract || !swap?.destination) return null
+        if (!swap.destinationSolverAddress) return null
         const destTokenDecimals = networkMap.get(swap.destination)?.tokens.find(t => t.symbol == swap.destination_asset)?.decimals
         if (!destTokenDecimals) return null
         return {

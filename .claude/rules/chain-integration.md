@@ -259,7 +259,7 @@ The base class provides `getSolverLockDetailsWithConsensus()` which fans out `ge
 2. Queries each batch in parallel via `Promise.allSettled`
 3. Filters for non-null results
 4. Accumulates non-null results until their count reaches `minQuorum` (capped to `nodeUrls.length`); it then requires **all accumulated results** to match rather than searching for an agreeing quorum subset
-5. Compares `hashlock` (case-insensitive), `index`, `sender`, `recipient`, `token`, `refundTo`, `payoutCurve`, `timelock`, `status`, and amount (via `amountInBaseUnits` if either side provides it, otherwise stringified `amount`) — throws if any accumulated result disagrees
+5. Compares `hashlock` (case-insensitive), `sender`, `recipient`, `token`, `refundTo`, `payoutCurve`, `timelock`, `status`, and amount (via `amountInBaseUnits` if either side provides it, otherwise stringified `amount`) — throws if any accumulated result disagrees
 6. Returns `ConsensusResult { details, agreedCount }` (first valid result + number of matching accumulated results). Returns `null` when there are no nodes/prefetch or when every queried node fulfills with `null`; if there are no valid results and at least one request rejects, it rethrows the last rejection
 7. Supports `prefetchedResult` option — counts as `nodeUrls[0]`'s result and can satisfy quorum alone (e.g. Aztec `minQuorum: 1`)
 
@@ -301,7 +301,7 @@ Each protocol write operation is split into two files under `client/wallet/`: a 
 ### redeemSolver
 
 1. Convert secret to chain-native format
-2. Build via `buildRedeemSolverTx` (encodes `redeemSolver` / `redeem_solver` with hashlock, index, secret). New integrations should use `params.index ?? 1`; current EVM and Tron builders hard-code index `1`, while Starknet, Solana, and Aztec honor `params.index ?? 1`.
+2. Build via `buildRedeemSolverTx` (encodes `redeemSolver` / `redeem_solver` with hashlock, solver, secret). `params.solverAddress` is required — it is the address half of the lock's on-chain key — and must be converted to the chain's native address form (`toEvmHex` on Tron, `AztecAddress` on Aztec, `PublicKey` on Solana, `identityFromAddress` on Fuel).
 3. Send via signer, return tx hash string
 
 ---
@@ -340,32 +340,34 @@ export function resolveUserLock(result: any, id: string, decimals: number): Base
 - `amount` uses `params.decimals` directly — no fallback like `?? 18`
 - `LockStatus` values: `Empty(0)`, `Pending(1)`, `Refunded(2)`, `Redeemed(3)`
 
-### getSolverLockDetails — Count-Then-Loop Pattern
+### getSolverLockDetails — Solver-Keyed Single Read
 
-Each chain's `getSolverLockDetails.ts` file contains the async function, a `getSolverLockByIndex` helper, and an exported `resolveSolverLock()` pure function:
+A solver lock is identified on-chain by `(hashlock, solver address)`, so the read is one
+direct lookup — there is no lock index and no per-hashlock lock count to enumerate.
+Each chain's `getSolverLockDetails.ts` file contains the async function and an exported
+`resolveSolverLock()` pure function:
 
 ```ts
-// getSolverLockDetails delegates to getSolverLockByIndex in a loop
-async function getSolverLockDetails(params, nodeUrl) { /* count-then-loop */ }
-
-// getSolverLockByIndex fetches one lock and calls resolveSolverLock
-async function getSolverLockByIndex(params, index, nodeUrl) { /* RPC + resolve */ }
+// One keyed read — getSolverLock(hashlock, solver) or the chain's equivalent
+async function getSolverLockDetails(params, nodeUrl) { /* RPC + resolve */ }
 
 // Pure function — exported for unit testing
-export function resolveSolverLock(result, id, decimals, index): SolverLockDetails | null { /* field mapping */ }
+export function resolveSolverLock(result, id, decimals): SolverLockDetails | null { /* field mapping */ }
 ```
 
-The count-then-loop pattern:
-1. Get the count of solver locks for this hashlock
-2. Loop from 1 to count (**1-indexed, NOT 0-indexed**)
-3. Call `getSolverLockByIndex` which calls `resolveSolverLock` internally
-4. Skip nulls (empty/invalid slots handled by `resolveSolverLock`)
-5. Filter by solver address (case-insensitive) if provided
-6. Return first match
+The read:
+1. Require `params.solverAddress` — throw when absent, since the lock cannot be addressed without it
+2. Read the lock at `(params.id, params.solverAddress)` in the chain's native form: an
+   `address`/`ContractAddress` argument (EVM, Tron, Starknet), an `AztecAddress` map key
+   (Aztec), a PDA seed (Solana), or an `Identity` enum (Fuel)
+3. Return `resolveSolverLock(result, params.id, params.decimals)` — `null` for an empty slot
+
+No solver-address filtering is needed after the read: the key guarantees the lock belongs
+to that solver, and `verifySolverLock` still re-checks `sender` against the quote.
 
 **`resolveSolverLock` must be an exported pure function** — enables direct unit testing:
 ```ts
-export function resolveSolverLock(result: any, id: string, decimals: number, index: number): SolverLockDetails | null {
+export function resolveSolverLock(result: any, id: string, decimals: number): SolverLockDetails | null {
     if (/* sender is zero/empty */) return null
     return {
         hashlock: id,
@@ -378,16 +380,14 @@ export function resolveSolverLock(result: any, id: string, decimals: number, ind
         reward: Number(result.reward),
         rewardTimelock: Number(result.rewardTimelock),
         rewardRecipient: ..., rewardToken: ...,
-        index,
     }
 }
 ```
 
 Key points:
-- **1-indexed** — contract indices start at 1
+- **`sender` is the solver** — it is the address half of the lock's on-chain key, so `SolverLockDetails` carries no separate identity field
 - **All required `BaseLockDetails` fields must be populated** — `secret` is always `bigint`, and required strings are never `undefined`. `Reward` fields and `refundTo` / `payoutCurve` are optional in the shared types, although the current solver resolvers populate all reward fields.
 - **Always include `amountInBaseUnits: BigInt(result.amount)`** — the exact on-chain amount is required for irreversible safety checks and cross-node amount comparison
-- **Include `index`** in the returned `SolverLockDetails`
 - **Use `params.decimals` directly** — no `?? 18` fallback
 - Normalize `reward` according to the chain ABI's units. Current Starknet/Solana/Aztec resolvers call `formatUnits(..., decimals)`; EVM/Tron currently return `Number(result.reward)` directly.
 
@@ -610,9 +610,9 @@ describe('{Chain} resolveUserLock', () => {
 })
 
 describe('{Chain} resolveSolverLock', () => {
-    // 1. resolves solver lock with reward fields, amountInBaseUnits, and index
+    // 1. resolves solver lock with reward fields and amountInBaseUnits
     // 2. returns null for empty/zero sender
-    // 3. includes correct index in result
+    // 3. reports the owning solver as `sender`
 })
 ```
 
@@ -680,7 +680,7 @@ export const ZERO_ADDRESS = '0x000...' as const   // Chain's empty/zero address 
   - [ ] `redeemSolver.ts` (executor) + `buildRedeemSolverTx.ts` (builder)
   - [ ] `buildApproveTx.ts` (prefer the SDK `BuildApproveTxParams`; existing allowance packages currently duplicate the same shape locally) if the chain has token approvals
   - [ ] Expose all builders as public methods on the wallet client
-- [ ] Count-then-loop pattern in `getSolverLockDetails` (1-indexed)
+- [ ] Single solver-keyed read in `getSolverLockDetails` — requires `params.solverAddress`, no count/loop
 - [ ] `getTransaction(txHash)` — non-blocking, try/catch returning `null`, all three statuses
 - [ ] Set `this.consensusOptions` in constructor if chain needs non-default quorum
 - [ ] Validate `txHash` format at the top of `recoverSwap` — throw `new InvalidTxHashError()` before any RPC calls

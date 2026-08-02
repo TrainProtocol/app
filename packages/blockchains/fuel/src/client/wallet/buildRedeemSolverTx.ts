@@ -1,5 +1,6 @@
 import type { RedeemSolverParams } from '@train-protocol/sdk'
 import type { FuelSigner, FuelTransactionRequest } from '../../types.js'
+import { identityFromAddress } from '../../utils.js'
 import { buildContract } from '../helpers.js'
 
 export async function buildRedeemSolverTx(
@@ -9,6 +10,6 @@ export async function buildRedeemSolverTx(
     if (!params.contractAddress) throw new Error('No contract address')
     const contract = buildContract(params.contractAddress, signer.account)
     return contract.functions
-        .redeem_solver(params.id, params.index ?? 1, BigInt(params.secret))
+        .redeem_solver(params.id, identityFromAddress(params.solverAddress), BigInt(params.secret))
         .fundWithRequiredCoins()
 }

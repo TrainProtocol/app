@@ -1,4 +1,4 @@
-import { BN, Program } from '@coral-xyz/anchor'
+import { Program } from '@coral-xyz/anchor'
 import {
     Connection,
     PublicKey,
@@ -9,7 +9,7 @@ import {
 import type { RedeemSolverParams } from '@train-protocol/sdk'
 import { NATIVE_SOL_ADDRESS } from '../../constants.js'
 import type { TypedProgramAccounts } from '../../types.js'
-import { encoder, hexToUint8Array, writeBigUInt64LE } from '../../utils.js'
+import { encoder, hexToUint8Array } from '../../utils.js'
 import { resolveTokenProgramId } from '../helpers.js'
 
 function secretToUint8Array(secret: string | bigint): Uint8Array {
@@ -30,12 +30,11 @@ export async function buildRedeemSolverTx(
     const hashlockBytes = hexToUint8Array(params.id.replace('0x', ''))
     const hashlockArray = Array.from(hashlockBytes)
     const secretArray = Array.from(secretToUint8Array(params.secret))
-    const lockIndexNum = params.index ?? 1
-    const lockIndex = new BN(lockIndexNum)
-    const indexBytes = writeBigUInt64LE(BigInt(lockIndexNum))
+    const solver = new PublicKey(params.solverAddress)
+    const solverBytes = solver.toBytes()
 
     const [solverLockPda] = PublicKey.findProgramAddressSync(
-        [encoder.encode('solver_lock'), hashlockBytes, indexBytes],
+        [encoder.encode('solver_lock'), hashlockBytes, solverBytes],
         program.programId,
     )
 
@@ -56,7 +55,7 @@ export async function buildRedeemSolverTx(
         const { getAssociatedTokenAddress, ASSOCIATED_TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
         const tokenProgram = await resolveTokenProgramId(connection, tokenMint)
         const [vault] = PublicKey.findProgramAddressSync(
-            [encoder.encode('solver_vault'), hashlockBytes, indexBytes],
+            [encoder.encode('solver_vault'), hashlockBytes, solverBytes],
             program.programId,
         )
         const recipientTokenAccount = await getAssociatedTokenAddress(tokenMint, recipient, true, tokenProgram)
@@ -69,7 +68,7 @@ export async function buildRedeemSolverTx(
             const callerTokenAccount = await getAssociatedTokenAddress(tokenMint, walletPublicKey, true, tokenProgram)
 
             tx = await program.methods
-                .redeemSolverToken(hashlockArray, lockIndex, secretArray)
+                .redeemSolverToken(hashlockArray, solver, secretArray)
                 .accounts({
                     caller: walletPublicKey,
                     solverLock: solverLockPda,
@@ -97,7 +96,7 @@ export async function buildRedeemSolverTx(
             }
 
             const [rewardVault] = PublicKey.findProgramAddressSync(
-                [encoder.encode('solver_reward_vault'), hashlockBytes, indexBytes],
+                [encoder.encode('solver_reward_vault'), hashlockBytes, solverBytes],
                 program.programId,
             )
             const rewardRecipientTokenAccount = await getAssociatedTokenAddress(
@@ -114,7 +113,7 @@ export async function buildRedeemSolverTx(
             )
 
             tx = await program.methods
-                .redeemSolverTokenDiffReward(hashlockArray, lockIndex, secretArray)
+                .redeemSolverTokenDiffReward(hashlockArray, solver, secretArray)
                 .accounts({
                     caller: walletPublicKey,
                     solverLock: solverLockPda,
@@ -140,7 +139,7 @@ export async function buildRedeemSolverTx(
         }
     } else {
         tx = await program.methods
-            .redeemSolverSol(hashlockArray, lockIndex, secretArray)
+            .redeemSolverSol(hashlockArray, solver, secretArray)
             .accounts({
                 caller: walletPublicKey,
                 solverLock: solverLockPda,

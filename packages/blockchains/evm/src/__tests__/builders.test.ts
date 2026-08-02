@@ -121,8 +121,9 @@ describe('buildRefundTx', () => {
 })
 
 describe('buildRedeemSolverTx', () => {
-    it('encodes redeemSolver with id, index=1, and secret as bigint', () => {
+    it('encodes redeemSolver with id, solver, and secret as bigint', () => {
         const secret = '0x' + '12'.repeat(32)
+        const solverAddress = '0x1111111111111111111111111111111111111111'
         const params: RedeemSolverParams = {
             chainId: null,
             contractAddress: atomicContract,
@@ -131,6 +132,7 @@ describe('buildRedeemSolverTx', () => {
             sourceAsset: nativeAsset,
             destinationAddress: sourceAddress,
             destinationAsset,
+            solverAddress,
         }
         const tx = buildRedeemSolverTx(params)
 
@@ -139,9 +141,9 @@ describe('buildRedeemSolverTx', () => {
         const decoded = AbiFunction.decodeData(
             htlcFunctions.redeemSolver,
             tx.data as `0x${string}`,
-        ) as readonly [`0x${string}`, bigint, bigint]
+        ) as readonly [`0x${string}`, `0x${string}`, bigint]
         expect(decoded[0]).toBe(hashlock)
-        expect(decoded[1]).toBe(1n)
+        expect(decoded[1]).toBe(solverAddress)
         expect(decoded[2]).toBe(BigInt(secret))
     })
 })

@@ -8,7 +8,6 @@ import { deriveStorageSlotInMap } from '@aztec/stdlib/hash'
 export const TRAIN_STORAGE_SLOTS = {
     userLocks: 1n,
     solverLocks: 2n,
-    solverLockCount: 3n,
 } as const
 
 const USER_LOCK_FIELD_COUNT = 16
@@ -48,7 +47,7 @@ export function hashlockToFields(hashlock: string): [Fr, Fr] {
     ]
 }
 
-async function deriveNestedMapSlot(root: bigint, keys: Fr[]): Promise<Fr> {
+async function deriveNestedMapSlot(root: bigint, keys: (Fr | AztecAddress)[]): Promise<Fr> {
     let slot = new Fr(root)
     for (const key of keys) {
         slot = await deriveStorageSlotInMap(slot, key)
@@ -175,31 +174,17 @@ export async function readUserLock(
     return decodeUserLockFields(fields)
 }
 
-export async function readSolverLockCount(
-    node: AztecNode,
-    contractAddress: string,
-    hashlock: string,
-    referenceBlock: ReferenceBlock = 'latest',
-): Promise<number> {
-    const address = AztecAddress.fromStringUnsafe(contractAddress)
-    const slot = await deriveNestedMapSlot(
-        TRAIN_STORAGE_SLOTS.solverLockCount,
-        hashlockToFields(hashlock),
-    )
-    return (await node.getPublicStorageAt(referenceBlock, address, slot)).toNumber()
-}
-
 export async function readSolverLock(
     node: AztecNode,
     contractAddress: string,
     hashlock: string,
-    index: number,
+    solverAddress: string,
     referenceBlock: ReferenceBlock = 'latest',
 ): Promise<StoredSolverLock> {
     const address = AztecAddress.fromStringUnsafe(contractAddress)
     const slot = await deriveNestedMapSlot(
         TRAIN_STORAGE_SLOTS.solverLocks,
-        [...hashlockToFields(hashlock), new Fr(index)],
+        [...hashlockToFields(hashlock), AztecAddress.fromStringUnsafe(solverAddress)],
     )
     const fields = await readPackedFields(
         node,

@@ -8,11 +8,10 @@ export const TRON_ADDRESS_PREFIX = 0x41
  */
 export const FUNCTION_SIGNATURES = {
     getUserLock: 'getUserLock(bytes32)',
-    getSolverLock: 'getSolverLock(bytes32,uint256)',
-    getSolverLockCount: 'getSolverLockCount(bytes32)',
+    getSolverLock: 'getSolverLock(bytes32,address)',
     userLock: 'userLock((bytes32,uint256,uint256,uint48,uint48,uint48,address,address,address,string,string,string),(string,string,uint256,string),bytes,bytes)',
     refundUser: 'refundUser(bytes32)',
-    redeemSolver: 'redeemSolver(bytes32,uint256,uint256)',
+    redeemSolver: 'redeemSolver(bytes32,address,uint256)',
     allowance: 'allowance(address,address)',
     approve: 'approve(address,uint256)',
 } as const

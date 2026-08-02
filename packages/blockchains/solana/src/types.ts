@@ -81,5 +81,4 @@ export interface SolverLockData {
 export type TypedProgramAccounts = {
     userLock: { fetch(pda: PublicKey): Promise<UserLockData> }
     solverLock: { fetch(pda: PublicKey): Promise<SolverLockData> }
-    solverLockCounter: { fetch(pda: PublicKey): Promise<{ count: BN }> }
 }

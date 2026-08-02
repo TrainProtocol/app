@@ -26,7 +26,6 @@ const lock: SolverLockDetails = {
     secret: 0n,
     timelock: 10_000,
     status: LockStatus.Pending,
-    index: 1,
     payoutCurve: 'curve',
     payoutCurveData: '0x1234',
 }
@@ -54,10 +53,10 @@ class ConsensusClient extends HTLCPublicClient {
 }
 
 describe('solver lock consensus', () => {
-    it('rejects nodes that report different solver lock indices', async () => {
+    it('rejects nodes that report a different solver as the lock owner', async () => {
         const client = new ConsensusClient({
             a: lock,
-            b: { ...lock, index: 2 },
+            b: { ...lock, sender: '0xotherSolver' },
         })
 
         await expect(client.getSolverLockDetailsWithConsensus(params, ['a', 'b']))

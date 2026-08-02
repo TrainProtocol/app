@@ -97,8 +97,12 @@ export function useManualClaim(): UseManualClaimResult {
             throw err
         }
 
+        // The lock is keyed by (hashlock, solver), so the observed lock's sender is the
+        // only address that can address it on-chain. Fall back to the quoted solver when
+        // the polled details aren't cached (e.g. after a reload straight into a claim).
         const solverLockDetails = queryClient.getQueryData<SolverLockDetails | null>(trainQueryKeys.solverLock(hashlock))
-        if (!solverLockDetails) {
+        const solverAddress = solverLockDetails?.sender || swap.destinationSolverAddress
+        if (!solverAddress) {
             const err = new TrainError('Cannot claim: solver lock details unavailable', TrainErrorCode.ClaimFailed)
             setError(err)
             inFlight.current = false
@@ -127,7 +131,7 @@ export function useManualClaim(): UseManualClaimResult {
                 destinationAddress: swap.destinationAddress,
                 destinationAsset,
                 sourceAsset,
-                index: solverLockDetails.index,
+                solverAddress,
             })
 
             actions.updateSwap(hashlock, { destTxId: txHash })

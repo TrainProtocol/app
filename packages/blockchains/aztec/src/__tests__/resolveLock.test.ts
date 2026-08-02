@@ -55,7 +55,7 @@ describe('Aztec resolveUserLock', () => {
 })
 
 describe('Aztec resolveSolverLock', () => {
-    it('resolves solver lock with reward fields and index', () => {
+    it('resolves solver lock with reward fields', () => {
         const result = resolveSolverLock({
             sender: { toString: () =>'0xSolver' },
             refund_to: { toString: () =>'0xSolver' }, recipient: { toString: () => '0xUser' },
@@ -66,14 +66,13 @@ describe('Aztec resolveSolverLock', () => {
             reward_recipient: { toString: () => '0xRR' }, reward_token: { toString: () => '0xRT' },
             payout_curve: { toString: () => '0x0' },
             payout_curve_data: [0x12, 0x34],
-        }, hashlock, 18, 1)
+        }, hashlock, 18)
         expect(result).not.toBeNull()
         expect(result!.amount).toBe(2)
         expect(result!.reward).toBe(0.1)
         expect(result!.rewardTimelock).toBe(1700001000)
         expect(result!.payoutCurve).toBeNull()
         expect(result!.payoutCurveData).toBe('0x1234')
-        expect(result!.index).toBe(1)
     })
 
     it('returns null when status is 0', () => {
@@ -83,7 +82,7 @@ describe('Aztec resolveSolverLock', () => {
             amount: 0n, timelock: 0n, status: 0, secret: [],
             reward: 0n, reward_timelock: 0n,
             reward_recipient: { toString: () => '' }, reward_token: { toString: () => '' },
-        }, hashlock, 18, 1)).toBeNull()
+        }, hashlock, 18)).toBeNull()
     })
 
     it('preserves an active payout curve for verification', () => {
@@ -96,7 +95,7 @@ describe('Aztec resolveSolverLock', () => {
             reward_recipient: { toString: () => '0xRR' }, reward_token: { toString: () => '0xRT' },
             payout_curve: { toString: () => '0x1234' },
             payout_curve_data: [0xab, 0xcd],
-        }, hashlock, 18, 1)
+        }, hashlock, 18)
         expect(result!.payoutCurve).toBe('0x1234')
         expect(result!.payoutCurveData).toBe('0xabcd')
     })

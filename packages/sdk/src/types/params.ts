@@ -31,9 +31,9 @@ export type LockParams = {
     id: string,
     chainId: string | null,
     contractAddress: string,
-    index?: number,
     txId?: string,
     decimals: number,
+    /** Required to read a solver lock — it is the second half of the lock's on-chain key. */
     solverAddress?: string,
 }
 
@@ -43,7 +43,6 @@ export type RefundParams = {
     id: string,
     hashlock?: string | undefined,
     sourceAsset: Token,
-    index?: number,
 }
 
 export type RedeemSolverParams = {
@@ -54,5 +53,6 @@ export type RedeemSolverParams = {
     sourceAsset: Token,
     destinationAddress: string,
     destinationAsset: Token,
-    index?: number,
+    /** Address of the solver whose lock is being redeemed — part of the lock's on-chain key. */
+    solverAddress: string,
 }

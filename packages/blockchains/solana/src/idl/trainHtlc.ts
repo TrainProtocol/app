@@ -82,7 +82,7 @@ const TRAIN_HTLC_IDL: Idl = {
               },
               {
                 "kind": "arg",
-                "path": "_index"
+                "path": "_solver"
               }
             ]
           }
@@ -103,8 +103,8 @@ const TRAIN_HTLC_IDL: Idl = {
           }
         },
         {
-          "name": "index",
-          "type": "u64"
+          "name": "solver",
+          "type": "pubkey"
         }
       ]
     },
@@ -147,7 +147,7 @@ const TRAIN_HTLC_IDL: Idl = {
               },
               {
                 "kind": "arg",
-                "path": "_index"
+                "path": "_solver"
               }
             ]
           }
@@ -164,8 +164,8 @@ const TRAIN_HTLC_IDL: Idl = {
           }
         },
         {
-          "name": "index",
-          "type": "u64"
+          "name": "solver",
+          "type": "pubkey"
         }
       ],
       "returns": {
@@ -173,61 +173,6 @@ const TRAIN_HTLC_IDL: Idl = {
           "name": "SolverLockData"
         }
       }
-    },
-    {
-      "name": "get_solver_lock_count",
-      "discriminator": [
-        88,
-        88,
-        167,
-        23,
-        36,
-        78,
-        199,
-        154
-      ],
-      "accounts": [
-        {
-          "name": "counter",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  115,
-                  111,
-                  108,
-                  118,
-                  101,
-                  114,
-                  95,
-                  99,
-                  111,
-                  117,
-                  110,
-                  116
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "_hashlock"
-              }
-            ]
-          }
-        }
-      ],
-      "args": [
-        {
-          "name": "hashlock",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          }
-        }
-      ],
-      "returns": "u64"
     },
     {
       "name": "get_user_lock",
@@ -333,7 +278,7 @@ const TRAIN_HTLC_IDL: Idl = {
           "name": "program",
           "docs": [
             "The salt is the cross-cluster replay barrier, so only the program upgrade",
-            "authority may set it — once, before finalizing the upgrade authority.",
+            "authority may set it \u2014 once, before finalizing the upgrade authority.",
             "Genesis-loaded programs (anchor/solana test validators only) carry",
             "Some(Pubkey::default()) as their authority; real deployments via the",
             "upgradeable loader always record the deployer, so the default-pubkey branch",
@@ -406,7 +351,7 @@ const TRAIN_HTLC_IDL: Idl = {
               },
               {
                 "kind": "arg",
-                "path": "index"
+                "path": "solver"
               }
             ]
           }
@@ -446,8 +391,275 @@ const TRAIN_HTLC_IDL: Idl = {
           }
         },
         {
-          "name": "index",
-          "type": "u64"
+          "name": "solver",
+          "type": "pubkey"
+        },
+        {
+          "name": "secret",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "redeem_solver_sol_token_reward",
+      "discriminator": [
+        80,
+        135,
+        99,
+        36,
+        3,
+        172,
+        15,
+        178
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "solver_lock",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  118,
+                  101,
+                  114,
+                  95,
+                  108,
+                  111,
+                  99,
+                  107
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "hashlock"
+              },
+              {
+                "kind": "arg",
+                "path": "solver"
+              }
+            ]
+          }
+        },
+        {
+          "name": "rent_payer",
+          "writable": true
+        },
+        {
+          "name": "recipient",
+          "writable": true
+        },
+        {
+          "name": "reward_recipient"
+        },
+        {
+          "name": "refund_to",
+          "writable": true
+        },
+        {
+          "name": "reward_token_mint"
+        },
+        {
+          "name": "reward_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  118,
+                  101,
+                  114,
+                  95,
+                  114,
+                  101,
+                  119,
+                  97,
+                  114,
+                  100,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "hashlock"
+              },
+              {
+                "kind": "arg",
+                "path": "solver"
+              }
+            ]
+          }
+        },
+        {
+          "name": "reward_recipient_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "reward_recipient"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "reward_token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "caller_reward_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "caller"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "reward_token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "payout_curve_program",
+          "optional": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "hashlock",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "solver",
+          "type": "pubkey"
         },
         {
           "name": "secret",
@@ -505,7 +717,7 @@ const TRAIN_HTLC_IDL: Idl = {
               },
               {
                 "kind": "arg",
-                "path": "index"
+                "path": "solver"
               }
             ]
           }
@@ -560,7 +772,7 @@ const TRAIN_HTLC_IDL: Idl = {
               },
               {
                 "kind": "arg",
-                "path": "index"
+                "path": "solver"
               }
             ]
           }
@@ -828,8 +1040,8 @@ const TRAIN_HTLC_IDL: Idl = {
           }
         },
         {
-          "name": "index",
-          "type": "u64"
+          "name": "solver",
+          "type": "pubkey"
         },
         {
           "name": "secret",
@@ -887,7 +1099,7 @@ const TRAIN_HTLC_IDL: Idl = {
               },
               {
                 "kind": "arg",
-                "path": "index"
+                "path": "solver"
               }
             ]
           }
@@ -945,7 +1157,7 @@ const TRAIN_HTLC_IDL: Idl = {
               },
               {
                 "kind": "arg",
-                "path": "index"
+                "path": "solver"
               }
             ]
           }
@@ -985,7 +1197,7 @@ const TRAIN_HTLC_IDL: Idl = {
               },
               {
                 "kind": "arg",
-                "path": "index"
+                "path": "solver"
               }
             ]
           }
@@ -1253,8 +1465,271 @@ const TRAIN_HTLC_IDL: Idl = {
           }
         },
         {
-          "name": "index",
-          "type": "u64"
+          "name": "solver",
+          "type": "pubkey"
+        },
+        {
+          "name": "secret",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "redeem_solver_token_sol_reward",
+      "discriminator": [
+        129,
+        220,
+        219,
+        158,
+        78,
+        106,
+        122,
+        49
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "solver_lock",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  118,
+                  101,
+                  114,
+                  95,
+                  108,
+                  111,
+                  99,
+                  107
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "hashlock"
+              },
+              {
+                "kind": "arg",
+                "path": "solver"
+              }
+            ]
+          }
+        },
+        {
+          "name": "rent_payer",
+          "writable": true
+        },
+        {
+          "name": "recipient"
+        },
+        {
+          "name": "reward_recipient",
+          "writable": true
+        },
+        {
+          "name": "refund_to"
+        },
+        {
+          "name": "token_mint"
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  118,
+                  101,
+                  114,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "hashlock"
+              },
+              {
+                "kind": "arg",
+                "path": "solver"
+              }
+            ]
+          }
+        },
+        {
+          "name": "recipient_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "recipient"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "refund_to_token_account",
+          "docs": [
+            "Required only when the lock has a payout curve."
+          ],
+          "writable": true,
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "refund_to"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "payout_curve_program",
+          "optional": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "hashlock",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "solver",
+          "type": "pubkey"
         },
         {
           "name": "secret",
@@ -1643,7 +2118,7 @@ const TRAIN_HTLC_IDL: Idl = {
               },
               {
                 "kind": "arg",
-                "path": "index"
+                "path": "solver"
               }
             ]
           }
@@ -1668,8 +2143,198 @@ const TRAIN_HTLC_IDL: Idl = {
           }
         },
         {
-          "name": "index",
-          "type": "u64"
+          "name": "solver",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "refund_solver_sol_token_reward",
+      "discriminator": [
+        224,
+        31,
+        120,
+        79,
+        120,
+        165,
+        0,
+        18
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "solver_lock",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  118,
+                  101,
+                  114,
+                  95,
+                  108,
+                  111,
+                  99,
+                  107
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "hashlock"
+              },
+              {
+                "kind": "arg",
+                "path": "solver"
+              }
+            ]
+          }
+        },
+        {
+          "name": "rent_payer",
+          "writable": true
+        },
+        {
+          "name": "refund_to",
+          "writable": true
+        },
+        {
+          "name": "reward_token_mint"
+        },
+        {
+          "name": "reward_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  118,
+                  101,
+                  114,
+                  95,
+                  114,
+                  101,
+                  119,
+                  97,
+                  114,
+                  100,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "hashlock"
+              },
+              {
+                "kind": "arg",
+                "path": "solver"
+              }
+            ]
+          }
+        },
+        {
+          "name": "refund_to_reward_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "refund_to"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "reward_token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "hashlock",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "solver",
+          "type": "pubkey"
         }
       ]
     },
@@ -1718,7 +2383,7 @@ const TRAIN_HTLC_IDL: Idl = {
               },
               {
                 "kind": "arg",
-                "path": "index"
+                "path": "solver"
               }
             ]
           }
@@ -1764,7 +2429,7 @@ const TRAIN_HTLC_IDL: Idl = {
               },
               {
                 "kind": "arg",
-                "path": "index"
+                "path": "solver"
               }
             ]
           }
@@ -1853,8 +2518,8 @@ const TRAIN_HTLC_IDL: Idl = {
           }
         },
         {
-          "name": "index",
-          "type": "u64"
+          "name": "solver",
+          "type": "pubkey"
         }
       ]
     },
@@ -1903,7 +2568,7 @@ const TRAIN_HTLC_IDL: Idl = {
               },
               {
                 "kind": "arg",
-                "path": "index"
+                "path": "solver"
               }
             ]
           }
@@ -1952,7 +2617,7 @@ const TRAIN_HTLC_IDL: Idl = {
               },
               {
                 "kind": "arg",
-                "path": "index"
+                "path": "solver"
               }
             ]
           }
@@ -1992,7 +2657,7 @@ const TRAIN_HTLC_IDL: Idl = {
               },
               {
                 "kind": "arg",
-                "path": "index"
+                "path": "solver"
               }
             ]
           }
@@ -2138,8 +2803,191 @@ const TRAIN_HTLC_IDL: Idl = {
           }
         },
         {
-          "name": "index",
-          "type": "u64"
+          "name": "solver",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "refund_solver_token_sol_reward",
+      "discriminator": [
+        29,
+        211,
+        115,
+        90,
+        139,
+        58,
+        49,
+        46
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "solver_lock",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  118,
+                  101,
+                  114,
+                  95,
+                  108,
+                  111,
+                  99,
+                  107
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "hashlock"
+              },
+              {
+                "kind": "arg",
+                "path": "solver"
+              }
+            ]
+          }
+        },
+        {
+          "name": "rent_payer",
+          "writable": true
+        },
+        {
+          "name": "refund_to",
+          "writable": true
+        },
+        {
+          "name": "token_mint"
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  118,
+                  101,
+                  114,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "hashlock"
+              },
+              {
+                "kind": "arg",
+                "path": "solver"
+              }
+            ]
+          }
+        },
+        {
+          "name": "refund_to_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "refund_to"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "hashlock",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "solver",
+          "type": "pubkey"
         }
       ]
     },
@@ -2407,7 +3255,7 @@ const TRAIN_HTLC_IDL: Idl = {
           "signer": true
         },
         {
-          "name": "counter",
+          "name": "guard",
           "writable": true,
           "pda": {
             "seeds": [
@@ -2421,16 +3269,20 @@ const TRAIN_HTLC_IDL: Idl = {
                   101,
                   114,
                   95,
-                  99,
-                  111,
+                  103,
                   117,
-                  110,
-                  116
+                  97,
+                  114,
+                  100
                 ]
               },
               {
                 "kind": "arg",
                 "path": "params.hashlock"
+              },
+              {
+                "kind": "account",
+                "path": "sender"
               }
             ]
           }
@@ -2461,8 +3313,8 @@ const TRAIN_HTLC_IDL: Idl = {
                 "path": "params.hashlock"
               },
               {
-                "kind": "arg",
-                "path": "params.index"
+                "kind": "account",
+                "path": "sender"
               }
             ]
           }
@@ -2474,6 +3326,175 @@ const TRAIN_HTLC_IDL: Idl = {
         {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "SolverLockParams"
+            }
+          }
+        },
+        {
+          "name": "data",
+          "type": "bytes"
+        }
+      ]
+    },
+    {
+      "name": "solver_lock_sol_token_reward",
+      "discriminator": [
+        102,
+        191,
+        10,
+        157,
+        221,
+        211,
+        41,
+        50
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "sender",
+          "docs": [
+            "Funds both the native principal and the SPL reward."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "guard",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  118,
+                  101,
+                  114,
+                  95,
+                  103,
+                  117,
+                  97,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "params.hashlock"
+              },
+              {
+                "kind": "account",
+                "path": "sender"
+              }
+            ]
+          }
+        },
+        {
+          "name": "solver_lock",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  118,
+                  101,
+                  114,
+                  95,
+                  108,
+                  111,
+                  99,
+                  107
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "params.hashlock"
+              },
+              {
+                "kind": "account",
+                "path": "sender"
+              }
+            ]
+          }
+        },
+        {
+          "name": "reward_token_mint"
+        },
+        {
+          "name": "sender_reward_token_account",
+          "writable": true
+        },
+        {
+          "name": "reward_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  118,
+                  101,
+                  114,
+                  95,
+                  114,
+                  101,
+                  119,
+                  97,
+                  114,
+                  100,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "params.hashlock"
+              },
+              {
+                "kind": "account",
+                "path": "sender"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payout_curve_program",
+          "optional": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
         }
       ],
       "args": [
@@ -2520,7 +3541,7 @@ const TRAIN_HTLC_IDL: Idl = {
           "signer": true
         },
         {
-          "name": "counter",
+          "name": "guard",
           "writable": true,
           "pda": {
             "seeds": [
@@ -2534,16 +3555,20 @@ const TRAIN_HTLC_IDL: Idl = {
                   101,
                   114,
                   95,
-                  99,
-                  111,
+                  103,
                   117,
-                  110,
-                  116
+                  97,
+                  114,
+                  100
                 ]
               },
               {
                 "kind": "arg",
                 "path": "params.hashlock"
+              },
+              {
+                "kind": "account",
+                "path": "sender"
               }
             ]
           }
@@ -2574,8 +3599,8 @@ const TRAIN_HTLC_IDL: Idl = {
                 "path": "params.hashlock"
               },
               {
-                "kind": "arg",
-                "path": "params.index"
+                "kind": "account",
+                "path": "sender"
               }
             ]
           }
@@ -2614,8 +3639,8 @@ const TRAIN_HTLC_IDL: Idl = {
                 "path": "params.hashlock"
               },
               {
-                "kind": "arg",
-                "path": "params.index"
+                "kind": "account",
+                "path": "sender"
               }
             ]
           }
@@ -2680,7 +3705,7 @@ const TRAIN_HTLC_IDL: Idl = {
           "signer": true
         },
         {
-          "name": "counter",
+          "name": "guard",
           "writable": true,
           "pda": {
             "seeds": [
@@ -2694,16 +3719,20 @@ const TRAIN_HTLC_IDL: Idl = {
                   101,
                   114,
                   95,
-                  99,
-                  111,
+                  103,
                   117,
-                  110,
-                  116
+                  97,
+                  114,
+                  100
                 ]
               },
               {
                 "kind": "arg",
                 "path": "params.hashlock"
+              },
+              {
+                "kind": "account",
+                "path": "sender"
               }
             ]
           }
@@ -2734,8 +3763,8 @@ const TRAIN_HTLC_IDL: Idl = {
                 "path": "params.hashlock"
               },
               {
-                "kind": "arg",
-                "path": "params.index"
+                "kind": "account",
+                "path": "sender"
               }
             ]
           }
@@ -2781,8 +3810,8 @@ const TRAIN_HTLC_IDL: Idl = {
                 "path": "params.hashlock"
               },
               {
-                "kind": "arg",
-                "path": "params.index"
+                "kind": "account",
+                "path": "sender"
               }
             ]
           }
@@ -2821,8 +3850,170 @@ const TRAIN_HTLC_IDL: Idl = {
                 "path": "params.hashlock"
               },
               {
+                "kind": "account",
+                "path": "sender"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payout_curve_program",
+          "optional": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "SolverLockParams"
+            }
+          }
+        },
+        {
+          "name": "data",
+          "type": "bytes"
+        }
+      ]
+    },
+    {
+      "name": "solver_lock_token_sol_reward",
+      "discriminator": [
+        229,
+        63,
+        38,
+        181,
+        110,
+        146,
+        22,
+        221
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "sender",
+          "docs": [
+            "Funds both the SPL principal and native reward."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "guard",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  118,
+                  101,
+                  114,
+                  95,
+                  103,
+                  117,
+                  97,
+                  114,
+                  100
+                ]
+              },
+              {
                 "kind": "arg",
-                "path": "params.index"
+                "path": "params.hashlock"
+              },
+              {
+                "kind": "account",
+                "path": "sender"
+              }
+            ]
+          }
+        },
+        {
+          "name": "solver_lock",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  118,
+                  101,
+                  114,
+                  95,
+                  108,
+                  111,
+                  99,
+                  107
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "params.hashlock"
+              },
+              {
+                "kind": "account",
+                "path": "sender"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_mint"
+        },
+        {
+          "name": "sender_token_account",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  118,
+                  101,
+                  114,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "params.hashlock"
+              },
+              {
+                "kind": "account",
+                "path": "sender"
               }
             ]
           }
@@ -3325,16 +4516,16 @@ const TRAIN_HTLC_IDL: Idl = {
       ]
     },
     {
-      "name": "SolverLockCounter",
+      "name": "SolverLockGuard",
       "discriminator": [
-        192,
-        165,
-        115,
-        87,
-        4,
-        102,
-        174,
-        95
+        180,
+        194,
+        202,
+        101,
+        9,
+        113,
+        138,
+        173
       ]
     },
     {
@@ -3482,8 +4673,8 @@ const TRAIN_HTLC_IDL: Idl = {
     },
     {
       "code": 6007,
-      "name": "InvalidIndex",
-      "msg": "Invalid index: must equal current count + 1."
+      "name": "SolverLockAlreadyExists",
+      "msg": "This solver already created a lock for this hashlock."
     },
     {
       "code": 6008,
@@ -3769,23 +4960,6 @@ const TRAIN_HTLC_IDL: Idl = {
       }
     },
     {
-      "name": "SolverLockCounter",
-      "docs": [
-        "INVARIANT: solver-lock indices are 1-based and monotone. The counter PDA is never",
-        "closed, so a closed solver lock at index i <= count can never be re-initialized",
-        "(creation requires index == count + 1)."
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "count",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
       "name": "SolverLockData",
       "type": {
         "kind": "struct",
@@ -3863,6 +5037,36 @@ const TRAIN_HTLC_IDL: Idl = {
       }
     },
     {
+      "name": "SolverLockGuard",
+      "docs": [
+        "Permanent single-use marker for a `(hashlock, solver)` pair. The full solver lock",
+        "may be closed after settlement to recover rent, but this compact guard is never",
+        "closed, so a blind retry can never escrow funds twice."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "used",
+            "type": "bool"
+          },
+          {
+            "name": "solver",
+            "type": "pubkey"
+          },
+          {
+            "name": "hashlock",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
       "name": "SolverLockParams",
       "type": {
         "kind": "struct",
@@ -3875,10 +5079,6 @@ const TRAIN_HTLC_IDL: Idl = {
                 32
               ]
             }
-          },
-          {
-            "name": "index",
-            "type": "u64"
           },
           {
             "name": "amount",
@@ -3969,10 +5169,6 @@ const TRAIN_HTLC_IDL: Idl = {
             "type": "pubkey"
           },
           {
-            "name": "index",
-            "type": "u64"
-          },
-          {
             "name": "src_chain",
             "type": "string"
           },
@@ -4046,8 +5242,8 @@ const TRAIN_HTLC_IDL: Idl = {
             }
           },
           {
-            "name": "index",
-            "type": "u64"
+            "name": "solver",
+            "type": "pubkey"
           },
           {
             "name": "redeemer",
@@ -4096,8 +5292,8 @@ const TRAIN_HTLC_IDL: Idl = {
             }
           },
           {
-            "name": "index",
-            "type": "u64"
+            "name": "solver",
+            "type": "pubkey"
           },
           {
             "name": "refund_to",

@@ -5,7 +5,6 @@ import HTLCAbi from './abis/EVM_HTLC.json'
 export const htlcFunctions = {
     getUserLock: AbiFunction.fromAbi(HTLCAbi, 'getUserLock'),
     getSolverLock: AbiFunction.fromAbi(HTLCAbi, 'getSolverLock'),
-    getSolverLockCount: AbiFunction.fromAbi(HTLCAbi, 'getSolverLockCount'),
     userLock: AbiFunction.fromAbi(HTLCAbi, 'userLock'),
     refundUser: AbiFunction.fromAbi(HTLCAbi, 'refundUser'),
     redeemSolver: AbiFunction.fromAbi(HTLCAbi, 'redeemSolver'),
@@ -32,6 +31,7 @@ export const htlcErrorsBySelector: Record<string, string> = {
     '0x8727a7f9': 'QuoteExpired',
     '0x3ee5aeb5': 'ReentrancyGuardReentrantCall',
     '0x089c9987': 'RefundNotAllowed',
+    '0x743bdb2c': 'SolverLockAlreadyExists',
     '0x734530ce': 'SwapAlreadyExists',
     '0x90b8ec18': 'TransferFailed',
     '0xd92e233d': 'ZeroAddress',

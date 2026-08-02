@@ -70,7 +70,7 @@ describe('EVM resolveSolverLock', () => {
             reward: 100n, rewardTimelock: 1700001000n,
             rewardRecipient: '0xRR', rewardToken: '0xRT', payoutCurve: ZERO_ADDRESS,
             payoutCurveData: '0x1234',
-        }, hashlock, 18, 1)
+        }, hashlock, 18)
         expect(result).not.toBeNull()
         expect(result!.amount).toBe(2)
         expect(result!.reward).toBe(100)
@@ -79,7 +79,6 @@ describe('EVM resolveSolverLock', () => {
         expect(result!.rewardToken).toBe('0xRT')
         expect(result!.payoutCurve).toBeNull()
         expect(result!.payoutCurveData).toBe('0x1234')
-        expect(result!.index).toBe(1)
     })
 
     it('returns null when sender is ZERO_ADDRESS', () => {
@@ -87,17 +86,17 @@ describe('EVM resolveSolverLock', () => {
             sender: ZERO_ADDRESS, recipient: '0xR', token: '0xT',
             amount: 0n, timelock: 0n, status: 0n, secret: 0n,
             reward: 0n, rewardTimelock: 0n, rewardRecipient: ZERO_ADDRESS, rewardToken: ZERO_ADDRESS,
-        }, hashlock, 18, 1)).toBeNull()
+        }, hashlock, 18)).toBeNull()
     })
 
-    it('includes index in result', () => {
+    it('reports the solver that owns the lock as the sender', () => {
         const result = resolveSolverLock({
             sender: '0xS', recipient: '0xR', token: '0xT',
             amount: 0n, timelock: 0n, status: 1n, secret: 0n,
             reward: 0n, rewardTimelock: 0n, rewardRecipient: '0xRR', rewardToken: '0xRT',
             payoutCurve: ZERO_ADDRESS, payoutCurveData: '0x',
-        }, hashlock, 18, 3)
-        expect(result!.index).toBe(3)
+        }, hashlock, 18)
+        expect(result!.sender).toBe('0xS')
     })
 
     it('preserves an active payout curve for verification', () => {
@@ -107,7 +106,7 @@ describe('EVM resolveSolverLock', () => {
             amount: 0n, timelock: 0n, status: 1n, secret: 0n,
             reward: 0n, rewardTimelock: 0n, rewardRecipient: '0xRR', rewardToken: '0xRT',
             payoutCurve, payoutCurveData: '0xabcd',
-        }, hashlock, 18, 1)
+        }, hashlock, 18)
         expect(result!.payoutCurve).toBe(payoutCurve)
         expect(result!.payoutCurveData).toBe('0xabcd')
     })
@@ -117,6 +116,6 @@ describe('EVM resolveSolverLock', () => {
             sender: '0xS', recipient: '0xR', token: '0xT',
             amount: 0n, timelock: 0n, status: 1n, secret: 0n,
             reward: 0n, rewardTimelock: 0n, rewardRecipient: '0xRR', rewardToken: '0xRT',
-        }, hashlock, 18, 1)).toThrow('payout policy is unavailable')
+        }, hashlock, 18)).toThrow('payout policy is unavailable')
     })
 })

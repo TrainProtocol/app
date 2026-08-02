@@ -116,7 +116,6 @@ export abstract class HTLCPublicClient implements IHTLCPublicClient {
                 if (rest.length > 0 && !rest.every(r =>
                     amountsMatch(r, first) &&
                     r.hashlock.toLowerCase() === first.hashlock.toLowerCase() &&
-                    r.index === first.index &&
                     r.sender === first.sender &&
                     r.recipient === first.recipient &&
                     r.token === first.token &&

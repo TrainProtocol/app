@@ -13,7 +13,6 @@ const baseLock: SolverLockDetails = {
     hashlock: '0xabc',
     secret: 0n,
     status: LockStatus.Pending,
-    index: 1,
     payoutCurve: '0xCurve',
     payoutCurveData: '0x1234',
 }
@@ -176,15 +175,6 @@ describe('verifySolverLock', () => {
         })
         expect(result.verified).toBe(false)
         expect(result.mismatches[0]).toContain('Status')
-    })
-
-    it('rejects a non-positive solver lock index', () => {
-        const result = verifySolverLock({
-            ...baseParams,
-            solverLockDetails: { ...baseLock, index: 0 },
-        })
-        expect(result.verified).toBe(false)
-        expect(result.mismatches[0]).toContain('Index')
     })
 
     it('verifies the expected solver sender', () => {

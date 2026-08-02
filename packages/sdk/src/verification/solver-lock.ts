@@ -44,14 +44,13 @@ export function verifySolverLock(params: VerifySolverLockParams): VerificationRe
 
     const mismatches: string[] = []
 
-    // Only a positive, pending solver-lock index can be redeemed safely.
+    // Only a pending lock can be redeemed safely.
     if (solverLockDetails.status !== LockStatus.Pending) {
         mismatches.push(`Status: expected pending, got ${LockStatus[solverLockDetails.status] ?? solverLockDetails.status}`)
     }
-    if (!Number.isInteger(solverLockDetails.index) || solverLockDetails.index <= 0) {
-        mismatches.push(`Index: expected a positive solver lock index, got ${solverLockDetails.index}`)
-    }
 
+    // The sender is the solver address the lock is keyed by, so this check also
+    // confirms we read the lock belonging to the quoted solver.
     if (expectedSender && !addressEquals(solverLockDetails.sender, expectedSender)) {
         mismatches.push(`Sender: expected ${expectedSender}, got ${solverLockDetails.sender}`)
     }

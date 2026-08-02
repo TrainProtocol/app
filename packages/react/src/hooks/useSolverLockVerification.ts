@@ -13,10 +13,10 @@ export interface UseSolverLockVerificationResult extends VerificationResult {}
  *
  * Checks:
  * - Exact base-unit amount: solver lock matches the quoted receive amount
- * - Sender: lock belongs to the quoted destination solver
+ * - Sender: lock belongs to the quoted destination solver — the address it is keyed by
  * - Recipient: lock recipient matches the user's destination address
  * - Token: locked token matches the expected destination token
- * - State/index: lock is pending and has a positive solver-lock index
+ * - State: lock is pending
  * - Payout policy: lock carries no curve, or the destination chain's recognized full-payout curve
  * - Timelocks: destination retains the claim fallback window and source safety margin
  *

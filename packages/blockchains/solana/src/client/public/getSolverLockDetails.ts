@@ -4,7 +4,7 @@ import { LockStatus, formatUnits, normalizePayoutCurveData } from '@train-protoc
 import type { LockParams, SolverLockDetails } from '@train-protocol/sdk'
 import { NATIVE_SOL_ADDRESS } from '../../constants.js'
 import type { TypedProgramAccounts } from '../../types.js'
-import { encoder, hexToUint8Array, writeBigUInt64LE } from '../../utils.js'
+import { encoder, hexToUint8Array } from '../../utils.js'
 import { parseSecret } from '../helpers.js'
 
 export async function getSolverLockDetails(
@@ -12,52 +12,17 @@ export async function getSolverLockDetails(
     nodeUrl: string,
     programFactory: (contractAddress: string, connection?: Connection) => Program,
 ): Promise<SolverLockDetails | null> {
-    const { contractAddress, id } = params
+    const { contractAddress, id, solverAddress } = params
 
     if (!contractAddress) throw new Error('No contract address')
+    if (!solverAddress) throw new Error('solverAddress is required to read a solver lock')
 
     const connection = new Connection(nodeUrl, 'confirmed')
     const hashlockBytes = hexToUint8Array(id.replace('0x', ''))
     const program = programFactory(contractAddress, connection)
-
-    const [counterPda] = PublicKey.findProgramAddressSync(
-        [encoder.encode("solver_count"), hashlockBytes],
-        program.programId
-    )
-    const counterAccount = await connection.getAccountInfo(counterPda)
-    if (!counterAccount) return null
-    const count = Number((await (program.account as TypedProgramAccounts).solverLockCounter.fetch(counterPda)).count)
-    if (count === 0) return null
-
-    for (let i = 1; i <= count; i++) {
-        const result = await getSolverLockByIndex(params, i, nodeUrl, programFactory)
-        if (!result) continue
-        if (params.solverAddress && result.sender?.toLowerCase() !== params.solverAddress.toLowerCase()) continue
-
-        return result
-    }
-
-    return null
-}
-
-export async function getSolverLockByIndex(
-    params: LockParams,
-    index: number,
-    nodeUrl: string,
-    programFactory: (contractAddress: string, connection?: Connection) => Program,
-): Promise<SolverLockDetails | null> {
-    const { contractAddress, id } = params
-
-    if (!contractAddress) throw new Error('No contract address')
-
-    const connection = new Connection(nodeUrl, 'confirmed')
-    const hashlockBytes = hexToUint8Array(id.replace('0x', ''))
-    const program = programFactory(contractAddress, connection)
-
-    const indexBytes = writeBigUInt64LE(BigInt(index))
 
     const [solverLockPda] = PublicKey.findProgramAddressSync(
-        [encoder.encode("solver_lock"), hashlockBytes, indexBytes],
+        [encoder.encode("solver_lock"), hashlockBytes, new PublicKey(solverAddress).toBytes()],
         program.programId
     )
 
@@ -66,14 +31,14 @@ export async function getSolverLockByIndex(
 
         if (!result) return null
 
-        return resolveSolverLock(result, id, params.decimals, index)
+        return resolveSolverLock(result, id, params.decimals)
     } catch (e) {
         console.error('Error fetching Solana solver lock details:', e)
         return null
     }
 }
 
-export function resolveSolverLock(result: any, id: string, decimals: number, index: number): SolverLockDetails | null {
+export function resolveSolverLock(result: any, id: string, decimals: number): SolverLockDetails | null {
     const sender = new PublicKey(result.sender).toString()
     if (sender === NATIVE_SOL_ADDRESS) return null
     if (result.payoutCurve == null || result.payoutCurveData == null) {
@@ -99,6 +64,5 @@ export function resolveSolverLock(result: any, id: string, decimals: number, ind
         refundTo: result.refundTo ? new PublicKey(result.refundTo).toString() : undefined,
         payoutCurve: payoutCurve === NATIVE_SOL_ADDRESS ? null : payoutCurve,
         payoutCurveData: normalizePayoutCurveData(result.payoutCurveData),
-        index,
     }
 }

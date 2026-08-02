@@ -54,25 +54,24 @@ describe('Tron resolveUserLock', () => {
 })
 
 describe('Tron resolveSolverLock', () => {
-    it('resolves solver lock with index', () => {
+    it('resolves solver lock with reward fields', () => {
         const result = resolveSolverLock({
             sender: '0xSolver', recipient: '0xUser', token: '0xToken',
             amount: 2000000n, timelock: 1700000000n, status: 1n, secret: 0n,
             reward: 0n, rewardTimelock: 0n, rewardRecipient: ZERO_ADDRESS,
             rewardToken: ZERO_ADDRESS, payoutCurve: ZERO_ADDRESS, payoutCurveData: '0x1234',
-        }, hashlock, 6, 1)
+        }, hashlock, 6)
         expect(result).not.toBeNull()
         expect(result!.amount).toBe(2)
         expect(result!.payoutCurve).toBeNull()
         expect(result!.payoutCurveData).toBe('0x1234')
-        expect(result!.index).toBe(1)
     })
 
     it('returns null when sender is ZERO_ADDRESS', () => {
         expect(resolveSolverLock({
             sender: ZERO_ADDRESS, recipient: '0xR', token: '0xT',
             amount: 0n, timelock: 0n, status: 0n, secret: 0n,
-        }, hashlock, 18, 1)).toBeNull()
+        }, hashlock, 18)).toBeNull()
     })
 
     it('marks a legacy-ABI decode unavailable instead of claiming "no curve"', () => {
@@ -80,7 +79,7 @@ describe('Tron resolveSolverLock', () => {
             sender: '0xSolver', recipient: '0xUser', token: '0xToken',
             amount: 0n, timelock: 1700000000n, status: 1n, secret: 0n,
             reward: 0n, rewardTimelock: 0n, rewardRecipient: ZERO_ADDRESS, rewardToken: ZERO_ADDRESS,
-        }, hashlock, 18, 1)
+        }, hashlock, 18)
         expect(result!.payoutCurve).toBe('')
         expect(result!.payoutCurveData).toBe('0x')
     })
@@ -92,7 +91,7 @@ describe('Tron resolveSolverLock', () => {
             amount: 0n, timelock: 1700000000n, status: 1n, secret: 0n,
             reward: 0n, rewardTimelock: 0n, rewardRecipient: ZERO_ADDRESS,
             rewardToken: ZERO_ADDRESS, payoutCurve, payoutCurveData: '0xabcd',
-        }, hashlock, 18, 1)
+        }, hashlock, 18)
         expect(result!.payoutCurve).toBe(payoutCurve)
     })
 })

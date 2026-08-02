@@ -63,7 +63,7 @@ describe('Solana resolveUserLock', () => {
 })
 
 describe('Solana resolveSolverLock', () => {
-    it('resolves solver lock with reward fields and index', () => {
+    it('resolves solver lock with reward fields', () => {
         const data = {
             ...mockUserLock({ amount: new BN('2000000000') }),
             reward: new BN('100000000'),
@@ -71,10 +71,9 @@ describe('Solana resolveSolverLock', () => {
             rewardRecipient: PublicKey.unique(),
             rewardTokenMint: PublicKey.unique(),
         }
-        const result = resolveSolverLock(data, hashlock, 9, 2)
+        const result = resolveSolverLock(data, hashlock, 9)
         expect(result).not.toBeNull()
         expect(result!.amount).toBe(2)
-        expect(result!.index).toBe(2)
         expect(result!.rewardRecipient).toBe(data.rewardRecipient.toString())
         expect(result!.refundTo).toBe(data.refundTo.toString())
         expect(result!.payoutCurve).toBe(data.payoutCurve.toString())
@@ -86,7 +85,7 @@ describe('Solana resolveSolverLock', () => {
             reward: new BN('0'), rewardTimelock: new BN('0'),
             rewardRecipient: PublicKey.unique(), rewardTokenMint: PublicKey.unique(),
         }
-        expect(resolveSolverLock(data, hashlock, 9, 1)).toBeNull()
+        expect(resolveSolverLock(data, hashlock, 9)).toBeNull()
     })
 
     it('normalizes the native-address sentinel to null so it reads as "no curve"', () => {
@@ -95,6 +94,6 @@ describe('Solana resolveSolverLock', () => {
             reward: new BN('0'), rewardTimelock: new BN('0'),
             rewardRecipient: PublicKey.unique(), rewardTokenMint: PublicKey.unique(),
         }
-        expect(resolveSolverLock(data, hashlock, 9, 1)!.payoutCurve).toBeNull()
+        expect(resolveSolverLock(data, hashlock, 9)!.payoutCurve).toBeNull()
     })
 })
