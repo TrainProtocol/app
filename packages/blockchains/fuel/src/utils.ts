@@ -56,6 +56,15 @@ export function dataBytes(value?: string): Uint8Array {
         : new TextEncoder().encode(value)
 }
 
+/**
+ * Encode config for an `Option<Bytes>` field. Absent config must be `None`, not
+ * `Some(empty)` — the two are distinct on the wire, so `dataBytes` (which returns empty
+ * bytes for absent input, correct for the plain `Bytes` params) would change the encoding.
+ */
+export function optionalDataBytes(value?: string): Uint8Array | undefined {
+    return value ? dataBytes(value) : undefined
+}
+
 export function decodeBytes(value?: Bytes): string | undefined {
     if (!value) return undefined
     const bytes = value instanceof Uint8Array ? value : new Uint8Array(value as number[])
