@@ -1,23 +1,12 @@
 "use client"
 
-import { useCallback } from "react"
-import { useRouter } from "next/navigation"
 import HeaderWithMenu from "./HeaderWithMenu"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
-import { buildHrefWithPersistantParams } from "@/helpers/querryHelper"
+import { useGoBack } from "@/hooks/useGoBack"
 
 export default function MobilePageHeader() {
-    const router = useRouter()
     const { isMobile } = useWindowDimensions()
-
-    const goBack = useCallback(() => {
-        if (window?.['navigation']?.['canGoBack']) {
-            router.back()
-            return
-        }
-        const sp = new URLSearchParams(window.location.search)
-        router.push(buildHrefWithPersistantParams("/", sp))
-    }, [router])
+    const goBack = useGoBack()
 
     if (!isMobile) return null
     return <HeaderWithMenu goBack={goBack} />

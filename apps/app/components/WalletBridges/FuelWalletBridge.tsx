@@ -8,30 +8,18 @@ import {
     type TrainWalletAdapter,
 } from '@train-protocol/react'
 import type { TrainSDK } from '@train-protocol/sdk'
-import { useSettingsState } from '@/context/settings'
 import { Address } from '@/lib/address'
-import { useRpcConfigStore } from '@/stores/rpcConfigStore'
 import { useWalletStore } from '@/stores/walletStore'
+import { useBridgeRpcUrl } from './useBridgeRpcUrl'
 
 export function FuelWalletBridge() {
     const connectedWallets = useWalletStore(state => state.connectedWallets)
     const fuelWallet = connectedWallets.find(wallet => wallet.providerName === 'Fuel')
     const address = fuelWallet?.address ?? null
     const { wallet: account } = useWallet({ account: address })
-    const { networks } = useSettingsState()
-    const getEffectiveRpcUrls = useRpcConfigStore(state => state.getEffectiveRpcUrls)
+    const getRpcUrl = useBridgeRpcUrl('fuel:')
 
     const adapter = useMemo<TrainWalletAdapter>(() => {
-        function getRpcUrl(caip2Id?: Caip2Id): string {
-            const network = networks.find(candidate =>
-                caip2Id
-                    ? candidate.caip2Id === (caip2Id as string)
-                    : candidate.caip2Id.startsWith('fuel:')
-            )
-            if (!network) return ''
-            return getEffectiveRpcUrls(network)[0] ?? network.nodes?.[0]?.url ?? ''
-        }
-
         return {
             chainNamespace: chainNamespace('fuel'),
 
@@ -64,7 +52,7 @@ export function FuelWalletBridge() {
                 return { wallet: account }
             },
         }
-    }, [account, networks, getEffectiveRpcUrls])
+    }, [account, getRpcUrl])
 
     useRegisterWallet(adapter)
     return null

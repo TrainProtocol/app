@@ -1,5 +1,5 @@
 import { cairo, RpcProvider } from 'starknet'
-import { formatUnits } from '@train-protocol/sdk'
+import { formatUnits, normalizePayoutCurveData } from '@train-protocol/sdk'
 import type { LockParams, SolverLockDetails } from '@train-protocol/sdk'
 import { formatStarknetAddress } from '../../utils.js'
 import { createContract, mapLockStatus } from '../helpers.js'
@@ -8,39 +8,26 @@ export async function getSolverLockDetails(
     params: LockParams,
     nodeUrl: string,
 ): Promise<SolverLockDetails | null> {
-    const { id, contractAddress } = params
+    const { id, contractAddress, solverAddress } = params
+    if (!solverAddress) throw new Error('solverAddress is required to read a solver lock')
+
     const provider = new RpcProvider({ nodeUrl })
     const contract = createContract(contractAddress, provider)
 
-    const count = Number(await contract.get_solver_lock_count(cairo.uint256(BigInt(id))))
-    if (count === 0) return null
+    const result = await contract.get_solver_lock(cairo.uint256(BigInt(id)), solverAddress)
 
-    for (let i = 1; i <= count; i++) {
-        const result = await getSolverLockByIndex(params, i, nodeUrl)
-        if (!result) continue
-        if (params.solverAddress && formatStarknetAddress(result.sender ?? '').toLowerCase() !== formatStarknetAddress(params.solverAddress).toLowerCase()) continue
-        return result
+    return resolveSolverLock(result, id, params.decimals)
+}
+
+export function resolveSolverLock(result: any, id: string, decimals: number): SolverLockDetails | null {
+    if (BigInt(result.sender) === 0n) return null
+    if (result.payout_curve == null || result.payout_curve_data == null) {
+        throw new Error('Solver lock payout policy is unavailable')
     }
 
-    return null
-}
-
-export async function getSolverLockByIndex(
-    params: LockParams,
-    index: number,
-    nodeUrl: string,
-): Promise<SolverLockDetails | null> {
-    const { id, contractAddress } = params
-    const provider = new RpcProvider({ nodeUrl })
-    const contract = createContract(contractAddress, provider)
-
-    const result = await contract.get_solver_lock(cairo.uint256(BigInt(id)), cairo.uint256(BigInt(index)))
-
-    return resolveSolverLock(result, id, params.decimals, index)
-}
-
-export function resolveSolverLock(result: any, id: string, decimals: number, index: number): SolverLockDetails | null {
-    if (BigInt(result.sender) === 0n) return null
+    const payoutCurve = BigInt(result.payout_curve) === 0n
+        ? null
+        : formatStarknetAddress(result.payout_curve).toString()
 
     return {
         hashlock: id,
@@ -56,6 +43,7 @@ export function resolveSolverLock(result: any, id: string, decimals: number, ind
         rewardTimelock: Number(result.reward_timelock),
         rewardRecipient: formatStarknetAddress(result.reward_recipient).toString(),
         rewardToken: formatStarknetAddress(result.reward_token).toString(),
-        index,
+        payoutCurve,
+        payoutCurveData: normalizePayoutCurveData(result.payout_curve_data),
     }
 }

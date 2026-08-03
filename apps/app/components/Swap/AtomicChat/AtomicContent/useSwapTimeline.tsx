@@ -10,7 +10,7 @@ import LockIcon from "@/components/Icons/LockIcon";
 
 type GaugeIcon = "check" | "undo" | "circleCheck" | "x" | null;
 
-export type SwapProgress = {
+export type SwapTimeline = {
     gaugeValue: number;
     gaugeIcon: GaugeIcon;
     title: string;
@@ -141,7 +141,7 @@ const VerificationStatus: FC = () => {
 
 // --- Main Hook ---
 
-export function useSwapProgress(): SwapProgress {
+export function useSwapTimeline(): SwapTimeline {
     const {
         txId: lockTxId,
         refundTxId,

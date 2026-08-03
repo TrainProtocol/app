@@ -65,9 +65,14 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         }
     }, [swap?.hashlock, swap?.srcContract, swap?.source, swap?.txId, networkMap.size])
 
-    // Destination chain polling params — requires destContract and solver
+    // Destination chain polling params — requires destContract and solver. The solver
+    // address is half of the lock's on-chain key, so without it there is nothing to read
+    // and polling must stay off rather than fail every node. `useRecoverSwap` back-fills it
+    // from the source lock's reward recipient; a reward-less quote leaves it genuinely
+    // unknown, which the effect below reports rather than letting the swap sit silent.
     const solverLockParams: LockParams | null = useMemo(() => {
         if (!swap?.hashlock || !swap?.destContract || !swap?.destination) return null
+        if (!swap.destinationSolverAddress) return null
         const destTokenDecimals = networkMap.get(swap.destination)?.tokens.find(t => t.symbol == swap.destination_asset)?.decimals
         if (!destTokenDecimals) return null
         return {
@@ -78,6 +83,30 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
             solverAddress: swap.destinationSolverAddress,
         }
     }, [swap?.hashlock, swap?.destContract, swap?.destination, swap?.destTokenContract, swap?.destinationSolverAddress, networkMap.size])
+
+    // Without the solver's destination address the lock cannot be addressed at all, so
+    // destination polling never starts. Say so once instead of leaving the swap on
+    // "reserving assets on destination" until the timelock expires. Not overridable —
+    // there is no lock to read, so continuing anyway would gain the user nothing.
+    const missingSolverReportedFor = useRef<string | null>(null)
+    useEffect(() => {
+        if (!hl || !swap?.destContract || !swap?.destination) return
+        if (swap.destinationSolverAddress) {
+            if (missingSolverReportedFor.current === hl) missingSolverReportedFor.current = null
+            return
+        }
+        if (derived.status === HTLCStatus.Initial || TERMINAL_STATUSES.has(derived.status)) return
+        if (missingSolverReportedFor.current === hl) return
+        missingSolverReportedFor.current = hl
+
+        const error = new TrainError(
+            'Cannot monitor the destination lock: this swap has no destination solver address, '
+            + 'so the solver lock cannot be located on-chain. Refund once the source timelock expires.',
+            TrainErrorCode.VerificationFailed,
+        )
+        actions.updateSwapFlags(hl, { error, manualConsensusOverrideAllowed: false })
+        config.onError?.(error)
+    }, [hl, swap?.destContract, swap?.destination, swap?.destinationSolverAddress, derived.status, actions, config])
 
     // Resolve destination chain node URLs for solver lock verification
     const destNodeUrls = useMemo(() => {

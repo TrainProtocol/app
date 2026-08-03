@@ -8,12 +8,14 @@ const lockedSource: UserLockDetails = {
     sender: '0xUser', recipient: '0xRecipient', token: '0xToken',
     amount: 100, timelock: 9999999, hashlock: '0xabc',
     secret: 0n, status: LockStatus.Pending,
+    payoutCurve: '0xCurve', payoutCurveData: '0x1234',
 }
 
 const lockedSolver: SolverLockDetails = {
     sender: '0xSolver', recipient: '0xUser', token: '0xToken',
     amount: 100, timelock: 9999999, hashlock: '0xabc',
-    secret: 0n, status: LockStatus.Pending, index: 1,
+    secret: 0n, status: LockStatus.Pending,
+    payoutCurve: '0xCurve', payoutCurveData: '0x1234',
 }
 
 describe('resolveHTLCStatus', () => {

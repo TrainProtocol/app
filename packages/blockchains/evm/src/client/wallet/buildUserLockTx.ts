@@ -1,5 +1,5 @@
 import { AbiFunction } from 'ox'
-import { parseUnits, toHex32 } from '@train-protocol/sdk'
+import { normalizePayoutCurveData, parseUnits, toHex32 } from '@train-protocol/sdk'
 import type { UserLockParams } from '@train-protocol/sdk'
 import { htlcFunctions } from '../../abi.js'
 import type { EvmTransactionRequest } from '../../types.js'
@@ -26,7 +26,7 @@ export function buildUserLockTx(params: UserLockParams): EvmTransactionRequest {
             refundTo: hex(params.sourceAddress),
             token: hex(tokenAddress),
             payoutCurve: hex(params.payoutCurve || ZERO_ADDRESS),
-            payoutCurveData: hex('0x'),
+            payoutCurveData: hex(normalizePayoutCurveData(params.payoutCurveData ?? '0x')),
             rewardToken: params.rewardToken ?? '',
             rewardRecipient: params.rewardRecipient ?? '',
             srcChain: params.sourceChain || '',

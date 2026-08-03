@@ -1,11 +1,11 @@
 "use client"
 
 import HeaderWithMenu from "../HeaderWithMenu"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { default as Content } from './Content';
 import { default as Footer } from './Footer';
-import { useCallback, useRef } from "react";
-import { buildHrefWithPersistantParams } from "@/helpers/querryHelper";
+import { useRef } from "react";
+import { useGoBack } from "@/hooks/useGoBack";
 import TestnetBadge from "../TestnetBadge";
 import clsx from "clsx";
 
@@ -17,18 +17,9 @@ type Props = {
 }
 
 const Widget = ({ children, className, hideMenu, mode = "default" }: Props) => {
-   const router = useRouter()
    const pathname = usePathname()
    const wrapper = useRef(null);
-
-   const goBack = useCallback(() => {
-      if (window?.['navigation']?.['canGoBack']) {
-         router.back()
-         return
-      }
-      const sp = new URLSearchParams(window.location.search)
-      router.push(buildHrefWithPersistantParams("/", sp))
-   }, [router])
+   const goBack = useGoBack()
 
    const handleBack = pathname === "/" ? null : goBack
 

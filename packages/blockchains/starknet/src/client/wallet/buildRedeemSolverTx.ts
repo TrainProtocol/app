@@ -8,7 +8,7 @@ export function buildRedeemSolverTx(params: RedeemSolverParams): StarknetTransac
         entrypoint: 'redeem_solver',
         calldata: CallData.compile([
             cairo.uint256(BigInt(params.id)),
-            cairo.uint256(BigInt(params.index ?? 1)),
+            params.solverAddress,
             cairo.uint256(BigInt(params.secret)),
         ]),
     }

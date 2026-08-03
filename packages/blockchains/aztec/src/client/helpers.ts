@@ -3,7 +3,7 @@ import { getPublicEvents } from '@aztec/aztec.js/events'
 import { type AztecNode, createAztecNodeClient } from '@aztec/aztec.js/node'
 import { TxHash } from '@aztec/aztec.js/tx'
 import type { EventDerivedData } from '@train-protocol/sdk'
-import { bytesToHex } from '@train-protocol/sdk'
+import { bytesToHex, normalizePayoutCurveData } from '@train-protocol/sdk'
 import { TrainContract, type UserLocked } from '../artifacts/Train'
 import type { AztecSigner } from '../types'
 
@@ -126,6 +126,30 @@ export function strToBytes(str: string, length: number): number[] {
     return result;
 }
 
+/**
+ * Decode the quote's payout-curve config into the contract's fixed-width `[u8; length]`
+ * field, zero-padded on the right. Absent config is all zeros — the same value the
+ * contract read before the field carried anything.
+ *
+ * Note the two deliberate differences from `strToBytes`: the input is hex rather than
+ * text (validated by the shared normalizer, so malformed hex fails closed), and an
+ * oversized value throws instead of truncating. A silently shortened curve config would
+ * change the payout the user agreed to.
+ */
+export function payoutCurveDataToBytes(value: string | undefined, length: number): number[] {
+    const hex = normalizePayoutCurveData(value ?? '0x').slice(2)
+    const byteLength = hex.length / 2
+    if (byteLength > length) {
+        throw new Error(`Payout curve data must be at most ${length} bytes, got ${byteLength}`)
+    }
+
+    const result = new Array<number>(length).fill(0)
+    for (let i = 0; i < byteLength; i++) {
+        result[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16)
+    }
+    return result
+}
+
 export async function findEventDataFromLogs(
     node: AztecNode,
     txHash: string,
@@ -160,6 +184,13 @@ export async function findEventDataFromLogs(
             }
             if (decoded.solver_data) {
                 data.solverData = aztecBytesToString(decoded.solver_data) || undefined
+            }
+            // The reward recipient is the solver's address on the *destination* chain — it is a
+            // cross-chain identifier (byte string, not AztecAddress) for that reason. It is the
+            // only place a swap recovered from a source tx can learn which solver to read the
+            // destination lock from, since the quote that carried it is gone.
+            if (decoded.reward_recipient) {
+                data.rewardRecipient = aztecBytesToString(decoded.reward_recipient) || undefined
             }
 
             return data

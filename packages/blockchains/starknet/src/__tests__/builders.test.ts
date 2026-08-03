@@ -24,7 +24,7 @@ const baseUserLockParams: any = {
     destinationAsset: { contract: '0x0000000000000000000000000000000000000000' },
     srcSolverAddress: SOLVER, atomicContract: CONTRACT, sourceAddress: USER,
     destinationAddress: '0x0000000000000000000000000000000000000001',
-    payoutCurve: '', quoteExpiry: 1899999999,
+    payoutCurve: '', payoutCurveData: '0x', quoteExpiry: 1899999999,
     rewardToken: '', rewardRecipient: '', rewardTimelockDelta: 0,
     timelockDelta: 3600, hashlock: '0x1234abcd', nonce: 1721600000000,
 }
@@ -71,15 +71,10 @@ describe('Starknet buildRefundTx', () => {
 })
 
 describe('Starknet buildRedeemSolverTx', () => {
-    it('matches redeem_solver(hashlock, index, secret) ABI encoding', () => {
-        const built = felts(buildRedeemSolverTx({ contractAddress: CONTRACT, id: '0x1234abcd', index: 2, secret: '0xdeadbeef' } as any).calldata)
-        const ref = felts(contract().populate('redeem_solver', [0x1234abcdn, 2n, 0xdeadbeefn]).calldata)
-        expect(built).toEqual(ref)
-    })
-
-    it('defaults index to 1 when omitted', () => {
-        const built = felts(buildRedeemSolverTx({ contractAddress: CONTRACT, id: '0x1234abcd', secret: '0xdeadbeef' } as any).calldata)
-        const ref = felts(contract().populate('redeem_solver', [0x1234abcdn, 1n, 0xdeadbeefn]).calldata)
+    it('matches redeem_solver(hashlock, solver, secret) ABI encoding', () => {
+        const solverAddress = '0x04e47bd0ec5c8e1c0e0b3c8c8a5a2b6b5f0f0d0c0b0a09080706050403020100'
+        const built = felts(buildRedeemSolverTx({ contractAddress: CONTRACT, id: '0x1234abcd', solverAddress, secret: '0xdeadbeef' } as any).calldata)
+        const ref = felts(contract().populate('redeem_solver', [0x1234abcdn, solverAddress, 0xdeadbeefn]).calldata)
         expect(built).toEqual(ref)
     })
 })

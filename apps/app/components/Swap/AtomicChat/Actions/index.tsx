@@ -154,7 +154,12 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
         attemptReveal()
     }, [ready, revealFailed, attemptReveal])
 
+    // A retry runs the same gate as the initial attempt: the lock may have expired or been
+    // refunded while the failed reveal sat on screen. The button is disabled whenever that
+    // gate would reject, so this guard is only a backstop against a stale render — it is no
+    // longer what the user runs into.
     const handleRetry = () => {
+        if (!ready) return
         clearSwapError()
         attemptReveal()
     }
@@ -168,6 +173,7 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
                     verificationFailed={verificationFailed}
                     verificationMismatch={verificationMismatch}
                     canVerifyManually={verificationFailed && manualConsensusOverrideAllowed}
+                    canRetry={ready}
                     errorMessage={error?.message}
                     onRetry={handleRetry}
                     onVerifyManually={markVerifiedManually}
@@ -184,23 +190,20 @@ type SolverLockDetectedContentProps = {
     verificationFailed: boolean
     verificationMismatch: boolean
     canVerifyManually: boolean
+    /** Whether the reveal gate would currently accept a retry. */
+    canRetry: boolean
     errorMessage: string | undefined
     onRetry: () => void
     onVerifyManually: () => void
 }
 
 
-const SolverLockDetectedContent: FC<SolverLockDetectedContentProps> = ({ warning, revealFailed, verificationFailed, verificationMismatch, canVerifyManually, errorMessage, onRetry, onVerifyManually }) => {
+const SolverLockDetectedContent: FC<SolverLockDetectedContentProps> = ({ warning, revealFailed, verificationFailed, verificationMismatch, canVerifyManually, canRetry, errorMessage, onRetry, onVerifyManually }) => {
     if (warning) {
         return <WalletMessage status="warning" header={warning.header} details={warning.details} />
     }
-    if (revealFailed) {
-        return (
-            <SubmitButton type="button" onClick={onRetry}>
-                Try again
-            </SubmitButton>
-        )
-    }
+    // Verification outranks a reveal failure: once the lock stops matching, retrying is unsafe
+    // and the button must not be offered, however the previous attempt ended.
     if (verificationMismatch) {
         return (
             <WalletMessage
@@ -223,6 +226,26 @@ const SolverLockDetectedContent: FC<SolverLockDetectedContentProps> = ({ warning
                         Verify and continue
                     </SubmitButton>
                 )}
+            </div>
+        )
+    }
+    if (revealFailed) {
+        // The reveal gate can reject a retry without the lock being unsafe — a polled read that
+        // momentarily returned nothing, or consensus back in flight. Both clear on their own, so
+        // disable the button and name what it is waiting for rather than routing the user to
+        // refund. Clicking a live button that silently did nothing was the previous behaviour.
+        return (
+            <div className="flex flex-col gap-2">
+                {!canRetry && (
+                    <WalletMessage
+                        status="pending"
+                        header="Re-checking the solver's lock"
+                        details="The secret was not sent. You can try again as soon as the destination lock is verified."
+                    />
+                )}
+                <SubmitButton type="button" onClick={onRetry} isDisabled={!canRetry}>
+                    Try again
+                </SubmitButton>
             </div>
         )
     }

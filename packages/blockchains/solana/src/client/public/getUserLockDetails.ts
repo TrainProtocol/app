@@ -1,6 +1,6 @@
 import { BorshCoder, EventParser, Program } from '@coral-xyz/anchor'
 import { Connection, PublicKey } from '@solana/web3.js'
-import { LockStatus, formatUnits } from '@train-protocol/sdk'
+import { LockStatus, formatUnits, normalizePayoutCurveData } from '@train-protocol/sdk'
 import type { LockParams, UserLockDetails, EventDerivedData, BaseLockDetails } from '@train-protocol/sdk'
 import type { TypedProgramAccounts } from '../../types.js'
 import { NATIVE_SOL_ADDRESS } from '../../constants.js'
@@ -143,6 +143,17 @@ async function findUserDataFromLogs(
             const dstAmountRaw = data.dstAmount ?? data.dst_amount
             if (dstAmountRaw != null) eventData.dstAmount = BigInt(dstAmountRaw.toString())
 
+            // The reward recipient is the solver's address on the *destination* chain — it is a
+            // cross-chain identifier (byte string, not Pubkey) for that reason. It is the only
+            // place a swap recovered from a source tx can learn which solver to read the
+            // destination lock from, since the quote that carried it is gone.
+            const rewardRecipient = data.rewardRecipient ?? data.reward_recipient
+            if (rewardRecipient != null) {
+                eventData.rewardRecipient = typeof rewardRecipient === 'string'
+                    ? rewardRecipient
+                    : decodeBytes(rewardRecipient)
+            }
+
             return { eventData, blockTimestamp }
         }
 
@@ -156,6 +167,11 @@ async function findUserDataFromLogs(
 export function resolveUserLock(result: any, id: string, decimals: number): BaseLockDetails | null {
     const sender = new PublicKey(result.sender).toString()
     if (sender === NATIVE_SOL_ADDRESS) return null
+    if (result.payoutCurve == null || result.payoutCurveData == null) {
+        throw new Error('User lock payout policy is unavailable')
+    }
+
+    const payoutCurve = new PublicKey(result.payoutCurve).toString()
 
     return {
         hashlock: `0x${id.replace('0x', '')}`,
@@ -168,6 +184,7 @@ export function resolveUserLock(result: any, id: string, decimals: number): Base
         recipient: new PublicKey(result.recipient).toString(),
         token: result.tokenMint ? result.tokenMint.toString() : '',
         refundTo: result.refundTo ? new PublicKey(result.refundTo).toString() : undefined,
-        payoutCurve: result.payoutCurve ? new PublicKey(result.payoutCurve).toString() : undefined,
+        payoutCurve: payoutCurve === NATIVE_SOL_ADDRESS ? null : payoutCurve,
+        payoutCurveData: normalizePayoutCurveData(result.payoutCurveData),
     }
 }

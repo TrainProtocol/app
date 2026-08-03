@@ -5,7 +5,7 @@ const SECRET_REVEAL_READY_STATUSES = new Set([
 ])
 
 /**
- * The reveal endpoint requires Station to have persisted the solver lock index.
+ * The reveal endpoint requires Station to have persisted the solver lock.
  * Accept `SolverLocked` as a compatibility alias used by older Station versions.
  */
 export function isOrderReadyForSecretReveal(status: string | null | undefined): boolean {

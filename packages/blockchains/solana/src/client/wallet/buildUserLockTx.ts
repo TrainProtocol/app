@@ -45,7 +45,7 @@ export async function buildUserLockTx(
         recipient: lpPublicKey,
         refundTo: new PublicKey(params.sourceAddress),
         payoutCurve: payoutCurve.address,
-        payoutCurveData: Buffer.alloc(0),
+        payoutCurveData: dataBytes(params.payoutCurveData),
         srcChain: params.sourceChain,
         dstChain: params.destinationChain,
         dstAddress: params.destinationAddress,

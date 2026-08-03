@@ -8,7 +8,6 @@ import { deriveStorageSlotInMap } from '@aztec/stdlib/hash'
 export const TRAIN_STORAGE_SLOTS = {
     userLocks: 1n,
     solverLocks: 2n,
-    solverLockCount: 3n,
 } as const
 
 const USER_LOCK_FIELD_COUNT = 16
@@ -26,6 +25,7 @@ export interface StoredUserLock {
     recipient: AztecAddress
     token: AztecAddress
     payout_curve: AztecAddress
+    payout_curve_data: number[]
 }
 
 export interface StoredSolverLock extends StoredUserLock {
@@ -47,7 +47,7 @@ export function hashlockToFields(hashlock: string): [Fr, Fr] {
     ]
 }
 
-async function deriveNestedMapSlot(root: bigint, keys: Fr[]): Promise<Fr> {
+async function deriveNestedMapSlot(root: bigint, keys: (Fr | AztecAddress)[]): Promise<Fr> {
     let slot = new Fr(root)
     for (const key of keys) {
         slot = await deriveStorageSlotInMap(slot, key)
@@ -88,6 +88,27 @@ function limbsToBytes32(high: Fr, low: Fr): number[] {
 
 const addressFromField = (field: Fr) => AztecAddress.fromFieldUnsafe(field)
 
+function fieldToFixedBytes(field: Fr, length: number): number[] {
+    const bytes = new Array<number>(length).fill(0)
+    let value = field.toBigInt()
+    for (let index = length - 1; index >= 0; index--) {
+        bytes[index] = Number(value & 0xffn)
+        value >>= 8n
+    }
+    return bytes
+}
+
+function fieldsToBytes128(fields: Fr[]): number[] {
+    if (fields.length !== 5) throw new Error(`Invalid payout curve data field count: ${fields.length}`)
+    return [
+        ...fieldToFixedBytes(fields[0], 31),
+        ...fieldToFixedBytes(fields[1], 31),
+        ...fieldToFixedBytes(fields[2], 31),
+        ...fieldToFixedBytes(fields[3], 31),
+        ...fieldToFixedBytes(fields[4], 4),
+    ]
+}
+
 export function decodeUserLockFields(fields: Fr[]): StoredUserLock {
     if (fields.length !== USER_LOCK_FIELD_COUNT) {
         throw new Error(`Invalid user lock field count: ${fields.length}`)
@@ -104,6 +125,7 @@ export function decodeUserLockFields(fields: Fr[]): StoredUserLock {
         recipient: addressFromField(fields[8]),
         token: addressFromField(fields[9]),
         payout_curve: addressFromField(fields[10]),
+        payout_curve_data: fieldsToBytes128(fields.slice(11, 16)),
     }
 }
 
@@ -127,6 +149,7 @@ export function decodeSolverLockFields(fields: Fr[]): StoredSolverLock {
         token: addressFromField(fields[12]),
         reward_token: addressFromField(fields[13]),
         payout_curve: addressFromField(fields[14]),
+        payout_curve_data: fieldsToBytes128(fields.slice(15, 20)),
     }
 }
 
@@ -151,31 +174,17 @@ export async function readUserLock(
     return decodeUserLockFields(fields)
 }
 
-export async function readSolverLockCount(
-    node: AztecNode,
-    contractAddress: string,
-    hashlock: string,
-    referenceBlock: ReferenceBlock = 'latest',
-): Promise<number> {
-    const address = AztecAddress.fromStringUnsafe(contractAddress)
-    const slot = await deriveNestedMapSlot(
-        TRAIN_STORAGE_SLOTS.solverLockCount,
-        hashlockToFields(hashlock),
-    )
-    return (await node.getPublicStorageAt(referenceBlock, address, slot)).toNumber()
-}
-
 export async function readSolverLock(
     node: AztecNode,
     contractAddress: string,
     hashlock: string,
-    index: number,
+    solverAddress: string,
     referenceBlock: ReferenceBlock = 'latest',
 ): Promise<StoredSolverLock> {
     const address = AztecAddress.fromStringUnsafe(contractAddress)
     const slot = await deriveNestedMapSlot(
         TRAIN_STORAGE_SLOTS.solverLocks,
-        [...hashlockToFields(hashlock), new Fr(index)],
+        [...hashlockToFields(hashlock), AztecAddress.fromStringUnsafe(solverAddress)],
     )
     const fields = await readPackedFields(
         node,

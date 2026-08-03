@@ -13,10 +13,15 @@ export interface VerifySolverLockParams {
     expectedRecipient: string
     expectedToken: string | undefined | null
     expectedSender?: string | undefined | null
+    /** The destination chain's ConstantPayoutCurve. Per-chain, so never the source lock's curve. */
+    expectedPayoutCurve?: string | undefined | null
     expectedSourceTimelock?: number | undefined | null
     minimumTimelockSafetyMarginSeconds?: number
+    minimumDestinationLockLifetimeSeconds?: number
     nowInSeconds?: number
 }
+
+export const DEFAULT_MINIMUM_DESTINATION_LOCK_LIFETIME_SECONDS = 5 * 60
 
 export function verifySolverLock(params: VerifySolverLockParams): VerificationResult {
     const {
@@ -26,8 +31,10 @@ export function verifySolverLock(params: VerifySolverLockParams): VerificationRe
         expectedRecipient,
         expectedToken,
         expectedSender,
+        expectedPayoutCurve,
         expectedSourceTimelock,
         minimumTimelockSafetyMarginSeconds = 600,
+        minimumDestinationLockLifetimeSeconds = DEFAULT_MINIMUM_DESTINATION_LOCK_LIFETIME_SECONDS,
         nowInSeconds = Math.floor(Date.now() / 1000),
     } = params
 
@@ -37,16 +44,32 @@ export function verifySolverLock(params: VerifySolverLockParams): VerificationRe
 
     const mismatches: string[] = []
 
-    // Only a positive, pending solver-lock index can be redeemed safely.
+    // Only a pending lock can be redeemed safely.
     if (solverLockDetails.status !== LockStatus.Pending) {
         mismatches.push(`Status: expected pending, got ${LockStatus[solverLockDetails.status] ?? solverLockDetails.status}`)
     }
-    if (!Number.isInteger(solverLockDetails.index) || solverLockDetails.index <= 0) {
-        mismatches.push(`Index: expected a positive solver lock index, got ${solverLockDetails.index}`)
-    }
 
+    // The sender is the solver address the lock is keyed by, so this check also
+    // confirms we read the lock belonging to the quoted solver.
     if (expectedSender && !addressEquals(solverLockDetails.sender, expectedSender)) {
         mismatches.push(`Sender: expected ${expectedSender}, got ${solverLockDetails.sender}`)
+    }
+
+    // A curve can only reduce the payout (0 < payout <= amount, remainder to the solver), so
+    // anything but no curve or the destination chain's ConstantPayoutCurve voids the amount
+    // check below. Both pay in full and ignore payoutCurveData, so the config is not compared.
+    if (solverLockDetails.payoutCurve !== null) {
+        if (!expectedPayoutCurve) {
+            mismatches.push(
+                solverLockDetails.payoutCurve
+                    ? `Payout curve: destination chain has no recognized full-payout curve to check ${solverLockDetails.payoutCurve} against`
+                    : 'Payout curve: on-chain payout policy is unavailable',
+            )
+        } else if (!addressEquals(solverLockDetails.payoutCurve, expectedPayoutCurve)) {
+            mismatches.push(
+                `Payout curve: expected none or ${expectedPayoutCurve}, got ${solverLockDetails.payoutCurve || 'unavailable'}`,
+            )
+        }
     }
 
     // 1. Amount: compare exact base units whenever the caller supplies them. A
@@ -75,15 +98,24 @@ export function verifySolverLock(params: VerifySolverLockParams): VerificationRe
         mismatches.push(`Token: expected ${expectedToken}, got ${actualToken || 'missing'}`)
     }
 
-    // 4. The destination lock must still be live and leave the solver enough time to
-    // redeem the source lock after paying the user on the destination chain.
-    if (expectedSourceTimelock) {
-        if (solverLockDetails.timelock <= nowInSeconds) {
-            mismatches.push(`Timelock: destination lock expired at ${solverLockDetails.timelock}`)
-        }
-        if (solverLockDetails.timelock + minimumTimelockSafetyMarginSeconds > expectedSourceTimelock) {
+    // 4. The destination lock must leave enough time for the automatic claim to
+    // fail and for the user-facing manual claim fallback to be submitted safely.
+    const destinationTimelock = solverLockDetails.timelock
+    if (!Number.isSafeInteger(destinationTimelock) || destinationTimelock <= 0) {
+        mismatches.push(`Timelock: destination expiry is invalid (${destinationTimelock})`)
+    } else if (destinationTimelock <= nowInSeconds) {
+        mismatches.push(`Timelock: destination lock expired at ${destinationTimelock}`)
+    } else if (destinationTimelock - nowInSeconds < minimumDestinationLockLifetimeSeconds) {
+        mismatches.push(
+            `Timelock: destination lock has less than the required ${minimumDestinationLockLifetimeSeconds}s remaining`,
+        )
+    }
+
+    // The source lock must outlive the destination by the cross-chain safety margin.
+    if (expectedSourceTimelock !== undefined && expectedSourceTimelock !== null) {
+        if (destinationTimelock + minimumTimelockSafetyMarginSeconds > expectedSourceTimelock) {
             mismatches.push(
-                `Timelock: destination expiry ${solverLockDetails.timelock} does not leave the required ${minimumTimelockSafetyMarginSeconds}s source-chain safety margin`,
+                `Timelock: destination expiry ${destinationTimelock} does not leave the required ${minimumTimelockSafetyMarginSeconds}s source-chain safety margin`,
             )
         }
     }

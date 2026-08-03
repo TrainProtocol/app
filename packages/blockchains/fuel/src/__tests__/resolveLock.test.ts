@@ -40,7 +40,8 @@ describe('Fuel resolveUserLock', () => {
             recipient: RECIPIENT,
             token: ASSET_ID,
             refundTo: ADDRESS,
-            payoutCurve: undefined,
+            payoutCurve: null,
+            payoutCurveData: '0x',
         })
     })
 
@@ -57,7 +58,7 @@ describe('Fuel resolveUserLock', () => {
 })
 
 describe('Fuel resolveSolverLock', () => {
-    it('maps rewards and preserves the 1-based index', () => {
+    it('maps reward fields', () => {
         const result = resolveSolverLock({
             ...userLock(),
             reward: 250_000,
@@ -65,7 +66,7 @@ describe('Fuel resolveSolverLock', () => {
             reward_recipient: { ContractId: { bits: RECIPIENT } },
             reward_asset_id: { bits: REWARD_ASSET_ID },
             reward_funded: true,
-        } as FuelSolverLock, HASHLOCK, 6, 2)
+        } as FuelSolverLock, HASHLOCK, 6)
 
         expect(result).toMatchObject({
             amount: 1.5,
@@ -74,7 +75,8 @@ describe('Fuel resolveSolverLock', () => {
             rewardToken: REWARD_ASSET_ID,
             rewardRecipient: RECIPIENT,
             rewardTimelock: 2_000_000_000,
-            index: 2,
+            payoutCurve: null,
+            payoutCurveData: '0x',
         })
     })
 
@@ -86,6 +88,6 @@ describe('Fuel resolveSolverLock', () => {
             reward_recipient: { Address: { bits: RECIPIENT } },
             reward_asset_id: { bits: REWARD_ASSET_ID },
             reward_funded: false,
-        } as FuelSolverLock, HASHLOCK, 6, 1)).toBeNull()
+        } as FuelSolverLock, HASHLOCK, 6)).toBeNull()
     })
 })

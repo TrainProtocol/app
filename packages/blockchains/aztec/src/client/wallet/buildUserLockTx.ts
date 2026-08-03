@@ -7,7 +7,7 @@ import type { UserLockParams } from '@train-protocol/sdk'
 import { TokenContract } from '../../artifacts/Token'
 import { TrainContract } from '../../artifacts/Train'
 import type { AztecSigner, AztecTransactionRequest } from '../../types'
-import { registerContractCompat, strToBytes } from '../helpers'
+import { payoutCurveDataToBytes, registerContractCompat, strToBytes } from '../helpers'
 
 /**
  * Build the pair of `ContractFunctionInteraction`s required for a user lock:
@@ -75,7 +75,7 @@ export async function buildUserLockTx(
         params.payoutCurve
             ? AztecAddress.fromStringUnsafe(params.payoutCurve)
             : AztecAddress.ZERO,
-        strToBytes('', 128),
+        payoutCurveDataToBytes(params.payoutCurveData, 128),
         strToBytes(params.rewardToken || '', 90),
         strToBytes(params.rewardRecipient || '', 90),
         strToBytes(params.sourceChain, 30),

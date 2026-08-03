@@ -4,14 +4,18 @@
   "encodingVersion": "1",
   "concreteTypes": [
     {
+      "type": "()",
+      "concreteTypeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
+    },
+    {
       "type": "(struct std::vec::Vec<b256>, u64)",
       "concreteTypeId": "ca6b2520e464c296855a205f76d460e05a0d284be6045a28521b3e398739fe6c",
-      "metadataTypeId": 1
+      "metadataTypeId": 0
     },
     {
       "type": "(struct std::vec::Vec<struct UserLock>, u64)",
       "concreteTypeId": "b215587e084173f274e312b96a88abf2a550564f4c8c5d281d75e03dc41199e6",
-      "metadataTypeId": 2
+      "metadataTypeId": 1
     },
     {
       "type": "b256",
@@ -24,22 +28,22 @@
     {
       "type": "enum TrainError",
       "concreteTypeId": "4e5129e448e85a7dc9833ce4fa9e8b45f17faf739d2b214a383b7f2431f301db",
-      "metadataTypeId": 4
+      "metadataTypeId": 3
     },
     {
       "type": "enum reentrancy::ReentrancyError",
       "concreteTypeId": "5f54edde6f496cb672796f5848247329729820c32ef4f2152a49521d4d41bbf4",
-      "metadataTypeId": 5
+      "metadataTypeId": 4
     },
     {
       "type": "enum std::identity::Identity",
       "concreteTypeId": "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335",
-      "metadataTypeId": 6
+      "metadataTypeId": 5
     },
     {
       "type": "enum std::option::Option<struct SolverLock>",
       "concreteTypeId": "7f6d0f3836b02fbe200e59731abd565c31d1782f5c3290bdc05ee623a47b0d5c",
-      "metadataTypeId": 7,
+      "metadataTypeId": 6,
       "typeArguments": [
         "4c777616f8f11288da5d17fba7c490b8bc705aabf22eb5d44a61d9f4ee0de85e"
       ]
@@ -47,7 +51,7 @@
     {
       "type": "enum std::option::Option<struct UserLock>",
       "concreteTypeId": "22ceee12c12c45fab2354dca0037e6a9d54e655cbecc35ce79ac69c3ffd5f689",
-      "metadataTypeId": 7,
+      "metadataTypeId": 6,
       "typeArguments": [
         "02a49253199b44aa7a472557ccd59feb576880eda5864c14cf63cc5731b0c4b9"
       ]
@@ -55,67 +59,67 @@
     {
       "type": "struct SolverLock",
       "concreteTypeId": "4c777616f8f11288da5d17fba7c490b8bc705aabf22eb5d44a61d9f4ee0de85e",
-      "metadataTypeId": 10
+      "metadataTypeId": 9
     },
     {
       "type": "struct SolverLockParams",
       "concreteTypeId": "90aacd8bfa253d4f752e8c23fa2cfaf5fe842d453159a2b40f9671a4a471e005",
-      "metadataTypeId": 11
+      "metadataTypeId": 10
     },
     {
       "type": "struct SolverLocked",
       "concreteTypeId": "fd7cbbfb0130bcf0c45211d828179940191b21aa7761f29a8defb1a4d1d587c3",
-      "metadataTypeId": 12
+      "metadataTypeId": 11
     },
     {
       "type": "struct SolverRedeemed",
       "concreteTypeId": "bc1dd96b297862f41b237144a5f2e75b773d5f44a41aea736e5ed1748b905f7c",
-      "metadataTypeId": 13
+      "metadataTypeId": 12
     },
     {
       "type": "struct SolverRefunded",
       "concreteTypeId": "d0ed6be06f4fb97fee1788b19962da51292e4b35b6154afe8774904f9f14f8f1",
-      "metadataTypeId": 14
+      "metadataTypeId": 13
     },
     {
       "type": "struct SolverRewardAttached",
       "concreteTypeId": "7a11a59743f5e1590d38d6def9e4459e2f9af51d3e7f4a290fb39eb916e8f08d",
-      "metadataTypeId": 15
+      "metadataTypeId": 14
     },
     {
       "type": "struct UserLock",
       "concreteTypeId": "02a49253199b44aa7a472557ccd59feb576880eda5864c14cf63cc5731b0c4b9",
-      "metadataTypeId": 16
+      "metadataTypeId": 15
     },
     {
       "type": "struct UserLocked",
       "concreteTypeId": "f45bcf669433323f84c875dd7d015f59cde1c6c6dcbeb4010cf025927c486364",
-      "metadataTypeId": 17
+      "metadataTypeId": 16
     },
     {
       "type": "struct UserRedeemed",
       "concreteTypeId": "3d86f3174bae35686f80c0d4d0ee606e104cf448982dc355d36112263e825e6d",
-      "metadataTypeId": 18
+      "metadataTypeId": 17
     },
     {
       "type": "struct UserRefunded",
       "concreteTypeId": "036d7812cb82468a1276c4c8745acaa328dea27b605169e442bee30318e2b5a2",
-      "metadataTypeId": 19
+      "metadataTypeId": 18
     },
     {
       "type": "struct interfaces::DestinationInfo",
       "concreteTypeId": "19d8b2c9be8894f16c4a9ec91b6a53823bc948bff5e26607e12ff7b919a0fd6b",
-      "metadataTypeId": 20
+      "metadataTypeId": 19
     },
     {
       "type": "struct interfaces::UserLockParams",
       "concreteTypeId": "f9e02227a156156711245710f686c0034f6744ba75a6ccd2f8b6d6ee8fff56ba",
-      "metadataTypeId": 21
+      "metadataTypeId": 20
     },
     {
       "type": "struct std::bytes::Bytes",
       "concreteTypeId": "cdd87b7d12fe505416570c294c884bca819364863efe3bf539245fa18515fbbb",
-      "metadataTypeId": 24
+      "metadataTypeId": 23
     },
     {
       "type": "u256",
@@ -128,16 +132,12 @@
   ],
   "metadataTypes": [
     {
-      "type": "()",
-      "metadataTypeId": 0
-    },
-    {
       "type": "(_, _)",
-      "metadataTypeId": 1,
+      "metadataTypeId": 0,
       "components": [
         {
           "name": "__tuple_element",
-          "typeId": 29,
+          "typeId": 28,
           "typeArguments": [
             {
               "name": "",
@@ -153,15 +153,15 @@
     },
     {
       "type": "(_, _)",
-      "metadataTypeId": 2,
+      "metadataTypeId": 1,
       "components": [
         {
           "name": "__tuple_element",
-          "typeId": 29,
+          "typeId": 28,
           "typeArguments": [
             {
               "name": "",
-              "typeId": 16
+              "typeId": 15
             }
           ]
         },
@@ -173,144 +173,148 @@
     },
     {
       "type": "enum LockStatus",
-      "metadataTypeId": 3,
+      "metadataTypeId": 2,
       "components": [
         {
           "name": "Empty",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         },
         {
           "name": "Pending",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         },
         {
           "name": "Refunded",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         },
         {
           "name": "Redeemed",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         }
       ]
     },
     {
       "type": "enum TrainError",
-      "metadataTypeId": 4,
+      "metadataTypeId": 3,
       "components": [
         {
           "name": "ZeroAmount",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         },
         {
           "name": "LockNotFound",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         },
         {
           "name": "HashlockMismatch",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         },
         {
           "name": "LockNotPending",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         },
         {
           "name": "InvalidTimelock",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         },
         {
           "name": "TimelockOverflow",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         },
         {
           "name": "InvalidRewardTimelock",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         },
         {
           "name": "SwapAlreadyExists",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         },
         {
           "name": "RefundNotAllowed",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         },
         {
           "name": "QuoteExpired",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         },
         {
           "name": "InvalidPayout",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         },
         {
           "name": "InvalidUser",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         },
         {
           "name": "ZeroAddress",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         },
         {
           "name": "RewardAlreadyFunded",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         },
         {
           "name": "RewardAssetMismatch",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
+        },
+        {
+          "name": "SolverLockAlreadyExists",
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         }
       ]
     },
     {
       "type": "enum reentrancy::ReentrancyError",
-      "metadataTypeId": 5,
+      "metadataTypeId": 4,
       "components": [
         {
           "name": "NonReentrant",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         }
       ]
     },
     {
       "type": "enum std::identity::Identity",
-      "metadataTypeId": 6,
+      "metadataTypeId": 5,
       "components": [
         {
           "name": "Address",
-          "typeId": 22
+          "typeId": 21
         },
         {
           "name": "ContractId",
-          "typeId": 26
+          "typeId": 25
         }
       ]
     },
     {
       "type": "enum std::option::Option",
-      "metadataTypeId": 7,
+      "metadataTypeId": 6,
       "components": [
         {
           "name": "None",
-          "typeId": 0
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         },
         {
           "name": "Some",
-          "typeId": 8
+          "typeId": 7
         }
       ],
       "typeParameters": [
-        8
+        7
       ]
     },
     {
       "type": "generic T",
-      "metadataTypeId": 8
+      "metadataTypeId": 7
     },
     {
       "type": "raw untyped ptr",
-      "metadataTypeId": 9
+      "metadataTypeId": 8
     },
     {
       "type": "struct SolverLock",
-      "metadataTypeId": 10,
+      "metadataTypeId": 9,
       "components": [
         {
           "name": "secret",
@@ -326,7 +330,7 @@
         },
         {
           "name": "sender",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "timelock",
@@ -342,27 +346,27 @@
         },
         {
           "name": "recipient",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "status",
-          "typeId": 3
+          "typeId": 2
         },
         {
           "name": "reward_recipient",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "refund_to",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "asset_id",
-          "typeId": 23
+          "typeId": 22
         },
         {
           "name": "reward_asset_id",
-          "typeId": 23
+          "typeId": 22
         },
         {
           "name": "reward_funded",
@@ -370,21 +374,21 @@
         },
         {
           "name": "payout_curve",
-          "typeId": 7,
+          "typeId": 6,
           "typeArguments": [
             {
               "name": "",
-              "typeId": 26
+              "typeId": 25
             }
           ]
         },
         {
           "name": "payout_curve_data",
-          "typeId": 7,
+          "typeId": 6,
           "typeArguments": [
             {
               "name": "",
-              "typeId": 24
+              "typeId": 23
             }
           ]
         }
@@ -392,7 +396,7 @@
     },
     {
       "type": "struct SolverLockParams",
-      "metadataTypeId": 11,
+      "metadataTypeId": 10,
       "components": [
         {
           "name": "hashlock",
@@ -412,49 +416,49 @@
         },
         {
           "name": "recipient",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "reward_recipient",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "refund_to",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "reward_asset_id",
-          "typeId": 23
+          "typeId": 22
         },
         {
           "name": "payout_curve",
-          "typeId": 7,
+          "typeId": 6,
           "typeArguments": [
             {
               "name": "",
-              "typeId": 26
+              "typeId": 25
             }
           ]
         },
         {
           "name": "payout_curve_data",
-          "typeId": 7,
+          "typeId": 6,
           "typeArguments": [
             {
               "name": "",
-              "typeId": 24
+              "typeId": 23
             }
           ]
         },
         {
           "name": "src_chain",
-          "typeId": 27
+          "typeId": 26
         }
       ]
     },
     {
       "type": "struct SolverLocked",
-      "metadataTypeId": 12,
+      "metadataTypeId": 11,
       "components": [
         {
           "name": "hashlock",
@@ -462,23 +466,19 @@
         },
         {
           "name": "sender",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "recipient",
-          "typeId": 6
-        },
-        {
-          "name": "index",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          "typeId": 5
         },
         {
           "name": "src_chain",
-          "typeId": 27
+          "typeId": 26
         },
         {
           "name": "asset_id",
-          "typeId": 23
+          "typeId": 22
         },
         {
           "name": "amount",
@@ -490,11 +490,11 @@
         },
         {
           "name": "reward_asset_id",
-          "typeId": 23
+          "typeId": 22
         },
         {
           "name": "reward_recipient",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "timelock",
@@ -506,21 +506,21 @@
         },
         {
           "name": "payout_curve",
-          "typeId": 7,
+          "typeId": 6,
           "typeArguments": [
             {
               "name": "",
-              "typeId": 26
+              "typeId": 25
             }
           ]
         },
         {
           "name": "dst_chain",
-          "typeId": 27
+          "typeId": 26
         },
         {
           "name": "dst_address",
-          "typeId": 27
+          "typeId": 26
         },
         {
           "name": "dst_amount",
@@ -528,29 +528,29 @@
         },
         {
           "name": "dst_token",
-          "typeId": 27
+          "typeId": 26
         },
         {
           "name": "data",
-          "typeId": 24
+          "typeId": 23
         }
       ]
     },
     {
       "type": "struct SolverRedeemed",
-      "metadataTypeId": 13,
+      "metadataTypeId": 12,
       "components": [
         {
           "name": "hashlock",
           "typeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
         },
         {
-          "name": "index",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          "name": "solver",
+          "typeId": 5
         },
         {
           "name": "redeemer",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "secret",
@@ -566,7 +566,7 @@
         },
         {
           "name": "reward_to",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "reward",
@@ -576,19 +576,19 @@
     },
     {
       "type": "struct SolverRefunded",
-      "metadataTypeId": 14,
+      "metadataTypeId": 13,
       "components": [
         {
           "name": "hashlock",
           "typeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
         },
         {
-          "name": "index",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          "name": "solver",
+          "typeId": 5
         },
         {
           "name": "refund_to",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "amount",
@@ -602,19 +602,19 @@
     },
     {
       "type": "struct SolverRewardAttached",
-      "metadataTypeId": 15,
+      "metadataTypeId": 14,
       "components": [
         {
           "name": "hashlock",
           "typeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
         },
         {
-          "name": "index",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          "name": "solver",
+          "typeId": 5
         },
         {
           "name": "reward_asset_id",
-          "typeId": 23
+          "typeId": 22
         },
         {
           "name": "reward",
@@ -624,7 +624,7 @@
     },
     {
       "type": "struct UserLock",
-      "metadataTypeId": 16,
+      "metadataTypeId": 15,
       "components": [
         {
           "name": "secret",
@@ -636,7 +636,7 @@
         },
         {
           "name": "sender",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "timelock",
@@ -648,37 +648,37 @@
         },
         {
           "name": "status",
-          "typeId": 3
+          "typeId": 2
         },
         {
           "name": "recipient",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "refund_to",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "asset_id",
-          "typeId": 23
+          "typeId": 22
         },
         {
           "name": "payout_curve",
-          "typeId": 7,
+          "typeId": 6,
           "typeArguments": [
             {
               "name": "",
-              "typeId": 26
+              "typeId": 25
             }
           ]
         },
         {
           "name": "payout_curve_data",
-          "typeId": 7,
+          "typeId": 6,
           "typeArguments": [
             {
               "name": "",
-              "typeId": 24
+              "typeId": 23
             }
           ]
         }
@@ -686,7 +686,7 @@
     },
     {
       "type": "struct UserLocked",
-      "metadataTypeId": 17,
+      "metadataTypeId": 16,
       "components": [
         {
           "name": "hashlock",
@@ -694,19 +694,19 @@
         },
         {
           "name": "sender",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "recipient",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "src_chain",
-          "typeId": 27
+          "typeId": 26
         },
         {
           "name": "asset_id",
-          "typeId": 23
+          "typeId": 22
         },
         {
           "name": "amount",
@@ -722,21 +722,21 @@
         },
         {
           "name": "payout_curve",
-          "typeId": 7,
+          "typeId": 6,
           "typeArguments": [
             {
               "name": "",
-              "typeId": 26
+              "typeId": 25
             }
           ]
         },
         {
           "name": "dst_chain",
-          "typeId": 27
+          "typeId": 26
         },
         {
           "name": "dst_address",
-          "typeId": 27
+          "typeId": 26
         },
         {
           "name": "dst_amount",
@@ -744,7 +744,7 @@
         },
         {
           "name": "dst_token",
-          "typeId": 27
+          "typeId": 26
         },
         {
           "name": "reward_amount",
@@ -752,11 +752,11 @@
         },
         {
           "name": "reward_token",
-          "typeId": 27
+          "typeId": 26
         },
         {
           "name": "reward_recipient",
-          "typeId": 27
+          "typeId": 26
         },
         {
           "name": "reward_timelock_delta",
@@ -768,17 +768,17 @@
         },
         {
           "name": "user_data",
-          "typeId": 24
+          "typeId": 23
         },
         {
           "name": "solver_data",
-          "typeId": 24
+          "typeId": 23
         }
       ]
     },
     {
       "type": "struct UserRedeemed",
-      "metadataTypeId": 18,
+      "metadataTypeId": 17,
       "components": [
         {
           "name": "hashlock",
@@ -786,7 +786,7 @@
         },
         {
           "name": "redeemer",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "secret",
@@ -804,7 +804,7 @@
     },
     {
       "type": "struct UserRefunded",
-      "metadataTypeId": 19,
+      "metadataTypeId": 18,
       "components": [
         {
           "name": "hashlock",
@@ -812,7 +812,7 @@
         },
         {
           "name": "refund_to",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "amount",
@@ -822,15 +822,15 @@
     },
     {
       "type": "struct interfaces::DestinationInfo",
-      "metadataTypeId": 20,
+      "metadataTypeId": 19,
       "components": [
         {
           "name": "dst_chain",
-          "typeId": 27
+          "typeId": 26
         },
         {
           "name": "dst_address",
-          "typeId": 27
+          "typeId": 26
         },
         {
           "name": "dst_amount",
@@ -838,13 +838,13 @@
         },
         {
           "name": "dst_token",
-          "typeId": 27
+          "typeId": 26
         }
       ]
     },
     {
       "type": "struct interfaces::UserLockParams",
-      "metadataTypeId": 21,
+      "metadataTypeId": 20,
       "components": [
         {
           "name": "hashlock",
@@ -860,29 +860,29 @@
         },
         {
           "name": "recipient",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "refund_to",
-          "typeId": 6
+          "typeId": 5
         },
         {
           "name": "payout_curve",
-          "typeId": 7,
+          "typeId": 6,
           "typeArguments": [
             {
               "name": "",
-              "typeId": 26
+              "typeId": 25
             }
           ]
         },
         {
           "name": "payout_curve_data",
-          "typeId": 7,
+          "typeId": 6,
           "typeArguments": [
             {
               "name": "",
-              "typeId": 24
+              "typeId": 23
             }
           ]
         },
@@ -896,21 +896,21 @@
         },
         {
           "name": "reward_token",
-          "typeId": 27
+          "typeId": 26
         },
         {
           "name": "reward_recipient",
-          "typeId": 27
+          "typeId": 26
         },
         {
           "name": "src_chain",
-          "typeId": 27
+          "typeId": 26
         }
       ]
     },
     {
       "type": "struct std::address::Address",
-      "metadataTypeId": 22,
+      "metadataTypeId": 21,
       "components": [
         {
           "name": "bits",
@@ -920,7 +920,7 @@
     },
     {
       "type": "struct std::asset_id::AssetId",
-      "metadataTypeId": 23,
+      "metadataTypeId": 22,
       "components": [
         {
           "name": "bits",
@@ -930,11 +930,11 @@
     },
     {
       "type": "struct std::bytes::Bytes",
-      "metadataTypeId": 24,
+      "metadataTypeId": 23,
       "components": [
         {
           "name": "buf",
-          "typeId": 25
+          "typeId": 24
         },
         {
           "name": "len",
@@ -944,11 +944,11 @@
     },
     {
       "type": "struct std::bytes::RawBytes",
-      "metadataTypeId": 25,
+      "metadataTypeId": 24,
       "components": [
         {
           "name": "ptr",
-          "typeId": 9
+          "typeId": 8
         },
         {
           "name": "cap",
@@ -958,7 +958,7 @@
     },
     {
       "type": "struct std::contract_id::ContractId",
-      "metadataTypeId": 26,
+      "metadataTypeId": 25,
       "components": [
         {
           "name": "bits",
@@ -968,21 +968,21 @@
     },
     {
       "type": "struct std::string::String",
-      "metadataTypeId": 27,
+      "metadataTypeId": 26,
       "components": [
         {
           "name": "bytes",
-          "typeId": 24
+          "typeId": 23
         }
       ]
     },
     {
       "type": "struct std::vec::RawVec",
-      "metadataTypeId": 28,
+      "metadataTypeId": 27,
       "components": [
         {
           "name": "ptr",
-          "typeId": 9
+          "typeId": 8
         },
         {
           "name": "cap",
@@ -990,20 +990,20 @@
         }
       ],
       "typeParameters": [
-        8
+        7
       ]
     },
     {
       "type": "struct std::vec::Vec",
-      "metadataTypeId": 29,
+      "metadataTypeId": 28,
       "components": [
         {
           "name": "buf",
-          "typeId": 28,
+          "typeId": 27,
           "typeArguments": [
             {
               "name": "",
-              "typeId": 8
+              "typeId": 7
             }
           ]
         },
@@ -1013,7 +1013,7 @@
         }
       ],
       "typeParameters": [
-        8
+        7
       ]
     }
   ],
@@ -1026,8 +1026,8 @@
           "concreteTypeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
         },
         {
-          "name": "index",
-          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          "name": "solver",
+          "concreteTypeId": "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335"
         }
       ],
       "output": "b760f44fa5965c2474a3b471467a22c43185152129295af588b022ae50b50903",
@@ -1053,29 +1053,11 @@
           "concreteTypeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
         },
         {
-          "name": "index",
-          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          "name": "solver",
+          "concreteTypeId": "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335"
         }
       ],
       "output": "7f6d0f3836b02fbe200e59731abd565c31d1782f5c3290bdc05ee623a47b0d5c",
-      "attributes": [
-        {
-          "name": "storage",
-          "arguments": [
-            "read"
-          ]
-        }
-      ]
-    },
-    {
-      "name": "get_solver_lock_count",
-      "inputs": [
-        {
-          "name": "hashlock",
-          "concreteTypeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
-        }
-      ],
-      "output": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
       "attributes": [
         {
           "name": "storage",
@@ -1163,8 +1145,8 @@
           "concreteTypeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
         },
         {
-          "name": "index",
-          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          "name": "solver",
+          "concreteTypeId": "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335"
         },
         {
           "name": "secret",
@@ -1213,8 +1195,8 @@
           "concreteTypeId": "7c5ee1cecf5f8eacd1284feb5f0bf2bdea533a51e2f0c9aabe9236d335989f3b"
         },
         {
-          "name": "index",
-          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          "name": "solver",
+          "concreteTypeId": "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335"
         }
       ],
       "output": "b760f44fa5965c2474a3b471467a22c43185152129295af588b022ae50b50903",
@@ -1263,7 +1245,7 @@
           "concreteTypeId": "cdd87b7d12fe505416570c294c884bca819364863efe3bf539245fa18515fbbb"
         }
       ],
-      "output": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
+      "output": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
       "attributes": [
         {
           "name": "doc-comment",

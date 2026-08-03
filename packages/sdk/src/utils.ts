@@ -76,6 +76,33 @@ export function bytesToHex(bytes: (number | bigint)[]): string {
     return '0x' + bytes.map(b => Number(b).toString(16).padStart(2, '0')).join('')
 }
 
+/** Normalize payout-curve bytes from chain-specific decoders for exact comparison. */
+export function normalizePayoutCurveData(value: unknown): string {
+    if (typeof value === 'string') {
+        if (value.startsWith('0x') || value.startsWith('0X')) {
+            const hex = value.slice(2)
+            if (hex.length % 2 !== 0 || !/^[0-9a-f]*$/i.test(hex)) {
+                throw new Error('Invalid payout curve data hex')
+            }
+            return `0x${hex.toLowerCase()}`
+        }
+        return bytesToHex(Array.from(new TextEncoder().encode(value)))
+    }
+
+    if (value instanceof Uint8Array || Array.isArray(value)) {
+        const bytes = Array.from(value as ArrayLike<number | bigint>)
+        if (bytes.some(byte => {
+            const number = Number(byte)
+            return !Number.isInteger(number) || number < 0 || number > 255
+        })) {
+            throw new Error('Invalid payout curve data bytes')
+        }
+        return bytesToHex(bytes)
+    }
+
+    throw new Error('Payout curve data is unavailable')
+}
+
 /** Convert a bigint to a 0x-prefixed 32-byte hex string */
 export function toHex32(value: bigint): string {
     return ('0x' + value.toString(16).padStart(64, '0')) as string

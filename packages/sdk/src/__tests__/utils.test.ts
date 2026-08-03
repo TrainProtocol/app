@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { parseUnits, formatUnits, hexToBytes, bytesToHex, toHex32 } from '../utils'
+import {
+    parseUnits,
+    formatUnits,
+    hexToBytes,
+    bytesToHex,
+    normalizePayoutCurveData,
+    toHex32,
+} from '../utils'
 
 describe('parseUnits', () => {
     it('parses integer values', () => {
@@ -129,6 +136,25 @@ describe('hexToBytes + bytesToHex round-trip', () => {
     it('round-trips correctly', () => {
         const original = [0xde, 0xad, 0xbe, 0xef]
         expect(hexToBytes(bytesToHex(original), 4)).toEqual(original)
+    })
+})
+
+describe('normalizePayoutCurveData', () => {
+    it('canonicalizes hex casing', () => {
+        expect(normalizePayoutCurveData('0xABCD')).toBe('0xabcd')
+    })
+
+    it('canonicalizes byte arrays', () => {
+        expect(normalizePayoutCurveData(new Uint8Array([0xab, 0xcd]))).toBe('0xabcd')
+    })
+
+    it('encodes non-hex strings as UTF-8 bytes', () => {
+        expect(normalizePayoutCurveData('swap')).toBe('0x73776170')
+    })
+
+    it('rejects malformed hex and invalid bytes', () => {
+        expect(() => normalizePayoutCurveData('0xabc')).toThrow('Invalid payout curve data hex')
+        expect(() => normalizePayoutCurveData([256])).toThrow('Invalid payout curve data bytes')
     })
 })
 

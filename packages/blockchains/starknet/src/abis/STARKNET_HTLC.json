@@ -389,11 +389,7 @@
             "type": "core::byte_array::ByteArray"
           }
         ],
-        "outputs": [
-          {
-            "type": "core::integer::u256"
-          }
-        ],
+        "outputs": [],
         "state_mutability": "external"
       },
       {
@@ -417,8 +413,8 @@
             "type": "core::integer::u256"
           },
           {
-            "name": "index",
-            "type": "core::integer::u256"
+            "name": "solver",
+            "type": "core::starknet::contract_address::ContractAddress"
           }
         ],
         "outputs": [],
@@ -449,8 +445,8 @@
             "type": "core::integer::u256"
           },
           {
-            "name": "index",
-            "type": "core::integer::u256"
+            "name": "solver",
+            "type": "core::starknet::contract_address::ContractAddress"
           },
           {
             "name": "secret",
@@ -485,29 +481,13 @@
             "type": "core::integer::u256"
           },
           {
-            "name": "index",
-            "type": "core::integer::u256"
+            "name": "solver",
+            "type": "core::starknet::contract_address::ContractAddress"
           }
         ],
         "outputs": [
           {
             "type": "train_protocol::Train::Train::SolverLock"
-          }
-        ],
-        "state_mutability": "view"
-      },
-      {
-        "type": "function",
-        "name": "get_solver_lock_count",
-        "inputs": [
-          {
-            "name": "hashlock",
-            "type": "core::integer::u256"
-          }
-        ],
-        "outputs": [
-          {
-            "type": "core::integer::u256"
           }
         ],
         "state_mutability": "view"
@@ -691,11 +671,6 @@
         "kind": "key"
       },
       {
-        "name": "index",
-        "type": "core::integer::u256",
-        "kind": "data"
-      },
-      {
         "name": "src_chain",
         "type": "core::byte_array::ByteArray",
         "kind": "data"
@@ -800,8 +775,8 @@
         "kind": "key"
       },
       {
-        "name": "index",
-        "type": "core::integer::u256",
+        "name": "solver",
+        "type": "core::starknet::contract_address::ContractAddress",
         "kind": "key"
       },
       {
@@ -864,8 +839,8 @@
         "kind": "key"
       },
       {
-        "name": "index",
-        "type": "core::integer::u256",
+        "name": "solver",
+        "type": "core::starknet::contract_address::ContractAddress",
         "kind": "key"
       },
       {

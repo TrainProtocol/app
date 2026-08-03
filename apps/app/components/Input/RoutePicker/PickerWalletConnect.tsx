@@ -2,12 +2,13 @@ import { FC, useMemo, useState } from "react";
 import { AccountIdentity, useSelectSwapAccount, useSwapAccounts } from "@/context/swapAccounts";
 import { SwapDirection, SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import { WalletsIcons } from "@/components/Wallet/ConnectedWallets";
-import { ChevronDown, Plus } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Address } from "@/lib/address";
 import WalletIcon from "@/components/Icons/WalletIcon";
 import ConnectButton from "@/components/buttons/connectButton";
 import VaulDrawer from "@/components/Modal/vaulModal";
 import { WalletItem } from "@/components/Wallet/WalletsList";
+import { ConnectNewWalletButton } from "@/components/Wallet/ConnectNewWalletButton";
 import { SelectAccountProps, Wallet } from "@/Models/WalletProvider";
 import { Network } from "@/Models/Network";
 import { useFormikContext } from "formik";
@@ -49,12 +50,7 @@ const PickerWalletConnect: FC<{ direction: SwapDirection }> = ({ direction }) =>
                 modalId="connectedWallets"
             >
                 <VaulDrawer.Snap id="item-1" className="space-y-1 pb-4">
-                    <button type="button" onClick={connectWallet} className="w-full flex justify-center p-2 bg-secondary-500 rounded-md hover:bg-secondary-400">
-                        <div className="flex items-center text-secondary-text gap-1 px-3 py-1">
-                            <Plus className="h-4 w-4" />
-                            <span className="text-sm">Connect new wallet</span>
-                        </div>
-                    </button>
+                    <ConnectNewWalletButton onClick={connectWallet} />
                     {swapAccounts.map((account, index) => (
                         <div key={index}>
                             <div className="flex justify-between items-center px-4 pt-2">

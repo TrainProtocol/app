@@ -4,7 +4,7 @@ import { htlcFunctions } from '../../abi.js'
 import type { JsonRpcClient } from '../../rpc.js'
 import { hex } from '../../utils.js'
 import { findUserLockedEvent } from '../helpers.js'
-import { LockStatus, formatUnits } from '@train-protocol/sdk'
+import { LockStatus, formatUnits, normalizePayoutCurveData } from '@train-protocol/sdk'
 import { ZERO_ADDRESS } from '../../constants.js'
 
 export async function getUserLockDetails(
@@ -47,14 +47,21 @@ export async function getUserLockDetails(
 
 export function resolveUserLock(result: any, id: string, decimals: number): BaseLockDetails | null {
     if (result.sender === ZERO_ADDRESS) return null
+    if (result.payoutCurve == null || result.payoutCurveData == null) {
+        throw new Error('User lock payout policy is unavailable')
+    }
 
     return {
         hashlock: id,
         amount: Number(formatUnits(BigInt(result.amount), decimals)),
+        amountInBaseUnits: BigInt(result.amount),
         secret: BigInt(result.secret),
         sender: result.sender,
         recipient: result.recipient,
         token: result.token,
+        refundTo: result.refundTo,
+        payoutCurve: String(result.payoutCurve).toLowerCase() === ZERO_ADDRESS ? null : String(result.payoutCurve),
+        payoutCurveData: normalizePayoutCurveData(result.payoutCurveData),
         timelock: Number(result.timelock),
         status: Number(result.status) as LockStatus,
     }

@@ -1,5 +1,5 @@
 import { cairo, type RpcProvider } from 'starknet'
-import { formatUnits } from '@train-protocol/sdk'
+import { formatUnits, normalizePayoutCurveData } from '@train-protocol/sdk'
 import type { LockParams, UserLockDetails, EventDerivedData, BaseLockDetails } from '@train-protocol/sdk'
 import { createContract, findUserLockedEvent, pickStarknetEventData, mapLockStatus } from '../helpers.js'
 import { formatStarknetAddress } from '../../utils.js'
@@ -39,14 +39,23 @@ export async function getUserLockDetails(
 
 export function resolveUserLock(result: any, id: string, decimals: number): BaseLockDetails | null {
     if (BigInt(result.sender) === 0n) return null
+    if (result.payout_curve == null || result.payout_curve_data == null) {
+        throw new Error('User lock payout policy is unavailable')
+    }
 
     return {
         hashlock: id,
         amount: Number(formatUnits(BigInt(result.amount), decimals)),
+        amountInBaseUnits: BigInt(result.amount),
         secret: BigInt(result.secret),
         sender: formatStarknetAddress(result.sender).toString(),
         recipient: formatStarknetAddress(result.recipient).toString(),
         token: formatStarknetAddress(result.token).toString(),
+        refundTo: formatStarknetAddress(result.refund_to).toString(),
+        payoutCurve: BigInt(result.payout_curve) === 0n
+            ? null
+            : formatStarknetAddress(result.payout_curve).toString(),
+        payoutCurveData: normalizePayoutCurveData(result.payout_curve_data),
         timelock: Number(result.timelock),
         status: mapLockStatus(result.status),
     }

@@ -10,7 +10,13 @@ export type BaseLockDetails = {
     recipient: string;
     token: string;
     refundTo?: string;
-    payoutCurve?: string;
+    /**
+     * Redeem-time payout curve, or null when the lock carries none and pays in full.
+     * An unavailable field stays '' so an incomplete decoder cannot read as "no curve".
+     */
+    payoutCurve: string | null;
+    /** Curve config as canonical 0x-prefixed bytes. */
+    payoutCurveData: string;
 }
 
 export type Reward = {
@@ -36,9 +42,11 @@ export type UserLockDetails = BaseLockDetails & EventDerivedData & {
     blockTimestamp?: number
 }
 
-export type SolverLockDetails = BaseLockDetails & Reward & {
-    index: number
-}
+/**
+ * A solver lock is identified on-chain by `(hashlock, solver address)`. The solver
+ * address is the lock's `sender`, so no separate identity field is carried here.
+ */
+export type SolverLockDetails = BaseLockDetails & Reward
 
 export enum LockStatus {
     Empty,

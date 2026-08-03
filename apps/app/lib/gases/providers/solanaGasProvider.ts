@@ -84,6 +84,7 @@ async function estimateSolanaGas(params: {
         destinationAddress: params.address,
         solverData: '0x00',
         payoutCurve: CONSTANT_PAYOUT_CURVE,
+        payoutCurveData: '0x',
         quoteExpiry: Math.floor(Date.now() / 1000) + 3600,
         rewardAmount: '0',
         rewardToken: '',

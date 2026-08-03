@@ -160,16 +160,6 @@ export class Address {
   }
 
   /**
-   * Static factory method for emails (exchange accounts)
-   * Returns an EmailAddress instance with email-specific formatting
-   * @param email - Email address string
-   * @param maxNameLength - Maximum length for email name before shortening (default: 14)
-   */
-  static fromEmail(email: string, maxNameLength: number = 14): EmailAddress {
-    return new EmailAddress(email, maxNameLength);
-  }
-
-  /**
    * Convert to string (default: full format)
    */
   toString(): string {
@@ -202,49 +192,4 @@ export class Address {
     }
   }
 
-}
-
-/**
- * Special class for email addresses (exchange accounts)
- * Handles email-specific shortening logic
- */
-export class EmailAddress {
-  private readonly _email: string;
-  private readonly _maxNameLength: number;
-
-  constructor(email: string, maxNameLength: number = 14) {
-    this._email = email || '';
-    this._maxNameLength = maxNameLength;
-  }
-
-  /**
-   * Format email with shortened name if necessary
-   * Keeps domain intact, shortens long names with ellipsis
-   * @returns Shortened email (e.g., "verylong...name@example.com")
-   */
-  toShortString(): string {
-    const [name, domain] = this._email.split('@');
-    if (!domain) return this._email; // Invalid email, return as-is
-
-    const len = name.length;
-
-    if (len <= this._maxNameLength) {
-      return this._email;
-    }
-
-    const shortName =
-      name.substring(0, Math.floor((this._maxNameLength / 3) * 2)) +
-      '...' +
-      name.substring(len - Math.floor(this._maxNameLength / 3), len);
-
-    return `${shortName}@${domain}`;
-  }
-
-}
-
-/**
- * Type guard to check if address is an EmailAddress
- */
-export function isEmailAddress(address: Address | EmailAddress): address is EmailAddress {
-  return address instanceof EmailAddress;
 }

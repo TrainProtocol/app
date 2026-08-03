@@ -80,6 +80,13 @@ export interface SolverLockData {
 
 export type TypedProgramAccounts = {
     userLock: { fetch(pda: PublicKey): Promise<UserLockData> }
-    solverLock: { fetch(pda: PublicKey): Promise<SolverLockData> }
-    solverLockCounter: { fetch(pda: PublicKey): Promise<{ count: BN }> }
+    solverLock: {
+        fetch(pda: PublicKey): Promise<SolverLockData>
+        /**
+         * `null` when the account is absent or empty; RPC and decode failures still throw.
+         * Reads that must distinguish "no lock yet" from "the node failed" use this rather
+         * than catching around `fetch`, which conflates the two.
+         */
+        fetchNullable(pda: PublicKey): Promise<SolverLockData | null>
+    }
 }

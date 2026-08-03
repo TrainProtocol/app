@@ -81,6 +81,13 @@ export function useRecoverSwap(): UseRecoverSwapResult {
                 txId: txHash,
                 sourceAddress: details.sender,
                 destinationAddress: details.dstAddress ?? '',
+                // A solver lock is keyed by (hashlock, solver address), so without the solver's
+                // destination address there is nothing to read. The quote that carried it is gone
+                // on this path, but the user's own lock recorded it: the reward is paid to the
+                // solver on the destination chain, so `rewardRecipient` is that same address.
+                // `recipient` is NOT a substitute — it is the *source* solver, which differs from
+                // the destination solver on cross-VM routes.
+                destinationSolverAddress: details.rewardRecipient || undefined,
             }
             actions.addSwap(details.hashlock, swapData)
 

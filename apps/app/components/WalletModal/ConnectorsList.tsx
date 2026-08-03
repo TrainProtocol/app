@@ -52,6 +52,31 @@ const upsertPaginationState = (
     return next
 }
 
+/**
+ * Settle pagination state after a load-more round, carrying the previous total and page
+ * size forward when the provider doesn't report them. The initial-load paths deliberately
+ * reset those instead, so they build their state inline rather than calling this.
+ */
+const applyLoadMoreResults = (
+    previous: Record<string, ProviderPaginationState>,
+    results: { providerName: string; result?: { nextPage?: number | null; totalCount?: number } }[],
+    pageSize: number
+) => {
+    const next = { ...previous }
+
+    for (const { providerName, result } of results) {
+        next[providerName] = {
+            loaded: true,
+            nextPage: result?.nextPage ?? null,
+            totalCount: result?.totalCount ?? previous[providerName]?.totalCount ?? 0,
+            pageSize: previous[providerName]?.pageSize ?? pageSize,
+            isLoading: false,
+        }
+    }
+
+    return next
+}
+
 const withProviderName = (providerName: string, connectors: InternalConnector[]) => {
     return connectors.map(connector => ({ ...connector, providerName }))
 }
@@ -361,21 +386,7 @@ const ConnectorsList: FC<{ onFinish: (result: Wallet | undefined) => void }> = (
                     ...previous,
                     ...results.flatMap(({ providerName, result }) => withProviderName(providerName, result?.connectors ?? []))
                 ])
-                setSearchPaginationByProvider(previous => {
-                    const next = { ...previous }
-
-                    for (const { providerName, result } of results) {
-                        next[providerName] = {
-                            loaded: true,
-                            nextPage: result?.nextPage ?? null,
-                            totalCount: result?.totalCount ?? previous[providerName]?.totalCount ?? 0,
-                            pageSize: previous[providerName]?.pageSize ?? SEARCH_PAGE_SIZE,
-                            isLoading: false,
-                        }
-                    }
-
-                    return next
-                })
+                setSearchPaginationByProvider(previous => applyLoadMoreResults(previous, results, SEARCH_PAGE_SIZE))
 
                 return
             }
@@ -402,21 +413,7 @@ const ConnectorsList: FC<{ onFinish: (result: Wallet | undefined) => void }> = (
                 }
             }))
 
-            setBrowsePaginationByProvider(previous => {
-                const next = { ...previous }
-
-                for (const { providerName, result } of results) {
-                    next[providerName] = {
-                        loaded: true,
-                        nextPage: result?.nextPage ?? null,
-                        totalCount: result?.totalCount ?? previous[providerName]?.totalCount ?? 0,
-                        pageSize: previous[providerName]?.pageSize ?? DEFAULT_BROWSE_PAGE_SIZE,
-                        isLoading: false,
-                    }
-                }
-
-                return next
-            })
+            setBrowsePaginationByProvider(previous => applyLoadMoreResults(previous, results, DEFAULT_BROWSE_PAGE_SIZE))
         } finally {
             loadMoreInFlightRef.current = false
         }

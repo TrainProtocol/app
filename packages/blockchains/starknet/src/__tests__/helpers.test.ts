@@ -76,4 +76,18 @@ describe('pickStarknetEventData', () => {
         expect(result.dstChain).toBeUndefined()
         expect(result.dstAddress).toBe('0xDest')
     })
+
+    // The reward recipient is the solver's destination-chain address, and it is the only
+    // way a swap recovered from a source tx hash can locate the solver lock.
+    it('maps reward_recipient so a recovered swap can find the solver lock', () => {
+        const result = pickStarknetEventData({
+            reward_recipient: '0x0a9b3770c5ee739331ce667b7ab24b6e338c690f',
+        })
+        expect(result.rewardRecipient).toBe('0x0a9b3770c5ee739331ce667b7ab24b6e338c690f')
+    })
+
+    it('leaves rewardRecipient undefined when the event omits it', () => {
+        expect(pickStarknetEventData({ dst_chain: 'eip155:1' }).rewardRecipient).toBeUndefined()
+        expect(pickStarknetEventData({ reward_recipient: null }).rewardRecipient).toBeUndefined()
+    })
 })

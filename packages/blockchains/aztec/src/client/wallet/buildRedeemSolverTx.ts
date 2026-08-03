@@ -41,5 +41,9 @@ export async function buildRedeemSolverTx(
         : String(params.secret)
     const secretBytes = hexToBytes(secretHex, 32)
 
-    return contract.methods.redeem_solver(hashlockBytes, BigInt(params.index ?? 1), secretBytes)
+    return contract.methods.redeem_solver(
+        hashlockBytes,
+        AztecAddress.fromStringUnsafe(params.solverAddress),
+        secretBytes,
+    )
 }

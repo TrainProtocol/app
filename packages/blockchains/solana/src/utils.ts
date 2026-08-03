@@ -13,10 +13,3 @@ export function hexToUint8Array(hex: string): Uint8Array {
 export function uint8ArrayToHex(bytes: Uint8Array | number[]): string {
     return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('')
 }
-
-export function writeBigUInt64LE(value: bigint): Uint8Array {
-    const buf = new Uint8Array(8)
-    const view = new DataView(buf.buffer)
-    view.setBigUint64(0, value, true)
-    return buf
-}

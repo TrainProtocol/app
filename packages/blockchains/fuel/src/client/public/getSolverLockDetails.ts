@@ -2,6 +2,7 @@ import { Provider } from 'fuels'
 import {
     formatUnits,
     LockStatus,
+    normalizePayoutCurveData,
 } from '@train-protocol/sdk'
 import type {
     LockParams,
@@ -9,6 +10,7 @@ import type {
 } from '@train-protocol/sdk'
 import type { FuelSolverLock } from '../../types.js'
 import {
+    identityFromAddress,
     identityToAddress,
     mapFuelLockStatus,
     optionalContractIdToString,
@@ -21,31 +23,16 @@ export async function getSolverLockDetails(
     nodeUrl: string,
 ): Promise<SolverLockDetails | null> {
     if (!params.contractAddress) throw new Error('No contract address')
+    if (!params.solverAddress) throw new Error('solverAddress is required to read a solver lock')
 
     const provider = new Provider(nodeUrl)
     const contract = buildContract(params.contractAddress, provider)
-    const { value: countValue } = await contract.functions.get_solver_lock_count(params.id).get()
-    const count = Number(countValue)
+    const { value } = await contract.functions
+        .get_solver_lock(params.id, identityFromAddress(params.solverAddress))
+        .get()
 
-    for (let index = 1; index <= count; index += 1) {
-        const lock = await getSolverLockByIndex(contract, params, index)
-        if (!lock) continue
-        if (params.solverAddress &&
-            lock.sender.toLowerCase() !== params.solverAddress.toLowerCase()) continue
-        return lock
-    }
-
-    return null
-}
-
-async function getSolverLockByIndex(
-    contract: ReturnType<typeof buildContract>,
-    params: LockParams,
-    index: number,
-): Promise<SolverLockDetails | null> {
-    const { value } = await contract.functions.get_solver_lock(params.id, index).get()
     return value
-        ? resolveSolverLock(value as FuelSolverLock, params.id, params.decimals, index)
+        ? resolveSolverLock(value as FuelSolverLock, params.id, params.decimals)
         : null
 }
 
@@ -53,7 +40,6 @@ export function resolveSolverLock(
     result: FuelSolverLock,
     id: string,
     decimals: number,
-    index: number,
 ): SolverLockDetails | null {
     const sender = identityToAddress(result.sender)
     const status = mapFuelLockStatus(result.status)
@@ -71,11 +57,11 @@ export function resolveSolverLock(
         recipient: identityToAddress(result.recipient),
         token: result.asset_id.bits,
         refundTo: identityToAddress(result.refund_to),
-        payoutCurve: optionalContractIdToString(result.payout_curve),
+        payoutCurve: optionalContractIdToString(result.payout_curve) ?? null,
+        payoutCurveData: normalizePayoutCurveData(result.payout_curve_data ?? new Uint8Array()),
         reward: Number(formatUnits(BigInt(result.reward.toString()), decimals)),
         rewardToken: result.reward_asset_id.bits,
         rewardRecipient: identityToAddress(result.reward_recipient),
         rewardTimelock: tai64ToUnixSeconds(result.reward_timelock),
-        index,
     }
 }

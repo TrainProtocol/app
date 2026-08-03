@@ -9,15 +9,16 @@ import type { TrainSDK } from '@train-protocol/sdk'
 import { useConfig } from 'wagmi'
 import { getAccount, getWalletClient, getConnections } from 'wagmi/actions'
 import { useSettingsState } from '@/context/settings'
-import { useRpcConfigStore } from '@/stores/rpcConfigStore'
 import resolveChain from '@/lib/resolveChain'
+import { useBridgeRpcUrl } from './useBridgeRpcUrl'
 
 const isSandbox = process.env.NEXT_PUBLIC_API_VERSION === 'sandbox'
 
 export function EvmWalletBridge() {
     const config = useConfig()
     const { networks } = useSettingsState()
-    const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
+    // EVM has no namespace fallback — an explicit caip2Id is always required.
+    const getRpcUrl = useBridgeRpcUrl(null)
 
     const adapter = useMemo<TrainWalletAdapter>(() => {
 
@@ -77,12 +78,6 @@ export function EvmWalletBridge() {
             }
         }
 
-        function getRpcUrl(caip2Id: Caip2Id): string {
-            const network = networks.find(n => n.caip2Id === (caip2Id as string))
-            if (!network) return ''
-            return getEffectiveRpcUrls(network)[0] ?? network.nodes?.[0]?.url ?? ''
-        }
-
         return {
             chainNamespace: chainNamespace('eip155'),
 
@@ -114,7 +109,7 @@ export function EvmWalletBridge() {
                 }
             },
         }
-    }, [config, networks, getEffectiveRpcUrls])
+    }, [config, networks, getRpcUrl])
 
     useRegisterWallet(adapter)
     return null

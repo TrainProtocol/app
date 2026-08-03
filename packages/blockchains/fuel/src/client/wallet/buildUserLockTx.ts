@@ -10,6 +10,7 @@ import {
     dataBytes,
     identityFromAddress,
     optionalContractId,
+    optionalDataBytes,
     unixSecondsToTai64,
 } from '../../utils.js'
 import { buildContract, type BuiltUserLockArguments } from '../helpers.js'
@@ -34,7 +35,7 @@ export async function buildUserLockArguments(
         recipient: identityFromAddress(params.srcSolverAddress),
         refund_to: identityFromAddress(params.sourceAddress),
         payout_curve: optionalContractId(params.payoutCurve),
-        payout_curve_data: undefined,
+        payout_curve_data: optionalDataBytes(params.payoutCurveData),
         reward_amount: params.rewardAmount ?? '0',
         reward_timelock_delta: params.rewardTimelockDelta ?? 0,
         reward_token: params.rewardToken ?? '',
