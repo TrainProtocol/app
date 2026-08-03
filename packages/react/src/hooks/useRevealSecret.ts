@@ -17,6 +17,7 @@ import { TrainError, TrainErrorCode } from '../types'
 import { useNetworksContext } from '../providers/NetworksProvider'
 import { resolveSolverLockVerification } from '../internal/resolveSolverLockVerification'
 import { resolveSwapTokens } from '../internal/resolveSwapTokens'
+import { REVEAL_MAX_ATTEMPTS, REVEAL_RETRY_DELAY_MS, sleep } from '../internal/timing'
 
 export interface UseRevealSecretResult {
     /** Reveal the swap secret to the solver API. */
@@ -165,7 +166,32 @@ export function useRevealSecret(): UseRevealSecretResult {
                 )
             }
 
-            await apiClient.revealSecret(swap.hashlock, secret, swap.destinationSolverAddress)
+            // The POST itself is the flaky part — a network blip, or the solver not yet serving
+            // the order it just locked against. Re-sending the same secret for the same hashlock
+            // is idempotent, so absorb those instead of putting a dead-end error on screen: the
+            // gates above have already passed, and nothing they check can change within a second.
+            let lastError: unknown
+            for (let attempt = 1; attempt <= REVEAL_MAX_ATTEMPTS; attempt++) {
+                try {
+                    await apiClient.revealSecret(swap.hashlock, secret, swap.destinationSolverAddress)
+                    lastError = undefined
+                    break
+                } catch (err) {
+                    lastError = err
+                    if (attempt < REVEAL_MAX_ATTEMPTS) {
+                        console.warn(`[RevealSecret] attempt ${attempt}/${REVEAL_MAX_ATTEMPTS} failed, retrying in ${REVEAL_RETRY_DELAY_MS}ms`, err)
+                        await sleep(REVEAL_RETRY_DELAY_MS)
+                    }
+                }
+            }
+            if (lastError) {
+                throw new TrainError(
+                    `Reveal failed after ${REVEAL_MAX_ATTEMPTS} attempts: ${lastError instanceof Error ? lastError.message : String(lastError)}`,
+                    TrainErrorCode.RevealFailed,
+                    lastError,
+                )
+            }
+
             actions.updateSwapFlags(hashlock, { secretRevealedToApi: true })
             actions.updateSwap(hashlock, { secretRevealed: true })
         } catch (err) {
