@@ -87,25 +87,30 @@ export const useNavigatableList = ({
         }
     }, [navigableItems.length]);
 
+    /**
+     * The index arrow navigation should move from: the tracked focusedIndex, else the
+     * currently tab-focused NavigatableItem (blurred so DOM focus doesn't fight state).
+     * Null means neither is available — callers decide what that means for their direction.
+     */
+    const resolveCurrentIndex = useCallback((): FocusedIndex | null => {
+        if (focusedIndex !== null) return focusedIndex;
+        const elementIndex = getFocusedElementIndex();
+        if (!elementIndex) return null;
+        (document.activeElement as HTMLElement)?.blur?.();
+        return elementIndex;
+    }, [focusedIndex]);
+
     const handleArrowDown = useCallback(() => {
         setIsKeyboardNavigating(true);
         isMouseMovingRef.current = false;
 
-        // If no focusedIndex, try to sync from the currently tab-focused element
-        let currentIndex = focusedIndex;
+        const currentIndex = resolveCurrentIndex();
         if (currentIndex === null) {
-            const elementIndex = getFocusedElementIndex();
-            if (elementIndex) {
-                // Start navigation from the tab-focused element, blur it to remove DOM focus
-                currentIndex = elementIndex;
-                (document.activeElement as HTMLElement)?.blur?.();
-            } else if (navigableItems.length > 0) {
-                // No focused element, start from the beginning
+            // No focused element, start from the beginning
+            if (navigableItems.length > 0) {
                 setFocusedIndex({ parent: 0 });
-                return;
-            } else {
-                return;
             }
+            return;
         }
 
         const { parent, child } = currentIndex;
@@ -139,25 +144,15 @@ export const useNavigatableList = ({
                 setFocusedIndex({ parent: parent + 1 });
             }
         }
-    }, [focusedIndex, navigableItems]);
+    }, [resolveCurrentIndex, navigableItems]);
 
     const handleArrowUp = useCallback(() => {
         setIsKeyboardNavigating(true);
         isMouseMovingRef.current = false;
 
-        // If no focusedIndex, try to sync from the currently tab-focused element
-        let currentIndex = focusedIndex;
-        if (currentIndex === null) {
-            const elementIndex = getFocusedElementIndex();
-            if (elementIndex) {
-                // Start navigation from the tab-focused element, blur it to remove DOM focus
-                currentIndex = elementIndex;
-                (document.activeElement as HTMLElement)?.blur?.();
-            } else {
-                // No focused element, ArrowUp does nothing
-                return;
-            }
-        }
+        // No focused element, ArrowUp does nothing
+        const currentIndex = resolveCurrentIndex();
+        if (currentIndex === null) return;
 
         const { parent, child } = currentIndex;
         const navItem = navigableItems[parent];
@@ -199,7 +194,7 @@ export const useNavigatableList = ({
             }
             // When at first item (parent === 0), ArrowUp does nothing - stay at first item
         }
-    }, [focusedIndex, navigableItems]);
+    }, [resolveCurrentIndex, navigableItems]);
 
     // Handle Enter key - receives navIndex from DOM focus, or null to use focusedIndex state
     const handleEnter = useCallback((navIndex: string | null) => {

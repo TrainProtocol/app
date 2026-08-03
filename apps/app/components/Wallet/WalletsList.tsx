@@ -1,4 +1,4 @@
-import { ChevronDown, Plus, Unplug } from "lucide-react";
+import { ChevronDown, Unplug } from "lucide-react";
 import AddressIcon from "../AddressIcon";
 import { FC, useCallback, useState } from "react";
 import { SelectAccountProps, Wallet, WalletProvider } from "../../Models/WalletProvider";
@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../shadcn/tooltip";
 import { ImageWithFallback } from "../Common/ImageWithFallback";
 import { AccountIdentity, useSelectedAccount } from "@/context/swapAccounts";
 import { useBalance } from "@/lib/balances/useBalance";
+import { ConnectNewWalletButton } from "./ConnectNewWalletButton";
 
 type Props = {
     selectable?: boolean;
@@ -45,16 +46,7 @@ const WalletsList: FC<Props> = (props) => {
 
     const selectedSourceAccount = useSelectedAccount("from", selectedDepositMethod == 'wallet' ? network?.caip2Id : undefined);
 
-    const connectButton = (
-        <button type='button' onClick={connectWallet} className="w-full flex justify-center p-2 bg-secondary-500 rounded-lg hover:bg-secondary-400">
-            <div className="flex items-center text-secondary-text gap-1 px-3 py-1">
-                <Plus className="h-4 w-4" />
-                <span className="text-sm">
-                    Connect new wallet
-                </span>
-            </div>
-        </button>
-    )
+    const connectButton = <ConnectNewWalletButton onClick={connectWallet} />
 
     const walletsListBlock = wallets.length > 0 && (
         <div className="flex flex-col justify-start space-y-2">

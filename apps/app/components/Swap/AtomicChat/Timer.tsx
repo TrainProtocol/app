@@ -1,37 +1,10 @@
-import { ReactNode, useCallback, useEffect, useState } from "react"
-import { useInterval } from "../../../hooks/useInterval"
+import { ReactNode } from "react"
 import { HelpCircle } from "lucide-react"
 import MobileTooltip from "../../Modal/mobileTooltip"
+import { formatCountdown, useCountdown } from "../../../hooks/useCountdown"
 
 const TimelockTimer = ({ timelock, children }: { timelock: number, children?: ReactNode }) => {
-    const [secondsRemaining, setSecondsRemaining] = useState<number>()
-    const [started, setStarted] = useState(false)
-
-    const start = (seconds: number) => {
-        setSecondsRemaining(seconds)
-        setStarted(true)
-    }
-
-    useEffect(() => {
-        if (timelock) {
-            start(Number(timelock) - (Date.now() / 1000))
-        }
-    }, [timelock])
-
-    const callback = useCallback(() => {
-        if (Number(secondsRemaining) > 0) {
-            if (secondsRemaining == 1) {
-                setStarted(false)
-            }
-            setSecondsRemaining(Number(secondsRemaining) - 1)
-
-        }
-    }, [secondsRemaining])
-
-    useInterval(
-        callback,
-        started ? 1000 : null,
-    )
+    const { secondsRemaining, started } = useCountdown(timelock)
 
     return (
         started &&
@@ -49,55 +22,12 @@ const TimelockTimer = ({ timelock, children }: { timelock: number, children?: Re
         >
             <div className="space-y-1">
                 <p className="text-sm">
-                    <span>Refund available in</span> <span className="w-9"><Timer timelock={timelock} /></span>
+                    <span>Refund available in</span> <span className="w-9">{formatCountdown(secondsRemaining)}</span>
                 </p>
                 <p className="text-xs opacity-70">If the swap doesn't complete in time, you can cancel and refund.</p>
             </div>
         </MobileTooltip>
     )
 }
-
-export const Timer = ({ timelock }: { timelock: number }) => {
-    const [secondsRemaining, setSecondsRemaining] = useState<number>()
-    const [started, setStarted] = useState(false)
-
-    const start = (seconds: number) => {
-        setSecondsRemaining(seconds)
-        setStarted(true)
-    }
-
-    useEffect(() => {
-        if (timelock) {
-            start(Number(timelock) - (Date.now() / 1000))
-        }
-    }, [timelock])
-
-    const callback = useCallback(() => {
-        if (Number(secondsRemaining) > 0) {
-            if (secondsRemaining == 1) {
-                setStarted(false)
-            }
-            setSecondsRemaining(Number(secondsRemaining) - 1)
-
-        }
-    }, [secondsRemaining])
-
-    useInterval(
-        callback,
-        started ? 1000 : null,
-    )
-
-    const twoDigits = (num: number) => String(num).padStart(2, '0')
-
-    const secondsToDisplay = Number(secondsRemaining?.toFixed()) % 60
-    const minutesRemaining = (Number(secondsRemaining) - secondsToDisplay) / 60
-    const minutesToDisplay = Number(minutesRemaining.toFixed()) % 60
-    const hoursRemaining = (minutesRemaining - minutesToDisplay) / 60
-    const hoursToDisplay = Number(hoursRemaining.toFixed())
-
-    return <>{hoursToDisplay > 0 ? `${twoDigits(hoursToDisplay)}:` : ''}{twoDigits(minutesToDisplay)}:{twoDigits(secondsToDisplay)}</>
-
-}
-
 
 export default TimelockTimer

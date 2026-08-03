@@ -7,27 +7,15 @@ import {
 } from '@train-protocol/react'
 import type { TrainSDK } from '@train-protocol/sdk'
 import { useWallet, useConnection } from '@solana/wallet-adapter-react'
-import { useSettingsState } from '@/context/settings'
-import { useRpcConfigStore } from '@/stores/rpcConfigStore'
 import { Address } from '@/lib/address'
+import { useBridgeRpcUrl } from './useBridgeRpcUrl'
 
 export function SolanaWalletBridge() {
     const { wallets } = useWallet()
     const { connection } = useConnection()
-    const { networks } = useSettingsState()
-    const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
+    const getRpcUrl = useBridgeRpcUrl('solana:')
 
     const adapter = useMemo<TrainWalletAdapter>(() => {
-        function getRpcUrl(caip2Id?: Caip2Id): string {
-            const network = networks.find(n =>
-                caip2Id
-                    ? n.caip2Id === (caip2Id as string)
-                    : n.caip2Id.startsWith('solana:')
-            )
-            if (!network) return ''
-            return getEffectiveRpcUrls(network)[0] ?? network.nodes?.[0]?.url ?? ''
-        }
-
         return {
             chainNamespace: chainNamespace('solana'),
 
@@ -70,7 +58,7 @@ export function SolanaWalletBridge() {
                 return { wallet: { signMessage } }
             },
         }
-    }, [wallets, connection, networks, getEffectiveRpcUrls])
+    }, [wallets, connection, getRpcUrl])
 
     useRegisterWallet(adapter)
     return null

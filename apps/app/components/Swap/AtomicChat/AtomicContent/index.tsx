@@ -6,7 +6,7 @@ import SwapQuoteComp from "@/components/FeeDetails/SwapQuote";
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import { Gauge } from "./Gauge";
 import Timeline from "./Timeline";
-import { useSwapProgress } from "./useSwapProgress";
+import { useSwapTimeline } from "./useSwapTimeline";
 import { CircleCheck, Info, SearchX, Undo2, X } from "lucide-react";
 import { HTLCStatus } from "@train-protocol/react";
 import { Loader2 } from "lucide-react";
@@ -96,7 +96,7 @@ const KeepTabOpenNote: FC = () => (
 
 // New gauge + timeline progress panel
 const SwapProgressPanel: FC = () => {
-    const { gaugeValue, gaugeIcon, title, subtitle, steps } = useSwapProgress();
+    const { gaugeValue, gaugeIcon, title, subtitle, steps } = useSwapTimeline();
 
     return (
         <div className="bg-secondary-500 font-normal px-3 pt-6 pb-3 rounded-2xl space-y-4 flex flex-col w-full relative z-10 divide-y-2 divide-secondary-300 divide-dashed">

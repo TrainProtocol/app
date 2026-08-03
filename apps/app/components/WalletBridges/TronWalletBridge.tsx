@@ -8,13 +8,11 @@ import {
 import type { TrainSDK } from '@train-protocol/sdk'
 import { useWallet } from '@tronweb3/tronwallet-adapter-react-hooks'
 import type { TronSigner, TronUnsignedTransaction } from '@train-protocol/tron'
-import { useSettingsState } from '@/context/settings'
-import { useRpcConfigStore } from '@/stores/rpcConfigStore'
+import { useBridgeRpcUrl } from './useBridgeRpcUrl'
 
 export function TronWalletBridge() {
     const { wallet: tronWallet } = useWallet()
-    const { networks } = useSettingsState()
-    const getEffectiveRpcUrls = useRpcConfigStore(s => s.getEffectiveRpcUrls)
+    const getRpcUrl = useBridgeRpcUrl('tron')
 
     // Use a ref to access the wallet lazily inside callbacks,
     // avoiding tronWallet in useMemo deps (new object ref each render).
@@ -46,16 +44,6 @@ export function TronWalletBridge() {
             }
         }
 
-        function getRpcUrl(caip2Id?: Caip2Id): string {
-            const network = networks.find(n =>
-                caip2Id
-                    ? n.caip2Id === (caip2Id as string)
-                    : n.caip2Id?.toLowerCase().startsWith('tron')
-            )
-            if (!network) return ''
-            return getEffectiveRpcUrls(network)[0] ?? network.nodes?.[0]?.url ?? ''
-        }
-
         return {
             chainNamespace: chainNamespace('tron'),
 
@@ -82,7 +70,7 @@ export function TronWalletBridge() {
                 }
             },
         }
-    }, [networks, getEffectiveRpcUrls])
+    }, [getRpcUrl])
 
     useRegisterWallet(adapter)
     return null

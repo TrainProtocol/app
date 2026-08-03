@@ -9,7 +9,7 @@ import { useRpcConfigStore } from "@/stores/rpcConfigStore";
 import { getNativeToken, NetworkTypes } from "../../Models/Network";
 import { coinbaseWallet, metaMask, walletConnect } from "@wagmi/connectors";
 import { walletConnect as customWalletConnect } from "../../lib/wallets/evm/connectors/walletConnect";
-import { isMobile } from "../../lib/isMobile";
+import { isMobile } from "../../lib/wallets/utils/isMobile";
 import { WALLETCONNECT_PROJECT_ID } from "@/lib/walletConnect/config";
 import { HIDDEN_WALLETCONNECT_ID } from "@/lib/wallets/evm/constants";
 import { browserInjected } from "@/lib/wallets/evm/connectors/browserInjected";

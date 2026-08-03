@@ -10,6 +10,22 @@ type UseConnectorsParams = {
     searchResults?: InternalConnector[];
 };
 
+/** Flatten one connector list off each provider, name-filtered and stamped with the provider. */
+function pickConnectors(
+    providers: WalletProvider[],
+    key: 'availableConnectors' | 'additionalConnectors',
+    searchValue?: string,
+): InternalConnector[] {
+    return providers
+        .filter(g => g[key] && g[key]?.length > 0)
+        .map((provider) =>
+            provider[key]
+                ?.filter(v => searchValue ? v.name.toLowerCase().includes(searchValue.toLowerCase()) : true)
+                .map((connector) => ({ ...connector, providerName: provider.name }))
+        )
+        .flat() as InternalConnector[];
+}
+
 export function useConnectors({
     featuredProviders,
     filteredProviders,
@@ -18,27 +34,13 @@ export function useConnectors({
     searchResults,
 }: UseConnectorsParams) {
 
-    const featuredConnectors = useMemo(() =>
-        featuredProviders
-            .filter(g => g.availableConnectors && g.availableConnectors?.length > 0)
-            .map((provider) =>
-                provider.availableConnectors
-                    ?.filter(v => searchValue ? v.name.toLowerCase().includes(searchValue.toLowerCase()) : true)
-                    .map((connector) => ({ ...connector, providerName: provider.name }))
-            )
-            .flat() as InternalConnector[],
+    const featuredConnectors = useMemo(
+        () => pickConnectors(featuredProviders, 'availableConnectors', searchValue),
         [featuredProviders, searchValue]
     );
 
-    const additionalConnectors = useMemo(() =>
-        featuredProviders
-            .filter(g => g.additionalConnectors && g.additionalConnectors?.length > 0)
-            .map((provider) =>
-                provider.additionalConnectors
-                    ?.filter(v => searchValue ? v.name.toLowerCase().includes(searchValue.toLowerCase()) : true)
-                    .map((connector) => ({ ...connector, providerName: provider.name }))
-            )
-            .flat() as InternalConnector[],
+    const additionalConnectors = useMemo(
+        () => pickConnectors(featuredProviders, 'additionalConnectors', searchValue),
         [featuredProviders, searchValue]
     );
 

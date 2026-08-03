@@ -25,5 +25,3 @@ export const StepBody: FC<StepBodyProps> = ({
         </div>
     )
 }
-
-export default StepBody

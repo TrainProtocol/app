@@ -1,6 +1,6 @@
 import { FC, ReactNode } from "react";
 import { AlertTriangle, CheckIcon, ChevronDown } from "lucide-react";
-import FailIcon from "../../Icons/FailIcon";
+import CancelIcon from "../../Icons/CancelIcon";
 import SuccessIcon from "../../Icons/SuccessIcon";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/shadcn/accordion";
 
@@ -14,7 +14,7 @@ const StatusIcon: FC<{ status: WalletMessageProps['status'] }> = ({ status }) =>
         case 'warning':
             return <AlertTriangle className="relative top-0 left-0 h-5 w-5 text-warning-foreground" />
         case 'error':
-            return <FailIcon className="relative top-0 left-0 h-5 w-5 text-error-foreground" />
+            return <CancelIcon className="relative top-0 left-0 h-5 w-5 text-error-foreground" />
         case 'success':
             return <CheckIcon className="relative top-0 left-0 h-5 w-5 text-primary" />
         case 'pending':
@@ -49,7 +49,7 @@ export const WalletUnknownError: FC = () => {
             <AccordionItem value="wallet-message">
                 <AccordionTrigger className="flex justify-between w-full gap-2 items-center px-2 py-3 bg-secondary-400 rounded-2xl group">
                     <div className="shrink-0 p-0.5 self-start">
-                        <FailIcon className="h-5 w-5 text-error-foreground" />
+                        <CancelIcon className="h-5 w-5 text-error-foreground" />
                     </div>
                     <div className="flex flex-col gap-1 items-start">
                         <p className="text-primary-text font-medium leading-4 text-base">Wallet error</p>

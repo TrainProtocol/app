@@ -1,13 +1,9 @@
-import { FC, useMemo } from 'react'
+import { FC } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../shadcn/tooltip'
 import { RateElement } from '../Rate'
 import type { SwapQuote } from '@train-protocol/react'
 import { SwapFormValues } from '../../DTOs/SwapFormValues'
-import useWallet from '@/hooks/useWallet'
-import useSWRGas from '@/lib/gases/useSWRGas'
-import { resolveTokenUsdPrice } from '@/helpers/tokenHelper'
-import formatAmount from '@/lib/formatAmount'
-import { truncateDecimals } from '@/components/utils/RoundDecimals'
+import { useGasFeeDisplay, useSwapFeeDisplay } from '../useFeeDisplay'
 
 type DetailedEstimatesProps = {
     quote: SwapQuote | undefined,
@@ -19,7 +15,7 @@ export const DetailedEstimates: FC<DetailedEstimatesProps> = ({
     values,
 }) => {
     return <div className="flex flex-col w-full px-2">
-        <GasFee values={values} quote={quote} />
+        <GasFee values={values} />
         <Fees quote={quote} values={values} />
         <Rate quote={quote} values={values} />
     </div>
@@ -43,15 +39,8 @@ const RowWrapper = ({ children, title }: RowWrapperProps) => {
     </div>
 }
 
-export const GasFee = ({ values, quote }: { values: SwapFormValues, quote: SwapQuote | undefined }) => {
-    const { wallets } = useWallet(values.from, 'withdrawal')
-    const wallet = wallets?.[0]
-
-    const { gasData, isGasLoading } = useSWRGas(wallet?.address, values.from, values.fromCurrency)
-    const gasTokenPriceInUsd = resolveTokenUsdPrice(gasData?.token)
-    const gasFeeInUsd = gasData && gasTokenPriceInUsd ? gasData.gas * gasTokenPriceInUsd : null
-    const displayGasFeeInUsd = gasFeeInUsd != null ? (gasFeeInUsd < 0.01 ? '<$0.01' : `$${gasFeeInUsd.toFixed(2)}`) : null
-    const truncatedGas = gasData?.gas ? truncateDecimals(gasData.gas, Math.min(gasData.token?.decimals, 8)) : null
+const GasFee = ({ values }: { values: SwapFormValues }) => {
+    const { gasData, isGasLoading, gasFeeInUsd, displayGasFeeInUsd, truncatedGas } = useGasFeeDisplay(values)
 
     if (!gasFeeInUsd) return null
 
@@ -77,29 +66,7 @@ export const GasFee = ({ values, quote }: { values: SwapFormValues, quote: SwapQ
 }
 
 const Fees = ({ quote, values }: { quote: SwapQuote | undefined, values: SwapFormValues }) => {
-    const fromCurrency = values.fromCurrency
-
-    const fee_amount = useMemo(() => {
-        if (!quote?.totalFee || !fromCurrency) return null
-        return formatAmount(BigInt(quote.totalFee), fromCurrency.decimals)
-    }, [quote?.totalFee, fromCurrency])
-
-    const feeInUsd = useMemo(() => {
-        if (fee_amount === null || fee_amount === undefined) return null
-        const priceInUsd = resolveTokenUsdPrice(fromCurrency)
-        if (!priceInUsd) return null
-        return Number(fee_amount) * priceInUsd
-    }, [fee_amount, fromCurrency, quote])
-
-    const displayFeeInUsd = feeInUsd != null
-        ? (feeInUsd === 0 ? 'Free' : feeInUsd < 0.01 ? '<$0.01' : `$${feeInUsd.toFixed(2)}`)
-        : null
-
-    const displayFee = fee_amount !== null && fee_amount !== undefined
-        ? (Number(fee_amount) === 0 ? 'Free' : truncateDecimals(Number(fee_amount), Math.min(fromCurrency?.decimals || 8, 8)))
-        : undefined
-
-    const currencyName = fromCurrency?.symbol || ''
+    const { displayFee, displayFeeInUsd, feeSymbol: currencyName } = useSwapFeeDisplay(values, quote)
 
     return <RowWrapper title="Fees">
         <Tooltip>

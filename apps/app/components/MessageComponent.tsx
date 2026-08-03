@@ -1,6 +1,5 @@
 import CancelIcon from "./Icons/CancelIcon";
 import DelayIcon from "./Icons/DelayIcon";
-import FailIcon from "./Icons/FailIcon";
 import SuccessIcon from "./Icons/SuccessIcon";
 type iconStyle = 'red' | 'green' | 'yellow' | 'gray'
 
@@ -16,7 +15,7 @@ function constructIcons(icon: iconStyle) {
 
     switch (icon) {
         case 'red':
-            iconStyle = <FailIcon className="text-error-foreground" />;
+            iconStyle = <CancelIcon className="text-error-foreground" />;
             break;
         case 'green':
             iconStyle = <SuccessIcon className="text-success-foreground" />;

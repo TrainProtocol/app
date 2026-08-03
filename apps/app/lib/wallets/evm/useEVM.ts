@@ -6,7 +6,7 @@ import { resolveWalletConnectorIcon, resolveWalletConnectorIndex } from "../util
 import { evmConnectorNameResolver } from "./KnownEVMConnectors"
 import { useCallback, useEffect, useMemo } from "react"
 import { CreateConnectorFn, getAccount, getConnections } from '@wagmi/core'
-import { isMobile } from "../../isMobile"
+import { isMobile } from "../utils/isMobile"
 import convertSvgComponentToBase64 from "@/components/utils/convertSvgComponentToBase64"
 import {
     InternalConnector,

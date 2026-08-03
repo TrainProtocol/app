@@ -106,30 +106,14 @@ export function SwapAccountsProvider({ children }: PickerAccountsProviderProps) 
     }, [providers, selectedDestAccounts]);
 
     const selectDestinationAccount = useCallback((account: BaseAccountIdentity) => {
-        setSelectedDestinationAccounts(prev => {
-            const existingAccountIndex = prev.findIndex(acc => acc.providerName === account.providerName);
-            if (existingAccountIndex !== -1) {
-                const updatedAccounts = [...prev];
-                updatedAccounts[existingAccountIndex] = account;
-                return updatedAccounts;
-            }
-            return [...prev, account];
-        });
+        setSelectedDestinationAccounts(prev => upsertByProvider(prev, account));
     }, [])
     const selectSourceAccount = useCallback((account: BaseAccountIdentity) => {
         const previousSourceAccount = sourceAccounts.find(acc => acc.providerName === account.providerName);
         if (destinationAccounts.some(acc => acc.address === previousSourceAccount?.address && acc.providerName === previousSourceAccount?.providerName)) {
             selectDestinationAccount(account);
         }
-        setSelectedSourceAccounts(prev => {
-            const existingAccountIndex = prev.findIndex(acc => acc.providerName === account.providerName);
-            if (existingAccountIndex !== -1) {
-                const updatedAccounts = [...prev];
-                updatedAccounts[existingAccountIndex] = account;
-                return updatedAccounts;
-            }
-            return [...prev, account];
-        });
+        setSelectedSourceAccounts(prev => upsertByProvider(prev, account));
     }, [destinationAccounts, sourceAccounts])
 
     const stateValues: SwapAccountsContextType = useMemo(() => ({
@@ -206,6 +190,17 @@ function hasWallet(
     p: WalletProvider
 ): p is WalletProvider & { activeWallet: { address: string; id: string } } {
     return Boolean(p.activeWallet);
+}
+
+/** Replace the entry for this account's provider, or append when the provider has none yet. */
+function upsertByProvider(accounts: BaseAccountIdentity[], account: BaseAccountIdentity): BaseAccountIdentity[] {
+    const existingAccountIndex = accounts.findIndex(acc => acc.providerName === account.providerName);
+    if (existingAccountIndex !== -1) {
+        const updatedAccounts = [...accounts];
+        updatedAccounts[existingAccountIndex] = account;
+        return updatedAccounts;
+    }
+    return [...accounts, account];
 }
 
 function ResolveWalletSwapAccount(provider: WalletProvider, wallet: Wallet, address: string): AccountIdentityWithSupportedNetworks {
