@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import React, { ReactNode } from 'react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../shadcn/accordion'
 
 type QuoteAccordionProps = {
@@ -40,8 +40,8 @@ export function QuoteAccordion({
             <AccordionItem value='quote' className='bg-secondary-500 rounded-2xl'>
                 <AccordionTrigger
                     data-attr={triggerDataAttr}
-                    onClick={inertTrigger ? (e) => e.preventDefault() : undefined}
                     className={triggerClassName}
+                    {...(inertTrigger ? { onClick: (e: React.MouseEvent) => e.preventDefault() } : {})}
                 >
                     {trigger}
                 </AccordionTrigger>
