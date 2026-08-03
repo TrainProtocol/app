@@ -44,11 +44,24 @@ export function useRevealSecret(): UseRevealSecretResult {
     const [error, setError] = useState<Error | null>(null)
     const inFlight = useRef(false)
 
+    // `reveal` is a dependency of the caller's auto-reveal effect, so its identity must not
+    // change when the networks query refetches — that would re-fire an irreversible action on
+    // unrelated data churn. A latest-value ref keeps the map current without destabilizing the
+    // callback; closing over it directly would pin whichever map existed at first render, and an
+    // empty one makes the verification gate below refuse every reveal as 'skipped'.
+    const networkMapRef = useRef(networkMap)
+    networkMapRef.current = networkMap
+
     const reveal = useCallback(async (hashlock: string) => {
         if (inFlight.current) return
         inFlight.current = true
         setIsRevealing(true)
         setError(null)
+
+        // Pin one snapshot for the whole call: the token decimals read before the on-chain
+        // fallback and the network/token fed to the gate afterwards must describe the same
+        // network list, even if a refetch lands mid-await.
+        const networks = networkMapRef.current
 
         const reportError = (message: string, code = TrainErrorCode.RevealFailed): TrainError => {
             const err = new TrainError(message, code)
@@ -85,7 +98,7 @@ export function useRevealSecret(): UseRevealSecretResult {
         // Tier 2: on-chain RPC fallback (cache was GC'd or not yet populated)
         if (!nonce && swap.source && swap.srcContract) {
             const sourceNetwork = caip2Id(swap.source)
-            const sourceTokenDecimals = networkMap.get(swap.source)?.tokens.find(t => t.symbol == swap.source_asset)?.decimals
+            const sourceTokenDecimals = networks.get(swap.source)?.tokens.find(t => t.symbol == swap.source_asset)?.decimals
             if (!sourceTokenDecimals) {
                 throw reportError('Cannot reveal: source token decimals unavailable')
             }
@@ -129,8 +142,8 @@ export function useRevealSecret(): UseRevealSecretResult {
             sourceDetails,
             destinationAddress: swap.destinationAddress ?? swap.address,
             destinationSolverAddress: swap.destinationSolverAddress,
-            destinationNetwork: swap.destination ? networkMap.get(swap.destination) : null,
-            destinationToken: resolveSwapTokens(swap, networkMap).destinationAsset,
+            destinationNetwork: swap.destination ? networks.get(swap.destination) : null,
+            destinationToken: resolveSwapTokens(swap, networks).destinationAsset,
         })
         if (!verified) {
             const reason = mismatches.length
