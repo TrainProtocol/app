@@ -1,8 +1,10 @@
 import { useRef, useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { IHTLCPublicClient, SolverLockDetails, LockParams } from '@train-protocol/sdk'
-import type { ConsensusPhase } from './store'
+import type { ConsensusPhase, VerificationSource } from './store'
+import type { LightClientVerifier } from '../types'
 import { trainQueryKeys } from './queryKeys'
+import { LIGHT_CLIENT_VERIFY_TIMEOUT_MS, LIGHT_CLIENT_BACKSTOP_MS, withTimeout } from './timing'
 
 export interface UseSolverLockPollingOptions {
     client: IHTLCPublicClient | null
@@ -10,6 +12,8 @@ export interface UseSolverLockPollingOptions {
     hashlock: string | null
     nodeUrls: string[]
     enabled: boolean
+    /** Trustless verifier for the destination network; tried before RPC consensus when present. */
+    lightClient?: LightClientVerifier | null
     /** When true, skip consensus and treat the primary node's response as verified.
      * Used when the user has manually overridden a previous consensus failure. */
     manuallyOverridden?: boolean
@@ -20,6 +24,7 @@ export interface SolverLockPollingResult {
     solverLockDetails: SolverLockDetails | null
     consensusPhase: ConsensusPhase
     verifiedNodeCount: number
+    verificationSource: VerificationSource
 }
 
 const MAX_CONSECUTIVE_RPC_FAILURES = 3
@@ -67,8 +72,15 @@ async function fetchFromPrimary(
  *
  * Lifecycle:
  *   1. First detection → consensusPhase='detecting'
- *   2. Multi-node consensus → consensusPhase='verified'
+ *   2. Light-client verification (when a verifier is provided) or multi-node
+ *      consensus → consensusPhase='verified'
  *   3. Subsequent polls → phase stays 'verified'
+ *
+ * When a light-client verifier is present it owns the verdict first: detection
+ * (or a dead primary — the light client detects independently through its own
+ * execution RPC) starts ONE bounded verification attempt. Success verifies with
+ * verificationSource='lightClient'; failure or timeout demotes permanently (for
+ * this hashlock) to the legacy RPC-consensus path below.
  *
  * Failure modes (all set consensusPhase='failed' and fire onConsensusFailed):
  *   - Lock details disagree across nodes (`do not match`) — terminal, not overridable
@@ -76,7 +88,7 @@ async function fetchFromPrimary(
  *   - Every node we tried errored MAX_CONSECUTIVE_RPC_FAILURES times in a row — overridable
  */
 export function useSolverLockPolling(options: UseSolverLockPollingOptions): SolverLockPollingResult {
-    const { client, params, hashlock, nodeUrls, enabled, manuallyOverridden, onConsensusFailed } = options
+    const { client, params, hashlock, nodeUrls, enabled, lightClient, manuallyOverridden, onConsensusFailed } = options
 
     const detected = useRef(false)
     const verified = useRef(false)
@@ -87,8 +99,15 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
     // doesn't collapse back to UserLocked.
     const lastDetailsRef = useRef<SolverLockDetails | null>(null)
 
+    // Light-client attempt state. 'unavailable' is permanent for the current
+    // hashlock generation; lcGeneration invalidates in-flight results across resets.
+    const lcAttempt = useRef<'idle' | 'pending' | 'unavailable'>('idle')
+    const lcGeneration = useRef(0)
+    const lcAbortRef = useRef<AbortController | null>(null)
+
     const [consensusPhase, setConsensusPhase] = useState<ConsensusPhase>('none')
     const [verifiedNodeCount, setVerifiedNodeCount] = useState(0)
+    const [verificationSource, setVerificationSource] = useState<VerificationSource>('rpc')
 
     const onConsensusFailedRef = useRef(onConsensusFailed)
     onConsensusFailedRef.current = onConsensusFailed
@@ -101,8 +120,14 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
         failed.current = false
         consecutiveRpcFailures.current = 0
         lastDetailsRef.current = null
+        lcAttempt.current = 'idle'
+        lcGeneration.current += 1
+        lcAbortRef.current?.abort()
+        lcAbortRef.current = null
         setConsensusPhase('none')
         setVerifiedNodeCount(0)
+        setVerificationSource('rpc')
+        return () => { lcAbortRef.current?.abort() }
     }, [hashlock, client, nodeUrlsKey])
 
     // Honor an external manual override (e.g. user clicked "Verify and continue"
@@ -115,6 +140,7 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
             consecutiveRpcFailures.current = 0
             setConsensusPhase('verified')
             setVerifiedNodeCount(0)
+            setVerificationSource('manual')
         }
     }, [manuallyOverridden])
 
@@ -139,10 +165,11 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
                 setConsensusPhase('detecting')
             }
 
-            const markVerified = (count: number) => {
+            const markVerified = (count: number, source: VerificationSource = 'rpc') => {
                 verified.current = true
                 setConsensusPhase('verified')
                 setVerifiedNodeCount(count)
+                setVerificationSource(source)
             }
 
             const failVerification = (kind: ConsensusFailKind, cause?: unknown) => {
@@ -169,6 +196,50 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
                 markDetected()
                 markVerified(1)
                 return remember(primary.details)
+            }
+
+            // Permanently hand the verdict back to the RPC-consensus path (for this
+            // hashlock generation). Phase is left as-is: the next tick resumes the
+            // legacy branches, so mismatch terminality and failure escalation return.
+            const demoteToRpc = (reason: unknown) => {
+                console.warn('[SolverLockPolling] light client unavailable, falling back to RPC consensus:', reason)
+                lcAttempt.current = 'unavailable'
+                setVerificationSource('rpc')
+            }
+
+            const runLightClientVerification = async (lc: LightClientVerifier) => {
+                const generation = lcGeneration.current
+                const controller = new AbortController()
+                lcAbortRef.current = controller
+                try {
+                    const details = await withTimeout(
+                        lc.verifySolverLock(params, { signal: controller.signal, timeoutMs: LIGHT_CLIENT_VERIFY_TIMEOUT_MS }),
+                        LIGHT_CLIENT_BACKSTOP_MS,
+                    )
+                    // Stale or superseded (reset, manual override, terminal failure) — discard.
+                    if (generation !== lcGeneration.current || verified.current || failed.current) return
+                    if (details) {
+                        markDetected()
+                        // The next tick returns these via remember()'s fallback; queryFn
+                        // stays the single query-cache writer.
+                        lastDetailsRef.current = details
+                        markVerified(0, 'lightClient')
+                        return
+                    }
+                    if (detected.current) {
+                        // The primary RPC sees a lock the light client could not observe
+                        // within the budget — suspicious; let RPC consensus cross-check it.
+                        demoteToRpc('lock not observed within the light-client budget')
+                    } else {
+                        // No lock anywhere yet (attempt was started by a dead primary).
+                        // Re-arm so the next tick starts a fresh attempt.
+                        lcAttempt.current = 'idle'
+                    }
+                } catch (err) {
+                    if (generation !== lcGeneration.current || verified.current || failed.current) return
+                    controller.abort()
+                    demoteToRpc(err)
+                }
             }
 
             const runConsensus = async (primary: PrimaryOutcome): Promise<SolverLockDetails | null> => {
@@ -213,6 +284,26 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
             // Already verified — just refresh from primary.
             if (verified.current) return remember(primary.details)
 
+            // Light-client-first channel: while the verifier owns the verdict, keep
+            // polling the primary cheaply — no consensus, no failure escalation.
+            if (lightClient && lcAttempt.current !== 'unavailable') {
+                if (primary.failed) consecutiveRpcFailures.current += 1
+                else consecutiveRpcFailures.current = 0
+                if (primary.details) markDetected()
+                // Start ONE attempt on detection — or when the primary is persistently
+                // down, since the light client detects independently through its own
+                // execution RPC. A single primary hiccup must not burn the LC budget
+                // before the lock even exists.
+                const primaryPersistentlyDown = consecutiveRpcFailures.current >= MAX_CONSECUTIVE_RPC_FAILURES
+                if (lcAttempt.current === 'idle' && (primary.details || primaryPersistentlyDown)) {
+                    lcAttempt.current = 'pending'
+                    setVerificationSource('lightClient')
+                    setConsensusPhase('verifying')
+                    void runLightClientVerification(lightClient)
+                }
+                return remember(primary.details)
+            }
+
             // Single-node config — no consensus possible.
             if (nodeUrls.length <= 1) return verifySingleNode(primary)
 
@@ -241,5 +332,6 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
         solverLockDetails: query.data ?? null,
         consensusPhase,
         verifiedNodeCount,
+        verificationSource,
     }
 }

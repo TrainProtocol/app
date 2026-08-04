@@ -20,6 +20,7 @@ export function registerEvmSdk(sdk?: TrainSDK, auth?: TrainAuth): void {
 }
 
 export { EvmHTLCPublicClient, EvmHTLCWalletClient } from './client/index.js'
+export { encodeGetSolverLockData, decodeGetSolverLockResult, resolveSolverLock } from './client/public/getSolverLockDetails.js'
 export type { EvmHTLCPublicClientConfig, EvmHTLCWalletClientConfig, EvmSigner, EvmTransactionRequest } from './types.js'
 export type { BuildApproveTxParams } from './client/wallet/buildApproveTx.js'
 export { deriveKeyFromEvmSignature, getEvmTypedData } from './login/index.js'

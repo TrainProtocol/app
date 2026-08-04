@@ -114,6 +114,20 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         return config.resolveNodeUrls(caip2Id(swap.destination))
     }, [swap?.destination, config.resolveNodeUrls])
 
+    // Resolve the destination chain's trustless light-client verifier (if any)
+    const destLightClient = useMemo(() => {
+        if (!swap?.destination || !config.resolveLightClient) return null
+        try {
+            return config.resolveLightClient(caip2Id(swap.destination))
+        } catch { return null }
+    }, [swap?.destination, config.resolveLightClient])
+
+    // Warm up the light client as soon as the swap is live so its sync overlaps
+    // the user-lock latency (solver-lock polling only starts after Initial).
+    useEffect(() => {
+        if (isActive && destLightClient) destLightClient.warmUp()
+    }, [isActive, destLightClient])
+
     // Create read-only HTLC clients for polling (via wallet adapter)
     const sourceReadClient = useMemo(() => {
         if (!swap?.source) return null
@@ -156,30 +170,31 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         onTransactionFailed: onUserLockTxFailed,
     })
 
-    // A user-driven override leaves consensusPhase='verified' with verifiedNodeCount=0.
+    // A user-driven override leaves consensusPhase='verified' with verificationSource='manual'.
     // Detect that to keep the polling hook from clobbering it on remount.
     const flags = hl ? actions.getSwapFlags(hl) : undefined
-    const manuallyOverridden = flags?.consensusPhase === 'verified' && flags?.verifiedNodeCount === 0
+    const manuallyOverridden = flags?.consensusPhase === 'verified' && flags?.verificationSource === 'manual'
 
-    const { consensusPhase, verifiedNodeCount } = useSolverLockPolling({
+    const { consensusPhase, verifiedNodeCount, verificationSource } = useSolverLockPolling({
         client: destReadClient,
         params: solverLockParams,
         hashlock: hl,
         nodeUrls: destNodeUrls,
         enabled: isActive && derived.status !== HTLCStatus.Initial,
+        lightClient: destLightClient,
         manuallyOverridden,
         onConsensusFailed,
     })
 
-    // Sync consensus phase + verified node count to store flags
+    // Sync consensus phase + verification provenance to store flags
     // (one-way, for useDerivedSwapState in other components)
     useEffect(() => {
         if (!hl || consensusPhase === 'none') return
         // Never downgrade a manual override that's already in the flags.
         const current = actions.getSwapFlags(hl)
-        if (current?.consensusPhase === 'verified' && current?.verifiedNodeCount === 0) return
-        actions.updateSwapFlags(hl, { consensusPhase, verifiedNodeCount })
-    }, [hl, actions, consensusPhase, verifiedNodeCount])
+        if (current?.consensusPhase === 'verified' && current?.verificationSource === 'manual') return
+        actions.updateSwapFlags(hl, { consensusPhase, verifiedNodeCount, verificationSource })
+    }, [hl, actions, consensusPhase, verifiedNodeCount, verificationSource])
 
     // Order streaming
     const destRedeemTx = derived.htlcFromApi?.transactions?.find(

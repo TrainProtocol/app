@@ -52,7 +52,7 @@ The app has no `lint` script and no in-app test setup — tests live in packages
 ### HTLC / Atomic Swap Flow
 1. `userLock()` — user locks funds with hashlock on source chain (single-step, no separate commit)
 2. Poll `getSolverLock(hashlock, solverAddress)` — wait for the quoted solver to lock on the destination chain
-3. **Auto-reveal** — once solver-lock verification (against the original quote) and multi-RPC consensus pass, the secret is revealed automatically via the API (`RevealSecret`). No user click; manual `RevealSecretAction` button and the `swapPreferencesStore.autoRevealSecret` toggle have been removed. When verification is `skipped` (no on-chain `dstAmount` to compare against), reveal still proceeds, but `SolverLockDetectedAction` shows a "Verification skipped — proceeding with caution" banner. On reveal failure, a "Try again" button is rendered.
+3. **Auto-reveal** — once solver-lock verification (against the original quote) and lock-existence verification (Helios light client on supported networks, multi-RPC consensus otherwise) pass, the secret is revealed automatically via the API (`RevealSecret`). No user click; manual `RevealSecretAction` button and the `swapPreferencesStore.autoRevealSecret` toggle have been removed. When verification is `skipped` (no on-chain `dstAmount` to compare against), reveal still proceeds, but `SolverLockDetectedAction` shows a "Verification skipped — proceeding with caution" banner. On reveal failure, a "Try again" button is rendered.
 4. Swap complete when solver redeems
 
 Key files:
@@ -67,7 +67,14 @@ Key files:
 - `rpcConfigStore` manages user custom RPC overrides; `getEffectiveRpcUrls(network)` returns custom URLs or `network.nodes`
 - **Consensus verification**: `getSolverLockDetailsWithConsensus()` in SDK queries nodes in batches of `batchSize` (default 3), retries with next batch if quorum (`minQuorum`, default 2) not met. Returns `ConsensusResult { details, agreedCount } | null` (the `agreedCount` is the number of nodes that agreed on the lock data).
 - `ConsensusOptions`: `{ minQuorum?: number, batchSize?: number }` — configurable per-call or via subclass defaults
-- Consensus runs once on first solver lock detection (tracked by `consensusVerified` ref in `useSolverLockPolling`), then falls back to single-node polling. The hook also tracks `verifiedNodeCount` (=1 on the single-node fast path, =`agreedCount` after multi-node consensus) and writes it to swap flags so the `VerificationStatus` UI can render "Verified by N RPCs" accurately.
+- Consensus runs once on first solver lock detection (tracked by the `verified` ref in `useSolverLockPolling`), then falls back to single-node polling. Swap flags carry `verificationSource: 'rpc' | 'lightClient' | 'manual'` plus `verifiedNodeCount` (meaningful only for `'rpc'`: =1 on the single-node fast path, =`agreedCount` after multi-node consensus) so the `VerificationStatus` UI can render "Verified by N RPCs" / "Verified by light client" / "Verified manually" accurately.
+
+### Helios Light Client (trustless solver-lock verification)
+- **LC-first, RPC fallback**: on supported networks (Ethereum mainnet + Sepolia — see `apps/app/lib/lightClient/networks.ts`), `useSolverLockPolling` hands the verification verdict to a Helios light client before RPC consensus. Success → `consensusPhase='verified'` with `verificationSource='lightClient'`; init/sync failure or a 60s timeout demotes permanently (per hashlock) to the multi-RPC consensus path. Unsupported networks behave exactly as before.
+- Seam: `TrainConfig.resolveLightClient?: (networkId) => LightClientVerifier | null` (packages/react), implemented by `apps/app/lib/lightClient/index.ts` (`getLightClientVerifier` — per-network singletons, SSR-guarded) and injected in `app/providers.tsx`.
+- `apps/app/lib/lightClient/heliosVerifier.ts` wraps the worker (`/workers/helios/heliosWorker.js`, vendored `@a16z/helios` **0.11.1** ESM with inlined WASM). The worker is a thin EIP-1193 bridge (`init`/`waitSynced`/`ethCall`); ABI encode/decode happens main-thread via `encodeGetSolverLockData`/`decodeGetSolverLockResult` from `@train-protocol/evm`, so the worker can never drift from the contract ABI. Any worker error/timeout destroys the worker; the next attempt re-inits fresh.
+- Beacon access goes through `app/api/beacon/[network]/[...path]/route.ts`, which **sanitizes** publicnode's broken `light_client/updates` endpoint (it ignores `start_period`/`count`) — a plain rewrite is not enough. Execution RPC is a public getProof-capable endpoint (publicnode); helios verifies all responses cryptographically, so no trusted/keyed RPC (e.g. Alchemy) is needed.
+- Re-vendor procedure: `npm pack @a16z/helios@<version>`, copy `dist/lib.mjs` + `dist/lib.d.ts` into `apps/app/workers/helios/`, run `pnpm --filter train-app build:workers` (compiles the worker and copies `lib.mjs` to `public/workers/helios/`), then verify sync AND that `eth_blockNumber` matches an explorer — an outdated helios can "sync" while silently misdecoding post-fork data.
 
 ### Secret & Nonce
 - Secret derived from: `deriveInitialKey()` + `deriveSecretFromTimelock(key, nonce)`
@@ -100,7 +107,6 @@ Key files:
 ```
 NEXT_PUBLIC_TRAIN_API                  # Station API base URL (required)
 NEXT_PUBLIC_API_VERSION                # "sandbox" or "mainnet"
-NEXT_PUBLIC_ALCHEMY_KEY                # For light client RPC calls
 NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID  # WalletConnect
 NEXT_PUBLIC_POSTHOG_KEY                # PostHog analytics
 NEXT_PUBLIC_POSTHOG_HOST               # PostHog host

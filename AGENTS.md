@@ -99,7 +99,6 @@ Key files:
 ```
 NEXT_PUBLIC_TRAIN_API                  # Station API base URL (required)
 NEXT_PUBLIC_API_VERSION                # "sandbox" or "mainnet"
-NEXT_PUBLIC_ALCHEMY_KEY                # For light client RPC calls
 NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID  # WalletConnect
 NEXT_PUBLIC_POSTHOG_KEY                # PostHog analytics
 NEXT_PUBLIC_POSTHOG_HOST               # PostHog host

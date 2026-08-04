@@ -8,11 +8,16 @@ import type { HTLCFromApi } from '@train-protocol/sdk'
 
 export type ConsensusPhase = 'none' | 'detecting' | 'verifying' | 'verified' | 'failed'
 
+/** Which channel produced (or is producing) the solver-lock verification verdict. */
+export type VerificationSource = 'rpc' | 'lightClient' | 'manual'
+
 export interface SwapFlags {
     secretRevealedToApi: boolean
     consensusPhase: ConsensusPhase
     manualConsensusOverrideAllowed: boolean
+    /** Number of agreeing RPC nodes. Meaningful only when verificationSource is 'rpc'. */
     verifiedNodeCount: number
+    verificationSource: VerificationSource
     error: TrainError | null
     manualClaimStartedAt: number | null
 }
@@ -22,6 +27,7 @@ const DEFAULT_FLAGS: SwapFlags = {
     consensusPhase: 'none',
     manualConsensusOverrideAllowed: false,
     verifiedNodeCount: 0,
+    verificationSource: 'rpc',
     error: null,
     manualClaimStartedAt: null,
 }
@@ -56,7 +62,7 @@ export interface SwapStoreState {
     updateSwapFlags: (hashlock: string, updates: Partial<SwapFlags>) => void
     /**
      * User-driven override of a failed solver-lock consensus check.
-     * Flips consensusPhase to 'verified' (with verifiedNodeCount=0 as the manual sentinel)
+     * Flips consensusPhase to 'verified' with verificationSource 'manual'
      * and clears any verification error so the auto-reveal flow can proceed.
      */
     markVerifiedManually: (hashlock: string) => void
@@ -187,6 +193,7 @@ function createActions(set: SetFn, get: GetFn) {
                     consensusPhase: 'verified',
                     manualConsensusOverrideAllowed: false,
                     verifiedNodeCount: 0,
+                    verificationSource: 'manual',
                     error: null,
                 }
             })),

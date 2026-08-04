@@ -136,7 +136,7 @@ export declare class HeliosProvider {
      * });
      * ```
      */
-    on(eventName: string, handler: (data: any) => void): void;
+    on(eventName: string, handler: (data: any) => void): this;
     /**
      * Removes an event listener from the provider.
      *
@@ -158,7 +158,36 @@ export declare class HeliosProvider {
      * provider.removeListener("message", handler);
      * ```
      */
-    removeListener(eventName: string, handler: (data: any) => void): void;
+    removeListener(eventName: string, handler: (data: any) => void): this;
+    /**
+     * Shuts down the provider and releases all resources.
+     *
+     * @returns A promise that resolves when the provider has been shut down
+     *
+     * @remarks
+     * After shutdown:
+     * - All future `request()` calls will reject with an error
+     * - All active subscriptions are unsubscribed
+     * - All event listeners are removed
+     * - Background tasks are stopped
+     *
+     * The provider instance will be garbage collected after the user drops all references.
+     *
+     * @example
+     * ```typescript
+     * const provider = await createHeliosProvider(config, "ethereum");
+     *
+     * // ... use the provider ...
+     *
+     * // Clean up when done
+     * await provider.shutdown();
+     * ```
+     */
+    shutdown(): Promise<void>;
+    /**
+     * This method is equivalent to `shutdown()`
+     */
+    destroy(): Promise<void>;
 }
 /**
  * Configuration options for creating a Helios provider.
@@ -234,7 +263,7 @@ export type Config = {
  * };
  * ```
  */
-export type Network = "mainnet" | "goerli" | "sepolia" | "holesky" | "hoodi" | "op-mainnet" | "base" | "worldchain" | "zora" | "unichain" | "linea" | "linea-sepolia";
+export type Network = "mainnet" | "goerli" | "sepolia" | "holesky" | "hoodi" | "op-mainnet" | "base" | "base-sepolia" | "worldchain" | "zora" | "unichain" | "linea" | "linea-sepolia";
 type Request = {
     method: string;
     params: any[];

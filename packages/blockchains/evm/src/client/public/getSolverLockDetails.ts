@@ -2,7 +2,7 @@ import { AbiFunction } from 'ox'
 import type { LockParams, SolverLockDetails } from '@train-protocol/sdk'
 import { htlcFunctions } from '../../abi.js'
 import { JsonRpcClient } from '../../rpc.js'
-import { hex } from '../../utils.js'
+import { hex, type Hex } from '../../utils.js'
 import { LockStatus, formatUnits, normalizePayoutCurveData } from '@train-protocol/sdk'
 import { ZERO_ADDRESS } from '../../constants.js'
 
@@ -14,12 +14,19 @@ export async function getSolverLockDetails(
     if (!solverAddress) throw new Error('solverAddress is required to read a solver lock')
 
     const rpc = new JsonRpcClient(nodeUrl)
+    const lockRaw = await rpc.ethCall(contractAddress, encodeGetSolverLockData(id, solverAddress))
+    return decodeGetSolverLockResult(lockRaw, id, params.decimals)
+}
 
-    const lockData = AbiFunction.encodeData(htlcFunctions.getSolverLock, [hex(id), solverAddress])
-    const lockRaw = await rpc.ethCall(contractAddress, lockData)
-    const result = AbiFunction.decodeResult(htlcFunctions.getSolverLock, hex(lockRaw)) as any
+/** Calldata for `getSolverLock(bytes32 hashlock, address solver)`. */
+export function encodeGetSolverLockData(id: string, solverAddress: string): Hex {
+    return AbiFunction.encodeData(htlcFunctions.getSolverLock, [hex(id), solverAddress])
+}
 
-    return resolveSolverLock(result, id, params.decimals)
+/** Decode a raw `eth_call` result and map it; null when the lock slot is empty (zero sender). */
+export function decodeGetSolverLockResult(raw: string, id: string, decimals: number): SolverLockDetails | null {
+    const result = AbiFunction.decodeResult(htlcFunctions.getSolverLock, hex(raw)) as any
+    return resolveSolverLock(result, id, decimals)
 }
 
 export function resolveSolverLock(result: any, id: string, decimals: number): SolverLockDetails | null {

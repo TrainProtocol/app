@@ -98,7 +98,7 @@ function buildSteps(
 // --- Verification Status ---
 
 const VerificationStatus: FC = () => {
-    const { consensusVerifying, consensusVerified, consensusFailed, verifiedNodeCount } = useActiveSwap();
+    const { consensusVerifying, consensusVerified, consensusFailed, verifiedNodeCount, verificationSource } = useActiveSwap();
 
     if (consensusFailed) {
         return <span className="text-sm text-secondary-text">Couldn't verify with RPCs</span>;
@@ -107,14 +107,25 @@ const VerificationStatus: FC = () => {
     if (consensusVerifying) {
         return (
             <div className="flex items-center gap-1 text-sm">
-                <span>Verifying with multiple RPCs</span>
+                <span>{verificationSource === 'lightClient' ? 'Verifying with light client' : 'Verifying with multiple RPCs'}</span>
                 <LockIcon className="h-4 w-4 text-primary animate-pulse" />
             </div>
         );
     }
 
     if (consensusVerified) {
-        if (verifiedNodeCount === 0) {
+        if (verificationSource === 'lightClient') {
+            return (
+                <div className="flex items-center gap-1 text-sm">
+                    <span>Verified by</span>
+                    <span className="font-medium text-primary flex items-center gap-1">
+                        light client
+                        <LockIcon className="h-4 w-4 text-primary" />
+                    </span>
+                </div>
+            );
+        }
+        if (verificationSource === 'manual') {
             return (
                 <div className="flex items-center gap-1 text-sm">
                     <span>Verified manually</span>

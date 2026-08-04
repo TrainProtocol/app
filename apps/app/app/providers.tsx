@@ -35,6 +35,7 @@ import { SendErrorMessage } from "@/lib/telegram"
 import { IsExtensionError } from "@/helpers/errorHelper"
 import AppSettings from "@/lib/AppSettings"
 import { useRpcConfigStore } from "@/stores/rpcConfigStore"
+import { getLightClientVerifier } from "@/lib/lightClient"
 import Loading from "@/components/Loading"
 
 if (typeof window !== "undefined") {
@@ -120,6 +121,7 @@ function AppShell({ children, settings }: { children: React.ReactNode; settings:
                 <TrainProvider
                     baseUrl={AppSettings.TrainApiUri ?? ''}
                     resolveNodeUrls={resolveNodeUrls}
+                    resolveLightClient={getLightClientVerifier}
                     initialNetworks={settings.networks}
                     secretDerivation={{ persist: true }}
                 >
