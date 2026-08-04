@@ -42,6 +42,13 @@ export interface TrainConfig {
     resolveNodeUrls?: (networkId: string) => string[]
     /** Resolve a trustless light-client verifier for a CAIP-2 network ID; null when unsupported/unavailable. Tried before RPC consensus. */
     resolveLightClient?: (networkId: string) => LightClientVerifier | null
+    /**
+     * Only swaps whose source amount is worth at least this many USD verify via
+     * the light client; smaller swaps go straight to multi-RPC consensus.
+     * A swap that cannot be valued (missing price data) is treated as large.
+     * Default 0 — every supported swap uses the light client.
+     */
+    lightClientMinAmountUsd?: number
     /** Optional TanStack Query client (for sharing with app-level QueryClientProvider) */
     queryClient?: QueryClient
     /** Pre-fetched networks (e.g. from SSR) to seed the cache and avoid a duplicate client-side fetch */

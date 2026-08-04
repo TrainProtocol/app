@@ -28,7 +28,7 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
     const walletCtx = useWalletContext()
     const store = useStoreContext()
     const actions = useSwapActions()
-    const { networkMap } = useNetworksContext()
+    const { networkMap, prices } = useNetworksContext()
 
     // Read persisted swap data for this hashlock
     const swap = useSyncExternalStore(
@@ -114,13 +114,27 @@ export function useSwapProgress(hashlock: string | null | undefined): DerivedSwa
         return config.resolveNodeUrls(caip2Id(swap.destination))
     }, [swap?.destination, config.resolveNodeUrls])
 
-    // Resolve the destination chain's trustless light-client verifier (if any)
+    // Resolve the destination chain's trustless light-client verifier. Reserved
+    // for large swaps: below config.lightClientMinAmountUsd the plain multi-RPC
+    // consensus path is protection enough and the WASM worker is never spawned.
+    // The gate compares the SOURCE amount — that is what the user loses if a
+    // fake solver lock tricked the app into revealing the secret. A swap that
+    // cannot be valued (missing price) is treated as large: unknown size must
+    // not silently skip the stronger check, and light-client failure still
+    // falls back to consensus.
     const destLightClient = useMemo(() => {
         if (!swap?.destination || !config.resolveLightClient) return null
+        const threshold = config.lightClientMinAmountUsd ?? 0
+        if (threshold > 0 && swap.source) {
+            const amount = Number(swap.requestedAmount)
+            const sourceToken = networkMap.get(swap.source)?.tokens.find(t => t.symbol === swap.source_asset)
+            const price = sourceToken ? prices[`${caip2Id(swap.source)}:${sourceToken.contract}`] : undefined
+            if (Number.isFinite(amount) && amount > 0 && price && amount * price < threshold) return null
+        }
         try {
             return config.resolveLightClient(caip2Id(swap.destination))
         } catch { return null }
-    }, [swap?.destination, config.resolveLightClient])
+    }, [swap?.destination, swap?.source, swap?.source_asset, swap?.requestedAmount, config.resolveLightClient, config.lightClientMinAmountUsd, networkMap, prices])
 
     // Warm up the light client as soon as the swap is live so its sync overlaps
     // the user-lock latency (solver-lock polling only starts after Initial).

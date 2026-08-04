@@ -1,5 +1,13 @@
 import KnownInternalNames from '../knownIds'
 
+/**
+ * Light-client verification is reserved for large swaps: only swaps whose
+ * source amount is worth at least this many USD spawn the Helios worker.
+ * Smaller swaps (and swaps that fail light-client verification) use plain
+ * multi-RPC consensus.
+ */
+export const LIGHT_CLIENT_MIN_AMOUNT_USD = 1000
+
 export type HeliosKind = 'ethereum' | 'opstack' | 'linea'
 
 export interface HeliosNetworkEntry {
