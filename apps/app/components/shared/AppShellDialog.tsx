@@ -2,7 +2,7 @@
 
 import { FC, ReactNode } from "react"
 import { ChevronLeft, X } from "lucide-react"
-import { Dialog, DialogContent, DialogTitle } from "@/components/shadcn/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/shadcn/dialog"
 import IconButton from "@/components/buttons/iconButton"
 import clsx from "clsx"
 
@@ -10,13 +10,14 @@ interface AppShellDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     title?: string
+    description?: ReactNode
     onBack?: () => void;
     mode?: "default" | "fit-content"
     contentClassName?: string
     children: ReactNode
 }
 
-const AppShellDialog: FC<AppShellDialogProps> = ({ open, onOpenChange, title, onBack, children, mode = 'default', contentClassName }) => {
+const AppShellDialog: FC<AppShellDialogProps> = ({ open, onOpenChange, title, description, onBack, children, mode = 'default', contentClassName }) => {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
@@ -28,6 +29,11 @@ const AppShellDialog: FC<AppShellDialogProps> = ({ open, onOpenChange, title, on
                 )}
             >
                 <DialogTitle className="sr-only">{title}</DialogTitle>
+                {description ? (
+                    <DialogDescription className="sr-only">{description}</DialogDescription>
+                ) : (
+                    <DialogDescription className="sr-only" />
+                )}
                 <div className="relative h-full w-full bg-secondary-700 rounded-4xl flex flex-col overflow-hidden">
                     <div className="flex items-center gap-2 p-4 pb-2">
                         {onBack && (

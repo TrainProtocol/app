@@ -6,8 +6,8 @@ import AppSettings from "../AppSettings"
 export const WALLETCONNECT_PROJECT_ID = AppSettings.WalletConnectProjectId
 
 export const WALLETCONNECT_METADATA = {
-    name: 'Layerswap',
-    description: 'Layerswap App',
-    url: 'https://layerswap.io/app/',
-    icons: ['https://www.layerswap.io/app/symbol.png'],
+    name: 'Train Protocol',
+    description: 'Train Protocol App',
+    url: 'https://train.tech/',
+    icons: ['https://app.train.tech/symbol.png'],
 }

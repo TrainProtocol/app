@@ -10,7 +10,7 @@ import { getNativeToken, NetworkTypes } from "../../Models/Network";
 import { coinbaseWallet, metaMask, walletConnect } from "@wagmi/connectors";
 import { walletConnect as customWalletConnect } from "../../lib/wallets/evm/connectors/walletConnect";
 import { isMobile } from "../../lib/wallets/utils/isMobile";
-import { WALLETCONNECT_PROJECT_ID } from "@/lib/walletConnect/config";
+import { WALLETCONNECT_METADATA, WALLETCONNECT_PROJECT_ID } from "@/lib/walletConnect/config";
 import { HIDDEN_WALLETCONNECT_ID } from "@/lib/wallets/evm/constants";
 import { browserInjected } from "@/lib/wallets/evm/connectors/browserInjected";
 
@@ -32,14 +32,14 @@ const hiddenWalletConnectConnector = customWalletConnect({
 })
 const metaMaskConnector = metaMask({
     dappMetadata: {
-        name: 'Layerswap',
-        url: 'https://layerswap.io/app/',
-        iconUrl: 'https://layerswap.io/app/symbol.png'
+        name: WALLETCONNECT_METADATA.name,
+        url: WALLETCONNECT_METADATA.url,
+        iconUrl: WALLETCONNECT_METADATA.icons[0]
     }
 })
 const coinbaseWalletConnector = coinbaseWallet({
-    appName: 'Layerswap',
-    appLogoUrl: 'https://layerswap.io/app/symbol.png',
+    appName: WALLETCONNECT_METADATA.name,
+    appLogoUrl: WALLETCONNECT_METADATA.icons[0],
 })
 const browserInjectedConnector = browserInjected()
 const defaultConnectors = [
