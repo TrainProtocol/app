@@ -13,6 +13,8 @@ const DEFAULT_VERIFY_TIMEOUT_MS = 60_000
  * the solver locked) is reaped after this long instead of syncing forever. */
 const WARMUP_IDLE_SHUTDOWN_MS = 5 * 60_000
 
+const WORKER_URL = '/workers/helios/heliosWorker.js'
+
 interface PendingRequest {
     resolve: (value: unknown) => void
     reject: (err: Error) => void
@@ -20,26 +22,101 @@ interface PendingRequest {
 }
 
 /**
- * Runs the Helios light client in a web worker and reads the solver lock through
- * it. One instance per network. The worker is short-lived: helios re-syncs every
- * slot while alive, so once the last in-flight verification settles (either way)
- * the worker is terminated and the next verification re-inits from a fresh
- * checkpoint (~3-6s, well inside the verify budget). Any worker error or
- * per-request timeout also destroys the worker so a wedged instance can never
- * survive into the next attempt — `ensureInit` then starts fresh.
+ * One worker plus everything scoped to it: its own id sequence and its own
+ * pending map. Sessions are never shared across a teardown, which is what makes
+ * the verifier safe to drive concurrently — tearing one down rejects only its
+ * own in-flight requests, and a verification that captured an earlier session
+ * can never post to a later worker.
  */
-export class HeliosVerifier implements LightClientVerifier {
-    private worker: Worker | null = null
-    private initPromise: Promise<void> | null = null
+class WorkerSession {
+    private worker: Worker | null
     private nextId = 1
     private pending = new Map<number, PendingRequest>()
+    /**
+     * The worker stopped answering. It keeps serving whatever it already has —
+     * a peer verification may still be getting replies on its own budget — but
+     * no new verification will adopt it.
+     */
+    wedged = false
+
+    constructor(private readonly onFatal: (session: WorkerSession, err: Error) => void) {
+        const worker = new Worker(WORKER_URL, { type: 'module' })
+        worker.onmessage = (event) => {
+            const { id, ok, result, error } = event.data ?? {}
+            const request = this.pending.get(id)
+            if (!request) return
+            this.pending.delete(id)
+            clearTimeout(request.timer)
+            if (ok) request.resolve(result)
+            else request.reject(new Error(error ?? 'Light client worker error'))
+        }
+        worker.onerror = (event) =>
+            this.onFatal(this, new Error(`Light client worker error: ${event.message ?? 'unknown'}`))
+        worker.onmessageerror = () =>
+            this.onFatal(this, new Error('Light client worker message deserialization failed'))
+        this.worker = worker
+    }
+
+    request(type: string, payload: Record<string, unknown>, timeoutMs: number): Promise<unknown> {
+        const worker = this.worker
+        if (!worker) return Promise.reject(new Error('Light client worker is not running'))
+        const id = this.nextId++
+        return new Promise((resolve, reject) => {
+            const timer = setTimeout(() => {
+                this.pending.delete(id)
+                // Bar the worker from new verifications, but don't tear it down:
+                // concurrent verifications hold independent deadlines, and a peer
+                // with budget left may still be getting answers.
+                this.wedged = true
+                reject(new Error(`Light client request '${type}' timed out after ${timeoutMs}ms`))
+            }, Math.max(timeoutMs, 1))
+            this.pending.set(id, { resolve, reject, timer })
+            worker.postMessage({ id, type, ...payload })
+        })
+    }
+
+    destroy(err: Error): void {
+        this.wedged = true
+        this.worker?.terminate()
+        this.worker = null
+        const pending = [...this.pending.values()]
+        this.pending.clear()
+        for (const request of pending) {
+            clearTimeout(request.timer)
+            request.reject(err)
+        }
+    }
+}
+
+/**
+ * Runs the Helios light client in a web worker and reads the solver lock through
+ * it. One instance per network, and it is driven concurrently in practice —
+ * `SwapModalRoot` and the `/swap` route both call `useSwapProgress` with the same
+ * active hashlock — so all worker state is owned by a `WorkerSession` rather than
+ * by the verifier. Each verification captures the session it initialized and
+ * routes every request through it.
+ *
+ * The worker is short-lived: helios re-syncs every slot while alive, so once the
+ * last in-flight verification settles (either way) every live session is
+ * terminated and the next verification re-inits from a fresh checkpoint (~3-6s,
+ * well inside the verify budget). A worker error retires its session immediately;
+ * a request timeout only marks it wedged so new verifications get a clean worker.
+ */
+export class HeliosVerifier implements LightClientVerifier {
+    private session: WorkerSession | null = null
+    private initPromise: Promise<WorkerSession> | null = null
+    /**
+     * Every session still holding a worker. A wedged session is detached from
+     * `session` while its current users drain, so this is what teardown sweeps.
+     */
+    private liveSessions = new Set<WorkerSession>()
     private activeVerifications = 0
     private idleTimer: ReturnType<typeof setTimeout> | null = null
 
     constructor(private entry: HeliosNetworkEntry) { }
 
     warmUp(): void {
-        void this.ensureInit().catch(() => { /* reported by the verify path */ })
+        void this.ensureSession().catch(() => { /* reported by the verify path */ })
         this.armIdleShutdown()
     }
 
@@ -50,12 +127,15 @@ export class HeliosVerifier implements LightClientVerifier {
         this.activeVerifications += 1
         this.clearIdleTimer()
         try {
-            await this.ensureInit()
-            await this.request('waitSynced', {}, this.remaining(deadline))
+            // Capture the session: every request below goes to the worker this
+            // verification actually initialized, even if a peer replaces the
+            // current one midway.
+            const session = await this.ensureSession()
+            await session.request('waitSynced', {}, this.remaining(deadline))
 
             const data = encodeGetSolverLockData(params.id, params.solverAddress)
             while (!opts?.signal?.aborted) {
-                const raw = await this.request('ethCall', { to: params.contractAddress, data }, this.remaining(deadline)) as string
+                const raw = await session.request('ethCall', { to: params.contractAddress, data }, this.remaining(deadline)) as string
                 const details = decodeGetSolverLockResult(raw, params.id, params.decimals)
                 if (details) return details
                 if (Date.now() + LOCK_RETRY_DELAY_MS >= deadline) break
@@ -68,33 +148,49 @@ export class HeliosVerifier implements LightClientVerifier {
         }
     }
 
-    private ensureInit(): Promise<void> {
+    private ensureSession(): Promise<WorkerSession> {
+        if (this.session?.wedged) this.retire(this.session)
         if (!this.initPromise) {
-            this.initPromise = this.doInit().catch((err) => {
-                this.destroy(err instanceof Error ? err : new Error(String(err)))
+            const attempt: Promise<WorkerSession> = this.initSession().catch((err) => {
+                // Clear only if this is still the current attempt — a rejection
+                // from a superseded init must not tear down its replacement.
+                if (this.initPromise === attempt) {
+                    this.session = null
+                    this.initPromise = null
+                }
                 throw err
             })
+            this.initPromise = attempt
         }
         return this.initPromise
     }
 
-    private async doInit(): Promise<void> {
-        const worker = new Worker('/workers/helios/heliosWorker.js', { type: 'module' })
-        worker.onmessage = (event) => {
-            const { id, ok, result, error } = event.data ?? {}
-            const request = this.pending.get(id)
-            if (!request) return
-            this.pending.delete(id)
-            clearTimeout(request.timer)
-            if (ok) request.resolve(result)
-            else request.reject(new Error(error ?? 'Light client worker error'))
+    private async initSession(): Promise<WorkerSession> {
+        const session = new WorkerSession((s, err) => this.discard(s, err))
+        this.liveSessions.add(session)
+        this.session = session
+        try {
+            const config = await this.buildConfig()
+            await session.request('init', { config, kind: this.entry.kind }, INIT_TIMEOUT_MS)
+        } catch (err) {
+            this.discard(session, err instanceof Error ? err : new Error(String(err)))
+            throw err
         }
-        worker.onerror = (event) => this.destroy(new Error(`Light client worker error: ${event.message ?? 'unknown'}`))
-        worker.onmessageerror = () => this.destroy(new Error('Light client worker message deserialization failed'))
-        this.worker = worker
+        return session
+    }
 
-        const config = await this.buildConfig()
-        await this.request('init', { config, kind: this.entry.kind }, INIT_TIMEOUT_MS)
+    /** Detach a session from the current slot without killing it — its users keep their reference. */
+    private retire(session: WorkerSession): void {
+        if (this.session !== session) return
+        this.session = null
+        this.initPromise = null
+    }
+
+    /** Retire and terminate — the worker is known dead, so nothing can still be served by it. */
+    private discard(session: WorkerSession, err: Error): void {
+        this.retire(session)
+        this.liveSessions.delete(session)
+        session.destroy(err)
     }
 
     private async buildConfig() {
@@ -116,37 +212,18 @@ export class HeliosVerifier implements LightClientVerifier {
         }
     }
 
-    private request(type: string, payload: Record<string, unknown>, timeoutMs: number): Promise<unknown> {
-        const worker = this.worker
-        if (!worker) return Promise.reject(new Error('Light client worker is not running'))
-        const id = this.nextId++
-        return new Promise((resolve, reject) => {
-            const timer = setTimeout(() => {
-                this.pending.delete(id)
-                this.destroy(new Error(`Light client request '${type}' timed out after ${timeoutMs}ms`))
-                reject(new Error(`Light client request '${type}' timed out`))
-            }, Math.max(timeoutMs, 1))
-            this.pending.set(id, { resolve, reject, timer })
-            worker.postMessage({ id, type, ...payload })
-        })
-    }
-
-    private destroy(err: Error): void {
-        this.worker?.terminate()
-        this.worker = null
-        this.initPromise = null
-        const pending = [...this.pending.values()]
-        this.pending.clear()
-        for (const request of pending) {
-            clearTimeout(request.timer)
-            request.reject(err)
-        }
-    }
-
-    /** Clean terminate once the worker has no job left (helios syncs every slot while alive). */
+    /**
+     * Clean terminate once no verification is left (helios syncs every slot while
+     * alive). Sweeps every live session, not just the current one, so a wedged
+     * session that was detached earlier cannot outlive its last user.
+     */
     private shutdown(): void {
         this.clearIdleTimer()
-        this.destroy(new Error('Light client worker released'))
+        this.session = null
+        this.initPromise = null
+        const sessions = [...this.liveSessions]
+        this.liveSessions.clear()
+        for (const session of sessions) session.destroy(new Error('Light client worker released'))
     }
 
     private armIdleShutdown(): void {

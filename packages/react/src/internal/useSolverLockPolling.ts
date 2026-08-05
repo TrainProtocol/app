@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { IHTLCPublicClient, SolverLockDetails, LockParams } from '@train-protocol/sdk'
+import { solverLockTermsMatch } from '@train-protocol/sdk'
 import type { ConsensusPhase, VerificationSource } from './store'
 import type { LightClientVerifier } from '../types'
 import { trainQueryKeys } from './queryKeys'
@@ -29,11 +30,19 @@ export interface SolverLockPollingResult {
 
 const MAX_CONSECUTIVE_RPC_FAILURES = 3
 
-type ConsensusFailKind = 'mismatch' | 'insufficient' | 'rpc' | 'primaryDown'
+type ConsensusFailKind = 'mismatch' | 'lightClientMismatch' | 'insufficient' | 'rpc' | 'primaryDown'
+
+/** Disagreement about the lock's terms is never overridable — one source is lying. */
+const TERMINAL_FAIL_KINDS: ReadonlySet<ConsensusFailKind> = new Set<ConsensusFailKind>([
+    'mismatch',
+    'lightClientMismatch',
+])
 
 const VERIFICATION_ERROR_MESSAGES: Record<ConsensusFailKind, string> = {
     mismatch:
         'Solver lock details disagree across RPC nodes — verification failed. Please wait for the timelock to expire and refund.',
+    lightClientMismatch:
+        'The solver lock reported by the RPC node disagrees with the lock proven by the light client — verification failed. Please wait for the timelock to expire and refund.',
     insufficient:
         "We can't verify the solver's lock right now — too few RPC nodes are responding. You can review the lock and continue manually, or wait for the timelock to expire and refund.",
     rpc:
@@ -78,12 +87,19 @@ async function fetchFromPrimary(
  *
  * When a light-client verifier is present it owns the verdict first: detection
  * (or a dead primary — the light client detects independently through its own
- * execution RPC) starts ONE bounded verification attempt. Success verifies with
- * verificationSource='lightClient'; failure or timeout demotes permanently (for
- * this hashlock) to the legacy RPC-consensus path below.
+ * execution RPC) starts ONE bounded verification attempt. Failure or timeout
+ * demotes permanently (for this hashlock) to the legacy RPC-consensus path below.
+ *
+ * On success the light client's reading is AUTHORITATIVE: it is published to the
+ * query cache (which is what gates the irreversible secret reveal) and pinned as
+ * the lock's terms. The primary RPC is untrusted, so from then on it may only
+ * move `status` forward — any disagreement about the terms is terminal. Without
+ * this the light client would only prove that *a* lock exists while the reveal
+ * still ran on a single node's account of what that lock says.
  *
  * Failure modes (all set consensusPhase='failed' and fire onConsensusFailed):
  *   - Lock details disagree across nodes (`do not match`) — terminal, not overridable
+ *   - The primary RPC contradicts the light client's proven lock — terminal, not overridable
  *   - Quorum unreachable because too few nodes responded — overridable
  *   - Every node we tried errored MAX_CONSECUTIVE_RPC_FAILURES times in a row — overridable
  */
@@ -104,6 +120,11 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
     const lcAttempt = useRef<'idle' | 'pending' | 'unavailable'>('idle')
     const lcGeneration = useRef(0)
     const lcAbortRef = useRef<AbortController | null>(null)
+    // The light client's proven reading of the lock, once it has one. Pins the
+    // lock's terms against a later-lying primary node.
+    const lcVerifiedRef = useRef<SolverLockDetails | null>(null)
+
+    const queryClient = useQueryClient()
 
     const [consensusPhase, setConsensusPhase] = useState<ConsensusPhase>('none')
     const [verifiedNodeCount, setVerifiedNodeCount] = useState(0)
@@ -124,6 +145,7 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
         lcGeneration.current += 1
         lcAbortRef.current?.abort()
         lcAbortRef.current = null
+        lcVerifiedRef.current = null
         setConsensusPhase('none')
         setVerifiedNodeCount(0)
         setVerificationSource('rpc')
@@ -159,6 +181,14 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
                 return d ?? lastDetailsRef.current
             }
 
+            // Write straight to the query cache from outside the queryFn. Needed only by
+            // the light-client channel, which settles out of band and must not leave the
+            // primary's unverified reading in place once it has a proven one.
+            const publish = (d: SolverLockDetails): void => {
+                lastDetailsRef.current = d
+                queryClient.setQueryData(trainQueryKeys.solverLock(params.id), d)
+            }
+
             const markDetected = () => {
                 if (detected.current) return
                 detected.current = true
@@ -177,7 +207,7 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
                 setConsensusPhase('failed')
                 const error = new Error(VERIFICATION_ERROR_MESSAGES[kind])
                 if (cause !== undefined) (error as Error & { cause?: unknown }).cause = cause
-                onConsensusFailedRef.current?.(error, kind !== 'mismatch')
+                onConsensusFailedRef.current?.(error, !TERMINAL_FAIL_KINDS.has(kind))
             }
 
             // Bumps the transient-failure counter; returns true once we've crossed the threshold.
@@ -220,9 +250,23 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
                     if (generation !== lcGeneration.current || verified.current || failed.current) return
                     if (details) {
                         markDetected()
-                        // The next tick returns these via remember()'s fallback; queryFn
-                        // stays the single query-cache writer.
-                        lastDetailsRef.current = details
+                        // The light client proves what the lock actually says; the primary
+                        // node only claims it. If they disagree about the terms, one of them
+                        // is lying about a lock we are about to hand a secret for — terminal.
+                        const claimedByPrimary = lastDetailsRef.current
+                        if (claimedByPrimary && !solverLockTermsMatch(details, claimedByPrimary)) {
+                            failVerification(
+                                'lightClientMismatch',
+                                new Error('Primary RPC lock terms differ from the light-client reading'),
+                            )
+                            publish(details)
+                            return
+                        }
+                        // Authoritative from here on: publish immediately rather than waiting
+                        // for the next tick, so the reveal gate can never read the primary's
+                        // unverified version in the window between verdict and refetch.
+                        lcVerifiedRef.current = details
+                        publish(details)
                         markVerified(0, 'lightClient')
                         return
                     }
@@ -281,8 +325,20 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
 
             const primary = await fetchFromPrimary(client, params, primaryUrl)
 
-            // Already verified — just refresh from primary.
-            if (verified.current) return remember(primary.details)
+            // Already verified — refresh from primary so status changes (Redeemed)
+            // still land. A light-client verdict pins the terms: the primary stays
+            // untrusted and may only move the lock forward, never restate the deal.
+            if (verified.current) {
+                const pinned = lcVerifiedRef.current
+                if (pinned && primary.details && !solverLockTermsMatch(pinned, primary.details)) {
+                    failVerification(
+                        'lightClientMismatch',
+                        new Error('Primary RPC restated the lock terms after light-client verification'),
+                    )
+                    return pinned
+                }
+                return remember(primary.details)
+            }
 
             // Light-client-first channel: while the verifier owns the verdict, keep
             // polling the primary cheaply — no consensus, no failure escalation.
