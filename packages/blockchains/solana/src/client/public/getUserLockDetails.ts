@@ -33,7 +33,7 @@ export async function getUserLockDetails(
 
     const accountInfo = await connection.getAccountInfo(userLockPda)
     if (!accountInfo) {
-        return recoverClosedUserLock(connection, id, userLockPda, program)
+        return recoverClosedUserLock(connection, params, id, userLockPda, program)
     }
     try {
         const result = await (program.account as TypedProgramAccounts).userLock.fetch(userLockPda)
@@ -56,17 +56,26 @@ export async function getUserLockDetails(
 
 // ── Private Helpers ─────────────────────────────────────────────────
 
-async function recoverClosedUserLock(connection: Connection, id: string, pda: PublicKey, program: Program): Promise<UserLockDetails | null> {
+async function recoverClosedUserLock(connection: Connection, params: LockParams, id: string, pda: PublicKey, program: Program): Promise<UserLockDetails | null> {
     const sigs = await connection.getSignaturesForAddress(pda, { limit: 1 }).catch(() => [])
     if (!sigs.length) return null
     const closedTx = await connection.getTransaction(sigs[0].signature, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 })
     for (const event of parseLogEvents(closedTx?.meta?.logMessages ?? [], program)) {
         const name = event.name.toLowerCase()
         if (name === 'userrefunded' || name === 'userredeemed') {
+            const { eventData, lockTerms } = params.txId
+                ? await findUserDataFromLogs(connection, params.txId, id, program)
+                : { eventData: {}, lockTerms: undefined }
+
+            const amountInBaseUnits = lockTerms?.amountInBaseUnits
+
             return {
                 hashlock: `0x${id.replace('0x', '')}`,
-                amount: 0, timelock: 0, secret: 0n,
+                amount: amountInBaseUnits ? Number(formatUnits(amountInBaseUnits, params.decimals)) : 0,
+                timelock: 0, secret: 0n,
                 sender: '', recipient: '', token: '',
+                ...lockTerms,
+                ...eventData,
                 status: name === 'userrefunded' ? LockStatus.Refunded : LockStatus.Redeemed,
                 blockTimestamp: closedTx?.blockTime ? closedTx.blockTime * 1000 : undefined,
             } as UserLockDetails
@@ -93,8 +102,9 @@ async function findUserDataFromLogs(
     txId: string,
     id: string,
     program: Program
-): Promise<{ eventData: Partial<EventDerivedData>; blockTimestamp?: number }> {
+): Promise<{ eventData: Partial<EventDerivedData>; lockTerms?: Partial<BaseLockDetails>; blockTimestamp?: number }> {
     const eventData: Partial<EventDerivedData> = {}
+    let lockTerms: Partial<BaseLockDetails> | undefined
     try {
         let tx = await connection.getTransaction(txId, {
             commitment: 'confirmed',
@@ -154,7 +164,20 @@ async function findUserDataFromLogs(
                     : decodeBytes(rewardRecipient)
             }
 
-            return { eventData, blockTimestamp }
+            const payoutCurve = new PublicKey(data.payout_curve ?? data.payoutCurve).toBase58()
+            const refundTo = data.refund_to ?? data.refundTo
+
+            lockTerms = {
+                amountInBaseUnits: BigInt(data.amount.toString()),
+                timelock: Number(data.timelock),
+                sender: new PublicKey(data.sender).toBase58(),
+                recipient: new PublicKey(data.recipient).toBase58(),
+                token: new PublicKey(data.token_mint ?? data.tokenMint).toBase58(),
+                refundTo: refundTo ? new PublicKey(refundTo).toBase58() : undefined,
+                payoutCurve: payoutCurve === NATIVE_SOL_ADDRESS ? null : payoutCurve,
+            }
+
+            return { eventData, lockTerms, blockTimestamp }
         }
 
         return { eventData, blockTimestamp }
