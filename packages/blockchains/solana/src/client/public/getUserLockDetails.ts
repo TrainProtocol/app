@@ -33,7 +33,7 @@ export async function getUserLockDetails(
 
     const accountInfo = await connection.getAccountInfo(userLockPda)
     if (!accountInfo) {
-        return recoverClosedUserLock(connection, params, id, userLockPda, program)
+        return recoverClosedUserLock(connection, userLockPda, program, id, params.decimals, params.txId)
     }
     try {
         const result = await (program.account as TypedProgramAccounts).userLock.fetch(userLockPda)
@@ -56,22 +56,22 @@ export async function getUserLockDetails(
 
 // ── Private Helpers ─────────────────────────────────────────────────
 
-async function recoverClosedUserLock(connection: Connection, params: LockParams, id: string, pda: PublicKey, program: Program): Promise<UserLockDetails | null> {
+async function recoverClosedUserLock(connection: Connection, pda: PublicKey, program: Program, id: string, decimals: number, txId?: string): Promise<UserLockDetails | null> {
     const sigs = await connection.getSignaturesForAddress(pda, { limit: 1 }).catch(() => [])
     if (!sigs.length) return null
     const closedTx = await connection.getTransaction(sigs[0].signature, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 })
     for (const event of parseLogEvents(closedTx?.meta?.logMessages ?? [], program)) {
         const name = event.name.toLowerCase()
         if (name === 'userrefunded' || name === 'userredeemed') {
-            const { eventData, lockTerms } = params.txId
-                ? await findUserDataFromLogs(connection, params.txId, id, program)
+            const { eventData, lockTerms } = txId
+                ? await findUserDataFromLogs(connection, txId, id, program)
                 : { eventData: {}, lockTerms: undefined }
 
             const amountInBaseUnits = lockTerms?.amountInBaseUnits
 
             return {
                 hashlock: `0x${id.replace('0x', '')}`,
-                amount: amountInBaseUnits ? Number(formatUnits(amountInBaseUnits, params.decimals)) : 0,
+                amount: amountInBaseUnits ? Number(formatUnits(amountInBaseUnits, decimals)) : 0,
                 timelock: 0, secret: 0n,
                 sender: '', recipient: '', token: '',
                 ...lockTerms,
