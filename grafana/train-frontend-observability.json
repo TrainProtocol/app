@@ -1,0 +1,2042 @@
+{
+  "title": "Train \u2014 Frontend Observability",
+  "uid": "train-frontend-obs",
+  "tags": [
+    "train",
+    "faro",
+    "frontend"
+  ],
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "templating": {
+    "list": [
+      {
+        "name": "DS_LOKI",
+        "label": "Loki datasource",
+        "type": "datasource",
+        "query": "loki",
+        "current": {},
+        "hide": 0,
+        "refresh": 1
+      },
+      {
+        "name": "app",
+        "label": "App",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "${DS_LOKI}"
+        },
+        "query": "label_values(app)",
+        "refresh": 2,
+        "sort": 1,
+        "hide": 0,
+        "current": {
+          "text": "train-app",
+          "value": "train-app"
+        },
+        "regex": "",
+        "includeAll": false,
+        "multi": false
+      },
+      {
+        "name": "session",
+        "label": "Session ID (drill-down)",
+        "type": "textbox",
+        "query": "",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "hide": 0
+      },
+      {
+        "name": "hashlock",
+        "label": "Hashlock (drill-down)",
+        "type": "textbox",
+        "query": "",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "hide": 0
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "name": "Deploys (app_version changes)",
+        "datasource": {
+          "type": "loki",
+          "uid": "${DS_LOKI}"
+        },
+        "enable": false,
+        "expr": "{app=~\"$app\", kind=\"event\"} |= \"event_name=session_start\" | logfmt",
+        "hide": true,
+        "iconColor": "blue"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Overview",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Unique Sessions",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\"} | logfmt [$__range])))",
+          "refId": "A",
+          "queryType": "instant"
+        }
+      ],
+      "description": "Distinct Faro sessions seen in the selected range",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Swaps Submitted",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 3,
+        "y": 1,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=swap_form_submitted\" | logfmt | event_name=\"swap_form_submitted\" [$__range]))",
+          "refId": "A",
+          "queryType": "instant"
+        }
+      ],
+      "description": "Main CTA pressed (swap modal opened)",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Locks Confirmed",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 1,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=user_lock_confirmed\" | logfmt | event_name=\"user_lock_confirmed\" [$__range]))",
+          "refId": "A",
+          "queryType": "instant"
+        }
+      ],
+      "description": "User lock transaction confirmed on-chain",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Swaps Completed",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 9,
+        "y": 1,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=swap_completed\" | logfmt | event_name=\"swap_completed\" [$__range]))",
+          "refId": "A",
+          "queryType": "instant"
+        }
+      ],
+      "description": "Solver redeemed on destination \u2014 funnel end",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Completion Rate",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 1,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=swap_completed\" | logfmt | event_name=\"swap_completed\" [$__range])) / (sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=user_lock_confirmed\" | logfmt | event_name=\"user_lock_confirmed\" [$__range])) > 0)",
+          "refId": "A",
+          "queryType": "instant"
+        }
+      ],
+      "description": "swap_completed / user_lock_confirmed",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.8
+              },
+              {
+                "color": "green",
+                "value": 0.95
+              }
+            ]
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Median Time to Complete",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 15,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "quantile_over_time(0.5, {app=~\"$app\", kind=\"event\"} |= \"event_name=swap_completed\" | logfmt | event_name=\"swap_completed\" | unwrap event_data_elapsed_ms | __error__=\"\" [$__range])",
+          "refId": "A",
+          "queryType": "instant"
+        }
+      ],
+      "description": "From swap creation to solver redeem (p50)",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Exceptions",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 19,
+        "y": 1,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"exception\"} | logfmt [$__range]))",
+          "refId": "A",
+          "queryType": "instant"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 9,
+      "type": "row",
+      "title": "Conversion Funnel",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 10,
+      "type": "bargauge",
+      "title": "Funnel \u2014 unique sessions reaching each stage",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 14,
+        "h": 12
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=session_start\" | logfmt | event_name=\"session_start\" [$__range])))",
+          "refId": "A",
+          "queryType": "instant",
+          "legendFormat": "1. Session started"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=route_selected\" | logfmt | event_name=\"route_selected\" [$__range])))",
+          "refId": "B",
+          "queryType": "instant",
+          "legendFormat": "2. Route selected"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=quote_received\" | logfmt | event_name=\"quote_received\" [$__range])))",
+          "refId": "C",
+          "queryType": "instant",
+          "legendFormat": "3. Quote received"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=destination_address_set\" | logfmt | event_name=\"destination_address_set\" [$__range])))",
+          "refId": "D",
+          "queryType": "instant",
+          "legendFormat": "4. Address set"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=swap_form_submitted\" | logfmt | event_name=\"swap_form_submitted\" [$__range])))",
+          "refId": "E",
+          "queryType": "instant",
+          "legendFormat": "5. Swap submitted"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=user_lock_clicked\" | logfmt | event_name=\"user_lock_clicked\" [$__range])))",
+          "refId": "F",
+          "queryType": "instant",
+          "legendFormat": "6. Lock clicked (wallet prompt)"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=user_lock_confirmed\" | logfmt | event_name=\"user_lock_confirmed\" [$__range])))",
+          "refId": "G",
+          "queryType": "instant",
+          "legendFormat": "7. Lock confirmed on-chain"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=solver_lock_detected\" | logfmt | event_name=\"solver_lock_detected\" [$__range])))",
+          "refId": "H",
+          "queryType": "instant",
+          "legendFormat": "8. Solver lock detected"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=swap_completed\" | logfmt | event_name=\"swap_completed\" [$__range])))",
+          "refId": "I",
+          "queryType": "instant",
+          "legendFormat": "9. Swap completed"
+        }
+      ],
+      "description": "Each bar counts distinct sessions that emitted the stage event. The step where the count collapses is where users drop off.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "continuous-BlPu"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "showUnfilled": true,
+        "sizing": "auto",
+        "minVizHeight": 16,
+        "minVizWidth": 8
+      }
+    },
+    {
+      "id": 11,
+      "type": "piechart",
+      "title": "Why users can't proceed (CTA states)",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 14,
+        "y": 6,
+        "w": 10,
+        "h": 12
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum by (event_data_state) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=cta_state_shown\" | logfmt | event_name=\"cta_state_shown\" [$__range]))",
+          "refId": "A",
+          "queryType": "instant",
+          "legendFormat": "{{event_data_state}}"
+        }
+      ],
+      "description": "Distribution of blocking CTA states shown on the swap form (cta_state_shown). 'ready' means nothing blocked the user.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "donut",
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 12,
+      "type": "row",
+      "title": "Drop-off Reasons & Failures",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Quote failures by reason",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 19,
+        "w": 8,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum by (event_data_reason) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=quote_failed\" | logfmt | event_name=\"quote_failed\" [$__interval]))",
+          "refId": "A",
+          "queryType": "range",
+          "legendFormat": "{{event_data_reason}}"
+        }
+      ],
+      "description": "limit_min / limit_max = amount outside solver limits; no_quote = no solver quoted; request_error = API failure",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 35,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "User lock failures by reason",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 19,
+        "w": 8,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum by (event_data_reason) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=user_lock_failed\" | logfmt | event_name=\"user_lock_failed\" [$__interval]))",
+          "refId": "A",
+          "queryType": "range",
+          "legendFormat": "{{event_data_reason}}"
+        }
+      ],
+      "description": "user_rejected = wallet prompt declined; quote_expired; insufficient_funds; transaction_failed = reverted on-chain",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 35,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 15,
+      "type": "bargauge",
+      "title": "Verification & trust outcomes",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 19,
+        "w": 8,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=verification_passed\" | logfmt | event_name=\"verification_passed\" [$__range]))",
+          "refId": "A",
+          "queryType": "instant",
+          "legendFormat": "Consensus passed"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=verification_failed\" | logfmt | event_name=\"verification_failed\" [$__range]))",
+          "refId": "B",
+          "queryType": "instant",
+          "legendFormat": "Consensus failed"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=verification_mismatch\" | logfmt | event_name=\"verification_mismatch\" [$__range]))",
+          "refId": "C",
+          "queryType": "instant",
+          "legendFormat": "Quote mismatch"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=verification_skipped\" | logfmt | event_name=\"verification_skipped\" [$__range]))",
+          "refId": "D",
+          "queryType": "instant",
+          "legendFormat": "Verification skipped"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=verification_manual_override_clicked\" | logfmt | event_name=\"verification_manual_override_clicked\" [$__range]))",
+          "refId": "E",
+          "queryType": "instant",
+          "legendFormat": "Manual override used"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=identity_mismatch_warning\" | logfmt | event_name=\"identity_mismatch_warning\" [$__range]))",
+          "refId": "F",
+          "queryType": "instant",
+          "legendFormat": "Identity mismatch warning"
+        }
+      ],
+      "description": "Solver-lock verification results. Failures and mismatches block auto-reveal \u2014 direct drop-off causes.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "continuous-BlPu"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "showUnfilled": true,
+        "sizing": "auto",
+        "minVizHeight": 16,
+        "minVizWidth": 8
+      }
+    },
+    {
+      "id": 16,
+      "type": "timeseries",
+      "title": "Reveal / claim / refund failures",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 28,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=reveal_secret_failed\" | logfmt | event_name=\"reveal_secret_failed\" [$__interval]))",
+          "refId": "A",
+          "queryType": "range",
+          "legendFormat": "reveal_secret_failed"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=manual_claim_failed\" | logfmt | event_name=\"manual_claim_failed\" [$__interval]))",
+          "refId": "B",
+          "queryType": "range",
+          "legendFormat": "manual_claim_failed"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=refund_failed\" | logfmt | event_name=\"refund_failed\" [$__interval]))",
+          "refId": "C",
+          "queryType": "range",
+          "legendFormat": "refund_failed"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=swap_order_failed\" | logfmt | event_name=\"swap_order_failed\" [$__interval]))",
+          "refId": "D",
+          "queryType": "range",
+          "legendFormat": "swap_order_failed (solver)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 12,
+            "spanNulls": false,
+            "showPoints": "never"
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 17,
+      "type": "timeseries",
+      "title": "Abandonment: modal closed mid-swap",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 28,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum by (event_data_htlc_status) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=swap_modal_closed\" | logfmt | event_name=\"swap_modal_closed\" | event_data_was_terminal=\"false\" [$__interval]))",
+          "refId": "A",
+          "queryType": "range",
+          "legendFormat": "{{event_data_htlc_status}}"
+        }
+      ],
+      "description": "swap_modal_closed with was_terminal=false, split by the HTLC status at close time \u2014 at which phase users walk away",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 35,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 18,
+      "type": "row",
+      "title": "Swap Activity",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 36,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 19,
+      "type": "timeseries",
+      "title": "Swap lifecycle events over time",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 37,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=swap_form_submitted\" | logfmt | event_name=\"swap_form_submitted\" [$__interval]))",
+          "refId": "A",
+          "queryType": "range",
+          "legendFormat": "submitted"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=user_lock_confirmed\" | logfmt | event_name=\"user_lock_confirmed\" [$__interval]))",
+          "refId": "B",
+          "queryType": "range",
+          "legendFormat": "lock confirmed"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=swap_completed\" | logfmt | event_name=\"swap_completed\" [$__interval]))",
+          "refId": "C",
+          "queryType": "range",
+          "legendFormat": "completed"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=refund_available\" | logfmt | event_name=\"refund_available\" [$__interval]))",
+          "refId": "D",
+          "queryType": "range",
+          "legendFormat": "timelock expired"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=swap_refunded\" | logfmt | event_name=\"swap_refunded\" [$__interval]))",
+          "refId": "E",
+          "queryType": "range",
+          "legendFormat": "refunded"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 12,
+            "spanNulls": false,
+            "showPoints": "never"
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 20,
+      "type": "bargauge",
+      "title": "Top routes (submitted swaps)",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 37,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "topk(12, sum by (event_data_source_network, event_data_destination_network) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=swap_form_submitted\" | logfmt | event_name=\"swap_form_submitted\" [$__range])))",
+          "refId": "A",
+          "queryType": "instant",
+          "legendFormat": "{{event_data_source_network}} \u2192 {{event_data_destination_network}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "continuous-BlPu"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "showUnfilled": true,
+        "sizing": "auto",
+        "minVizHeight": 16,
+        "minVizWidth": 8
+      }
+    },
+    {
+      "id": 21,
+      "type": "row",
+      "title": "Errors & Exceptions",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 46,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "Exceptions over time by type",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 47,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum by (context_train_exception_type) (count_over_time({app=~\"$app\", kind=\"exception\"} | logfmt [$__interval]))",
+          "refId": "A",
+          "queryType": "range",
+          "legendFormat": "{{context_train_exception_type}}"
+        }
+      ],
+      "description": "context_train_exception_type set by app captureException calls; empty = uncaught/console errors",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 12,
+            "spanNulls": false,
+            "showPoints": "never"
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 23,
+      "type": "bargauge",
+      "title": "Top error messages",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 47,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "topk(10, sum by (value) (count_over_time({app=~\"$app\", kind=\"exception\"} | logfmt [$__range])))",
+          "refId": "A",
+          "queryType": "instant",
+          "legendFormat": "{{value}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "continuous-BlPu"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "showUnfilled": true,
+        "sizing": "auto",
+        "minVizHeight": 16,
+        "minVizWidth": 8
+      }
+    },
+    {
+      "id": 24,
+      "type": "logs",
+      "title": "Exception details (stack traces) \u2014 filter with $session",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 56,
+        "w": 24,
+        "h": 10
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "{app=~\"$app\", kind=\"exception\"} | logfmt | session_id=~\"$session.*\" | line_format \"{{.value}} | type={{.context_train_exception_type}} | page={{.page_url}} | session={{.session_id}}\"",
+          "refId": "A",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false
+      }
+    },
+    {
+      "id": 25,
+      "type": "row",
+      "title": "Engagement & App Activity",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 66,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 26,
+      "type": "timeseries",
+      "title": "Views by route",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 67,
+        "w": 8,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum by (event_data_toView) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=view_changed\" | logfmt | event_name=\"view_changed\" [$__interval]))",
+          "refId": "A",
+          "queryType": "range",
+          "legendFormat": "{{event_data_toView}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 12,
+            "spanNulls": false,
+            "showPoints": "never"
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 27,
+      "type": "bargauge",
+      "title": "Wallet connections by provider (unique sessions)",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 67,
+        "w": 8,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "count by (event_data_provider) (count by (event_data_provider, session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=wallet_connected\" | logfmt | event_name=\"wallet_connected\" [$__range])))",
+          "refId": "A",
+          "queryType": "instant",
+          "legendFormat": "{{event_data_provider}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "continuous-BlPu"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "showUnfilled": true,
+        "sizing": "auto",
+        "minVizHeight": 16,
+        "minVizWidth": 8
+      }
+    },
+    {
+      "id": 28,
+      "type": "bargauge",
+      "title": "Login outcomes",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 67,
+        "w": 8,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=login_started\" | logfmt | event_name=\"login_started\" [$__range]))",
+          "refId": "A",
+          "queryType": "instant",
+          "legendFormat": "Started"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=login_succeeded\" | logfmt | event_name=\"login_succeeded\" [$__range]))",
+          "refId": "B",
+          "queryType": "instant",
+          "legendFormat": "Succeeded"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=login_failed\" | logfmt | event_name=\"login_failed\" [$__range]))",
+          "refId": "C",
+          "queryType": "instant",
+          "legendFormat": "Failed"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=login_unsupported_browser\" | logfmt | event_name=\"login_unsupported_browser\" [$__range]))",
+          "refId": "D",
+          "queryType": "instant",
+          "legendFormat": "Unsupported browser"
+        }
+      ],
+      "description": "Passkey login funnel \u2014 the gate before any swap can be submitted",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "continuous-BlPu"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "showUnfilled": true,
+        "sizing": "auto",
+        "minVizHeight": 16,
+        "minVizWidth": 8
+      }
+    },
+    {
+      "id": 29,
+      "type": "bargauge",
+      "title": "Feature usage",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 76,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "topk(15, sum by (event_name) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=\" | logfmt | event_name=~\"faucet_.*|history_.*|recover_swap_.*|theme_changed|rpc_override_saved|see_swap_details|route_picker_opened|max_amount_clicked|half_amount_clicked|connect_wallet_clicked|route_reversed\" [$__range])))",
+          "refId": "A",
+          "queryType": "instant",
+          "legendFormat": "{{event_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "continuous-BlPu"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "showUnfilled": true,
+        "sizing": "auto",
+        "minVizHeight": 16,
+        "minVizWidth": 8
+      }
+    },
+    {
+      "id": 30,
+      "type": "logs",
+      "title": "Swap timeline \u2014 set $hashlock to trace one swap",
+      "datasource": {
+        "type": "loki",
+        "uid": "${DS_LOKI}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 76,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "expr": "{app=~\"$app\"} | logfmt | event_data_hashlock=~\"$hashlock.*\" or context_hashlock=~\"$hashlock.*\" | kind=~\"event|exception\" | line_format \"[{{.kind}}] {{.event_name}}{{.value}} status={{.event_data_htlc_status}} session={{.session_id}}\"",
+          "refId": "A",
+          "queryType": "range"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false
+      }
+    },
+    {
+      "id": 36,
+      "type": "row",
+      "title": "Performance / Web Vitals",
+      "collapsed": true,
+      "gridPos": {
+        "x": 0,
+        "y": 85,
+        "w": 24,
+        "h": 1
+      },
+      "panels": [
+        {
+          "id": 31,
+          "type": "stat",
+          "title": "LCP p75",
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 86,
+            "w": 4,
+            "h": 4
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${DS_LOKI}"
+              },
+              "expr": "quantile_over_time(0.75, {app=~\"$app\", kind=\"measurement\"} |= \"lcp=\" | logfmt | unwrap lcp | __error__=\"\" [$__range])",
+              "refId": "A",
+              "queryType": "instant"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ms",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              },
+              "decimals": 0
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": false
+            },
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "auto"
+          }
+        },
+        {
+          "id": 32,
+          "type": "stat",
+          "title": "FCP p75",
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "gridPos": {
+            "x": 4,
+            "y": 86,
+            "w": 4,
+            "h": 4
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${DS_LOKI}"
+              },
+              "expr": "quantile_over_time(0.75, {app=~\"$app\", kind=\"measurement\"} |= \"fcp=\" | logfmt | unwrap fcp | __error__=\"\" [$__range])",
+              "refId": "A",
+              "queryType": "instant"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ms",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              },
+              "decimals": 0
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": false
+            },
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "auto"
+          }
+        },
+        {
+          "id": 33,
+          "type": "stat",
+          "title": "TTFB p75",
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "gridPos": {
+            "x": 8,
+            "y": 86,
+            "w": 4,
+            "h": 4
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${DS_LOKI}"
+              },
+              "expr": "quantile_over_time(0.75, {app=~\"$app\", kind=\"measurement\"} |= \"ttfb=\" | logfmt | unwrap ttfb | __error__=\"\" [$__range])",
+              "refId": "A",
+              "queryType": "instant"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ms",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              },
+              "decimals": 0
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": false
+            },
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "auto"
+          }
+        },
+        {
+          "id": 34,
+          "type": "stat",
+          "title": "INP p75",
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 86,
+            "w": 4,
+            "h": 4
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${DS_LOKI}"
+              },
+              "expr": "quantile_over_time(0.75, {app=~\"$app\", kind=\"measurement\"} |= \"inp=\" | logfmt | unwrap inp | __error__=\"\" [$__range])",
+              "refId": "A",
+              "queryType": "instant"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ms",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              },
+              "decimals": 0
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": false
+            },
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "auto"
+          }
+        },
+        {
+          "id": 35,
+          "type": "stat",
+          "title": "CLS p75",
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "gridPos": {
+            "x": 16,
+            "y": 86,
+            "w": 4,
+            "h": 4
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${DS_LOKI}"
+              },
+              "expr": "quantile_over_time(0.75, {app=~\"$app\", kind=\"measurement\"} |= \"cls=\" | logfmt | unwrap cls | __error__=\"\" [$__range])",
+              "refId": "A",
+              "queryType": "instant"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              },
+              "decimals": 3
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": false
+            },
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "auto"
+          }
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "type": "row",
+      "title": "Session Drill-down",
+      "collapsed": true,
+      "gridPos": {
+        "x": 0,
+        "y": 86,
+        "w": 24,
+        "h": 1
+      },
+      "panels": [
+        {
+          "id": 37,
+          "type": "logs",
+          "title": "Session timeline \u2014 set $session above",
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 87,
+            "w": 24,
+            "h": 12
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${DS_LOKI}"
+              },
+              "expr": "{app=~\"$app\"} | logfmt | session_id=~\"$session.*\" | kind=~\"event|exception|log\" | event_name!~\"faro\\..*\" | line_format \"[{{.kind}}] {{.event_name}}{{.message}}{{.value}} view={{.view_name}} url={{.page_url}}\"",
+              "refId": "A",
+              "queryType": "range"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "options": {
+            "showTime": true,
+            "wrapLogMessage": true,
+            "sortOrder": "Descending",
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false
+          }
+        }
+      ]
+    }
+  ]
+}
