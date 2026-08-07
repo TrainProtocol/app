@@ -1,42 +1,33 @@
 import React, { createContext, useContext, useMemo } from "react";
-import { WalletProvider } from "../Models/WalletProvider";
+import { WalletConnectionProvider } from "@layerswap/ui-kit/types";
 import { useSettingsState } from "./settings";
-import useEVM from "../lib/wallets/evm/useEVM";
-import useStarknet from "../lib/wallets/starknet/useStarknet";
-import useSVM from "../lib/wallets/solana/useSVM";
-import useAztec from "../lib/wallets/aztec/useAztec";
-import { isMobile } from "@/lib/wallets/utils/isMobile";
-import useTron from "@/lib/wallets/tron/useTron";
-import useFuel from "@/lib/wallets/fuel/useFuel";
+// import useAztec from "@/lib/wallets/aztec/useAztec";
+import { isMobile } from "@layerswap/utils";
+import { useWalletProviderSnapshots } from "@layerswap/ui-kit";
 
-const WalletProvidersContext = createContext<WalletProvider[]>([]);
+const WalletProvidersContext = createContext<WalletConnectionProvider[]>([]);
 
 export const WalletProvidersProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
     const { networks } = useSettingsState();
     const isMobilePlatform = isMobile();
 
-    const evm = useEVM();
-    const starknet = useStarknet();
-    const svm = useSVM();
-    const aztec = useAztec()
-    const tron = useTron()
-    const fuel = useFuel()
+    const snapshots = useWalletProviderSnapshots();
+    // const aztec = useAztec();
 
     const providers = useMemo(() => {
-        const allProviders: WalletProvider[] = [
-            evm, starknet, svm, aztec, tron, fuel
+        const allProviders: WalletConnectionProvider[] = [
+            ...snapshots,
+            // aztec,
         ];
-        const filteredProviders = allProviders.filter(provider => isMobilePlatform ? !provider.unsupportedPlatforms?.includes('mobile') : !provider.unsupportedPlatforms?.includes('desktop'));
 
-        return filteredProviders
-            .filter(provider =>
-                networks.some(net =>
-                    provider.autofillSupportedNetworks?.includes(net.caip2Id) ||
-                    provider.withdrawalSupportedNetworks?.includes(net.caip2Id) ||
-                    provider.asSourceSupportedNetworks?.includes(net.caip2Id)
-                )
-            );
-    }, [networks, evm, starknet, svm, aztec, tron, fuel, isMobilePlatform]);
+        return allProviders
+            .filter(provider => isMobilePlatform ? !provider.unsupportedPlatforms?.includes('mobile') : !provider.unsupportedPlatforms?.includes('desktop'))
+            .filter(provider => networks.some(network =>
+                provider.autofillSupportedNetworks?.includes(network.caip2Id) ||
+                provider.withdrawalSupportedNetworks?.includes(network.caip2Id) ||
+                provider.asSourceSupportedNetworks?.includes(network.caip2Id)
+            ));
+    }, [networks, snapshots, isMobilePlatform]);
 
     return (
         <WalletProvidersContext.Provider value={providers}>

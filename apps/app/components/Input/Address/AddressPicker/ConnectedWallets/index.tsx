@@ -1,15 +1,17 @@
 
 import { ChevronDown, Plus, RefreshCw } from "lucide-react";
+import { WalletIcon } from "@layerswap/ui-kit/components";
 import { Network } from "@/Models/Network";
 import { FC, useState } from "react";
 import ResizablePanel from "@/components/ResizablePanel";
-import { SelectAccountProps, Wallet, WalletProvider } from "@/Models/WalletProvider";
-import WalletIcon from "@/components/Icons/WalletIcon";
+import { Wallet } from "@layerswap/utils";
+import { SelectAccountProps, WalletConnectionProvider } from "@layerswap/ui-kit/types";
 import { WalletItem } from "@/components/Wallet/WalletsList";
 import { useConnectModal } from "@/components/WalletModal";
+import WalletIconView from "@/components/Wallet/WalletIconView";
 
 type Props = {
-    provider: WalletProvider,
+    provider: WalletConnectionProvider,
     notCompatibleWallets: Wallet[],
     onClick: (props: SelectAccountProps) => void,
     onConnect?: (wallet: Wallet) => void,
@@ -92,7 +94,7 @@ const ConnectedWallets: FC<Props> = ({ provider, notCompatibleWallets, onClick, 
                                     <div className="space-x-1 flex">
                                         {notCompatibleWallets?.map((wallet) => (
                                             <div key={wallet.address} className="inline-flex items-center relative">
-                                                <wallet.icon className="w-4 h-4 rounded-xs bg-secondary-800" />
+                                                <WalletIconView wallet={wallet} className="w-4 h-4 rounded-xs bg-secondary-800" />
                                             </div>
                                         ))}
                                         <ChevronDown

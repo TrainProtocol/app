@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { truncateDecimals } from "@/components/utils/RoundDecimals";
 import { ExtendedNetwork, ExtendedToken } from "@/Models/Network";
-import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
+import { ImageWithFallback } from "@layerswap/ui-kit/components";
 import { ArrowDown } from "lucide-react";
 import NumberFlow from "@number-flow/react";
 import { resolveTokenLogoUrl } from "@/components/utils/resolveTokenLogoUrl";

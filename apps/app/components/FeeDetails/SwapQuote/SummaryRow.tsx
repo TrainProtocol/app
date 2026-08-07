@@ -2,7 +2,7 @@ import { FC, useMemo } from 'react'
 import { ChevronDown } from 'lucide-react'
 import AddressIcon from '../../AddressIcon'
 import { Address } from "@/lib/address";
-import { Wallet } from '@/Models/WalletProvider'
+import { Wallet } from "@layerswap/utils";
 import { SwapFormValues } from '@/components/DTOs/SwapFormValues'
 import { ExtendedAddress } from '@/components/Input/Address/AddressPicker/AddressWithIcon'
 import { DetailsButton } from '..'
@@ -10,7 +10,8 @@ import type { SwapQuote } from '@train-protocol/react'
 import clsx from 'clsx'
 import { Partner } from '@/Models/Partner'
 import { useQueryState } from '@/context/query'
-import { ImageWithFallback } from '@/components/Common/ImageWithFallback'
+import { ImageWithFallback } from '@layerswap/ui-kit/components'
+import WalletIconView from '@/components/Wallet/WalletIconView'
 
 export const SummaryRow: FC<{
     isQuoteLoading?: boolean
@@ -38,7 +39,7 @@ export const SummaryRow: FC<{
                     <div className="text-right text-primary-text">
                         <span className="cursor-pointer hover:underline flex items-center gap-2">
                             {wallet?.icon ? (
-                                <wallet.icon className="w-4 h-4 bg-secondary-700 rounded-sm" />
+                                <WalletIconView wallet={wallet} className="w-4 h-4 bg-secondary-700 rounded-sm" />
                             ) : addressProviderIcon ? (
                                 <ImageWithFallback
                                     alt="Partner logo"

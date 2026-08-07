@@ -2,15 +2,18 @@ import { useFormikContext } from "formik";
 import { SwapFormValues } from "../DTOs/SwapFormValues";
 import { Dispatch, FC, SetStateAction, useCallback, useState } from "react";
 import useWallet from "@/hooks/useWallet";
+import { useProvidersConnectReady } from "@layerswap/ui-kit";
 import { Address } from "@/lib/address";
 import { ChevronDown } from "lucide-react";
+import { WalletIcon } from "@layerswap/ui-kit/components";
 import VaulDrawer from "../Modal/vaulModal";
-import { SelectAccountProps, Wallet } from "@/Models/WalletProvider";
-import WalletIcon from "@/components/Icons/WalletIcon";
+import { Wallet } from "@layerswap/utils";
+import { SelectAccountProps } from "@layerswap/ui-kit/types";
 import SubmitButton from "@/components/buttons/submitButton";
 import { useConnectModal } from "../WalletModal";
 import WalletsList from "@/components/Wallet/WalletsList";
 import { useSelectedAccount, useSelectSwapAccount } from "@/context/swapAccounts";
+import WalletIconView from "@/components/Wallet/WalletIconView";
 
 const SourceWalletPicker: FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false)
@@ -57,7 +60,7 @@ const SourceWalletPicker: FC = () => {
                 <button type="button" onClick={handleWalletChange} className="rounded-lg flex items-center space-x-2 text-sm hover:bg-secondary-300 py-1 pl-2 pr-2 outline-hidden">
                     <div className="rounded-lg flex space-x-1 items-center">
                         <div className="inline-flex items-center relative px-0.5">
-                            <selectedSourceAccount.icon className="w-4 h-4 rounded" />
+                            <WalletIconView wallet={selectedSourceAccount} className="w-4 h-4 rounded" />
                         </div>
                         <div className="text-secondary-text">
                             {new Address(selectedSourceAccount.address, values.from).toShortString()}
@@ -176,9 +179,7 @@ export const FormSourceWalletButton: FC<{ isDisabled?: boolean }> = ({ isDisable
 
 const Connect: FC<{ connectFn?: () => Promise<Wallet | undefined | void>; isDisabled?: boolean }> = ({ connectFn, isDisabled }) => {
     const { connect } = useConnectModal()
-    const { providers } = useWallet()
-
-    const isProvidersReady = providers.every(p => p.ready)
+    const isProvidersReady = useProvidersConnectReady()
 
     const connectWallet = async () => {
         await connect()

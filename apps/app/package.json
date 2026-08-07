@@ -19,7 +19,6 @@
     "@cartridge/controller": "^0.10.7",
     "@coral-xyz/anchor": "catalog:",
     "@eth-optimism/contracts-ts": "^0.17.2",
-    "@fuels/react": "^0.43.2",
     "@hugeicons/core-free-icons": "^4.0.0",
     "@hugeicons/react": "^1.1.6",
     "@noble/hashes": "^2.0.1",

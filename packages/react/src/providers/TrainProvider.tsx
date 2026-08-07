@@ -85,8 +85,18 @@ export function TrainProvider({
     // adapterVersion in deps ensures these callbacks get new references when adapters register,
     // which propagates through walletValue → walletCtx → consumer useMemos.
     const createClient = useCallback((networkId: Caip2Id): IHTLCPublicClient => {
-        return findAdapter(networkId).createClient(sdk, networkId)
-    }, [findAdapter, sdk, adapterVersion])
+        const { namespace } = parseCaip2Id(networkId)
+        const adapter = adaptersRef.current.get(namespace)
+        if (adapter) return adapter.createClient(sdk, networkId)
+        const rpcUrl = config.resolveNodeUrls?.(networkId)?.[0]
+        if (!rpcUrl) {
+            throw new Error(
+                `No RPC URL resolvable for network "${networkId}". ` +
+                `Pass resolveNodeUrls to TrainProvider or register a wallet adapter for "${namespace}".`
+            )
+        }
+        return sdk.createHTLCPublicClient(namespace, { rpcUrl })
+    }, [sdk, adapterVersion, config.resolveNodeUrls])
 
     const createWriteClient = useCallback((networkId: Caip2Id, address?: string): IHTLCWalletClient => {
         return findAdapter(networkId).createWriteClient(sdk, networkId, address)

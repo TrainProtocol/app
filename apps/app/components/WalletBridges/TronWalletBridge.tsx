@@ -1,34 +1,27 @@
-import { useMemo, useRef } from 'react'
-import {
-    useRegisterWallet,
-    chainNamespace,
-    type TrainWalletAdapter,
-    type Caip2Id,
-} from '@train-protocol/react'
+import { useMemo } from 'react'
+import { useRegisterWallet, chainNamespace, type TrainWalletAdapter, type Caip2Id, } from '@train-protocol/react'
 import type { TrainSDK } from '@train-protocol/sdk'
-import { useWallet } from '@tronweb3/tronwallet-adapter-react-hooks'
 import type { TronSigner, TronUnsignedTransaction } from '@train-protocol/tron'
+import { tronAdapterManager } from '@layerswap/wallet-tron'
+import { Address } from '@/lib/address'
 import { useBridgeRpcUrl } from './useBridgeRpcUrl'
 
-export function TronWalletBridge() {
-    const { wallet: tronWallet } = useWallet()
-    const getRpcUrl = useBridgeRpcUrl('tron')
+type TronSignerAdapter = { signMessage?: (message: string) => Promise<string> }
 
-    // Use a ref to access the wallet lazily inside callbacks,
-    // avoiding tronWallet in useMemo deps (new object ref each render).
-    const walletRef = useRef(tronWallet)
-    walletRef.current = tronWallet
+export function TronWalletBridge() {
+    const getRpcUrl = useBridgeRpcUrl('tron')
 
     const adapter = useMemo<TrainWalletAdapter>(() => {
 
-        function getSignerForNetwork(rpcUrl: string): TronSigner | null {
-            const tronAdapter = walletRef.current?.adapter
+        function getSignerForNetwork(rpcUrl: string, requestedAddress?: string): TronSigner | null {
+            const tronAdapter = tronAdapterManager.getActiveAdapter()
             if (!tronAdapter?.connected || !tronAdapter.address) return null
+            if (requestedAddress && !Address.equals(tronAdapter.address, requestedAddress, null, 'tron')) return null
 
             return {
                 address: tronAdapter.address,
                 async signAndBroadcast(unsignedTx: TronUnsignedTransaction): Promise<string> {
-                    const signedTx = await tronAdapter.signTransaction(unsignedTx as any)
+                    const signedTx = await tronAdapter.signTransaction(unsignedTx)
 
                     const response = await fetch(`${rpcUrl}/wallet/broadcasttransaction`, {
                         method: 'POST',
@@ -52,22 +45,21 @@ export function TronWalletBridge() {
                 return sdk.createHTLCPublicClient('tron', { rpcUrl })
             },
 
-            createWriteClient(sdk: TrainSDK, networkId: Caip2Id) {
+            createWriteClient(sdk: TrainSDK, networkId: Caip2Id, address?: string) {
                 const rpcUrl = getRpcUrl(networkId)
-                const signer = getSignerForNetwork(rpcUrl)
+                const signer = getSignerForNetwork(rpcUrl, address)
                 if (!signer) throw new Error('No Tron signer available')
                 return sdk.createHTLCWalletClient('tron', { rpcUrl, signer })
             },
 
-            getLoginConfig: async () => {
-                const tronAdapter = walletRef.current?.adapter
+            getLoginConfig: async (address?: string) => {
+                const tronAdapter = tronAdapterManager.getActiveAdapter()
                 if (!tronAdapter?.connected || !tronAdapter.address) return null
+                if (address && !Address.equals(tronAdapter.address, address, null, 'tron')) return null
+                const signMessage = (tronAdapter as TronSignerAdapter).signMessage
+                if (!signMessage) return null
 
-                return {
-                    wallet: {
-                        signMessage: (message: string) => tronAdapter.signMessage(message),
-                    },
-                }
+                return { wallet: { signMessage: (message: string) => signMessage.call(tronAdapter, message) } }
             },
         }
     }, [getRpcUrl])

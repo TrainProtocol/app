@@ -1,36 +1,27 @@
 import { FC } from "react"
-import SolanaProvider from "./SolanaProvider"
 import Wagmi from "./Wagmi";
-import StarknetProvider from "./StarknetProvider";
 import { WalletModalProvider } from "../WalletModal";
-import { WalletProvidersProvider } from "../../context/walletHookProviders";
-import { AztecWalletProvider } from "./AztecWalletProvider";
+import { WalletProvidersProvider } from "@/context/walletHookProviders";
+// import { AztecWalletProvider } from "./AztecWalletProvider";
 import { WalletBridges } from "../WalletBridges";
-import TronProvider from "./TronProvider";
 import ConnectWalletDrawer from "../WalletModal/ConnectWalletDrawer";
-import FuelProvider from "./FuelProvider";
+import LayerswapRegistry from "./LayerswapRegistry";
 
 const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[] }> = ({ children }) => {
     return (
-        <SolanaProvider>
-            <TronProvider>
-                <StarknetProvider>
-                    <Wagmi>
-                        <FuelProvider>
-                            <WalletModalProvider>
-                                <AztecWalletProvider>
-                                    <WalletProvidersProvider>
-                                        <WalletBridges />
-                                        <ConnectWalletDrawer />
-                                        {children}
-                                    </WalletProvidersProvider>
-                                </AztecWalletProvider>
-                            </WalletModalProvider>
-                        </FuelProvider>
-                    </Wagmi>
-                </StarknetProvider>
-            </TronProvider>
-        </SolanaProvider>
+        <Wagmi>
+            <WalletModalProvider>
+                {/* <AztecWalletProvider> */}
+                <LayerswapRegistry>
+                    <WalletProvidersProvider>
+                        <WalletBridges />
+                        <ConnectWalletDrawer />
+                        {children}
+                    </WalletProvidersProvider>
+                </LayerswapRegistry>
+                {/* </AztecWalletProvider> */}
+            </WalletModalProvider>
+        </Wagmi>
     )
 }
 

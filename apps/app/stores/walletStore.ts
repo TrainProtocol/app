@@ -1,6 +1,5 @@
 import { createWithEqualityFn as create } from 'zustand/traditional'
-import { Wallet } from '../Models/WalletProvider';
-
+import { Wallet } from "@layerswap/utils";
 interface WalletState {
     connectedWallets: Wallet[];
     connectWallet: (wallet: Wallet) => void;

@@ -26,12 +26,15 @@ export type SolanaWalletSignConfig = {
 
 /**
  * Framework-agnostic Solana signer.
- * The app wraps @solana/wallet-adapter-react hooks into this interface.
+ *
+ * Signing only — the wallet never touches the network. The client owns the sole
+ * `Connection` and uses it to build, broadcast and confirm, so the blockhash and
+ * the preflight can never come from differently configured endpoints.
  */
 export interface SolanaSigner {
     /** Base58 public key string */
     publicKey: string
-    sendTransaction(tx: Transaction | VersionedTransaction): Promise<string>
+    signTransaction<T extends Transaction | VersionedTransaction>(tx: T): Promise<T>
 }
 
 export type SolanaHTLCPublicClientConfig = {

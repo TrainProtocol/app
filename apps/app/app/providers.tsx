@@ -18,6 +18,7 @@ import { registerStarknetSdk } from "@train-protocol/starknet"
 import { registerSolanaSdk } from "@train-protocol/solana"
 import { registerAztecSdk } from "@train-protocol/aztec"
 import { registerFuelSdk } from "@train-protocol/fuel"
+import { setErrorLogger } from "@layerswap/utils"
 import ThemeWrapper from "@/components/themeWrapper"
 import MaintananceContent from "@/components/Maintanance"
 import ErrorFallback from "@/components/ErrorFallback"
@@ -51,14 +52,23 @@ const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY
 const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com"
 
 
-if (typeof window !== "undefined" && posthogKey) {
-    posthog.init(posthogKey, {
-        api_host: posthogHost,
-        person_profiles: "identified_only",
-        loaded: (ph) => {
-            if (process.env.NODE_ENV === "development") ph.debug()
-        },
-    })
+if (typeof window !== "undefined") {
+    if (posthogKey) {
+        posthog.init(posthogKey, {
+            api_host: posthogHost,
+            person_profiles: "identified_only",
+            loaded: (ph) => {
+                if (process.env.NODE_ENV === "development") ph.debug()
+            },
+        })
+        setErrorLogger(event => {
+            console.error('[layerswap]', event)
+            const error = new Error(event.message ?? event.type)
+            error.name = event.name ?? event.type
+            if (event.stack) error.stack = event.stack
+            posthog.captureException(error)
+        })
+    }
 }
 
 function logErrorToService(error: Error, info: { componentStack?: string | null }) {

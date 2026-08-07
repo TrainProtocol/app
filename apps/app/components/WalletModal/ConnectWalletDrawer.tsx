@@ -1,11 +1,19 @@
-import { FC } from "react";
+import { ensureRegistryBrowseLoaded, useWalletDescriptorLoader } from "@layerswap/ui-kit";
+import { type FC, useEffect } from "react";
 import { ChevronLeft } from "lucide-react";
+import { ConnectorsList as UiKitConnectorsList } from "@layerswap/ui-kit/components";
+import type { ConnectorsListProps } from "@layerswap/ui-kit/components";
 import IconButton from "../buttons/iconButton";
 import VaulDrawer from "../Modal/vaulModal";
 import AppShellDialog from "../shared/AppShellDialog";
+import TrainLogoSymbol from "@/components/Icons/TrainLogoSymbol";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
-import ConnectorsList from "./ConnectorsList";
+import useWallet from "@/hooks/useWallet";
+// import { useAztecWalletContext } from "../WalletProviders/AztecWalletProvider";
+// import AztecEmojiVerification from "./AztecEmojiVerification";
 import { useConnectModal } from ".";
+
+const ConnectorsList = UiKitConnectorsList as FC<ConnectorsListProps>;
 
 const ConnectWalletDrawer: FC = () => {
     const {
@@ -15,23 +23,50 @@ const ConnectWalletDrawer: FC = () => {
         setOpen,
         selectedConnector,
         selectedMultiChainConnector,
+        // setSelectedConnector,
         displayMode,
     } = useConnectModal();
+    // const { pendingVerification } = useAztecWalletContext();
+    const { providers } = useWallet();
     const { isMobile } = useWindowDimensions();
+    const { loadAll } = useWalletDescriptorLoader();
 
-    const title = (selectedMultiChainConnector && !selectedConnector) ? "Select ecosystem" : "Connect wallet"
-    const showBack = !!(selectedConnector || selectedMultiChainConnector)
+    useEffect(() => {
+        if (!open) return;
+        ensureRegistryBrowseLoaded();
+        void loadAll().then(() => ensureRegistryBrowseLoaded());
+    }, [open, loadAll]);
 
-    if (displayMode === 'dialog' && !isMobile) {
+    const title = selectedMultiChainConnector && !selectedConnector ? "Select ecosystem" : "Connect wallet";
+    const showBack = !!(selectedConnector || selectedMultiChainConnector);
+    // const content = pendingVerification ? (
+    //     <AztecEmojiVerification
+    //         emojis={pendingVerification.emojis}
+    //         onConfirm={() => { void pendingVerification.confirm(); }}
+    //         onCancel={() => {
+    //             pendingVerification.cancel();
+    //             setSelectedConnector(undefined);
+    //         }}
+    //     />
+    // ) : (
+    const content = (
+        <ConnectorsList
+            providers={providers}
+            onFinish={onFinish}
+            brandMark={<TrainLogoSymbol className="w-11 h-auto" />}
+        />
+    );
+
+    if (displayMode === "dialog" && !isMobile) {
         return (
             <AppShellDialog
                 open={open}
-                onOpenChange={(v) => { if (!v) onFinish() }}
+                onOpenChange={value => { if (!value) onFinish(); }}
                 title={title}
                 onBack={showBack ? goBack : undefined}
                 contentClassName="h-[550px]! max-h-[85svh]!"
             >
-                <ConnectorsList onFinish={onFinish} />
+                {content}
             </AppShellDialog>
         )
     }
@@ -41,7 +76,7 @@ const ConnectWalletDrawer: FC = () => {
             show={open}
             setShow={setOpen}
             onClose={onFinish}
-            modalId={"connectNewWallet"}
+            modalId="connectNewWallet"
             header={
                 <div className="flex items-center gap-1">
                     {showBack && (
@@ -52,8 +87,8 @@ const ConnectWalletDrawer: FC = () => {
                     <p>{title}</p>
                 </div>
             }>
-            <VaulDrawer.Snap openFullHeight id='item-1' className="h-full">
-                <ConnectorsList onFinish={onFinish} />
+            <VaulDrawer.Snap openFullHeight id="item-1" className="h-full">
+                {content}
             </VaulDrawer.Snap>
         </VaulDrawer>
     );

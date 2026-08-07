@@ -1,7 +1,8 @@
 import KnownInternalNames from "../../knownIds";
 import { useSettingsState } from "@/context/settings";
-import { InternalConnector, Wallet, WalletProvider } from "@/Models/WalletProvider";
-import { resolveWalletConnectorIcon } from "../utils/resolveWalletIcon";
+import { InternalConnector, Wallet } from "@layerswap/utils";
+import { WalletConnectionProvider } from "@layerswap/ui-kit/types";
+import { normalizeIconSrc } from "@layerswap/ui-kit";
 import { extractAztecAddress } from "./utils";
 import { useCallback, useMemo } from "react";
 import { useAztecWalletContext } from "@/components/WalletProviders/AztecWalletProvider";
@@ -17,7 +18,7 @@ const commonSupportedNetworks = [
 const name = 'Aztec'
 const id = 'aztec'
 
-export default function useAztec(): WalletProvider {
+export default function useAztec(): WalletConnectionProvider {
     const { networks } = useSettingsState()
 
     const { connect, disconnect } = useAztecWalletContext();
@@ -48,7 +49,7 @@ export default function useAztec(): WalletProvider {
             address,
             providerName: name,
             isActive: true,
-            icon: resolveWalletConnectorIcon({ connector: wallet.id, address }),
+            icon: wallet.icon,
             disconnect: () => disconnectWallets(),
             withdrawalSupportedNetworks: commonSupportedNetworks,
             asSourceSupportedNetworks: commonSupportedNetworks,
@@ -90,7 +91,7 @@ export default function useAztec(): WalletProvider {
                     address: primaryAddress,
                     providerName: name,
                     isActive: true,
-                    icon: resolveWalletConnectorIcon({ connector: providerId, address: primaryAddress }),
+                    icon: normalizeIconSrc(params?.connector?.icon),
                     disconnect: () => disconnectWallets(),
                     withdrawalSupportedNetworks: commonSupportedNetworks,
                     asSourceSupportedNetworks: commonSupportedNetworks,
@@ -116,6 +117,7 @@ export default function useAztec(): WalletProvider {
         return [{
             id: azguard.id,
             name: azguard.name,
+            icon: azguard.icon,
             providerName: name,
             extensionNotFound: false,
             hasBrowserExtension: true,
@@ -127,7 +129,7 @@ export default function useAztec(): WalletProvider {
         setActiveAddress(address);
     }, [setActiveAddress]);
 
-    const provider: WalletProvider = {
+    const provider: WalletConnectionProvider = {
         connectWallet,
         disconnectWallets,
         switchAccount,

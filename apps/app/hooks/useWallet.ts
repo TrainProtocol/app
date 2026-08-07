@@ -1,5 +1,6 @@
 import { Network } from "../Models/Network"
-import { Wallet, WalletProvider } from "../Models/WalletProvider";
+import { Wallet } from "@layerswap/utils";
+import { WalletConnectionProvider } from "@layerswap/ui-kit/types";
 import { useCallback, useMemo } from "react";
 import { useWalletProviders } from "../context/walletHookProviders";
 
@@ -20,7 +21,7 @@ export default function useWallet(network?: Network | undefined | null, purpose?
             connectedWallets = w ? [...connectedWallets, ...w] : [...connectedWallets];
         });
         return connectedWallets;
-    }, [walletProviders, network]);
+    }, [walletProviders, network, purpose]);
 
     const unAvailableWallets = useMemo(() => {
         return wallets.filter(wallet => wallet.isNotAvailable)
@@ -32,7 +33,7 @@ export default function useWallet(network?: Network | undefined | null, purpose?
 
     const getProvider = useCallback((network: Network, purpose: WalletPurpose) => {
         return network && resolveProvider(network, walletProviders, purpose)
-    }, [walletProviders, purpose]);
+    }, [walletProviders]);
 
     const res = useMemo(() => ({
         wallets: availableWallets,
@@ -40,15 +41,17 @@ export default function useWallet(network?: Network | undefined | null, purpose?
         provider,
         providers: walletProviders,
         getProvider
-    }), [wallets, provider, walletProviders, getProvider])
+    }), [availableWallets, unAvailableWallets, provider, walletProviders, getProvider])
 
     return res
 }
 
-const resolveProvider = (network: Network | undefined, walletProviders: WalletProvider[], purpose?: WalletPurpose) => {
+const resolvedProviderCache = new WeakMap<WalletConnectionProvider, Map<string, WalletConnectionProvider>>()
+
+const resolveProvider = (network: Network | undefined, walletProviders: WalletConnectionProvider[], purpose?: WalletPurpose) => {
     if (!purpose || !network?.caip2Id) return
 
-    let provider: WalletProvider | undefined = undefined
+    let provider: WalletConnectionProvider | undefined = undefined
     switch (purpose) {
         case "withdrawal":
             provider = walletProviders.find(provider => provider.withdrawalSupportedNetworks?.includes(network.caip2Id))
@@ -62,6 +65,11 @@ const resolveProvider = (network: Network | undefined, walletProviders: WalletPr
     }
 
     if (provider?.isNotAvailableCondition && purpose) {
+        const cacheKey = `${network.caip2Id}|${purpose}`
+        const cachedByKey = resolvedProviderCache.get(provider)
+        const cached = cachedByKey?.get(cacheKey)
+        if (cached) return cached
+
         const availableConnectors = provider.availableConnectors?.filter(connector => (provider.isNotAvailableCondition && network?.caip2Id) ? !provider.isNotAvailableCondition(connector.id, network?.caip2Id, purpose) : true)
         const additionalConnectors = provider.additionalConnectors?.filter(connector => (provider.isNotAvailableCondition && network?.caip2Id) ? !provider.isNotAvailableCondition(connector.id, network?.caip2Id, purpose) : true)
         const requestAdditionalConnectors = provider.requestAdditionalConnectors
@@ -80,26 +88,30 @@ const resolveProvider = (network: Network | undefined, walletProviders: WalletPr
         const resolvedProvider = {
             ...provider,
             connectedWallets: provider.connectedWallets?.map(wallet => {
+                const connectorId = wallet.internalId ?? wallet.id
                 return {
                     ...wallet,
-                    isNotAvailable: (provider.isNotAvailableCondition && network?.caip2Id && wallet.internalId) ? provider.isNotAvailableCondition(wallet.internalId, network?.caip2Id, purpose) : false,
+                    isNotAvailable: (provider.isNotAvailableCondition && network?.caip2Id && connectorId) ? provider.isNotAvailableCondition(connectorId, network?.caip2Id, purpose) : false,
                 }
             }),
             activeWallet: provider.activeWallet ? {
                 ...provider.activeWallet,
-                isNotAvailable: (network?.caip2Id) ? provider.isNotAvailableCondition(provider.activeWallet.id, network?.caip2Id, purpose) : false,
+                isNotAvailable: (network?.caip2Id) ? provider.isNotAvailableCondition(provider.activeWallet.internalId ?? provider.activeWallet.id, network?.caip2Id, purpose) : false,
             } : undefined,
             availableConnectors: availableConnectors,
             additionalConnectors,
             requestAdditionalConnectors,
         }
+        const byKey = cachedByKey ?? new Map<string, WalletConnectionProvider>()
+        byKey.set(cacheKey, resolvedProvider)
+        if (!cachedByKey) resolvedProviderCache.set(provider, byKey)
         return resolvedProvider
     }
 
     return provider
 }
 
-const resolveWallet = (wallet: Wallet, network: Network | undefined | null, provider: WalletProvider, purpose?: WalletPurpose) => {
+const resolveWallet = (wallet: Wallet, network: Network | undefined | null, provider: WalletConnectionProvider, purpose?: WalletPurpose) => {
 
     if (provider.isNotAvailableCondition && network?.caip2Id && wallet.internalId && !purpose) {
         return {

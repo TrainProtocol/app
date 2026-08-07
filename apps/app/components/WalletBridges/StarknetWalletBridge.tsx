@@ -1,11 +1,7 @@
 import { useMemo } from 'react'
-import {
-    useRegisterWallet,
-    chainNamespace,
-    type TrainWalletAdapter,
-    type Caip2Id,
-} from '@train-protocol/react'
+import { useRegisterWallet, chainNamespace, type TrainWalletAdapter, type Caip2Id, } from '@train-protocol/react'
 import type { TrainSDK } from '@train-protocol/sdk'
+import { Address } from '@/lib/address'
 import useWallet from '@/hooks/useWallet'
 import { useBridgeRpcUrl } from './useBridgeRpcUrl'
 
@@ -22,9 +18,12 @@ export function StarknetWalletBridge() {
                 return sdk.createHTLCPublicClient('starknet', { rpcUrl: getRpcUrl(networkId) })
             },
 
-            createWriteClient(sdk: TrainSDK, networkId: Caip2Id, _address?: string) {
+            createWriteClient(sdk: TrainSDK, networkId: Caip2Id, address?: string) {
                 const starknetAccount = starknetWalletProvider?.activeWallet?.metadata?.starknetAccount
                 if (!starknetAccount) throw new Error('No Starknet signer available')
+                if (address && !Address.equals(starknetAccount.address, address, null, 'starknet')) {
+                    throw new Error(`No connected Starknet signer available for address "${address}"`)
+                }
 
                 return sdk.createHTLCWalletClient('starknet', {
                     rpcUrl: getRpcUrl(networkId),
@@ -32,10 +31,11 @@ export function StarknetWalletBridge() {
                 })
             },
 
-            getLoginConfig: (_address?: string) => {
+            getLoginConfig: (address?: string) => {
                 const starknetAccount = starknetWalletProvider?.activeWallet?.metadata?.starknetAccount
 
                 if (!starknetAccount) return null
+                if (address && !Address.equals(starknetAccount.address, address, null, 'starknet')) return null
                 const isSandbox = process.env.NEXT_PUBLIC_API_VERSION === 'sandbox'
                 return {
                     provider: starknetAccount,

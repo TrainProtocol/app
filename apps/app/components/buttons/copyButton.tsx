@@ -3,7 +3,7 @@ import { classNames } from '../utils/classNames'
 import useCopyClipboard from '../../hooks/useCopyClipboard'
 import React, { FC, useState } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../shadcn/tooltip'
-import CopyIcon from '@/components/Icons/CopyIcon'
+import { CopyIcon } from '@layerswap/ui-kit/components'
 
 interface CopyButtonProps {
   className?: string

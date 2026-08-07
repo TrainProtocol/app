@@ -1,27 +1,25 @@
-import WalletIcon from "../Icons/WalletIcon"
+import { WalletIcon } from "@layerswap/ui-kit/components"
 import { Address } from "@/lib/address"
-import useWallet from "../../hooks/useWallet"
+import useWallet from "@/hooks/useWallet"
 import ConnectButton from "../buttons/connectButton"
 import { useState } from "react"
 import WalletsList from "./WalletsList"
-import { Wallet } from "../../Models/WalletProvider"
+import { Wallet } from "@layerswap/utils";
 import VaulDrawer from "../Modal/vaulModal"
 import { useConnectModal } from "@/components/WalletModal"
 import WalletsDialog from "@/components/Sidebar/WalletsDialog"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
+import WalletIconView from "./WalletIconView"
 
 export const WalletsHeader = () => {
-    const { wallets, providers } = useWallet()
+    const { wallets } = useWallet()
     const { isMobile } = useWindowDimensions()
     const { connect } = useConnectModal()
     const [walletsOpen, setWalletsOpen] = useState(false)
 
     const noWallets = wallets.length === 0
-    const providersReady = providers.length > 0 && providers.every(p => p.ready)
-    const disabled = noWallets && !providersReady
 
     const onClick = () => {
-        if (disabled) return
         if (!noWallets) setWalletsOpen(true)
         else connect(undefined, { displayMode: 'dialog' })
     }
@@ -32,7 +30,6 @@ export const WalletsHeader = () => {
                 <button
                     type="button"
                     onClick={onClick}
-                    disabled={disabled}
                     aria-label="Wallets"
                     className="p-1.5 max-sm:p-2 active:animate-press-down justify-self-start text-secondary-text hover:bg-secondary-500 max-sm:bg-secondary-500 hover:text-primary-text focus:outline-hidden inline-flex rounded-lg items-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -52,7 +49,6 @@ export const WalletsHeader = () => {
             <button
                 type="button"
                 onClick={onClick}
-                disabled={disabled}
                 aria-label={label}
                 className={`inline-flex items-center gap-2 ${isMulti ? 'py-1.5' : 'py-2'} px-3 rounded-xl bg-secondary-700 border border-border text-primary-text hover:bg-secondary-500 focus:outline-none transition-colors active:animate-press-down disabled:opacity-50 disabled:cursor-not-allowed`}
             >
@@ -69,15 +65,21 @@ const getDesktopContent = (wallets: Wallet[]): { label: string; icon: React.JSX.
     if (wallets.length > 1) return { label: 'Connected wallets', icon: <WalletsIcons wallets={wallets} /> }
     const w = wallets[0]
     const label = w.address && !w.isLoading ? new Address(w.address, null, w.providerName).toShortString() : 'Wallet'
-    return { label, icon: <w.icon className="h-5 w-5 shrink-0 rounded-md" /> }
+    return { label, icon: <WalletIconView wallet={w} className="h-5 w-5 shrink-0 rounded-md" /> }
 }
 type WalletsIconsProps = {
     wallets: {
         id: string;
         displayName?: string;
-        icon: (props: any) => React.JSX.Element;
+        icon?: Wallet['icon'];
     }[]
 }
+const ConnectedWalletIcon = ({ wallet }: { wallet: WalletsIconsProps["wallets"][number] }) => (
+    <span className="rounded-md border-2 border-secondary-400 bg-secondary-500 shrink-0 h-6 w-6 overflow-hidden">
+        <WalletIconView wallet={wallet} className="h-full w-full" size={24} />
+    </span>
+)
+
 export const WalletsIcons = ({ wallets }: WalletsIconsProps) => {
 
     const uniqueWallets = wallets.filter((wallet, index, self) => index === self.findIndex((t) => t.id === wallet.id))
@@ -89,11 +91,11 @@ export const WalletsIcons = ({ wallets }: WalletsIconsProps) => {
         <div className="-space-x-2 flex">
             {
                 firstWallet?.displayName &&
-                <firstWallet.icon className="rounded-md border-2 border-secondary-400 bg-secondary-500 shrink-0 h-6 w-6" />
+                <ConnectedWalletIcon wallet={firstWallet} />
             }
             {
                 secondWallet?.displayName &&
-                <secondWallet.icon className="rounded-md border-2 border-secondary-400 bg-secondary-500 shrink-0 h-6 w-6" />
+                <ConnectedWalletIcon wallet={secondWallet} />
             }
             {
                 uniqueWallets.length > 2 &&
@@ -136,7 +138,7 @@ const WalletsMenuWalletsList = ({ wallets }: { wallets: Wallet[] }) => {
                 wallets.length === 1 ?
                     <>
                         <span className="order-first absolute left-0 inset-y-0 flex items-center pl-3">
-                            <wallet.icon className='h-5 w-5' />
+                            <WalletIconView wallet={wallet} className="h-5 w-5" />
                         </span>
                         <span className="grow text-center">
                             {!wallet.isLoading && wallet.address && new Address(wallet.address, null, wallet.providerName).toShortString()}

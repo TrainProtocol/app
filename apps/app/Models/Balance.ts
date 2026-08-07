@@ -1,5 +1,5 @@
 import { ExtendedNetwork, ExtendedToken } from "./Network"
-import { Wallet } from "./WalletProvider"
+import { Wallet } from "@layerswap/utils"
 import { NodeErrorCategory } from "@/lib/balances/nodeErrorClassifier"
 
 export type GasProps = {

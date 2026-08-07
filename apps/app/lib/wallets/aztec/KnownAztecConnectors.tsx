@@ -1,20 +1,10 @@
-import Azguard from "@/components/Icons/Wallets/Azguard"
+import { azguardIconBase64 } from "./azguardIcon"
 
 const KnownAztecConnectors = [
     {
         id: 'azguard-wallet',
         name: 'Azguard',
-        icon: Azguard
-    },
-    {
-        id: 'azguard wallet',
-        name: 'Azguard',
-        icon: Azguard
-    },
-    {
-        id: 'azguard',
-        name: 'Azguard',
-        icon: Azguard
+        icon: azguardIconBase64
     },
 ]
 

@@ -3,16 +3,18 @@ import { AccountIdentity, useSelectSwapAccount, useSwapAccounts } from "@/contex
 import { SwapDirection, SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import { WalletsIcons } from "@/components/Wallet/ConnectedWallets";
 import { ChevronDown } from "lucide-react";
+import { WalletIcon } from "@layerswap/ui-kit/components";
 import { Address } from "@/lib/address";
-import WalletIcon from "@/components/Icons/WalletIcon";
 import ConnectButton from "@/components/buttons/connectButton";
 import VaulDrawer from "@/components/Modal/vaulModal";
 import { WalletItem } from "@/components/Wallet/WalletsList";
 import { ConnectNewWalletButton } from "@/components/Wallet/ConnectNewWalletButton";
-import { SelectAccountProps, Wallet } from "@/Models/WalletProvider";
+import { Wallet } from "@layerswap/utils";
+import { SelectAccountProps } from "@layerswap/ui-kit/types";
 import { Network } from "@/Models/Network";
 import { useFormikContext } from "formik";
 import { useConnectModal } from "@/components/WalletModal";
+import WalletIconView from "@/components/Wallet/WalletIconView";
 
 const PickerWalletConnect: FC<{ direction: SwapDirection }> = ({ direction }) => {
     const [openModal, setOpenModal] = useState(false);
@@ -83,7 +85,7 @@ const AccountsPickerButton: FC<{ accounts: (Wallet | AccountIdentity)[], onOpenM
             >
                 {accounts.length === 1 ? (
                     <div className="flex gap-2 items-center text-sm text-secondary-text">
-                        <firstWallet.icon className="h-5 w-5" />
+                        <WalletIconView wallet={firstWallet} className="h-5 w-5" />
                         {firstWallet.address && (
                             <p>{new Address(firstWallet.address, null, firstWallet.providerName).toShortString()}</p>
                         )}

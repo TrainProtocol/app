@@ -1,137 +1,97 @@
-import { Context, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { InternalConnector, Wallet, WalletProvider } from '../../Models/WalletProvider';
+import { createContext, type Dispatch, type ReactNode, type SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { connectModalStore } from "@layerswap/ui-kit";
+import * as UiKit from "@layerswap/ui-kit/components";
+import type { ModalWalletProvider } from "@layerswap/ui-kit/components";
+import type { WalletConnectionProvider, WalletModalConnector } from "@layerswap/ui-kit/types";
+import type { Wallet } from "@layerswap/utils";
 
-export type WalletModalConnector = InternalConnector & {
-    qr?: ({
-        state: 'loading',
-        value: undefined,
-        deepLink?: undefined
-    } | {
-        state: 'fetched',
-        value: string,
-        deepLink?: string
-    });
-    showQrCode?: boolean
+type ConnectDisplayMode = 'drawer' | 'dialog'
+
+type ConnectOptions = {
+    displayMode?: ConnectDisplayMode;
 }
-
-export type ModalWalletProvider = WalletProvider & {
-    isSelectedFromFilter?: boolean;
-}
-
-export type ConnectDisplayMode = 'drawer' | 'dialog'
-
-type SharedType = { provider?: WalletProvider, connectCallback: (value: Wallet | undefined) => void, displayMode?: ConnectDisplayMode }
 
 type ConnectModalContextType = {
-    connect: ({ provider, connectCallback, displayMode }: SharedType) => void;
+    connect: (provider?: WalletConnectionProvider, options?: ConnectOptions) => Promise<Wallet | undefined>;
     cancel: () => void;
     selectedProvider: ModalWalletProvider | undefined;
-    setSelectedProvider: (value: ModalWalletProvider | undefined) => void;
-    isWalletModalOpen?: boolean;
+    setSelectedProvider: (provider: ModalWalletProvider | undefined) => void;
+    isWalletModalOpen: boolean;
     selectedConnector: WalletModalConnector | undefined;
-    setSelectedConnector: (value: WalletModalConnector | undefined) => void;
-    selectedMultiChainConnector: InternalConnector | undefined;
-    setSelectedMultiChainConnector: (value: InternalConnector | undefined) => void;
+    setSelectedConnector: Dispatch<SetStateAction<WalletModalConnector | undefined>>;
+    selectedMultiChainConnector: WalletModalConnector | undefined;
+    setSelectedMultiChainConnector: (connector: WalletModalConnector | undefined) => void;
     goBack: () => void;
-    onFinish: (connectedWallet?: Wallet | undefined) => void;
-    setOpen: (value: boolean) => void;
+    onFinish: (wallet?: Wallet) => void;
+    setOpen: (open: boolean) => void;
     open: boolean;
     displayMode: ConnectDisplayMode;
 };
 
 const ConnectModalContext = createContext<ConnectModalContextType | null>(null);
 
-export function WalletModalProvider({ children }) {
-    const [connectConfig, setConnectConfig] = useState<SharedType | undefined>(undefined);
+export function WalletModalProvider({ children }: { children: ReactNode }) {
+    return (
+        <UiKit.WalletModalProvider>
+            <WalletModalShell>{children}</WalletModalShell>
+        </UiKit.WalletModalProvider>
+    );
+}
 
-    const [selectedProvider, setSelectedProvider] = useState<ModalWalletProvider | undefined>(undefined);
-    const [selectedConnector, setSelectedConnector] = useState<WalletModalConnector | undefined>(undefined);
-    const [selectedMultiChainConnector, setSelectedMultiChainConnector] = useState<InternalConnector | undefined>(undefined)
+function WalletModalShell({ children }: { children: ReactNode }) {
+    const { selectedProvider, setSelectedProvider, selectedConnector, setSelectedConnector,
+        selectedMultiChainConnector, setSelectedMultiChainConnector, start, cancel: cancelFlow, finish, goBack, } = UiKit.useConnectModal();
     const [open, setOpen] = useState(false);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
-    const [displayMode, setDisplayMode] = useState<ConnectDisplayMode>('drawer');
+    const [displayMode, setDisplayMode] = useState<ConnectDisplayMode>("drawer");
 
-    const connect = useCallback(async ({ provider, connectCallback, displayMode: mode = 'drawer' }: SharedType) => {
+    const connect = useCallback(async (
+        provider?: WalletConnectionProvider,
+        options: ConnectOptions = {},
+    ) => {
         const hasConnectorPicker = !!provider?.availableConnectors?.length
             || !!provider?.additionalConnectors?.length
-            || !!provider?.requestAdditionalConnectors
+            || !!provider?.requestAdditionalConnectors;
 
-        if (!hasConnectorPicker) {
-            await provider?.connectWallet()
-        }
-        setSelectedProvider(provider);
-        setDisplayMode(mode)
-        setOpen(true)
-        setConnectConfig({ provider, connectCallback });
-        return;
-    }, [])
+        if (!hasConnectorPicker) await provider?.connectWallet();
+
+        setDisplayMode(options.displayMode ?? "drawer");
+        setOpen(true);
+        return start(provider);
+    }, [start]);
 
     const cancel = useCallback(() => {
-        setConnectConfig(prev => {
-            prev?.connectCallback(undefined);
-            return undefined;
-        });
+        cancelFlow();
         setOpen(false);
-    }, [])
+    }, [cancelFlow]);
 
-    const onFinish = useCallback((connectedWallet?: Wallet | undefined) => {
-        setConnectConfig(prev => {
-            prev?.connectCallback(connectedWallet);
-            return undefined;
-        });
+    const onFinish = useCallback((wallet?: Wallet) => {
+        finish(wallet);
         setOpen(false);
-    }, [])
-
-    const goBack = useCallback(() => {
-        if (selectedConnector) {
-            setSelectedConnector(undefined)
-            setSelectedMultiChainConnector(undefined)
-            return;
-        } else if (selectedMultiChainConnector) {
-            setSelectedMultiChainConnector(undefined)
-            return;
-        }
-    }, [selectedConnector, selectedMultiChainConnector])
+    }, [finish]);
 
     useEffect(() => {
         if (!open && (selectedConnector || selectedMultiChainConnector)) {
-            setSelectedConnector(undefined)
-            setSelectedMultiChainConnector(undefined)
-            setSelectedProvider(undefined)
+            setSelectedConnector(undefined);
+            setSelectedMultiChainConnector(undefined);
+            setSelectedProvider(undefined);
         }
-        setIsWalletModalOpen(open)
-    }, [open])
+        setIsWalletModalOpen(open);
+        connectModalStore._syncOpen(open);
+    }, [open]);
 
-    const contextValue = useMemo(() => ({
+    const value = useMemo<ConnectModalContextType>(() => ({
         connect, cancel, selectedProvider, setSelectedProvider,
-        selectedConnector, setSelectedConnector,
-        selectedMultiChainConnector, setSelectedMultiChainConnector,
-        isWalletModalOpen, goBack, onFinish, setOpen, open, displayMode
-    }), [connect, cancel, selectedProvider, selectedConnector,
-        selectedMultiChainConnector, isWalletModalOpen, goBack, onFinish, open, displayMode])
+        selectedConnector, setSelectedConnector, selectedMultiChainConnector, setSelectedMultiChainConnector,
+        goBack, onFinish, setOpen, open, isWalletModalOpen, displayMode,
+    }), [cancel, connect, displayMode, goBack, isWalletModalOpen, onFinish, open,
+        selectedConnector, selectedMultiChainConnector, selectedProvider,])
 
-    return (
-        <ConnectModalContext.Provider value={contextValue}>
-            {children}
-        </ConnectModalContext.Provider>
-    )
+    return <ConnectModalContext.Provider value={value}>{children}</ConnectModalContext.Provider>;
 }
 
-export const useConnectModal = () => {
-
-    const context = useContext<ConnectModalContextType>(ConnectModalContext as Context<ConnectModalContextType>);
-
-    if (!context) {
-        throw new Error('useConnectModal must be used within a ConnectModalProvider');
-    }
-
-    const connect = useCallback(
-        (provider?: WalletProvider, options?: { displayMode?: ConnectDisplayMode }): Promise<Wallet | undefined> =>
-            new Promise((res) => {
-                context.connect({ provider, connectCallback: res, displayMode: options?.displayMode });
-            }),
-        [context.connect]
-    );
-
-    return useMemo(() => ({ ...context, connect }), [context, connect]);
-};
+export function useConnectModal() {
+    const context = useContext(ConnectModalContext);
+    if (!context) throw new Error("useConnectModal must be used within a ConnectModalProvider")
+    return context;
+}

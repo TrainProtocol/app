@@ -8,8 +8,8 @@ import { Gauge } from "./Gauge";
 import Timeline from "./Timeline";
 import { useSwapTimeline } from "./useSwapTimeline";
 import { CircleCheck, Info, SearchX, Undo2, X } from "lucide-react";
+import { CircularLoader } from "@layerswap/ui-kit/components";
 import { HTLCStatus } from "@train-protocol/react";
-import { Loader2 } from "lucide-react";
 import { useSettingsState } from "@/context/settings";
 import formatAmount from "@/lib/formatAmount";
 
@@ -177,7 +177,7 @@ const CollapsibleSubtitle: FC<{ text: string }> = ({ text }) => {
 
 export const SwapLoading: FC<{ message?: string }> = ({ message = "Loading swap data..." }) => (
     <div className="flex flex-col items-center justify-center gap-2 w-full min-h-93.5">
-        <Loader2 className="h-10 w-10 text-primary animate-spin" />
+        <CircularLoader className="h-10 w-10 animate-spin" />
         <span className="text-sm text-secondary-text">{message}</span>
     </div>
 );

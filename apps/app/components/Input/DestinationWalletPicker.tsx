@@ -2,10 +2,11 @@ import { ChevronDown, PlusIcon } from "lucide-react";
 import { AddressGroup, AddressItem, AddressTriggerProps } from "./Address/AddressPicker";
 import { Partner } from "@/Models/Partner";
 import AddressIcon from "../AddressIcon";
-import { Wallet } from "@/Models/WalletProvider";
-import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
+import { Wallet } from "@layerswap/utils";
+import { ImageWithFallback } from "@layerswap/ui-kit/components";
 import clsx from 'clsx';
 import { Address } from "@/lib/address";
+import WalletIconView from "@/components/Wallet/WalletIconView";
 
 const DestinationWalletPicker = (props: AddressTriggerProps) => {
     const { addressItem, connectedWallet, partner, destination } = props
@@ -70,7 +71,7 @@ const ResolvedIcon = (props: AdderssIconprops) => {
         />
     }
     else if (addressItem.group === AddressGroup.ConnectedWallet && wallet) {
-        return <wallet.icon className="w-4 h-4 rounded" />
+        return <WalletIconView wallet={wallet} className="w-4 h-4 rounded" />
     }
     else {
         return <AddressIcon className="h-4 w-4 p-0.5" address={destination ? new Address(addressItem.address, destination).full : addressItem.address} size={20} />

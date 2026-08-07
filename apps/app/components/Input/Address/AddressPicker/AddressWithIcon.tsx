@@ -1,15 +1,16 @@
 import { FC, MouseEventHandler, ReactNode, SVGProps, useCallback, useMemo, useState } from "react"
 import { AddressGroup, AddressItem } from ".";
 import AddressIcon from "@/components/AddressIcon";
+import WalletIconView from "@/components/Wallet/WalletIconView";
 import { Address, getExplorerUrl } from "@/lib/address";
-import { History, Copy, Check, ChevronDown, WalletIcon, Pencil, Link2, SquareArrowOutUpRight, Unplug, Info } from "lucide-react";
+import { History, Copy, Check, ChevronDown, Pencil, Link2, SquareArrowOutUpRight, Unplug, Info } from "lucide-react";
 import { Partner } from "@/Models/Partner";
 import { Network } from "@/Models/Network";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover";
 import useCopyClipboard from "@/hooks/useCopyClipboard";
 import Link from "next/link";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip";
-import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
+import { ImageWithFallback } from "@layerswap/ui-kit/components";
 import clsx from "clsx";
 import shortenString from "@/components/utils/ShortenString";
 
@@ -46,7 +47,7 @@ const AddressWithIcon: FC<Props> = ({ addressItem, partner, network, balance }) 
         {
             group: AddressGroup.ConnectedWallet,
             text: <p className={`${maxWalletNameWidth} text-ellipsis sm:max-w-full text-nowrap overflow-hidden text-[10px]`}>{addressItem.wallet?.displayName || 'Connected wallet'}</p>,
-            icon: addressItem.wallet?.icon || WalletIcon
+            icon: undefined
         },
         {
             group: AddressGroup.FromQuery,
@@ -94,7 +95,9 @@ const AddressWithIcon: FC<Props> = ({ addressItem, partner, network, balance }) 
                 </div>
                 <div className="text-secondary-text w-full min-w-0">
                     <div className="flex items-center gap-1 text-xs">
-                        {itemDescription?.icon && (
+                        {addressItem.group === AddressGroup.ConnectedWallet ? (
+                            <WalletIconView wallet={addressItem.wallet ?? {}} className="rounded-sm shrink-0 h-3.5 w-3.5" />
+                        ) : itemDescription?.icon && (
                             <itemDescription.icon className="rounded-sm shrink-0 h-3.5 w-3.5" />
                         )}
                         {itemDescription?.text}
@@ -133,7 +136,7 @@ type ExtendedAddressProps = {
     showDetails?: boolean;
     title?: string;
     description?: string;
-    logo?: string | ((e: SVGProps<SVGSVGElement>) => ReactNode);
+    logo?: string;
     children?: ReactNode
     shouldShowChevron?: boolean
     isNativeToken?: boolean;
@@ -240,23 +243,21 @@ export const ExtendedAddress: FC<ExtendedAddressProps> = ({ address, network, pr
                     {showDetails && (title || description) && (
                         <div>
                             <div className="flex items-center gap-3">
-                                {Logo ?
-
-                                    typeof Logo == 'string' ? (
-                                        <ImageWithFallback
-                                            src={Logo}
-                                            alt={title || "Token logo"}
-                                            height="40"
-                                            width="40"
-                                            loading="eager"
-                                            fetchPriority="high"
-                                            className="rounded-full object-contain shrink-0 h-10 w-10"
-                                        />
-                                    ) : (
-                                        <Logo className="w-10 h-10 text-secondary-text shrink-0" />
-                                    ) : (
-                                        <Info className="w-10 h-10 text-secondary-text shrink-0" />
-                                    )}
+                                {Logo ? (
+                                    <ImageWithFallback
+                                        src={Logo}
+                                        alt={title || "Token logo"}
+                                        height="40"
+                                        width="40"
+                                        loading="eager"
+                                        fetchPriority="high"
+                                        className="rounded-full object-contain shrink-0 h-10 w-10"
+                                    />
+                                ) : !isForCurrency ? (
+                                    <AddressIcon address={address} size={40} className="w-10 h-10 shrink-0" />
+                                ) : (
+                                    <Info className="w-10 h-10 text-secondary-text shrink-0" />
+                                )}
                                 <div className="flex-1 font-medium">
                                     {title && <h3 className="text-base leading-5 text-primary-text">{title}</h3>}
                                     {description && <p className="text-sm leading-[18px] text-secondary-text">{description}</p>}

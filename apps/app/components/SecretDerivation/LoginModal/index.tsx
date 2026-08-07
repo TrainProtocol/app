@@ -1,5 +1,6 @@
 import { ReactNode, useEffect, useState } from 'react';
-import { Loader2, ChevronLeft, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, AlertTriangle } from 'lucide-react';
+import { CircularLoader } from '@layerswap/ui-kit/components';
 import { useSharedSecretDerivation } from '@train-protocol/react';
 import { mapPasskeyError } from '@train-protocol/auth';
 import { EntryStep, CreateStep, ErrorStep } from './PasskeyChoice';
@@ -183,7 +184,7 @@ const Signing = ({ derivationMessage }: { derivationMessage: string }) => {
   const info = (
     <>
       <div className="w-14 h-14 rounded-2xl bg-secondary-500 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary-text animate-spin" />
+        <CircularLoader className="w-8 h-8 animate-spin" />
       </div>
       <div className="text-center space-y-1">
         <p className="text-primary-text font-semibold">{derivationMessage || 'Please sign…'}</p>

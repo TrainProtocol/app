@@ -55,8 +55,8 @@ async function estimateSolanaGas(params: {
         rpcUrl: params.rpcUrl,
         signer: {
             publicKey: params.address,
-            sendTransaction: async () => {
-                throw new Error('Gas estimation signer cannot submit transactions')
+            signTransaction: async () => {
+                throw new Error('Gas estimation signer cannot sign transactions')
             },
         },
     })

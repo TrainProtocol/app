@@ -1,26 +1,28 @@
 import { ChevronDown, Unplug } from "lucide-react";
 import AddressIcon from "../AddressIcon";
 import { FC, useCallback, useState } from "react";
-import { SelectAccountProps, Wallet, WalletProvider } from "../../Models/WalletProvider";
+import { Wallet } from "@layerswap/utils";
+import { SelectAccountProps, WalletConnectionProvider } from "@layerswap/ui-kit/types";
 import { ExtendedAddress } from "../Input/Address/AddressPicker/AddressWithIcon";
 import { clsx } from 'clsx';
 import { useConnectModal } from "../WalletModal";
-import { Network, Token } from "../../Models/Network";
+import { Network, Token } from "@/Models/Network";
 import FilledCheck from "../Icons/FilledCheck";
 import { truncateDecimals } from "../utils/RoundDecimals";
-import { useSettingsState } from "../../context/settings";
+import { useSettingsState } from "@/context/settings";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../shadcn/tooltip";
-import { ImageWithFallback } from "../Common/ImageWithFallback";
+import { ImageWithFallback } from "@layerswap/ui-kit/components";
 import { AccountIdentity, useSelectedAccount } from "@/context/swapAccounts";
 import { useBalance } from "@/lib/balances/useBalance";
 import { ConnectNewWalletButton } from "./ConnectNewWalletButton";
+import WalletIconView from "./WalletIconView";
 
 type Props = {
     selectable?: boolean;
     wallets: (Wallet | AccountIdentity)[];
     token?: Token;
     network?: Network;
-    provider?: WalletProvider | undefined;
+    provider?: WalletConnectionProvider | undefined;
     onSelect?: (props: SelectAccountProps) => void;
     selectedDepositMethod?: "wallet" | "deposit_address";
     layout?: "overlay" | "standalone";
@@ -143,9 +145,7 @@ export const WalletItem: FC<WalletItemProps> = ({ selectable, account: wallet, n
                     {
                         wallet &&
                         <div className="inline-flex items-center relative">
-                            <wallet.icon
-                                className="w-9 h-9 p-0.5 rounded-md bg-secondary-800"
-                            />
+                            <WalletIconView wallet={wallet} className="w-9 h-9 p-0.5 rounded-md bg-secondary-800" />
                             {
                                 hasNetworkIcon(wallet) && <div className="h-5 w-5 absolute -right-1 -bottom-1">
                                     <ImageWithFallback

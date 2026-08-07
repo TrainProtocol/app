@@ -14,7 +14,8 @@ export async function redeemSolver(
     const tx = await buildRedeemSolverTx(connection, program, walletPublicKey, params)
 
     try {
-        const signature = await signer.sendTransaction(tx)
+        const signed = await signer.signTransaction(tx)
+        const signature = await connection.sendRawTransaction(signed.serialize())
         const res = await connection.confirmTransaction({
             blockhash: tx.recentBlockhash!,
             lastValidBlockHeight: tx.lastValidBlockHeight!,
