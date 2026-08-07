@@ -5,6 +5,7 @@ import { ExtendedNetwork } from "@/Models/Network"
 import { useRouter, useSearchParams } from "next/navigation"
 import { buildHrefWithPersistantParams } from "@/helpers/querryHelper"
 import { buildSwapQuery } from "@/helpers/swapUrl"
+import { captureEvent } from "@/lib/faro"
 
 export function useMenuNavigation() {
     const { goToStep } = useFormWizardaUpdate()
@@ -31,9 +32,10 @@ export function useMenuNavigation() {
     }, [goToStep])
 
     const handleNetworkSave = useCallback(() => {
+        captureEvent("rpc_override_saved", { network: selectedNetwork?.caip2Id })
         setSelectedNetwork(null)
         goToStep(MenuStep.RPCConfiguration, "back")
-    }, [goToStep])
+    }, [goToStep, selectedNetwork?.caip2Id])
 
     const handleRecoverSwap = useCallback((sourceNetwork: string, txHash: string) => {
         const href = buildHrefWithPersistantParams('/swap', searchParams, buildSwapQuery(sourceNetwork, txHash))

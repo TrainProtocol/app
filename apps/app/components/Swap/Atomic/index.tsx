@@ -20,6 +20,7 @@ import { buildHrefWithPersistantParams, replaceUrlWithoutRouting } from "@/helpe
 import { buildSwapQuery } from "@/helpers/swapUrl";
 import { useActiveSwap } from "@/hooks/useActiveSwap";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
+import { captureEvent } from "@/lib/faro";
 
 export default function Form() {
     const formikRef = useRef<FormikProps<SwapFormValues>>(null);
@@ -72,9 +73,20 @@ export default function Form() {
             setActiveHashlock(null)
             setPendingFormValues(values)
             setSwapModalOpen(true)
+
+            captureEvent("swap_form_submitted", {
+                source_network: values.from?.caip2Id,
+                destination_network: values.to?.caip2Id,
+                source_token: values.fromCurrency?.symbol,
+                destination_token: values.toCurrency?.symbol,
+                amount: values.amount || values.receiveAmount,
+            })
         }
         catch (error) {
             console.log(error)
+            captureEvent("swap_form_submit_blocked", {
+                reason: error instanceof Error ? error.message : String(error),
+            })
         }
     }, [query, getProvider, isLoggedIn, quote, solverId])
 

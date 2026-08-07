@@ -6,11 +6,12 @@ import { Wallet } from "@/Models/WalletProvider";
 import { ImageWithFallback } from "@/components/Common/ImageWithFallback";
 import clsx from 'clsx';
 import { Address } from "@/lib/address";
+import { captureEvent } from "@/lib/faro";
 
 const DestinationWalletPicker = (props: AddressTriggerProps) => {
     const { addressItem, connectedWallet, partner, destination } = props
     return destination && <div
-        data-attr={addressItem ? "address-item" : "add-address"}
+        onClick={() => captureEvent(addressItem ? "address_item_clicked" : "add_address_clicked")}
         className={clsx(
             "flex items-center space-x-2 text-sm rounded-lg py-1 px-2 justify-self-end",
             {
