@@ -11,6 +11,7 @@ import NumberFlow from '@number-flow/react';
 import { DetailedEstimates } from './SwapQuote/DetailedEstimates';
 import { QuoteAccordion } from './QuoteAccordion';
 import { useGasFeeDisplay, useSwapFeeDisplay } from './useFeeDisplay';
+import { captureEvent } from '@/lib/faro';
 
 export interface QuoteComponentProps {
     quote: SwapQuote | undefined;
@@ -27,8 +28,10 @@ export default function QuoteDetails({ values, quote, isQuoteLoading }: QuoteCom
     return (
         <QuoteAccordion
             isOpen={isAccordionOpen}
-            onOpenChange={setIsAccordionOpen}
-            triggerDataAttr="see-swap-details"
+            onOpenChange={(open) => {
+                if (open) captureEvent('see_swap_details', { location: 'form' })
+                setIsAccordionOpen(open)
+            }}
             triggerClassName={clsx(
                 'p-3.5 pr-5 w-full rounded-2xl flex items-center justify-between transition-colors duration-200 hover:bg-secondary-400 mt-2',
                 {

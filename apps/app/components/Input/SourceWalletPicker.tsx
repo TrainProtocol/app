@@ -11,6 +11,7 @@ import SubmitButton from "@/components/buttons/submitButton";
 import { useConnectModal } from "../WalletModal";
 import WalletsList from "@/components/Wallet/WalletsList";
 import { useSelectedAccount, useSelectSwapAccount } from "@/context/swapAccounts";
+import { captureEvent } from "@/lib/faro";
 
 const SourceWalletPicker: FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false)
@@ -185,9 +186,11 @@ const Connect: FC<{ connectFn?: () => Promise<Wallet | undefined | void>; isDisa
     }
 
     return <SubmitButton
-        onClick={() => connectFn ? connectFn() : connectWallet()}
+        onClick={() => {
+            captureEvent("connect_wallet_clicked", { location: "source_picker" })
+            return connectFn ? connectFn() : connectWallet()
+        }}
         type="button"
-        data-attr="connect-wallet"
         icon={<WalletIcon className="h-6 w-6" strokeWidth={2} />}
         isDisabled={!isProvidersReady || isDisabled}
     >

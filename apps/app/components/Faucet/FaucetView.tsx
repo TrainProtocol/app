@@ -18,6 +18,7 @@ import AddTokenToWalletButton from "./AddTokenToWalletButton"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
 import Link from "next/link"
 import { useFaucetNudgeStore } from "@/stores/faucetNudgeStore"
+import { captureEvent } from "@/lib/faro"
 
 const FaucetView: FC<{ hideMenu?: boolean }> = ({ hideMenu = false }) => {
     const { isMobile } = useWindowDimensions()
@@ -120,6 +121,7 @@ export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }
         if (!network || !recipient) return
         if (!Address.isValid(recipient, network)) return
         if (!token) return
+        captureEvent("faucet_mint_clicked", { network: network.caip2Id, token: token.symbol })
         setPosting(true)
         setPostError(null)
         setAddTokenError(null)
@@ -132,7 +134,13 @@ export const FaucetContent: FC<{ hideTitle?: boolean }> = ({ hideTitle = false }
             })
             setClaim({ correlationId: id, token, network, recipient })
             markMinted(network.caip2Id, token.symbol)
+            captureEvent("faucet_mint_submitted", { network: network.caip2Id, token: token.symbol })
         } catch (err) {
+            captureEvent("faucet_mint_failed", {
+                network: network.caip2Id,
+                token: token.symbol,
+                message: err instanceof Error ? err.message : String(err),
+            })
             setPostError(err instanceof Error ? err : new Error(String(err)))
         } finally {
             setPosting(false)

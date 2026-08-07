@@ -16,6 +16,7 @@ import { useLoginIdentityMismatch, useRecoveryIdentityCheck, HTLCStatus, type Id
 import { useSwapStore } from "@/stores/swapStore";
 import { Drawer } from "@/components/Modal/vaul";
 import type { SwapFormValues } from "@/components/DTOs/SwapFormValues";
+import { captureEvent } from "@/lib/faro";
 
 export type SwapViewType = "widget" | "contained"
 
@@ -140,6 +141,22 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
     const verificationFailed = error?.code === TrainErrorCode.VerificationFailed || consensusFailed
     const verificationMismatch = mismatches.length > 0
 
+    // Semantic verification outcomes (quote-vs-onchain-lock) — hard drop-off points.
+    const trackedOutcomeRef = useRef<string | undefined>(undefined)
+    useEffect(() => {
+        const outcome = verificationMismatch ? "verification_mismatch"
+            : skipped ? "verification_skipped"
+                : warning ? "identity_mismatch_warning"
+                    : undefined
+        if (!outcome || trackedOutcomeRef.current === outcome) return
+        trackedOutcomeRef.current = outcome
+        captureEvent(outcome, {
+            hashlock,
+            ...(verificationMismatch ? { mismatches: mismatches } : {}),
+            ...(warning ? { warning_header: warning.header } : {}),
+        })
+    }, [verificationMismatch, skipped, warning, hashlock, mismatches])
+
     const attemptReveal = useCallback(() => {
         attemptedRef.current = true
         revealSecret().catch((err) => {
@@ -176,7 +193,10 @@ const SolverLockDetectedAction: FC<{ type: SwapViewType }> = ({ type }) => {
                     canRetry={ready}
                     errorMessage={error?.message}
                     onRetry={handleRetry}
-                    onVerifyManually={markVerifiedManually}
+                    onVerifyManually={() => {
+                        captureEvent("verification_manual_override_clicked", { hashlock })
+                        markVerifiedManually()
+                    }}
                 />
             </ActionWrapper>
         )

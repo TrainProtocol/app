@@ -3,6 +3,7 @@ import { ResolveConnectorIcon } from "../../../../Icons/ConnectorIcons";
 import { FC, useState } from "react";
 import { Wallet, WalletProvider } from "../../../../../Models/WalletProvider";
 import { useConnectModal } from "../../../../WalletModal";
+import { captureEvent } from "@/lib/faro";
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     provider?: WalletProvider,
@@ -17,6 +18,7 @@ const ConnectWalletButton: FC<Props> = ({ provider, onConnect, descriptionText, 
 
     const handleConnect = async () => {
         if (!isProviderReady) return
+        captureEvent("connect_wallet_clicked", { location: "address_picker" })
         setIsLoading(true)
         const result = await connect(provider)
         if (onConnect && result) onConnect(result)
@@ -27,7 +29,6 @@ const ConnectWalletButton: FC<Props> = ({ provider, onConnect, descriptionText, 
         {...rest}
         type="button"
         onClick={handleConnect}
-        data-attr="connect-wallet"
         disabled={!isProviderReady || rest.disabled}
         className={`focus-ring-primary-bold py-5 px-6 bg-secondary-500 hover:bg-secondary-400 transition-colors duration-200 rounded-xl ${(isLoading || !isProviderReady) ? 'cursor-progress opacity-80' : ''} disabled:opacity-50 disabled:cursor-not-allowed ${rest.className ?? ''}`}
     >

@@ -1,4 +1,5 @@
 import dynamic from "next/dynamic";
+import { useEffect, useRef } from "react";
 import { FormSourceWalletButton } from "../Input/SourceWalletPicker";
 import SwapButton from "../buttons/swapButton";
 import { FormikErrors } from "formik";
@@ -6,6 +7,7 @@ import { SwapFormValues } from "../DTOs/SwapFormValues";
 import { useSharedSecretDerivation } from "@train-protocol/react";
 import { useAuthDialog } from "@/stores/authDialogStore";
 import SubmitButton from "../buttons/submitButton";
+import { captureEvent } from "@/lib/faro";
 
 const Address = dynamic(
     () => import("../Input/Address").then((mod) => mod.default),
@@ -27,7 +29,26 @@ const FormButton = ({
     const openAuthDialog = useAuthDialog((s) => s.openAuthDialog);
 
     const hasUserAmount = values.amount || values.receiveAmount;
-    if (values.from && values.to && values.fromCurrency && values.toCurrency && hasUserAmount && !quote && !isQuoteLoading) {
+    const hasFullRoute = values.from && values.to && values.fromCurrency && values.toCurrency;
+
+    // The rendered CTA variant IS the reason the user can't proceed — report it
+    // once per state change so drop-off can be attributed to a blocking step.
+    const ctaState = (hasFullRoute && hasUserAmount && !quote && !isQuoteLoading) ? "no_quote"
+        : !isLoggedIn ? "login_required"
+            : shouldConnectWallet ? "connect_wallet"
+                : (values?.to && !values?.destination_address) ? "need_address"
+                    : "ready";
+    const prevCtaStateRef = useRef<string | undefined>(undefined);
+    useEffect(() => {
+        if (prevCtaStateRef.current === ctaState) return;
+        prevCtaStateRef.current = ctaState;
+        captureEvent("cta_state_shown", {
+            state: ctaState,
+            ...(ctaState === "no_quote" ? { message: solverErrorMessage || "Can't get quote" } : {}),
+        });
+    }, [ctaState, solverErrorMessage]);
+
+    if (hasFullRoute && hasUserAmount && !quote && !isQuoteLoading) {
         return <SwapButton
             type="submit"
             isDisabled={true}

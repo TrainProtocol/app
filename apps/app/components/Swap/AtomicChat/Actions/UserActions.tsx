@@ -3,13 +3,22 @@ import useWallet from "@/hooks/useWallet";
 import { useActiveSwap } from "@/hooks/useActiveSwap";
 import { useCreateSwap, useRefund, LockStatus, type SwapQuote, useSharedSecretDerivation, type StartSwapParams } from "@train-protocol/react"
 import { WalletActionButton } from "../../buttons";
-import posthog from "posthog-js";
+import { captureEvent, setSwapContext } from "@/lib/faro";
 import { ActionWrapper, SwapViewType } from ".";
 import { useSelectedAccount } from "@/context/swapAccounts";
 import { Address } from "@/lib/address";
 import { useSwapStore } from "@/stores/swapStore";
 import { useSettingsState } from "@/context/settings";
 import formatAmount from "@/lib/formatAmount";
+
+// Same string heuristics the swap modal's TransactionMessage uses to pick a message.
+function classifyWalletError(message: string): string {
+    const lower = message.toLowerCase()
+    if (message === "An error occurred (USER_REFUSED_OP)" || message === "Execute failed" || lower.includes("denied") || lower.includes("user rejected")) return "user_rejected"
+    if (lower.includes("insufficient funds")) return "insufficient_funds"
+    if (lower.includes("expired")) return "quote_expired"
+    return "unknown"
+}
 
 type UserCommitActionProps = {
     quote?: SwapQuote
@@ -43,6 +52,10 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type, setErro
     const destContract = destination_network?.trainContract
 
     const handleUserLock = async () => {
+        captureEvent("user_lock_clicked", {
+            source_network: source_network?.caip2Id,
+            destination_network: destination_network?.caip2Id,
+        })
         try {
             if (!quote || !source_network || !sourceWallet || !sourceAccount || !provider?.activeWallet || !address || !destination_network || !destination_asset || !source_asset || !atomicContract || !destContract) throw new Error("Missing params")
 
@@ -81,17 +94,33 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type, setErro
             const hl = await createSwap(params)
             setActiveHashlock(hl)
 
-            posthog.capture("UserLock", {
+            setSwapContext({
+                hashlock: hl,
+                source_network: source_network.caip2Id,
+                destination_network: destination_network.caip2Id,
+                source_asset: source_asset.symbol,
+                destination_asset: destination_asset.symbol,
+                user_address: address,
+            })
+
+            captureEvent("user_lock", {
                 amount: amount,
-                sourceNetwork: source_network.caip2Id,
-                destinationNetwork: destination_network.caip2Id,
-                sourceAsset: source_asset.symbol,
-                destinationAsset: destination_asset.symbol,
-                userAddress: address,
+                source_network: source_network.caip2Id,
+                destination_network: destination_network.caip2Id,
+                source_asset: source_asset.symbol,
+                destination_asset: destination_asset.symbol,
+                user_address: address,
             })
         }
         catch (e) {
             console.error('[UserLock] failed', e?.message ?? String(e), ...(e?.logs ? [e.logs] : []))
+            const message = e instanceof Error ? e.message : String(e)
+            captureEvent("user_lock_failed", {
+                reason: classifyWalletError(message),
+                message,
+                source_network: source_network?.caip2Id,
+                destination_network: destination_network?.caip2Id,
+            })
             setError(e instanceof Error ? e : new Error(String(e)))
         }
     }
@@ -142,11 +171,11 @@ export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
 
             const res = await doRefund({ hashlock: activeHashlock, address: sourceAccount?.address })
 
-            posthog.capture("Refund", {
-                userLock: sourceDetails,
+            captureEvent("refund", {
+                user_lock: sourceDetails,
                 hashlock: sourceDetails?.hashlock,
-                chainId: sourceNetwork.chainId,
-                contractAddress: srcContract
+                chain_id: sourceNetwork.chainId,
+                contract_address: srcContract
             })
 
             if (res) {
@@ -155,6 +184,10 @@ export const UserRefundAction: FC<{ type: SwapViewType }> = ({ type }) => {
         }
         catch (e) {
             console.error('[Refund] failed', e)
+            captureEvent("refund_failed", {
+                hashlock: activeHashlock ?? undefined,
+                message: e instanceof Error ? e.message : String(e),
+            })
         }
     }
 

@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/too
 import { useSelectedAccount } from "@/context/swapAccounts";
 import { useBalance } from "@/lib/balances/useBalance";
 import { getNativeToken } from "@/Models/Network";
+import { captureEvent } from "@/lib/faro";
 
 type MinMaxProps = {
     fromCurrency: ExtendedToken,
@@ -67,12 +68,14 @@ const MinMax = (props: MinMaxProps) => {
     const handleSetHalfAmount = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault()
         e.stopPropagation()
+        captureEvent("half_amount_clicked")
         handleSetValue(halfOfBalance.toString())
     }
 
     const handleSetMaxAmount = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault()
         e.stopPropagation()
+        captureEvent("max_amount_clicked")
         handleSetValue(maxAllowedAmount.toString())
     }
 
@@ -84,7 +87,6 @@ const MinMax = (props: MinMaxProps) => {
     return (
         <div className="flex gap-1.5 group text-xs leading-4" onMouseLeave={() => onActionHover(undefined)}>
             <ActionButton
-                data-attr="half-amount"
                 label="50%"
                 onMouseEnter={() => onActionHover(halfOfBalance, computeUsdValue(halfOfBalance))}
                 onClick={handleSetHalfAmount}
@@ -92,7 +94,6 @@ const MinMax = (props: MinMaxProps) => {
             <Tooltip disableHoverableContent={true}>
                 <TooltipTrigger asChild>
                     <ActionButton
-                        data-attr="max-amount"
                         label="Max"
                         onMouseEnter={() => onActionHover(maxAllowedAmount, computeUsdValue(maxAllowedAmount))}
                         onClick={handleSetMaxAmount}
