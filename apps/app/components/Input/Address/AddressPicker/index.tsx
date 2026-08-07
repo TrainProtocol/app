@@ -146,9 +146,9 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
         const wallet = destination && connectedWallets?.find(w => w.addresses?.some(a => AddressClass.equals(a, address || '', destination)))
         setFieldValue('destination_address', address)
 
-        if (origin === 'user' && address) {
+        if (address) {
             captureEvent('destination_address_set', {
-                source: wallet ? 'connected_wallet' : 'manual',
+                source: origin === 'auto' ? 'connected_wallet_auto' : wallet ? 'connected_wallet' : 'manual',
                 network: destination?.caip2Id,
             })
         }

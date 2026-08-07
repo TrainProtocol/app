@@ -540,7 +540,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=session_start\" | logfmt | event_name=\"session_start\" [$__range])))",
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=session_start\" | logfmt | event_name=\"session_start\" [$__range]))) or vector(0)",
           "refId": "A",
           "queryType": "instant",
           "legendFormat": "1. Session started"
@@ -550,7 +550,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=route_selected\" | logfmt | event_name=\"route_selected\" [$__range])))",
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=route_selected\" | logfmt | event_name=\"route_selected\" [$__range]))) or vector(0)",
           "refId": "B",
           "queryType": "instant",
           "legendFormat": "2. Route selected"
@@ -560,7 +560,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=quote_received\" | logfmt | event_name=\"quote_received\" [$__range])))",
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=quote_received\" | logfmt | event_name=\"quote_received\" [$__range]))) or vector(0)",
           "refId": "C",
           "queryType": "instant",
           "legendFormat": "3. Quote received"
@@ -570,7 +570,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=destination_address_set\" | logfmt | event_name=\"destination_address_set\" [$__range])))",
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=destination_address_set\" | logfmt | event_name=\"destination_address_set\" [$__range]))) or vector(0)",
           "refId": "D",
           "queryType": "instant",
           "legendFormat": "4. Address set"
@@ -580,7 +580,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=swap_form_submitted\" | logfmt | event_name=\"swap_form_submitted\" [$__range])))",
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=swap_form_submitted\" | logfmt | event_name=\"swap_form_submitted\" [$__range]))) or vector(0)",
           "refId": "E",
           "queryType": "instant",
           "legendFormat": "5. Swap submitted"
@@ -590,7 +590,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=user_lock_clicked\" | logfmt | event_name=\"user_lock_clicked\" [$__range])))",
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=user_lock_clicked\" | logfmt | event_name=\"user_lock_clicked\" [$__range]))) or vector(0)",
           "refId": "F",
           "queryType": "instant",
           "legendFormat": "6. Lock clicked (wallet prompt)"
@@ -600,7 +600,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=user_lock_confirmed\" | logfmt | event_name=\"user_lock_confirmed\" [$__range])))",
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=user_lock_confirmed\" | logfmt | event_name=\"user_lock_confirmed\" [$__range]))) or vector(0)",
           "refId": "G",
           "queryType": "instant",
           "legendFormat": "7. Lock confirmed on-chain"
@@ -610,7 +610,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=solver_lock_detected\" | logfmt | event_name=\"solver_lock_detected\" [$__range])))",
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=solver_lock_detected\" | logfmt | event_name=\"solver_lock_detected\" [$__range]))) or vector(0)",
           "refId": "H",
           "queryType": "instant",
           "legendFormat": "8. Solver lock detected"
@@ -620,7 +620,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=swap_completed\" | logfmt | event_name=\"swap_completed\" [$__range])))",
+          "expr": "count(sum by (session_id) (count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=swap_completed\" | logfmt | event_name=\"swap_completed\" [$__range]))) or vector(0)",
           "refId": "I",
           "queryType": "instant",
           "legendFormat": "9. Swap completed"
@@ -635,7 +635,116 @@
           },
           "min": 0
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "1. Session started"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "2. Route selected"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "C"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "3. Quote received"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "D"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "4. Address set"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "E"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "5. Swap submitted"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "F"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "6. Lock clicked (wallet prompt)"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "G"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "7. Lock confirmed on-chain"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "H"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "8. Solver lock detected"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "I"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "9. Swap completed"
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "reduceOptions": {
@@ -857,7 +966,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=verification_passed\" | logfmt | event_name=\"verification_passed\" [$__range]))",
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=verification_passed\" | logfmt | event_name=\"verification_passed\" [$__range])) or vector(0)",
           "refId": "A",
           "queryType": "instant",
           "legendFormat": "Consensus passed"
@@ -867,7 +976,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=verification_failed\" | logfmt | event_name=\"verification_failed\" [$__range]))",
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=verification_failed\" | logfmt | event_name=\"verification_failed\" [$__range])) or vector(0)",
           "refId": "B",
           "queryType": "instant",
           "legendFormat": "Consensus failed"
@@ -877,7 +986,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=verification_mismatch\" | logfmt | event_name=\"verification_mismatch\" [$__range]))",
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=verification_mismatch\" | logfmt | event_name=\"verification_mismatch\" [$__range])) or vector(0)",
           "refId": "C",
           "queryType": "instant",
           "legendFormat": "Quote mismatch"
@@ -887,7 +996,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=verification_skipped\" | logfmt | event_name=\"verification_skipped\" [$__range]))",
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=verification_skipped\" | logfmt | event_name=\"verification_skipped\" [$__range])) or vector(0)",
           "refId": "D",
           "queryType": "instant",
           "legendFormat": "Verification skipped"
@@ -897,7 +1006,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=verification_manual_override_clicked\" | logfmt | event_name=\"verification_manual_override_clicked\" [$__range]))",
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=verification_manual_override_clicked\" | logfmt | event_name=\"verification_manual_override_clicked\" [$__range])) or vector(0)",
           "refId": "E",
           "queryType": "instant",
           "legendFormat": "Manual override used"
@@ -907,7 +1016,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=identity_mismatch_warning\" | logfmt | event_name=\"identity_mismatch_warning\" [$__range]))",
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=identity_mismatch_warning\" | logfmt | event_name=\"identity_mismatch_warning\" [$__range])) or vector(0)",
           "refId": "F",
           "queryType": "instant",
           "legendFormat": "Identity mismatch warning"
@@ -922,7 +1031,80 @@
           },
           "min": 0
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Consensus passed"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Consensus failed"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "C"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Quote mismatch"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "D"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Verification skipped"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "E"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Manual override used"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "F"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Identity mismatch warning"
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "reduceOptions": {
@@ -1539,7 +1721,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=login_started\" | logfmt | event_name=\"login_started\" [$__range]))",
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=login_started\" | logfmt | event_name=\"login_started\" [$__range])) or vector(0)",
           "refId": "A",
           "queryType": "instant",
           "legendFormat": "Started"
@@ -1549,7 +1731,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=login_succeeded\" | logfmt | event_name=\"login_succeeded\" [$__range]))",
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=login_succeeded\" | logfmt | event_name=\"login_succeeded\" [$__range])) or vector(0)",
           "refId": "B",
           "queryType": "instant",
           "legendFormat": "Succeeded"
@@ -1559,7 +1741,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=login_failed\" | logfmt | event_name=\"login_failed\" [$__range]))",
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=login_failed\" | logfmt | event_name=\"login_failed\" [$__range])) or vector(0)",
           "refId": "C",
           "queryType": "instant",
           "legendFormat": "Failed"
@@ -1569,7 +1751,7 @@
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
-          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=login_unsupported_browser\" | logfmt | event_name=\"login_unsupported_browser\" [$__range]))",
+          "expr": "sum(count_over_time({app=~\"$app\", kind=\"event\"} |= \"event_name=login_unsupported_browser\" | logfmt | event_name=\"login_unsupported_browser\" [$__range])) or vector(0)",
           "refId": "D",
           "queryType": "instant",
           "legendFormat": "Unsupported browser"
@@ -1584,7 +1766,56 @@
           },
           "min": 0
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Started"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Succeeded"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "C"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Failed"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "D"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Unsupported browser"
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "reduceOptions": {
