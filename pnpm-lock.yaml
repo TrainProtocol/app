@@ -2086,7 +2086,7 @@ packages:
     engines: {node: '>= 14.0.0'}
 
   '@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz':
-    resolution: {integrity: sha512-HT3X5/dGuLZEWAr3G3f/qVpjRZ2c2uM5bJ/FJZ9me/KYdzVXRty+nsvhd98xe2I52jhMWWF8SEw14mpq8G7f4w==, tarball: file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz}
+    resolution: {integrity: sha512-0fvkRLimrzvWKgW2A7IUskoAcf4Cn0gykxbrwtaMWoHAsQAtjU3Hi/pzAhcZXPgNKatApeY9E1gWg6MKjODxaA==, tarball: file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz}
     version: 1.5.0
     engines: {node: '>=22'}
     peerDependencies:
@@ -2094,12 +2094,12 @@ packages:
       zustand: ^4.5.7
 
   '@layerswap/utils@file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz':
-    resolution: {integrity: sha512-Bhl16X3gPudxvlsd+Z7CyNeetIZ6T+C1b38p4QAKo/hgEK5czCDL2s4eXVM9vgffiptbRAA5CXpFEt3rUU50JA==, tarball: file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz}
+    resolution: {integrity: sha512-PMxFjhVwfc+rEa7hb4zIbECHX+xBaO/XOtrz8Kb/pOhYlF+6St0QwpBOvUZ4BviQhCqcdR5Pd296igfrYQaAgQ==, tarball: file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz}
     version: 1.7.0
     engines: {node: '>=22'}
 
   '@layerswap/wallet-evm@file:vendor/wallet-packages/layerswap-wallet-evm-1.7.0.tgz':
-    resolution: {integrity: sha512-XVv44KOr2QZ25objhV1Wu4jxwCd4cfJbfA8x87b6g6dNoPO4aFDb1E/OqOrsYDLuXYdXuGw138IY8FX7rNh4jA==, tarball: file:vendor/wallet-packages/layerswap-wallet-evm-1.7.0.tgz}
+    resolution: {integrity: sha512-e5sMHae3MSWT54zDWHRJNJGReQV0lQAyCf333lbu12A/NNAf0yfx9kxhTdCN1TxpQiMF5W+1lnsvLGHMtWi/Gg==, tarball: file:vendor/wallet-packages/layerswap-wallet-evm-1.7.0.tgz}
     version: 1.7.0
     engines: {node: '>=22'}
     peerDependencies:
@@ -2111,7 +2111,7 @@ packages:
       zustand: ^4.5.7
 
   '@layerswap/wallet-fuel@file:vendor/wallet-packages/layerswap-wallet-fuel-1.7.0.tgz':
-    resolution: {integrity: sha512-yh8SfGLkO1LHAu5LplrRY8tkwVbyOg5g1K8ZR5PcI6ml+DWN8mpHbzD95ISXxq3vc5MM2PNK9M4GtFyIDNpZ0w==, tarball: file:vendor/wallet-packages/layerswap-wallet-fuel-1.7.0.tgz}
+    resolution: {integrity: sha512-HKWSdv7HhEJnLb0Afj3siHTKuWjY12qgvxfx8k7H0V4hY8py1Y3rvuMB9lmjC4am+W/XJ9JWwqOHXdSBQdXQ1Q==, tarball: file:vendor/wallet-packages/layerswap-wallet-fuel-1.7.0.tgz}
     version: 1.7.0
     engines: {node: '>=22'}
     peerDependencies:
@@ -2124,7 +2124,7 @@ packages:
       zustand: ^4.5.7
 
   '@layerswap/wallet-starknet@file:vendor/wallet-packages/layerswap-wallet-starknet-1.7.0.tgz':
-    resolution: {integrity: sha512-kU5Kep20ynPXnkPwAnWUegGO55awuE+EWi+fdgSBdW9ijkMDhk9HN5dyhuYlvb+lZQmENufrDdbrYKX6nf9Hmg==, tarball: file:vendor/wallet-packages/layerswap-wallet-starknet-1.7.0.tgz}
+    resolution: {integrity: sha512-yoCn63YayzB/1RfvgxjWMNcl6QX9K9MW3rWS6xLWtchbqD4CLxX21QCYvei0wpasgXJN0Qoc7LOEhuizg5lQCA==, tarball: file:vendor/wallet-packages/layerswap-wallet-starknet-1.7.0.tgz}
     version: 1.7.0
     engines: {node: '>=22'}
     peerDependencies:
@@ -2134,7 +2134,7 @@ packages:
       zustand: ^4.5.7
 
   '@layerswap/wallet-svm@file:vendor/wallet-packages/layerswap-wallet-svm-1.7.0.tgz':
-    resolution: {integrity: sha512-faS03lC1OBpv6ZS0frAWjAcNNKBe2nnQ6AJnQM/j0DLiPL7CSqCirWHa3j+vzouZ5px1wjyNRBsb+N2p4xRjkQ==, tarball: file:vendor/wallet-packages/layerswap-wallet-svm-1.7.0.tgz}
+    resolution: {integrity: sha512-6A9XOiBvlEcyyLZts74SEBPHLQQ2I10AC8S7qzbCtMuAqvla9/JSIu8HMZtc3KtYsWA74pvCWxDkkPBAyh7djg==, tarball: file:vendor/wallet-packages/layerswap-wallet-svm-1.7.0.tgz}
     version: 1.7.0
     engines: {node: '>=22'}
     peerDependencies:
@@ -2144,7 +2144,7 @@ packages:
       zustand: ^4.5.7
 
   '@layerswap/wallet-tron@file:vendor/wallet-packages/layerswap-wallet-tron-1.7.0.tgz':
-    resolution: {integrity: sha512-KLKcSEZq71n9RzhnBQfCDU9PTMOT6xeDpS0xnC3XKlGsVDSXVmAdrigEM0sGVWKtbv1o91BIDekB+r09MEdvBQ==, tarball: file:vendor/wallet-packages/layerswap-wallet-tron-1.7.0.tgz}
+    resolution: {integrity: sha512-96tv9cijOZI4gXfAuhZk2axOeC0FAzONea3m4LXRrhUushNxcU0eSImesXVqI1GlpBqkZf+gc231LMGbOJhL/Q==, tarball: file:vendor/wallet-packages/layerswap-wallet-tron-1.7.0.tgz}
     version: 1.7.0
     engines: {node: '>=22'}
     peerDependencies:
@@ -2154,7 +2154,7 @@ packages:
       zustand: ^4.5.7
 
   '@layerswap/widget-types@file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz':
-    resolution: {integrity: sha512-hbqAda+/zBRTkG9XjJ+3DGLs+1K6/cwCUqWZuD9wMna6PSljJomBZCdSiPPq8Jh5ZPlt9j15oi2YwwY5sng7uQ==, tarball: file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz}
+    resolution: {integrity: sha512-Cp0wqVmQ4D8FQ3Kctp5I4fd3YghexcVUrOUskRer4QkxbWSIr0oiPje95H5MYJVo0PBhDkGn95xGPei94Ono5g==, tarball: file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz}
     version: 0.1.0
     engines: {node: '>=18'}
 
