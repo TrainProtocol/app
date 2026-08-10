@@ -9,6 +9,7 @@ import { useUsdTokenSync } from "@/hooks/useUsdTokenSync";
 import { isScientific } from "@/components/utils/RoundDecimals";
 import type { SwapQuote } from "@train-protocol/react";
 import formatAmount from "@/lib/formatAmount";
+import { captureEvent } from "@/lib/faro";
 
 // Caps on significant digits shown in NumberFlow. Above the cap, render `...` to indicate truncation.
 const PRIMARY_MAX_SIG_DIGITS = 10;
@@ -48,11 +49,16 @@ const AmountField = ({ side, actionValue, actionValueUsd, className, showToggle,
     const { tokenPriceInUsd, isUsdMode, usdAmount, toggleMode, handleUsdInputChange, } = useUsdTokenSync({ side, token });
 
     const [inputFocused, setInputFocused] = useState(false);
+    const amountTrackedRef = useRef(false);
     const handleTokenChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const v = sanitizeDecimalInput(e.target.value, token?.decimals);
         if (v === null) return;
+        if (v && !amountTrackedRef.current) {
+            amountTrackedRef.current = true;
+            captureEvent('amount_entered', { side });
+        }
         setValues(prev => ({ ...prev, [fieldName]: v, [oppositeField]: '' }), true);
-    }, [setValues, token?.decimals, fieldName, oppositeField]);
+    }, [setValues, token?.decimals, fieldName, oppositeField, side]);
 
     const handleFocus = useCallback(() => {
         setInputFocused(true);

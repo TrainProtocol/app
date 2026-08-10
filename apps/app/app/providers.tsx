@@ -6,11 +6,9 @@ import "@/lib/storageGuard"
 import React, { Suspense, useCallback } from "react"
 import { IntercomProvider } from "react-use-intercom"
 import { SWRConfig } from "swr"
-import { PostHogProvider } from "posthog-js/react"
-import posthog from "posthog-js"
 import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "next-themes"
-import { ErrorBoundary } from "react-error-boundary"
+import { FaroErrorBoundary } from "@grafana/faro-react"
 import { TrainProvider } from "@train-protocol/react"
 import { registerEvmSdk } from "@train-protocol/evm"
 import { registerTronSdk } from "@train-protocol/tron"
@@ -33,6 +31,8 @@ import { TrainAppSettings } from "@/Models/TrainAppSettings"
 import { TrainSettings } from "@/Models/TrainSettings"
 import { SendErrorMessage } from "@/lib/telegram"
 import { IsExtensionError } from "@/helpers/errorHelper"
+import { initFaro } from "@/lib/faro"
+import FaroTracker from "@/components/FaroTracker"
 import AppSettings from "@/lib/AppSettings"
 import { useRpcConfigStore } from "@/stores/rpcConfigStore"
 import { getLightClientVerifier } from "@/lib/lightClient"
@@ -40,6 +40,7 @@ import { LIGHT_CLIENT_MIN_AMOUNT_USD } from "@/lib/lightClient/networks"
 import Loading from "@/components/Loading"
 
 if (typeof window !== "undefined") {
+    initFaro()
     registerEvmSdk()
     registerAztecSdk()
     registerSolanaSdk()
@@ -49,24 +50,11 @@ if (typeof window !== "undefined") {
 }
 
 const INTERCOM_APP_ID = "h5zisg78"
-const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY
-const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com"
 
-
-if (typeof window !== "undefined" && posthogKey) {
-    posthog.init(posthogKey, {
-        api_host: posthogHost,
-        person_profiles: "identified_only",
-        loaded: (ph) => {
-            if (process.env.NODE_ENV === "development") ph.debug()
-        },
-    })
-}
-
-function logErrorToService(error: Error, info: { componentStack?: string | null }) {
+function logErrorToService(error: Error) {
     const extension_error = IsExtensionError(error)
     if (process.env.NEXT_PUBLIC_VERCEL_ENV && !extension_error) {
-        SendErrorMessage("UI error", `env: ${process.env.NEXT_PUBLIC_VERCEL_ENV} %0A url: ${process.env.NEXT_PUBLIC_VERCEL_URL} %0A message: ${error?.message} %0A errorInfo: ${info?.componentStack} %0A stack: ${error?.stack ?? error.stack} %0A`)
+        SendErrorMessage("UI error", `env: ${process.env.NEXT_PUBLIC_VERCEL_ENV} %0A url: ${process.env.NEXT_PUBLIC_VERCEL_URL} %0A message: ${error?.message} %0A stack: ${error?.stack} %0A`)
     }
 }
 
@@ -77,7 +65,7 @@ type Props = {
 
 export function Providers({ children, settings }: Props) {
     return (
-        <PostHogProvider client={posthog}>
+        <>
             <SWRConfig value={{ revalidateOnFocus: false, dedupingInterval: 5000 }}>
                 <ThemeProvider
                     attribute="data-theme"
@@ -100,7 +88,7 @@ export function Providers({ children, settings }: Props) {
                 </ThemeProvider>
             </SWRConfig>
             <Analytics />
-        </PostHogProvider>
+        </>
     )
 }
 
@@ -128,8 +116,12 @@ function AppShell({ children, settings }: { children: React.ReactNode; settings:
                     secretDerivation={{ persist: true }}
                 >
                     <WalletsProviders>
+                        <FaroTracker />
                         <ThemeWrapper>
-                            <ErrorBoundary FallbackComponent={ErrorFallback} onError={logErrorToService}>
+                            <FaroErrorBoundary
+                                fallback={(error, resetError) => <ErrorFallback error={error} resetErrorBoundary={resetError} />}
+                                onError={logErrorToService}
+                            >
                                 <AsyncModalProvider>
                                     <Suspense fallback={<Loading />}>
                                         <QueryProvider>
@@ -141,7 +133,7 @@ function AppShell({ children, settings }: { children: React.ReactNode; settings:
                                         </QueryProvider>
                                     </Suspense>
                                 </AsyncModalProvider>
-                            </ErrorBoundary>
+                            </FaroErrorBoundary>
                         </ThemeWrapper>
                     </WalletsProviders>
                 </TrainProvider>

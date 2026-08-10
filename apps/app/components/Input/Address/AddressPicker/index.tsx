@@ -15,6 +15,7 @@ import { Wallet } from "@/Models/WalletProvider";
 import { useSelectedAccount, useSelectSwapAccount } from "@/context/swapAccounts";
 import ConnectWalletButton from "./ConnectedWallets/ConnectWalletButton";
 import { useAddressesStore } from "@/stores/addressesStore";
+import { captureEvent } from "@/lib/faro";
 
 export enum AddressGroup {
     ConnectedWallet = "Connected wallet",
@@ -126,23 +127,31 @@ const AddressPicker: FC<Input> = forwardRef<HTMLInputElement, Input>(function Ad
             id: wallet.id,
             providerName: wallet.providerName
         });
+        captureEvent('destination_address_set', { source: 'connected_wallet', network: destination?.caip2Id })
         close()
     }
 
     useEffect(() => {
         if (destinationAddressItem && !defaultAccount?.address && destinationAddressItem?.group == AddressGroup.ConnectedWallet) {
-            updateDestAddress(undefined)
+            updateDestAddress(undefined, 'auto')
             return
         }
         if (destination_address?.toLowerCase() !== defaultAccount?.address?.toLowerCase() && (!destinationAddressItem || destinationAddressItem?.group === AddressGroup.ConnectedWallet)) {
-            updateDestAddress(defaultAccount?.address)
+            updateDestAddress(defaultAccount?.address, 'auto')
             setShowAddressModal(false)
         }
     }, [defaultAccount?.address, destinationAddressItem])
 
-    const updateDestAddress = useCallback((address: string | undefined) => {
+    const updateDestAddress = useCallback((address: string | undefined, origin: 'user' | 'auto' = 'user') => {
         const wallet = destination && connectedWallets?.find(w => w.addresses?.some(a => AddressClass.equals(a, address || '', destination)))
         setFieldValue('destination_address', address)
+
+        if (address) {
+            captureEvent('destination_address_set', {
+                source: origin === 'auto' ? 'connected_wallet_auto' : wallet ? 'connected_wallet' : 'manual',
+                network: destination?.caip2Id,
+            })
+        }
 
         if (destination && address && provider) {
             if (wallet)

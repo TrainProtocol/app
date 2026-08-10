@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import posthog from "posthog-js";
+import { captureEvent } from "@/lib/faro";
 import { TrainError, useRevealSecret as useRevealSecretHook } from "@train-protocol/react";
 import { useSwapStore } from "@/stores/swapStore";
 
@@ -12,12 +12,12 @@ export function useRevealSecret() {
 
         try {
             await revealSecretAction(activeHashlock)
-            posthog.capture("RevealSecret", { hashlock: activeHashlock })
+            captureEvent("reveal_secret", { hashlock: activeHashlock })
         } catch (e) {
             console.error('[RevealSecret] failed', e)
-            posthog.capture("RevealSecretFailed", {
+            captureEvent("reveal_secret_failed", {
                 hashlock: activeHashlock,
-                errorCode: e instanceof TrainError ? e.code : undefined,
+                error_code: e instanceof TrainError ? e.code : undefined,
                 message: e instanceof Error ? e.message : String(e),
             })
             throw e

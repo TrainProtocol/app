@@ -10,8 +10,6 @@ type QuoteAccordionProps = {
     triggerClassName?: string
     /** Set when the trigger handles its own open/close, so clicking the row itself does nothing. */
     inertTrigger?: boolean
-    /** PostHog `data-attr` for the trigger; omit when a nested control carries it instead. */
-    triggerDataAttr?: string
     children: ReactNode
 }
 
@@ -26,7 +24,6 @@ export function QuoteAccordion({
     footer,
     triggerClassName,
     inertTrigger,
-    triggerDataAttr,
     children,
 }: QuoteAccordionProps) {
     return (
@@ -39,7 +36,6 @@ export function QuoteAccordion({
         >
             <AccordionItem value='quote' className='bg-secondary-500 rounded-2xl'>
                 <AccordionTrigger
-                    data-attr={triggerDataAttr}
                     className={triggerClassName}
                     {...(inertTrigger ? { onClick: (e: React.MouseEvent) => e.preventDefault() } : {})}
                 >

@@ -3,7 +3,7 @@ import { useActiveSwap } from "@/hooks/useActiveSwap";
 import { useManualClaim, useClearSwapError } from "@train-protocol/react";
 import useWallet from "@/hooks/useWallet";
 import { WalletActionButton } from "../../buttons";
-import posthog from "posthog-js";
+import { captureEvent } from "@/lib/faro";
 import { SwapViewType } from ".";
 import { useSwapStore } from "@/stores/swapStore";
 
@@ -29,12 +29,17 @@ export const ManualRedeemAction: FC<{ type: SwapViewType }> = ({ type }) => {
             // already redeemed it, otherwise re-derived from the logged-in identity.
             await claim({ hashlock: activeHashlock });
 
-            posthog.capture("ManualClaim", {
+            captureEvent("manual_claim", {
                 hashlock,
-                destinationNetwork: destinationNetwork.caip2Id,
+                destination_network: destinationNetwork.caip2Id,
             });
         } catch (e: any) {
             console.error('[ManualClaim] failed', e);
+            captureEvent("manual_claim_failed", {
+                hashlock,
+                destination_network: destinationNetwork?.caip2Id,
+                message: e instanceof Error ? e.message : String(e),
+            });
         }
     };
 

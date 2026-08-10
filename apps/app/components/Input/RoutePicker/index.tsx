@@ -12,6 +12,7 @@ import useSuggestionsLimit from "@/hooks/useSuggestionsLimit";
 import Balance from "@/components/Input/Amount/Balance";
 import PickerWalletConnect from "./PickerWalletConnect";
 import type { SwapQuote } from "@train-protocol/react";
+import { captureEvent } from "@/lib/faro";
 
 const RoutePicker: FC<{ direction: SwapDirection, className?: string, quote?: SwapQuote }> = ({ direction, className, quote }) => {
     const {
@@ -30,13 +31,14 @@ const RoutePicker: FC<{ direction: SwapDirection, className?: string, quote?: Sw
         await setFieldValue(currencyFieldName, token, true);
         // Set the network
         await setFieldValue(direction, network, true);
+        captureEvent("route_selected", { direction, network: network.caip2Id, token: token.symbol });
     }, [currencyFieldName, direction, setFieldValue])
 
     return (
         <div className={clsx("flex flex-col self-end relative items-center", className)}>
             <Selector>
                 <SelectorTrigger
-                    data-attr={direction === "from" ? "from-route-picker" : "to-route-picker"}
+                    onClick={() => captureEvent("route_picker_opened", { direction })}
                     disabled={false}
                     className="py-1.5 px-2 active:animate-press-down rounded-2xl bg-secondary-300"
                 >

@@ -41,7 +41,7 @@ type SelectTriggerProps = {
     disabled: boolean;
     children: React.ReactNode | React.ReactNode[];
     className?: string;
-    'data-attr'?: string;
+    onClick?: () => void;
 }
 
 export const SelectorTrigger = (props: SelectTriggerProps) => {

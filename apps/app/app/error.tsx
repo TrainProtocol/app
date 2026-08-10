@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import ErrorFallback from "@/components/ErrorFallback";
+import { captureException } from "@/lib/faro";
 
 export default function GlobalError({
     error,
@@ -12,6 +13,7 @@ export default function GlobalError({
 }) {
     useEffect(() => {
         console.error(error);
+        captureException(error, { train_exception_type: "Global Error" });
     }, [error]);
 
     return <ErrorFallback error={error} resetErrorBoundary={reset} />;
