@@ -92,10 +92,12 @@ async function fetchFromPrimary(
  *
  * On success the light client's reading is AUTHORITATIVE: it is published to the
  * query cache (which is what gates the irreversible secret reveal) and pinned as
- * the lock's terms. The primary RPC is untrusted, so from then on it may only
- * move `status` forward — any disagreement about the terms is terminal. Without
- * this the light client would only prove that *a* lock exists while the reveal
- * still ran on a single node's account of what that lock says.
+ * the lock's terms, and any poll still awaiting the primary is cancelled so its
+ * unchecked reading can never commit over the proven one. The primary RPC is
+ * untrusted, so from then on it may only move `status` forward — any disagreement
+ * about the terms is terminal. Without this the light client would only prove
+ * that *a* lock exists while the reveal still ran on a single node's account of
+ * what that lock says.
  *
  * Failure modes (all set consensusPhase='failed' and fire onConsensusFailed):
  *   - Lock details disagree across nodes (`do not match`) — terminal, not overridable
@@ -183,10 +185,17 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
 
             // Write straight to the query cache from outside the queryFn. Needed only by
             // the light-client channel, which settles out of band and must not leave the
-            // primary's unverified reading in place once it has a proven one.
+            // primary's unverified reading in place once it has a proven one. A tick that
+            // started before the verdict may still be awaiting its primary fetch, and React
+            // Query would commit its unchecked result over this write when it resolves —
+            // cancel it so that can never happen. Order matters: setQueryData during a
+            // fetch refreshes the query's revert state, so the cancel's revert restores
+            // this write rather than the pre-fetch reading.
             const publish = (d: SolverLockDetails): void => {
                 lastDetailsRef.current = d
-                queryClient.setQueryData(trainQueryKeys.solverLock(params.id), d)
+                const queryKey = trainQueryKeys.solverLock(params.id)
+                queryClient.setQueryData(queryKey, d)
+                void queryClient.cancelQueries({ queryKey, exact: true })
             }
 
             const markDetected = () => {
@@ -324,6 +333,13 @@ export function useSolverLockPolling(options: UseSolverLockPollingOptions): Solv
             }
 
             const primary = await fetchFromPrimary(client, params, primaryUrl)
+
+            // The light-client verdict can settle while the primary fetch is in
+            // flight, so the entry guards are re-checked here. After a mid-flight
+            // lightClientMismatch this tick is already cancelled (its result is
+            // discarded), but without this check the light-client branch below
+            // would still clobber lastDetailsRef with the lying primary's reading.
+            if (failed.current) return lastDetailsRef.current
 
             // Already verified — refresh from primary so status changes (Redeemed)
             // still land. A light-client verdict pins the terms: the primary stays

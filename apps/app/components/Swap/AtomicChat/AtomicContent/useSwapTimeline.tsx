@@ -5,6 +5,7 @@ import { LockStatus, HTLCTransaction, HTLCStatus, TrainErrorCode } from "@train-
 import { getExplorerUrl } from "@/lib/address";
 import { useSolverLockVerification } from "@/hooks/htlc/useSolverLockVerification";
 import LockIcon from "@/components/Icons/LockIcon";
+import MobileTooltip from "@/components/Modal/mobileTooltip";
 
 // --- Types ---
 
@@ -118,10 +119,29 @@ const VerificationStatus: FC = () => {
             return (
                 <div className="flex items-center gap-1 text-sm">
                     <span>Verified by</span>
-                    <span className="font-medium text-primary flex items-center gap-1">
-                        light client
-                        <LockIcon className="h-4 w-4 text-primary" />
-                    </span>
+                    <MobileTooltip
+                        trigger={
+                            <span className="font-medium text-primary flex items-center gap-1 cursor-help">
+                                light client
+                                <LockIcon className="h-4 w-4 text-primary" />
+                            </span>
+                        }
+                    >
+                        <div className="space-y-1">
+                            <a
+                                href="https://github.com/a16z/helios"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-block font-medium underline underline-offset-2 hover:opacity-80"
+                            >
+                                Helios light client
+                            </a>
+                            <p className="text-xs opacity-70">
+                                An open-source Ethereum light client running in your browser. It cryptographically
+                                verified this reservation against Ethereum consensus, without trusting any single RPC provider.
+                            </p>
+                        </div>
+                    </MobileTooltip>
                 </div>
             );
         }
