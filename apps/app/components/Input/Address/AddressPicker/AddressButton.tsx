@@ -2,7 +2,7 @@ import { FC } from "react"
 import { AddressItem } from ".";
 import { Partner } from "@/Models/Partner";
 import { Network } from "@/Models/Network";
-import { Wallet } from "@layerswap/utils";
+import type { Wallet } from "@layerswap/widget-types";
 type AddressButtonProps = {
     openAddressModal: () => void;
     destination_address?: string;

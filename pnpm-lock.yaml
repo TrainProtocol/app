@@ -135,19 +135,19 @@ importers:
         version: file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz
       '@layerswap/wallet-evm':
         specifier: file:../../vendor/wallet-packages/layerswap-wallet-evm-1.7.0.tgz
-        version: file:vendor/wallet-packages/layerswap-wallet-evm-1.7.0.tgz(@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/utils@file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz)(@react-native-async-storage/async-storage@1.24.0)(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10))(wagmi@2.14.11(@react-native-async-storage/async-storage@1.24.0)(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@19.2.8))(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10)))(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
+        version: file:vendor/wallet-packages/layerswap-wallet-evm-1.7.0.tgz(@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/utils@file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz)(@layerswap/widget-types@file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz)(@react-native-async-storage/async-storage@1.24.0)(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10))(wagmi@2.14.11(@react-native-async-storage/async-storage@1.24.0)(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@19.2.8))(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10)))(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
       '@layerswap/wallet-fuel':
         specifier: file:../../vendor/wallet-packages/layerswap-wallet-fuel-1.7.0.tgz
-        version: file:vendor/wallet-packages/layerswap-wallet-fuel-1.7.0.tgz(98fb64e8d45ecaf3dbe5e387bf13788f)
+        version: file:vendor/wallet-packages/layerswap-wallet-fuel-1.7.0.tgz(bf994cbf36e31f9942bce4357f6f8d60)
       '@layerswap/wallet-starknet':
         specifier: file:../../vendor/wallet-packages/layerswap-wallet-starknet-1.7.0.tgz
-        version: file:vendor/wallet-packages/layerswap-wallet-starknet-1.7.0.tgz(@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/utils@file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz)(@radix-ui/react-slot@1.2.4(@types/react@19.2.17)(react@19.2.8))(@react-native-async-storage/async-storage@1.24.0)(@scure/bip39@2.0.1)(@types/react@19.2.17)(bufferutil@4.1.0)(class-variance-authority@0.7.1)(clsx@1.2.1)(framer-motion@12.42.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(get-starknet-core@3.3.5(starknet@8.9.2))(react@19.2.8)(swr@2.4.0(react@19.2.8))(tailwind-merge@3.5.0)(tailwindcss-animate@1.0.7(tailwindcss@4.2.1))(tailwindcss@4.2.1)(typescript@7.0.2)(utf-8-validate@5.0.10)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
+        version: file:vendor/wallet-packages/layerswap-wallet-starknet-1.7.0.tgz(@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/utils@file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz)(@layerswap/widget-types@file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz)(@radix-ui/react-slot@1.2.4(@types/react@19.2.17)(react@19.2.8))(@react-native-async-storage/async-storage@1.24.0)(@scure/bip39@2.0.1)(@types/react@19.2.17)(bufferutil@4.1.0)(class-variance-authority@0.7.1)(clsx@1.2.1)(framer-motion@12.42.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(get-starknet-core@3.3.5(starknet@8.9.2))(react@19.2.8)(swr@2.4.0(react@19.2.8))(tailwind-merge@3.5.0)(tailwindcss-animate@1.0.7(tailwindcss@4.2.1))(tailwindcss@4.2.1)(typescript@7.0.2)(utf-8-validate@5.0.10)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
       '@layerswap/wallet-svm':
         specifier: file:../../vendor/wallet-packages/layerswap-wallet-svm-1.7.0.tgz
-        version: file:vendor/wallet-packages/layerswap-wallet-svm-1.7.0.tgz(@babel/runtime@7.28.6)(@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/utils@file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz)(@react-native-async-storage/async-storage@1.24.0)(@solana/sysvars@2.3.0(typescript@7.0.2))(@types/react@19.2.17)(bufferutil@4.1.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(tslib@2.8.1)(typescript@7.0.2)(utf-8-validate@5.0.10)(ws@8.20.1(bufferutil@4.1.0)(utf-8-validate@5.0.10))(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
+        version: file:vendor/wallet-packages/layerswap-wallet-svm-1.7.0.tgz(@babel/runtime@7.28.6)(@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/utils@file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz)(@layerswap/widget-types@file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz)(@react-native-async-storage/async-storage@1.24.0)(@solana/sysvars@2.3.0(typescript@7.0.2))(@types/react@19.2.17)(bufferutil@4.1.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(tslib@2.8.1)(typescript@7.0.2)(utf-8-validate@5.0.10)(ws@8.20.1(bufferutil@4.1.0)(utf-8-validate@5.0.10))(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
       '@layerswap/wallet-tron':
         specifier: file:../../vendor/wallet-packages/layerswap-wallet-tron-1.7.0.tgz
-        version: file:vendor/wallet-packages/layerswap-wallet-tron-1.7.0.tgz(@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/utils@file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz)(bufferutil@4.1.0)(utf-8-validate@5.0.10)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
+        version: file:vendor/wallet-packages/layerswap-wallet-tron-1.7.0.tgz(@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/utils@file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz)(@layerswap/widget-types@file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz)(bufferutil@4.1.0)(utf-8-validate@5.0.10)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
       '@layerswap/widget-types':
         specifier: file:../../vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz
         version: file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz
@@ -2049,7 +2049,7 @@ packages:
     engines: {node: '>= 14.0.0'}
 
   '@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz':
-    resolution: {integrity: sha512-afKxOlo7zmfrb9Eq0DM8ZiMuf3w4EtiwLTYA8U6bkv0cGI+EQXnZmWEkW/5q2E925G+YOPCzWuKdHv8pniO3MQ==, tarball: file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz}
+    resolution: {integrity: sha512-HT3X5/dGuLZEWAr3G3f/qVpjRZ2c2uM5bJ/FJZ9me/KYdzVXRty+nsvhd98xe2I52jhMWWF8SEw14mpq8G7f4w==, tarball: file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz}
     version: 1.5.0
     engines: {node: '>=22'}
     peerDependencies:
@@ -2057,62 +2057,67 @@ packages:
       zustand: ^4.5.7
 
   '@layerswap/utils@file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz':
-    resolution: {integrity: sha512-uTa4R3BjReZSE1hC28i9U2bZXOJRjEcDVduSDfz5INV9ptNcNBTj9IqlkD0jfUNAyIIbCvULi3aWNH9RGzmvAg==, tarball: file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz}
+    resolution: {integrity: sha512-Bhl16X3gPudxvlsd+Z7CyNeetIZ6T+C1b38p4QAKo/hgEK5czCDL2s4eXVM9vgffiptbRAA5CXpFEt3rUU50JA==, tarball: file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz}
     version: 1.7.0
     engines: {node: '>=22'}
 
   '@layerswap/wallet-evm@file:vendor/wallet-packages/layerswap-wallet-evm-1.7.0.tgz':
-    resolution: {integrity: sha512-Q7HkXWTOKyQ/1Tm2SA0wOVdQhyoxTAtShEjnDtulplkSadULWNVtf59qJMSJh1GwP0lGWZSKU5kk8QTk7MgTfA==, tarball: file:vendor/wallet-packages/layerswap-wallet-evm-1.7.0.tgz}
+    resolution: {integrity: sha512-XVv44KOr2QZ25objhV1Wu4jxwCd4cfJbfA8x87b6g6dNoPO4aFDb1E/OqOrsYDLuXYdXuGw138IY8FX7rNh4jA==, tarball: file:vendor/wallet-packages/layerswap-wallet-evm-1.7.0.tgz}
     version: 1.7.0
     engines: {node: '>=22'}
     peerDependencies:
       '@layerswap/ui-kit': ^1.5.0
       '@layerswap/utils': ^1.7.0
+      '@layerswap/widget-types': ^0.1.0
       viem: ^2.21.16
       wagmi: 2.14.11
       zustand: ^4.5.7
 
   '@layerswap/wallet-fuel@file:vendor/wallet-packages/layerswap-wallet-fuel-1.7.0.tgz':
-    resolution: {integrity: sha512-tRo9aguK75mCvHHD3yqLH+XZ67RjWkE81Z8j6mjgqd/794w0DLxqWq/gJZdQrk/5tdLSLpeKK1534Z07X7Fcsg==, tarball: file:vendor/wallet-packages/layerswap-wallet-fuel-1.7.0.tgz}
+    resolution: {integrity: sha512-yh8SfGLkO1LHAu5LplrRY8tkwVbyOg5g1K8ZR5PcI6ml+DWN8mpHbzD95ISXxq3vc5MM2PNK9M4GtFyIDNpZ0w==, tarball: file:vendor/wallet-packages/layerswap-wallet-fuel-1.7.0.tgz}
     version: 1.7.0
     engines: {node: '>=22'}
     peerDependencies:
       '@layerswap/ui-kit': ^1.5.0
       '@layerswap/utils': ^1.7.0
+      '@layerswap/widget-types': ^0.1.0
       '@wagmi/core': 2.16.4
       viem: ^2.21.16
       wagmi: 2.14.11
       zustand: ^4.5.7
 
   '@layerswap/wallet-starknet@file:vendor/wallet-packages/layerswap-wallet-starknet-1.7.0.tgz':
-    resolution: {integrity: sha512-uotGDt5xoVsqGEkPxWNE8zOj630M0R0AC5zrLU5vtSv+U8vL/ydelkzyAWT27e6GaMNamQ+TVtKIlCCKARwm2Q==, tarball: file:vendor/wallet-packages/layerswap-wallet-starknet-1.7.0.tgz}
+    resolution: {integrity: sha512-kU5Kep20ynPXnkPwAnWUegGO55awuE+EWi+fdgSBdW9ijkMDhk9HN5dyhuYlvb+lZQmENufrDdbrYKX6nf9Hmg==, tarball: file:vendor/wallet-packages/layerswap-wallet-starknet-1.7.0.tgz}
     version: 1.7.0
     engines: {node: '>=22'}
     peerDependencies:
       '@layerswap/ui-kit': ^1.5.0
       '@layerswap/utils': ^1.7.0
+      '@layerswap/widget-types': ^0.1.0
       zustand: ^4.5.7
 
   '@layerswap/wallet-svm@file:vendor/wallet-packages/layerswap-wallet-svm-1.7.0.tgz':
-    resolution: {integrity: sha512-DetRKcB/RUq+JEuoSUTl7pvd1vObdI03iTA3x5NwnWRKIdJuXY0jpT0iCMI2sOa9D5miuT3s4pJbA2iFftd/sA==, tarball: file:vendor/wallet-packages/layerswap-wallet-svm-1.7.0.tgz}
+    resolution: {integrity: sha512-faS03lC1OBpv6ZS0frAWjAcNNKBe2nnQ6AJnQM/j0DLiPL7CSqCirWHa3j+vzouZ5px1wjyNRBsb+N2p4xRjkQ==, tarball: file:vendor/wallet-packages/layerswap-wallet-svm-1.7.0.tgz}
     version: 1.7.0
     engines: {node: '>=22'}
     peerDependencies:
       '@layerswap/ui-kit': ^1.5.0
       '@layerswap/utils': ^1.7.0
+      '@layerswap/widget-types': ^0.1.0
       zustand: ^4.5.7
 
   '@layerswap/wallet-tron@file:vendor/wallet-packages/layerswap-wallet-tron-1.7.0.tgz':
-    resolution: {integrity: sha512-0rqmmrKWMYPTEUTpbVflEby+FVvhdmfH1krmynd0FDk28ROAmgyYZYWtwD+i161F3NTU494g8H7d/Xdvv7i2wQ==, tarball: file:vendor/wallet-packages/layerswap-wallet-tron-1.7.0.tgz}
+    resolution: {integrity: sha512-KLKcSEZq71n9RzhnBQfCDU9PTMOT6xeDpS0xnC3XKlGsVDSXVmAdrigEM0sGVWKtbv1o91BIDekB+r09MEdvBQ==, tarball: file:vendor/wallet-packages/layerswap-wallet-tron-1.7.0.tgz}
     version: 1.7.0
     engines: {node: '>=22'}
     peerDependencies:
       '@layerswap/ui-kit': ^1.5.0
       '@layerswap/utils': ^1.7.0
+      '@layerswap/widget-types': ^0.1.0
       zustand: ^4.5.7
 
   '@layerswap/widget-types@file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz':
-    resolution: {integrity: sha512-GTOxO1ZY8XdhxSayG91dxuzjVD2XzisZIs2rIaXJwAFgbzx2Mpub1aqO9XA4txMRn/ugSlEMfiUVSmdlYMfhXg==, tarball: file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz}
+    resolution: {integrity: sha512-hbqAda+/zBRTkG9XjJ+3DGLs+1K6/cwCUqWZuD9wMna6PSljJomBZCdSiPPq8Jh5ZPlt9j15oi2YwwY5sng7uQ==, tarball: file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz}
     version: 0.1.0
     engines: {node: '>=18'}
 
@@ -12312,6 +12317,7 @@ snapshots:
   '@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
     dependencies:
       '@layerswap/utils': file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz
+      '@layerswap/widget-types': file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz
       '@radix-ui/react-checkbox': 1.3.3(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@radix-ui/react-popover': 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@radix-ui/react-tooltip': 1.2.8(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -12337,10 +12343,11 @@ snapshots:
       csstype: 3.2.3
       js-sha3: 0.8.0
 
-  '@layerswap/wallet-evm@file:vendor/wallet-packages/layerswap-wallet-evm-1.7.0.tgz(@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/utils@file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz)(@react-native-async-storage/async-storage@1.24.0)(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10))(wagmi@2.14.11(@react-native-async-storage/async-storage@1.24.0)(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@19.2.8))(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10)))(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
-    dependencies:
+  ? '@layerswap/wallet-evm@file:vendor/wallet-packages/layerswap-wallet-evm-1.7.0.tgz(@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/utils@file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz)(@layerswap/widget-types@file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz)(@react-native-async-storage/async-storage@1.24.0)(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10))(wagmi@2.14.11(@react-native-async-storage/async-storage@1.24.0)(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@19.2.8))(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10)))(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))'
+  : dependencies:
       '@layerswap/ui-kit': file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
       '@layerswap/utils': file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz
+      '@layerswap/widget-types': file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz
       '@metamask/sdk': 0.34.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)
       '@walletconnect/ethereum-provider': 2.21.8(@react-native-async-storage/async-storage@1.24.0)(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)
       ethers: 5.7.2(bufferutil@4.1.0)(utf-8-validate@5.0.10)
@@ -12377,12 +12384,13 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@layerswap/wallet-fuel@file:vendor/wallet-packages/layerswap-wallet-fuel-1.7.0.tgz(98fb64e8d45ecaf3dbe5e387bf13788f)':
+  '@layerswap/wallet-fuel@file:vendor/wallet-packages/layerswap-wallet-fuel-1.7.0.tgz(bf994cbf36e31f9942bce4357f6f8d60)':
     dependencies:
       '@fuel-ts/account': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(msw@2.12.14(@types/node@20.19.34)(typescript@7.0.2)))
       '@fuel-ts/address': 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(msw@2.12.14(@types/node@20.19.34)(typescript@7.0.2)))
       '@layerswap/ui-kit': file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
       '@layerswap/utils': file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz
+      '@layerswap/widget-types': file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz
       '@wagmi/core': 2.16.4(@tanstack/query-core@5.90.20)(@types/react@19.2.17)(react@19.2.8)(typescript@7.0.2)(use-sync-external-store@1.6.0(react@19.2.8))(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10))
       fuels: 0.101.3(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(msw@2.12.14(@types/node@20.19.34)(typescript@7.0.2)))
       json-rpc-2.0: 1.7.0
@@ -12397,10 +12405,11 @@ snapshots:
       - utf-8-validate
       - vitest
 
-  '@layerswap/wallet-starknet@file:vendor/wallet-packages/layerswap-wallet-starknet-1.7.0.tgz(@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/utils@file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz)(@radix-ui/react-slot@1.2.4(@types/react@19.2.17)(react@19.2.8))(@react-native-async-storage/async-storage@1.24.0)(@scure/bip39@2.0.1)(@types/react@19.2.17)(bufferutil@4.1.0)(class-variance-authority@0.7.1)(clsx@1.2.1)(framer-motion@12.42.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(get-starknet-core@3.3.5(starknet@8.9.2))(react@19.2.8)(swr@2.4.0(react@19.2.8))(tailwind-merge@3.5.0)(tailwindcss-animate@1.0.7(tailwindcss@4.2.1))(tailwindcss@4.2.1)(typescript@7.0.2)(utf-8-validate@5.0.10)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
-    dependencies:
+  ? '@layerswap/wallet-starknet@file:vendor/wallet-packages/layerswap-wallet-starknet-1.7.0.tgz(@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/utils@file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz)(@layerswap/widget-types@file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz)(@radix-ui/react-slot@1.2.4(@types/react@19.2.17)(react@19.2.8))(@react-native-async-storage/async-storage@1.24.0)(@scure/bip39@2.0.1)(@types/react@19.2.17)(bufferutil@4.1.0)(class-variance-authority@0.7.1)(clsx@1.2.1)(framer-motion@12.42.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(get-starknet-core@3.3.5(starknet@8.9.2))(react@19.2.8)(swr@2.4.0(react@19.2.8))(tailwind-merge@3.5.0)(tailwindcss-animate@1.0.7(tailwindcss@4.2.1))(tailwindcss@4.2.1)(typescript@7.0.2)(utf-8-validate@5.0.10)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))'
+  : dependencies:
       '@layerswap/ui-kit': file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
       '@layerswap/utils': file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz
+      '@layerswap/widget-types': file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz
       '@starknet-io/get-starknet-core': 4.0.8
       '@starknet-io/types-js': 0.10.0
       '@starknet-react/core': 5.0.3(bufferutil@4.1.0)(get-starknet-core@3.3.5(starknet@8.9.2))(react@19.2.8)(starknet@8.9.2)(typescript@7.0.2)(utf-8-validate@5.0.10)
@@ -12469,10 +12478,11 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@layerswap/wallet-svm@file:vendor/wallet-packages/layerswap-wallet-svm-1.7.0.tgz(@babel/runtime@7.28.6)(@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/utils@file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz)(@react-native-async-storage/async-storage@1.24.0)(@solana/sysvars@2.3.0(typescript@7.0.2))(@types/react@19.2.17)(bufferutil@4.1.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(tslib@2.8.1)(typescript@7.0.2)(utf-8-validate@5.0.10)(ws@8.20.1(bufferutil@4.1.0)(utf-8-validate@5.0.10))(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
+  '@layerswap/wallet-svm@file:vendor/wallet-packages/layerswap-wallet-svm-1.7.0.tgz(@babel/runtime@7.28.6)(@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/utils@file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz)(@layerswap/widget-types@file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz)(@react-native-async-storage/async-storage@1.24.0)(@solana/sysvars@2.3.0(typescript@7.0.2))(@types/react@19.2.17)(bufferutil@4.1.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(tslib@2.8.1)(typescript@7.0.2)(utf-8-validate@5.0.10)(ws@8.20.1(bufferutil@4.1.0)(utf-8-validate@5.0.10))(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
     dependencies:
       '@layerswap/ui-kit': file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
       '@layerswap/utils': file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz
+      '@layerswap/widget-types': file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz
       '@solana/spl-token': 0.4.14(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10))(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10)
       '@solana/wallet-adapter-base': 0.9.27(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-wallets': 0.19.38(@babel/runtime@7.28.6)(@react-native-async-storage/async-storage@1.24.0)(@solana/sysvars@2.3.0(typescript@7.0.2))(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10))(@types/react@19.2.17)(bs58@6.0.0)(bufferutil@4.1.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(tslib@2.8.1)(typescript@7.0.2)(utf-8-validate@5.0.10)(ws@8.20.1(bufferutil@4.1.0)(utf-8-validate@5.0.10))
@@ -12525,10 +12535,11 @@ snapshots:
       - ws
       - zod
 
-  '@layerswap/wallet-tron@file:vendor/wallet-packages/layerswap-wallet-tron-1.7.0.tgz(@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/utils@file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz)(bufferutil@4.1.0)(utf-8-validate@5.0.10)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
+  '@layerswap/wallet-tron@file:vendor/wallet-packages/layerswap-wallet-tron-1.7.0.tgz(@layerswap/ui-kit@file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/utils@file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz)(@layerswap/widget-types@file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz)(bufferutil@4.1.0)(utf-8-validate@5.0.10)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
     dependencies:
       '@layerswap/ui-kit': file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
       '@layerswap/utils': file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz
+      '@layerswap/widget-types': file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz
       '@tronweb3/tronwallet-adapter-bitkeep': 1.1.8(bufferutil@4.1.0)(utf-8-validate@5.0.10)
       '@tronweb3/tronwallet-adapter-bybit': 1.0.3(bufferutil@4.1.0)(utf-8-validate@5.0.10)
       '@tronweb3/tronwallet-adapter-gatewallet': 1.0.5(bufferutil@4.1.0)(utf-8-validate@5.0.10)

@@ -1,5 +1,5 @@
 import { createWithEqualityFn as create } from 'zustand/traditional'
-import { Wallet } from "@layerswap/utils";
+import type { Wallet } from "@layerswap/widget-types";
 import { createJSONStorage, persist } from 'zustand/middleware'
 
 type StarknetAccountMap = { [key: string]: string }

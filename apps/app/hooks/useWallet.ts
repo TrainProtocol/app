@@ -1,5 +1,5 @@
 import { Network } from "../Models/Network"
-import { Wallet } from "@layerswap/utils";
+import type { Wallet } from "@layerswap/widget-types";
 import { WalletConnectionProvider } from "@layerswap/ui-kit/types";
 import { useCallback, useMemo } from "react";
 import { useWalletProviders } from "../context/walletHookProviders";

@@ -2,7 +2,7 @@ import { FC, useMemo } from 'react'
 import { ChevronDown } from 'lucide-react'
 import AddressIcon from '../../AddressIcon'
 import { Address } from "@/lib/address";
-import { Wallet } from "@layerswap/utils";
+import type { Wallet } from "@layerswap/widget-types";
 import { SwapFormValues } from '@/components/DTOs/SwapFormValues'
 import { ExtendedAddress } from '@/components/Input/Address/AddressPicker/AddressWithIcon'
 import { DetailsButton } from '..'

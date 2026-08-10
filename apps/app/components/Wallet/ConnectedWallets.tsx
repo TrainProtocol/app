@@ -4,7 +4,7 @@ import useWallet from "@/hooks/useWallet"
 import ConnectButton from "../buttons/connectButton"
 import { useState } from "react"
 import WalletsList from "./WalletsList"
-import { Wallet } from "@layerswap/utils";
+import type { Wallet } from "@layerswap/widget-types";
 import VaulDrawer from "../Modal/vaulModal"
 import { useConnectModal } from "@/components/WalletModal"
 import WalletsDialog from "@/components/Sidebar/WalletsDialog"

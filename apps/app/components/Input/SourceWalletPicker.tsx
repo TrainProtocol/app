@@ -7,7 +7,7 @@ import { Address } from "@/lib/address";
 import { ChevronDown } from "lucide-react";
 import { WalletIcon } from "@layerswap/ui-kit/components";
 import VaulDrawer from "../Modal/vaulModal";
-import { Wallet } from "@layerswap/utils";
+import type { Wallet } from "@layerswap/widget-types";
 import { SelectAccountProps } from "@layerswap/ui-kit/types";
 import SubmitButton from "@/components/buttons/submitButton";
 import { useConnectModal } from "../WalletModal";

@@ -1,6 +1,6 @@
 import KnownInternalNames from "../../knownIds";
 import { useSettingsState } from "@/context/settings";
-import { InternalConnector, Wallet } from "@layerswap/utils";
+import type { InternalConnector, Wallet } from "@layerswap/widget-types";
 import { WalletConnectionProvider } from "@layerswap/ui-kit/types";
 import { normalizeIconSrc } from "@layerswap/ui-kit";
 import { extractAztecAddress } from "./utils";

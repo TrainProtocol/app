@@ -2,7 +2,7 @@ import { FC, useRef, useState } from "react"
 import { Check } from "lucide-react"
 import clsx from "clsx"
 import { ExtendedNetwork } from "@/Models/Network"
-import { Wallet } from "@layerswap/utils";
+import type { Wallet } from "@layerswap/widget-types";
 import { Address } from "@/lib/address"
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/shadcn/popover"
 import MobileTooltip from "@/components/Modal/mobileTooltip"

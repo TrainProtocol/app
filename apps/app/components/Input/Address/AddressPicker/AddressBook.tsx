@@ -6,7 +6,7 @@ import { Network } from "@/Models/Network";
 import { FC } from "react";
 import AddressWithIcon from "./AddressWithIcon";
 import { Partner } from "@/Models/Partner";
-import { Wallet } from "@layerswap/utils";
+import type { Wallet } from "@layerswap/widget-types";
 import { BookOpen } from "lucide-react";
 
 type AddressBookProps = {

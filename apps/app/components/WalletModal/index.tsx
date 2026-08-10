@@ -3,7 +3,7 @@ import { connectModalStore } from "@layerswap/ui-kit";
 import * as UiKit from "@layerswap/ui-kit/components";
 import type { ModalWalletProvider } from "@layerswap/ui-kit/components";
 import type { WalletConnectionProvider, WalletModalConnector } from "@layerswap/ui-kit/types";
-import type { Wallet } from "@layerswap/utils";
+import type { Wallet } from "@layerswap/widget-types";
 
 type ConnectDisplayMode = 'drawer' | 'dialog'
 
