@@ -9,6 +9,7 @@ import { loginStepTitle, useLoginWizardState, wizardCanGoBack, type LoginWizard 
 import { Steps, Step } from '@/components/Step';
 import IconButton from '@/components/buttons/iconButton';
 import { StepBody } from '../StepBody';
+import { captureEvent } from '@/lib/faro';
 
 export { loginStepTitle, useLoginWizardState, wizardCanGoBack };
 export type { LoginStep, LoginWizard } from './wizard';
@@ -43,7 +44,10 @@ function useLoginFlow({
   useEffect(() => {
     if (!isOpen || !isReady) return;
     setErrorMessage(null);
-    if (passkeyUnsupported) resetTo('unsupported');
+    if (passkeyUnsupported) {
+      captureEvent('login_unsupported_browser');
+      resetTo('unsupported');
+    }
     else resetTo('intro');
     // intentionally only runs when the modal opens / readiness flips
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -53,15 +57,21 @@ function useLoginFlow({
 
   const runLogin = async (options: Parameters<typeof loginWithPasskey>[0]) => {
     setErrorMessage(null);
+    const method = options?.credentialId ? 'saved_passkey'
+      : options?.forceCreate ? 'create_passkey'
+        : 'cross_device';
+    captureEvent('login_started', { method });
     push('signing');
     try {
       await loginWithPasskey(options);
+      captureEvent('login_succeeded', { method });
       onClose();
     } catch (e) {
       const missingPasskey = e instanceof Error && /no passkey found/i.test(e.message);
       const message = options?.credentialId && missingPasskey
         ? 'This saved login is no longer available on this device. Pick another or create a new passkey.'
         : mapPasskeyError(e);
+      captureEvent('login_failed', { method, message });
       setErrorMessage(message);
       replaceTop('error');
     }

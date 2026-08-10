@@ -13,6 +13,7 @@ import NetworkRpcEditView from "@/components/Settings/NetworkRpcEditView"
 import { useMenuNavigation } from "@/hooks/useMenuNavigation"
 import SettingsCard from "./SettingsCard"
 import MobilePageHeader from "@/components/MobilePageHeader"
+import { captureEvent } from "@/lib/faro"
 
 const SettingsView: FC = () => {
     return (
@@ -162,7 +163,7 @@ const MenuStepContent: FC<{ onOpenRpc: () => void }> = ({ onOpenRpc }) => {
                 title="Theme"
                 description="Choose how the app looks. Select a theme or follow your system settings."
             >
-                <ThemeSegmentedPicker value={theme ?? "light"} onChange={setTheme} />
+                <ThemeSegmentedPicker value={theme ?? "light"} onChange={(v) => { captureEvent("theme_changed", { theme: v }); setTheme(v) }} />
             </SettingsCard>
         </div>
     )

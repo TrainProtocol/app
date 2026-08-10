@@ -12,6 +12,7 @@ import { Partner } from '@/Models/Partner'
 import { useQueryState } from '@/context/query'
 import { ImageWithFallback } from '@layerswap/ui-kit/components'
 import WalletIconView from '@/components/Wallet/WalletIconView'
+import { captureEvent } from '@/lib/faro'
 
 export const SummaryRow: FC<{
     isQuoteLoading?: boolean
@@ -70,10 +71,10 @@ export const SummaryRow: FC<{
             <div className={`${isOpen ? "hidden" : ""} flex items-center w-full justify-between px-2`}>
                 <DetailsButton quote={quoteData} isQuoteLoading={isQuoteLoading} values={values} />
                 <button
-                    data-attr="see-swap-details"
                     type="button"
                     onClick={(e) => {
                         e.stopPropagation()
+                        captureEvent('see_swap_details', { location: 'swap_summary' })
                         onOpen?.()
                     }}
                     className="flex items-center text-secondary-text text-sm whitespace-nowrap gap-0.5 hover:text-primary-text"

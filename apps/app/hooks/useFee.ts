@@ -5,6 +5,7 @@ import type { SwapQuote } from '@train-protocol/react'
 import { ExtendedToken, Token } from '../Models/Network'
 import { useQuote } from '@train-protocol/react'
 import { useUsdModeStore } from '@/stores/usdModeStore'
+import { captureEvent } from '@/lib/faro'
 
 type UseQuoteData = {
     quote?: SwapQuote
@@ -107,6 +108,42 @@ export function useQuoteData(formValues: Props | undefined, refreshInterval?: nu
         : undefined
     const refreshQuote = useCallback(() => refetch(), [refetch])
 
+    // Funnel telemetry: one quote_received / quote_failed per unique route+amount,
+    // deduped module-wide since both the form and the swap modal run this hook.
+    const quoteRouteKey = canGetQuote
+        ? `${from}>${to}:${fromCurrency?.symbol}>${toCurrency?.symbol}:${debouncedAmount}:${isReverse ? 'r' : 'f'}`
+        : undefined
+    useEffect(() => {
+        if (!quoteRouteKey) return
+        const routeAttrs = {
+            source_network: from,
+            destination_network: to,
+            source_token: fromCurrency?.symbol,
+            destination_token: toCurrency?.symbol,
+            amount: rawAmount != null ? String(rawAmount) : undefined,
+            is_reverse: isReverse,
+        }
+        if (bestQuote) {
+            trackQuoteOnce(`ok:${quoteRouteKey}`, 'quote_received', {
+                ...routeAttrs,
+                solver_id: bestSolver?.solver?.id,
+            })
+        } else if (rawSolverError) {
+            const limitMatch = rawSolverError.match(/(max|min)\s*amount/i)
+            trackQuoteOnce(`err:${quoteRouteKey}`, 'quote_failed', {
+                ...routeAttrs,
+                reason: limitMatch ? `limit_${limitMatch[1].toLowerCase()}` : 'no_quote',
+                message: rawSolverError,
+            })
+        } else if (error) {
+            trackQuoteOnce(`apierr:${quoteRouteKey}`, 'quote_failed', {
+                ...routeAttrs,
+                reason: 'request_error',
+                message: (error as Error)?.message,
+            })
+        }
+    }, [quoteRouteKey, bestQuote, rawSolverError, error])
+
     return {
         quote: (error || !hasQuoteParams || !hasValidAmount) ? undefined : bestQuote as SwapQuote | undefined,
         solverId: (error || !hasQuoteParams || !hasValidAmount) ? undefined : bestSolver?.solver?.id,
@@ -128,6 +165,13 @@ export function transformFormValuesToQuoteArgs(values: SwapFormValues): Props | 
         fromCurrency: values.fromCurrency,
         toCurrency: values.toCurrency,
     }
+}
+
+const trackedQuoteKeys = new Set<string>()
+function trackQuoteOnce(key: string, name: string, attrs: Record<string, unknown>) {
+    if (trackedQuoteKeys.has(key)) return
+    trackedQuoteKeys.add(key)
+    captureEvent(name, attrs)
 }
 
 function resolveErrorMessage(message: string, token: ExtendedToken | undefined, isUsdMode: boolean): string {

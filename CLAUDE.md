@@ -102,8 +102,8 @@ NEXT_PUBLIC_TRAIN_API                  # Station API base URL (required)
 NEXT_PUBLIC_API_VERSION                # "sandbox" or "mainnet"
 NEXT_PUBLIC_ALCHEMY_KEY                # For light client RPC calls
 NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID  # WalletConnect
-NEXT_PUBLIC_POSTHOG_KEY                # PostHog analytics
-NEXT_PUBLIC_POSTHOG_HOST               # PostHog host
+NEXT_PUBLIC_FARO_COLLECTOR_URL         # Grafana Faro collector URL (telemetry disabled when unset)
+NEXT_PUBLIC_FARO_SAMPLE_RATE           # Faro session sampling rate, 0..1 (default 1)
 NEXT_PUBLIC_VERCEL_ENV                 # Vercel env (production/preview/development)
 NEXT_PUBLIC_VERCEL_URL                 # Vercel deployment URL
 ```

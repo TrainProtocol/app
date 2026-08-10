@@ -6,6 +6,8 @@ import { useSwapProgress, HTLCStatus } from "@train-protocol/react"
 import VaulDrawer from "../Modal/vaulModal"
 import AtomicPage from "../Swap/AtomicChat"
 import { useSwapStore } from "@/stores/swapStore"
+import { useSwapPhaseTracking } from "@/hooks/useSwapPhaseTracking"
+import { captureEvent } from "@/lib/faro"
 
 export default function SwapModalRoot() {
     const pathname = usePathname()
@@ -16,6 +18,7 @@ export default function SwapModalRoot() {
     const pendingFormValues = useSwapStore(s => s.pendingFormValues)
     const setPendingFormValues = useSwapStore(s => s.setPendingFormValues)
     const { status: htlcStatus } = useSwapProgress(activeHashlock)
+    useSwapPhaseTracking()
 
     useEffect(() => {
         setSwapModalOpen(false)
@@ -25,8 +28,13 @@ export default function SwapModalRoot() {
         setSwapModalOpen(value)
         if (!value) {
             setPendingFormValues(undefined)
+            captureEvent("swap_modal_closed", {
+                htlc_status: htlcStatus ?? "none",
+                hashlock: activeHashlock ?? undefined,
+                was_terminal: htlcStatus === HTLCStatus.RedeemCompleted || htlcStatus === HTLCStatus.Refunded,
+            })
         }
-    }, [setSwapModalOpen, setPendingFormValues])
+    }, [setSwapModalOpen, setPendingFormValues, htlcStatus, activeHashlock])
 
     const handleDrawerAnimationEnd = useCallback((open: boolean) => {
         if (!open) {

@@ -8,6 +8,7 @@ import { ImageWithFallback } from '@layerswap/ui-kit/components'
 import { useSwapStore } from '@/stores/swapStore'
 import MobileTooltip from '@/components/Modal/mobileTooltip'
 import InfoIcon from '@/components/Icons/InfoIcon'
+import { captureEvent } from '@/lib/faro'
 import {
     Select,
     SelectContent,
@@ -30,12 +31,18 @@ export default function RecoverSwap({ onRecovered }: RecoverSwapProps) {
 
     const handleRecover = async () => {
         if (!canRecover) return
+        captureEvent('recover_swap_submitted', { network: selectedNetwork.caip2Id })
         try {
             const hashlock = await recover(txHash, selectedNetwork.caip2Id)
             setActiveHashlock(hashlock)
+            captureEvent('recover_swap_succeeded', { network: selectedNetwork.caip2Id, hashlock })
             onRecovered(selectedNetwork.caip2Id, txHash)
-        } catch {
+        } catch (e) {
             // error managed by hook
+            captureEvent('recover_swap_failed', {
+                network: selectedNetwork.caip2Id,
+                message: e instanceof Error ? e.message : String(e),
+            })
         }
     }
 

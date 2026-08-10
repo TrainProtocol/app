@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
-import posthog from "posthog-js";
+import { captureEvent } from "@/lib/faro";
 import NotFoundIcon from "@/components/Icons/NotFoundIcon";
 import StatusPage, { BackToAppButton, SupportLink } from "@/components/StatusPage";
 
 export default function NotFound() {
     useEffect(() => {
-        posthog.capture("404", {
-            name: "404",
+        captureEvent("404", {
             path: typeof window !== "undefined" ? window.location.pathname : undefined,
         });
     }, []);

@@ -10,6 +10,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { buildHrefWithPersistantParams } from '@/helpers/querryHelper'
 import { getDateDifferenceString } from '@/components/utils/dateDifference'
 import { useSwapStore } from '@/stores/swapStore'
+import { captureEvent } from '@/lib/faro'
 
 type Props = {
     swap: SwapData
@@ -34,11 +35,16 @@ const SwapDetailsPanel: FC<Props> = ({ swap, sourceNetwork, destNetwork }) => {
 
     const handleViewSwap = () => {
         if (!swap.hashlock) return
+        captureEvent("history_view_swap_clicked", { hashlock: swap.hashlock, status: swap.status })
         setActiveHashlock(swap.hashlock)
         setSwapModalOpen(true)
     }
 
     const handleRepeatSwap = () => {
+        captureEvent("history_repeat_swap_clicked", {
+            source_network: swap.source,
+            destination_network: swap.destination,
+        })
         router.push(buildHrefWithPersistantParams('/', searchParams, {
             from: swap.source,
             to: swap.destination,

@@ -1,4 +1,4 @@
-import posthog from "posthog-js";
+import { captureException } from "@/lib/faro";
 import { NetworkBalance, TokenBalance } from "@/Models/Balance";
 import { BalanceProvider } from "@/Models/BalanceProvider";
 import { ExtendedNetwork } from "@/Models/Network";
@@ -56,8 +56,8 @@ export class BalanceResolver {
             const errorBalances = balances?.filter(b => b.error)
             if (errorBalances?.length) {
                 const balanceError = new Error(`Could not fetch balance for ${errorBalances.map(t => t.token).join(", ")} in ${network.caip2Id}`);
-                posthog.captureException(balanceError, {
-                    $layerswap_exception_type: "Balance Error",
+                captureException(balanceError, {
+                    train_exception_type: "Balance Error",
                     network: network.caip2Id,
                     node_url: network.nodes[0].url,
                     address: address,
@@ -75,8 +75,8 @@ export class BalanceResolver {
             const error = new Error(errorDetails.message);
             error.name = "BalanceError";
             error.cause = e;
-            posthog.captureException(error, {
-                $layerswap_exception_type: "Balance Error",
+            captureException(error, {
+                train_exception_type: "Balance Error",
                 network: network.caip2Id,
                 node_url: network.nodes[0].url,
                 address: address,
