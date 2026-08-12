@@ -20,7 +20,7 @@ catalog:
   swr: ^2.2.5
   typescript: ^7.0.2
   viem: 2.44.1
-  vitest: ^4.0.18
+  vitest: ^4.1.10
   wagmi: 2.14.11
   zustand: ^4.5.7
 
