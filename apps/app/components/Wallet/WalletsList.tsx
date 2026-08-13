@@ -2,7 +2,7 @@ import { ChevronDown, Unplug } from "lucide-react";
 import AddressIcon from "../AddressIcon";
 import { FC, useCallback, useState } from "react";
 import type { Wallet } from "@layerswap/widget-types";
-import { SelectAccountProps, WalletConnectionProvider } from "@layerswap/ui-kit/types";
+import { SelectAccountProps, WalletConnectionProvider } from "@layerswap/wallet-core/types";
 import { ExtendedAddress } from "../Input/Address/AddressPicker/AddressWithIcon";
 import { clsx } from 'clsx';
 import { useConnectModal } from "../WalletModal";

@@ -1,8 +1,8 @@
 import KnownInternalNames from "../../knownIds";
 import { useSettingsState } from "@/context/settings";
 import type { InternalConnector, Wallet } from "@layerswap/widget-types";
-import { WalletConnectionProvider } from "@layerswap/ui-kit/types";
-import { normalizeIconSrc } from "@layerswap/ui-kit";
+import { WalletConnectionProvider } from "@layerswap/wallet-core/types";
+import { normalizeIconSrc } from "@layerswap/wallet-core";
 import { extractAztecAddress } from "./utils";
 import { useCallback, useMemo } from "react";
 import { useAztecWalletContext } from "@/components/WalletProviders/AztecWalletProvider";

@@ -20,9 +20,9 @@
       }
     },
     "overrides": {
-      "@layerswap/ui-kit": "file:vendor/wallet-packages/layerswap-ui-kit-1.5.0.tgz",
-      "@layerswap/utils": "file:vendor/wallet-packages/layerswap-utils-1.7.0.tgz",
-      "@layerswap/widget-types": "file:vendor/wallet-packages/layerswap-widget-types-0.1.0.tgz",
+      "@layerswap/ui-kit": "2.0.0-next.0",
+      "@layerswap/utils": "2.0.0-next.0",
+      "@layerswap/widget-types": "1.0.0-next.0",
       "@radix-ui/react-dismissable-layer": "1.1.1",
       "@walletconnect/universal-provider": "2.21.8",
       "@walletconnect/ethereum-provider": "2.21.8",

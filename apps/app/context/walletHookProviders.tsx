@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useMemo } from "react";
-import { WalletConnectionProvider } from "@layerswap/ui-kit/types";
+import { WalletConnectionProvider } from "@layerswap/wallet-core/types";
 import { useSettingsState } from "./settings";
 // import useAztec from "@/lib/wallets/aztec/useAztec";
 import { isMobile } from "@layerswap/utils";
-import { useWalletProviderSnapshots } from "@layerswap/ui-kit";
+import { useWalletProviderSnapshots } from "@layerswap/wallet-core";
 
 const WalletProvidersContext = createContext<WalletConnectionProvider[]>([]);
 

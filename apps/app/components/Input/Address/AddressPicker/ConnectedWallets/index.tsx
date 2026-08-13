@@ -5,7 +5,7 @@ import { Network } from "@/Models/Network";
 import { FC, useState } from "react";
 import ResizablePanel from "@/components/ResizablePanel";
 import type { Wallet } from "@layerswap/widget-types";
-import { SelectAccountProps, WalletConnectionProvider } from "@layerswap/ui-kit/types";
+import { SelectAccountProps, WalletConnectionProvider } from "@layerswap/wallet-core/types";
 import { WalletItem } from "@/components/Wallet/WalletsList";
 import { useConnectModal } from "@/components/WalletModal";
 import WalletIconView from "@/components/Wallet/WalletIconView";

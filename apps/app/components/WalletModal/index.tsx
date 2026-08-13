@@ -1,8 +1,8 @@
 import { createContext, type Dispatch, type ReactNode, type SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { connectModalStore } from "@layerswap/ui-kit";
+import { connectModalStore } from "@layerswap/wallet-core";
 import * as UiKit from "@layerswap/ui-kit/components";
 import type { ModalWalletProvider } from "@layerswap/ui-kit/components";
-import type { WalletConnectionProvider, WalletModalConnector } from "@layerswap/ui-kit/types";
+import type { WalletConnectionProvider, WalletModalConnector } from "@layerswap/wallet-core/types";
 import type { Wallet } from "@layerswap/widget-types";
 
 type ConnectDisplayMode = 'drawer' | 'dialog'

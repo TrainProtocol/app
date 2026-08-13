@@ -10,7 +10,7 @@ import VaulDrawer from "@/components/Modal/vaulModal";
 import { WalletItem } from "@/components/Wallet/WalletsList";
 import { ConnectNewWalletButton } from "@/components/Wallet/ConnectNewWalletButton";
 import type { Wallet } from "@layerswap/widget-types";
-import { SelectAccountProps } from "@layerswap/ui-kit/types";
+import { SelectAccountProps } from "@layerswap/wallet-core/types";
 import { Network } from "@/Models/Network";
 import { useFormikContext } from "formik";
 import { useConnectModal } from "@/components/WalletModal";

@@ -2,8 +2,8 @@
 
 import { type FC, type ReactNode, useMemo } from "react";
 import { useConfig } from "wagmi";
-import { DescriptorHydrationBoundary, WalletProvidersRegistryProvider } from "@layerswap/ui-kit";
-import { type WalletProvider, type WalletProviderDescriptor, type WalletWrapper } from "@layerswap/ui-kit/types";
+import { DescriptorHydrationBoundary, WalletProvidersRegistryProvider } from "@layerswap/wallet-core";
+import { type WalletProvider, type WalletProviderDescriptor, type WalletWrapper } from "@layerswap/wallet-core/types";
 import { AppSettings as LayerswapAppSettings } from "@layerswap/utils";
 import { useSettingsState } from "@/context/settings";
 import { walletNetworkAdapter } from "@/lib/wallets/layerswap/networkAdapter";

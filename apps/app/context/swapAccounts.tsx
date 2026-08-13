@@ -3,7 +3,7 @@ import { useQueryState } from '@/context/query'
 import { SwapDirection } from '@/components/DTOs/SwapFormValues';
 import useWallet from '@/hooks/useWallet';
 import type { Wallet } from "@layerswap/widget-types";
-import { WalletConnectionProvider } from "@layerswap/ui-kit/types";
+import { WalletConnectionProvider } from "@layerswap/wallet-core/types";
 import { Address } from '@/lib/address';
 import { getKey, useBalanceStore } from '@/stores/balanceStore';
 

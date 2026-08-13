@@ -1,4 +1,4 @@
-import { ensureRegistryBrowseLoaded, useWalletDescriptorLoader } from "@layerswap/ui-kit";
+import { ensureRegistryBrowseLoaded, useWalletDescriptorLoader } from "@layerswap/wallet-core";
 import { type FC, useEffect } from "react";
 import { ChevronLeft } from "lucide-react";
 import { ConnectorsList as UiKitConnectorsList } from "@layerswap/ui-kit/components";

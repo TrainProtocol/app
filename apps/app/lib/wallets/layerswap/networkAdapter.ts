@@ -1,4 +1,4 @@
-import { defineNetworkAdapter } from "@layerswap/ui-kit";
+import { defineNetworkAdapter } from "@layerswap/wallet-core";
 import { getNativeToken, NetworkTypes, type ExtendedNetwork } from "@/Models/Network";
 import { getNetworkRpcUrls } from "@/lib/rpc/resolveNetworkRpcUrl";
 

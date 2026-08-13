@@ -8,7 +8,7 @@ import { Network, Token } from "@/Models/Network";
 import RouteSearch from "./RouteSearch";
 import NavigatableList from "@/components/NavigatableList";
 import useWallet from "@/hooks/useWallet";
-import { useProvidersConnectReady } from "@layerswap/ui-kit";
+import { useProvidersConnectReady } from "@layerswap/wallet-core";
 import ConnectWalletButton from "@/components/Input/Address/AddressPicker/ConnectedWallets/ConnectWalletButton";
 
 type ContentProps = {

@@ -2,7 +2,7 @@ import { RefreshCw } from "lucide-react";
 import { ResolveConnectorIcon } from "../../../../Icons/ConnectorIcons";
 import { FC, useState } from "react";
 import type { Wallet } from "@layerswap/widget-types";
-import { WalletConnectionProvider } from "@layerswap/ui-kit/types";
+import { WalletConnectionProvider } from "@layerswap/wallet-core/types";
 import { useConnectModal } from "../../../../WalletModal";
 import { captureEvent } from "@/lib/faro";
 
