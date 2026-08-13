@@ -24,8 +24,6 @@
       "@layerswap/utils": "2.0.0-next.0",
       "@layerswap/widget-types": "1.0.0-next.0",
       "@radix-ui/react-dismissable-layer": "1.1.1",
-      "@walletconnect/universal-provider": "2.21.8",
-      "@walletconnect/ethereum-provider": "2.21.8",
       "@aztec/aztec.js": "catalog:",
       "elliptic": ">=6.6.1",
       "ws": ">=8.21.0",
