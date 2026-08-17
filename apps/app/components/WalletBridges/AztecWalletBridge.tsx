@@ -9,14 +9,16 @@ import type { TrainSDK } from '@train-protocol/sdk'
 import { useAztecWalletStore } from '@/stores/aztecWalletStore'
 import { useWalletStore } from '@/stores/walletStore'
 import { useBridgeRpcUrl } from './useBridgeRpcUrl'
+import { useActiveAztecAccount } from '@/components/WalletProviders/ActiveAztecAccount'
 
 export function AztecWalletBridge() {
     const wallet = useAztecWalletStore(s => s.wallet)
     const connectedWallets = useWalletStore(s => s.connectedWallets)
     const getRpcUrl = useBridgeRpcUrl('aztec:')
+    const { activeAddress } = useActiveAztecAccount()
 
     const aztecWallet = connectedWallets.find(w => w.providerName === 'Aztec')
-    const address = aztecWallet?.address ?? null
+    const address = activeAddress ?? aztecWallet?.address ?? null
 
     const adapter = useMemo<TrainWalletAdapter>(() => {
         return {

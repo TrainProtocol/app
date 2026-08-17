@@ -1,5 +1,5 @@
 import { ensureRegistryBrowseLoaded, useWalletDescriptorLoader } from "@layerswap/wallet-core";
-import { type FC, useEffect } from "react";
+import { type FC, useCallback, useEffect } from "react";
 import { ChevronLeft } from "lucide-react";
 import { ConnectorsList as UiKitConnectorsList } from "@layerswap/ui-kit/components";
 import type { ConnectorsListProps } from "@layerswap/ui-kit/components";
@@ -9,8 +9,8 @@ import AppShellDialog from "../shared/AppShellDialog";
 import TrainLogoSymbol from "@/components/Icons/TrainLogoSymbol";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import useWallet from "@/hooks/useWallet";
-// import { useAztecWalletContext } from "../WalletProviders/AztecWalletProvider";
-// import AztecEmojiVerification from "./AztecEmojiVerification";
+import { useAztecWalletContext } from "../WalletProviders/AztecWalletProvider";
+import AztecEmojiVerification from "./AztecEmojiVerification";
 import { useConnectModal } from ".";
 
 const ConnectorsList = UiKitConnectorsList as FC<ConnectorsListProps>;
@@ -23,10 +23,10 @@ const ConnectWalletDrawer: FC = () => {
         setOpen,
         selectedConnector,
         selectedMultiChainConnector,
-        // setSelectedConnector,
+        setSelectedConnector,
         displayMode,
     } = useConnectModal();
-    // const { pendingVerification } = useAztecWalletContext();
+    const { pendingVerification } = useAztecWalletContext();
     const { providers } = useWallet();
     const { isMobile } = useWindowDimensions();
     const { loadAll } = useWalletDescriptorLoader();
@@ -39,17 +39,22 @@ const ConnectWalletDrawer: FC = () => {
 
     const title = selectedMultiChainConnector && !selectedConnector ? "Select ecosystem" : "Connect wallet";
     const showBack = !!(selectedConnector || selectedMultiChainConnector);
-    // const content = pendingVerification ? (
-    //     <AztecEmojiVerification
-    //         emojis={pendingVerification.emojis}
-    //         onConfirm={() => { void pendingVerification.confirm(); }}
-    //         onCancel={() => {
-    //             pendingVerification.cancel();
-    //             setSelectedConnector(undefined);
-    //         }}
-    //     />
-    // ) : (
-    const content = (
+    const cancelPendingVerification = useCallback(() => {
+        pendingVerification?.cancel();
+        setSelectedConnector(undefined);
+    }, [pendingVerification, setSelectedConnector]);
+    const handleBack = pendingVerification ? cancelPendingVerification : goBack;
+    const handleClose = useCallback(() => {
+        pendingVerification?.cancel();
+        onFinish();
+    }, [onFinish, pendingVerification]);
+    const content = pendingVerification ? (
+        <AztecEmojiVerification
+            emojis={pendingVerification.emojis}
+            onConfirm={() => { void pendingVerification.confirm(); }}
+            onCancel={cancelPendingVerification}
+        />
+    ) : (
         <ConnectorsList
             providers={providers}
             onFinish={onFinish}
@@ -61,9 +66,9 @@ const ConnectWalletDrawer: FC = () => {
         return (
             <AppShellDialog
                 open={open}
-                onOpenChange={value => { if (!value) onFinish(); }}
+                onOpenChange={value => { if (!value) handleClose(); }}
                 title={title}
-                onBack={showBack ? goBack : undefined}
+                onBack={showBack ? handleBack : undefined}
                 contentClassName="h-[550px]! max-h-[85svh]!"
             >
                 {content}
@@ -75,13 +80,13 @@ const ConnectWalletDrawer: FC = () => {
         <VaulDrawer
             show={open}
             setShow={setOpen}
-            onClose={onFinish}
+            onClose={handleClose}
             modalId="connectNewWallet"
             header={
                 <div className="flex items-center gap-1">
                     {showBack && (
                         <div className="sm:-ml-2 ml-0">
-                            <IconButton onClick={goBack} icon={<ChevronLeft className="h-6 w-6" />} />
+                            <IconButton onClick={handleBack} icon={<ChevronLeft className="h-6 w-6" />} />
                         </div>
                     )}
                     <p>{title}</p>

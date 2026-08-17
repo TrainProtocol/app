@@ -3,6 +3,7 @@ import type { Wallet as AztecWallet } from "@aztec/aztec.js/wallet";
 import type { WalletProvider as AztecSDKWalletProvider, PendingConnection } from "@aztec/wallet-sdk/manager";
 import { AZTEC_APP_ID, useAztecCapabilityManifest, useAztecChainInfo } from "@/lib/wallets/aztec/configs";
 import { useAztecWalletStore } from "@/stores/aztecWalletStore";
+import { useWalletStore } from "@/stores/walletStore";
 import { ActiveAztecAccountProvider } from "./ActiveAztecAccount";
 
 /**
@@ -40,6 +41,7 @@ export const AztecWalletProvider: React.FC<{ children: ReactNode }> = ({ childre
         disconnectUnsubRef.current?.();
         disconnectUnsubRef.current = null;
         setWallet(null);
+        useWalletStore.getState().disconnectWallet("Aztec");
         activeProviderRef.current = null;
     }, [setWallet]);
 

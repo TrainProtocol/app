@@ -2,9 +2,9 @@
 
 import dynamic from "next/dynamic"
 import { EvmWalletBridge } from './EvmWalletBridge'
-// import { AztecWalletBridge } from './AztecWalletBridge'
 import useWallet from '@/hooks/useWallet'
 
+const AztecWalletBridge = dynamic(() => import('./AztecWalletBridge').then(module => module.AztecWalletBridge), { ssr: false })
 const SolanaWalletBridge = dynamic(() => import('./SolanaWalletBridge').then(module => module.SolanaWalletBridge), { ssr: false })
 const StarknetWalletBridge = dynamic(() => import('./StarknetWalletBridge').then(module => module.StarknetWalletBridge), { ssr: false })
 const TronWalletBridge = dynamic(() => import('./TronWalletBridge').then(module => module.TronWalletBridge), { ssr: false })
@@ -17,7 +17,7 @@ export function WalletBridges() {
     return (
         <>
             <EvmWalletBridge />
-            {/* <AztecWalletBridge /> */}
+            {isReady('aztec') && <AztecWalletBridge />}
             {isReady('solana') && <SolanaWalletBridge />}
             {isReady('starknet') && <StarknetWalletBridge />}
             {isReady('tron') && <TronWalletBridge />}

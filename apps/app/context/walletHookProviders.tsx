@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useMemo } from "react";
-import { WalletConnectionProvider } from "@layerswap/wallet-core/types";
+import type { WalletConnectionProvider } from "@layerswap/wallet-core/types";
 import { useSettingsState } from "./settings";
-// import useAztec from "@/lib/wallets/aztec/useAztec";
 import { isMobile } from "@layerswap/utils";
 import { useWalletProviderSnapshots } from "@layerswap/wallet-core";
 
@@ -12,13 +11,9 @@ export const WalletProvidersProvider: React.FC<React.PropsWithChildren> = ({ chi
     const isMobilePlatform = isMobile();
 
     const snapshots = useWalletProviderSnapshots();
-    // const aztec = useAztec();
 
     const providers = useMemo(() => {
-        const allProviders: WalletConnectionProvider[] = [
-            ...snapshots,
-            // aztec,
-        ];
+        const allProviders: WalletConnectionProvider[] = snapshots;
 
         return allProviders
             .filter(provider => isMobilePlatform ? !provider.unsupportedPlatforms?.includes('mobile') : !provider.unsupportedPlatforms?.includes('desktop'))

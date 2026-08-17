@@ -3,6 +3,7 @@ import { createEVMProvider } from "@layerswap/wallet-evm";
 import type { WalletProvider, WalletProviderDescriptor, WalletWrapper } from "@layerswap/wallet-core/types";
 import { NetworkTypes, type ExtendedNetwork } from "@/Models/Network";
 import AppSettings from "@/lib/AppSettings";
+import { aztecWalletAdapter } from "@/lib/wallets/aztec/adapter";
 
 // This is a public, client-side-only project ID for WalletConnect wallet discovery.
 // It has no authentication or authorization capability and is safe to expose in bundles.
@@ -54,6 +55,7 @@ export function getLayerswapProviders(config: DefaultWalletConfig) {
             wagmiConfig,
             ethereumChainIds: [1, 11155111],
         }),
+        aztecWalletAdapter,
         {
             id: "fuel",
             name: "Fuel",
