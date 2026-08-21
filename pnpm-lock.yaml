@@ -50,9 +50,15 @@ catalogs:
       version: 4.5.7
 
 overrides:
-  '@layerswap/ui-kit': 2.0.0-next.0
-  '@layerswap/utils': 2.0.0-next.0
-  '@layerswap/widget-types': 1.0.0-next.0
+  '@layerswap/ui-kit': file:./local-packages/layerswap-ui-kit-2.0.0-next.0.tgz
+  '@layerswap/utils': file:./local-packages/layerswap-utils-2.0.0-next.0.tgz
+  '@layerswap/widget-types': file:./local-packages/layerswap-widget-types-1.0.0-next.0.tgz
+  '@layerswap/wallet-core': file:./local-packages/layerswap-wallet-core-2.0.0-next.0.tgz
+  '@layerswap/wallet-evm': file:./local-packages/layerswap-wallet-evm-2.0.0-next.0.tgz
+  '@layerswap/wallet-fuel': file:./local-packages/layerswap-wallet-fuel-2.0.0-next.0.tgz
+  '@layerswap/wallet-starknet': file:./local-packages/layerswap-wallet-starknet-2.0.0-next.0.tgz
+  '@layerswap/wallet-svm': file:./local-packages/layerswap-wallet-svm-2.0.0-next.0.tgz
+  '@layerswap/wallet-tron': file:./local-packages/layerswap-wallet-tron-2.0.0-next.0.tgz
   '@radix-ui/react-dismissable-layer': 1.1.1
   '@aztec/aztec.js': ^5.1.0
   elliptic: '>=6.6.1'
@@ -143,32 +149,32 @@ importers:
         specifier: ^1.1.6
         version: 1.1.6(react@19.2.8)
       '@layerswap/ui-kit':
-        specifier: 2.0.0-next.0
-        version: 2.0.0-next.0(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
+        specifier: file:../../local-packages/layerswap-ui-kit-2.0.0-next.0.tgz
+        version: file:local-packages/layerswap-ui-kit-2.0.0-next.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
       '@layerswap/utils':
-        specifier: 2.0.0-next.0
-        version: 2.0.0-next.0
+        specifier: file:../../local-packages/layerswap-utils-2.0.0-next.0.tgz
+        version: file:local-packages/layerswap-utils-2.0.0-next.0.tgz(react@19.2.8)
       '@layerswap/wallet-core':
-        specifier: 2.0.0-next.0
-        version: 2.0.0-next.0(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
+        specifier: file:../../local-packages/layerswap-wallet-core-2.0.0-next.0.tgz
+        version: file:local-packages/layerswap-wallet-core-2.0.0-next.0.tgz(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
       '@layerswap/wallet-evm':
-        specifier: 2.0.0-next.0
-        version: 2.0.0-next.0(@layerswap/utils@2.0.0-next.0)(@layerswap/wallet-core@2.0.0-next.0(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/widget-types@1.0.0-next.0)(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10))(wagmi@2.14.11(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@19.2.8))(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10)))(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
+        specifier: file:../../local-packages/layerswap-wallet-evm-2.0.0-next.0.tgz
+        version: file:local-packages/layerswap-wallet-evm-2.0.0-next.0.tgz(@layerswap/utils@file:local-packages/layerswap-utils-2.0.0-next.0.tgz(react@19.2.8))(@layerswap/wallet-core@file:local-packages/layerswap-wallet-core-2.0.0-next.0.tgz(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/widget-types@file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz)(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10))(wagmi@2.14.11(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@19.2.8))(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10)))(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
       '@layerswap/wallet-fuel':
-        specifier: 2.0.0-next.0
-        version: 2.0.0-next.0(@layerswap/utils@2.0.0-next.0)(@layerswap/wallet-core@2.0.0-next.0(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/widget-types@1.0.0-next.0)(@wagmi/core@2.16.4(@tanstack/query-core@5.90.20)(@types/react@19.2.17)(react@19.2.8)(typescript@7.0.2)(use-sync-external-store@1.6.0(react@19.2.8))(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10)))(bufferutil@4.1.0)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10))(vitest@4.1.10(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(msw@2.12.14(@types/node@20.19.34)(typescript@7.0.2)))(wagmi@2.14.11(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@19.2.8))(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10)))(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
+        specifier: file:../../local-packages/layerswap-wallet-fuel-2.0.0-next.0.tgz
+        version: file:local-packages/layerswap-wallet-fuel-2.0.0-next.0.tgz(2cf27901872c4758b305211ceaad2364)
       '@layerswap/wallet-starknet':
-        specifier: 2.0.0-next.0
-        version: 2.0.0-next.0(@layerswap/utils@2.0.0-next.0)(@layerswap/wallet-core@2.0.0-next.0(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/widget-types@1.0.0-next.0)(@radix-ui/react-slot@1.2.4(@types/react@19.2.17)(react@19.2.8))(@scure/bip39@2.0.1)(@types/react@19.2.17)(bufferutil@4.1.0)(class-variance-authority@0.7.1)(clsx@1.2.1)(framer-motion@12.42.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(swr@2.4.0(react@19.2.8))(tailwind-merge@3.5.0)(tailwindcss-animate@1.0.7(tailwindcss@4.2.1))(tailwindcss@4.2.1)(typescript@7.0.2)(utf-8-validate@5.0.10)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
+        specifier: file:../../local-packages/layerswap-wallet-starknet-2.0.0-next.0.tgz
+        version: file:local-packages/layerswap-wallet-starknet-2.0.0-next.0.tgz(@layerswap/utils@file:local-packages/layerswap-utils-2.0.0-next.0.tgz(react@19.2.8))(@layerswap/wallet-core@file:local-packages/layerswap-wallet-core-2.0.0-next.0.tgz(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/widget-types@file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz)(@radix-ui/react-slot@1.2.4(@types/react@19.2.17)(react@19.2.8))(@scure/bip39@2.0.1)(@types/react@19.2.17)(bufferutil@4.1.0)(class-variance-authority@0.7.1)(clsx@1.2.1)(framer-motion@12.42.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(swr@2.4.0(react@19.2.8))(tailwind-merge@3.5.0)(tailwindcss-animate@1.0.7(tailwindcss@4.2.1))(tailwindcss@4.2.1)(typescript@7.0.2)(utf-8-validate@5.0.10)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
       '@layerswap/wallet-svm':
-        specifier: 2.0.0-next.0
-        version: 2.0.0-next.0(@babel/runtime@7.28.6)(@layerswap/utils@2.0.0-next.0)(@layerswap/wallet-core@2.0.0-next.0(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/widget-types@1.0.0-next.0)(@solana/sysvars@2.3.0(typescript@7.0.2))(@types/react@19.2.17)(bufferutil@4.1.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(tslib@2.8.1)(typescript@7.0.2)(utf-8-validate@5.0.10)(ws@8.21.3(bufferutil@4.1.0)(utf-8-validate@5.0.10))(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
+        specifier: file:../../local-packages/layerswap-wallet-svm-2.0.0-next.0.tgz
+        version: file:local-packages/layerswap-wallet-svm-2.0.0-next.0.tgz(@babel/runtime@7.28.6)(@layerswap/utils@file:local-packages/layerswap-utils-2.0.0-next.0.tgz(react@19.2.8))(@layerswap/wallet-core@file:local-packages/layerswap-wallet-core-2.0.0-next.0.tgz(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/widget-types@file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz)(@solana/sysvars@2.3.0(typescript@7.0.2))(@types/react@19.2.17)(bufferutil@4.1.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(tslib@2.8.1)(typescript@7.0.2)(utf-8-validate@5.0.10)(ws@8.21.3(bufferutil@4.1.0)(utf-8-validate@5.0.10))(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
       '@layerswap/wallet-tron':
-        specifier: 2.0.0-next.0
-        version: 2.0.0-next.0(@layerswap/utils@2.0.0-next.0)(@layerswap/wallet-core@2.0.0-next.0(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/widget-types@1.0.0-next.0)(bufferutil@4.1.0)(utf-8-validate@5.0.10)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
+        specifier: file:../../local-packages/layerswap-wallet-tron-2.0.0-next.0.tgz
+        version: file:local-packages/layerswap-wallet-tron-2.0.0-next.0.tgz(@layerswap/utils@file:local-packages/layerswap-utils-2.0.0-next.0.tgz(react@19.2.8))(@layerswap/wallet-core@file:local-packages/layerswap-wallet-core-2.0.0-next.0.tgz(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/widget-types@file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz)(bufferutil@4.1.0)(utf-8-validate@5.0.10)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
       '@layerswap/widget-types':
-        specifier: 1.0.0-next.0
-        version: 1.0.0-next.0
+        specifier: file:../../local-packages/layerswap-widget-types-1.0.0-next.0.tgz
+        version: file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz
       '@noble/hashes':
         specifier: ^2.0.1
         version: 2.0.1
@@ -253,12 +259,6 @@ importers:
       axios:
         specifier: '>=1.19.0'
         version: 1.19.0
-      bn.js:
-        specifier: '>=5.2.3 <6'
-        version: 5.2.3
-      bs58:
-        specifier: ^6.0.0
-        version: 6.0.0
       buffer:
         specifier: ^6.0.3
         version: 6.0.3
@@ -286,9 +286,6 @@ importers:
       fuels:
         specifier: 'catalog:'
         version: 0.101.3(vitest@4.1.10(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(msw@2.12.14(@types/node@20.19.34)(typescript@7.0.2)))
-      js-sha3:
-        specifier: ^0.8.0
-        version: 0.8.0
       lucide-react:
         specifier: ^1.27.0
         version: 1.27.0(react@19.2.8)
@@ -344,9 +341,6 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4.2.1
         version: 4.2.1
-      '@types/bn.js':
-        specifier: ^5.1.0
-        version: 5.2.0
       '@types/node':
         specifier: ^20
         version: 20.19.34
@@ -1953,76 +1947,90 @@ packages:
     resolution: {integrity: sha512-x/iUDjcS90W69PryLDIMgFyV21YLTnG9zOpPXS7Bkt2b8AsY3zZsIpOLBkYr9fBcF3HbkKaER5hOBZLfpLgYNw==}
     engines: {node: '>= 14.0.0'}
 
-  '@layerswap/ui-kit@2.0.0-next.0':
-    resolution: {integrity: sha512-MNXS75ZYoTBqlhL5GpnHgqxOGI1Fe2f/hyYnvL4oT9YAbC0C/xnnDB45x5IlrObbxsECJApHkmZzYpzkMZmc7A==}
+  '@layerswap/ui-kit@file:local-packages/layerswap-ui-kit-2.0.0-next.0.tgz':
+    resolution: {integrity: sha512-lZll+Hyp9IR+ZM4iQb6j4EcefaWNLERlaDOYGrhbgRkU+KZXe6vvyR6XOgegtcjVPRBoX4/vO3grFKAr2++6ew==, tarball: file:local-packages/layerswap-ui-kit-2.0.0-next.0.tgz}
+    version: 2.0.0-next.0
     engines: {node: '>=22'}
     peerDependencies:
       react: ^18.0 || ^19.0.0 || ^19.0.0-rc
       zustand: ^4.5.7
 
-  '@layerswap/utils@2.0.0-next.0':
-    resolution: {integrity: sha512-IqDMJbTOWYQX0K8x8+hjviofK+OwaTe+oV5l6hpeLDx0IhE0VbYIFnJ982Q3NafP0oEGDXN1J/vfkrGTRLXXlw==}
+  '@layerswap/utils@file:local-packages/layerswap-utils-2.0.0-next.0.tgz':
+    resolution: {integrity: sha512-lVQRBqKVoGvWvcWLroxrAfhbHkEEfUf8a76AHlyZsV55wCy5Zdw3igomZWkR/6F4wUsUTClwqn68txtPwqpURw==, tarball: file:local-packages/layerswap-utils-2.0.0-next.0.tgz}
+    version: 2.0.0-next.0
     engines: {node: '>=22'}
+    peerDependencies:
+      react: ^18.0 || ^19.0.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      react:
+        optional: true
 
-  '@layerswap/wallet-core@2.0.0-next.0':
-    resolution: {integrity: sha512-at6+PGrtsTe+dx7oTM46pTPx9JM1IIYWQPiMHJYsxnk/OTe/bMF4BeVOwcD1g+fkhJWEu++D4mz344X3CH7ZbQ==}
+  '@layerswap/wallet-core@file:local-packages/layerswap-wallet-core-2.0.0-next.0.tgz':
+    resolution: {integrity: sha512-adR968BFLIzQ3XUUfM9OLmgGpoGJV8bhzlGSCdfj82IdlVOLXnD9E5IDOFQlVUv+V21VEcR1+PvujhHReDk4tw==, tarball: file:local-packages/layerswap-wallet-core-2.0.0-next.0.tgz}
+    version: 2.0.0-next.0
     engines: {node: '>=22'}
     peerDependencies:
       react: ^18.0 || ^19.0.0 || ^19.0.0-rc
       zustand: ^4.5.7
 
-  '@layerswap/wallet-evm@2.0.0-next.0':
-    resolution: {integrity: sha512-tlopGDS1Hu1TYLzouayqw2Yyo6k972uiShzxVv242/zhhB7NiSn8Qe494UTG+kDHvaxVIiu145RJvNJJcMOwXw==}
+  '@layerswap/wallet-evm@file:local-packages/layerswap-wallet-evm-2.0.0-next.0.tgz':
+    resolution: {integrity: sha512-ujtMTQFNQAZBPalGf9R53mSqXptMwu0hMOMmqlzAjSlDAluEQ7R9QgNjJeZ1NfM/DU3feqgU1N5g9BOhZMaSkw==, tarball: file:local-packages/layerswap-wallet-evm-2.0.0-next.0.tgz}
+    version: 2.0.0-next.0
     engines: {node: '>=22'}
     peerDependencies:
-      '@layerswap/utils': 2.0.0-next.0
+      '@layerswap/utils': ^2.0.0-next.0
       '@layerswap/wallet-core': ^2.0.0-next.0
-      '@layerswap/widget-types': 1.0.0-next.0
+      '@layerswap/widget-types': ^1.0.0-next.0
       viem: ^2.21.16
       wagmi: 2.14.11
       zustand: ^4.5.7
 
-  '@layerswap/wallet-fuel@2.0.0-next.0':
-    resolution: {integrity: sha512-euT0JMH8f4pT09WFfbSMWfHgGN9eXlnNN2Rbx7K2b3pSqvhJgLmXdOhNP2lmMQzKU+HFExLSaFfRn4tFVrLMhQ==}
+  '@layerswap/wallet-fuel@file:local-packages/layerswap-wallet-fuel-2.0.0-next.0.tgz':
+    resolution: {integrity: sha512-5JLEeam6I6oFstT/IOW8bOTiQTFtkE9/T0eKFYvSGuHqSBg+DtmzruUAWhkGgaHYDetnp4R8yWd53fzSgp1bvw==, tarball: file:local-packages/layerswap-wallet-fuel-2.0.0-next.0.tgz}
+    version: 2.0.0-next.0
     engines: {node: '>=22'}
     peerDependencies:
-      '@layerswap/utils': 2.0.0-next.0
+      '@layerswap/utils': ^2.0.0-next.0
       '@layerswap/wallet-core': ^2.0.0-next.0
-      '@layerswap/widget-types': 1.0.0-next.0
+      '@layerswap/widget-types': ^1.0.0-next.0
       '@wagmi/core': 2.16.4
       viem: ^2.21.16
       wagmi: 2.14.11
       zustand: ^4.5.7
 
-  '@layerswap/wallet-starknet@2.0.0-next.0':
-    resolution: {integrity: sha512-kiVwWptPt2VLPQd1Hf/QoCTGTNoxfPjqY2efnp4SErHdC9+uiZdxU3a8LtNwzv7w87T+SWJO9CflkN6kj8oTIQ==}
+  '@layerswap/wallet-starknet@file:local-packages/layerswap-wallet-starknet-2.0.0-next.0.tgz':
+    resolution: {integrity: sha512-ngADZllY5S7szBmdnXxjZMUlwM6nbUN/1Jch6kuck3T3wnNa7FO5Uwxxh1DbNjux/kq9/NIWAb9XcosqHY7nLA==, tarball: file:local-packages/layerswap-wallet-starknet-2.0.0-next.0.tgz}
+    version: 2.0.0-next.0
     engines: {node: '>=22'}
     peerDependencies:
-      '@layerswap/utils': 2.0.0-next.0
+      '@layerswap/utils': ^2.0.0-next.0
       '@layerswap/wallet-core': ^2.0.0-next.0
-      '@layerswap/widget-types': 1.0.0-next.0
+      '@layerswap/widget-types': ^1.0.0-next.0
       zustand: ^4.5.7
 
-  '@layerswap/wallet-svm@2.0.0-next.0':
-    resolution: {integrity: sha512-ELMjSeBHLfqr0ap388u1LV8fCd3jVTQoWXOdK25zx4LFzjo8NM1ISRytIQRun7uP14R42PuULK1JAw0TUArEBA==}
+  '@layerswap/wallet-svm@file:local-packages/layerswap-wallet-svm-2.0.0-next.0.tgz':
+    resolution: {integrity: sha512-piyEvC145QqQyb0mT/uetCCdaA4L5ivEEcqowdt7woYAiw+wjgnhbyzUIr7KVE3QgpJVfz7S2enJDmTgn/AUCg==, tarball: file:local-packages/layerswap-wallet-svm-2.0.0-next.0.tgz}
+    version: 2.0.0-next.0
     engines: {node: '>=22'}
     peerDependencies:
-      '@layerswap/utils': 2.0.0-next.0
+      '@layerswap/utils': ^2.0.0-next.0
       '@layerswap/wallet-core': ^2.0.0-next.0
-      '@layerswap/widget-types': 1.0.0-next.0
+      '@layerswap/widget-types': ^1.0.0-next.0
       zustand: ^4.5.7
 
-  '@layerswap/wallet-tron@2.0.0-next.0':
-    resolution: {integrity: sha512-JizkXIleO69CrWgwNuT18J/3rIprgZU7ibKKBpjXYqj1is+OkXD3vAPrwMs70fqwFQ7SqN0+LtcoPVNo09TzNQ==}
+  '@layerswap/wallet-tron@file:local-packages/layerswap-wallet-tron-2.0.0-next.0.tgz':
+    resolution: {integrity: sha512-XGPgnDYGX3/ZYi5UKyshuTY+4MmPsWeMNiqWY6MPOzkQq9bWq67EHwGGDTxiQ682F3SnegnvbSqMaY/TIWzYKA==, tarball: file:local-packages/layerswap-wallet-tron-2.0.0-next.0.tgz}
+    version: 2.0.0-next.0
     engines: {node: '>=22'}
     peerDependencies:
-      '@layerswap/utils': 2.0.0-next.0
+      '@layerswap/utils': ^2.0.0-next.0
       '@layerswap/wallet-core': ^2.0.0-next.0
-      '@layerswap/widget-types': 1.0.0-next.0
+      '@layerswap/widget-types': ^1.0.0-next.0
       zustand: ^4.5.7
 
-  '@layerswap/widget-types@1.0.0-next.0':
-    resolution: {integrity: sha512-s/aUXiJ/Cc1ACv1F7eLzO0mNEZlmG05tb009A681DJkMb3yqubsFWM/hJ70MSBWZUGMWv6pBGWt1P8Z49ehmCA==}
+  '@layerswap/widget-types@file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz':
+    resolution: {integrity: sha512-/pbjDUtC7UkEBoL/Pkz1b7E/OYL4Aug514Xuz/vlzmxQirq5bVce3t1+M+JoRjwgPkRyyOdA5k/Fyug1WFltkw==, tarball: file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz}
+    version: 1.0.0-next.0
     engines: {node: '>=18'}
 
   '@ledgerhq/devices@8.10.0':
@@ -2687,6 +2695,9 @@ packages:
   '@radix-ui/number@1.1.1':
     resolution: {integrity: sha512-MkKCwxlXTgz6CFoJx3pCwn07GKp36+aZyu/u2Ln2VrA5DcdyCZkASEDBTd8x5whTQQL5CiYf4prXKLcgQdv29g==}
 
+  '@radix-ui/primitive@1.0.0':
+    resolution: {integrity: sha512-3e7rn8FDMin4CgeL7Z/49smCA3rFYY3Ha2rUQ7HRWFadS5iCRw08ZgVT1LaNTCNqgvrUiyczLflrVrF0SRQtNA==}
+
   '@radix-ui/primitive@1.1.0':
     resolution: {integrity: sha512-4Z8dn6Upk0qk4P74xBhZ6Hd/w0mPEzOOLxy4xiPXOXqjF7jZS0VAKk7/x/H6FyY2zCkYJqePf1G5KmkmNJ4RBA==}
 
@@ -2810,6 +2821,11 @@ packages:
       '@types/react-dom':
         optional: true
 
+  '@radix-ui/react-compose-refs@1.0.0':
+    resolution: {integrity: sha512-0KaSv6sx787/hK3eF53iOkiSLwAGlFMx5lotrqD2pTjB18KbybKoEIgkNZTKC60YECDQTKGTRcDBILwZVqVKvA==}
+    peerDependencies:
+      react: ^16.8 || ^17.0 || ^18.0
+
   '@radix-ui/react-compose-refs@1.1.0':
     resolution: {integrity: sha512-b4inOtiaOnYf9KWyO3jAeeCG6FeyfY6ldiEPanbUjWd+xIk5wZeHa8yVwmrJ2vderhu/BQvzCrJI0lHd+wIiqw==}
     peerDependencies:
@@ -2841,6 +2857,11 @@ packages:
       '@types/react-dom':
         optional: true
 
+  '@radix-ui/react-context@1.0.0':
+    resolution: {integrity: sha512-1pVM9RfOQ+n/N5PJK33kRSKsr1glNxomxONs5c49MliinBY6Yw2Q995qfBUUo0/Mbg05B/sGA0gkgPI7kmSHBg==}
+    peerDependencies:
+      react: ^16.8 || ^17.0 || ^18.0
+
   '@radix-ui/react-context@1.1.2':
     resolution: {integrity: sha512-jCi/QKUM2r1Ju5a3J64TH2A5SpKAgh0LpknyqdQ4m6DCV0xJ2HG1xARRwNGPQfi1SLdLWZ1OJz6F4OMBBNiGJA==}
     peerDependencies:
@@ -2858,6 +2879,12 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  '@radix-ui/react-dialog@1.0.0':
+    resolution: {integrity: sha512-Yn9YU+QlHYLWwV1XfKiqnGVpWYWk6MeBVM6x/bcoyPvxgjQGoeT35482viLPctTMWoMw0PoHgqfSox7Ig+957Q==}
+    peerDependencies:
+      react: ^16.8 || ^17.0 || ^18.0
+      react-dom: ^16.8 || ^17.0 || ^18.0
 
   '@radix-ui/react-dialog@1.1.15':
     resolution: {integrity: sha512-TCglVRtzlffRNxRMEyR36DGBLJpeusFcgMVD9PZEzAKnUs1lKCgX5u9BmC2Yg+LL9MgZDugFFs1Vl+Jp4t/PGw==}
@@ -2907,6 +2934,11 @@ packages:
       '@types/react-dom':
         optional: true
 
+  '@radix-ui/react-focus-guards@1.0.0':
+    resolution: {integrity: sha512-UagjDk4ijOAnGu4WMUPj9ahi7/zJJqNZ9ZAiGPp7waUWJO0O1aWXi/udPphI0IUjvrhBsZJGSN66dR2dsueLWQ==}
+    peerDependencies:
+      react: ^16.8 || ^17.0 || ^18.0
+
   '@radix-ui/react-focus-guards@1.1.3':
     resolution: {integrity: sha512-0rFg/Rj2Q62NCm62jZw0QX7a3sz6QCQU0LpZdNrJX8byRGaGVTqbrW9jAoIAHyMQqsNpeZ81YgSizOt5WXq0Pw==}
     peerDependencies:
@@ -2915,6 +2947,12 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  '@radix-ui/react-focus-scope@1.0.0':
+    resolution: {integrity: sha512-C4SWtsULLGf/2L4oGeIHlvWQx7Rf+7cX/vKOAD2dXW0A1b5QXwi3wWeaEgW+wn+SEVrraMUk05vLU9fZZz5HbQ==}
+    peerDependencies:
+      react: ^16.8 || ^17.0 || ^18.0
+      react-dom: ^16.8 || ^17.0 || ^18.0
 
   '@radix-ui/react-focus-scope@1.1.7':
     resolution: {integrity: sha512-t2ODlkXBQyn7jkl6TNaw/MtVEVvIGelJDCG41Okq/KwUsJBwQ4XVZsHAVUkK4mBv3ewiAS3PGuUWuY2BoK4ZUw==}
@@ -2954,6 +2992,11 @@ packages:
         optional: true
       '@types/react-dom':
         optional: true
+
+  '@radix-ui/react-id@1.0.0':
+    resolution: {integrity: sha512-Q6iAB/U7Tq3NTolBBQbHTgclPmGWE3OlktGGqrClPozSw4vkQ1DfQAOtzgRPecKsMdJINE05iaoDUG8tRzCBjw==}
+    peerDependencies:
+      react: ^16.8 || ^17.0 || ^18.0
 
   '@radix-ui/react-id@1.1.1':
     resolution: {integrity: sha512-kGkGegYIdQsOb4XjsfM97rXsiHaBwco+hFI66oO4s9LU+PLAC5oJ7khdOVFxkhsmlbpUqDAvXw11CluXP+jkHg==}
@@ -3068,6 +3111,12 @@ packages:
       '@types/react-dom':
         optional: true
 
+  '@radix-ui/react-portal@1.0.0':
+    resolution: {integrity: sha512-a8qyFO/Xb99d8wQdu4o7qnigNjTPG123uADNecz0eX4usnQEj7o+cG4ZX4zkqq98NYekT7UoEQIjxBNWIFuqTA==}
+    peerDependencies:
+      react: ^16.8 || ^17.0 || ^18.0
+      react-dom: ^16.8 || ^17.0 || ^18.0
+
   '@radix-ui/react-portal@1.1.9':
     resolution: {integrity: sha512-bpIxvq03if6UNwXZ+HTK71JLh4APvnXntDc6XOX8UVq4XQOVl7lwok0AvIl+b8zgCw3fSaVTZMpAPPagXbKmHQ==}
     peerDependencies:
@@ -3081,6 +3130,12 @@ packages:
       '@types/react-dom':
         optional: true
 
+  '@radix-ui/react-presence@1.0.0':
+    resolution: {integrity: sha512-A+6XEvN01NfVWiKu38ybawfHsBjWum42MRPnEuqPsBZ4eV7e/7K321B5VgYMPv3Xx5An6o1/l9ZuDBgmcmWK3w==}
+    peerDependencies:
+      react: ^16.8 || ^17.0 || ^18.0
+      react-dom: ^16.8 || ^17.0 || ^18.0
+
   '@radix-ui/react-presence@1.1.5':
     resolution: {integrity: sha512-/jfEwNDdQVBCNvjkGit4h6pMOzq8bHkopq458dPt2lMjx+eBQUohZNG9A7DtO/O5ukSbxuaNGXMjHicgwy6rQQ==}
     peerDependencies:
@@ -3093,6 +3148,12 @@ packages:
         optional: true
       '@types/react-dom':
         optional: true
+
+  '@radix-ui/react-primitive@1.0.0':
+    resolution: {integrity: sha512-EyXe6mnRlHZ8b6f4ilTDrXmkLShICIuOTTj0GX4w1rp+wSxf3+TD05u1UOITC8VsJ2a9nwHvdXtOXEOl0Cw/zQ==}
+    peerDependencies:
+      react: ^16.8 || ^17.0 || ^18.0
+      react-dom: ^16.8 || ^17.0 || ^18.0
 
   '@radix-ui/react-primitive@2.0.0':
     resolution: {integrity: sha512-ZSpFm0/uHa8zTvKBDjLFWLo8dkr4MBsiDLz0g3gMUwqgLHz9rTaRRGYDgvZPtBJgYCBKXkS9fzmoySgr8CO6Cw==}
@@ -3237,6 +3298,11 @@ packages:
       '@types/react-dom':
         optional: true
 
+  '@radix-ui/react-slot@1.0.0':
+    resolution: {integrity: sha512-3mrKauI/tWXo1Ll+gN5dHcxDPdm/Df1ufcDLCecn+pnCIVcdWE7CujXo8QaXOWRJyZyQWWbpB8eFwHzWXlv5mQ==}
+    peerDependencies:
+      react: ^16.8 || ^17.0 || ^18.0
+
   '@radix-ui/react-slot@1.1.0':
     resolution: {integrity: sha512-FUCf5XMfmW4dtYl69pdS4DbxKy8nj4M7SafBgPllysxmdachynNflAdp/gCsnYWNDnge6tI9onzMp5ARYc1KNw==}
     peerDependencies:
@@ -3355,6 +3421,11 @@ packages:
       '@types/react-dom':
         optional: true
 
+  '@radix-ui/react-use-callback-ref@1.0.0':
+    resolution: {integrity: sha512-GZtyzoHz95Rhs6S63D2t/eqvdFCm7I+yHMLVQheKM7nBD8mbZIt+ct1jz4536MDnaOGKIxynJ8eHTkVGVVkoTg==}
+    peerDependencies:
+      react: ^16.8 || ^17.0 || ^18.0
+
   '@radix-ui/react-use-callback-ref@1.1.0':
     resolution: {integrity: sha512-CasTfvsy+frcFkbXtSJ2Zu9JHpN8TYKxkgJGWbjiZhFivxaeW7rMeZt7QELGVLaYVfFMsKHjb7Ak0nMEe+2Vfw==}
     peerDependencies:
@@ -3372,6 +3443,11 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  '@radix-ui/react-use-controllable-state@1.0.0':
+    resolution: {integrity: sha512-FohDoZvk3mEXh9AWAVyRTYR4Sq7/gavuofglmiXB2g1aKyboUD4YtgWxKj8O5n+Uak52gXQ4wKz5IFST4vtJHg==}
+    peerDependencies:
+      react: ^16.8 || ^17.0 || ^18.0
 
   '@radix-ui/react-use-controllable-state@1.2.2':
     resolution: {integrity: sha512-BjasUjixPFdS+NKkypcyyN5Pmg83Olst0+c6vGov0diwTEo6mgdqVR6hxcEgFuh4QrAs7Rc+9KuGJ9TVCj0Zzg==}
@@ -3417,6 +3493,11 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  '@radix-ui/react-use-layout-effect@1.0.0':
+    resolution: {integrity: sha512-6Tpkq+R6LOlmQb1R5NNETLG0B4YP0wc+klfXafpUCj6JGyaUc8il7/kUZ7m59rGbXGczE9Bs+iz2qloqsZBduQ==}
+    peerDependencies:
+      react: ^16.8 || ^17.0 || ^18.0
 
   '@radix-ui/react-use-layout-effect@1.1.1':
     resolution: {integrity: sha512-RbJRS4UWQFkzHTTwVymMTUv8EqYhOp8dOOviLj2ugtTiXRaRQS7GLGxZTLL1jWhMeoSCf5zmcZkqTl9IiYfXcQ==}
@@ -4544,6 +4625,7 @@ packages:
   '@stellar/stellar-base@14.0.4':
     resolution: {integrity: sha512-UbNW6zbdOBXJwLAV2mMak0bIC9nw3IZVlQXkv2w2dk1jgCbJjy3oRVC943zeGE5JAm0Z9PHxrIjmkpGhayY7kw==}
     engines: {node: '>=20.0.0'}
+    deprecated: This package is now rolled into @stellar/stellar-sdk. Please use @stellar/stellar-sdk to continue receiving updates and support.
 
   '@stellar/stellar-sdk@14.2.0':
     resolution: {integrity: sha512-7nh2ogzLRMhfkIC0fGjn1LHUzk3jqVw8tjAuTt5ADWfL9CSGBL18ILucE9igz2L/RU2AZgeAvhujAnW91Ut/oQ==}
@@ -4945,9 +5027,6 @@ packages:
 
   '@types/bn.js@5.1.6':
     resolution: {integrity: sha512-Xh8vSwUeMKeYYrj3cX4lGQgFSF/N03r+tv4AiLl1SucqV+uTQpxRcnM8AkXKHwYP9ZPXOYXRr2KPXpVlIvqh9w==}
-
-  '@types/bn.js@5.2.0':
-    resolution: {integrity: sha512-DLbJ1BPqxvQhIGbeu8VbUC1DiAiahHtAYvA0ZEAa4P31F7IaArc8z3C3BRQdWX4mtLQuABG4yzp76ZrS02Ui1Q==}
 
   '@types/caseless@0.12.5':
     resolution: {integrity: sha512-hWtVTC2q7hc7xZ/RLbxapMvDMgUnDvKvMOpKal4DrMyfGBUfB1oKaZlIRr6mJL+If3bAP6sV/QneGzF6tJjZDg==}
@@ -5943,6 +6022,12 @@ packages:
   clsx@2.1.1:
     resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
     engines: {node: '>=6'}
+
+  cmdk@0.2.1:
+    resolution: {integrity: sha512-U6//9lQ6JvT47+6OF6Gi8BvkxYQ8SCRRSKIJkthIMsFsLZRG0cKvTtuTaefyIKMQb8rvvXy0wGdpTNq/jPtm+g==}
+    peerDependencies:
+      react: ^18.0.0
+      react-dom: ^18.0.0
 
   cmdk@1.1.1:
     resolution: {integrity: sha512-Vsv7kFaXm+ptHDMZ7izaRsP70GgrW9NBNGswt9OZaVBLlE0SNpDq8eu/VGXyF9r7M0azK3Wy7OlYXsuyYLFzHg==}
@@ -8388,6 +8473,16 @@ packages:
     peerDependencies:
       '@types/react': '*'
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
+  react-remove-scroll@2.5.4:
+    resolution: {integrity: sha512-xGVKJJr0SJGQVirVFAUZ2k1QLyO6m+2fy0l8Qawbp5Jgrv3DeLalrfMNBFSlmz5kriGGzsVBtGVnf4pTKIhhWA==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      '@types/react': ^16.8.0 || ^17.0.0 || ^18.0.0
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
     peerDependenciesMeta:
       '@types/react':
         optional: true
@@ -12009,18 +12104,17 @@ snapshots:
     dependencies:
       vary: 1.1.2
 
-  '@layerswap/ui-kit@2.0.0-next.0(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
+  '@layerswap/ui-kit@file:local-packages/layerswap-ui-kit-2.0.0-next.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
     dependencies:
-      '@layerswap/utils': 2.0.0-next.0
-      '@layerswap/wallet-core': 2.0.0-next.0(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
-      '@layerswap/widget-types': 1.0.0-next.0
-      '@radix-ui/react-checkbox': 1.3.3(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@radix-ui/react-popover': 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@radix-ui/react-tooltip': 1.2.8(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@layerswap/utils': file:local-packages/layerswap-utils-2.0.0-next.0.tgz(react@19.2.8)
+      '@layerswap/wallet-core': file:local-packages/layerswap-wallet-core-2.0.0-next.0.tgz(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
+      '@layerswap/widget-types': file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz
       clsx: 2.1.1
-      copy-to-clipboard: 3.3.3
+      cmdk: 0.2.1(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      color: 4.2.3
       framer-motion: 12.42.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       lucide-react: 0.379.0(react@19.2.8)
+      radix-ui: 1.4.3(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react: 19.2.8
       react-qrcode-logo: 4.1.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       zustand: 4.5.7(@types/react@19.2.17)(react@19.2.8)
@@ -12030,27 +12124,32 @@ snapshots:
       - '@types/react-dom'
       - react-dom
 
-  '@layerswap/utils@2.0.0-next.0':
+  '@layerswap/utils@file:local-packages/layerswap-utils-2.0.0-next.0.tgz(react@19.2.8)':
     dependencies:
-      '@layerswap/widget-types': 1.0.0-next.0
+      '@layerswap/widget-types': file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz
       bitcoin-address-validation: 3.0.0
       bn.js: 5.2.3
       bs58: 6.0.0
+      clsx: 2.1.1
+      copy-to-clipboard: 3.3.3
       csstype: 3.2.3
       js-sha3: 0.8.0
+      tailwind-merge: 3.5.0
+    optionalDependencies:
+      react: 19.2.8
 
-  '@layerswap/wallet-core@2.0.0-next.0(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
+  '@layerswap/wallet-core@file:local-packages/layerswap-wallet-core-2.0.0-next.0.tgz(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
     dependencies:
-      '@layerswap/utils': 2.0.0-next.0
-      '@layerswap/widget-types': 1.0.0-next.0
+      '@layerswap/utils': file:local-packages/layerswap-utils-2.0.0-next.0.tgz(react@19.2.8)
+      '@layerswap/widget-types': file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz
       react: 19.2.8
       zustand: 4.5.7(@types/react@19.2.17)(react@19.2.8)
 
-  '@layerswap/wallet-evm@2.0.0-next.0(@layerswap/utils@2.0.0-next.0)(@layerswap/wallet-core@2.0.0-next.0(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/widget-types@1.0.0-next.0)(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10))(wagmi@2.14.11(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@19.2.8))(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10)))(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
+  '@layerswap/wallet-evm@file:local-packages/layerswap-wallet-evm-2.0.0-next.0.tgz(@layerswap/utils@file:local-packages/layerswap-utils-2.0.0-next.0.tgz(react@19.2.8))(@layerswap/wallet-core@file:local-packages/layerswap-wallet-core-2.0.0-next.0.tgz(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/widget-types@file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz)(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10))(wagmi@2.14.11(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@19.2.8))(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10)))(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
     dependencies:
-      '@layerswap/utils': 2.0.0-next.0
-      '@layerswap/wallet-core': 2.0.0-next.0(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
-      '@layerswap/widget-types': 1.0.0-next.0
+      '@layerswap/utils': file:local-packages/layerswap-utils-2.0.0-next.0.tgz(react@19.2.8)
+      '@layerswap/wallet-core': file:local-packages/layerswap-wallet-core-2.0.0-next.0.tgz(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
+      '@layerswap/widget-types': file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz
       '@metamask/sdk': 0.34.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)
       '@walletconnect/ethereum-provider': 2.21.8(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)
       ethers: 5.7.2(bufferutil@4.1.0)(utf-8-validate@5.0.10)
@@ -12087,13 +12186,13 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@layerswap/wallet-fuel@2.0.0-next.0(@layerswap/utils@2.0.0-next.0)(@layerswap/wallet-core@2.0.0-next.0(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/widget-types@1.0.0-next.0)(@wagmi/core@2.16.4(@tanstack/query-core@5.90.20)(@types/react@19.2.17)(react@19.2.8)(typescript@7.0.2)(use-sync-external-store@1.6.0(react@19.2.8))(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10)))(bufferutil@4.1.0)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10))(vitest@4.1.10(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(msw@2.12.14(@types/node@20.19.34)(typescript@7.0.2)))(wagmi@2.14.11(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.90.21(react@19.2.8))(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.8)(typescript@7.0.2)(utf-8-validate@5.0.10)(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10)))(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
+  '@layerswap/wallet-fuel@file:local-packages/layerswap-wallet-fuel-2.0.0-next.0.tgz(2cf27901872c4758b305211ceaad2364)':
     dependencies:
       '@fuel-ts/account': 0.101.3(vitest@4.1.10(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(msw@2.12.14(@types/node@20.19.34)(typescript@7.0.2)))
       '@fuel-ts/address': 0.101.3(vitest@4.1.10(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(msw@2.12.14(@types/node@20.19.34)(typescript@7.0.2)))
-      '@layerswap/utils': 2.0.0-next.0
-      '@layerswap/wallet-core': 2.0.0-next.0(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
-      '@layerswap/widget-types': 1.0.0-next.0
+      '@layerswap/utils': file:local-packages/layerswap-utils-2.0.0-next.0.tgz(react@19.2.8)
+      '@layerswap/wallet-core': file:local-packages/layerswap-wallet-core-2.0.0-next.0.tgz(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
+      '@layerswap/widget-types': file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz
       '@wagmi/core': 2.16.4(@tanstack/query-core@5.90.20)(@types/react@19.2.17)(react@19.2.8)(typescript@7.0.2)(use-sync-external-store@1.6.0(react@19.2.8))(viem@2.44.1(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10))
       fuels: 0.101.3(vitest@4.1.10(@opentelemetry/api@1.9.0)(@types/node@20.19.34)(jiti@2.6.1)(msw@2.12.14(@types/node@20.19.34)(typescript@7.0.2)))
       json-rpc-2.0: 1.7.0
@@ -12108,11 +12207,11 @@ snapshots:
       - utf-8-validate
       - vitest
 
-  '@layerswap/wallet-starknet@2.0.0-next.0(@layerswap/utils@2.0.0-next.0)(@layerswap/wallet-core@2.0.0-next.0(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/widget-types@1.0.0-next.0)(@radix-ui/react-slot@1.2.4(@types/react@19.2.17)(react@19.2.8))(@scure/bip39@2.0.1)(@types/react@19.2.17)(bufferutil@4.1.0)(class-variance-authority@0.7.1)(clsx@1.2.1)(framer-motion@12.42.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(swr@2.4.0(react@19.2.8))(tailwind-merge@3.5.0)(tailwindcss-animate@1.0.7(tailwindcss@4.2.1))(tailwindcss@4.2.1)(typescript@7.0.2)(utf-8-validate@5.0.10)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
+  '@layerswap/wallet-starknet@file:local-packages/layerswap-wallet-starknet-2.0.0-next.0.tgz(@layerswap/utils@file:local-packages/layerswap-utils-2.0.0-next.0.tgz(react@19.2.8))(@layerswap/wallet-core@file:local-packages/layerswap-wallet-core-2.0.0-next.0.tgz(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/widget-types@file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz)(@radix-ui/react-slot@1.2.4(@types/react@19.2.17)(react@19.2.8))(@scure/bip39@2.0.1)(@types/react@19.2.17)(bufferutil@4.1.0)(class-variance-authority@0.7.1)(clsx@1.2.1)(framer-motion@12.42.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(swr@2.4.0(react@19.2.8))(tailwind-merge@3.5.0)(tailwindcss-animate@1.0.7(tailwindcss@4.2.1))(tailwindcss@4.2.1)(typescript@7.0.2)(utf-8-validate@5.0.10)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
     dependencies:
-      '@layerswap/utils': 2.0.0-next.0
-      '@layerswap/wallet-core': 2.0.0-next.0(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
-      '@layerswap/widget-types': 1.0.0-next.0
+      '@layerswap/utils': file:local-packages/layerswap-utils-2.0.0-next.0.tgz(react@19.2.8)
+      '@layerswap/wallet-core': file:local-packages/layerswap-wallet-core-2.0.0-next.0.tgz(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
+      '@layerswap/widget-types': file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz
       '@starknet-io/get-starknet-core': 4.0.8
       '@starknet-io/types-js': 0.10.0
       '@starknet-react/core': 5.0.3(bufferutil@4.1.0)(react@19.2.8)(starknet@8.9.2)(typescript@7.0.2)(utf-8-validate@5.0.10)
@@ -12181,11 +12280,11 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@layerswap/wallet-svm@2.0.0-next.0(@babel/runtime@7.28.6)(@layerswap/utils@2.0.0-next.0)(@layerswap/wallet-core@2.0.0-next.0(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/widget-types@1.0.0-next.0)(@solana/sysvars@2.3.0(typescript@7.0.2))(@types/react@19.2.17)(bufferutil@4.1.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(tslib@2.8.1)(typescript@7.0.2)(utf-8-validate@5.0.10)(ws@8.21.3(bufferutil@4.1.0)(utf-8-validate@5.0.10))(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
+  '@layerswap/wallet-svm@file:local-packages/layerswap-wallet-svm-2.0.0-next.0.tgz(@babel/runtime@7.28.6)(@layerswap/utils@file:local-packages/layerswap-utils-2.0.0-next.0.tgz(react@19.2.8))(@layerswap/wallet-core@file:local-packages/layerswap-wallet-core-2.0.0-next.0.tgz(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/widget-types@file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz)(@solana/sysvars@2.3.0(typescript@7.0.2))(@types/react@19.2.17)(bufferutil@4.1.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(tslib@2.8.1)(typescript@7.0.2)(utf-8-validate@5.0.10)(ws@8.21.3(bufferutil@4.1.0)(utf-8-validate@5.0.10))(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
     dependencies:
-      '@layerswap/utils': 2.0.0-next.0
-      '@layerswap/wallet-core': 2.0.0-next.0(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
-      '@layerswap/widget-types': 1.0.0-next.0
+      '@layerswap/utils': file:local-packages/layerswap-utils-2.0.0-next.0.tgz(react@19.2.8)
+      '@layerswap/wallet-core': file:local-packages/layerswap-wallet-core-2.0.0-next.0.tgz(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
+      '@layerswap/widget-types': file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz
       '@solana/spl-token': 0.4.14(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10))(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10)
       '@solana/wallet-adapter-base': 0.9.27(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10))
       '@solana/wallet-adapter-wallets': 0.19.38(@babel/runtime@7.28.6)(@solana/sysvars@2.3.0(typescript@7.0.2))(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10))(@types/react@19.2.17)(bs58@6.0.0)(bufferutil@4.1.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(tslib@2.8.1)(typescript@7.0.2)(utf-8-validate@5.0.10)(ws@8.21.3(bufferutil@4.1.0)(utf-8-validate@5.0.10))
@@ -12238,11 +12337,11 @@ snapshots:
       - ws
       - zod
 
-  '@layerswap/wallet-tron@2.0.0-next.0(@layerswap/utils@2.0.0-next.0)(@layerswap/wallet-core@2.0.0-next.0(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/widget-types@1.0.0-next.0)(bufferutil@4.1.0)(utf-8-validate@5.0.10)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
+  '@layerswap/wallet-tron@file:local-packages/layerswap-wallet-tron-2.0.0-next.0.tgz(@layerswap/utils@file:local-packages/layerswap-utils-2.0.0-next.0.tgz(react@19.2.8))(@layerswap/wallet-core@file:local-packages/layerswap-wallet-core-2.0.0-next.0.tgz(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8)))(@layerswap/widget-types@file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz)(bufferutil@4.1.0)(utf-8-validate@5.0.10)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))':
     dependencies:
-      '@layerswap/utils': 2.0.0-next.0
-      '@layerswap/wallet-core': 2.0.0-next.0(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
-      '@layerswap/widget-types': 1.0.0-next.0
+      '@layerswap/utils': file:local-packages/layerswap-utils-2.0.0-next.0.tgz(react@19.2.8)
+      '@layerswap/wallet-core': file:local-packages/layerswap-wallet-core-2.0.0-next.0.tgz(react@19.2.8)(zustand@4.5.7(@types/react@19.2.17)(react@19.2.8))
+      '@layerswap/widget-types': file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz
       '@tronweb3/tronwallet-adapter-bitkeep': 1.1.8(bufferutil@4.1.0)(utf-8-validate@5.0.10)
       '@tronweb3/tronwallet-adapter-bybit': 1.0.3(bufferutil@4.1.0)(utf-8-validate@5.0.10)
       '@tronweb3/tronwallet-adapter-gatewallet': 1.0.5(bufferutil@4.1.0)(utf-8-validate@5.0.10)
@@ -12258,7 +12357,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@layerswap/widget-types@1.0.0-next.0':
+  '@layerswap/widget-types@file:local-packages/layerswap-widget-types-1.0.0-next.0.tgz':
     dependencies:
       csstype: 3.2.3
 
@@ -13023,6 +13122,10 @@ snapshots:
 
   '@radix-ui/number@1.1.1': {}
 
+  '@radix-ui/primitive@1.0.0':
+    dependencies:
+      '@babel/runtime': 7.28.6
+
   '@radix-ui/primitive@1.1.0': {}
 
   '@radix-ui/primitive@1.1.3': {}
@@ -13142,6 +13245,11 @@ snapshots:
       '@types/react': 19.2.17
       '@types/react-dom': 19.2.3(@types/react@19.2.17)
 
+  '@radix-ui/react-compose-refs@1.0.0(react@19.2.8)':
+    dependencies:
+      '@babel/runtime': 7.28.6
+      react: 19.2.8
+
   '@radix-ui/react-compose-refs@1.1.0(@types/react@19.2.17)(react@19.2.8)':
     dependencies:
       react: 19.2.8
@@ -13168,6 +13276,11 @@ snapshots:
       '@types/react': 19.2.17
       '@types/react-dom': 19.2.3(@types/react@19.2.17)
 
+  '@radix-ui/react-context@1.0.0(react@19.2.8)':
+    dependencies:
+      '@babel/runtime': 7.28.6
+      react: 19.2.8
+
   '@radix-ui/react-context@1.1.2(@types/react@19.2.17)(react@19.2.8)':
     dependencies:
       react: 19.2.8
@@ -13179,6 +13292,29 @@ snapshots:
       react: 19.2.8
     optionalDependencies:
       '@types/react': 19.2.17
+
+  '@radix-ui/react-dialog@1.0.0(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+    dependencies:
+      '@babel/runtime': 7.28.6
+      '@radix-ui/primitive': 1.0.0
+      '@radix-ui/react-compose-refs': 1.0.0(react@19.2.8)
+      '@radix-ui/react-context': 1.0.0(react@19.2.8)
+      '@radix-ui/react-dismissable-layer': 1.1.1(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@radix-ui/react-focus-guards': 1.0.0(react@19.2.8)
+      '@radix-ui/react-focus-scope': 1.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@radix-ui/react-id': 1.0.0(react@19.2.8)
+      '@radix-ui/react-portal': 1.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@radix-ui/react-presence': 1.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@radix-ui/react-primitive': 1.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@radix-ui/react-slot': 1.0.0(react@19.2.8)
+      '@radix-ui/react-use-controllable-state': 1.0.0(react@19.2.8)
+      aria-hidden: 1.2.6
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
+      react-remove-scroll: 2.5.4(@types/react@19.2.17)(react@19.2.8)
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@types/react-dom'
 
   '@radix-ui/react-dialog@1.1.15(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
@@ -13236,11 +13372,25 @@ snapshots:
       '@types/react': 19.2.17
       '@types/react-dom': 19.2.3(@types/react@19.2.17)
 
+  '@radix-ui/react-focus-guards@1.0.0(react@19.2.8)':
+    dependencies:
+      '@babel/runtime': 7.28.6
+      react: 19.2.8
+
   '@radix-ui/react-focus-guards@1.1.3(@types/react@19.2.17)(react@19.2.8)':
     dependencies:
       react: 19.2.8
     optionalDependencies:
       '@types/react': 19.2.17
+
+  '@radix-ui/react-focus-scope@1.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+    dependencies:
+      '@babel/runtime': 7.28.6
+      '@radix-ui/react-compose-refs': 1.0.0(react@19.2.8)
+      '@radix-ui/react-primitive': 1.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@radix-ui/react-use-callback-ref': 1.0.0(react@19.2.8)
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
 
   '@radix-ui/react-focus-scope@1.1.7(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
@@ -13283,6 +13433,12 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.17
       '@types/react-dom': 19.2.3(@types/react@19.2.17)
+
+  '@radix-ui/react-id@1.0.0(react@19.2.8)':
+    dependencies:
+      '@babel/runtime': 7.28.6
+      '@radix-ui/react-use-layout-effect': 1.0.0(react@19.2.8)
+      react: 19.2.8
 
   '@radix-ui/react-id@1.1.1(@types/react@19.2.17)(react@19.2.8)':
     dependencies:
@@ -13443,6 +13599,13 @@ snapshots:
       '@types/react': 19.2.17
       '@types/react-dom': 19.2.3(@types/react@19.2.17)
 
+  '@radix-ui/react-portal@1.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+    dependencies:
+      '@babel/runtime': 7.28.6
+      '@radix-ui/react-primitive': 1.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
+
   '@radix-ui/react-portal@1.1.9(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@radix-ui/react-primitive': 2.1.3(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -13453,6 +13616,14 @@ snapshots:
       '@types/react': 19.2.17
       '@types/react-dom': 19.2.3(@types/react@19.2.17)
 
+  '@radix-ui/react-presence@1.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+    dependencies:
+      '@babel/runtime': 7.28.6
+      '@radix-ui/react-compose-refs': 1.0.0(react@19.2.8)
+      '@radix-ui/react-use-layout-effect': 1.0.0(react@19.2.8)
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
+
   '@radix-ui/react-presence@1.1.5(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@radix-ui/react-compose-refs': 1.1.2(@types/react@19.2.17)(react@19.2.8)
@@ -13462,6 +13633,13 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.17
       '@types/react-dom': 19.2.3(@types/react@19.2.17)
+
+  '@radix-ui/react-primitive@1.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+    dependencies:
+      '@babel/runtime': 7.28.6
+      '@radix-ui/react-slot': 1.0.0(react@19.2.8)
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
 
   '@radix-ui/react-primitive@2.0.0(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
@@ -13619,6 +13797,12 @@ snapshots:
       '@types/react': 19.2.17
       '@types/react-dom': 19.2.3(@types/react@19.2.17)
 
+  '@radix-ui/react-slot@1.0.0(react@19.2.8)':
+    dependencies:
+      '@babel/runtime': 7.28.6
+      '@radix-ui/react-compose-refs': 1.0.0(react@19.2.8)
+      react: 19.2.8
+
   '@radix-ui/react-slot@1.1.0(@types/react@19.2.17)(react@19.2.8)':
     dependencies:
       '@radix-ui/react-compose-refs': 1.1.0(@types/react@19.2.17)(react@19.2.8)
@@ -13752,6 +13936,11 @@ snapshots:
       '@types/react': 19.2.17
       '@types/react-dom': 19.2.3(@types/react@19.2.17)
 
+  '@radix-ui/react-use-callback-ref@1.0.0(react@19.2.8)':
+    dependencies:
+      '@babel/runtime': 7.28.6
+      react: 19.2.8
+
   '@radix-ui/react-use-callback-ref@1.1.0(@types/react@19.2.17)(react@19.2.8)':
     dependencies:
       react: 19.2.8
@@ -13763,6 +13952,12 @@ snapshots:
       react: 19.2.8
     optionalDependencies:
       '@types/react': 19.2.17
+
+  '@radix-ui/react-use-controllable-state@1.0.0(react@19.2.8)':
+    dependencies:
+      '@babel/runtime': 7.28.6
+      '@radix-ui/react-use-callback-ref': 1.0.0(react@19.2.8)
+      react: 19.2.8
 
   '@radix-ui/react-use-controllable-state@1.2.2(@types/react@19.2.17)(react@19.2.8)':
     dependencies:
@@ -13799,6 +13994,11 @@ snapshots:
       use-sync-external-store: 1.6.0(react@19.2.8)
     optionalDependencies:
       '@types/react': 19.2.17
+
+  '@radix-ui/react-use-layout-effect@1.0.0(react@19.2.8)':
+    dependencies:
+      '@babel/runtime': 7.28.6
+      react: 19.2.8
 
   '@radix-ui/react-use-layout-effect@1.1.1(@types/react@19.2.17)(react@19.2.8)':
     dependencies:
@@ -16682,10 +16882,6 @@ snapshots:
     dependencies:
       '@types/node': 20.19.34
 
-  '@types/bn.js@5.2.0':
-    dependencies:
-      '@types/node': 20.19.34
-
   '@types/caseless@0.12.5': {}
 
   '@types/chai@5.2.3':
@@ -18952,6 +19148,15 @@ snapshots:
 
   clsx@2.1.1: {}
 
+  cmdk@0.2.1(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
+    dependencies:
+      '@radix-ui/react-dialog': 1.0.0(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@types/react-dom'
+
   cmdk@1.1.1(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
     dependencies:
       '@radix-ui/react-compose-refs': 1.1.2(@types/react@19.2.17)(react@19.2.8)
@@ -20776,7 +20981,7 @@ snapshots:
 
   md5.js@1.3.5:
     dependencies:
-      hash-base: 3.0.5
+      hash-base: 3.1.2
       inherits: 2.0.4
       safe-buffer: 5.2.1
 
@@ -21717,6 +21922,17 @@ snapshots:
       react: 19.2.8
       react-style-singleton: 2.2.3(@types/react@19.2.17)(react@19.2.8)
       tslib: 2.8.1
+    optionalDependencies:
+      '@types/react': 19.2.17
+
+  react-remove-scroll@2.5.4(@types/react@19.2.17)(react@19.2.8):
+    dependencies:
+      react: 19.2.8
+      react-remove-scroll-bar: 2.3.8(@types/react@19.2.17)(react@19.2.8)
+      react-style-singleton: 2.2.3(@types/react@19.2.17)(react@19.2.8)
+      tslib: 2.8.1
+      use-callback-ref: 1.3.3(@types/react@19.2.17)(react@19.2.8)
+      use-sidecar: 1.1.3(@types/react@19.2.17)(react@19.2.8)
     optionalDependencies:
       '@types/react': 19.2.17
 

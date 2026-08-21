@@ -1,9 +1,9 @@
 import { ExtendedNetwork, ExtendedToken } from "@/Models/Network";
 import { SwapDirection } from "@/components/DTOs/SwapFormValues";
-import { truncateDecimals } from "@/components/utils/RoundDecimals";
+import { truncateDecimals } from "@layerswap/utils";
 import { SelectItem } from "@/components/Select/Selector/SelectItem";
 import { ChevronDown } from "lucide-react";
-import { ImageWithFallback } from "@layerswap/ui-kit/components";
+import { ImageWithFallback } from "@layerswap/ui-kit";
 import { useBalance } from "@/lib/balances/useBalance";
 import { useSwapAccounts } from "@/context/swapAccounts";
 import { memo, useMemo } from "react";

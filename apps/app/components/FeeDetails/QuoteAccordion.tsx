@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../shadcn/accordion'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@layerswap/ui-kit'
 
 type QuoteAccordionProps = {
     isOpen: boolean

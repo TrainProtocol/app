@@ -4,7 +4,7 @@ import { useSwap, isTerminalStatus, HTLCStatus } from "@train-protocol/react";
 import { useSettingsState } from "@/context/settings";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
-import { ImageWithFallback } from "@layerswap/ui-kit/components";
+import { ImageWithFallback } from "@layerswap/ui-kit";
 import { usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { buildHrefWithPersistantParams } from "@/helpers/querryHelper";

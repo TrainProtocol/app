@@ -8,10 +8,10 @@ import { Gauge } from "./Gauge";
 import Timeline from "./Timeline";
 import { useSwapTimeline } from "./useSwapTimeline";
 import { CircleCheck, Info, SearchX, Undo2, X } from "lucide-react";
-import { CircularLoader } from "@layerswap/ui-kit/components";
+import { CircularLoader } from "@layerswap/ui-kit";
 import { HTLCStatus } from "@train-protocol/react";
 import { useSettingsState } from "@/context/settings";
-import formatAmount from "@/lib/formatAmount";
+import { formatUnits } from "@layerswap/utils";
 
 type AtomicContentProps = {
     quote?: SwapQuote
@@ -32,7 +32,7 @@ const AtomicContent: FC<AtomicContentProps> = ({ quote, isQuoteLoading = false, 
     if (swap.requestedAmount != null) {
         amount = Number(swap.requestedAmount)
     } else if (quote?.amount && source_asset?.decimals != null) {
-        amount = Number(formatAmount(BigInt(quote.amount), source_asset.decimals))
+        amount = Number(formatUnits(BigInt(quote.amount), source_asset.decimals))
     } else if (formValues?.amount != null) {
         amount = Number(formValues.amount)
     }

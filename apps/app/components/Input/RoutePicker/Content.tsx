@@ -2,7 +2,7 @@ import { FC, useEffect, useMemo, useRef, useState } from "react";
 import { NetworkElement, RowElement } from "@/Models/Route";
 import { SwapDirection } from "@/components/DTOs/SwapFormValues";
 import { useVirtualizer } from "@/lib/virtual";
-import { Accordion } from "@/components/shadcn/accordion";
+import { Accordion } from "@layerswap/ui-kit";
 import Row from "./Rows";
 import { Network, Token } from "@/Models/Network";
 import RouteSearch from "./RouteSearch";

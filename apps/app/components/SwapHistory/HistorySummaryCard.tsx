@@ -1,6 +1,6 @@
 import { ChevronRight } from 'lucide-react'
 import { FC } from 'react'
-import { ImageWithFallback } from '@layerswap/ui-kit/components'
+import { ImageWithFallback } from '@layerswap/ui-kit'
 import { type SwapData, isTerminalStatus, HTLCStatus } from '@train-protocol/react'
 import { Network } from '@/Models/Network'
 import StatusIcons from './StatusIcons'

@@ -2,7 +2,7 @@
 // Single flow: choose method (if needed) → signing state until commit completes
 
 import { useSharedSecretDerivation } from '@train-protocol/react';
-import { CircularLoader } from '@layerswap/ui-kit/components';
+import { CircularLoader } from '@layerswap/ui-kit';
 import VaulModal from '../Modal/vaulModal';
 
 interface SignFlowModalProps {

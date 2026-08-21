@@ -1,7 +1,7 @@
 import { FC } from "react"
 import { ExtendedNetwork } from "@/Models/Network"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/shadcn/select"
-import { ImageWithFallback } from "@layerswap/ui-kit/components"
+import { ImageWithFallback } from "@layerswap/ui-kit"
 
 type Props = {
     networks: ExtendedNetwork[]

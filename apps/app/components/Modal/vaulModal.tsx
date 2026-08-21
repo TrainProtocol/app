@@ -86,7 +86,7 @@ const Comp: FC<VaulDrawerProps> = ({ children, show, setShow, header, descriptio
             const drawer = wrapper?.closest('[data-vaul-drawer]') as HTMLElement;
             if (!drawer || !wrapper) return;
 
-            const maxHeight = isMobile ? window.innerHeight : (document.getElementById('widget')?.offsetHeight ?? window.innerHeight);
+            const maxHeight = isMobile ? window.innerHeight : (document.getElementById('app-widget')?.offsetHeight ?? window.innerHeight);
 
             drawer.style.maxHeight = `${maxHeight}px`;
             wrapper.style.cssText = 'flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden';
@@ -116,7 +116,7 @@ const Comp: FC<VaulDrawerProps> = ({ children, show, setShow, header, descriptio
 
     if (!loaded) return null;
 
-    const container = isMobile ? undefined : document.getElementById('widget');
+    const container = isMobile ? undefined : document.getElementById('app-widget');
 
     return (
         <Drawer.Root

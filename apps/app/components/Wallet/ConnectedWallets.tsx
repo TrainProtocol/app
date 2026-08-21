@@ -1,7 +1,7 @@
-import { WalletIcon } from "@layerswap/ui-kit/components"
+import { WalletIcon } from "@layerswap/ui-kit"
 import { Address } from "@/lib/address"
 import useWallet from "@/hooks/useWallet"
-import ConnectButton from "../buttons/connectButton"
+import { ConnectButton } from "@layerswap/ui-kit";
 import { useState } from "react"
 import WalletsList from "./WalletsList"
 import type { Wallet } from "@layerswap/widget-types";
@@ -9,7 +9,7 @@ import VaulDrawer from "../Modal/vaulModal"
 import { useConnectModal } from "@/components/WalletModal"
 import WalletsDialog from "@/components/Sidebar/WalletsDialog"
 import useWindowDimensions from "@/hooks/useWindowDimensions"
-import WalletIconView from "./WalletIconView"
+import { WalletIconView, WalletsIcons } from "@layerswap/ui-kit";
 
 export const WalletsHeader = () => {
     const { wallets } = useWallet()
@@ -65,48 +65,8 @@ const getDesktopContent = (wallets: Wallet[]): { label: string; icon: React.JSX.
     if (wallets.length > 1) return { label: 'Connected wallets', icon: <WalletsIcons wallets={wallets} /> }
     const w = wallets[0]
     const label = w.address && !w.isLoading ? new Address(w.address, null, w.providerName).toShortString() : 'Wallet'
-    return { label, icon: <WalletIconView wallet={w} className="h-5 w-5 shrink-0 rounded-md" /> }
+    return { label, icon: <WalletIconView wallet={w} className="h-5 w-5 shrink-0 rounded-[6px]" size={20} /> }
 }
-type WalletsIconsProps = {
-    wallets: {
-        id: string;
-        displayName?: string;
-        icon?: Wallet['icon'];
-    }[]
-}
-const ConnectedWalletIcon = ({ wallet }: { wallet: WalletsIconsProps["wallets"][number] }) => (
-    <span className="rounded-md border-2 border-secondary-400 bg-secondary-500 shrink-0 h-6 w-6 overflow-hidden">
-        <WalletIconView wallet={wallet} className="h-full w-full" size={24} />
-    </span>
-)
-
-export const WalletsIcons = ({ wallets }: WalletsIconsProps) => {
-
-    const uniqueWallets = wallets.filter((wallet, index, self) => index === self.findIndex((t) => t.id === wallet.id))
-
-    const firstWallet = uniqueWallets[0]
-    const secondWallet = uniqueWallets[1]
-
-    return (
-        <div className="-space-x-2 flex">
-            {
-                firstWallet?.displayName &&
-                <ConnectedWalletIcon wallet={firstWallet} />
-            }
-            {
-                secondWallet?.displayName &&
-                <ConnectedWalletIcon wallet={secondWallet} />
-            }
-            {
-                uniqueWallets.length > 2 &&
-                <div className="h-6 w-6 shrink-0 rounded-md justify-center p-1 bg-secondary-400 text-primary-text overflow-hidden text-xs">
-                    <span><span>+</span>{uniqueWallets.length - 2}</span>
-                </div>
-            }
-        </div>
-    )
-}
-
 export const WalletsMenu = () => {
     const { wallets } = useWallet()
 
@@ -138,7 +98,7 @@ const WalletsMenuWalletsList = ({ wallets }: { wallets: Wallet[] }) => {
                 wallets.length === 1 ?
                     <>
                         <span className="order-first absolute left-0 inset-y-0 flex items-center pl-3">
-                            <WalletIconView wallet={wallet} className="h-5 w-5" />
+                            <WalletIconView wallet={wallet} className="h-5 w-5 rounded-[6px]" size={20} />
                         </span>
                         <span className="grow text-center">
                             {!wallet.isLoading && wallet.address && new Address(wallet.address, null, wallet.providerName).toShortString()}

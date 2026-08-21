@@ -5,7 +5,7 @@ import useWallet from "@/hooks/useWallet";
 import { useProvidersConnectReady } from "@layerswap/wallet-core";
 import { Address } from "@/lib/address";
 import { ChevronDown } from "lucide-react";
-import { WalletIcon } from "@layerswap/ui-kit/components";
+import { WalletIcon } from "@layerswap/ui-kit";
 import VaulDrawer from "../Modal/vaulModal";
 import type { Wallet } from "@layerswap/widget-types";
 import { SelectAccountProps } from "@layerswap/wallet-core/types";
@@ -13,7 +13,7 @@ import SubmitButton from "@/components/buttons/submitButton";
 import { useConnectModal } from "../WalletModal";
 import WalletsList from "@/components/Wallet/WalletsList";
 import { useSelectedAccount, useSelectSwapAccount } from "@/context/swapAccounts";
-import WalletIconView from "@/components/Wallet/WalletIconView";
+import { WalletIconView } from "@layerswap/ui-kit";
 import { captureEvent } from "@/lib/faro";
 
 const SourceWalletPicker: FC = () => {
@@ -61,7 +61,7 @@ const SourceWalletPicker: FC = () => {
                 <button type="button" onClick={handleWalletChange} className="rounded-lg flex items-center space-x-2 text-sm hover:bg-secondary-300 py-1 pl-2 pr-2 outline-hidden">
                     <div className="rounded-lg flex space-x-1 items-center">
                         <div className="inline-flex items-center relative px-0.5">
-                            <WalletIconView wallet={selectedSourceAccount} className="w-4 h-4 rounded" />
+                            <WalletIconView wallet={selectedSourceAccount} className="w-4 h-4 rounded-[6px]" size={16} />
                         </div>
                         <div className="text-secondary-text">
                             {new Address(selectedSourceAccount.address, values.from).toShortString()}
@@ -92,6 +92,7 @@ const SourceWalletPicker: FC = () => {
                         onSelect={handleSelectWallet}
                         token={source_token}
                         network={values.from}
+                        selectedAddress={selectedSourceAccount?.address}
                         selectable
                     />
                 </div>
@@ -113,6 +114,7 @@ export const FormSourceWalletButton: FC<{ isDisabled?: boolean }> = ({ isDisable
 
     const { cancel, connect } = useConnectModal()
 
+    const selectedSourceAccount = useSelectedAccount("from", walletNetwork?.caip2Id);
     const selectSourceAccount = useSelectSwapAccount("from");
 
     const handleWalletChange = () => {
@@ -169,6 +171,7 @@ export const FormSourceWalletButton: FC<{ isDisabled?: boolean }> = ({ isDisable
                         onSelect={handleSelectWallet}
                         token={values.fromCurrency}
                         network={walletNetwork}
+                        selectedAddress={selectedSourceAccount?.address}
                         selectable
                     />
                 </VaulDrawer.Snap>

@@ -1,12 +1,12 @@
 import { FC } from "react"
 import Wagmi from "./Wagmi";
 import { WalletModalProvider } from "../WalletModal";
-import { WalletProvidersProvider } from "@/context/walletHookProviders";
 import { AztecWalletProvider } from "./AztecWalletProvider";
 import { WalletBridges } from "../WalletBridges";
 import ConnectWalletDrawer from "../WalletModal/ConnectWalletDrawer";
 import LayerswapRegistry from "./LayerswapRegistry";
 import { AztecWalletAdapterHydrator } from "@/lib/wallets/aztec/adapter";
+import { TrainWalletListAdapters } from "../Wallet/walletListAdapters";
 
 const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[] }> = ({ children }) => {
     return (
@@ -15,11 +15,11 @@ const WalletsProviders: FC<{ children: JSX.Element | JSX.Element[] }> = ({ child
                 <AztecWalletProvider>
                     <LayerswapRegistry>
                         <AztecWalletAdapterHydrator />
-                        <WalletProvidersProvider>
+                        <TrainWalletListAdapters>
                             <WalletBridges />
                             <ConnectWalletDrawer />
                             {children}
-                        </WalletProvidersProvider>
+                        </TrainWalletListAdapters>
                     </LayerswapRegistry>
                 </AztecWalletProvider>
             </WalletModalProvider>

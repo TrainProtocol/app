@@ -4,7 +4,7 @@ import { ExtendedAddress } from "../Address/AddressPicker/AddressWithIcon";
 import { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip";
-import { ImageWithFallback } from "@layerswap/ui-kit/components";
+import { ImageWithFallback } from "@layerswap/ui-kit";
 import { resolveTokenLogoUrl } from "@/components/utils/resolveTokenLogoUrl";
 
 type TokenInfoIconProps = {

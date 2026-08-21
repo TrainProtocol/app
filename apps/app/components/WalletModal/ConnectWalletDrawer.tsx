@@ -1,8 +1,8 @@
 import { ensureRegistryBrowseLoaded, useWalletDescriptorLoader } from "@layerswap/wallet-core";
 import { type FC, useCallback, useEffect } from "react";
 import { ChevronLeft } from "lucide-react";
-import { ConnectorsList as UiKitConnectorsList } from "@layerswap/ui-kit/components";
-import type { ConnectorsListProps } from "@layerswap/ui-kit/components";
+import { ConnectorsList as UiKitConnectorsList } from "@layerswap/ui-kit";
+import type { ConnectorsListProps } from "@layerswap/ui-kit";
 import IconButton from "../buttons/iconButton";
 import VaulDrawer from "../Modal/vaulModal";
 import AppShellDialog from "../shared/AppShellDialog";

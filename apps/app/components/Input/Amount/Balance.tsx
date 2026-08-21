@@ -1,5 +1,5 @@
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
-import { truncateDecimals } from "@/components/utils/RoundDecimals";
+import { truncateDecimals } from "@layerswap/utils";
 import { Info } from "lucide-react";
 import { useSelectedAccount } from "@/context/swapAccounts";
 import { useBalance } from "@/lib/balances/useBalance";

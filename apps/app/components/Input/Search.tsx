@@ -1,7 +1,7 @@
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { Input } from "@/components/shadcn/input";
 import { DetailedHTMLProps, InputHTMLAttributes, useEffect, useRef, useState } from "react";
-import { FilledX, SearchIcon } from "@layerswap/ui-kit/components";
+import { FilledX, SearchIcon } from "@layerswap/ui-kit";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 

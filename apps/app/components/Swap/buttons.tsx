@@ -1,4 +1,4 @@
-import { WalletIcon } from "@layerswap/ui-kit/components";
+import { WalletIcon } from "@layerswap/ui-kit";
 import { FC, ReactNode, useCallback, useState } from "react";
 import useWallet from "@/hooks/useWallet";
 import { Network } from "@/Models/Network";

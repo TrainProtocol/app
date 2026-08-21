@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { ChevronLeft, AlertTriangle } from 'lucide-react';
-import { CircularLoader } from '@layerswap/ui-kit/components';
+import { CircularLoader } from '@layerswap/ui-kit';
 import { useSharedSecretDerivation } from '@train-protocol/react';
 import { mapPasskeyError } from '@train-protocol/auth';
 import { EntryStep, CreateStep, ErrorStep } from './PasskeyChoice';

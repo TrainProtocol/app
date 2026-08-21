@@ -4,11 +4,11 @@ import { Input } from "@/components/shadcn/input"
 import { Partner } from "@/Models/Partner"
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues"
 import { FormikHelpers } from "formik"
-import { FilledX } from "@layerswap/ui-kit/components"
+import { FilledX } from "@layerswap/ui-kit"
 import AddressWithIcon from "./AddressWithIcon"
 import { AddressGroup, AddressItem } from "."
 import { Address } from "@/lib/address"
-import { cn } from "@/lib/utils"
+import { cn } from "@layerswap/utils"
 
 type AddressInput = {
     manualAddress: string,

@@ -1,6 +1,7 @@
-import { defineNetworkAdapter } from "@layerswap/wallet-core";
+import { defineNetworkAdapter } from "@layerswap/utils";
 import { getNativeToken, NetworkTypes, type ExtendedNetwork } from "@/Models/Network";
 import { getNetworkRpcUrls } from "@/lib/rpc/resolveNetworkRpcUrl";
+import { isValidAztecAddress } from "@/lib/address/aztec";
 
 export const walletNetworkAdapter = defineNetworkAdapter<ExtendedNetwork>({
     getId: network => network.caip2Id,
@@ -8,8 +9,8 @@ export const walletNetworkAdapter = defineNetworkAdapter<ExtendedNetwork>({
     getChainId: network => network.chainId,
     getRpcUrls: network => getNetworkRpcUrls(network),
     getIcon: network => network.logoUrl,
-    getTransactionExplorerUrl: network => network.explorerUrlTemplate?.transaction,
-    getAccountExplorerUrl: network => network.explorerUrlTemplate?.address,
+    getTransactionExplorerUrl: network => network.explorerUrlTemplate?.transaction?.replace("{hash}", "{0}"),
+    getAccountExplorerUrl: network => network.explorerUrlTemplate?.address?.replace("{address}", "{0}"),
     getNativeCurrency: network => {
         const token = getNativeToken(network);
         return token && { symbol: token.symbol, decimals: token.decimals };
@@ -22,4 +23,6 @@ export const walletNetworkAdapter = defineNetworkAdapter<ExtendedNetwork>({
     isBitcoinNetwork: network => network.networkType.toLowerCase() === "bitcoin",
     isTonNetwork: network => network.networkType === NetworkTypes.TON,
     isFuelNetwork: network => network.networkType.toLowerCase() === "fuel",
+    validateAddress: (network, address) => network.networkType === NetworkTypes.Aztec ? isValidAztecAddress(address) : undefined,
+    formatAddress: (network, address) => network.networkType === NetworkTypes.Aztec ? address?.toLowerCase() : undefined,
 });

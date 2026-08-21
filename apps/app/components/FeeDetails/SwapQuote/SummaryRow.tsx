@@ -1,6 +1,6 @@
 import { FC, useMemo } from 'react'
 import { ChevronDown } from 'lucide-react'
-import AddressIcon from '../../AddressIcon'
+import { AddressIcon } from "@layerswap/ui-kit";
 import { Address } from "@/lib/address";
 import type { Wallet } from "@layerswap/widget-types";
 import { SwapFormValues } from '@/components/DTOs/SwapFormValues'
@@ -10,8 +10,8 @@ import type { SwapQuote } from '@train-protocol/react'
 import clsx from 'clsx'
 import { Partner } from '@/Models/Partner'
 import { useQueryState } from '@/context/query'
-import { ImageWithFallback } from '@layerswap/ui-kit/components'
-import WalletIconView from '@/components/Wallet/WalletIconView'
+import { ImageWithFallback } from '@layerswap/ui-kit'
+import { WalletIconView } from "@layerswap/ui-kit";
 import { captureEvent } from '@/lib/faro'
 
 export const SummaryRow: FC<{
@@ -40,7 +40,7 @@ export const SummaryRow: FC<{
                     <div className="text-right text-primary-text">
                         <span className="cursor-pointer hover:underline flex items-center gap-2">
                             {wallet?.icon ? (
-                                <WalletIconView wallet={wallet} className="w-4 h-4 bg-secondary-700 rounded-sm" />
+                                <WalletIconView wallet={wallet} className="w-4 h-4 bg-secondary-700 rounded-[4px]" size={16} />
                             ) : addressProviderIcon ? (
                                 <ImageWithFallback
                                     alt="Partner logo"
@@ -49,7 +49,7 @@ export const SummaryRow: FC<{
                                     width="36"
                                     height="36"
                                 />) : (
-                                <AddressIcon className="h-4 w-4" address={addressInstance?.full || ''} size={36} rounded="4px" />
+                                <AddressIcon className="rounded-[4px]" address={addressInstance?.full || ''} size={16} />
                             )}
                             {
                                 ((Address.isValid(values?.destination_address, values?.to) && values?.to) ?

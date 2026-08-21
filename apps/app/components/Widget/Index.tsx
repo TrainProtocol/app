@@ -24,7 +24,7 @@ const Widget = ({ children, className, hideMenu, mode = "default" }: Props) => {
    const handleBack = pathname === "/" ? null : goBack
 
    return <>
-      <div id='widget' className={clsx(`bg-secondary-700 md:shadow-md border-0 sm:border sm:border-border rounded-4xl w-full sm:overflow-hidden has-expandContainerHeight:min-h-168.75 max-sm:has-openpicker:min-h-svh max-sm:min-h-[99.8svh] sm:has-openpicker:min-h-[79svh]! relative`,
+      <div id='app-widget' className={clsx(`bg-secondary-700 md:shadow-md border-0 sm:border sm:border-border rounded-4xl w-full sm:overflow-hidden has-expandContainerHeight:min-h-168.75 max-sm:has-openpicker:min-h-svh max-sm:min-h-[99.8svh] sm:has-openpicker:min-h-[79svh]! relative`,
          {
             "sm:min-h-102": mode == 'default',
          }

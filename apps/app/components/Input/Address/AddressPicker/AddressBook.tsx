@@ -1,6 +1,6 @@
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/shadcn/command";
 import { Address } from "@/lib/address";
-import FilledCheck from "@/components/Icons/FilledCheck";
+import { FilledCheck } from "@layerswap/ui-kit";
 import { AddressGroup, AddressItem } from ".";
 import { Network } from "@/Models/Network";
 import { FC } from "react";

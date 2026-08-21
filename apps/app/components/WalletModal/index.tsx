@@ -1,7 +1,7 @@
 import { createContext, type Dispatch, type ReactNode, type SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { connectModalStore } from "@layerswap/wallet-core";
-import * as UiKit from "@layerswap/ui-kit/components";
-import type { ModalWalletProvider } from "@layerswap/ui-kit/components";
+import * as UiKit from "@layerswap/ui-kit";
+import type { ModalWalletProvider } from "@layerswap/ui-kit";
 import type { WalletConnectionProvider, WalletModalConnector } from "@layerswap/wallet-core/types";
 import type { Wallet } from "@layerswap/widget-types";
 
@@ -16,7 +16,6 @@ type ConnectModalContextType = {
     cancel: () => void;
     selectedProvider: ModalWalletProvider | undefined;
     setSelectedProvider: (provider: ModalWalletProvider | undefined) => void;
-    isWalletModalOpen: boolean;
     selectedConnector: WalletModalConnector | undefined;
     setSelectedConnector: Dispatch<SetStateAction<WalletModalConnector | undefined>>;
     selectedMultiChainConnector: WalletModalConnector | undefined;
@@ -42,7 +41,6 @@ function WalletModalShell({ children }: { children: ReactNode }) {
     const { selectedProvider, setSelectedProvider, selectedConnector, setSelectedConnector,
         selectedMultiChainConnector, setSelectedMultiChainConnector, start, cancel: cancelFlow, finish, goBack, } = UiKit.useConnectModal();
     const [open, setOpen] = useState(false);
-    const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
     const [displayMode, setDisplayMode] = useState<ConnectDisplayMode>("drawer");
 
     const connect = useCallback(async (
@@ -76,15 +74,14 @@ function WalletModalShell({ children }: { children: ReactNode }) {
             setSelectedMultiChainConnector(undefined);
             setSelectedProvider(undefined);
         }
-        setIsWalletModalOpen(open);
         connectModalStore._syncOpen(open);
     }, [open]);
 
     const value = useMemo<ConnectModalContextType>(() => ({
         connect, cancel, selectedProvider, setSelectedProvider,
         selectedConnector, setSelectedConnector, selectedMultiChainConnector, setSelectedMultiChainConnector,
-        goBack, onFinish, setOpen, open, isWalletModalOpen, displayMode,
-    }), [cancel, connect, displayMode, goBack, isWalletModalOpen, onFinish, open,
+        goBack, onFinish, setOpen, open, displayMode,
+    }), [cancel, connect, displayMode, goBack, onFinish, open,
         selectedConnector, selectedMultiChainConnector, selectedProvider,])
 
     return <ConnectModalContext.Provider value={value}>{children}</ConnectModalContext.Provider>;

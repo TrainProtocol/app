@@ -4,8 +4,8 @@ import { SwapFormValues } from '../DTOs/SwapFormValues'
 import useWallet from '@/hooks/useWallet'
 import useSWRGas from '@/lib/gases/useSWRGas'
 import { resolveTokenUsdPrice } from '@/helpers/tokenHelper'
-import formatAmount from '@/lib/formatAmount'
-import { truncateDecimals } from '../utils/RoundDecimals'
+import { formatUnits } from '@layerswap/utils'
+import { truncateDecimals } from '@layerswap/utils'
 
 /** `$x.xx`, or `<$0.01` for dust. `Free` when the amount is exactly zero and `freeWhenZero` is set. */
 function formatUsd(amount: number, freeWhenZero: boolean): string {
@@ -48,7 +48,7 @@ export function useSwapFeeDisplay(values: SwapFormValues, quote: SwapQuote | und
 
     const feeAmount = useMemo(() => {
         if (!quote?.totalFee || !fromCurrency) return null
-        return formatAmount(BigInt(quote.totalFee), fromCurrency.decimals)
+        return formatUnits(BigInt(quote.totalFee), fromCurrency.decimals)
     }, [quote?.totalFee, fromCurrency])
 
     const feeInUsd = useMemo(() => {

@@ -2,7 +2,7 @@ import { BalanceProvider } from "@/Models/BalanceProvider";
 import { TokenBalance } from "@/Models/Balance";
 import { getNativeToken } from "@/Models/Network";
 import { formatUnits } from "viem";
-import { retryWithExponentialBackoff } from "@/lib/retry";
+import { retryWithExponentialBackoff } from "@layerswap/utils";
 import { NetworkTypes } from "@/Models/Network";
 import { Provider } from "fuels";
 

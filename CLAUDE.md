@@ -21,18 +21,26 @@ The app has no `lint` script and no in-app test setup — tests live in packages
 ## Architecture
 
 **Monorepo** (pnpm workspaces — `apps/*` and `packages/**`):
-- `apps/app` — Next.js 16.2 frontend (App Router, Turbopack). Entry: `app/layout.tsx` (server, awaits `getSettings()`) → `app/providers.tsx` (consolidated client providers). The provider tree is split: outer (PostHog, SWR, Theme, Intercom) and inner `AppShell` (Settings, Tooltip, Train, Wallets, ThemeWrapper, ErrorBoundary, SwapAccounts, AsyncModal). The persistent shell (`ThemeWrapper` — sidebar/navbar/footer) is rendered *above* the Suspense boundary so it never blanks. Only `<QueryProvider>` (which reads `useSearchParams` internally) plus `AuthDialog`, `SwapModalRoot`, and the page `children` sit inside `<Suspense fallback={null}>`. Route segments: `app/{page,swap,settings,transactions,nocookies}/page.tsx`. Root `error.tsx` + `not-found.tsx`. `proxy.ts` (the Next 16 rename of `middleware.ts` — exports `proxy`, not `middleware`) sets `Cache-Control: public, s-maxage=60, stale-while-revalidate`. The layout is no longer `force-dynamic` — `getSettings` is cached via `unstable_cache` (60s revalidate) and all routes build as `○ Static`. Sidebar `<Link>`s use Next's default prefetch (eager prefetch on viewport entry for static routes); the logo opts out via `prefetch={false}` since it points at `/`. All four sidebar nav targets (logo, Home, History, Settings) preserve persistent embed query params via `buildHrefWithPersistantParams`. Web Workers live in `apps/app/workers/` (e.g. `helios` light client) and are built via `build:workers`.
-- `apps/packagesdemo` — small Next.js Pages-Router demo app for exercising published SDK packages.
+- `apps/app` — Next.js 16.3 frontend (App Router, Turbopack). Entry: `app/layout.tsx` (server, awaits `getSettings()`) → `app/providers.tsx` (consolidated client providers). The provider tree is split: outer (SWR, Theme, Intercom, Vercel Analytics) and inner `AppShell` (Settings, Tooltip, Train, Wallets, Faro tracking, ThemeWrapper, ErrorBoundary, SwapAccounts, AsyncModal). The persistent shell (`ThemeWrapper` — sidebar/navbar/footer) is rendered *above* the Suspense boundary so it never blanks. Only `<QueryProvider>` (which reads `useSearchParams` internally) plus `AuthDialog`, `SwapModalRoot`, and the page `children` sit inside `<Suspense fallback={<Loading />}>`. Route segments: `app/{page,swap,settings,transactions,nocookies}/page.tsx`. Root `error.tsx` + `not-found.tsx`. `proxy.ts` (the Next 16 rename of `middleware.ts` — exports `proxy`, not `middleware`) sets `Cache-Control: public, s-maxage=60, stale-while-revalidate`. The layout is no longer `force-dynamic` — `getSettings` is cached via `unstable_cache` (60s revalidate) and all routes build as `○ Static`. Sidebar `<Link>`s use Next's default prefetch (eager prefetch on viewport entry for static routes); the logo opts out via `prefetch={false}` since it points at `/`. All four sidebar nav targets (logo, Home, History, Settings) preserve persistent embed query params via `buildHrefWithPersistantParams`. Web Workers live in `apps/app/workers/` (e.g. `helios` light client) and are built via `build:workers`.
 - `packages/sdk` — `@train-protocol/sdk`: core HTLC protocol logic, `TrainApiClient`, lock verification, consensus helpers (vitest tests in `__tests__/`).
-- `packages/blockchains/` — chain-specific HTLC client implementations: `evm`, `solana`, `starknet`, `tron`, `aztec`, plus shared `utils`.
+- `packages/blockchains/` — chain-specific HTLC client implementations: `evm`, `solana`, `starknet`, `tron`, `aztec`, `fuel`, plus shared `utils`.
 - `packages/auth` — `@train-protocol/auth` shared auth helpers.
 - `packages/react` — `@train-protocol/react` shared React utilities.
 
 **What the app does**: Cross-chain atomic swaps using HTLC (Hash Time-Locked Contracts). Users lock funds on a source chain, a solver locks on the destination chain, then secrets are revealed to complete the swap. EVM is the primary chain; Solana, Starknet, TON, Aztec, Tron, and Fuel support is in progress (see `FUEL_PHTLC.json`).
 
 ### State Management
-- **Zustand stores** (`apps/app/stores/`): `swapStore` (main swap state), `walletStore`, `addressesStore`, `balanceStore`, `rpcConfigStore`, `authDialogStore`, `aztecWalletStore`, `starknetWalletStore`, `recentRoutesStore`, `routeSortingStore`, `routeTokenSwitchStore`, `usdModeStore`. There is no `secretDerivationStore` — secret derivation lives in helpers/components.
-- **React Context** (`apps/app/context/`): `swapAccounts` (wallet/account handling), `formWizardProvider` (multi-step forms), `walletHookProviders` (per-chain wallet hook composition), `query` (React Query), `settings`, `snapPointsContext`, `timerContext`, `asyncModal`. HTLC contract interactions and EVM connectors are no longer separate contexts — they're handled inline via wallet hooks and the SDK's HTLC clients.
+- **Zustand stores** (`apps/app/stores/`): `swapStore` (main swap state), `walletStore` and `aztecWalletStore` (app-owned Aztec integration), `addressesStore`, `balanceStore`, `rpcConfigStore`, `authDialogStore`, `faucetNudgeStore`, `recentRoutesStore`, `routeSortingStore`, `routeTokenSwitchStore`, and `usdModeStore`. Package-owned wallet state lives in the corresponding `@layerswap/wallet-*` package rather than app stores. There is no `secretDerivationStore` — secret derivation lives in helpers/components.
+- **React Context** (`apps/app/context/`): `swapAccounts` (wallet/account handling), `formWizardProvider` (multi-step forms), `query` (React Query), `settings`, `snapPointsContext`, and `asyncModal`. Wallet connection state is supplied by the Layerswap registry/provider tree; HTLC clients are registered separately through `WalletBridges`.
+
+### Wallet packages and Train bridges
+- Published `@layerswap/*` packages provide shared wallet connection state and UI. This branch consumes local packed builds from `local-packages/*.tgz`, pinned by root `pnpm.overrides` while the package changes are under development.
+- `components/WalletProviders/LayerswapRegistry.tsx` registers raw Train `ExtendedNetwork[]` with wallet-core through `walletNetworkAdapter`. Train keeps CAIP-2 IDs as its network identity; wallet packages must use the adapter rather than Layerswap internal network names.
+- EVM is initialized eagerly with the app's external wagmi config. Fuel, Solana, Starknet, and Tron are descriptor-based providers loaded only when needed or when a persisted session exists.
+- Aztec remains app-owned because there is no Layerswap Aztec wallet package. `lib/wallets/aztec/adapter.tsx` adapts the React/context integration into wallet-core's external-store contract.
+- `components/WalletBridges/*` is the boundary from connected wallet state to `@train-protocol/react`: each bridge registers the chain's public/write HTLC client and login signer. Non-EVM bridges mount only after their lazy wallet provider is ready.
+- `components/WalletModal/*` hosts the app drawer/dialog while `@layerswap/ui-kit` owns the connector flow UI. `components/Wallet/walletListAdapters.tsx` supplies Train-specific CAIP-2 IDs, balances, labels, and connect behavior to UI-kit components.
+- Layerswap package `ErrorHandler` events are wired to Grafana Faro in `app/providers.tsx`.
 
 ### Layout & navigation
 - `ThemeWrapper` (inside providers) renders the persistent shell: left-side `AppSidebar` + top app-header strip (desktop) that holds `<PendingSwap />` + content area + `GlobalFooter`.
@@ -59,7 +67,9 @@ Key files:
 - `apps/app/lib/abis/atomic/EVM_HTLC.json` — unified EVM ABI
 - `apps/app/lib/abis/atomic/FUEL_PHTLC.json` — Fuel PHTLC ABI
 - `packages/blockchains/{evm,solana,starknet,tron,aztec}/src/client/` — chain-specific HTLC implementations (PublicClient + WalletClient)
-- `apps/app/lib/wallets/{evm,solana,starknet,tron,aztec}/` — per-chain wallet hooks (`useEVM.ts`, `useStarknet.ts`, `useTron.ts`, `useAztec.ts`, etc.) that bridge UI state to the SDK's HTLC clients
+- `apps/app/lib/wallets/layerswap/` — Layerswap provider descriptors plus the Train network adapter
+- `apps/app/components/WalletBridges/` — per-chain adapters from connected wallets to `@train-protocol/react` HTLC clients
+- `apps/app/lib/wallets/aztec/` — app-owned Aztec connection integration and wallet-core adapter
 
 ### RPC Node Resolution & Consensus
 - `apps/app/lib/rpc/` — RPC resolution: `nodeResolver.ts` (entry point), `evmNodes.ts` (static chainlist data from `data/chainlistRpcs.json`), `nonEvmNodes.ts` (static registry)
@@ -74,13 +84,13 @@ Key files:
 - Nonce = `Date.now()` timestamp, stored in URL query params (for page refresh recovery) and on-chain via `userData` bytes field
 
 ### Web3 Stack
-- EVM: wagmi 2.14 + viem 2.44 (catalog-pinned in `pnpm-workspace.yaml`)
-- Starknet: @starknet-react 5.0 + starknet.js 8.x
-- Solana: @solana/web3.js 1.98 + wallet-adapter + @coral-xyz/anchor
-- TON: @ton/ton 13.11 + @tonconnect/ui-react
-- Tron: @tronweb3/tronwallet-adapter-* family
-- Aztec: @aztec/aztec.js 4.1 + @aztec/wallet-sdk
-- Fuel: fuels 0.101
+- EVM: `@layerswap/wallet-evm` with the app's wagmi 2.14 + viem 2.44 config
+- Starknet: `@layerswap/wallet-starknet`; HTLC implementation uses starknet.js 8.x
+- Solana: `@layerswap/wallet-svm`; HTLC implementation uses `@solana/web3.js` 1.98 + Anchor
+- Tron: `@layerswap/wallet-tron`
+- Fuel: `@layerswap/wallet-fuel` + fuels 0.101
+- Aztec: app-owned `@aztec/aztec.js` 5.1 + `@aztec/wallet-sdk` 5.1 integration
+- Shared connection UI/state: `@layerswap/ui-kit`, `@layerswap/wallet-core`, `@layerswap/utils`, and `@layerswap/widget-types`
 
 ## Key Conventions
 

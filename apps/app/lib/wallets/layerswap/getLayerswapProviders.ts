@@ -1,5 +1,5 @@
 import type { Config } from "wagmi";
-import { createEVMProvider } from "@layerswap/wallet-evm";
+import { createEVMProvider } from "@layerswap/wallet-evm/base";
 import type { WalletProvider, WalletProviderDescriptor, WalletWrapper } from "@layerswap/wallet-core/types";
 import { NetworkTypes, type ExtendedNetwork } from "@/Models/Network";
 import AppSettings from "@/lib/AppSettings";
