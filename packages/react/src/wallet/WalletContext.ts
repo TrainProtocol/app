@@ -5,7 +5,7 @@ import type { Caip2Id, ChainNamespace } from '../internal/branded'
 
 export interface WalletContextValue {
     registerAdapter: (adapter: TrainWalletAdapter) => () => void
-    /** Create a public HTLC client for the given network (delegates to adapter) */
+    /** Create a public HTLC client for the given network (uses an adapter or RPC fallback) */
     createClient: (networkId: Caip2Id) => IHTLCPublicClient
     /** Create a wallet HTLC client with signer for the given network (delegates to adapter).
      *  @param address - When provided, use this specific account as signer. */

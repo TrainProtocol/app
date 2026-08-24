@@ -2,11 +2,12 @@ import { FC, useRef, useState } from "react"
 import { Check } from "lucide-react"
 import clsx from "clsx"
 import { ExtendedNetwork } from "@/Models/Network"
-import { Wallet } from "@/Models/WalletProvider"
+import type { Wallet } from "@layerswap/widget-types";
 import { Address } from "@/lib/address"
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/shadcn/popover"
 import MobileTooltip from "@/components/Modal/mobileTooltip"
 import { AddressInputField } from "@/components/Input/Address/AddressPicker/ManualAddressInput"
+import { WalletIconView } from "@layerswap/ui-kit";
 
 type Props = {
     network: ExtendedNetwork | null
@@ -83,7 +84,7 @@ const FaucetWalletPicker: FC<Props> = ({ network, wallets, value, onChange, disa
                                         isSelected ? "bg-secondary-300" : "bg-secondary-500 hover:bg-secondary-300",
                                     )}
                                 >
-                                    <wallet.icon className="w-9 h-9 rounded-md bg-secondary-800 p-0.5 shrink-0" />
+                                    <WalletIconView wallet={wallet} className="w-9 h-9 rounded-[6px] bg-secondary-800 p-0.5 shrink-0" size={36} />
                                     <div className="flex flex-col items-start min-w-0 grow text-left">
                                         <MobileTooltip
                                             trigger={

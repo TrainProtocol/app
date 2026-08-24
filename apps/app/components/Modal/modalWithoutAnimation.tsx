@@ -90,7 +90,7 @@ export const ModalContent = forwardRef<HTMLDivElement, ModalContentProps>((props
         </div>
     );
 
-    const widgetElement = document.getElementById('widget');
+    const widgetElement = document.getElementById('app-widget');
 
     if (!widgetElement) {
         console.warn('Widget element not found, modal will not render');

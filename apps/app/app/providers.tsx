@@ -9,6 +9,8 @@ import { SWRConfig } from "swr"
 import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "next-themes"
 import { FaroErrorBoundary } from "@grafana/faro-react"
+import { setNetworkAdapter } from "@layerswap/utils"
+import { setErrorLogger } from "@layerswap/widget-types"
 import { TrainProvider } from "@train-protocol/react"
 import { registerEvmSdk } from "@train-protocol/evm"
 import { registerTronSdk } from "@train-protocol/tron"
@@ -31,14 +33,24 @@ import { TrainAppSettings } from "@/Models/TrainAppSettings"
 import { TrainSettings } from "@/Models/TrainSettings"
 import { SendErrorMessage } from "@/lib/telegram"
 import { IsExtensionError } from "@/helpers/errorHelper"
-import { initFaro } from "@/lib/faro"
+import { captureException, initFaro } from "@/lib/faro"
 import FaroTracker from "@/components/FaroTracker"
 import AppSettings from "@/lib/AppSettings"
 import { useRpcConfigStore } from "@/stores/rpcConfigStore"
 import Loading from "@/components/Loading"
+import { walletNetworkAdapter } from "@/lib/wallets/layerswap/networkAdapter"
 
 if (typeof window !== "undefined") {
-    initFaro()
+    setNetworkAdapter(walletNetworkAdapter)
+    const faro = initFaro()
+    if (faro) {
+        setErrorLogger(event => {
+            const error = new Error(event.message || event.type)
+            error.name = event.name || event.type
+            if (event.stack) error.stack = event.stack
+            captureException(error)
+        })
+    }
     registerEvmSdk()
     registerAztecSdk()
     registerSolanaSdk()

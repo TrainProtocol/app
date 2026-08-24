@@ -1,10 +1,5 @@
 import { useMemo } from 'react'
-import {
-    useRegisterWallet,
-    chainNamespace,
-    type TrainWalletAdapter,
-    type Caip2Id,
-} from '@train-protocol/react'
+import { useRegisterWallet, chainNamespace, type TrainWalletAdapter, type Caip2Id, } from '@train-protocol/react'
 import type { TrainSDK } from '@train-protocol/sdk'
 import { useConfig } from 'wagmi'
 import { getAccount, getWalletClient, getConnections } from 'wagmi/actions'
@@ -41,7 +36,7 @@ export function EvmWalletBridge() {
                 address,
                 chainNamespace: 'eip155',
                 sendTransaction: async (tx: { to: string; data: string; value?: bigint }) => {
-                    if(!chain?.id) throw new Error("No chain id")
+                    if (!chain?.id) throw new Error("No chain id")
 
                     const walletClient = await getWalletClient(config, {
                         chainId: chain.id,

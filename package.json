@@ -20,9 +20,16 @@
       }
     },
     "overrides": {
+      "@layerswap/ui-kit": "file:./local-packages/layerswap-ui-kit-2.0.0-next.0.tgz",
+      "@layerswap/utils": "file:./local-packages/layerswap-utils-2.0.0-next.0.tgz",
+      "@layerswap/widget-types": "file:./local-packages/layerswap-widget-types-1.0.0-next.0.tgz",
+      "@layerswap/wallet-core": "file:./local-packages/layerswap-wallet-core-2.0.0-next.0.tgz",
+      "@layerswap/wallet-evm": "file:./local-packages/layerswap-wallet-evm-2.0.0-next.0.tgz",
+      "@layerswap/wallet-fuel": "file:./local-packages/layerswap-wallet-fuel-2.0.0-next.0.tgz",
+      "@layerswap/wallet-starknet": "file:./local-packages/layerswap-wallet-starknet-2.0.0-next.0.tgz",
+      "@layerswap/wallet-svm": "file:./local-packages/layerswap-wallet-svm-2.0.0-next.0.tgz",
+      "@layerswap/wallet-tron": "file:./local-packages/layerswap-wallet-tron-2.0.0-next.0.tgz",
       "@radix-ui/react-dismissable-layer": "1.1.1",
-      "@walletconnect/universal-provider": "2.21.8",
-      "@walletconnect/ethereum-provider": "2.21.8",
       "@aztec/aztec.js": "catalog:",
       "elliptic": ">=6.6.1",
       "ws": ">=8.21.0",

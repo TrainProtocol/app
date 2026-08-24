@@ -5,7 +5,7 @@ import { PanelLeftIcon } from "lucide-react"
 import { Slot } from "radix-ui"
 
 import useWindowDimensions from "@/hooks/useWindowDimensions"
-import { cn } from "@/lib/utils"
+import { cn } from "@layerswap/utils"
 import { Input } from "@/components/shadcn/input"
 import { Separator } from "@/components/shadcn/separator"
 import {

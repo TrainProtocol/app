@@ -1,23 +1,31 @@
-import { useMemo } from 'react'
-import { useWallet } from '@fuels/react'
-import { Provider } from 'fuels'
-import {
-    chainNamespace,
-    useRegisterWallet,
-    type Caip2Id,
-    type TrainWalletAdapter,
-} from '@train-protocol/react'
+import { useEffect, useMemo, useState } from 'react'
+import { useFuelStore } from '@layerswap/wallet-fuel'
+import { Provider, type Account } from 'fuels'
+import { chainNamespace, useRegisterWallet, type Caip2Id, type TrainWalletAdapter, } from '@train-protocol/react'
 import type { TrainSDK } from '@train-protocol/sdk'
 import { Address } from '@/lib/address'
-import { useWalletStore } from '@/stores/walletStore'
 import { useBridgeRpcUrl } from './useBridgeRpcUrl'
 
 export function FuelWalletBridge() {
-    const connectedWallets = useWalletStore(state => state.connectedWallets)
-    const fuelWallet = connectedWallets.find(wallet => wallet.providerName === 'Fuel')
+    const fuel = useFuelStore(state => state.fuel)
+    const fuelWallet = useFuelStore(state => state.connectedWallets[0])
     const address = fuelWallet?.address ?? null
-    const { wallet: account } = useWallet({ account: address })
+    const [account, setAccount] = useState<Account | null>(null)
     const getRpcUrl = useBridgeRpcUrl('fuel:')
+
+    useEffect(() => {
+        let cancelled = false
+        setAccount(null)
+        if (!fuel || !address) return
+
+        void fuel.getWallet(address).then(wallet => {
+            if (!cancelled) setAccount(wallet)
+        }).catch(() => {
+            if (!cancelled) setAccount(null)
+        })
+
+        return () => { cancelled = true }
+    }, [fuel, address])
 
     const adapter = useMemo<TrainWalletAdapter>(() => {
         return {

@@ -1,6 +1,6 @@
 import { FC } from "react"
 import AppSettings from "@/lib/AppSettings"
-import { cn } from "@/lib/utils"
+import { cn } from "@layerswap/utils"
 
 type Props = {
     wrapperClassName?: string

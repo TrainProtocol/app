@@ -11,7 +11,7 @@ import AddressBook from "./AddressBook";
 import AddressButton from "./AddressButton";
 import { useQueryState } from "@/context/query";
 import ConnectedWallets from "./ConnectedWallets";
-import { Wallet } from "@/Models/WalletProvider";
+import type { Wallet } from "@layerswap/widget-types";
 import { useSelectedAccount, useSelectSwapAccount } from "@/context/swapAccounts";
 import ConnectWalletButton from "./ConnectedWallets/ConnectWalletButton";
 import { useAddressesStore } from "@/stores/addressesStore";

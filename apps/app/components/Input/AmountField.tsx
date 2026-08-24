@@ -6,9 +6,9 @@ import { ArrowUpDown } from "lucide-react";
 import { Input } from "@/components/shadcn/input";
 import { SwapFormValues } from "@/components/DTOs/SwapFormValues";
 import { useUsdTokenSync } from "@/hooks/useUsdTokenSync";
-import { isScientific } from "@/components/utils/RoundDecimals";
+import { isScientific } from "@layerswap/utils";
 import type { SwapQuote } from "@train-protocol/react";
-import formatAmount from "@/lib/formatAmount";
+import { formatUnits } from "@layerswap/utils";
 import { captureEvent } from "@/lib/faro";
 
 // Caps on significant digits shown in NumberFlow. Above the cap, render `...` to indicate truncation.
@@ -33,7 +33,7 @@ const AmountField = ({ side, actionValue, actionValueUsd, className, showToggle,
     const quoteDirection: 'source' | 'destination' = values?.receiveAmount ? 'destination' : 'source';
     const token = side === 'source' ? values?.fromCurrency : values?.toCurrency;
     const quoteAmount = side === 'source' ? quote?.amount : quote?.receiveAmount;
-    const quoteDerivedAmount = quoteAmount && token?.decimals != null ? formatAmount(BigInt(quoteAmount), token.decimals) : '';
+    const quoteDerivedAmount = quoteAmount && token?.decimals != null ? formatUnits(BigInt(quoteAmount), token.decimals) : '';
 
 
     const stableDerivedAmountRef = useRef(quoteDerivedAmount);

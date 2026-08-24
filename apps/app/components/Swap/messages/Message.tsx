@@ -2,7 +2,7 @@ import { FC, ReactNode } from "react";
 import { AlertTriangle, CheckIcon, ChevronDown } from "lucide-react";
 import CancelIcon from "../../Icons/CancelIcon";
 import SuccessIcon from "../../Icons/SuccessIcon";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/shadcn/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@layerswap/ui-kit";
 
 export type WalletMessageProps = {
     header: string;

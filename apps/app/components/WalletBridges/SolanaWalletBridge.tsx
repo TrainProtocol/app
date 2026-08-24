@@ -1,18 +1,30 @@
 import { useMemo } from 'react'
-import {
-    useRegisterWallet,
-    chainNamespace,
-    type TrainWalletAdapter,
-    type Caip2Id,
-} from '@train-protocol/react'
+import { useRegisterWallet, chainNamespace, type TrainWalletAdapter, type Caip2Id, } from '@train-protocol/react'
 import type { TrainSDK } from '@train-protocol/sdk'
-import { useWallet, useConnection } from '@solana/wallet-adapter-react'
+import type { Transaction, VersionedTransaction } from '@solana/web3.js'
+import { svmAdapterManager } from '@layerswap/wallet-svm'
 import { Address } from '@/lib/address'
 import { useBridgeRpcUrl } from './useBridgeRpcUrl'
 
+type SvmSignerAdapter = {
+    connected?: boolean
+    publicKey?: { toBase58(): string } | null
+    signMessage?: (message: Uint8Array) => Promise<Uint8Array>
+    signTransaction?: <T extends Transaction | VersionedTransaction>(tx: T) => Promise<T>
+}
+
+const resolveSignerAdapter = (address?: string): SvmSignerAdapter | undefined => {
+    if (!address) return svmAdapterManager.getActiveSignerAdapter() as SvmSignerAdapter | undefined
+
+    return (svmAdapterManager.getAdapters() as unknown as SvmSignerAdapter[]).find(candidate =>
+        candidate.connected
+        && typeof candidate.signTransaction === 'function'
+        && !!candidate.publicKey
+        && Address.equals(candidate.publicKey.toBase58(), address, null, 'solana')
+    )
+}
+
 export function SolanaWalletBridge() {
-    const { wallets } = useWallet()
-    const { connection } = useConnection()
     const getRpcUrl = useBridgeRpcUrl('solana:')
 
     const adapter = useMemo<TrainWalletAdapter>(() => {
@@ -25,40 +37,31 @@ export function SolanaWalletBridge() {
 
             createWriteClient(sdk: TrainSDK, networkId: Caip2Id, address?: string) {
                 const rpcUrl = getRpcUrl(networkId)
-                const connectedWallet = address
-                    ? wallets.find(w => w.adapter.connected && w.adapter.publicKey?.toBase58() === address)
-                    : wallets.find(w => w.adapter.connected)
-
-                if (address && !connectedWallet) {
+                const walletAdapter = resolveSignerAdapter(address)
+                const publicKey = walletAdapter?.publicKey?.toBase58()
+                if (address && (!walletAdapter || !publicKey)) {
                     throw new Error(`No connected Solana wallet found for address "${address}"`)
                 }
-
-                const publicKey = connectedWallet?.adapter.publicKey
-
-                if (!connectedWallet || !publicKey) throw new Error('No Solana signer available')
+                if (!walletAdapter || !publicKey) throw new Error('No Solana signer available')
+                const signTransaction = walletAdapter.signTransaction
+                if (!signTransaction) throw new Error('Connected Solana wallet cannot sign transactions')
 
                 const signer = {
-                    publicKey: publicKey.toBase58(),
-                    sendTransaction: async (tx: any) => {
-                        return connectedWallet.adapter.sendTransaction(tx, connection)
-                    },
+                    publicKey,
+                    signTransaction: <T extends Transaction | VersionedTransaction>(tx: T) => signTransaction.call(walletAdapter, tx),
                 }
 
                 return sdk.createHTLCWalletClient('solana', { rpcUrl, signer })
             },
 
             getLoginConfig: (address?: string) => {
-                const connectedAdapter = address
-                    ? wallets.find(w => w.adapter.connected && w.adapter.publicKey && Address.equals(w.adapter.publicKey?.toBase58(), address, null, 'solana'))?.adapter
-                    : wallets.find(w => w.adapter.connected)?.adapter
-                const signMessage = connectedAdapter && 'signMessage' in connectedAdapter
-                    ? (msg: Uint8Array) => (connectedAdapter as any).signMessage(msg)
-                    : undefined
-                if (!signMessage) return null
-                return { wallet: { signMessage } }
+                const walletAdapter = resolveSignerAdapter(address)
+                if (!walletAdapter?.signMessage || !walletAdapter.publicKey) return null
+                const signMessage = walletAdapter.signMessage
+                return { wallet: { signMessage: (message: Uint8Array) => signMessage.call(walletAdapter, message) } }
             },
         }
-    }, [wallets, connection, getRpcUrl])
+    }, [getRpcUrl])
 
     useRegisterWallet(adapter)
     return null

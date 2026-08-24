@@ -150,16 +150,6 @@ export class Address {
   }
 
   /**
-   * Get seed number for icon generation (chars 2-10 as hex integer)
-   * Used by AddressIcon component with Jazzicon
-   * @returns Integer seed for deterministic icon generation
-   */
-  static toIconSeed(address: string): number {
-    if (!address || address.length < 10) return 0;
-    return parseInt(address.slice(2, 10), 16);
-  }
-
-  /**
    * Convert to string (default: full format)
    */
   toString(): string {

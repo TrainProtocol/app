@@ -1,5 +1,5 @@
 import { useMemo, memo, useRef, useState } from "react";
-import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/shadcn/accordion";
+import { AccordionContent, AccordionItem, AccordionTrigger } from "@layerswap/ui-kit";
 import { NetworkElement, GroupedTokenElement } from "@/Models/Route";
 import { SwapDirection } from "@/components/DTOs/SwapFormValues";
 import { ExtendedNetwork, ExtendedToken } from "@/Models/Network";

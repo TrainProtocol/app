@@ -1,17 +1,16 @@
-import { useSettingsState } from "../../context/settings";
-import resolveChain from "../../lib/resolveChain";
+import { useSettingsState } from "@/context/settings";
+import resolveChain from "@/lib/resolveChain";
 import React, { useMemo } from "react";
 import { WagmiProvider, createConfig, Config } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Chain, http, fallback, Transport } from 'viem';
 import { ActiveEvmAccountProvider } from "./ActiveEvmAccount";
 import { useRpcConfigStore } from "@/stores/rpcConfigStore";
-import { getNativeToken, NetworkTypes } from "../../Models/Network";
+import { getNativeToken, NetworkTypes } from "@/Models/Network";
 import { coinbaseWallet, metaMask, walletConnect } from "@wagmi/connectors";
-import { walletConnect as customWalletConnect } from "../../lib/wallets/evm/connectors/walletConnect";
-import { isMobile } from "../../lib/wallets/utils/isMobile";
-import { WALLETCONNECT_METADATA, WALLETCONNECT_PROJECT_ID } from "@/lib/walletConnect/config";
-import { HIDDEN_WALLETCONNECT_ID } from "@/lib/wallets/evm/constants";
+import { createHiddenWalletConnectConnector } from "@layerswap/wallet-evm";
+import { isMobile } from "@layerswap/utils";
+import { WALLET_CONNECT_CONFIGS } from "@/lib/wallets/layerswap/getLayerswapProviders";
 import { browserInjected } from "@/lib/wallets/evm/connectors/browserInjected";
 
 type Props = {
@@ -19,28 +18,10 @@ type Props = {
 }
 
 const queryClient = new QueryClient()
-const walletConnectConnector = walletConnect({ projectId: WALLETCONNECT_PROJECT_ID, showQrModal: isMobile(), customStoragePrefix: 'walletConnect' })
-const hiddenWalletConnectConnector = customWalletConnect({
-    id: HIDDEN_WALLETCONNECT_ID,
-    name: 'Hidden WalletConnect',
-    rdns: '',
-    type: 'other',
-    mobile: { native: '', universal: '' },
-    icon: '',
-    projectId: WALLETCONNECT_PROJECT_ID,
-    showQrModal: false,
-})
-const metaMaskConnector = metaMask({
-    dappMetadata: {
-        name: WALLETCONNECT_METADATA.name,
-        url: WALLETCONNECT_METADATA.url,
-        iconUrl: WALLETCONNECT_METADATA.icons[0]
-    }
-})
-const coinbaseWalletConnector = coinbaseWallet({
-    appName: WALLETCONNECT_METADATA.name,
-    appLogoUrl: WALLETCONNECT_METADATA.icons[0],
-})
+const walletConnectConnector = walletConnect({ projectId: WALLET_CONNECT_CONFIGS.projectId, showQrModal: isMobile(), customStoragePrefix: 'walletConnect' })
+const hiddenWalletConnectConnector = createHiddenWalletConnectConnector({ projectId: WALLET_CONNECT_CONFIGS.projectId })
+const metaMaskConnector = metaMask({ dappMetadata: { name: WALLET_CONNECT_CONFIGS.name, url: WALLET_CONNECT_CONFIGS.url, iconUrl: WALLET_CONNECT_CONFIGS.icons[0] } })
+const coinbaseWalletConnector = coinbaseWallet({ appName: WALLET_CONNECT_CONFIGS.name, appLogoUrl: WALLET_CONNECT_CONFIGS.icons[0] })
 const browserInjectedConnector = browserInjected()
 const defaultConnectors = [
     metaMaskConnector,

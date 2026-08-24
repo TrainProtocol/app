@@ -4,7 +4,7 @@ import { FC, ReactNode, useEffect, useRef } from "react"
 import { useTheme } from "next-themes"
 import { motion, LayoutGroup } from "framer-motion"
 import { ChevronLeft, ChevronRight, Circle, Globe, LucideIcon, Monitor, Moon, Sun } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn } from "@layerswap/utils"
 import { FormWizardProvider, useFormWizardaUpdate } from "@/context/formWizardProvider"
 import { MenuStep } from "@/Models/Wizard"
 import WizardItem from "@/components/Wizard/WizardItem"
@@ -48,7 +48,7 @@ const SettingsWizard: FC = () => {
     }, [setWrapperWidth])
 
     return (
-        <div id="widget" className="relative max-md:px-4">
+        <div id="app-widget" className="relative max-md:px-4">
             <div ref={wrapperRef}>
                 <WizardItem StepName={MenuStep.Menu} inModal disableAnimation>
                     <MenuStepContent onOpenRpc={() => goToStep(MenuStep.RPCConfiguration)} />

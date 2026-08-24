@@ -2,8 +2,8 @@ import { Context, createContext, useCallback, useContext, useMemo, useState } fr
 import { useQueryState } from '@/context/query'
 import { SwapDirection } from '@/components/DTOs/SwapFormValues';
 import useWallet from '@/hooks/useWallet';
-import { Wallet, WalletProvider } from '@/Models/WalletProvider';
-import AddressIcon from '@/components/AddressIcon';
+import type { Wallet } from "@layerswap/widget-types";
+import { WalletConnectionProvider } from "@layerswap/wallet-core/types";
 import { Address } from '@/lib/address';
 import { getKey, useBalanceStore } from '@/stores/balanceStore';
 
@@ -33,8 +33,8 @@ type BaseAccountIdentity = {
 export type AccountIdentity = BaseAccountIdentity & {
     displayName: string,
     addresses: string[],
-    provider: WalletProvider;
-    icon: (props: any) => React.JSX.Element;
+    provider: WalletConnectionProvider;
+    icon?: string;
 }
 
 
@@ -187,8 +187,8 @@ export function useSelectSwapAccount(direction: SwapDirection) {
 }
 
 function hasWallet(
-    p: WalletProvider
-): p is WalletProvider & { activeWallet: { address: string; id: string } } {
+    p: WalletConnectionProvider
+): p is WalletConnectionProvider & { activeWallet: { address: string; id: string } } {
     return Boolean(p.activeWallet);
 }
 
@@ -203,7 +203,7 @@ function upsertByProvider(accounts: BaseAccountIdentity[], account: BaseAccountI
     return [...accounts, account];
 }
 
-function ResolveWalletSwapAccount(provider: WalletProvider, wallet: Wallet, address: string): AccountIdentityWithSupportedNetworks {
+function ResolveWalletSwapAccount(provider: WalletConnectionProvider, wallet: Wallet, address: string): AccountIdentityWithSupportedNetworks {
     return {
         address,
         provider,
@@ -214,11 +214,11 @@ function ResolveWalletSwapAccount(provider: WalletProvider, wallet: Wallet, addr
         walletAsSourceSupportedNetworks: wallet.asSourceSupportedNetworks,
         displayName: wallet.displayName || provider.name,
         addresses: wallet.addresses || [address],
-        icon: wallet.icon || ((props) => <AddressIcon address={address} size={24} {...props} />),
+        icon: wallet.icon,
     }
 }
 
-function ResolveManualSwapAccount(provider: WalletProvider, address: string): AccountIdentity {
+function ResolveManualSwapAccount(provider: WalletConnectionProvider, address: string): AccountIdentity {
     return {
         address,
         provider,
@@ -226,8 +226,5 @@ function ResolveManualSwapAccount(provider: WalletProvider, address: string): Ac
         id: 'manually_added',
         displayName: "Manual",
         addresses: [address],
-        icon: (props: any) => (
-            <AddressIcon className="h-4 w-4 p-0.5" address={address} size={20} {...props} />
-        ),
     };
 }

@@ -25,3 +25,5 @@ catalog:
   zustand: ^4.5.7
 
 minimumReleaseAge: 4320
+minimumReleaseAgeExclude:
+  - '@layerswap/*'

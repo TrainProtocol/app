@@ -1,7 +1,7 @@
 "use client"
 
 import { ChevronDown, KeyRound } from 'lucide-react';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, } from '@/components/shadcn/accordion';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, } from '@layerswap/ui-kit';
 import AppShellDialog from '@/components/shared/AppShellDialog';
 import VaulDrawer from '@/components/Modal/vaulModal';
 import useWindowDimensions from '@/hooks/useWindowDimensions';

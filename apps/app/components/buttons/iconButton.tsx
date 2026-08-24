@@ -1,5 +1,5 @@
 import React, { ComponentProps, FC, forwardRef } from 'react'
-import { classNames } from '../utils/classNames'
+import { cn } from '@layerswap/utils'
 
 interface IconButtonProps extends Omit<ComponentProps<'button'>, 'color' | 'ref'> {
     icon?: React.ReactNode
@@ -10,7 +10,7 @@ const IconButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, IconButtonP
 
     return (
         <div className="fixed-width-container max-sm:bg-secondary-500 max-sm:rounded-lg max-sm:p-0.5">
-            <button {...theirProps} type="button" className={classNames("active:animate-press-down py-1.5 justify-self-start text-secondary-text hover:bg-secondary-500 hover:text-primary-text focus:outline-hidden rounded-lg items-center", className)}>
+            <button {...theirProps} type="button" className={cn("active:animate-press-down py-1.5 justify-self-start text-secondary-text hover:bg-secondary-500 hover:text-primary-text focus:outline-hidden rounded-lg items-center", className)}>
                 <div className='mx-1.5'>
                     <div>
                         {icon}

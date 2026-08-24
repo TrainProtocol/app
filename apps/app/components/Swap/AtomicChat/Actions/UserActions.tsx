@@ -9,7 +9,7 @@ import { useSelectedAccount } from "@/context/swapAccounts";
 import { Address } from "@/lib/address";
 import { useSwapStore } from "@/stores/swapStore";
 import { useSettingsState } from "@/context/settings";
-import formatAmount from "@/lib/formatAmount";
+import { formatUnits } from "@layerswap/utils";
 
 // Same string heuristics the swap modal's TransactionMessage uses to pick a message.
 function classifyWalletError(message: string): string {
@@ -75,7 +75,7 @@ export const UserLockAction: FC<UserCommitActionProps> = ({ quote, type, setErro
 
             const amountInBaseUnits = BigInt(freshQuote.amount)
             if (amountInBaseUnits <= 0n) throw new Error('The refreshed quote has an invalid source amount')
-            const amount = formatAmount(amountInBaseUnits, source_asset.decimals)
+            const amount = formatUnits(amountInBaseUnits, source_asset.decimals)
 
             const params: StartSwapParams = {
                 sourceNetwork: source_network.caip2Id,

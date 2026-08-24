@@ -1,7 +1,9 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
+@import './ui-kit-overrides.css';
 @config '../tailwind.config.js';
+@source "../node_modules/@layerswap/ui-kit/dist/esm";
 
 @custom-variant dark (&:is([data-theme="default"] *, [data-theme="mist"] *));
 

@@ -2,12 +2,13 @@ import { FC, useEffect, useMemo, useRef, useState } from "react";
 import { NetworkElement, RowElement } from "@/Models/Route";
 import { SwapDirection } from "@/components/DTOs/SwapFormValues";
 import { useVirtualizer } from "@/lib/virtual";
-import { Accordion } from "@/components/shadcn/accordion";
+import { Accordion } from "@layerswap/ui-kit";
 import Row from "./Rows";
 import { Network, Token } from "@/Models/Network";
 import RouteSearch from "./RouteSearch";
 import NavigatableList from "@/components/NavigatableList";
 import useWallet from "@/hooks/useWallet";
+import { useProvidersConnectReady } from "@layerswap/wallet-core";
 import ConnectWalletButton from "@/components/Input/Address/AddressPicker/ConnectedWallets/ConnectWalletButton";
 
 type ContentProps = {
@@ -48,8 +49,8 @@ const Items: FC<ItemsProps> = ({ searchQuery, setSearchQuery, rowElements, selec
     const parentRef = useRef<HTMLDivElement>(null)
     const [openValues, setOpenValues] = useState<string[]>(selectedNetwork ? [selectedNetwork] : [])
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-    const { wallets, providers } = useWallet()
-    const isProvidersReady = providers.every(p => p.ready)
+    const { wallets } = useWallet()
+    const isProvidersReady = useProvidersConnectReady()
 
     const isSingleNetwork = useMemo(() => {
         if (!searchQuery) return false;

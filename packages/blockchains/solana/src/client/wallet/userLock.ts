@@ -16,7 +16,8 @@ export async function userLock(
 
     let signature: string
     try {
-        signature = await signer.sendTransaction(tx)
+        const signed = await signer.signTransaction(tx)
+        signature = await connection.sendRawTransaction(signed.serialize())
     } catch (e: any) {
         console.error('[SolanaHTLC] sendTransaction failed', e?.message ?? String(e), e?.logs ?? [])
         throw e

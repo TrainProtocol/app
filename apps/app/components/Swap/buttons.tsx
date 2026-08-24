@@ -1,10 +1,10 @@
-import { WalletIcon } from "lucide-react";
+import { WalletIcon } from "@layerswap/ui-kit";
 import { FC, ReactNode, useCallback, useState } from "react";
-import useWallet from "../../hooks/useWallet";
-import { Network } from "../../Models/Network";
+import useWallet from "@/hooks/useWallet";
+import { Network } from "@/Models/Network";
 import SubmitButton, { SubmitButtonProps } from "../buttons/submitButton";
 import WalletMessage from "./messages/Message";
-import { useSelectedAccount } from "../../context/swapAccounts";
+import { useSelectedAccount } from "@/context/swapAccounts";
 import { useConnectModal } from "../WalletModal";
 import { ActionWrapper, SwapViewType } from "./AtomicChat/Actions";
 export type ActionData = {

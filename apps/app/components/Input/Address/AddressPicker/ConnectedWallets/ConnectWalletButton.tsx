@@ -1,12 +1,14 @@
 import { RefreshCw } from "lucide-react";
 import { ResolveConnectorIcon } from "../../../../Icons/ConnectorIcons";
 import { FC, useState } from "react";
-import { Wallet, WalletProvider } from "../../../../../Models/WalletProvider";
+import type { Wallet } from "@layerswap/widget-types";
+import { WalletConnectionProvider } from "@layerswap/wallet-core/types";
+import { useProvidersConnectReady } from "@layerswap/wallet-core";
 import { useConnectModal } from "../../../../WalletModal";
 import { captureEvent } from "@/lib/faro";
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    provider?: WalletProvider,
+    provider?: WalletConnectionProvider,
     onConnect?: (wallet: Wallet) => void,
     descriptionText?: string
 }
@@ -14,10 +16,10 @@ interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 const ConnectWalletButton: FC<Props> = ({ provider, onConnect, descriptionText, ...rest }) => {
     const [isLoading, setIsLoading] = useState(false)
     const { connect } = useConnectModal()
-    const isProviderReady = provider?.ready ?? true
+    const isProvidersReady = useProvidersConnectReady()
 
     const handleConnect = async () => {
-        if (!isProviderReady) return
+        if (!isProvidersReady) return
         captureEvent("connect_wallet_clicked", { location: "address_picker" })
         setIsLoading(true)
         const result = await connect(provider)
@@ -29,8 +31,8 @@ const ConnectWalletButton: FC<Props> = ({ provider, onConnect, descriptionText, 
         {...rest}
         type="button"
         onClick={handleConnect}
-        disabled={!isProviderReady || rest.disabled}
-        className={`focus-ring-primary-bold py-5 px-6 bg-secondary-500 hover:bg-secondary-400 transition-colors duration-200 rounded-xl ${(isLoading || !isProviderReady) ? 'cursor-progress opacity-80' : ''} disabled:opacity-50 disabled:cursor-not-allowed ${rest.className ?? ''}`}
+        disabled={!isProvidersReady || rest.disabled}
+        className={`focus-ring-primary-bold py-5 px-6 bg-secondary-500 hover:bg-secondary-400 transition-colors duration-200 rounded-xl ${(isLoading || !isProvidersReady) ? 'cursor-progress opacity-80' : ''} disabled:opacity-50 disabled:cursor-not-allowed ${rest.className ?? ''}`}
     >
         <div className="flex flex-row justify-between gap-9 items-stretch">
             <ResolveConnectorIcon
@@ -42,7 +44,7 @@ const ConnectWalletButton: FC<Props> = ({ provider, onConnect, descriptionText, 
                 <p className="text-sm font-medium text-secondary-text text-start">{descriptionText ?? 'Connect your wallet to browse and select from your addresses'}</p>
                 <div className="bg-secondary-300 border-none text-primary-text! py-2 rounded-lg text-base font-semibold">
                     {
-                        !isProviderReady ?
+                        !isProvidersReady ?
                             <div className="flex items-center gap-1 justify-center">
                                 <RefreshCw className="h-3 w-auto animate-spin" />
                                 <span className="ml-1">Initializing...</span>
