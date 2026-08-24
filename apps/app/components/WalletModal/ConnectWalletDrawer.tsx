@@ -1,4 +1,5 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import IconButton from "../buttons/iconButton";
 import VaulDrawer from "../Modal/vaulModal";
@@ -10,6 +11,7 @@ import { useConnectModal } from ".";
 const ConnectWalletDrawer: FC = () => {
     const {
         goBack,
+        cancel,
         onFinish,
         open,
         setOpen,
@@ -18,6 +20,11 @@ const ConnectWalletDrawer: FC = () => {
         displayMode,
     } = useConnectModal();
     const { isMobile } = useWindowDimensions();
+    const pathname = usePathname();
+
+    useEffect(() => {
+        cancel();
+    }, [pathname, cancel]);
 
     const title = (selectedMultiChainConnector && !selectedConnector) ? "Select ecosystem" : "Connect wallet"
     const showBack = !!(selectedConnector || selectedMultiChainConnector)
