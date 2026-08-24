@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, setTooltipDef
 // Applies to ui-kit's internal tooltips too (ExtendedAddress, WalletsList, CopyButton),
 // which have no call site here to pass props at.
 setTooltipDefaults({
-  root: { delayDuration: 0 },
+  root: { delayDuration: 500 },
   content: {
     container: null,
     showArrow: true,

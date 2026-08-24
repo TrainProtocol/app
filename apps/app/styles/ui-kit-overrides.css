@@ -1,0 +1,11 @@
+/* Train-specific styling for semantic slots rendered by @layerswap/ui-kit. */
+[data-slot="checkbox"][data-state="checked"] {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-buttonTextColor);
+}
+
+p.bg-primary-700.text-primary-buttonTextColor {
+  background-color: var(--color-secondary-100);
+  color: var(--color-secondary-text);
+}
