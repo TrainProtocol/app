@@ -8,6 +8,9 @@ let faro: Faro | null = null;
 export function initFaro(): Faro | undefined {
     if (typeof window === 'undefined') return;
 
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]') return;
+
     const collectorUrl = process.env.NEXT_PUBLIC_FARO_COLLECTOR_URL;
     if (!collectorUrl) return;
 

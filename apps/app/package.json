@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "analyze": "cross-env ANALYZE=true next build",
-    "build:workers": "tsc -p tsconfig.worker.json"
+    "build:workers": "tsc -p tsconfig.worker.json && cp workers/helios/lib.mjs public/workers/helios/lib.mjs"
   },
   "dependencies": {
     "@aztec/aztec.js": "catalog:",

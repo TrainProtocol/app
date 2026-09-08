@@ -30,26 +30,9 @@ const nextConfig: NextConfig = {
       }
     ]
   },
-  async rewrites() {
-    return [
-      {
-        source: '/proxy/beaconchain-sepolia/:path*',
-        destination: 'https://sync-sepolia.beaconcha.in/:path*',
-      },
-      {
-        source: '/proxy/beaconchain-mainnet/:path*',
-        destination: 'https://sync-mainnet.beaconcha.in/:path*',
-      },
-      {
-        source: '/proxy/nimbus-sepolia/:path*',
-        destination: 'https://ethereum-sepolia-beacon-api.publicnode.com/:path*',
-      },
-      {
-        source: '/proxy/nimbus-mainnet/:path*',
-        destination: 'https://unstable.mainnet.beacon-api.nimbus.team/:path*',
-      },
-    ]
-  },
+  // Beacon-API access for the Helios light client lives in
+  // app/api/beacon/[network]/[...path]/route.ts (a plain rewrite cannot fix
+  // publicnode's broken light_client/updates responses).
   // Required for @aztec/bb.js WASM (Barretenberg) — needs SharedArrayBuffer
   async headers() {
     return [

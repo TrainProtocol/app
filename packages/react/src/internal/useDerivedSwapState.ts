@@ -7,7 +7,7 @@ import { resolveHTLCStatus, HTLCStatus, LockStatus } from '@train-protocol/sdk'
 import type { Network, Token, UserLockDetails, SolverLockDetails, HTLCFromApi } from '@train-protocol/sdk'
 import type { TrainError, SwapData } from '../types'
 import type { LoginIdentity } from '../hooks/useLoginIdentityMismatch'
-import type { SwapStore, SwapFlags, SwapStoreState } from './store'
+import type { SwapStore, SwapFlags, SwapStoreState, VerificationSource } from './store'
 import { useNetworksContext } from '../providers/NetworksProvider'
 import { resolveSwapTokens } from './resolveSwapTokens'
 import { MANUAL_CLAIM_DELAY_MS } from './timing'
@@ -54,6 +54,7 @@ export interface DerivedSwapState {
     consensusFailed: boolean
     manualConsensusOverrideAllowed: boolean
     verifiedNodeCount: number
+    verificationSource: VerificationSource
 
     // Persisted swap metadata
     source: string | null
@@ -94,6 +95,7 @@ const EMPTY_STATE: DerivedSwapState = {
     consensusFailed: false,
     manualConsensusOverrideAllowed: false,
     verifiedNodeCount: 0,
+    verificationSource: 'rpc',
     source: null,
     destination: null,
     sourceAddress: null,
@@ -263,6 +265,7 @@ export function useDerivedSwapState(store: SwapStore | null, hashlock: string | 
             consensusFailed: flags.consensusPhase === 'failed',
             manualConsensusOverrideAllowed: flags.manualConsensusOverrideAllowed,
             verifiedNodeCount: flags.verifiedNodeCount,
+            verificationSource: flags.verificationSource,
 
             source: swapData?.source ?? null,
             destination: swapData?.destination ?? null,

@@ -108,6 +108,8 @@ export function TrainProvider({
             baseUrl: config.baseUrl,
             onError: config.onError,
             resolveNodeUrls: config.resolveNodeUrls,
+            resolveLightClient: config.resolveLightClient,
+            lightClientMinAmountUsd: config.lightClientMinAmountUsd,
             persistSwaps: config.persistSwaps,
             storage: config.storage,
             sdk: config.sdk,
@@ -117,7 +119,7 @@ export function TrainProvider({
             initialPrices: config.initialPrices,
             secretDerivation: config.secretDerivation,
         }),
-        [config.baseUrl, config.onError, config.resolveNodeUrls, config.persistSwaps, config.storage, config.sdk, config.auth, config.queryClient, config.initialNetworks, config.initialPrices, config.secretDerivation],
+        [config.baseUrl, config.onError, config.resolveNodeUrls, config.resolveLightClient, config.lightClientMinAmountUsd, config.persistSwaps, config.storage, config.sdk, config.auth, config.queryClient, config.initialNetworks, config.initialPrices, config.secretDerivation],
     )
 
     const trainValue = useMemo(

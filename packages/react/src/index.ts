@@ -46,7 +46,7 @@ export type { Caip2Id, ChainNamespace, ChainReference } from './internal/branded
 export { caip2Id, chainNamespace, chainReference, parseCaip2Id } from './internal/branded'
 
 // --- Swap Store Types ---
-export type { SwapFlags, ConsensusPhase } from './internal/store'
+export type { SwapFlags, ConsensusPhase, VerificationSource } from './internal/store'
 
 // --- Query Keys (for advanced consumers: prefetch/invalidate) ---
 export { trainQueryKeys } from './internal/queryKeys'
@@ -65,6 +65,8 @@ export type {
     QuoteParams,
     SwapHistoryParams,
     OrderParams,
+    LightClientVerifier,
+    LightClientVerifyOptions,
 } from './types'
 
 // --- Re-exported SDK types ---

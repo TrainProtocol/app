@@ -113,18 +113,7 @@ export abstract class HTLCPublicClient implements IHTLCPublicClient {
 
             if (allValidResults.length >= effectiveQuorum) {
                 const [first, ...rest] = allValidResults
-                if (rest.length > 0 && !rest.every(r =>
-                    amountsMatch(r, first) &&
-                    r.hashlock.toLowerCase() === first.hashlock.toLowerCase() &&
-                    r.sender === first.sender &&
-                    r.recipient === first.recipient &&
-                    r.token === first.token &&
-                    r.refundTo === first.refundTo &&
-                    r.payoutCurve === first.payoutCurve &&
-                    r.payoutCurveData === first.payoutCurveData &&
-                    r.timelock === first.timelock &&
-                    r.status === first.status
-                )) {
+                if (rest.length > 0 && !rest.every(r => solverLockDetailsMatch(r, first))) {
                     throw new Error('Lock details do not match across the provided nodes')
                 }
                 return { details: first, agreedCount: allValidResults.length }
@@ -156,6 +145,33 @@ export interface ConsensusOptions {
 export interface ConsensusResult {
     details: SolverLockDetails
     agreedCount: number
+}
+
+/**
+ * Do two readings of the same solver lock agree on its *terms* — everything that
+ * defines the deal the user is about to hand a secret for? Excludes `status` and
+ * `secret`, which legitimately change over the lock's lifetime, so this is the
+ * right predicate for comparing readings taken at different times (e.g. a
+ * light-client verdict against a later RPC poll).
+ */
+export function solverLockTermsMatch(left: SolverLockDetails, right: SolverLockDetails): boolean {
+    return amountsMatch(left, right) &&
+        left.hashlock.toLowerCase() === right.hashlock.toLowerCase() &&
+        left.sender === right.sender &&
+        left.recipient === right.recipient &&
+        left.token === right.token &&
+        left.refundTo === right.refundTo &&
+        left.payoutCurve === right.payoutCurve &&
+        left.payoutCurveData === right.payoutCurveData &&
+        left.timelock === right.timelock
+}
+
+/**
+ * Full point-in-time equality: the lock's terms plus its current status. Used to
+ * compare readings taken simultaneously across nodes, where status must agree too.
+ */
+export function solverLockDetailsMatch(left: SolverLockDetails, right: SolverLockDetails): boolean {
+    return solverLockTermsMatch(left, right) && left.status === right.status
 }
 
 function amountsMatch(left: SolverLockDetails, right: SolverLockDetails): boolean {

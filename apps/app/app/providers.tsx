@@ -35,6 +35,8 @@ import { initFaro } from "@/lib/faro"
 import FaroTracker from "@/components/FaroTracker"
 import AppSettings from "@/lib/AppSettings"
 import { useRpcConfigStore } from "@/stores/rpcConfigStore"
+import { getLightClientVerifier } from "@/lib/lightClient"
+import { LIGHT_CLIENT_MIN_AMOUNT_USD } from "@/lib/lightClient/networks"
 import Loading from "@/components/Loading"
 
 if (typeof window !== "undefined") {
@@ -108,6 +110,8 @@ function AppShell({ children, settings }: { children: React.ReactNode; settings:
                 <TrainProvider
                     baseUrl={AppSettings.TrainApiUri ?? ''}
                     resolveNodeUrls={resolveNodeUrls}
+                    resolveLightClient={getLightClientVerifier}
+                    lightClientMinAmountUsd={LIGHT_CLIENT_MIN_AMOUNT_USD}
                     initialNetworks={settings.networks}
                     secretDerivation={{ persist: true }}
                 >

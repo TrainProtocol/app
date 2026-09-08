@@ -1,9 +1,28 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { PasskeyCredentialStorage, TrainAuth } from '@train-protocol/auth'
-import { HTLCStatus, Network, QuoteDetails, Token, TrainSDK } from '@train-protocol/sdk'
+import { HTLCStatus, LockParams, Network, QuoteDetails, SolverLockDetails, Token, TrainSDK } from '@train-protocol/sdk'
 import { LoginIdentity } from './hooks/useLoginIdentityMismatch'
 
 export type DerivationMethod = 'passkey' | 'wallet_sign'
+
+export interface LightClientVerifyOptions {
+    signal?: AbortSignal
+    /** Total budget covering init, sync, and lock observation. */
+    timeoutMs?: number
+}
+
+/**
+ * Trustless verifier for a destination network's solver lock (e.g. a Helios
+ * light-client worker). Resolves verified details; resolves null when the lock
+ * was not observable within the budget; rejects on infrastructure failure
+ * (init/sync/RPC error). Callers treat null and rejection identically — fall
+ * back to RPC consensus — the split exists only for logging.
+ */
+export interface LightClientVerifier {
+    /** Begin background init + sync. Idempotent, non-blocking, must never throw. */
+    warmUp(): void
+    verifySolverLock(params: LockParams, opts?: LightClientVerifyOptions): Promise<SolverLockDetails | null>
+}
 
 /** Configuration for TrainProvider */
 export interface TrainConfig {
@@ -21,6 +40,15 @@ export interface TrainConfig {
     auth?: TrainAuth
     /** Resolve RPC node URLs for a CAIP-2 network ID (used for solver lock verification) */
     resolveNodeUrls?: (networkId: string) => string[]
+    /** Resolve a trustless light-client verifier for a CAIP-2 network ID; null when unsupported/unavailable. Tried before RPC consensus. */
+    resolveLightClient?: (networkId: string) => LightClientVerifier | null
+    /**
+     * Only swaps whose source amount is worth at least this many USD verify via
+     * the light client; smaller swaps go straight to multi-RPC consensus.
+     * A swap that cannot be valued (missing price data) is treated as large.
+     * Default 0 — every supported swap uses the light client.
+     */
+    lightClientMinAmountUsd?: number
     /** Optional TanStack Query client (for sharing with app-level QueryClientProvider) */
     queryClient?: QueryClient
     /** Pre-fetched networks (e.g. from SSR) to seed the cache and avoid a duplicate client-side fetch */
